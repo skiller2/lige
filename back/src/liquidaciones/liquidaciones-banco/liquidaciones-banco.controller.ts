@@ -17,7 +17,7 @@ import {
   rgb,
 } from "pdf-lib";
 
-import type {  PDFPageDrawPageOptions }from "pdf-lib";
+import type { PDFPageDrawPageOptions } from "pdf-lib";
 
 import {
   copyFileSync,
@@ -366,7 +366,7 @@ export class LiquidacionesBancoController extends BaseController {
     stmactual.setHours(0, 0, 0, 0)
 
     return dataSource.query(
-      `SELECT CONCAT(per.PersonalId,movpos.tipocuenta_id) as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion,movpos.tipocuenta_id, movpos.importe, 'CUE' as ind_imputacion,
+      `SELECT CONCAT(per.PersonalId,movpos.tipocuenta_id) as id,per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion,movpos.tipocuenta_id, movpos.importe, 'CUE' as ind_imputacion,
       '' as clave_id,
       sit.SituacionRevistaDescripcion
       FROM Personal per
@@ -396,7 +396,7 @@ export class LiquidacionesBancoController extends BaseController {
     const stmactual = new Date()
 
     return dataSource.query(
-      `SELECT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId ) as id,per.PersonalId, pre.PersonalPrestamoId as clave_id, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
+      `SELECT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId ) as id,per.PersonalId, pre.PersonalPrestamoId as clave_id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
       pre.PersonalPrestamoMonto AS importe, pre.PersonalPrestamoAplicaEl,
       tipo.tipo_movimiento_id, tipo.des_movimiento,
       pre.PersonalPrestamoLiquidoFinanzas,
@@ -606,15 +606,15 @@ export class LiquidacionesBancoController extends BaseController {
           const prestamo = await queryRunner.query(`SELECT pre.PersonalPrestamoId, frm.FormaPrestamoDescripcion FROM PersonalPrestamo pre 
             JOIN FormaPrestamo frm ON frm.FormaPrestamoId = pre.FormaPrestamoId
             WHERE pre.PersonalId = @0 AND pre.PersonalPrestamoMonto = @1 AND pre.PersonalPrestamoId=@2
-            `,            [row.persona_id,
-            row.importe,
-            row.clave_id
-            ])
+            `, [row.persona_id,
+          row.importe,
+          row.clave_id
+          ])
 
-          
+
           //Prestamo Positivo
 
-          
+
 
 
           await queryRunner.query(`INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe, tipocuenta_id,
@@ -622,10 +622,10 @@ export class LiquidacionesBancoController extends BaseController {
               VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14)`,
             [++movimiento_id,
             row.periodo_id,
-            tipo_movimiento_id_ade,
-            fechaActual,
+              tipo_movimiento_id_ade,
+              fechaActual,
             `${prestamo[0].FormaPrestamoDescripcion} ${row.persona_id + '/' + row.clave_id}`,
-            null,
+              null,
             row.persona_id,
             row.importe,
             row.tipocuenta_id,
@@ -685,7 +685,7 @@ export class LiquidacionesBancoController extends BaseController {
       const formattedMonth = String(periodo.month).padStart(2, "0");
       let fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}.xlsx`
       const tmpfilename = `${directory}/${tmpName(directory)}${fileTest}`;
-      let banco
+      let banco: any[] = []
 
       let fechaActual = new Date()
       let ip = this.getRemoteAddress(req)
@@ -707,7 +707,22 @@ export class LiquidacionesBancoController extends BaseController {
           break;
       }
 
-      if (!banco || banco.length == 0)
+
+      const bancoDups = banco.filter(
+        (item, index, array) =>
+          array.findIndex(p => p.PersonalId === item.PersonalId) !== index
+      );
+
+console.log('bancoDups', bancoDups)
+
+      if (bancoDups.length > 0) {
+        const dupIds = bancoDups.map((p: any) => p.PersonalApellidoNombre).join(', ')
+        throw new ClientException(`Existen registros duplicados para : ${dupIds}.`)
+      }
+
+
+
+      if (banco.length == 0)
         throw new ClientException('No hay registros para generar archivo')
 
       await queryRunner.connect();
@@ -842,10 +857,10 @@ export class LiquidacionesBancoController extends BaseController {
       }
 
 
-        if (isTest)
-          await this.rollbackTransaction(queryRunner)
-        else
-          await queryRunner.commitTransaction();
+      if (isTest)
+        await this.rollbackTransaction(queryRunner)
+      else
+        await queryRunner.commitTransaction();
 
       res.download(tmpfilename, fileName, async (msg) => {
 
@@ -909,7 +924,7 @@ export class LiquidacionesBancoController extends BaseController {
     options: Options;
   }) {
 
-    return dataSource.query(`SELECT per.PersonalId as id,per.PersonalId, per.PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.importe
+    return dataSource.query(`SELECT per.PersonalId as id,per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.importe
       FROM Personal per
       JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
       JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = per.PersonalId

@@ -253,7 +253,7 @@ const listaColumnasPersonalSeguro: any[] = [
     id: "PersonalApellidoNombre",
     name: "Apellido y Nombre",
     field: "PersonalApellidoNombre",
-    fieldName: "per.PersonalApellidoNombre",
+    fieldName: "PersonalApellidoNombre",
     type: "string",
     sortable: true,
     hidden: false,
@@ -875,7 +875,7 @@ UNION
     try {
       let result = await dataSource.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroNroPoliza,
-      perpoliz.PolizaSeguroNroEndoso,perpoliz.CompaniaSeguroId,perpoliz.TipoSeguroCodigo,per.PersonalId,per.PersonalApellidoNombre,
+      perpoliz.PolizaSeguroNroEndoso,perpoliz.CompaniaSeguroId,perpoliz.TipoSeguroCodigo,per.PersonalId,CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS PersonalApellidoNombre,
       cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso,tipseg.TipoSeguroNombre,cs.CompaniaSeguroDescripcion
       FROM PersonalPolizaSeguro AS perpoliz
       JOIN Personal per ON per.PersonalId = perpoliz.PersonalPolizaSeguroPersonalId

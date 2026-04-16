@@ -71,9 +71,9 @@ export class PersonalObjetivosController extends BaseController {
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       WHERE per.persona_id = @0;`, [parameter])
     }else{
-      return queryRunner.query(`SELECT percarga.persona_id as id ,per.PersonalApellidoNombre AS Descripcion 
+      return queryRunner.query(`SELECT percarga.persona_id as id ,CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS Descripcion 
       FROM lige.dbo.percargadirecta percarga
-      JOIN personal AS per ON per.PersonalId = percarga.persona_id
+      JOIN Personal AS per ON per.PersonalId = percarga.persona_id
       WHERE percarga.objetivo_id = @0;`, [parameter])
     }
 

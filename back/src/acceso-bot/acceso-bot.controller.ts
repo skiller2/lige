@@ -42,7 +42,7 @@ export class AccesoBotController extends BaseController {
             type: "string",
             id: "Nombre",
             field: "Nombre",
-            fieldName: "per.PersonalApellidoNombre",
+            fieldName: "PersonalApellidoNombre",
             searchType: "string",
             searchHidden: true,
             sortable: true
@@ -109,7 +109,7 @@ export class AccesoBotController extends BaseController {
             const BotRegTelefonoPersonal = await queryRunner.query(
                 `SELECT
                 reg.PersonalId AS id,
-                per.PersonalApellidoNombre AS Nombre, 
+                CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS Nombre, 
                 cuit.PersonalCUITCUILCUIT,
                 doc.PersonalDocumentoNro,
                 reg.Telefono,

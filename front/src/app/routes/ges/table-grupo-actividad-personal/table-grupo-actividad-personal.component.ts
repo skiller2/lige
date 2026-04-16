@@ -299,7 +299,6 @@ export class TableGrupoActividadPersonalComponent {
 
   openDrawer() {
     if (this.PersonalId() == 0) return
-    //this.personalApellidoNombre = persona.ApellidoNombre
     this.visibleDrawerPersona.set(true)
 
   }

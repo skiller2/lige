@@ -93,7 +93,7 @@ export class ListaPermisoCargaController extends BaseController {
         ROW_NUMBER() OVER (ORDER BY carg.objetivo_id) AS id,
         objetivo_id AS ObjetivoCodigo,
         eledep.ClienteElementoDependienteDescripcion,
-        per.PersonalApellidoNombre AS PersonaDescripcion ,
+        CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS PersonaDescripcion ,
         cuit.personalCUITCUILCUIT AS CUIT ,
         aud_fecha_mod AS Fechadeultimamodificación
         FROM lige.dbo.percargadirecta carg
