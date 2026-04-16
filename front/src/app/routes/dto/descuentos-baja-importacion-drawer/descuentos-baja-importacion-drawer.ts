@@ -22,6 +22,7 @@ export class DescuentosBajaImportacionDrawer {
   visibleBajaImport = model<boolean>(false);
   isLoading = signal(false);
   confirmarBaja = signal<boolean>(false)
+  onDeleteImport = output()
   placement: NzDrawerPlacement = 'right';
 
   private apiService = inject(ApiService)
@@ -53,6 +54,7 @@ export class DescuentosBajaImportacionDrawer {
     if (this.confirmarBaja() && this.DocumentoId() && table) {
       try {
         await firstValueFrom(this.apiService.deletedImportDescuento(this.DocumentoId(), table))
+        this.onDeleteImport.emit()
       } catch (error) {
         
       }

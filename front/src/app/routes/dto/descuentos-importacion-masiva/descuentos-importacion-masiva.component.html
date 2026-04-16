@@ -60,7 +60,8 @@
     <nz-form-item>
       <nz-form-label class="inputText">Importaciones anteriores</nz-form-label>
       <nz-form-control>
-        <ng-container *ngFor="let movimiento of $importacionesAnteriores | async">
+        @for (movimiento of importacionesAnteriores.value(); track movimiento) {
+        <!-- <ng-container *ngFor="let movimiento of $importacionesAnteriores | async"> -->
           <!-- <ng-container > -->
           <div class="containerAnterioresDescuentos" nz-tooltip
             nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
@@ -76,7 +77,8 @@
             </ng-container>
             <span> ID: {{movimiento.DocumentoId}} | {{movimiento.DocumentoDenominadorDocumento}}</span>
           </div>
-        </ng-container>
+        <!-- </ng-container> -->
+         }
       </nz-form-control>
     </nz-form-item>
   </form>
@@ -100,4 +102,4 @@
   </div>
 
 </nz-card>
-<app-descuentos-baja-importacion-drawer [(visibleBajaImport)]="visibleBajaImport" [DocumentoId]="selectedDocId()"></app-descuentos-baja-importacion-drawer>
+<app-descuentos-baja-importacion-drawer [(visibleBajaImport)]="visibleBajaImport" [DocumentoId]="selectedDocId()" (onDeleteImport)="onDeleteImport($event)"></app-descuentos-baja-importacion-drawer>

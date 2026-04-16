@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, ChangeDetectionStrategy, resource } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -130,16 +130,13 @@ export class DescuentosImportacionMasivaComponent {
       },
     ]
 
-    $importacionesAnteriores = this.formChange$.pipe(
-      debounceTime(500),
-      switchMap(() => {
-        return this.apiService
-          .getImportacionesDescuentosAnteriores(this.anio(), this.mes())
-          .pipe(
-         
-        )
-      })
-    )
+    importacionesAnteriores = resource({
+      params: () => ({ anio: this.anio(), mes: this.mes() }),
+        loader: async ({ params }) => {
+          if (!params.anio || !params.mes) return [];
+          return await firstValueFrom(this.apiService.getImportacionesDescuentosAnteriores(params.anio, params.mes))
+        }
+    });
 
 
     ngOnInit(): void {
@@ -244,5 +241,9 @@ export class DescuentosImportacionMasivaComponent {
     openDrawerforBajaImportacion(docId: number) {
       this.selectedDocId.set(docId)
       this.visibleBajaImport.set(true)
+    }
+
+    onDeleteImport(_e: any) {
+      this.importacionesAnteriores.reload();
     }
 }
