@@ -201,48 +201,48 @@ export class LiquidacionesBancoComponent {
   }
 
   gridData = resource({
-      params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), reload: this.reload() }),
-      loader: async ({ params }) => {
-          let response = []
-          this.loadingSrv.open({ type: 'spin', text: '' })
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), reload: this.reload(), tabIndex: this.tabIndex() }),
+    loader: async ({ params }) => {
+      if (params.tabIndex != 1) return []
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
 
-          try {
-              response = await firstValueFrom(this.apiService
+      try {
+        response = await firstValueFrom(this.apiService
         .getLiquidacionesBanco(
           { anio: params.anio, mes: params.mes, options: params.options }
-        )        .pipe(
-          map(data => {
+        ).pipe( map(data => {
             this.listdowload = "gridData";
             return data.list
-          })))
-          } catch (_e) { }
-          this.loadingSrv.close()
+          }
+        )))
+      } catch (_e) { }
+        this.loadingSrv.close()
 
-          return response || [];
+        return response || [];
       },
 
       defaultValue: []
   });
 
   gridDataAyuda = resource({
-      params: () => ({ options: this.listOptionsAyuda(), anio: this.anio(), mes: this.mes(), reload: this.reload() }),
+      params: () => ({ options: this.listOptionsAyuda(), anio: this.anio(), mes: this.mes(), reload: this.reload(), tabIndex: this.tabIndex() }),
       loader: async ({ params }) => {
-          let response = []
-          this.loadingSrv.open({ type: 'spin', text: '' })
+        if (params.tabIndex != 2) return []
+        let response = []
+        this.loadingSrv.open({ type: 'spin', text: '' })
 
-          try {
-              response = await firstValueFrom(this.apiService
-        .getLiquidacionesBancoAyudaAsistencial(
-          { anio: params.anio, mes: params.mes, options: params.options }
-        )        .pipe(
-          map(data => {
+        try {
+          response = await firstValueFrom(this.apiService.getLiquidacionesBancoAyudaAsistencial(
+            { anio: params.anio, mes: params.mes, options: params.options }
+          ).pipe(map(data => {
             this.listdowload = "gridDataAyuda";
             return data.list
           })))
-          } catch (_e) { }
-          this.loadingSrv.close()
+        } catch (_e) { }
+        this.loadingSrv.close()
 
-          return response || [];
+        return response || [];
       },
 
       defaultValue: []
