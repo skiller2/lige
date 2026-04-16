@@ -941,18 +941,40 @@ export class GestionDescuentosController extends BaseController {
     const AplicaEl: Date = objDescuento.AplicaEl ? new Date(objDescuento.AplicaEl) : null
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas: number = objDescuento.Cuotas
-    const importeCuota = Number((Number(objDescuento.Importe) / Number(Cuotas)).toFixed(2))
-    const importeTotal = Number((Number(objDescuento.Importe)).toFixed(2))
+    let importeTotal = Number((Number(objDescuento.Importe)).toFixed(2))
     const Detalle: number = objDescuento.Detalle
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
     const DocumentoId: number = objDescuento.DocumentoId
+    let EfectoId = objDescuento.EfectoId
+    let EfectoIndividualId = objDescuento.EfectoIndividualId
+    let Cantidad = objDescuento.Cantidad || 1
+    let PorcentajeDescuento = objDescuento.PorcentajeDescuento ?? '100'
+
+    let mensaje = ''
+    switch (ObjetivoDescuentoDescuentoId) {
+      case 50: // descuento de efecto
+        if (!EfectoId) mensaje += 'Debe seleccionar un efecto asociado al objetivo. '
+        const porc = Number(PorcentajeDescuento)
+        if (porc != 50 && porc != 100) mensaje += 'El porcentaje de descuento debe ser 50% o 100%. '
+        importeTotal = Number((importeTotal * (porc / 100)).toFixed(2))
+        break
+      default:
+        EfectoId = null
+        EfectoIndividualId = null
+        Cantidad = 1
+        PorcentajeDescuento = '100'
+        break
+    }
+
+    if (mensaje.length > 0) throw new ClientException(mensaje)
+
+    const importeCuota = Number((importeTotal / Number(Cuotas)).toFixed(2))
 
     const Objetivo = await queryRunner.query(`SELECT ISNULL(ObjetivoDescuentoUltNro, 0) AS ObjetivoDescuentoUltNro FROM Objetivo WHERE ObjetivoId IN (@0)`, [ObjetivoId])
     const ObjetivoDescuentoId = Objetivo[0].ObjetivoDescuentoUltNro + 1
     const hoy = new Date()
 
-    throw new ClientException('Apartado Deshabilitado')
     await queryRunner.query(`
       INSERT INTO ObjetivoDescuento (
       ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, ObjetivoDescuentoAnoAplica
@@ -961,12 +983,14 @@ export class GestionDescuentosController extends BaseController {
       , ObjetivoDescuentoLiquidoFinanzas, ObjetivoDescuentoCuotaUltNro, ObjetivoDescuentoDetalle
       , ObjetivoDescuentoAudFechaIng, ObjetivoDescuentoAudUsuarioIng, ObjetivoDescuentoAudIpIng
       , ObjetivoDescuentoAudFechaMod, ObjetivoDescuentoAudUsuarioMod, ObjetivoDescuentoAudIpMod
-      , ObjetivoDescuentoDescontar, ImportacionDocumentoId)
-      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, @5, 0, 0, @8, @9, @10, @11, @9, @10, @11, @12, @13)
+      , ObjetivoDescuentoDescontar, ImportacionDocumentoId
+      , EfectoId, EfectoIndividualId, Cantidad, PorcentajeDescuento)
+      VALUES (@0, @1, @2, @3, @4, @4, 1, @5, @6, @7, @5, 0, 0, @8, @9, @10, @11, @9, @10, @11, @12, @13, @14, @15, @16, @17)
 
-    
+
     `, [ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, anio,
-      mes, Cuotas, importeTotal, AplicaEl, Detalle, hoy, usuario, ip, AplicaA, DocumentoId])
+      mes, Cuotas, importeTotal, AplicaEl, Detalle, hoy, usuario, ip, AplicaA, DocumentoId,
+      EfectoId, EfectoIndividualId, Cantidad, PorcentajeDescuento])
 
     let ObjetivoDescuentoCuotaId = 0
     let cuotaAnio = anio
@@ -1951,16 +1975,24 @@ FROM cte
       await queryRunner.startTransaction()
 
       const descuento = await queryRunner.query(`
-    SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoDetalle Detalle
-      , ObjetivoDescuentoFechaAplica AplicaEl, ObjetivoDescuentoCantidadCuotas Cuotas
-      , ObjetivoDescuentoImporteVariable as Importe
-      , ObjetivoId
-      , ObjetivoDescuentoId id
-      , ObjetivoDescuentoDescontar AplicaA
-      , ObjetivoDescuentoDetalleAnulacion DetalleAnulacion
-      , ObjetivoDescuentoFechaAnulacion FechaAnulacion
-      , ImportacionDocumentoId
-      FROM ObjetivoDescuento WHERE ObjetivoDescuentoId = @0 AND ObjetivoId = @1
+    SELECT od.ObjetivoDescuentoDescuentoId DescuentoId, od.ObjetivoDescuentoDetalle Detalle
+      , od.ObjetivoDescuentoFechaAplica AplicaEl, od.ObjetivoDescuentoCantidadCuotas Cuotas
+      , od.ObjetivoDescuentoImporteVariable as Importe
+      , od.ObjetivoId
+      , od.ObjetivoDescuentoId id
+      , od.ObjetivoDescuentoDescontar AplicaA
+      , od.ObjetivoDescuentoDetalleAnulacion DetalleAnulacion
+      , od.ObjetivoDescuentoFechaAnulacion FechaAnulacion
+      , od.ImportacionDocumentoId
+      , od.EfectoId
+      , od.EfectoIndividualId
+      , od.Cantidad
+      , od.PorcentajeDescuento
+      , CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta
+      FROM ObjetivoDescuento od
+      LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = od.EfectoId
+      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = od.EfectoId AND efeind.EfectoEfectoIndividualId = od.EfectoIndividualId
+      WHERE od.ObjetivoDescuentoId = @0 AND od.ObjetivoId = @1
       `, [DescuentoId, ObjetivoId])
       // throw new ClientException(`DEBUG.`)
 
@@ -2523,6 +2555,17 @@ FROM cte
     }
     if (!formInputs.Detalle) campos_vacios.push(`- Detalle`)
     if (!formInputs.DescuentoId) campos_vacios.push(`- Tipo de descuento`)
+
+    if (Number(formInputs.DescuentoId) === 50) {
+      if (!formInputs.EfectoId) campos_vacios.push(`- Efecto`)
+      if (!formInputs.Cantidad || isNaN(Number(formInputs.Cantidad)) || Number(formInputs.Cantidad) <= 0) {
+        campos_vacios.push(`- Cantidad (debe ser mayor a 0)`)
+      }
+      const porc = Number(formInputs.PorcentajeDescuento)
+      if (porc !== 50 && porc !== 100) {
+        campos_vacios.push(`- Porcentaje de descuento (debe ser 50 o 100)`)
+      }
+    }
 
     if (campos_vacios.length) {
       campos_vacios.unshift('Debe completar los siguientes campos: ')

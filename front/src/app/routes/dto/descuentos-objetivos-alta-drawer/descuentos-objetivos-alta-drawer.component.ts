@@ -27,6 +27,11 @@ export interface FormDesc {
     DetalleAnulacion: string;
     ImportacionDocumentoId: number | null;
     oldObjetivoId: number;
+    EfectoKey: { EfectoId: number | null, EfectoIndividualId: number | null };
+    EfectoId: number | null;
+    EfectoIndividualId: number | null;
+    Cantidad: number | any;
+    PorcentajeDescuento: number | any;
 }
 
 @Component({
@@ -61,7 +66,12 @@ export class DescuentosObjetivosAltaDrawerComponent {
         DetalleAnulacion: '',
         FechaAnulacion: null,
         ImportacionDocumentoId: null,
-        oldObjetivoId: 0
+        oldObjetivoId: 0,
+        EfectoKey: { EfectoId: null, EfectoIndividualId: null },
+        EfectoId: null,
+        EfectoIndividualId: null,
+        Cantidad: 1,
+        PorcentajeDescuento: 100,
     }
 
     readonly descuentoObjetivo = signal<FormDesc>(this.descuentoObjetivoDefault);
@@ -73,8 +83,11 @@ export class DescuentosObjetivosAltaDrawerComponent {
         disabled(p.ObjetivoId, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
         disabled(p.Cuotas, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
         disabled(p.Importe, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
+        disabled(p.PorcentajeDescuento, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
+        disabled(p.Cantidad, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
+        disabled(p.EfectoKey, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
         disabled(p.Detalle, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
-        
+
         disabled(p.DetalleAnulacion, () => this.crudAccion() === 'R')
         disabled(p.FechaAnulacion, () => true)
         disabled(p.ImportacionDocumentoId, () => true)
@@ -97,24 +110,91 @@ export class DescuentosObjetivosAltaDrawerComponent {
         }
     });
 
-    importeCuota = computed(() => {
+    isEfecto = computed(() => this.descuentoObjetivo().DescuentoId == 50)
+
+    DescuentoId = computed(() => this.descuentoObjetivo().DescuentoId)
+    effectoKey = computed(() => this.descuentoObjetivo().EfectoKey)
+
+    efectoCompareFn = (o1: any, o2: any): boolean => ((o1?.EfectoId === o2?.EfectoId && o1?.EfectoIndividualId === o2?.EfectoIndividualId) ? true : false)
+
+    listaEfectosObj = resource({
+        params: () => ({ ObjetivoId: this.descuentoObjetivo().ObjetivoId, isEfecto: this.isEfecto() }),
+        loader: async ({ params }) => {
+            if (params.isEfecto && params.ObjetivoId) {
+                const res = await firstValueFrom(this.searchService.getEfectoByObjetivoId(params.ObjetivoId))
+                return res ?? []
+            }
+            return []
+        }
+    })
+
+    formEffect = effect(() => {
+        if (this.DescuentoId() != 50) {
+            this.descuentoObjetivo.update((state) => {
+                return { ...state, EfectoId: null, EfectoIndividualId: null, EfectoKey: { EfectoId: null, EfectoIndividualId: null }, PorcentajeDescuento: 100, Cantidad: 1 }
+            })
+        }
+
+        if (this.effectoKey()) {
+            untracked(() => {
+                this.descuentoObjetivo.update((state) => {
+                    return { ...state, EfectoId: this.descuentoObjetivo().EfectoKey.EfectoId, EfectoIndividualId: this.descuentoObjetivo().EfectoKey.EfectoIndividualId }
+                })
+            })
+        }
+    })
+
+    onEfectoChange() {
+        setTimeout(() => {
+            const listaEfectos = this.listaEfectosObj.value();
+            const efectoSeleccionado = listaEfectos.find((e: any) =>
+                e.EfectoId === this.descuentoObjetivo().EfectoKey.EfectoId &&
+                e.EfectoIndividualId === this.descuentoObjetivo().EfectoKey.EfectoIndividualId
+            );
+            if (efectoSeleccionado) {
+                this.descuentoObjetivo.update((state) => {
+                    return { ...state, Importe: efectoSeleccionado.Importe ?? '' }
+                })
+            }
+        }, 200);
+    }
+
+    lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleta: string } | null>(null)
+
+    importeTotal = computed(() => {
         const s = this.descuentoObjetivo();
         const importe = Number(s.Importe) || 0;
-        const cuotas = Number(s.Cuotas) || 1;      // evita /0
-        const total = importe / cuotas;
-        return total.toFixed(2); // string
+        const cant = Number(s.Cantidad) || 0;
+        const pct = Number(s.PorcentajeDescuento) || 0;
+        const total = (importe * cant * (pct / 100));
+        return total.toFixed(2);
+    });
+
+    importeCuota = computed(() => {
+        const s = this.descuentoObjetivo();
+        const cuotas = Number(s.Cuotas) || 1;
+        if (this.isEfecto()) {
+            const total = Number(this.importeTotal()) || 0;
+            return (total / cuotas).toFixed(2);
+        }
+        const importe = Number(s.Importe) || 0;
+        return (importe / cuotas).toFixed(2);
     });
 
     async loadDescuentoObjetivo() {
         const infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.ObjetivoDescuentoId()))
-        
+
         infoDesc.oldObjetivoId = infoDesc.ObjetivoId
-        infoDesc.AplicaEl = infoDesc.AplicaEl? new Date(infoDesc.AplicaEl) : null
-        infoDesc.FechaAnulacion = infoDesc.FechaAnulacion? new Date(infoDesc.FechaAnulacion) : null
-        // infoDesc.Importe = infoDesc.Importe.toString()
-        // console.log('infoDesc: ', infoDesc);
-        
+        infoDesc.AplicaEl = infoDesc.AplicaEl ? new Date(infoDesc.AplicaEl) : null
+        infoDesc.FechaAnulacion = infoDesc.FechaAnulacion ? new Date(infoDesc.FechaAnulacion) : null
+        infoDesc.EfectoKey = { EfectoId: infoDesc.EfectoId ?? null, EfectoIndividualId: infoDesc.EfectoIndividualId ?? null }
+
         this.descuentoObjetivo.set(infoDesc)
+
+        if (infoDesc.EfectoId)
+            this.lastEfecto.set({ EfectoId: infoDesc.EfectoId, EfectoIndividualId: infoDesc.EfectoIndividualId, EfectoDescripcionCompleta: infoDesc.EfectoDescripcionCompleta })
+        else
+            this.lastEfecto.set(null)
     }
 
     // private destroy$ = new Subject();
@@ -173,6 +253,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     resetForm() {
         this.descuentoObjetivo.set(this.descuentoObjetivoDefault)
+        this.lastEfecto.set(null)
 
         this.formDescuentoObjetivo().reset()
     }

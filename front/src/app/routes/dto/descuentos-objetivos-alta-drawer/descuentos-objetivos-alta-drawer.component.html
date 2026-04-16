@@ -43,6 +43,38 @@
           </nz-form-control>
         </nz-form-item>
 
+        @if (isEfecto()) {
+          <nz-form-item class="marginElement">
+            <nz-form-label [nzXs]="5">Efecto</nz-form-label>
+            <nz-form-control [nzMd]="18">
+              <nz-select [formField]="formDescuentoObjetivo.EfectoKey" [compareWith]="efectoCompareFn"
+                nzPlaceHolder="Seleccione efecto" nzAllowClear [nzDropdownMatchSelectWidth]="false" (nzBlur)="onEfectoChange()">
+                @for (efecto of listaEfectosObj.value(); track efecto.EfectoId) {
+                  <nz-option [nzValue]="{EfectoId: efecto.EfectoId, EfectoIndividualId: efecto.EfectoIndividualId}"
+                    [nzLabel]="efecto.EfectoDescripcionCompleta + ' (Stock: ' + efecto.StockStock + ')'"></nz-option>
+                }
+                @if (lastEfecto()?.EfectoId) {
+                  <nz-option
+                    [nzValue]="{EfectoId: lastEfecto()?.EfectoId, EfectoIndividualId: lastEfecto()?.EfectoIndividualId}"
+                    [nzLabel]="lastEfecto()?.EfectoDescripcionCompleta || ''"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="marginElement">
+            <nz-form-label [nzXs]="5">Cantidad</nz-form-label>
+            <nz-form-control [nzMd]="6">
+              <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Cantidad" type="number" mask="separator.0"/>
+            </nz-form-control>
+
+            <nz-form-label [nzXs]="5">Porcentaje</nz-form-label>
+            <nz-form-control [nzMd]="6">
+              <input nz-input placeholder="" [formField]="formDescuentoObjetivo.PorcentajeDescuento" type="number" mask="separator.0"/>
+            </nz-form-control>
+          </nz-form-item>
+        }
+
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5" [nzSpan]="5">Responsable</nz-form-label>
           @if (objetivoDetalle.value(); as objetivoDetalle) {
@@ -83,11 +115,21 @@
               <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Cuotas" type="number" />
             </nz-form-control>
 
-            <nz-form-label [nzXs]="5">Importe Total</nz-form-label>
+            <nz-form-label [nzXs]="5">{{ isEfecto() ? "Importe Unitario" : "Importe Total" }}</nz-form-label>
             <nz-form-control [nzMd]="7">
               <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Importe" type="text" appDotToComma mask="separator.2"/>
             </nz-form-control>
           </nz-form-item>
+
+          @if (isEfecto()) {
+            <nz-form-item class="marginElement">
+              <nz-form-label [nzXs]="5">Importe Total</nz-form-label>
+              <nz-form-control [nzMd]="7">
+                <input nz-input [value]="importeTotal()" type="text" appDotToComma mask="separator.2"
+                  class="ant-input text-right" [readonly]="true" />
+              </nz-form-control>
+            </nz-form-item>
+          }
 
           <nz-form-item class="marginElement">
             <nz-form-label [nzXs]="5">Importe Cuota</nz-form-label>
