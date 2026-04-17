@@ -6,7 +6,6 @@ import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
-//import { OPS, getDocument } from "pdfjs-dist";
 import { PNG } from 'pngjs';
 import { randomBytes } from "crypto";
 import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";

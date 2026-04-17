@@ -2,9 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
-//import { getDocument } from "pdfjs-dist";
 import type { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api.d.ts";
-//import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
 
 
 import {
@@ -49,8 +47,6 @@ import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { basename, join } from "path";
 
 
-
-//GlobalWorkerOptions.workerSrc = pdfWorker
 const getOptionsSINO: any[] = [
   { label: 'No', value: '0' },
   { label: 'Si', value: '1' },

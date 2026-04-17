@@ -12,11 +12,6 @@ import { Temporal } from "@js-temporal/polyfill";
 import { ClientesController } from "./clientes/clientes.controller.ts";
 import { HabilitacionesController } from "./habilitaciones/habilitaciones.controller.ts";
 import { GestionDescuentosController } from "./gestion-descuentos/gestion-descuentos.controller.ts";
-//import * as pdfWorker from "pdfjs-dist/build/pdf.worker.mjs";
-//import { GlobalWorkerOptions } from "pdfjs-dist";
-
-//GlobalWorkerOptions.workerSrc = pdfWorker
-
 
 dotenv.config({})
 
