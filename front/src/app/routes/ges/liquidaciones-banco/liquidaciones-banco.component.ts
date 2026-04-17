@@ -5,7 +5,6 @@ import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile } from 'ng-zorro-antd/upload';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
 import { AngularGridInstance, AngularUtilService, Column,  GridOption, SlickGrid } from 'angular-slickgrid';
 import { CommonModule } from '@angular/common';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -70,7 +69,6 @@ export class LiquidacionesBancoComponent {
   fechaDesdeCBU = signal(new Date())
   filesCBU = signal([])
   tabIndex = signal(0)
-  reload = signal(0)
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   angularGridAyuda!: AngularGridInstance;
@@ -201,21 +199,22 @@ export class LiquidacionesBancoComponent {
   }
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), reload: this.reload(), tabIndex: this.tabIndex() }),
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), }),
     loader: async ({ params }) => {
-      if (params.tabIndex != 1) return []
       let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
-
+      
       try {
-        response = await firstValueFrom(this.apiService
-        .getLiquidacionesBanco(
-          { anio: params.anio, mes: params.mes, options: params.options }
-        ).pipe( map(data => {
-            this.listdowload = "gridData";
-            return data.list
-          }
-        )))
+        if (params.anio, params.mes) {
+          response = await firstValueFrom(this.apiService
+          .getLiquidacionesBanco(
+            { anio: params.anio, mes: params.mes, options: params.options }
+          ).pipe( map(data => {
+              this.listdowload = "gridData";
+              return data.list
+            }
+          )))
+        }
       } catch (_e) { }
         this.loadingSrv.close()
 
@@ -224,21 +223,22 @@ export class LiquidacionesBancoComponent {
 
       defaultValue: []
   });
-
+  
   gridDataAyuda = resource({
-      params: () => ({ options: this.listOptionsAyuda(), anio: this.anio(), mes: this.mes(), reload: this.reload(), tabIndex: this.tabIndex() }),
+      params: () => ({ options: this.listOptionsAyuda(), anio: this.anio(), mes: this.mes() }),
       loader: async ({ params }) => {
-        if (params.tabIndex != 2) return []
         let response = []
         this.loadingSrv.open({ type: 'spin', text: '' })
-
+        
         try {
-          response = await firstValueFrom(this.apiService.getLiquidacionesBancoAyudaAsistencial(
-            { anio: params.anio, mes: params.mes, options: params.options }
-          ).pipe(map(data => {
-            this.listdowload = "gridDataAyuda";
-            return data.list
-          })))
+          if (params.anio, params.mes){
+            response = await firstValueFrom(this.apiService.getLiquidacionesBancoAyudaAsistencial(
+              { anio: params.anio, mes: params.mes, options: params.options }
+            ).pipe(map(data => {
+              this.listdowload = "gridDataAyuda";
+              return data.list
+            })))
+          }
         } catch (_e) { }
         this.loadingSrv.close()
 
@@ -426,5 +426,19 @@ export class LiquidacionesBancoComponent {
 
     }
     
+  }
+
+  reloadGrid() {
+    switch (this.tabIndex()) {
+      case 1:
+        this.gridData.reload()
+        break;
+      case 2:
+        this.gridDataAyuda.reload()
+        break;
+    
+      default:
+        break;
+    }
   }
 }

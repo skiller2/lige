@@ -1,4 +1,4 @@
-import {  Component, ElementRef, ViewChild, inject } from '@angular/core';
+import {  Component, ElementRef, ViewChild, inject, resource, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -64,17 +64,13 @@ export class MovimientosPendientes {
   private currencyPipe = inject(CurrencyPipe)
   private readonly loadingSrv = inject(LoadingService);
 
-
-
-
-
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  }
+  })
 
   listOptionsChangeMovimiento(options: any) {
-    this.listOptions = options
+    this.listOptions.set(options)
     this.formChange$.next('')
 
   }
@@ -147,27 +143,31 @@ export class MovimientosPendientes {
     });
   }
 
-  gridDataMovimiento$ = this.formChange$.pipe(
+  gridDataMovimiento = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      const periodo = new Date()
+      let response:any = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
 
-    debounceTime(500),
-    switchMap(() => {
-      const periodo = new Date();
-      return this.apiService
-        .getMovimientosBanco(
-          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions }
-        )
-        .pipe(
-          map(data => {
-            this.anio = periodo.getFullYear();
-            this.mes = periodo.getMonth() + 1;
-            this.listdowload = "gridDataMovimiento";
-            return data.list
-          }),
-          doOnSubscribe(() => this.loadingSrv.open()),
-          tap({ complete: () => this.loadingSrv.close() })
-        )
-    })
-  )
+      try {
+        response = await firstValueFrom(this.apiService.getMovimientosBanco(
+          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: params.options }
+        ).pipe(map(data => {
+          this.anio = periodo.getFullYear();
+          this.mes = periodo.getMonth() + 1;
+          this.listdowload = "gridDataMovimiento";
+          return data.list
+        })))
+      } catch (error) {
+        
+      }
+      
+      this.loadingSrv.close()
+      return response || []
+    }, 
+    defaultValue: []
+  })
 
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
@@ -181,6 +181,5 @@ export class MovimientosPendientes {
       totalRecords(this.angularGrid)
       columnTotal('importe', this.angularGrid)
     })
-
   }
 }

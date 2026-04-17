@@ -3,7 +3,7 @@
   <shared-filtro-builder  [fieldsToSelect]="columnasMovimientos" (optionsChange)="listOptionsChangeMovimiento($event)" />
   <div class="gridContainer3 container-fluid">
     <angular-slickgrid  gridId="grid25" class="" [columns]="columnasMovimientos | colsFilter"
-      [options]="gridOptionsMovimientos" [dataset]="(gridDataMovimiento$ | async) || []"
+      [options]="gridOptionsMovimientos" [dataset]="gridDataMovimiento.value()"
       (onAngularGridCreated)="angularGridReady($event)">
     </angular-slickgrid>
   </div>
