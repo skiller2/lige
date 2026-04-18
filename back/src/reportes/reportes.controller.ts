@@ -3,7 +3,6 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { dataSource } from "../data-source.ts"
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts"
 import { mkdirSync, existsSync, readFileSync, unlinkSync, mkdir, createWriteStream, writeFile, writeFileSync } from "node:fs"
-import fetch from "node-fetch"
 import { tmpName } from "../server.ts"
 
 export class ReportesController extends BaseController {
