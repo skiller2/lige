@@ -32,7 +32,7 @@ if (!existsSync(dirtmp)) {
 const storage = multer.diskStorage({
   destination: (
     req: Request,
-    file: Express.Multer.File,
+    file: multer.File,
     callback: DestinationCallback
   ) => {
     return callback(null, dirtmp);
@@ -40,7 +40,7 @@ const storage = multer.diskStorage({
 
   filename: (
     req: Request,
-    file: Express.Multer.File,
+    file: multer.File,
     callback: DestinationCallback
   ) => {
     const fileName = tmpName(dirtmp);
@@ -50,7 +50,7 @@ const storage = multer.diskStorage({
 
 const fileFilterXLS = (
   request: Request,
-  file: Express.Multer.File,
+  file: multer.File,
   callback: FileFilterCallback
 ): void => {
   if (file.mimetype != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {

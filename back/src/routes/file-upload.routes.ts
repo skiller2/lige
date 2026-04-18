@@ -3,7 +3,7 @@ import type { Request } from "express"
 import { authMiddleware } from "../middlewares/middleware.module.ts";
 import { fileUploadController } from "../controller/controller.module.ts";
 import multer from "multer";
-import type { FileFilterCallback } from "multer";
+import type { FileFilterCallback, File } from "multer";
 import { existsSync, mkdirSync } from "fs";
 import { ClientException } from "../controller/base.controller.ts";
 
@@ -32,14 +32,14 @@ function generateRandomDigitNumber() {
 const storage = multer.diskStorage({
   destination: (
     req: Request,
-    file: Express.Multer.File,
+    file: File,
     callback: DestinationCallback
   ) => {
     return callback(null, dirtmp);
   },
   filename: (
     req: Request,
-    file: Express.Multer.File,
+    file: File,
     callback: DestinationCallback
   ) => {
 
@@ -57,7 +57,7 @@ const storage = multer.diskStorage({
 
 const fileFilterPdf = (
   request: Request,
-  file: Express.Multer.File,
+  file: File,
   callback: FileFilterCallback
 ): void => {
   const allowedMimeTypes = ["application/pdf", "image/jpeg", "image/png", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "video/mp4", "application/vnd.ms-excel"];
