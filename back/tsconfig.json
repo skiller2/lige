@@ -1,10 +1,4 @@
 {
-  "ts-node": {
-    // This can be omitted when using ts-patch
-    //"files": true
-    "transpileOnly": true,
-
-  },
   "compileOnSave": false,
   "compilerOptions": {
     "rootDir": "./src",
@@ -17,7 +11,6 @@
     "module": "nodenext",
     "target": "ESNext",
     "moduleResolution": "nodenext",
-    "importHelpers": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
     "strict":false,
@@ -28,13 +21,8 @@
     "allowImportingTsExtensions":true,
     "noEmit": true,
     "verbatimModuleSyntax":true,
-    "typeRoots": [
-//      "./src/types",
-      "node_modules/@types"
-      
-    ],
     "lib": [
-      "es2021",
+      "ESNext",
     ],
   },
   
