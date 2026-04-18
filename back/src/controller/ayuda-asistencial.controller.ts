@@ -1,4 +1,4 @@
-import type { NextFunction, query, Response } from "express";
+import type { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./base.controller.ts";
 import { dataSource, getConnection } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";

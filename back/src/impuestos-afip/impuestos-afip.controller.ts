@@ -373,9 +373,9 @@ ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
   }
 
   async handleGetDescuentos(req: Request, res: Response, next: NextFunction) {
-    const anio = req.params.anio;
-    const mes = req.params.mes;
-    const GrupoActividadId = req.params.GrupoActividadId;
+    const anio = String(req.params.anio);
+    const mes = String(req.params.mes);
+    const GrupoActividadId = String(req.params.GrupoActividadId);
 
     try {
       const result: DescuentoJSON[] = await this.getDescuentosByPeriodo({

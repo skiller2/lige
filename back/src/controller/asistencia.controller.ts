@@ -1,12 +1,10 @@
-import type { NextFunction, Response, query } from "express";
+import type { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./base.controller.ts";
 import { dataSource } from "../data-source.ts";
 import type { QueryRunner } from "typeorm";
 import { ObjetivoController } from "./objetivo.controller.ts";
 import { CustodiaController } from "./custodia.controller.ts";
 import CryptoJS from "crypto-js";
-//import { float } from "@zxing/library/esm/customTypings";
-import * as fs from 'fs';
 import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pendasis.controller.ts";
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
 import { GestionDescuentosController } from "../gestion-descuentos/gestion-descuentos.controller.ts";
