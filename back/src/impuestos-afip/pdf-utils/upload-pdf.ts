@@ -1,9 +1,8 @@
 import type { Request } from "express";
 import { ClientException } from "../../controller/base.controller.ts";
-import type { File } from "multer";
 
 interface Params {
-  file: File;
+  file: Express.Multer.File;
   yearFromRequest: number;
   monthFromRequest: number;
   importeFromRequest: any;

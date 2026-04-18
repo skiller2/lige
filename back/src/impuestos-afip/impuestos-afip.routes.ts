@@ -3,7 +3,6 @@ import type { Request } from "express";
 import { authMiddleware } from "../middlewares/middleware.module.ts";
 import { impuestosAfipController } from "../controller/controller.module.ts";
 import multer from "multer";
-import type { File } from "multer";
 
 import type { FileFilterCallback } from "multer";
 
@@ -21,7 +20,7 @@ if (!existsSync(dirtmp)) {
 const storage = multer.diskStorage({
   destination: (
     req: Request,
-    file: File,
+    file: Express.Multer.File,
     callback: DestinationCallback
   ) => {
     callback(null, dirtmp);
@@ -29,7 +28,7 @@ const storage = multer.diskStorage({
 
   filename: (
     req: Request,
-    file: File,
+    file: Express.Multer.File,
     callback: DestinationCallback
   ) => {
     const fileName = tmpName(dirtmp);
@@ -39,7 +38,7 @@ const storage = multer.diskStorage({
 
 const fileFilter = (
   request: Request,
-  file: File,
+  file: Express.Multer.File,
   callback: FileFilterCallback
 ): void => {
   if (file.mimetype !== "application/pdf") {
