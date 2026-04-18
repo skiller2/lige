@@ -13,6 +13,12 @@ import { ClientesController } from "./clientes/clientes.controller.ts";
 import { HabilitacionesController } from "./habilitaciones/habilitaciones.controller.ts";
 import { GestionDescuentosController } from "./gestion-descuentos/gestion-descuentos.controller.ts";
 
+import { version } from "pdfjs-dist";
+
+
+console.log('pdfjs-dist version:', version, ) // Verificar la versión del core
+
+
 dotenv.config({})
 
 // Init App

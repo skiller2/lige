@@ -342,8 +342,8 @@ export class LiquidacionesComponent {
       hidden: false,
     },
     {
-      name: "Cuit",
-      type: "number",
+      name: "CUIT",
+      type: "string",
       id: "cuit",
       field: "cuit",
       sortable: true,

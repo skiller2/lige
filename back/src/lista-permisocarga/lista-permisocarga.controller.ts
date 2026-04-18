@@ -57,7 +57,7 @@ const columnasGrilla: any[] = [
   },
   {
     name: "CUIT",
-    type: "number",
+    type: "string",
     id: "CUIT",
     field: "CUIT",
     fieldName: "carg.persona_id",

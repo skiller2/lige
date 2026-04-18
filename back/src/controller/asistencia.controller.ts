@@ -39,7 +39,7 @@ const columnasPersonalxResponsable: any[] = [
     id: "PersonalCUITCUILCUIT",
     field: "PersonalCUITCUILCUIT",
     fieldName: "cuit.PersonalCUITCUILCUIT",
-    type: "number",
+    type: "string",
     sortable: true,
     minWidth: 100,
     maxWidth: 100
@@ -132,7 +132,7 @@ const columnasPersonalxResponsableDesc: any[] = [
     id: "PersonalCUITCUILCUIT",
     field: "PersonalCUITCUILCUIT",
     fieldName: "cuit.PersonalCUITCUILCUIT",
-    type: "number",
+    type: "string",
     sortable: true,
 
   },

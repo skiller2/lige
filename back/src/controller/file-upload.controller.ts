@@ -1,19 +1,19 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import { dataSource } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
-import { mkdirSync, renameSync, existsSync, copyFileSync } from "fs";
+import { mkdirSync, existsSync, copyFileSync } from "fs";
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import * as fs from 'fs';
 import * as path from 'path';
 import { promisify } from 'util';
 import { PNG } from 'pngjs';
 import { randomBytes } from "crypto";
-import { getDocument, OPS } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { getDocument, OPS,  } from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { TextItem } from "pdfjs-dist/types/src/display/api.d.ts";
 import type { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
-import { fileUploadController } from "./controller.module.ts";
-import { debug } from "console";
+
+
 
 
 const stat = promisify(fs.stat);

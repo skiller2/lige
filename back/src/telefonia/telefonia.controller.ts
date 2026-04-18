@@ -59,15 +59,6 @@ export class TelefoniaController extends BaseController {
       searchHidden: false,
       hidden: false,
     },
-    // {
-    //   name: "CUIT Persona",
-    //   type: "string",
-    //   id: "PersonalCUITCUILCUIT",
-    //   field: "PersonalCUITCUILCUIT",
-    //   fieldName: "cuit.PersonalCUITCUILCUIT",
-    //   sortable: true,
-    //   searchHidden: true
-    // },
     {
       name: "Apellido Nombre",
       type: "string",

@@ -4,9 +4,6 @@ import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL,getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { QueryRunner } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
-//import { info } from "pdfjs-dist/types/src/shared/util";
-
-
 
 export class ClientesController extends BaseController {
 

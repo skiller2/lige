@@ -80,7 +80,7 @@ export class LiquidacionesBancoController extends BaseController {
     },
     {
       name: "CUIT",
-      type: "number",
+      type: "string",
       id: "PersonalCUITCUILCUIT",
       field: "PersonalCUITCUILCUIT",
       fieldName: "cuit.PersonalCUITCUILCUIT",
@@ -189,7 +189,7 @@ export class LiquidacionesBancoController extends BaseController {
     },
     {
       name: "CUIT",
-      type: "number",
+      type: "string",
       id: "PersonalCUITCUILCUIT",
       field: "PersonalCUITCUILCUIT",
       fieldName: "cuit.PersonalCUITCUILCUIT",
@@ -277,7 +277,7 @@ export class LiquidacionesBancoController extends BaseController {
     },
     {
       name: "CUIT",
-      type: "number",
+      type: "string",
       id: "PersonalCUITCUILCUIT",
       field: "PersonalCUITCUILCUIT",
       fieldName: "PersonalCUITCUILCUIT",

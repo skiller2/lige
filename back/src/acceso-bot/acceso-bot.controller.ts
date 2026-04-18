@@ -60,7 +60,7 @@ export class AccesoBotController extends BaseController {
         },
         {
             name: "CUIT",
-            type: "number",
+            type: "string",
             id: "PersonalCUITCUILCUIT",
             field: "PersonalCUITCUILCUIT",
             fieldName: "cuit.PersonalCUITCUILCUIT",

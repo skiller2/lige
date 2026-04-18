@@ -10,7 +10,7 @@ const listaColumnas: any[] = [
     name: "CUIT",
     field: "CUIT",
     fieldName: "cuit2.PersonalCUITCUILCUIT",
-    type: "number",
+    type: "string",
     sortable: true,
     searchHidden: false
   },
