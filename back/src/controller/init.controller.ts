@@ -4,7 +4,6 @@ import { getConnection } from "../data-source.ts";
 import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller.ts";
 import { objetivosPendasisController } from "./controller.module.ts";
 import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pendasis.controller.ts";
-import { isNumberObject } from "util/types";
 import { AsistenciaController } from "./asistencia.controller.ts";
 import { CustodiaController } from "./custodia.controller.ts";
 
