@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { dataSource } from "../data-source.ts";
 import { filtrosToSql, orderToSQL, isOptions } from "../impuestos-afip/filtros-utils/filtros.ts";

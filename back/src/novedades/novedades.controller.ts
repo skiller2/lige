@@ -11,7 +11,7 @@ import type {  Selections } from '../schemas/filtro.ts';
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
 import { PersonalController } from "../controller/personal.controller.ts"
 import * as fs from 'fs';
-import { mkdirSync, existsSync, writeFileSync } from "fs";
+import { mkdirSync, existsSync, writeFileSync } from "node:fs";
 import path from 'path';
 import { promises as fsPromises } from 'fs';
 import puppeteer, { Browser, Page } from 'puppeteer';

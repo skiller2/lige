@@ -43,7 +43,7 @@ novedadesRouter.post("/config", [authMiddleware.verifyToken, authMiddleware.hasG
   }
 );
 
-novedadesRouter.get("/config/:prev?", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],
+novedadesRouter.get("/config{/:prev}", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],
   (req, res, next) => {
     novedadesController.getNovedadConfig(req, res, next);
   }

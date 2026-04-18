@@ -29,7 +29,7 @@ import {
   write,
   writeFileSync,
   writeSync,
-} from "fs";
+} from "node:fs";
 import {
   SendFileToDownload,
   getPeriodoFromRequest,

@@ -10,7 +10,7 @@ import {
   readFileSync,
   unlinkSync,
   writeFileSync,
-} from "fs";
+} from "node:fs";
 
 import { dataSource } from "../data-source.ts";
 import {

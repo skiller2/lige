@@ -3,7 +3,7 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { dataSource } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { Utils } from "./liquidaciones.utils.ts";
-import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "fs";
+import { mkdirSync, existsSync, readFileSync, unlinkSync, copyFileSync } from "node:fs";
 import xlsx from 'node-xlsx';
 import { recibosController } from "../controller/controller.module.ts";
 

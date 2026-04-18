@@ -17,7 +17,7 @@ recibosRouter.post("/generarunico", [authMiddleware.verifyToken, authMiddleware.
 );
 
 // falta validar la sucursal del usuario para la descarga de recibos individuales
-recibosRouter.get("/download/:anio/:mes/:personalIdRel?", [authMiddleware.verifyToken, authMiddleware.hasGroup(['DescargaRecibos']), authMiddleware.filterSucursal], (req, res, next) => {
+recibosRouter.get("/download/:anio/:mes/:personalIdRel", [authMiddleware.verifyToken, authMiddleware.hasGroup(['DescargaRecibos']), authMiddleware.filterSucursal], (req, res, next) => {
   recibosController.downloadComprobantesByPeriodo(
     req.params.anio,
     req.params.mes,
@@ -45,7 +45,7 @@ recibosRouter.post("/prueba", [authMiddleware.verifyToken, authMiddleware.hasGro
   }
 );
 
-recibosRouter.get("/config/:prev?", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
+recibosRouter.get("/config{/:prev}", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
   (req, res, next) => {
     recibosController.getReciboConfig(req, res, next);
   }

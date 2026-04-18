@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { unlinkSync, writeFileSync } from "fs";
+import { unlinkSync, writeFileSync } from "node:fs";
 import { tmpName } from "../../server.ts";
 import { ClientException } from "../../controller/base.controller.ts";
 

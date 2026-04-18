@@ -7,7 +7,7 @@ import { promises as fsPromises } from 'fs';
 import { PDFDocument } from 'pdf-lib';
 import * as fs from 'fs';
 import path from 'path';
-import { mkdirSync, existsSync } from "fs";
+import { mkdirSync, existsSync } from "node:fs";
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { NumeroALetras, setSingular, setPlural, setCentsPlural, setCentsSingular } from "numeros_a_palabras/numero_to_word/index.js"
 import {

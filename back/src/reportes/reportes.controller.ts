@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express"
 import { BaseController, ClientException } from "../controller/base.controller.ts"
 import { dataSource } from "../data-source.ts"
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts"
-import { mkdirSync, existsSync, readFileSync, unlinkSync, mkdir, createWriteStream, writeFile, writeFileSync } from "fs"
+import { mkdirSync, existsSync, readFileSync, unlinkSync, mkdir, createWriteStream, writeFile, writeFileSync } from "node:fs"
 import xlsx from 'node-xlsx'
 import { isNumberObject } from "util/types"
 import fetch from "node-fetch"

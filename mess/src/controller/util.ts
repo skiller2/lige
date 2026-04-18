@@ -1,4 +1,4 @@
-import { readdirSync, unlinkSync } from "fs";
+import { readdirSync, unlinkSync } from "node:fs";
 import path from "path";
 import type { QueryRunner } from "typeorm";
 

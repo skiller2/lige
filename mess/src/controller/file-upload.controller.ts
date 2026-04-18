@@ -1,7 +1,7 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import { dbServer } from "../index.ts";
 import type { NextFunction, Request, Response } from "express";
-import { mkdirSync, renameSync, existsSync, copyFileSync } from "fs";
+import { mkdirSync, renameSync, existsSync, copyFileSync } from "node:fs";
 import { Utils } from "./util.ts";
 import * as fs from 'fs';
 import * as path from 'path';

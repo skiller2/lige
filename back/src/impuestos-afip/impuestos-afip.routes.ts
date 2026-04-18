@@ -126,7 +126,7 @@ impuestosAfipRouter.post("/forzado", [authMiddleware.verifyToken, authMiddleware
   });
 });
 
-impuestosAfipRouter.get("/download/:anio/:mes/:personalIdRel?",authMiddleware.verifyToken, (req, res,next) => {
+impuestosAfipRouter.get("/download/:anio/:mes/:personalIdRel",authMiddleware.verifyToken, (req, res,next) => {
   impuestosAfipController.downloadComprobantesByPeriodo(
     req.params.anio,
     req.params.mes,
@@ -136,7 +136,7 @@ impuestosAfipRouter.get("/download/:anio/:mes/:personalIdRel?",authMiddleware.ve
   );
 });
 
-impuestosAfipRouter.get("/downloadF184/:personalId?", authMiddleware.verifyToken,(req, res,next) => {
+impuestosAfipRouter.get("/downloadF184/:personalId", authMiddleware.verifyToken,(req, res,next) => {
   impuestosAfipController.downloadPersonaF184(
     Number(req.params.personalId),
     res,
@@ -149,7 +149,7 @@ impuestosAfipRouter.get("/documento/download/:id", [authMiddleware.verifyToken, 
 });
 
 impuestosAfipRouter.get(
-  "/:anio/:mes/:personalIdRel?",
+  "/:anio/:mes{/:personalIdRel}",
   authMiddleware.verifyToken,
   (req, res, next) => {
     impuestosAfipController.handleGetDescuentos(req, res,next);

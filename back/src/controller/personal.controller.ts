@@ -3,7 +3,7 @@ import type { PersonaObj } from "../schemas/personal.schemas.ts";
 import { dataSource } from "../data-source.ts";
 import type { Response } from "express";
 import type { NextFunction } from "express";
-import { mkdirSync, renameSync, existsSync } from "fs";
+import { mkdirSync, renameSync, existsSync } from "node:fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { promisify } from 'util';

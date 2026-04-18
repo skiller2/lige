@@ -5,7 +5,7 @@ import { reset, stop, stopSilence } from './flowIdle.ts';
 import { botServer } from '../index.ts';
 import { ChatBotController } from '../controller/chatbot.controller.ts';
 import { ObjetivoController } from '../controller/objetivo.controller.ts';
-import { existsSync, mkdirSync } from "fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { FileUploadController } from '../controller/file-upload.controller.ts';
 import { Utils } from '../controller/util.ts';
 

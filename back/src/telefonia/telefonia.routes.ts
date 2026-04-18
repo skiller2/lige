@@ -15,7 +15,7 @@ telefoniaRouter.get("/cols", authMiddleware.verifyToken, (req, res) => {
     telefoniaController.getTelefonosCols(req, res);
 });
 
-telefoniaRouter.get("/download/:anio/:mes/:impoexpoId?", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gLogistica', 'gSistemas'])], (req, res,next) => {
+telefoniaRouter.get("/download/:anio/:mes/:impoexpoId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gLogistica', 'gSistemas'])], (req, res,next) => {
   telefoniaController.downloadComprobantes(
     req.params.anio,
     req.params.mes,

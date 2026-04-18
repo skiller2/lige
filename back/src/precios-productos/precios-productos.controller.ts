@@ -5,7 +5,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import type { Options } from "../schemas/filtro.ts";
 import xlsx from 'node-xlsx';
 import { FileUploadController } from "../controller/file-upload.controller.ts";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "node:fs";
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 
 export class PreciosProductosController extends BaseController {

@@ -1,6 +1,6 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import type { NextFunction, Request, Response } from "express";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync } from "node:fs";
 import { readFile, writeFile } from 'node:fs/promises';
 import CryptoJS from 'crypto-js';
 
