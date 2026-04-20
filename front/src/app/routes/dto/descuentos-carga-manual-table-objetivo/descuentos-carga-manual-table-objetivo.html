@@ -24,7 +24,7 @@
         </nz-button-group>
     </div>
     <ng-container>
-      @if(columns$ | async; as columnas) {
+      @if(columnsResult$ | async; as columnas) {
         <div class="gridContainercargaManualobjetivo container-fluid">
           <angular-slickgrid 
             gridId="gridCargaManualObjetivo" 

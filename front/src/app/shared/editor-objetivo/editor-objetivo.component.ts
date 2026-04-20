@@ -21,6 +21,9 @@ export class EditorObjetivoComponent {
   constructor(public element: ElementRef){}
 
   onChange(item: any) {
+
+     if (item=='') item=0
+    this.selectedId = item
     this.selectedItem = { id: item, fullName: this.valueExtended?.fullName } 
 //    this.onItemChanged.next(this.selectedItem)
   }
@@ -32,7 +35,7 @@ export class EditorObjetivoComponent {
 
   onKeydown(event: KeyboardEvent) {
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
-      event.stopImmediatePropagation()
+     // event.stopImmediatePropagation()
     }
   }
 

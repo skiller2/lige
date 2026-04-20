@@ -33,8 +33,18 @@ export class EditorEfectoComponent {
   }
 
   async loadEfectos() {
+    const objetivoId = this.item?.ClienteElementoDependienteDescripcion?.id || 0;
     const personalId = this.item?.ApellidoNombre?.id || 0;
-    if (personalId > 0) {
+
+    if (objetivoId > 0) {
+      this.isLoading = true;
+      try {
+        this.efectoOptions = await firstValueFrom(this.searchService.getEfectoByObjetivoId(objetivoId)) || [];
+      } catch {
+        this.efectoOptions = [];
+      }
+      this.isLoading = false;
+    } else if (personalId > 0) {
       this.isLoading = true;
       try {
         this.efectoOptions = await firstValueFrom(this.searchService.getEfectoByPersonalId(personalId)) || [];

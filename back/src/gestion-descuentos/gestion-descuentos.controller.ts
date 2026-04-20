@@ -594,6 +594,62 @@ const columnsPersonalDescuentosCargaManualObjetivo: any[] = [
 
 ]
 
+const columnsPersonalDescuentosCargaManualObjetivoEfecto: any[] = [
+  {
+    id: 'id', name: 'Id', field: 'id',
+    fieldName: 'id',
+    type: 'string',
+    searchType: 'string',
+    hidden: true,
+  },
+  {
+    id: 'AplicaA', name: 'Aplica A', field: 'AplicaA',
+    fieldName: 'AplicaA',
+  },
+  {
+    id: 'ClienteElementoDependienteDescripcion', name: 'Objetivo', field: 'ClienteElementoDependienteDescripcion',
+    fieldName: 'ClienteElementoDependienteDescripcion',
+  },
+  {
+    id: 'DescuentoDescripcion', name: 'Efecto', field: 'DescuentoDescripcion',
+    fieldName: 'DescuentoDescripcion',
+  },
+  {
+    id: 'EfectoId', name: 'EfectoId', field: 'EfectoId', fieldName: 'EfectoId', hidden: true,
+  },
+  {
+    id: 'EfectoIndividualId', name: 'EfectoIndividualId', field: 'EfectoIndividualId', fieldName: 'EfectoIndividualId', hidden: true,
+  },
+  {
+    id: 'Cantidad', name: 'Cantidad', field: 'Cantidad',
+    fieldName: 'Cantidad',
+  },
+  {
+    id: 'Porcentaje', name: 'Porcentaje', field: 'Porcentaje',
+    fieldName: 'Porcentaje',
+  },
+  {
+    id: 'ImporteUnitario', name: 'Importe Unitario', field: 'ImporteUnitario',
+    fieldName: 'ImporteUnitario',
+  },
+  {
+    id: 'CantidadCuotas', name: 'Cuotas', field: 'CantidadCuotas',
+    fieldName: 'CantidadCuotas',
+  },
+  {
+    id: 'Detalle', name: 'Detalle', field: 'Detalle',
+    fieldName: 'Detalle',
+  },
+  {
+    id: 'mensaje', name: 'Mensaje', field: 'mensaje',
+    fieldName: 'mensaje',
+    type: 'string',
+    searchType: 'string',
+    hidden: false
+  },
+
+]
+
 
 
 
@@ -642,6 +698,10 @@ export class GestionDescuentosController extends BaseController {
 
   async getPersonalGridColumnsCargaManualEfecto(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(columnsPersonalDescuentosCargaManualEfecto, res)
+  }
+
+  async getPersonalGridColumnsCargaManualObjetivoEfecto(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(columnsPersonalDescuentosCargaManualObjetivoEfecto, res)
   }
 
   static async getDescuentosPersonalQuery(queryRunner: any, filterSql: any, orderBy: any, anio: number, mes: number) {
@@ -1692,7 +1752,6 @@ FROM cte
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
     AplicaEl.setHours(0, 0, 0, 0)
-
     let importe = Number((Number(otroDescuento.Importe)).toFixed(2))
     let EfectoId = otroDescuento.EfectoId
     let EfectoIndividualId = otroDescuento.EfectoIndividualId
@@ -2748,16 +2807,40 @@ FROM cte
             break;
         }
 
-        let Descuento = {
-          AplicaA: AplicaA,
-          ObjetivoDescuentoDescuentoId: ObjetivoDescuentoDescuentoId,
-          ObjetivoId: ObjetivoId,
-          AplicaEl: AplicaEl,
-          Cuotas: Number(row.CantidadCuotas),
-          Detalle: Detalle,
-          Importe: row.ImporteTotal,
-          DescuentoId: DescuentoId
+        let Descuento: any = null
+
+        switch (DescuentoId) {
+          case 50:
+            const ImporteTotal = Number(row.Cantidad) * Number(row.ImporteUnitario);
+            Descuento = {
+              AplicaA: AplicaA,
+              ObjetivoDescuentoDescuentoId: ObjetivoDescuentoDescuentoId,
+              ObjetivoId: ObjetivoId,
+              AplicaEl: AplicaEl,
+              Cuotas: Number(row.CantidadCuotas),
+              Detalle: Detalle,
+              Importe: ImporteTotal,
+              DescuentoId: DescuentoId,
+              EfectoId: row.EfectoId,
+              EfectoIndividualId: row.EfectoIndividualId,
+              Cantidad: Number(row.Cantidad),
+              PorcentajeDescuento: row.PorcentajeDescuento,
+            }
+            break;
+          default:
+            Descuento = {
+              AplicaA: AplicaA,
+              ObjetivoDescuentoDescuentoId: ObjetivoDescuentoDescuentoId,
+              ObjetivoId: ObjetivoId,
+              AplicaEl: AplicaEl,
+              Cuotas: Number(row.CantidadCuotas),
+              Detalle: Detalle,
+              Importe: row.ImporteTotal,
+              DescuentoId: DescuentoId
+            }
+            break;
         }
+
         if (row.isfull == 1) {
           await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
         } else {
