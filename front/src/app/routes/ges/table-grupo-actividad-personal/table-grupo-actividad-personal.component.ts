@@ -10,7 +10,7 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { Component, signal, inject } from '@angular/core'
+import { Component, signal, inject, resource } from '@angular/core'
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
@@ -38,14 +38,13 @@ export class TableGrupoActividadPersonalComponent {
   private readonly messageSrv = inject(NzMessageService);
   columnDefinitions: Column[] = []
   itemAddActive = false
-  listGrupoActividadPersonal$ = new BehaviorSubject('')
   visibleDrawerPersona = signal(false)
   PersonalId = signal(0)
   GrupoActividadId = signal("")
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  })
   startFilters: Selections[] = []
 
   currPeriodo = signal({anio:0,mes:0})
@@ -57,8 +56,7 @@ export class TableGrupoActividadPersonalComponent {
   rowLocked: boolean = false;
 
   listOptionsChange(options: any) {
-    this.listOptions = options
-    this.listGrupoActividadPersonal$.next('')
+    this.listOptions.set(options)
   }
 
   columnsPersonal$ = this.apiService.getCols('/api/grupo-actividad/colspersonal').pipe(
@@ -152,7 +150,7 @@ export class TableGrupoActividadPersonalComponent {
 
 
         if (response.data.PreviousDate) {
-          this.listGrupoActividadPersonal$.next('')
+          this.gridDataPersonal.reload()
         }
 
         this.rowLocked = false
@@ -230,17 +228,17 @@ export class TableGrupoActividadPersonalComponent {
 
   }
 
-
-  gridDataPersonal$ = this.listGrupoActividadPersonal$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getListGrupoActividadPersonal({ options: this.listOptions })
-        .pipe(map(data => {
-          return data.list
-        })
-        )
+  gridDataPersonal = resource({
+        params: () => ({ options: this.listOptions() }),
+        loader: async ({ params }) => {
+          return await firstValueFrom(this.searchService.getListGrupoActividadPersonal({ options: params.options })
+            .pipe(map(data => {
+              return data.list
+            }))
+          )
+        },
+        defaultValue: [],
     })
-  )
 
   handleSelectedRowsChanged(e: any): void {
 
