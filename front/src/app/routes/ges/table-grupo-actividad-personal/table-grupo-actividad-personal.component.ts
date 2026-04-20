@@ -229,16 +229,16 @@ export class TableGrupoActividadPersonalComponent {
   }
 
   gridDataPersonal = resource({
-        params: () => ({ options: this.listOptions() }),
-        loader: async ({ params }) => {
-          return await firstValueFrom(this.searchService.getListGrupoActividadPersonal({ options: params.options })
-            .pipe(map(data => {
-              return data.list
-            }))
-          )
-        },
-        defaultValue: [],
-    })
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      return await firstValueFrom(this.searchService.getListGrupoActividadPersonal({ options: params.options })
+        .pipe(map(data => {
+          return data.list
+        }))
+      )
+    },
+    defaultValue: [],
+  })
 
   handleSelectedRowsChanged(e: any): void {
 
