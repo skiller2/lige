@@ -10,7 +10,7 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { Component, model, signal, inject } from '@angular/core';
+import { Component, model, signal, inject, resource } from '@angular/core';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -38,13 +38,12 @@ export class TableGrupoActividadObjetivosComponent {
   private readonly messageSrv = inject(NzMessageService);
   columnDefinitions: Column[] = []
   itemAddActive = false
-  listGrupoActividadObjetivos$ = new BehaviorSubject('')
 
   GrupoActividadId = signal("")
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  })
   startFilters = signal<Selections[]>([])
 
 
@@ -56,8 +55,7 @@ export class TableGrupoActividadObjetivosComponent {
   rowLocked: boolean = false;
 
   listOptionsChange(options: any) {
-    this.listOptions = options
-    this.listGrupoActividadObjetivos$.next('')
+    this.listOptions.set(options)
   }
 
   columnsObjetivos$ = this.apiService.getCols('/api/grupo-actividad/colsobjetivos').pipe(
@@ -146,14 +144,14 @@ export class TableGrupoActividadObjetivosComponent {
           this.rowLocked = true
 
         const response: any = await firstValueFrom(this.apiService.onchangecellGrupoActividadObjetivos(row))
-        console.log('obtengo',response.data,row)
+        
         row.GrupoActividadId = response.data.GrupoActividadId
         row.GrupoActividadObjetivoId = response.data.GrupoActividadObjetivoId
         this.angularGridEditObjetivos.gridService.updateItemById(row.id, row)
 
 
         if (response.data.PreviousDate) {
-          this.listGrupoActividadObjetivos$.next('')
+          this.gridDataObjetivos.reload()
         }
 
         this.rowLocked = false
@@ -232,16 +230,17 @@ export class TableGrupoActividadObjetivosComponent {
   }
 
 
-  gridDataObjetivos$ = this.listGrupoActividadObjetivos$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getListGrupoActividadObjetivos({ options: this.listOptions })
+  gridDataObjetivos = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      return await firstValueFrom(this.searchService.getListGrupoActividadObjetivos({ options: params.options })
         .pipe(map(data => {
           return data.list
-        })
-        )
-    })
-  )
+        }))
+      )
+    },
+    defaultValue: [],
+  })
 
   handleSelectedRowsChanged(e: any): void {
 
@@ -263,7 +262,7 @@ export class TableGrupoActividadObjetivosComponent {
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';
       const item = this.angularGridEditObjetivos.dataView.getItem(rowNumber);
-      console.log('item',item)
+      // console.log('item',item)
       let meta = {
         cssClasses: ''
       };

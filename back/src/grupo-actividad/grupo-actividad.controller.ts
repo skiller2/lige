@@ -628,8 +628,6 @@ export class GrupoActividadController extends BaseController {
         const params = req.body
 
         try {
-            console.log("params ", params)
-            //throw new ClientException(`test`)
             await queryRunner.connect();
             await queryRunner.startTransaction();
 
@@ -993,29 +991,46 @@ export class GrupoActividadController extends BaseController {
                     await this.checkDateHasta(null, GrupoActividadObjetivoHasta, queryRunner)
 
                 let resultQuery = await queryRunner.query(`
-                SELECT TOP 1 GrupoActividadObjetivoId, GrupoActividadObjetivoObjetivoId, GrupoActividadId, GrupoActividadObjetivoDesde, GrupoActividadObjetivoHasta, ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') GrupoActividadObjetivoHastaMax FROM GrupoActividadObjetivo 
-                WHERE GrupoActividadObjetivoObjetivoId = @0 -- AND GrupoActividadObjetivoDesde <= @1 
-                ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
-            `, [params.GrupoObjetivoDetalle.id, GrupoActividadObjetivoDesde])
-                if (resultQuery.length > 0 && new Date(resultQuery[0].GrupoActividadObjetivoDesde) > GrupoActividadObjetivoDesde)
-                    throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadObjetivoDesde))}`)
+                    SELECT TOP 1 GrupoActividadObjetivoId, GrupoActividadObjetivoObjetivoId, GrupoActividadId, GrupoActividadObjetivoDesde, GrupoActividadObjetivoHasta, ISNULL(GrupoActividadObjetivoHasta,'9999-12-31') GrupoActividadObjetivoHastaMax
+                    FROM GrupoActividadObjetivo 
+                    WHERE GrupoActividadObjetivoObjetivoId = @0
+                    ORDER BY GrupoActividadObjetivoDesde DESC, GrupoActividadObjetivoHasta DESC
+                `, [params.GrupoObjetivoDetalle.id])
 
                 if (resultQuery.length > 0) {
-                    if (GrupoActividadObjetivoDesde <= new Date(resultQuery[0].GrupoActividadObjetivoHastaMax)) {
-                        if (resultQuery[0].GrupoActividadId == params.GrupoActividadDetalle.id)
-                            throw new ClientException(`Ya existe un grupo de actividad asignado al objetivo vigente hasta ${this.dateOutputFormat(resultQuery[0].GrupoActividadObjetivoHasta, 'sin fecha')}`)
+                    if (new Date(resultQuery[0].GrupoActividadObjetivoDesde) > GrupoActividadObjetivoDesde)
+                        throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadObjetivoDesde))}`)
 
-                        GrupoActividadObjetivoHastaAnt = new Date(GrupoActividadObjetivoDesde)
-                        GrupoActividadObjetivoHastaAnt.setDate(GrupoActividadObjetivoHastaAnt.getDate() - 1)
-                        await queryRunner.query(
-                            `UPDATE GrupoActividadObjetivo 
-                             SET GrupoActividadObjetivoHasta = @2, GrupoActividadObjetivoAudFechaMod = @3, GrupoActividadObjetivoAudUsuarioMod = @4, GrupoActividadObjetivoAudIpMod = @5
-                             WHERE GrupoActividadObjetivoId = @0 AND GrupoActividadObjetivoObjetivoId = @1`,
-                            [resultQuery[0].GrupoActividadObjetivoId, resultQuery[0].GrupoActividadObjetivoObjetivoId, GrupoActividadObjetivoHastaAnt, fechaActual, usuario, ip]
-                        )
-                        //TODO:  BOT Notificar Informar el cambio de 
-                        //const sendit = await AccesoBotController.enqueBotMsg(personalId, `Se ha asignado el objetivo a su grupo`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+                    if (resultQuery[0].GrupoActividadObjetivoHasta) {
+                        
+                        if (GrupoActividadObjetivoDesde <= new Date(resultQuery[0].GrupoActividadObjetivoHasta))
+                           throw new ClientException(`Ya existe un grupo de actividad asignado al objetivo vigente hasta ${this.dateOutputFormat(resultQuery[0].GrupoActividadObjetivoHasta)}`)
+                    
+                    } else { // Acciones adicionales para cerrar periodos
+                        
+                        if (new Date(resultQuery[0].GrupoActividadObjetivoDesde).getTime() == GrupoActividadObjetivoDesde.getTime()){
+                            GrupoActividadObjetivoHastaAnt = new Date(GrupoActividadObjetivoDesde)
+                            await queryRunner.query(`
+                                DELETE GrupoActividadObjetivo
+                                WHERE GrupoActividadObjetivoId = @0 
+                                AND GrupoActividadId = @1 
+                                AND GrupoActividadObjetivoObjetivoId = @2 
+                                AND GrupoActividadObjetivoHasta IS NULL
+                            `, [resultQuery[0].GrupoActividadObjetivoId, resultQuery[0].GrupoActividadId, resultQuery[0].GrupoActividadObjetivoObjetivoId])
+                        } else if (new Date(resultQuery[0].GrupoActividadObjetivoDesde).getTime() < GrupoActividadObjetivoDesde.getTime()){
+                            GrupoActividadObjetivoHastaAnt = new Date(GrupoActividadObjetivoDesde)
+                            GrupoActividadObjetivoHastaAnt.setDate(GrupoActividadObjetivoHastaAnt.getDate() - 1)
+                            await queryRunner.query(
+                                `UPDATE GrupoActividadObjetivo 
+                                SET GrupoActividadObjetivoHasta = @2, GrupoActividadObjetivoAudFechaMod = @3, GrupoActividadObjetivoAudUsuarioMod = @4, GrupoActividadObjetivoAudIpMod = @5
+                                WHERE GrupoActividadObjetivoId = @0 AND GrupoActividadObjetivoObjetivoId = @1`,
+                                [resultQuery[0].GrupoActividadObjetivoId, resultQuery[0].GrupoActividadObjetivoObjetivoId, GrupoActividadObjetivoHastaAnt, fechaActual, usuario, ip]
+                            )
+                        }
                     }
+                    //TODO:  BOT Notificar Informar el cambio de 
+                    //const sendit = await AccesoBotController.enqueBotMsg(personalId, `Se ha asignado el objetivo a su grupo`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+                
                 }
 
                 let GrupoActividadObjetivoId = await queryRunner.query(` SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
@@ -1139,35 +1154,52 @@ export class GrupoActividadController extends BaseController {
 
 
                 let resultQuery = await queryRunner.query(`
-                SELECT TOP 1 GrupoActividadPersonalId, GrupoActividadPersonalPersonalId, GrupoActividadId, GrupoActividadPersonalDesde, GrupoActividadPersonalHasta, ISNULL(GrupoActividadPersonalHasta,'9999-12-31') GrupoActividadPersonalHastaMax 
+                    SELECT TOP 1 GrupoActividadPersonalId, GrupoActividadPersonalPersonalId, GrupoActividadId, GrupoActividadPersonalDesde, GrupoActividadPersonalHasta, ISNULL(GrupoActividadPersonalHasta,'9999-12-31') GrupoActividadPersonalHastaMax 
                   FROM GrupoActividadPersonal 
-                  WHERE GrupoActividadPersonalPersonalId = @0 -- AND GrupoActividadPersonalDesde < @1 
-                  ORDER BY GrupoActividadPersonalDesde DESC, GrupoActividadPersonalHasta DESC`,
-                    [params.ApellidoNombrePersona.id, GrupoActividadPersonalDesde])
-
-                if (resultQuery.length > 0 && new Date(resultQuery[0].GrupoActividadPersonalDesde) > GrupoActividadPersonalDesde)
-                    throw new ClientException(`La fecha Desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadPersonalDesde))}`)
-
-
-                if (resultQuery.length > 0) {
-                    if (GrupoActividadPersonalDesde <= new Date(resultQuery[0].GrupoActividadPersonalHastaMax)) {
-                        if (resultQuery[0].GrupoActividadId == params.GrupoActividadDetalle.id)
-                            throw new ClientException(`Ya existe un grupo de actividad asignado a la persona vigente hasta ${this.dateOutputFormat(resultQuery[0].GrupoActividadPersonalHasta, 'sin fecha')}`)
-
-                        GrupoActividadPersonalHastaAnt = new Date(GrupoActividadPersonalDesde)
-                        GrupoActividadPersonalHastaAnt.setDate(GrupoActividadPersonalHastaAnt.getDate() - 1)
-                        await queryRunner.query(
-                            `UPDATE GrupoActividadPersonal SET GrupoActividadPersonalHasta = @2, 
-                                GrupoActividadPersonalAudFechaMod = @3, GrupoActividadPersonalAudUsuarioMod = @4, GrupoActividadPersonalAudIpMod = @5
-                             WHERE GrupoActividadPersonalId = @0 AND GrupoActividadPersonalPersonalId = @1`,
-                            [resultQuery[0].GrupoActividadPersonalId, resultQuery[0].GrupoActividadPersonalPersonalId, GrupoActividadPersonalHastaAnt, fechaActual, usuario, ip]
-                        )
-                        //TODO:  BOT Notificar Informar el cambio de 
-                        //const sendit = await AccesoBotController.enqueBotMsg(personalId, `Se ha asignado a su coordinador`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+                  WHERE GrupoActividadPersonalPersonalId = @0
+                  ORDER BY GrupoActividadPersonalDesde DESC, GrupoActividadPersonalHasta DESC
+                `, [params.ApellidoNombrePersona.id])
+                
+                if (resultQuery.length > 0) { //Validaciones para no pisar el ultimo periodo registrado
+                    
+                    if (new Date(resultQuery[0].GrupoActividadPersonalDesde) > GrupoActividadPersonalDesde) {
+                        throw new ClientException(`La fecha Desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadPersonalDesde))}`)
                     }
+                    
+                    if (resultQuery[0].GrupoActividadPersonalHasta) {
+                        
+                        if (GrupoActividadPersonalDesde <= new Date(resultQuery[0].GrupoActividadPersonalHasta))
+                           throw new ClientException(`Ya existe un grupo de actividad asignado a la persona vigente hasta ${this.dateOutputFormat(resultQuery[0].GrupoActividadPersonalHasta)}`)
+                    
+                    } else { // Acciones adicionales para cerrar periodos
+                        
+                        if (new Date(resultQuery[0].GrupoActividadPersonalDesde).getTime() == GrupoActividadPersonalDesde.getTime()) {
+                            GrupoActividadPersonalHastaAnt = new Date(GrupoActividadPersonalDesde)
+                            await queryRunner.query(`
+                                DELETE GrupoActividadPersonal
+                                WHERE GrupoActividadPersonalId = @0 
+                                AND GrupoActividadId = @1 
+                                AND GrupoActividadPersonalPersonalId = @2 
+                                AND GrupoActividadPersonalHasta IS NULL
+                            `, [resultQuery[0].GrupoActividadPersonalId, resultQuery[0].GrupoActividadId, resultQuery[0].GrupoActividadPersonalPersonalId])
+                        } else if (new Date(resultQuery[0].GrupoActividadPersonalDesde).getTime() < GrupoActividadPersonalDesde.getTime()) {
+                            GrupoActividadPersonalHastaAnt = new Date(GrupoActividadPersonalDesde)
+                            GrupoActividadPersonalHastaAnt.setDate(GrupoActividadPersonalHastaAnt.getDate() - 1)
+                            await queryRunner.query(
+                                `UPDATE GrupoActividadPersonal SET GrupoActividadPersonalHasta = @2, 
+                                    GrupoActividadPersonalAudFechaMod = @3, GrupoActividadPersonalAudUsuarioMod = @4, GrupoActividadPersonalAudIpMod = @5
+                                WHERE GrupoActividadPersonalId = @0 AND GrupoActividadPersonalPersonalId = @1`,
+                                [resultQuery[0].GrupoActividadPersonalId, resultQuery[0].GrupoActividadPersonalPersonalId, GrupoActividadPersonalHastaAnt, fechaActual, usuario, ip]
+                            )
+                        }
+                    }
+
+                    //TODO:  BOT Notificar Informar el cambio de 
+                    //const sendit = await AccesoBotController.enqueBotMsg(personalId, `Se ha asignado a su coordinador`, `RECIBO${bot[0].doc_id}`, usuario, ip)
+
                 }
 
-                let GrupoActividadPersonalId = await queryRunner.query(` SELECT GrupoActividadPersonalUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
+                let GrupoActividadPersonalId = await queryRunner.query(` SELECT GrupoActividadPersonalUltNro FROM GrupoActividad WHERE GrupoActividadId = @0`, [params.GrupoActividadDetalle.id])
                 GrupoActividadPersonalId = GrupoActividadPersonalId[0].GrupoActividadPersonalUltNro + 1
 
                 await queryRunner.query(`INSERT INTO GrupoActividadPersonal (
@@ -1198,7 +1230,13 @@ export class GrupoActividadController extends BaseController {
                     SET GrupoActividadPersonalUltNro = @0, GrupoActividadAudFechaMod = @2, GrupoActividadAudUsuarioMod = @3, GrupoActividadAudIpMod = @4
                     WHERE GrupoActividadId =  @1`, [GrupoActividadPersonalId, params.GrupoActividadDetalle.id, fechaActual, usuario, ip])
 
-                dataResultado = { action: 'I', GrupoActividadPersonalId, GrupoActividadId: params.GrupoActividadDetalle.id, GrupoActividadPersonalPersonalId: params.ApellidoNombrePersona.id, PreviousDate: GrupoActividadPersonalHastaAnt }
+                dataResultado = { 
+                    action: 'I', 
+                    GrupoActividadPersonalId, 
+                    GrupoActividadId: params.GrupoActividadDetalle.id, 
+                    GrupoActividadPersonalPersonalId: params.ApellidoNombrePersona.id, 
+                    PreviousDate: GrupoActividadPersonalHastaAnt 
+                }
                 message = "Carga exitosa del nuevo registro."
             }
 
@@ -1362,7 +1400,9 @@ export class GrupoActividadController extends BaseController {
         if (!params.ApellidoNombrePersona?.id) {
             throw new ClientWarning(`Debe completar el campo Apellido Nombre.`)
         }
-
+        if (!params.GrupoActividadPersonalDesde) {
+            throw new ClientWarning(`Debe completar el campo Desde.`)
+        }
 
         if (params.GrupoActividadPersonalHasta && params.GrupoActividadPersonalDesde > params.GrupoActividadPersonalHasta) {
 
