@@ -4,3 +4,5 @@ lige.code-workspace
 mess/telegram-bot_sessions/session.txt
 package-lock.json
 documentos
+agents/
+documentation/
