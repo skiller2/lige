@@ -475,8 +475,10 @@ export class ParametrosVentaController extends BaseController {
                         TextoFactura,
                         TipoCantidad,
                         Cantidad,
+                        CantidadEnFactura,
                         TipoImporte,
                         ImporteUnitario,
+                        Bonificacion,
                         AudFechaIng,
                         AudFechaMod,
                         AudUsuarioIng,
@@ -485,7 +487,7 @@ export class ParametrosVentaController extends BaseController {
                         AudIpMod,
                         ParametroVentaDetalleId,
                         CantidadEstandar
-                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
+                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18)`,
                         [
                             ParametroVenta.ClienteId, // ClienteId
                             ParametroVenta.ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -494,8 +496,10 @@ export class ParametrosVentaController extends BaseController {
                             producto.TextoFactura, // TextoFactura
                             producto.TipoCantidad, // TipoCantidad
                             producto.CantidadHoras ? Number(producto.CantidadHoras) : null, // Cantidad
+                            producto.CantidadEnFactura ? Number(producto.CantidadEnFactura) : null, // CantidadEnFactura
                             producto.TipoImporte, // TipoImporte
                             producto.ImporteUnitario ? Number(producto.ImporteUnitario) : null, // ImporteUnitario
+                            producto.Bonificacion ? Number(producto.Bonificacion) : null, // Bonificacion
                             FechaActual, // AudFechaIng
                             FechaActual, // AudFechaMod
                             usuario, // AudUsuarioIng
@@ -679,7 +683,7 @@ export class ParametrosVentaController extends BaseController {
     async getInfoProductos(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, PeriodoDesdeAplica: Date) {
         return await
             queryRunner.query(` 
-            SELECT par.ProductoCodigo, par.TextoFactura, par.TipoCantidad, par.Cantidad AS CantidadHoras, par.TipoImporte, par.ImporteUnitario, par.CantidadEstandar AS CantidadReferencia
+            SELECT par.ProductoCodigo, par.TextoFactura, par.TipoCantidad, par.Cantidad AS CantidadHoras, par.CantidadEnFactura, par.TipoImporte, par.ImporteUnitario, par.CantidadEstandar AS CantidadReferencia, par.Bonificacion
             FROM ParametroVentaDetalle par
             INNER JOIN Objetivo AS obj
                 ON obj.ClienteId = par.ClienteId
@@ -989,9 +993,11 @@ export class ParametrosVentaController extends BaseController {
                     TextoFactura,
                     TipoCantidad,
                     Cantidad,
+                    CantidadEnFactura,
                     TipoImporte,
                     ImporteUnitario,
                     CantidadEstandar,
+                    Bonificacion,
                     AudFechaIng,
                     AudFechaMod,
                     AudUsuarioIng,
@@ -999,7 +1005,7 @@ export class ParametrosVentaController extends BaseController {
                     AudIpIng,
                     AudIpMod,
                     ParametroVentaDetalleId
-                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
+                ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18)`,
                     [
                         ClienteId, // ClienteId
                         ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -1008,9 +1014,11 @@ export class ParametrosVentaController extends BaseController {
                         producto.TextoFactura, // TextoFactura
                         producto.TipoCantidad, // TipoCantidad
                         producto.CantidadHoras ? Number(producto.CantidadHoras) : null, // Cantidad
+                        producto.CantidadEnFactura ? Number(producto.CantidadEnFactura) : null, // CantidadEnFactura
                         producto.TipoImporte, // TipoImporte
                         producto.ImporteUnitario ? Number(producto.ImporteUnitario) : null, // ImporteUnitario
                         producto.CantidadReferencia ? Number(producto.CantidadReferencia) : null, // CantidadEstandar
+                        producto.Bonificacion ? Number(producto.Bonificacion) : null, // Bonificacion
                         FechaActual, // AudFechaIng
                         FechaActual, // AudFechaMod
                         usuario, // AudUsuarioIng
