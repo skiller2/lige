@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, forwardRef } from '@angular/core'
+import { Component, EventEmitter, Input, Output, ViewChild, effect, forwardRef, inject, input, linkedSignal, model, signal } from '@angular/core'
 import {
   BehaviorSubject,
   Observable,
@@ -8,7 +8,6 @@ import {
   switchMap,
   tap,
 } from 'rxjs'
-import { Search } from '../schemas/personal.schemas'
 import { SearchService } from '../../services/search.service'
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
 import { doOnSubscribe } from '../../services/api.service'
@@ -17,37 +16,36 @@ import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
 
 @Component({
-    selector: 'app-objetivo-search',
-    templateUrl: './objetivo-search.component.html',
-    styleUrls: ['./objetivo-search.component.less'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => ObjetivoSearchComponent),
-            multi: true,
-        },
-    ],
-    imports: [...SHARED_IMPORTS, CommonModule]
+  selector: 'app-objetivo-search',
+  templateUrl: './objetivo-search.component.html',
+  styleUrls: ['./objetivo-search.component.less'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => ObjetivoSearchComponent),
+      multi: true,
+    },
+  ],
+  imports: [...SHARED_IMPORTS, CommonModule]
 })
 
 export class ObjetivoSearchComponent implements ControlValueAccessor {
   constructor(private searchService: SearchService) { }
-
-  @Input() sucursalId: number | null = null;
   @Input() valueExtended: any
-  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>(true)
+  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("osc") osc!: NzSelectComponent
-  private isDisabled = false
 
-  $searchChange = new BehaviorSubject('');
+  $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
 
   private _selectedId: string = ''
-  _selected = ''
+  _selected = signal('')
   extendedOption = { objetivoId: 0, clienteId: 0, ClienteElementoDependienteId: 0, descripcion: '', fullName: '' }
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
+  sucursalId = input<number | null>(null)
+  controlDisabled = signal(true)
 
   registerOnChange(fn: any) {
     this.propagateChange = fn
@@ -61,32 +59,25 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   }
 
   onRemove() {
-    //  console.log('onRemove')
   }
 
   registerOnTouched(fn: any) {
     this.propagateTouched = fn
   }
 
-  ngOnDestroy() { 
-    this.osc?.originElement.nativeElement.removeEventListener('keydown', this.keydownHandler)
+  ngOnDestroy() {
+    this.osc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
   }
 
   onKeydown(event: KeyboardEvent) {
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
       event.stopImmediatePropagation()
     }
   }
 
-
-  private keydownHandler = (e: KeyboardEvent) => this.onKeydown(e);
-
   ngAfterViewInit() {
     setTimeout(() => {
-      this.osc.originElement.nativeElement.addEventListener('keydown', this.keydownHandler);
-
-      // this.osc.focus() //Al hacer click en el componente hace foco
-      this.osc.setDisabledState(this.isDisabled)
+      this.osc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
     }, 1);
   }
 
@@ -94,71 +85,72 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
     return this._selectedId
   }
 
-  writeValue(value: any) {
-    if (value === 0)
-      value=''
-    if (value !== this._selectedId) {
-      this.updateSelectedId(value, false)
-    }
+  get selectedIdNum(): number {
+    return parseInt(this._selectedId)
   }
 
-  modelChange(val: string) {
-    this.updateSelectedId(val, true);
-  }
-
-  private updateSelectedId(val: string, shouldPropagate: boolean) {
+  set selectedId(val: string) {
+    this.osc?.focus()
     val = (val === null || val === undefined) ? '' : val
+
     if (val !== this._selectedId) {
       this._selectedId = val
 
-      if (!this._selectedId && this._selectedId !== null) {
-        this._selected = ''
+      if (this._selectedId == '' || this._selectedId == '0') {
         this.extendedOption = { objetivoId: 0, clienteId: 0, ClienteElementoDependienteId: 0, descripcion: '', fullName: '' }
-        //this.valueExtendedEmitter.emit(null)
-        if (shouldPropagate) 
-          this.valueExtendedEmitter.emit(null)
-
+        this.valueExtendedEmitter.emit(this.extendedOption)
+        if (this._selected() != '')
+          this._selected.set('')
         this.propagateChange(this._selectedId)
-        
         return
       }
+
       firstValueFrom(
         this.searchService
           .ObjetivoInfoFromId(this._selectedId)
           .pipe(tap(res => {
-            this.extendedOption = res
-            this._selected = this._selectedId
-            if (shouldPropagate)
-              this.valueExtendedEmitter.emit(this.extendedOption)
-              
-              this.propagateChange(this._selectedId)
-
+            if (res?.objetivoId) this.extendedOption = res
+            this._selected.set(this._selectedId)
+            this.valueExtendedEmitter.emit(this.extendedOption)
+            this.propagateChange(this._selectedId)
           }))
       )
     }
   }
 
+  writeValue(value: any) {
+    if (value === 0) value = ''
+    if (value !== this._selectedId) {
+      this.selectedId = value
+    }
+  }
+
   $optionsArray = this.$searchChange.pipe(
     debounceTime(500),
-    switchMap(value => {
-      return this.searchService
-        .getObjetivos(Number(value.charAt(0)) ? 'Codigo' : 'Descripcion', value, (this.sucursalId) ? String(this.sucursalId) : '0')
+    switchMap(value =>
+      this.searchService
+        .getObjetivos(Number(value.charAt(0)) ? 'Codigo' : 'Descripcion', value, (this.sucursalId()) ? String(this.sucursalId()) : '0')
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
           tap({ complete: () => this.$isOptionsLoading.next(false) })
-        );
-    })
+        )
+    )
   )
+
+  modelChange(val: string) {
+    this.selectedId = val
+  }
 
   search(value: string): void {
     this.extendedOption = { objetivoId: 0, clienteId: 0, ClienteElementoDependienteId: 0, descripcion: '', fullName: '' }
-    this.$searchChange.next(value);
+    this.$searchChange.next(value)
   }
 
-  
-  setDisabledState(isDisabled: boolean): void {
-    this.isDisabled = isDisabled
-    this.osc?.setDisabledState(isDisabled)
-  } 
-}
+  focus() {
+    console.log('focus')
+  }
 
+  setDisabledState(isDisabled: boolean): void {
+    this.controlDisabled.set(isDisabled)
+  }
+}

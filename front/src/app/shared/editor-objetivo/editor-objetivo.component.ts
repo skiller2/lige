@@ -12,7 +12,7 @@ import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.comp
     imports: [...SHARED_IMPORTS, ObjetivoSearchComponent]
 })
 export class EditorObjetivoComponent {
-  selectedId = '';
+  selectedId:number = 0;
   selectedItem: any;
   collection?: any[]; // this will be filled by the collection of your column definition
   onItemChanged = new Subject<any>();    // object
@@ -43,9 +43,9 @@ export class EditorObjetivoComponent {
   ngOnInit() {
     
     this.element.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-    setTimeout(() => {
-      this.element.nativeElement.focus()
-    }, 4000);
+    //setTimeout(() => {
+     // this.element.nativeElement.focus()
+    //}, 4000);
 
   }
 

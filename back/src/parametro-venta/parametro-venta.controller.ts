@@ -480,8 +480,9 @@ export class ParametrosVentaController extends BaseController {
                         AudUsuarioMod,
                         AudIpIng,
                         AudIpMod,
-                        ParametroVentaDetalleId
-                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15)`,
+                        ParametroVentaDetalleId,
+                        CantidadEstandar
+                    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16)`,
                         [
                             ParametroVenta.ClienteId, // ClienteId
                             ParametroVenta.ClienteElementoDependienteId, // ClienteElementoDependienteId
@@ -498,7 +499,8 @@ export class ParametrosVentaController extends BaseController {
                             usuario, // AudUsuarioMod
                             ip, // AudIpIng
                             ip,  // AudIpMod
-                            ParametroVentaDetalleId // ParametroVentaDetalleId
+                            ParametroVentaDetalleId, // ParametroVentaDetalleId,
+                            producto.CantidadReferencia ? Number(producto.CantidadReferencia) : null // CantidadEstandar
                         ]
                     )
                 }
