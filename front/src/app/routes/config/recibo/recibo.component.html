@@ -5,14 +5,30 @@
       <nz-form-label [nzSpan]="3">Período</nz-form-label>
       <nz-form-control [nzSpan]="5">
 
-        <nz-date-picker nzMode="month" name="periodo" nzFormat="MM/yyyy" ngModel (ngModelChange)="dateChange($event)"/>
+        <nz-date-picker nzMode="month" name="periodo" nzFormat="MM/yyyy" ngModel (ngModelChange)="dateChange($event)" />
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
+      <nz-form-label [nzSpan]="3">Tipo Cuenta</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+
+
+        <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Cuenta" nzShowSearch
+           [nzDropdownMatchSelectWidth]="false" name="tipocuenta_id"
+          >
+          @for (option of tiposCuenta(); track option.tipocuenta_id) {
+          <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+
+    <nz-form-item>
       <nz-form-label [nzSpan]="3">Persona</nz-form-label>
       <nz-form-control [nzSpan]="19">
-          <app-personal-search name="PersonalId" ngModel [anio]="anio()" [mes]="mes()"/>
+        <app-personal-search name="PersonalId" ngModel [anio]="anio()" [mes]="mes()" />
       </nz-form-control>
     </nz-form-item>
 
@@ -48,15 +64,17 @@
 
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-        <button nz-popconfirm nzType="primary" nz-button app-down-file [httpMethod]="'POST'"
-          [httpBody]="ngForm().value" httpUrl="api/recibos/prueba">
+        <button nz-popconfirm nzType="primary" nz-button app-down-file [httpMethod]="'POST'" [httpBody]="ngForm().value"
+          httpUrl="api/recibos/prueba">
           Descarga Recibo Prueba
         </button>
 
-        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button (nzOnConfirm)="save()">
+        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button
+          (nzOnConfirm)="save()">
           {{ 'app.btn.save' | i18n }}
         </button>
-        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar cargar configuración anterior?" nz-button (nzOnConfirm)="load(true)">
+        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar cargar configuración anterior?" nz-button
+          (nzOnConfirm)="load(true)">
           Cargar config Previa
         </button>
 

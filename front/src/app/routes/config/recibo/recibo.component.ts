@@ -28,7 +28,14 @@ export class ReciboComponent {
     effect(() => { this.ngForm().controls['PersonalId']?.setValue(Number(this.PersonalId())) });
   }
 
-  ngOnInit() {
+  tiposCuenta = signal<any[]>([])
+
+  async ngOnInit() {
+
+    const tiposCuenta=  await firstValueFrom(this.apiService.getTipoCuenta())
+    this.tiposCuenta.set(tiposCuenta)    
+
+
     setTimeout(async () => {
       const now = new Date()
       const anio = Number(localStorage.getItem('anio')) > 0 ? Number(localStorage.getItem('anio')) : now.getFullYear();

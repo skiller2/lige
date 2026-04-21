@@ -70,7 +70,7 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getReciboHtmlContentGeneral(fechaRecibo: Date, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
+  async getReciboHtmlContentGeneral(fechaRecibo: Date, titulo:string, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
 
     const imgPath = `./assets/logo-lince-full.svg`
     const imgBuffer = await fsPromises.readFile(imgPath);
@@ -92,6 +92,7 @@ export class RecibosController extends BaseController {
       footer = footer.replace(/\${imgBase64inaes}/g, imgBase64inaes);
       body = body.replace(/\${imgBase64Firma}/g, imgBase64Firma);
 
+      header = header.replace(/\${titulo}/g, titulo);
       header = header.replace(/\${anio}/g, anio.toString());
       header = header.replace(/\${mes}/g, mes.toString());
       header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fechaRecibo));
@@ -132,9 +133,6 @@ export class RecibosController extends BaseController {
       if (resPendAsisCierre.length > 0)
         throw new ClientException(`Existen ${resPendAsisCierre.length} objetivos pendientes de cierre o sin asistencia para el período ${periodo.month}/${periodo.year}`)
 
-
-
-
       if (!isUnique) {
         // codigo para cuenado es recibo general
         const getRecibosGenerados = await this.getRecibosGenerados(queryRunner, periodo_id)
@@ -165,7 +163,8 @@ export class RecibosController extends BaseController {
 
       await this.cleanDirectories(queryRunner, this.directoryRecibo + '/' + directorPath, periodo.year, periodo.month, isUnique, directorPathUnique, den_documento)
 
-      const htmlContent = await this.getReciboHtmlContentGeneral(fechaRecibo, periodo.year, periodo.month)
+      const htmlContentGeneral = await this.getReciboHtmlContentGeneral(fechaRecibo,'', periodo.year, periodo.month)
+      const htmlContentCoordinador = await this.getReciboHtmlContentGeneral(fechaRecibo,'Coordinador', periodo.year, periodo.month)
 
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
@@ -177,7 +176,6 @@ export class RecibosController extends BaseController {
 
         const filesPath = directorPath + '/' + nombre_archivo
 
-
         if (!isUnique)
           den_documento = await BaseController.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
 
@@ -200,12 +198,8 @@ export class RecibosController extends BaseController {
         )
 
         await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
-          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer,'G')
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContentGeneral.body, htmlContentGeneral.header, htmlContentGeneral.footer,'G')
       }
-
-
-
-
 
       for (const movimiento of movimientosPendientesC) {
         persona_id = movimiento.PersonalId
@@ -214,7 +208,6 @@ export class RecibosController extends BaseController {
 
         const filesPath = directorPath + '/' + nombre_archivo
 
-
         if (!isUnique)
           den_documento = await BaseController.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
 
@@ -237,7 +230,7 @@ export class RecibosController extends BaseController {
         )
 
         await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
-          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body, htmlContent.header, htmlContent.footer,'C')
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContentCoordinador.body, htmlContentCoordinador.header, htmlContentCoordinador.footer,'C')
       }
 
 
@@ -897,7 +890,7 @@ export class RecibosController extends BaseController {
   async getReciboConfig(req: Request, res: Response, next: NextFunction) {
     const prev: boolean = (req.params.prev === 'true')
     try {
-      const htmlContent = await this.getReciboHtmlContentGeneral(new Date(), 0, 0, '', '', '', true, prev)
+      const htmlContent = await this.getReciboHtmlContentGeneral(new Date(), '',0, 0, '', '', '', true, prev)
       this.jsonRes({ header: htmlContent.header, body: htmlContent.body, footer: htmlContent.footer }, res);
 
     } catch (error) {
@@ -930,7 +923,7 @@ export class RecibosController extends BaseController {
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       const movimientosPendientes = await this.getLiquidacionCuentaGeneral(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual)
 
-      const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, anio, mes, header, body, footer)
+      const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, (tipocuenta_id=='C')? 'Coordinador':'',anio, mes, header, body, footer)
 
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
