@@ -23,6 +23,8 @@ export interface Producto {
   TextoFactura: string;
   default: string;
   CantidadReferencia: string;
+  CantidadEnFactura: string;
+  Bonificacion: string;
 }
 
 export interface ParametroVentaForm {
@@ -149,6 +151,8 @@ export class ParametroVentaFormComponent implements OnInit {
     TextoFactura: '',
     default: '',
     CantidadReferencia: '',
+    CantidadEnFactura: '',
+    Bonificacion: ''
   };
 
   private readonly defaultFormParamVenta: ParametroVentaForm = {
