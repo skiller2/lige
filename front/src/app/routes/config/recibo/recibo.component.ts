@@ -41,6 +41,7 @@ export class ReciboComponent {
       const anio = Number(localStorage.getItem('anio')) > 0 ? Number(localStorage.getItem('anio')) : now.getFullYear();
       const mes = Number(localStorage.getItem('mes')) > 0 ? Number(localStorage.getItem('mes')) : now.getMonth() + 1;
       this.ngForm().controls['periodo']?.setValue(new Date(anio, mes - 1, 1))
+      this.ngForm().controls['tipocuenta_id']?.setValue('G')
 
       this.load(false)
     }, 0);
