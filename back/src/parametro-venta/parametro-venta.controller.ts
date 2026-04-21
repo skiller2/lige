@@ -9,13 +9,13 @@ const TipoCantidadOptions: any[] = [
     { label: 'Fija', value: 'F' },
     { label: 'Horas A', value: 'A' },
     { label: 'Horas B', value: 'B' },
-    { label: 'Variable', value: 'V' }
+    { label: 'Cargado Manualmente', value: 'V' }
 ]
 
 const TipoImporteOptions: any[] = [
     { label: 'Fijo', value: 'F' },
     { label: 'Lista de Precio Cliente', value: 'LP' },
-    { label: 'Variable', value: 'V' }
+    { label: 'Cargado Manualmente', value: 'V' }
 ]
 
 export class ParametrosVentaController extends BaseController {
