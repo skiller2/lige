@@ -401,7 +401,10 @@ export class ParametrosVentaController extends BaseController {
             const ip = this.getRemoteAddress(req)
             const objetivoInfo = await this.ObjetivoInfoFromId(ParametroVenta.ClienteId, ParametroVenta.ClienteElementoDependienteId)
 
-            const PeriodoDesdeAplica = new Date(ParametroVenta.PeriodoDesdeAplica);
+            const PeriodoDesdeAplica = new Date(ParametroVenta.PeriodoDesdeAplica)
+            PeriodoDesdeAplica.setDate(1)
+            PeriodoDesdeAplica.setHours(0, 0, 0, 0)
+
             const anio = PeriodoDesdeAplica.getFullYear()
             const mes = PeriodoDesdeAplica.getMonth() + 1
             const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip)
@@ -784,6 +787,7 @@ export class ParametrosVentaController extends BaseController {
             const ClienteId = Number(req.body.ClienteId);
             const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
             const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica);
+            PeriodoDesdeAplica.setDate(1)
             PeriodoDesdeAplica.setHours(0, 0, 0, 0)
 
             const usuario = res.locals.userName
