@@ -1853,7 +1853,6 @@ export class ApiService {
 
 
   getListParametrosVenta(filters: any, periodo: any) {
-    console.log("voy a cargargar")
 
     return this.http.post<ResponseJSON<any>>('/api/parametros-venta/list', { filters, periodo }).pipe(
       map((res: { data: any; }) => res.data),
