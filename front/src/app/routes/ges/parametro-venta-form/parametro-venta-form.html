@@ -176,7 +176,8 @@
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad en Factura </nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3" nzHasFeedback sfErrorTip>
           <input appDotToComma mask="separator.2" nz-input [formField]="ip.CantidadEnFactura" type="text"
-            style="width: 100%;" placeholder="Cantidad en Factura" nz-tooltip />
+            style="width: 100%;" nz-popover
+          [nzPopoverContent]="'Cantidad que se visualize en la factura'" nz-tooltip />
         </nz-form-control>
 
       </nz-form-item>
