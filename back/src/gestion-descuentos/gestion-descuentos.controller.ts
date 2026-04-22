@@ -997,7 +997,6 @@ export class GestionDescuentosController extends BaseController {
     const AplicaA: string = objDescuento.AplicaA
     const ObjetivoDescuentoDescuentoId: number = objDescuento.DescuentoId
     const ObjetivoId: number = objDescuento.ObjetivoId
-    console.log('objDescuento.AplicaEl:', objDescuento.AplicaEl);
     const AplicaEl: Date = objDescuento.AplicaEl ? new Date(objDescuento.AplicaEl) : null
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas: number = objDescuento.Cuotas
