@@ -10,6 +10,7 @@ type GroupedResult = {
   ObjetivoId: number;
   ClienteId: number;
   ClienteElementoDependienteId: number;
+  ObjetivoAsistenciaAnoMesHasta: Date | null;
   totalImporte: number;
 };
 
@@ -27,7 +28,8 @@ export class DescuentoRetirosController extends BaseController {
           item.ObjetivoPersonalJerarquicoPersonalId,
           item.ObjetivoId,
           item.ClienteId,
-          item.ClienteElementoDependienteId
+          item.ClienteElementoDependienteId,
+          item.ObjetivoAsistenciaAnoMesHasta
         ].join('|');
 
         if (!acc[key]) {
@@ -38,6 +40,8 @@ export class DescuentoRetirosController extends BaseController {
             ClienteId: item.ClienteId,
             ClienteElementoDependienteId:
               item.ClienteElementoDependienteId,
+            ObjetivoAsistenciaAnoMesHasta:
+              item.ObjetivoAsistenciaAnoMesHasta,
             totalImporte: 0
           };
         }
@@ -276,12 +280,18 @@ export class DescuentoRetirosController extends BaseController {
 
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
-
+      let objetivosSinCerrar = 0
       for (const row of retirosxobj) {
 
         const PersonalId = row.ObjetivoPersonalJerarquicoPersonalId
         const ObjetivoId = row.ObjetivoId
         const totalImporte = row.totalImporte
+
+        if (row.ObjetivoAsistenciaAnoMesHasta == null){
+          objetivosSinCerrar++
+          continue
+        }
+
 
         await queryRunner.query(
           `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, tipocuenta_id, fecha, detalle, objetivo_id, persona_id, importe,
@@ -304,11 +314,11 @@ export class DescuentoRetirosController extends BaseController {
         cantRegistros++
       }
 
+      if (objetivosSinCerrar > 0)
+        throw new ClientException(`Hay ${objetivosSinCerrar} objetivos sin cerrar liquidación. No se pueden procesar los movimientos de descuento por retiro hasta que estén cerrados`)
 
 
 
-
-      //      throw new ClientException(`Se procesaron ${cantRegistros} registros`)
       this.jsonRes({ list: {} }, res, (`Se procesaron ${cantRegistros} registros`));
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
