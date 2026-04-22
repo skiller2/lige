@@ -207,14 +207,14 @@ export class AuthMiddleware {
       try {
 
         const stmActual = new Date();
-        const UserPersonalId = res.locals.PersonalId;
-        const tableForSearch = req.params.tableForSearch || req.query[1] || req.body.archivo?.[0]?.tableForSearch || req.body.files?.[0]?.tableForSearch;
+        const UserPersonalId = res.locals?.PersonalId;
+        const tableForSearch = req.params?.tableForSearch || req.query?.[1] || req.body?.archivo?.[0]?.tableForSearch || req.body?.files?.[0]?.tableForSearch;
 
         // predeterminadamente iguala a req.params.id, pero si se le pasa un string, lo toma como variable de req
-        const documentId = req.params.id || req.body.doc_id || req.query[0] || req.body.DocumentoId;
-        const documentType = req.body.doctipo_id || req.body.files?.[0]?.doctipo_id || req.body.DocumentoTipoCodigo//|| req.params.doctipo_id || req.query.doctipo_id;
+        const documentId = req.params?.id || req.body?.doc_id || req.query?.[0] || req.body?.DocumentoId;
+        const documentType = req.body?.doctipo_id || req.body?.files?.[0]?.doctipo_id || req.body?.DocumentoTipoCodigo//|| req.params.doctipo_id || req.query.doctipo_id;
 
-        const path = req.route.path
+        const path = req?.route?.path
 
         // console.log('documentId', documentId, 'documentType', documentType, 'tableForSearch', tableForSearch, 'path', path);
 
@@ -255,7 +255,7 @@ export class AuthMiddleware {
               if (path.includes('downloadFile') && UserPersonalId == DocumentoPersonalId) return next();
 
               const documentoTipoIdOld = doc.doctipo_id
-              const documentoTipoIdNew = req.body.doctipo_id
+              const documentoTipoIdNew = req.body?.doctipo_id
               // cuando se cambia el tipo de documento, se verifica si el nuevo tipo tiene permisos
               if (documentoTipoIdOld !== documentoTipoIdNew && documentoTipoIdNew && documentoTipoIdOld) {
                 const permisosADDocumentoTipo = await queryRunner.query(
@@ -331,16 +331,15 @@ export class AuthMiddleware {
               );
 
 
+              // Si el documento no existe, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
+              if (Documento.length === 0) return next();
+
               const doc = Documento[0];
               const DocumentoPersonalId = doc.PersonalId;
-
-              // Si el documento no tiene persona_id ni DocumentoTipoJsonPermisosActDir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
-
-              if (Documento.length === 0) return next();
               if (path.includes('downloadFile') && UserPersonalId == DocumentoPersonalId) return next();
 
               const documentoTipoIdOld = doc.DocumentoTipoCodigo
-              const documentoTipoIdNew = req.body.DocumentoTipoCodigo
+              const documentoTipoIdNew = req.body?.DocumentoTipoCodigo
               // cuando se cambia el tipo de documento, se verifica si el nuevo tipo tiene permisos
               if (documentoTipoIdOld !== documentoTipoIdNew && documentoTipoIdNew && documentoTipoIdOld) {
                 const permisosADDocumentoTipo = await queryRunner.query(
@@ -412,6 +411,7 @@ export class AuthMiddleware {
       } catch (error) {
         // console.error("Error en hasAuthByDocId:", error);
         await queryRunner.rollbackTransaction();
+        console.error('error', error);
         return res.status(500).json({ msg: "Error al verificar autorización", error: error.message });
       } finally {
         await queryRunner.release();
