@@ -78,7 +78,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   ArchivosAdd: any[] = []
   // valueFile = input()
   files = model<any[]>([])
-  prevFiles = output<any[]>()
+  // prevFiles = output<any[]>()
   blobUrl = ""
   ArchivoIdForDelete = 0
   modalViewerVisiable = signal(false)
@@ -128,17 +128,17 @@ export class FileUploadComponent implements ControlValueAccessor {
     if (idForSearh && this.tipoSelected() != "" && this.tableForSearch() != "" && !this.searchById()) {
       const result = await firstValueFrom(this.apiService.getArchivosAnteriores(idForSearh, this.tipoSelected(), this.columnForSearch(), this.tableForSearch()))
       this.cantFilesAnteriores.set(result.length)
-      this.prevFiles.emit(result)
+      // this.prevFiles.emit(result)
       this.files.set(result)
 
     } else if (idForSearh && this.searchById()) {
       const result = await firstValueFrom(this.apiService.getArchivoAnterior(idForSearh))
       this.cantFilesAnteriores.set(result.length)
-      this.prevFiles.emit(result)
+      // this.prevFiles.emit(result)
       this.files.set(result)
 
     } else {
-      this.prevFiles.emit([])
+      // this.prevFiles.emit([])
       this.cantFilesAnteriores.set(0)
       this.files.set([])
     }

@@ -205,7 +205,7 @@ export class LiquidacionesBancoComponent {
       this.loadingSrv.open({ type: 'spin', text: '' })
       
       try {
-        if (params.anio, params.mes) {
+        if (params.anio && params.mes) {
           response = await firstValueFrom(this.apiService
           .getLiquidacionesBanco(
             { anio: params.anio, mes: params.mes, options: params.options }
@@ -216,36 +216,35 @@ export class LiquidacionesBancoComponent {
           )))
         }
       } catch (_e) { }
-        this.loadingSrv.close()
+      this.loadingSrv.close()
 
-        return response || [];
-      },
-
-      defaultValue: []
+      return response || [];
+    },
+    defaultValue: []
   });
   
   gridDataAyuda = resource({
-      params: () => ({ options: this.listOptionsAyuda(), anio: this.anio(), mes: this.mes() }),
-      loader: async ({ params }) => {
-        let response = []
-        this.loadingSrv.open({ type: 'spin', text: '' })
-        
-        try {
-          if (params.anio, params.mes){
-            response = await firstValueFrom(this.apiService.getLiquidacionesBancoAyudaAsistencial(
-              { anio: params.anio, mes: params.mes, options: params.options }
-            ).pipe(map(data => {
-              this.listdowload = "gridDataAyuda";
-              return data.list
-            })))
-          }
-        } catch (_e) { }
-        this.loadingSrv.close()
+    params: () => ({ options: this.listOptionsAyuda(), anio: this.anio(), mes: this.mes() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      
+      try {
+        if (params.anio && params.mes){
+          response = await firstValueFrom(this.apiService.getLiquidacionesBancoAyudaAsistencial(
+            { anio: params.anio, mes: params.mes, options: params.options }
+          ).pipe(map(data => {
+            this.listdowload = "gridDataAyuda";
+            return data.list
+          })))
+        }
+      } catch (_e) { }
+      this.loadingSrv.close()
 
-        return response || [];
-      },
+      return response || [];
+    },
 
-      defaultValue: []
+    defaultValue: []
   });
 
 
