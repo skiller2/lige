@@ -87,9 +87,9 @@ export class DescuentosPersonalAltaDrawerComponent {
         disabled(p.Cuotas, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
         disabled(p.Cantidad, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
         disabled(p.EfectoKey, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
-        disabled(p.Detalle, () => this.crudAccion() == 'R'|| this.crudAccion() == 'D')
+        disabled(p.Detalle, () => this.crudAccion() == 'R' || this.crudAccion() == 'D')
         disabled(p.DetalleAnulacion, () => this.crudAccion() == 'R')
-        disabled(p.FechaAnulacion )
+        disabled(p.FechaAnulacion)
         disabled(p.ImportacionDocumentoId)
 
         hidden(p.DetalleAnulacion, () => this.crudAccion() === 'C' || this.crudAccion() === 'U')
@@ -309,6 +309,7 @@ export class DescuentosPersonalAltaDrawerComponent {
                     this.onAddorUpdate.emit()
                     this.loadDescuentoPersonal()
                     this.formDescuentoPersonal().reset()
+                    this.visibleDesc.set(false)
                 }
             } catch (e) { }
         })

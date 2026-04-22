@@ -146,7 +146,7 @@
             </nz-form-control>
           </nz-form-item>
 
-          @if(!formDescuentoObjetivo.FechaAnulacion().hidden()) {
+          @if(descuentoObjetivo().FechaAnulacion) {
             <nz-form-item class="marginElement">
               <nz-form-label [nzXs]="5">Fecha de anulación</nz-form-label>
               <nz-form-control [nzMd]="18">
@@ -155,7 +155,7 @@
             </nz-form-item>
           }
 
-          @if (!formDescuentoObjetivo.DetalleAnulacion().hidden()) {
+          @if (descuentoObjetivo().DetalleAnulacion || crudAccion() === 'D') {
             <nz-form-item class="marginElement">
               <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>
               <nz-form-control [nzMd]="18">
@@ -164,11 +164,11 @@
             </nz-form-item>
           }
 
-          @if (false) {
+          @if (descuentoObjetivo().ImportacionDocumentoId) {
             <nz-form-item class="marginElement">
               <nz-form-label [nzXs]="5">Importación documento</nz-form-label>
               <nz-form-control [nzMd]="18">
-                <input nz-input placeholder="" [formField]="formDescuentoObjetivo.ImportacionDocumentoId" type="number"/>
+                <input nz-input [value]="descuentoObjetivo().ImportacionDocumentoId" type="number" [readonly]="true" class="ant-input"/>
               </nz-form-control>
             </nz-form-item>
           }

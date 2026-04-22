@@ -278,9 +278,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
         try {
             if (this.ObjetivoDescuentoId() && this.objetivoId()) {
                 await firstValueFrom(this.apiService.cancellationObjetivoDescuento(values))
-                void this.loadDescuentoObjetivo();
                 this.onAddorUpdate.emit()
-                this.formDescuentoObjetivo().reset()
+                this.visibleDesc.set(false)
             }
         } catch (e) { }
         this.isLoading.set(false)
