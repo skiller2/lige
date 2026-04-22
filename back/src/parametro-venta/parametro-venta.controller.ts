@@ -51,7 +51,7 @@ export class ParametrosVentaController extends BaseController {
             fieldName: "ele.ClienteElementoDependienteId",
             sortable: true,
             hidden: true,
-            searchHidden: false
+            searchHidden: true
         },
         {
             name: "Cliente",

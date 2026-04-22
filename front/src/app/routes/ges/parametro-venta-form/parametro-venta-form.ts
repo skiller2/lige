@@ -199,6 +199,7 @@ export class ParametroVentaFormComponent implements OnInit {
       required(productoPath.TipoImporte, { message: 'Tipo de importe es requerido' });
       required(productoPath.TipoCantidad, { message: 'Tipo de cantidad es requerido' });
       required(productoPath.CantidadReferencia, { message: 'Cantidad Referencia es requerido' });
+      required(productoPath.CantidadEnFactura, { message: 'Cantidad Presupuestada es requerida' });
     });
   })
 
