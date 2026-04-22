@@ -21,6 +21,7 @@ import { DescuentosController } from "../liquidaciones/descuentos/descuentos.con
 import { MovimientoAcreditacionEnCuentaController } from "../liquidaciones/movimiento-acreditacion-cuenta/movimiento-acreditacion-cuenta.controller.ts";
 import { LiquidacionesController } from "../liquidaciones/liquidaciones.controller.ts";
 import { LiquidacionesBancoController } from "../liquidaciones/liquidaciones-banco/liquidaciones-banco.controller.ts";
+import { DescuentoRetirosController } from "../liquidaciones/descuento-retiros/descuento-retiros.controller.ts";
 import { InformesController } from "../informes/informes.controller.ts";
 import { PendienteController } from "../controller/pendiente.controller.ts"
 import { DocumentoController } from "../documento/documento.controller.ts"
@@ -89,6 +90,8 @@ export const descuentosController = new DescuentosController();
 export const movimientoAcreditacionEnCuentaController = new MovimientoAcreditacionEnCuentaController();
 export const liquidacionesController = new LiquidacionesController();
 export const liquidacionesBancoController = new LiquidacionesBancoController();
+export const descuentoRetirosController = new DescuentoRetirosController();
+
 export const informesController = new InformesController();
 export const pendienteController = new PendienteController();
 export const documentoController = new DocumentoController();

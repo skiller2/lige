@@ -12,7 +12,8 @@ import {
   movimientoAcreditacionEnCuentaController,
   liquidacionesController,
   liquidacionesBancoController,
-  compensaGeneralACordinadorController
+  compensaGeneralACordinadorController,
+  descuentoRetirosController
 } from "../controller/controller.module.ts";
 import multer  from "multer";
 import type { FileFilterCallback } from "multer";
@@ -100,6 +101,10 @@ liquidacionesRouter.post('/ingresosCoordinadorDeCuenta', [authMiddleware.verifyT
 
 liquidacionesRouter.post('/descuentoPorDeudaAnterior', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], async (req, res, next) => {
   await descuentoPorDeudaAnteriorController.procesaCambios(req, res, next)
+})
+
+liquidacionesRouter.post('/descuento-retiros', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], async (req, res, next) => {
+  await descuentoRetirosController.procesaCambios(req, res, next)
 })
 
 liquidacionesRouter.post('/confirmaMovimientosBanco', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], async (req, res, next) => {
