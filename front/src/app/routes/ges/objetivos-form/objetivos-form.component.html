@@ -236,16 +236,22 @@
                 <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Consumos del Objetivo</nz-form-label>
                 <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="6">
                   <div nz-row>
-                    <div nz-col [nzSpan]="12">
+                    <div nz-col [nzSpan]="8">
                       <label nz-checkbox formControlName="ObjetivoPersonalJerarquicoDescuentos">
                         <span style="width: 100%;">Se aplica descuento</span>
                       </label>
                     </div>
-                    <div nz-col [nzSpan]="12">
+                    <div nz-col [nzSpan]="8">
                       <label nz-checkbox formControlName="ObjetivoPersonalJerarquicoSeDescuentaTelefono">
-                        <span style="width: 100%;">Descuento de Telefonia</span>
+                        <span style="width: 100%;">Descuento Telefonia</span>
                       </label>
                     </div>
+                    <div nz-col [nzSpan]="8">
+                      <label nz-checkbox formControlName="DescuentoRetiros">
+                        <span style="width: 100%;">Descuento Retiros</span>
+                      </label>
+                    </div>
+
                   </div>
                 </nz-form-control>
                 <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" [nzLg]="1">

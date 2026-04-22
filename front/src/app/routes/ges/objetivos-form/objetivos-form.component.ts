@@ -53,6 +53,7 @@ export class ObjetivosFormComponent {
     ObjetivoPersonalJerarquicoComision: 0, 
     ObjetivoPersonalJerarquicoDescuentos:false,
     ObjetivoPersonalJerarquicoSeDescuentaTelefono:false,
+    DescuentoRetiros:false,
   }
 
   objActividad = {
