@@ -34,7 +34,7 @@ export class DescuentoRetirosController extends BaseController {
           acc[key] = {
             ObjetivoPersonalJerarquicoPersonalId:
               item.ObjetivoPersonalJerarquicoPersonalId,
-            ObjetivoId: item.ObjetivoId,              
+            ObjetivoId: item.ObjetivoId,
             ClienteId: item.ClienteId,
             ClienteElementoDependienteId:
               item.ClienteElementoDependienteId,
@@ -43,8 +43,8 @@ export class DescuentoRetirosController extends BaseController {
         }
 
         acc[key].totalImporte +=
-            item.PersonalArt14SumaFija +  
-            (item.totalhorascalc + item.PersonalArt14Horas)   * ((item.ValorHoraArt14Categoria | item.ValorHoraNorm) + item.PersonalArt14AdicionalHora);
+          item.PersonalArt14SumaFija +
+          (item.totalhorascalc + item.PersonalArt14Horas) * ((item.ValorHoraArt14Categoria | item.ValorHoraNorm) + item.PersonalArt14AdicionalHora);
 
         return acc;
       },
@@ -75,8 +75,8 @@ export class DescuentoRetirosController extends BaseController {
 
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
-      //      if (getRecibosGenerados[0].ind_recibos_generados == 1)
-      //        throw new ClientException(`Los recibos para este periodo ya se generaron`)
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
 
       await queryRunner.query(
@@ -274,15 +274,8 @@ export class DescuentoRetirosController extends BaseController {
 
       const retirosxobj = this.groupAndSum(retiros)
 
-//      throw new ClientException(`DEBUG`, retirosxobj)
 
-
-
-      //Armar consulta de objetivos y sus importes totale de retiros.
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
-
-
-
 
       for (const row of retirosxobj) {
 
@@ -315,7 +308,7 @@ export class DescuentoRetirosController extends BaseController {
 
 
 
-//      throw new ClientException(`Se procesaron ${cantRegistros} registros`)
+      //      throw new ClientException(`Se procesaron ${cantRegistros} registros`)
       this.jsonRes({ list: {} }, res, (`Se procesaron ${cantRegistros} registros`));
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
