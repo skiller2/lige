@@ -91,6 +91,11 @@
                 [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('CompensaGeneCoor')">
                 <span nz-icon nzType="plus" nzTheme="outline"></span>Compensa General Coordinador
               </li>
+              <li nz-menu-item nz-popconfirm
+                nzPopconfirmTitle="Genero movimiento de descuento de retiros" [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('DescuentoRetiros')">
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Genera Descuento Retiros a Coordinador (85)
+              </li>
 
             </ul>
           </li>

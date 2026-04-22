@@ -951,6 +951,19 @@ export class ApiService {
 
   }
 
+
+  generaDescuentoRetiros(anio: number, mes: number) {
+
+    const parameter = { anio, mes}
+    this.notification.success('Respuesta', `Inicio Descuento Retiros`);
+
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/descuento-retiros', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
+
   setdescuentoPorDeudaAnterior(anio: number, mes: number) {
     const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio descuentos por deduda anterior`);
@@ -992,6 +1005,7 @@ export class ApiService {
     )
 
   }
+
 
   generaReciboUnico(anio: number, mes: number, personalId: number) {
     let isUnique = true

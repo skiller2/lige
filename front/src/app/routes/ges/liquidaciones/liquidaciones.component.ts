@@ -436,6 +436,11 @@ export class LiquidacionesComponent {
         firstValueFrom(this.apiService.generaReciboUnico(this.selectedPeriod.year, this.selectedPeriod.month, this.PersonalIdForReceip).pipe(tap((_res: any) => this.formChange$.next(''))))
         break;
 
+      case "DescuentoRetiros":
+
+        firstValueFrom(this.apiService.generaDescuentoRetiros(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
+        break;
+
       default:
         break;
 
