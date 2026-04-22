@@ -18,6 +18,7 @@ import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { ImageLoaderComponent } from '../../../shared/image-loader/image-loader.component';
 import { applyEach, disabled, FieldTree, form, FormField, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 
 export interface FormDoc { 
   DocumentoId: number,
@@ -38,7 +39,7 @@ export interface FormDoc {
   styleUrl: './documento-drawer.component.less',
   imports: [SHARED_IMPORTS, ReactiveFormsModule, PersonalSearchComponent,
     CommonModule, FileUploadComponent, ClienteSearchComponent, ObjetivoSearchComponent,
-    NgxExtendedPdfViewerModule, NzImageModule,ImageLoaderComponent],
+    NgxExtendedPdfViewerModule, NzImageModule, ImageLoaderComponent, FormField, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 
@@ -61,10 +62,12 @@ export class DocumentoDrawerComponent {
   
 
   drawerWidth = computed(() => {
-    if (this.prevFiles() && this.prevFiles().length)
+    const archivo = this.tipoDocumento().archivo
+    if (archivo.length > 0 && (archivo[0]?.mimetype?.includes('image') || archivo[0]?.mimetype?.includes('pdf'))) {
       return '1000px'
-    else
+    } else {
       return '600px'
+    }
   })
 
   docId = model<number>(0);
@@ -72,83 +75,43 @@ export class DocumentoDrawerComponent {
   prevFiles = signal<any[]>([]);
   Date: any;
 
-  // private documentoObjetivoDefault: FormDoc = {
-  //     DocumentoId: 0,
-  //     DocumentoTipoCodigo: '',  
-  //     DocumentoDenominadorDocumento: '', 
-  //     PersonalId: 0,
-  //     DocumentoClienteId: 0, 
-  //     ObjetivoId: 0, 
-  //     Documentofecha: null, 
-  //     DocumentoFechaDocumentoVencimiento: null,
-  //     DocumentoIndividuoDescargaBot: false,
-  //     archivo: []
-  // }
-
-  // readonly documentoObjetivo = signal<FormDoc>(this.documentoObjetivoDefault);
-
-  // readonly formDescuentoObjetivo = form(this.documentoObjetivo)
-
-  constructor(
-  ) {
-    effect(async() => { 
-      const visible = this.visible()
-      if (visible) {
-        if (this.docId()) {
-          let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
-          this.formTipoDocumento.reset(infoDoc)
-          this.formTipoDocumento.markAsUntouched()
-          this.formTipoDocumento.markAsPristine()
-        }
-        if (this.disabled())
-          this.formTipoDocumento.disable()
-        else
-          this.formTipoDocumento.enable()
-      }
-      else {
-        this.formTipoDocumento.reset()
-        this.formTipoDocumento.enable()
-      }
-    })
+  private tipoDocumentoDefault: FormDoc = {
+      DocumentoId: 0,
+      DocumentoTipoCodigo: '',  
+      DocumentoDenominadorDocumento: '', 
+      PersonalId: 0,
+      DocumentoClienteId: 0, 
+      ObjetivoId: 0, 
+      Documentofecha: null, 
+      DocumentoFechaDocumentoVencimiento: null,
+      DocumentoIndividuoDescargaBot: false,
+      archivo: []
   }
 
-  fb = inject(FormBuilder)
-  formTipoDocumento = this.fb.group({ 
-    DocumentoId: 0,
-    DocumentoTipoCodigo: '',  
-    DocumentoDenominadorDocumento: null, 
-    PersonalId: 0,
-    DocumentoClienteId: 0, 
-    ObjetivoId: 0, 
-    Documentofecha: null, 
-    DocumentoFechaDocumentoVencimiento: null,
-    DocumentoIndividuoDescargaBot: false,
-    archivo: []
-    }) 
+  readonly tipoDocumento = signal<FormDoc>(this.tipoDocumentoDefault);
 
-  $optionsTipos = this.searchService.getDocumentoTipoOptions();
+  readonly formTipoDocumento = form(this.tipoDocumento, (p) => {
+    disabled(p, () => this.disabled())
+  })
 
+  loadEffect = effect(async () => {
+    if (!this.visible()) return
+    
+    if (this.docId()) {
+      let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
+      this.tipoDocumento.update(m => ({
+        ...m, 
+        ...infoDoc,
+      }));
+      setTimeout(() => { this.formTipoDocumento().reset() }, 400);
+    }
+  })
 
-  doc_id(): number {
-    const value = this.formTipoDocumento.get("DocumentoId")?.value 
-    if (value)
-      return value
-    return 0
-  }
-
-  doctipo_id(): string {
-    const value = this.formTipoDocumento.get("DocumentoTipoCodigo")?.value
-    if (value)
-      return value
-    return ''
-  }
-
-  archivo(): any []  { 
-    const value:any = this.formTipoDocumento.get("archivo")?.value 
-    if (value && value.length)
-      return value
-    return []
-  }
+  optionsTipos = toSignal(this.searchService.getDocumentoTipoOptions(), { initialValue: [] });
+  labelsEffect = effect(async () => {
+    const DocumentoTipoCodigo:string = this.tipoDocumento().DocumentoTipoCodigo
+    this.selectLabel(DocumentoTipoCodigo);
+  })
  
   async ngOnInit() {
     this.token.set(this.tokenService.get()?.token ?? '');
@@ -161,41 +124,43 @@ export class DocumentoDrawerComponent {
   }
 
   async save() {
-    this.isLoading.set(true)
-    const values = this.formTipoDocumento.value
-    let docId = 0
+    await submit(this.formTipoDocumento, async (form) => {
+      this.isLoading.set(true)
+      const values:any = form().value()
+      let docId = 0
       try {
         if (values.DocumentoId){
           docId = values.DocumentoId
           await firstValueFrom(this.apiService.updateDocumento(values))
         } else {
-        const res = await firstValueFrom(this.apiService.addDocumento(values))
-        if (res.data.DocumentoId){
-          docId = res.data.DocumentoId
-          this.formTipoDocumento.patchValue({ DocumentoId: res.data.DocumentoId })
+          const res = await firstValueFrom(this.apiService.addDocumento(values))
+          if (res.data.DocumentoId){
+            docId = res.data.DocumentoId
+            this.tipoDocumento.update(m => ({
+              ...m, 
+              DocumentoId: res.data.DocumentoId
+            }));
+          }
         }
-        
+
+        if (docId > 0){
+          this.fileUploadComponent().LoadArchivosAnteriores(docId)
+        }
+        this.onAddorUpdate.emit()
+        setTimeout(() => { this.formTipoDocumento().reset() }, 400);
+      } catch (e) {
+
       }
-
-      if (docId > 0){
-        this.fileUploadComponent().LoadArchivosAnteriores(docId)
-      }
-      this.onAddorUpdate.emit()
-      this.formTipoDocumento.markAsUntouched()
-      this.formTipoDocumento.markAsPristine()
-    } catch (e) {
-
-    }
-
-    this.isLoading.set(false)
+      this.isLoading.set(false)
+    })
   }
 
-  handlePrevFiles(event: any[]) {
-    console.log('handle',event)
-    const copia = event.map(item => ({ ...item }))
-    this.prevFiles.set([...copia])
-    this.randNum.set(Math.random())
-  }
+  // handlePrevFiles(event: any[]) {
+  //   console.log('handle',event)
+  //   const copia = event.map(item => ({ ...item }))
+  //   this.prevFiles.set([...copia])
+  //   this.randNum.set(Math.random())
+  // }
 
   // async load() {
   //   if (this.docId()) {
@@ -212,7 +177,7 @@ export class DocumentoDrawerComponent {
   // }
 
   resetForm() {
-    this.formTipoDocumento.reset()
+    setTimeout(() => { this.formTipoDocumento().reset() }, 400);
   }
 
   selectLabel(val: any) {

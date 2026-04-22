@@ -1,16 +1,17 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visible()" [nzPlacement]="placement" [nzWidth]="drawerWidth()"
   [nzTitle]="tituloDrawer() " (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
-    <div nz-row>
-      <div nz-col nzFlex="600px" class="app-info-pers">
-        <form [formGroup]="formTipoDocumento">
+    <form (ngSubmit)="save()">
+      <fieldset [disabled]="formTipoDocumento().disabled()">
+      <div nz-row [nzGutter]="16">
+        <div nz-col nzFlex="600px" class="app-info-pers">
           <nz-form-item>
             <nz-form-label [nzSpan]="6">Tipo de documento</nz-form-label>
             <nz-form-control [nzSpan]="15">
-              <nz-select formControlName="DocumentoTipoCodigo" nzPlaceHolder="Tipo" nzAllowClear
+              <nz-select [formField]="formTipoDocumento.DocumentoTipoCodigo" nzPlaceHolder="Tipo" nzAllowClear
                 [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
                 (ngModelChange)="selectLabel($event)">
-                @for (option of $optionsTipos | async; track option) {
+                @for (option of optionsTipos(); track option) {
                   <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
                 }
               </nz-select>
@@ -20,14 +21,14 @@
           <nz-form-item>
             <nz-form-label [nzSpan]="9">{{ label() }}</nz-form-label>
             <nz-form-control [nzSpan]="12">
-              <input nz-input formControlName="DocumentoDenominadorDocumento" />
+              <input nz-input [formField]="formTipoDocumento.DocumentoDenominadorDocumento" />
             </nz-form-control>
           </nz-form-item>
 
           <nz-form-item>
             <nz-form-label [nzSpan]="5">Persona</nz-form-label>
             <nz-form-control [nzSpan]="16">
-              <app-personal-search formControlName="PersonalId" [anio]="periodo().anio"
+              <app-personal-search [formField]="formTipoDocumento.PersonalId" [anio]="periodo().anio"
               [mes]="periodo().mes"></app-personal-search>
             </nz-form-control>
           </nz-form-item>
@@ -35,34 +36,34 @@
           <nz-form-item>
             <nz-form-label [nzSpan]="5">Cliente</nz-form-label>
             <nz-form-control [nzXs]="16">
-              <app-cliente-search formControlName="DocumentoClienteId" />
+              <app-cliente-search [formField]="formTipoDocumento.DocumentoClienteId" />
             </nz-form-control>
           </nz-form-item>
 
           <nz-form-item>
             <nz-form-label [nzSpan]="5">Objetivo</nz-form-label>
             <nz-form-control [nzXs]="16">
-              <app-objetivo-search formControlName="ObjetivoId"></app-objetivo-search>
+              <app-objetivo-search [formField]="formTipoDocumento.ObjetivoId"></app-objetivo-search>
             </nz-form-control>
           </nz-form-item>
 
           <nz-form-item>
             <nz-form-label [nzSpan]="5">Desde</nz-form-label>
             <nz-form-control [nzXs]="7">
-              <nz-date-picker nzFormat="dd/MM/yyyy" formControlName="Documentofecha"></nz-date-picker>
+              <nz-date-picker nzFormat="dd/MM/yyyy" [formField]="formTipoDocumento.Documentofecha"></nz-date-picker>
             </nz-form-control>
 
             <nz-form-label [nzSpan]="3">Hasta</nz-form-label>
             <nz-form-control [nzXs]="7">
               <nz-date-picker nzFormat="dd/MM/yyyy"
-              formControlName="DocumentoFechaDocumentoVencimiento"></nz-date-picker>
+              [formField]="formTipoDocumento.DocumentoFechaDocumentoVencimiento"></nz-date-picker>
             </nz-form-control>
           </nz-form-item>
 
           <nz-form-item>
             <nz-form-control [nzSpan]="5"></nz-form-control>
             <nz-form-control [nzXs]="16">
-              <label nz-checkbox formControlName="DocumentoIndividuoDescargaBot">Descargar por BOT</label>
+              <label nz-checkbox [formField]="formTipoDocumento.DocumentoIndividuoDescargaBot">Descargar por BOT</label>
             </nz-form-control>
           </nz-form-item>
 
@@ -70,47 +71,48 @@
           <nz-form-item>
             <nz-form-label [nzSpan]="5">Archivo</nz-form-label>
             <nz-form-control>
-              <app-file-upload formControlName="archivo" [cantMaxFiles]="1" [idForSearh]="doc_id()"
-                [textForSearch]="doctipo_id()" [tableForSearch]="'Documento'" [columnForSearch]="'DocumentoId'" [searchById]="true"
-              [previewFile]="false" (prevFiles)="handlePrevFiles($event)"></app-file-upload>
+              <app-file-upload [formField]="formTipoDocumento.archivo" [cantMaxFiles]="1" [idForSearh]="tipoDocumento().DocumentoId"
+                [textForSearch]="tipoDocumento().DocumentoTipoCodigo" [tableForSearch]="'Documento'" [columnForSearch]="'DocumentoId'" [searchById]="true"
+              [previewFile]="false" ></app-file-upload>
             </nz-form-control>
           </nz-form-item>
-        </form>
-      </div>
+        </div>
     
-      <!--      Corregido: validación para mimetype -->
-      @if (archivo().length > 0 && archivo()[0]?.mimetype?.includes('image')) {
+        <!--      Corregido: validación para mimetype -->
+        @if (tipoDocumento().archivo.length > 0 && tipoDocumento().archivo[0]?.mimetype?.includes('image')) {
         <div nz-col nzFlex="350px" class="app-foto-container">
-          <app-image-loader class="image-content" [src]="archivo()[0]?.url" />
+          <app-image-loader class="image-content" [src]="tipoDocumento().archivo[0]?.url" />
           <!-- <img nz-image class="image-content" [src]="prevFiles()[0]?.url | urlauth | async" alt="" width="350px"/> -->
         </div>
-      } @else if (archivo().length > 0 && archivo()[0]?.mimetype?.includes('pdf')) {
+        } @else if (tipoDocumento().archivo.length > 0 && tipoDocumento().archivo[0]?.mimetype?.includes('pdf')) {
         <div nz-col nzFlex="350px" class="app-foto-container">
-        <ngx-extended-pdf-viewer [src]="archivo()[0]?.url+'?v='+randNum()" [textLayer]="true"
-          [showHandToolButton]="false" [httpHeaders]="{'Token': token()}" [filenameForDownload]="archivo()[0]?.nombre"
-            [height]="'500px'">
-          </ngx-extended-pdf-viewer>
+          <ngx-extended-pdf-viewer [src]="tipoDocumento().archivo[0]?.url+'?v='+randNum()" [textLayer]="true"
+            [showHandToolButton]="false" [httpHeaders]="{'Token': token()}" [filenameForDownload]="tipoDocumento().archivo[0]?.nombre"
+              [height]="'500px'">
+            </ngx-extended-pdf-viewer>
         </div>
-      }
+        }
 
 
-    </div>
+      </div>
+      </fieldset>
 
-    @if (!disabled()) {
+      @if (!disabled()) {
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading()"
-            [disabled]="formTipoDocumento.pristine">
+          <button type="submit" nzType="primary" nz-button
+            [nzLoading]="isLoading()"
+            [disabled]="formTipoDocumento().submitting() || formTipoDocumento().dirty()==false || formTipoDocumento().valid()==false">
             {{ 'app.btn.save' | i18n }}
           </button>
-          @if (doc_id() && !docId()) {
-            <button nzType="primary" nz-button (click)="resetForm()">
+          @if (tipoDocumento().DocumentoId && !docId()) {
+            <button type="button" nzType="primary" nz-button (click)="resetForm()">
               {{ 'app.btn.clear.form' | i18n }}
             </button>
           }
         </nz-form-control>
       </nz-form-item>
-    }
-
+      }
+    </form>
   </ng-container>
 </nz-drawer>
