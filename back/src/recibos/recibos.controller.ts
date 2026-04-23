@@ -918,10 +918,17 @@ export class RecibosController extends BaseController {
       if (!PersonalId)
         throw new ClientException(`Debe selccionar persona`)
 
+
+
+
       const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
                         opacity: 0.6;">PRUEBA</div>`
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
-      const movimientosPendientes = await this.getLiquidacionCuentaGeneral(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual)
+      const movimientosPendientes = (tipocuenta_id == 'G') ?
+        await this.getLiquidacionCuentaGeneral(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual):
+        await this.getLiquidacionCuentaCoordinador(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual)
+
+
 
       const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, (tipocuenta_id == 'C') ? 'Coordinador' : '', anio, mes, header, body, footer)
 
