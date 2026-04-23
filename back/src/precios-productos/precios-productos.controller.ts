@@ -162,37 +162,42 @@ export class PreciosProductosController extends BaseController {
         try {
 
             const precios = await queryRunner.query(`
-                  SELECT 
-                    ROW_NUMBER() OVER (ORDER BY pp.PeriodoDesdeAplica,pp.ProductoCodigo,pp.ClienteId) AS id,
-                    CONCAT(pp.ProductoCodigo, '-', c.ClienteId) AS idTable,
-                    pp.ProductoCodigo,
-                    pp.ProductoCodigo AS ProductoCodigoOLD,
-                    c.ClienteId AS ClienteIdOLD,
-                    c.ClienteDenominacion,
-                    pp.PeriodoDesdeAplica,
-                    pp.PeriodoDesdeAplica AS PeriodoDesdeAplicaOLD,
-                    pp.Importe,
-                    pp.Importe AS ImporteOLD,
-                    --pp.ImportDocumentoId,
-                    pp.AudFechaIng,
-                    pp.AudUsuarioIng,
-                    pp.AudFechaMod,
-                    pp.AudUsuarioMod,
-
-                    --p.Nombre,
-                    --p.ProductoTipoCodigo,
-                    --pt.Descripcion,
-                    fac.ClienteFacturacionCUIT
-
-                FROM ProductoPrecio pp 
-            
-                LEFT JOIN Cliente c on pp.ClienteId = c.ClienteId
-
-                Left join Producto p on p.ProductoCodigo=pp.ProductoCodigo
-                LEFT JOIN ProductoTipo pt ON pt.ProductoTipoCodigo=p.ProductoTipoCodigo
-
-                LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = c.ClienteId AND fac.ClienteFacturacionDesde = (Select max(ClienteFacturacionDesde) from ClienteFacturacion fac where fac.ClienteId = c.ClienteId)
-                where pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1) and pp.ProductoCodigo=p.ProductoCodigo and ${filterSql}`, [anio, mes])
+                 SELECT 
+    ROW_NUMBER() OVER (ORDER BY pp.PeriodoDesdeAplica, pp.ProductoCodigo, pp.ClienteId) AS id,
+    CONCAT(pp.ProductoCodigo, '-', pp.ClienteId) AS idTable,
+    pp.ProductoCodigo,
+    pp.ProductoCodigo AS ProductoCodigoOLD,
+    pp.ClienteId AS ClienteIdOLD,
+    c.ClienteDenominacion,
+    pp.PeriodoDesdeAplica,
+    pp.PeriodoDesdeAplica AS PeriodoDesdeAplicaOLD,
+    pp.Importe,
+    pp.Importe AS ImporteOLD,
+    pp.AudFechaIng,
+    pp.AudUsuarioIng,
+    pp.AudFechaMod,
+    pp.AudUsuarioMod,
+    fac.ClienteFacturacionCUIT
+FROM ProductoPrecio pp
+INNER JOIN (
+    SELECT ProductoCodigo, ClienteId, MAX(PeriodoDesdeAplica) AS UltimaFecha
+    FROM ProductoPrecio
+    WHERE PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1)
+    GROUP BY ProductoCodigo, ClienteId
+) ult ON pp.ProductoCodigo = ult.ProductoCodigo 
+      AND pp.ClienteId = ult.ClienteId 
+      AND pp.PeriodoDesdeAplica = ult.UltimaFecha
+LEFT JOIN Cliente c ON pp.ClienteId = c.ClienteId
+LEFT JOIN Producto p ON p.ProductoCodigo = pp.ProductoCodigo
+LEFT JOIN ProductoTipo pt ON pt.ProductoTipoCodigo = p.ProductoTipoCodigo
+LEFT JOIN ClienteFacturacion fac 
+    ON fac.ClienteId = c.ClienteId 
+    AND fac.ClienteFacturacionDesde = (
+        SELECT MAX(ClienteFacturacionDesde) 
+        FROM ClienteFacturacion fac2 
+        WHERE fac2.ClienteId = c.ClienteId
+    )
+     where  ${filterSql}`, [anio, mes])
 
             const formattedData = precios.map((item: any) => ({
                 ...item,
