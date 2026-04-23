@@ -318,9 +318,9 @@ export class PreciosProductosController extends BaseController {
                 const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1, usuario, ip)
                 const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
 
-                if (getRecibosGenerados[0]?.ind_recibos_generados == 1) {
-                    throw new ClientException(`No se puede agregar un precio en un periodo con recibos generados.`)
-                }
+                // if (getRecibosGenerados[0]?.ind_recibos_generados == 1) {
+                //     throw new ClientException(`No se puede agregar un precio en un periodo con recibos generados.`)
+                // }
 
                 dataResultado = {action:'I'}
                 message = "Carga de nuevo Registro exitoso"
