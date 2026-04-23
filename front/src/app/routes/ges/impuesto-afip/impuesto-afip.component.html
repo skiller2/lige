@@ -1,102 +1,118 @@
 <nz-card class="small-margin">
-  <form nz-form #impuestoForm="ngForm">
-    <ul nz-menu nzMode="horizontal">
-      <li nz-menu-item nzMatchRouter >
-        <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'impuesto_afip','listado']">Listado</a>
-      </li>
-      <li nz-menu-item nzMatchRouter>
-        <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'impuesto_afip','carga']">Carga</a>
-      </li>
 
-      @if (router.url === '/ges/impuesto_afip/listado') {
-        <li nz-submenu nzTitle="Acciones">
-          <ul>
-            <li nz-menu-item app-down-file [httpMethod]="'POST'"
-              [httpBody]="{anio, mes, options: listOptions, cantxpag:4}"
-              httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
-              <span nz-icon nzType="download"></span><span style="white-space: normal;">Comp 4 x páginas</span>
-            </li>
-            <li nz-menu-item app-down-file [httpMethod]="'POST'"
-              [httpBody]="{anio, mes, options: listOptions, cantxpag:1}"
-              httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
-              <span nz-icon nzType="download"></span>Comp 1 x pág
-            </li>
-            <li nz-menu-item (click)="exportGrid()">
-              <span nz-icon nzType="download"></span>XLS
-            </li>
-          </ul>
-        </li>
+  <div nz-row style="align-items: center; display: flex; justify-content: space-between; margin: 10px;">
+    <nz-date-picker [(ngModel)]="periodo" nzFormat="MM/yyyy" nzMode="month"/>
+
+    <nz-button-group nz-button nzButtonGroup>
+      <!-- btn  detalle -->
+      <button nz-button nzType="default" (click)="visibleDetalle.set(true)" [disabled]="PersonalId() == 0"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user"
+      nzTheme="outline"></span></button>
+      <!-- btn  recarga -->
+      <button nz-button nzType="default" (click)="gridData.reload()" nz-tooltip
+        nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"><span nz-icon nzType="reload"
+      nzTheme="outline"></span></button>
+    
+    </nz-button-group>
+  </div>
+
+  <ul nz-menu nzMode="horizontal">
+    <li nz-menu-item nzMatchRouter >
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'impuesto_afip','listado']">Listado</a>
+    </li>
+    <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'impuesto_afip','carga']">Carga</a>
+    </li>
+
+    @if (router.url === '/ges/impuesto_afip/listado') {
+      <li nz-submenu nzTitle="Acciones">
+        <ul>
+          <li nz-menu-item app-down-file [httpMethod]="'POST'"
+            [httpBody]="{anio: anio(), mes: mes(), options: listOptions(), cantxpag:4}"
+            httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
+            <span nz-icon nzType="download"></span><span style="white-space: normal;">Comp 4 x páginas</span>
+          </li>
+          <li nz-menu-item app-down-file [httpMethod]="'POST'"
+            [httpBody]="{anio: anio(), mes: mes(), options: listOptions(), cantxpag:1}"
+            httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
+            <span nz-icon nzType="download"></span>Comp 1 x pág
+          </li>
+          <li nz-menu-item (click)="exportGrid()">
+            <span nz-icon nzType="download"></span>XLS
+          </li>
+        </ul>
+      </li>
+    }
+  </ul>
+
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tab >
+      <a nz-tab-link routerLink="/ges/impuesto_afip/listado">Listado</a>
+      @if ((columns$|async); as columnas) {
+        <ng-template nz-tab>
+          <shared-filtro-builder  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
+          <div class="gridContainer container-fluid" >
+            <angular-slickgrid gridId="grid22" class=""
+              [columns]="columnas | colsFilter"
+              [options]="gridOptions"
+              [dataset]="gridData.value()"
+              (onAngularGridCreated)="angularGridReady($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"
+              >
+            </angular-slickgrid>
+          </div>
+        </ng-template>
       }
-    </ul>
-
-    <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
-
-    <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
-      <nz-tab >
-        <a nz-tab-link routerLink="/ges/impuesto_afip/listado">Listado</a>
-        @if ((columns$|async); as columnas) {
-          <ng-template nz-tab>
-            <shared-filtro-builder  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters" />
-            <div class="gridContainer container-fluid" >
-              <angular-slickgrid gridId="grid22" class=""
-                [columns]="columnas | colsFilter"
-                [options]="gridOptions"
-                [dataset]="(gridData$ | async) || []"
-                (onAngularGridCreated)="angularGridReady($event)"
-                >
-              </angular-slickgrid>
-            </div>
-          </ng-template>
-        }
-      </nz-tab>
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/impuesto_afip/carga">Carga </a>
-        @if ({ lista: (listaDescuentos$ | async) }; as context) {
-          @if (context.lista?.RegistrosSinComprobantes && 1) {
-            <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
-              <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
-                <div nz-col nzSpan="24" class="p-md text-white">
-                  <div class="h2 mt0">
-                    Pendientes: {{ context.lista?.RegistrosSinComprobantes }}
-                  </div>
-                  <p class="text-nowrap mb0">
-                    Cargados: {{ context.lista?.RegistrosConComprobantes }}
-                  </p>
+    </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/impuesto_afip/carga">Carga </a>
+      @if ( listaDescuentos.value(); as context) {
+        @if (context?.RegistrosSinComprobantes && 1) {
+          <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
+            <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
+              <div nz-col nzSpan="24" class="p-md text-white">
+                <div class="h2 mt0">
+                  Pendientes: {{ context?.RegistrosSinComprobantes }}
                 </div>
+                <p class="text-nowrap mb0">
+                  Cargados: {{ context?.RegistrosConComprobantes }}
+                </p>
               </div>
             </div>
-          }
+          </div>
         }
+      }
 
-        <nz-form-item>
-          <nz-form-label [nzSpan]="5">Forzado</nz-form-label>
-          <nz-form-control>
-            <ng-container>
-              <input #montoForzado  [placeholder]="'Monto'" nz-input name="monto" ngModel type="text" appDotToComma mask="separator.2"  />
-              <input #cuitForzado type="number" [placeholder]="'CUIT'" nz-input name="cuitForzado" ngModel />
+      <nz-form-item>
+        <nz-form-label [nzSpan]="5">Forzado</nz-form-label>
+        <nz-form-control>
+          <ng-container>
+            <input #montoForzado  [placeholder]="'Monto'" nz-input name="monto" ngModel type="text" appDotToComma mask="separator.2"  />
+            <input #cuitForzado type="number" [placeholder]="'CUIT'" nz-input name="cuitForzado" ngModel />
 
-              <nz-upload nzAccept="application/pdf" [nzAction]="url_forzado" [nzData]="forzadoUploadData(cuitForzado.value, montoForzado.value)" nzName="pdf">
-                <button nz-button>
-                  <span nz-icon nzType="upload"></span>
-                  Subir Comprobante (Forzado)
-                </button>
-              </nz-upload>
-            </ng-container>
-          </nz-form-control>
-        </nz-form-item>
-        <nz-upload class="d-block" nzType="drag" [nzMultiple]="true" [nzData]="{ anio: anio, mes: mes }"
-          (nzChange)="handleChange($event)" [nzAction]="url" nzName="pdf" [(nzFileList)]="files"
-          nzAccept="application/pdf">
-          <p class="ant-upload-drag-icon">
-            <span nz-icon nzType="inbox"></span>
-          </p>
-          <p class="ant-upload-text">
-            Clickeá or arrastrá archivos para cargar
-          </p>
-        </nz-upload>
-      </nz-tab>
-    </nz-tabs>
-  </form>
+            <nz-upload nzAccept="application/pdf" [nzAction]="url_forzado" [nzData]="forzadoUploadData(cuitForzado.value, montoForzado.value)" nzName="pdf">
+              <button nz-button>
+                <span nz-icon nzType="upload"></span>
+                Subir Comprobante (Forzado)
+              </button>
+            </nz-upload>
+          </ng-container>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-upload class="d-block" nzType="drag" [nzMultiple]="true" [nzData]="{ anio: anio(), mes: mes() }"
+        (nzChange)="handleChange($event)" [nzAction]="url" nzName="pdf" [(nzFileList)]="files"
+        nzAccept="application/pdf">
+        <p class="ant-upload-drag-icon">
+          <span nz-icon nzType="inbox"></span>
+        </p>
+        <p class="ant-upload-text">
+          Clickeá or arrastrá archivos para cargar
+        </p>
+      </nz-upload>
+    </nz-tab>
+  </nz-tabs>
 </nz-card>
+<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="PersonalId()" [visible]="visibleDetalle()"
+(onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>

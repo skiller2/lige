@@ -1,10 +1,4 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  ViewChild,
-  viewChild,
-} from '@angular/core';
+import { Component, ViewChild, resource, inject, signal, computed } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -32,17 +26,17 @@ import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption,
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { Router } from '@angular/router';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { RowPreloadDetailComponent } from '../../../shared/row-preload-detail/row-preload-detail.component';
-
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
+import { LoadingService } from '@delon/abc/loading';
+import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 
 @Component({
   imports: [
     SHARED_IMPORTS,
   ],
-  template: `<a app-down-file title="Comprobante {{ mes }}/{{ anio }}"
-    httpUrl="api/impuestos_afip/{{anio}}/{{mes}}/0/{{item.PersonalId}}"
+  template: `<a app-down-file title="Comprobante {{ mes() }}/{{ anio() }}"
+    httpUrl="api/impuestos_afip/{{anio()}}/{{mes()}}/0/{{item.PersonalId}}"
            style="float:right;padding-right: 5px;"><span class="pl-xs" nz-icon nzType="download"></span></a>`
 })
 
@@ -56,35 +50,49 @@ export class CustomDescargaComprobanteComponent {
 @Component({
   selector: 'app-impuesto-afip',
   templateUrl: './impuesto-afip.component.html',
-  imports: [
-    SHARED_IMPORTS,
-    NzAffixModule,
-    FiltroBuilderComponent,
-    NzUploadModule,
-    AsyncPipe
-],
+  imports: [ SHARED_IMPORTS, NzAffixModule,
+    FiltroBuilderComponent, NzUploadModule,
+    AsyncPipe, DetallePersonaComponent
+  ],
   styleUrls: ['./impuesto-afip.component.less'],
   providers: [AngularUtilService]
 })
 export class ImpuestoAfipComponent {
-  @ViewChild('impuestoForm', { static: true }) impuestoForm: NgForm =
-    new NgForm([], []);
-  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService, private settingService: SettingsService) { }
   url = '/api/impuestos_afip';
   url_forzado = '/api/impuestos_afip/forzado';
-  toggle = false;
-
+  
   files: NzUploadFile[] = [];
-  anio = 0
-  mes = 0
   selectedPersonalId = null;
-  formChange$ = new BehaviorSubject('');
-  filesChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   detailViewRowCount = 9;
   columnDefinitions: Column[] = []
   gridOptions!: GridOption;
   gridDataLen = 0
+
+  excelExportService = new ExcelExportService()
+  angularGrid!: AngularGridInstance;
+  gridObj!: SlickGrid;
+  startFilters: Selections[] = []
+
+  PersonalId = signal<number>(0);
+  visibleDetalle = signal<boolean>(false)
+  toggle = signal<boolean>(false);
+  listOptions = signal<listOptionsT>({ filtros: [], sort: null, })
+  periodo = signal<Date|null>(null);
+  anio = computed(() => { 
+    const f = this.periodo();
+    return f ? f.getFullYear() : 0
+  })
+  mes = computed(() => { 
+    const f = this.periodo();
+    return f ? f.getMonth()+1 : 0
+  })
+
+  readonly router = inject(Router)
+  private readonly loadingSrv = inject(LoadingService);
+  private apiService = inject(ApiService)
+  private angularUtilService = inject(AngularUtilService)
+  private settingService = inject(SettingsService)
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
@@ -106,62 +114,50 @@ export class ImpuestoAfipComponent {
     });
     return mapped
   }));
-  excelExportService = new ExcelExportService()
-  angularGrid!: AngularGridInstance;
-  gridObj!: SlickGrid;
-  startFilters: Selections[] = []
-
-  listOptions: listOptionsT = {
-    filtros: [],
-    sort: null,
-  };
-
 
   listOptionsChange(options: any) {
-    this.listOptions = options;
-    this.formChange$.next('');
-
+    this.listOptions.set(options);
   }
 
-  gridData$ = this.formChange$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      const periodo = this.impuestoForm.form.get('periodo')?.value
-      return this.apiService
-        .getDescuentosMonotributo(
-          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions, toggle: this.toggle }
-        )
-        .pipe(
-          map((data: any) => {
-            return data.list
-          }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
-        );
-    })
-  );
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        if (params.anio && params.mes) 
+          response = await firstValueFrom(
+            this.apiService.getDescuentosMonotributo({ anio: params.anio, mes: params.mes, options: params.options, toggle: this.toggle })
+            .pipe(map((data: any) => { return data.list }))
+          )
+      } catch (_e) { }
+      this.loadingSrv.close()
 
-  listaDescuentos$ = this.filesChange$.pipe(
-    debounceTime(1000),
-    switchMap(() => {
-      return this.apiService
-        .getDescuentoByPeriodo(
-          this.anio,
-          this.mes,
-          0
-        )
-        .pipe(
-          map((items: any) => {
+      return response || [];
+    },
+    defaultValue: []
+  });
+
+  listaDescuentos = resource({
+    params: () => ({ anio: this.anio(), mes: this.mes() }),
+    loader: async ({ params }) => {
+      let response = null
+      
+      try {
+        response = await firstValueFrom(this.apiService.getDescuentoByPeriodo(params.anio, params.mes, 0 )
+          .pipe( map((items: any) => {
             return {
               RegistrosConComprobantes: items.RegistrosConComprobantes,
               RegistrosSinComprobantes: items.RegistrosSinComprobantes,
             };
-          }),
-          //doOnSubscribe(() => this.tableLoading$.next(true)),
-          //tap({ complete: () => this.tableLoading$.next(false) })
-        );
-    })
-  );
+          }))
+        )
+      } catch (_e) { }
+
+      return response;
+    },
+    defaultValue: null
+  });
 
   async ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -183,39 +179,18 @@ export class ImpuestoAfipComponent {
 
 
   ngAfterViewInit(): void {
-    setTimeout(() => {
-      const now = new Date(); //date
-      const anio =
-        Number(localStorage.getItem('anio')) > 0
-          ? localStorage.getItem('anio')
-          : now.getFullYear();
-      const mes =
-        Number(localStorage.getItem('mes')) > 0
-          ? localStorage.getItem('mes')
-          : now.getMonth() + 1;
-      this.impuestoForm.form
-        .get('periodo')
-        ?.setValue(new Date(Number(anio), Number(mes) - 1, 1));
-
-      this.filesChange$.next('')
-    }, 1);
-  }
-
-  onChange(result: Date): void {
-    if (result) {
-      this.anio = result.getFullYear();
-      this.mes = result.getMonth() + 1;
-
-      localStorage.setItem('mes', String(this.mes));
-      localStorage.setItem('anio', String(this.anio));
-      this.filesChange$.next('')
-    } else {
-      this.anio = 0;
-      this.mes = 0;
-    }
-
-    this.formChange$.next('');
-    this.files = [];
+    // setTimeout(() => {
+    //   const now = new Date(); //date
+    //   const anio =
+    //     Number(localStorage.getItem('anio')) > 0
+    //       ? localStorage.getItem('anio')
+    //       : now.getFullYear();
+    //   const mes =
+    //     Number(localStorage.getItem('mes')) > 0
+    //       ? localStorage.getItem('mes')
+    //       : now.getMonth() + 1;
+    //   this.periodo.set(new Date(Number(anio), Number(mes) - 1, 1))
+    // }, 1);
   }
 
   handleChange({ file, fileList }: NzUploadChangeParam): void {
@@ -231,7 +206,7 @@ export class ImpuestoAfipComponent {
     // }
 
     if (file.status === 'done') {
-      this.filesChange$.next('');
+      this.listaDescuentos.reload();
     }
   }
 
@@ -247,6 +222,17 @@ export class ImpuestoAfipComponent {
       columnTotal('monto', this.angularGrid)
       columnTotal('montodescuento', this.angularGrid)
     })
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+    if (e.detail.args.changedSelectedRows.length == 1) {
+      const rowNum = e.detail.args.changedSelectedRows[0]
+      const PersonalId = this.angularGrid.dataView.getItemByIdx(rowNum)?.PersonalId
+      this.PersonalId.set(PersonalId)
+
+    } else {
+      this.PersonalId.set(0)
+    }
   }
 
   exportGrid() {
@@ -274,4 +260,9 @@ export class ImpuestoAfipComponent {
     const parsed = Number(normalized);
     return Number.isFinite(parsed) ? parsed : null;
   }
+
+  closeDrawerforConsultDetalle(): void {
+    this.visibleDetalle.set(false)
+  }
+
 }

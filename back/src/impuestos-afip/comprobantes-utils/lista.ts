@@ -6,13 +6,24 @@ const getOptions: any[] = [
 
 const listaColumnas: any[] = [
   {
+    id: "PersonalId",
+    name: "PersonalId",
+    field: "PersonalId",
+    fieldName: "per.PersonalId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: true,
+  },
+  {
     id: "CUIT",
     name: "CUIT",
     field: "CUIT",
     fieldName: "cuit2.PersonalCUITCUILCUIT",
     type: "string",
     sortable: true,
-    searchHidden: false
+    hidden: false,
+    searchHidden: false,
   },
   {
     name: "Apellido Nombre",
