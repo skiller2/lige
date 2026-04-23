@@ -287,10 +287,10 @@ export class DescuentoRetirosController extends BaseController {
         const ObjetivoId = row.ObjetivoId
         const totalImporte = row.totalImporte
 
-        if (row.ObjetivoAsistenciaAnoMesHasta == null){
-          objetivosSinCerrar++
-          continue
-        }
+//        if (row.ObjetivoAsistenciaAnoMesHasta == null){
+//          objetivosSinCerrar++
+//          continue
+//        }
 
 
         await queryRunner.query(

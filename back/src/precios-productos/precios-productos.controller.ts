@@ -162,37 +162,42 @@ export class PreciosProductosController extends BaseController {
         try {
 
             const precios = await queryRunner.query(`
-                SELECT 
-                    ROW_NUMBER() OVER (ORDER BY pp.PeriodoDesdeAplica,pp.ProductoCodigo,pp.ClienteId) AS id,
-                    CONCAT(pp.ProductoCodigo, '-', c.ClienteId) AS idTable,
-                    pp.ProductoCodigo,
-                    pp.ProductoCodigo AS ProductoCodigoOLD,
-                    c.ClienteId AS ClienteIdOLD,
-                    c.ClienteDenominacion,
-                    pp.PeriodoDesdeAplica,
-                    pp.PeriodoDesdeAplica AS PeriodoDesdeAplicaOLD,
-                    pp.Importe,
-                    pp.Importe AS ImporteOLD,
-                    --pp.ImportDocumentoId,
-                    pp.AudFechaIng,
-                    pp.AudUsuarioIng,
-                    pp.AudFechaMod,
-                    pp.AudUsuarioMod,
-
-                    --p.Nombre,
-                    --p.ProductoTipoCodigo,
-                    --pt.Descripcion,
-                    fac.ClienteFacturacionCUIT
-
-                FROM Producto p
-                LEFT JOIN ProductoTipo pt ON pt.ProductoTipoCodigo=p.ProductoTipoCodigo
-
-                LEFT JOIN ProductoPrecio pp ON p.ProductoCodigo=pp.ProductoCodigo AND pp.PeriodoDesdeAplica=(
-                        SELECT max(PeriodoDesdeAplica) FROM ProductoPrecio pp WHERE pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1) and pp.ProductoCodigo=p.ProductoCodigo)
-
-                JOIN Cliente c on pp.ClienteId = c.ClienteId
-                LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = c.ClienteId AND fac.ClienteFacturacionDesde = (Select max(ClienteFacturacionDesde) from ClienteFacturacion fac where fac.ClienteId = c.ClienteId)
-                WHERE ${filterSql}`, [anio, mes])
+                 SELECT 
+    ROW_NUMBER() OVER (ORDER BY pp.PeriodoDesdeAplica, pp.ProductoCodigo, pp.ClienteId) AS id,
+    CONCAT(pp.ProductoCodigo, '-', pp.ClienteId) AS idTable,
+    pp.ProductoCodigo,
+    pp.ProductoCodigo AS ProductoCodigoOLD,
+    pp.ClienteId AS ClienteIdOLD,
+    c.ClienteDenominacion,
+    pp.PeriodoDesdeAplica,
+    pp.PeriodoDesdeAplica AS PeriodoDesdeAplicaOLD,
+    pp.Importe,
+    pp.Importe AS ImporteOLD,
+    pp.AudFechaIng,
+    pp.AudUsuarioIng,
+    pp.AudFechaMod,
+    pp.AudUsuarioMod,
+    fac.ClienteFacturacionCUIT
+FROM ProductoPrecio pp
+INNER JOIN (
+    SELECT ProductoCodigo, ClienteId, MAX(PeriodoDesdeAplica) AS UltimaFecha
+    FROM ProductoPrecio
+    WHERE PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1)
+    GROUP BY ProductoCodigo, ClienteId
+) ult ON pp.ProductoCodigo = ult.ProductoCodigo 
+      AND pp.ClienteId = ult.ClienteId 
+      AND pp.PeriodoDesdeAplica = ult.UltimaFecha
+LEFT JOIN Cliente c ON pp.ClienteId = c.ClienteId
+LEFT JOIN Producto p ON p.ProductoCodigo = pp.ProductoCodigo
+LEFT JOIN ProductoTipo pt ON pt.ProductoTipoCodigo = p.ProductoTipoCodigo
+LEFT JOIN ClienteFacturacion fac 
+    ON fac.ClienteId = c.ClienteId 
+    AND fac.ClienteFacturacionDesde = (
+        SELECT MAX(ClienteFacturacionDesde) 
+        FROM ClienteFacturacion fac2 
+        WHERE fac2.ClienteId = c.ClienteId
+    )
+     where  ${filterSql}`, [anio, mes])
 
             const formattedData = precios.map((item: any) => ({
                 ...item,
@@ -318,9 +323,9 @@ export class PreciosProductosController extends BaseController {
                 const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1, usuario, ip)
                 const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
 
-                if (getRecibosGenerados[0]?.ind_recibos_generados == 1) {
-                    throw new ClientException(`No se puede agregar un precio en un periodo con recibos generados.`)
-                }
+                // if (getRecibosGenerados[0]?.ind_recibos_generados == 1) {
+                //     throw new ClientException(`No se puede agregar un precio en un periodo con recibos generados.`)
+                // }
 
                 dataResultado = {action:'I'}
                 message = "Carga de nuevo Registro exitoso"

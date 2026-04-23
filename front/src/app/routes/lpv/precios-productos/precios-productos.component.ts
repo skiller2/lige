@@ -120,19 +120,19 @@ export class PreciosProductosComponent {
 
               if (col.editor) {
                 col.editor.onInstantiated = (instance: any) => {
-                const cal = instance as Calendar
-                const inputEl: HTMLInputElement = instance?.context.inputElement
+                  const cal = instance as Calendar
+                  const inputEl: HTMLInputElement = instance?.context.inputElement
 
-                cal.set({
-                  type: 'month',
-                })
+                  cal.set({
+                    type: 'month',
+                  })
 
-                cal.onClickMonth =
-                  (cal: Calendar, event) => {
-                    const mm = String(cal.context.selectedMonth + 1).padStart(2, '0');
-                    inputEl.value = `${cal.context.selectedYear}-${mm}-1`;
-                    cal.hide()
-                  }
+                  cal.onClickMonth =
+                    (cal: Calendar, event) => {
+                      const mm = String(cal.context.selectedMonth + 1).padStart(2, '0');
+                      inputEl.value = `${cal.context.selectedYear}-${mm}-1`;
+                      cal.hide()
+                    }
                 }
               }
               col.params = { dateFormat: 'MM/YYYY' }
@@ -223,8 +223,8 @@ export class PreciosProductosComponent {
           const rowComplete = !!item?.Cliente?.id
             && !!item?.ProductoCodigo?.length
             && !!item?.PeriodoDesdeAplica
-            // && item?.Importe != null
-          
+          // && item?.Importe != null
+
           return !item?.idTable && !rowComplete
         })
 
@@ -282,15 +282,17 @@ export class PreciosProductosComponent {
     const newItem1 = this.createNewItem(1);
     this.angularGridEdit.gridService.addItem(newItem1, { position: 'bottom', highlightRow: false, scrollRowIntoView: false, triggerEvent: false })
     // this.angularGridEdit.slickGrid.setSelectedRows([this.angularGridEdit.dataView.getItems().length - 1]);
+
   }
 
   async selectNewItemRow() {
-      const newRowIndex = this.angularGridEdit.dataView.getItems().length - 1
-      if (newRowIndex < 0) return
+    const newRowIndex = this.angularGridEdit.dataView.getItems().length - 1
+    if (newRowIndex < 0) return
 
-      this.angularGridEdit.slickGrid.setSelectedRows([newRowIndex]);
-      this.angularGridEdit.slickGrid.scrollRowIntoView(newRowIndex, false)
-      this.angularGridEdit.slickGrid.setActiveCell(newRowIndex, 0)
+    this.angularGridEdit.slickGrid.setSelectedRows([newRowIndex]);
+    this.angularGridEdit.slickGrid.scrollRowIntoView(newRowIndex, false)
+    this.angularGridEdit.slickGrid.setActiveCell(newRowIndex, 1)
+    this.angularGridEdit.slickGrid.editActiveCell()
   }
 
   async deleteItem() {
