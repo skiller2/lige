@@ -162,7 +162,7 @@ export class PreciosProductosController extends BaseController {
         try {
 
             const precios = await queryRunner.query(`
-                SELECT 
+                  SELECT 
                     ROW_NUMBER() OVER (ORDER BY pp.PeriodoDesdeAplica,pp.ProductoCodigo,pp.ClienteId) AS id,
                     CONCAT(pp.ProductoCodigo, '-', c.ClienteId) AS idTable,
                     pp.ProductoCodigo,
@@ -184,15 +184,15 @@ export class PreciosProductosController extends BaseController {
                     --pt.Descripcion,
                     fac.ClienteFacturacionCUIT
 
-                FROM Producto p
+                FROM ProductoPrecio pp 
+            
+                LEFT JOIN Cliente c on pp.ClienteId = c.ClienteId
+
+                Left join Producto p on p.ProductoCodigo=pp.ProductoCodigo
                 LEFT JOIN ProductoTipo pt ON pt.ProductoTipoCodigo=p.ProductoTipoCodigo
 
-                LEFT JOIN ProductoPrecio pp ON p.ProductoCodigo=pp.ProductoCodigo AND pp.PeriodoDesdeAplica=(
-                        SELECT max(PeriodoDesdeAplica) FROM ProductoPrecio pp WHERE pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1) and pp.ProductoCodigo=p.ProductoCodigo)
-
-                JOIN Cliente c on pp.ClienteId = c.ClienteId
                 LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = c.ClienteId AND fac.ClienteFacturacionDesde = (Select max(ClienteFacturacionDesde) from ClienteFacturacion fac where fac.ClienteId = c.ClienteId)
-                WHERE ${filterSql}`, [anio, mes])
+                where pp.PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1) and pp.ProductoCodigo=p.ProductoCodigo and ${filterSql}`, [anio, mes])
 
             const formattedData = precios.map((item: any) => ({
                 ...item,
