@@ -477,9 +477,14 @@
           <nz-form-label [nzSpan]="5">Persona</nz-form-label>
 
           <nz-form-control [nzSpan]="19">
-            <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"
-              (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" ngModel [anio]="selectedPeriod().year"
-              [mes]="selectedPeriod().month" />
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"
+                (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" ngModel [anio]="selectedPeriod().year"
+                [mes]="selectedPeriod().month" style="flex: 1;" />
+              <button nz-button (click)="openDrawer()">
+                <span nz-icon nzType="info-circle" nzTheme="outline" nz-tooltip nzTooltipTitle="{{ 'app.icon.datos.bot' | i18n }}"></span>
+              </button>
+            </div>
           </nz-form-control>
         </nz-form-item>
         @if (listaIngresosPerTotal + listaAsistenciaPerTotal + listaIngresosExtraPerTotalG + listaCustodiasPerTotal > 0
@@ -995,3 +1000,5 @@
 
 <app-recibos-modal [(isVisible)]='isVisible' [anio]="this.selectedPeriod().year"
   [mes]="this.selectedPeriod().month"></app-recibos-modal>
+
+<app-datos-bot-drawer [visible]="visibleDrawer()" (onClose)="visibleDrawer.set($event)" [personalId]="selectedPersonalId()"></app-datos-bot-drawer>

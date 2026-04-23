@@ -3755,4 +3755,28 @@ UNION ALL
     }
   }
 
+  async getDatosBotByPersonalId(req: any, res: Response, next: NextFunction) {
+    const PersonalId = Number(req.params.personalId)
+    try {
+      const result = await dataSource.query(
+        `SELECT
+          @0 AS id,
+          (SELECT TOP 1 reg.Telefono FROM BotRegTelefonoPersonal reg WHERE reg.PersonalId = @0) AS TelefonoBot,
+          (SELECT TOP 1 CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio)
+             FROM DocumentoDescargaLog dl
+             JOIN Documento doc ON doc.DocumentoId = dl.DocumentoId
+             WHERE dl.PersonalId = @0 AND doc.DocumentoTipoCodigo = 'REC'
+             ORDER BY dl.FechaDescarga DESC) AS ultimoReciboPeriodo
+        `, [PersonalId])
+
+      const data = result[0] ?? { id: PersonalId, TelefonoBot: '', ultimoReciboPeriodo: '' }
+      data.TelefonoBot = data.TelefonoBot ?? ''
+      data.ultimoReciboPeriodo = data.ultimoReciboPeriodo ?? ''
+
+      this.jsonRes(data, res)
+    } catch (error) {
+      return next(error)
+    }
+  }
+
 }

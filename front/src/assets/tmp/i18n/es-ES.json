@@ -176,6 +176,8 @@
   "app.btn.copi.previous.month": "Copia mes anterior",
   "app.btn.control.acceso": "Asistencia Biométrico",
   "app.btn.clear.form": "Limpiar Formulario",
+  "app.icon.datos.bot":"Datos Bot",
+  "app.btn.view.receipts": "Ver Número de Recibos",
   "app.icon.add": "Agregar",
   "app.icon.people": "Detalle Persona.",
   "app.icon.team": "Detalle del Personal.",

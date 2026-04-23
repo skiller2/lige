@@ -232,3 +232,7 @@ personalRouter.get(`${base}/sitrevistaaso/options/:personalId`, [authMiddleware.
   personalController.getSitRevistaAsoByPersonalId(req, res, next);
 });
 
+personalRouter.get(`${base}/datos-bot/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonalCon`, `gPersonal`])], (req, res, next) => {
+  personalController.getDatosBotByPersonalId(req, res, next);
+});
+

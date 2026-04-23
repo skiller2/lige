@@ -16,6 +16,7 @@ import { DescuentosComponent } from '../descuentos/descuentos.component';
 import { PersonalGrupoComponent } from '../personal-grupo/personal-grupo.component';
 import { LoadingService } from '@delon/abc/loading';
 import { RecibosModalComponent } from '../recibos-modal/recibos-modal'
+import { DatosBotDrawerComponent } from '../datos-bot-drawer/datos-bot-drawer';
 
 enum Busqueda { Sucursal, Objetivo, Personal }
 
@@ -23,7 +24,8 @@ enum Busqueda { Sucursal, Objetivo, Personal }
   selector: 'app-detalle-asistencia',
   templateUrl: './detalle-asistencia.component.html',
   styleUrls: ['./detalle-asistencia.component.less'],
-  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent, DescuentosComponent, PersonalGrupoComponent, RecibosModalComponent]
+  imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent,
+     DescuentosComponent, PersonalGrupoComponent, RecibosModalComponent, DatosBotDrawerComponent]
 })
 export class DetalleAsistenciaComponent {
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm(
@@ -57,6 +59,7 @@ export class DetalleAsistenciaComponent {
   selectedDate = null;
   selectedPeriod = signal({ year: 0, month: 0 });
 
+  visibleDrawer = signal(false)
   //  selectedSucursalId = '';
   selectedObjetivoId = signal(0);
   selectedPersonalId = signal(0);
@@ -554,6 +557,16 @@ export class DetalleAsistenciaComponent {
   ngOnDestroy(): void {
     this.destroy$.next('');
     this.destroy$.complete();
+  }
+
+  //////
+
+   openDrawer(): void {
+    this.visibleDrawer.set(true)
+  }
+
+  closeDrawer(): void {
+    this.visibleDrawer.set(false)
   }
 
 }

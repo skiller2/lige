@@ -2066,6 +2066,17 @@ export class SearchService {
     );
   }
 
+  getDatosBotByPersonalId(personalId: number) {
+    if (!personalId) return of({ id: 0, TelefonoBot: '', ultimoReciboPeriodo: '' });
+    return this.http.get<ResponseJSON<any>>(`api/personal/datos-bot/${personalId}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of({ id: personalId, TelefonoBot: '', ultimoReciboPeriodo: '' });
+      })
+    );
+  }
+
   getDescuentosByPersonalId(PersonalId: number, anio: number, mes: number) {
     if (!PersonalId && anio && mes) return of([]);
     return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/personal`, { PersonalId, anio, mes }).pipe(

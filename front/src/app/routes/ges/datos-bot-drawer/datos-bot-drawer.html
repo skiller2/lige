@@ -1,0 +1,36 @@
+<nz-drawer [nzClosable]="true" [nzVisible]="isVisible()" [nzPlacement]="'left'" [nzWidth]="600"
+  [nzTitle]=" PersonalNombre()" (nzOnClose)="closeDrawer()" [nzZIndex]="11000">
+  <ng-container *nzDrawerContent>
+
+    <nz-card nzType="inner" nzTitle="Datos Bot">
+      <form>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Teléfono</nz-form-label>
+          <nz-form-control [nzMd]="18">
+            <input nz-input placeholder="Teléfono" [formField]="formDatosBot.TelefonoBot" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Último Recibo</nz-form-label>
+          <nz-form-control [nzMd]="18">
+            <input nz-input placeholder="Período" [formField]="formDatosBot.ultimoReciboPeriodo" type="text" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+            <button type="submit" nzType="primary" nz-button
+              [nzLoading]="formDatosBot().submitting()"
+              [disabled]="formDatosBot().submitting() || formDatosBot().dirty()==false || formDatosBot().valid()==false">
+              {{ 'app.btn.view.receipts' | i18n }}
+            </button>
+          </nz-form-control>
+        </nz-form-item>
+
+      </form>
+    </nz-card>
+
+  </ng-container>
+</nz-drawer>
