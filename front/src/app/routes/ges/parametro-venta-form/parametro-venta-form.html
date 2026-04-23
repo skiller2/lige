@@ -1,7 +1,7 @@
 <form (ngSubmit)="save()">
   <!-- <p>{{parametroVenta() | json }}</p> -->
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Objetivo*</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16" nzHasFeedback sfErrorTip>
       <app-objetivo-search [formField]="formParametroVenta.ObjetivoId"
         (valueExtendedChange)="objetivoDetalleChange($event)"></app-objetivo-search>
@@ -9,7 +9,7 @@
   </nz-form-item>
 
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Aplica Desde</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Aplica Desde*</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
       <nz-date-picker [formField]="formParametroVenta.PeriodoDesdeAplica" nzMode="month" nzFormat="MM/yyyy"
         style="width: 100%;">
@@ -20,7 +20,7 @@
 
 
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Periodo de Facturación</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Periodo de Facturación*</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback sfErrorTip>
       <input nz-input [formField]="formParametroVenta.PeriodoFacturacion" placeholder="Ej: 1S, 1M, 1A" />
 
@@ -43,7 +43,7 @@
   </nz-form-item>
 
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6">Día de Generación Factura*</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzHasFeedback sfErrorTip>
       <input nz-input [formField]="formParametroVenta.GeneracionFacturaDia" type="number"
         placeholder="Día del mes (1-31)" style="width: 100%;">
@@ -88,7 +88,7 @@
     <div [ngClass]="{'even-background': i % 2 === 0}" [style.margin-top.px]="i % 2 !== 0 ? 15 : 0">
 
       <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Producto</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Producto*</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5" nzHasFeedback sfErrorTip>
           <nz-select nzAllowClear style="width:100%" nzPlaceholder="Producto" [formField]="ip.ProductoCodigo"
             nzShowSearch [nzDropdownMatchSelectWidth]="false">
@@ -102,7 +102,7 @@
 
       <nz-form-item class="marginElement">
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo Importe</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo Importe*</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5" nzHasFeedback sfErrorTip>
           <nz-select [formField]="ip.TipoImporte" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
             [nzDropdownMatchSelectWidth]="false">
@@ -112,7 +112,7 @@
 
           </nz-select>
         </nz-form-control>
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Unitario</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Unitario*</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="8" nzHasFeedback sfErrorTip>
           @if (parametroVenta().infoProductos[i].TipoImporte === 'V') {
           <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
@@ -140,7 +140,7 @@
 
       <nz-form-item class="marginElement">
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo Cantidad</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo Cantidad*</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4" nzHasFeedback sfErrorTip>
           <nz-select [formField]="ip.TipoCantidad" style="width: 100%" nzPlaceholder="Seleccione" nzAllowClear
             [nzDropdownMatchSelectWidth]="false">
@@ -151,7 +151,7 @@
           </nz-select>
         </nz-form-control>
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Cantidad</nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Cantidad*</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3" nzHasFeedback sfErrorTip>
 
           @if (parametroVenta().infoProductos[i].TipoCantidad === 'V') {
@@ -184,7 +184,7 @@
       <nz-form-item class="marginElement">
 
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad Presupuestada </nz-form-label>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad Presupuestada*</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3" nzHasFeedback sfErrorTip>
           <input appDotToComma mask="separator.2" nz-input [formField]="ip.CantidadReferencia" type="text"
             style="width: 100%;" placeholder="Cantidad de Referencia" nz-tooltip />
