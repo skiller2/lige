@@ -35,9 +35,9 @@ export interface ParametroVentaForm {
   PeriodoDesdeAplica: string;
   PeriodoFacturacion: string;
   PeriodoFacturacionInicio: string;
-  GeneracionFacturaDia: number;             // 1..31
+  GeneracionFacturaDia: number | null;      // 1..31
   GeneracionFacturaReqCliente: boolean;
-  GeneracionFacturaDiaComplemento: number;  // 1..31 opcional
+  GeneracionFacturaDiaComplemento: number | null;  // 1..31 opcional
   UnificacionFactura: boolean;
   Observaciones: string;
   infoProductos: Producto[];
@@ -163,9 +163,9 @@ export class ParametroVentaFormComponent implements OnInit {
     PeriodoDesdeAplica: '',
     PeriodoFacturacion: '',
     PeriodoFacturacionInicio: '',
-    GeneracionFacturaDia: 0,
+    GeneracionFacturaDia: null,
     GeneracionFacturaReqCliente: false,
-    GeneracionFacturaDiaComplemento: 0,
+    GeneracionFacturaDiaComplemento: null,
     UnificacionFactura: false,
     Observaciones: '',
     infoProductos: [structuredClone(this.defaultProducto)],
@@ -198,8 +198,7 @@ export class ParametroVentaFormComponent implements OnInit {
       required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido' });
       required(productoPath.TipoImporte, { message: 'Tipo de importe es requerido' });
       required(productoPath.TipoCantidad, { message: 'Tipo de cantidad es requerido' });
-      required(productoPath.CantidadReferencia, { message: 'Cantidad Referencia es requerido' });
-      required(productoPath.CantidadEnFactura, { message: 'Cantidad Presupuestada es requerida' });
+      required(productoPath.CantidadReferencia, { message: 'Cantidad Presupuestada es requerida' });
     });
   })
 
