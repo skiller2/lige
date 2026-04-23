@@ -109,7 +109,7 @@ export class PersonalController extends BaseController {
         LEFT JOIN lige.dbo.liqmaperiodo pr ON pr.anio = doc.DocumentoAnio AND pr.mes = doc.DocumentoMes
         LEFT JOIN DocumentoDescargaLog dl ON dl.DocumentoId=doc.DocumentoId AND dl.PersonalId = @0
         WHERE doc.DocumentoIndividuoDescargaBot = 1  AND dl.FechaDescarga IS NULL AND (doc.PersonalId =0 OR doc.PersonalId =  @0 or doc.PersonalId is null) AND Documentofecha > '2025-01-01'
-        GROUP BY doc.personalid, doc.Documen`
+        GROUP BY doc.personalid, doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle, DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, dl.DocumentoId, pr.anio, pr.mes, doc.DocumentoNombreArchivo`
       ,
       [PersonalId]
     )
