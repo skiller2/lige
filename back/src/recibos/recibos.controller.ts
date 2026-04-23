@@ -351,7 +351,9 @@ export class RecibosController extends BaseController {
     let htmlDeposito = ''
     let htmlAdelanto = ''
 
+
     for (const liquidacionElement of liquidacionInfo) {
+      const detalleCliente = (liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + ((liquidacionElement.ClienteElementoDependienteId) ? '/' + liquidacionElement.ClienteElementoDependienteId : '')  : '' 
 
       switch (liquidacionElement.indicador) {
         case "A":
@@ -359,15 +361,15 @@ export class RecibosController extends BaseController {
           adelanto += liquidacionElement.SumaImporte
           break;
         case "R":
-          htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} - ${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte * -1)}</td></tr>`
-          retribucion += liquidacionElement.SumaImporte
+          htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} ${(liquidacionElement.detalle)? '- ' + liquidacionElement.detalle : ''} ${detalleCliente}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte * -1)}</td></tr>`
+          retenciones += liquidacionElement.SumaImporte
           break;
         case "D":
           htmlDeposito += `<tr><td>${liquidacionElement.detalle}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
           break
         case "I":
-          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${liquidacionElement.custodia_id ? 'Custodia ' + liquidacionElement.custodia_id + ' ' + liquidacionElement.ClienteDenominacion : ''} ${(liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + '/' + liquidacionElement.ClienteElementoDependienteId : ''}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
-          retenciones += liquidacionElement.SumaImporte
+          htmlIngreso += `<tr><td>${liquidacionElement.detalle} ${liquidacionElement.custodia_id ? 'Custodia ' + liquidacionElement.custodia_id + ' ' + liquidacionElement.ClienteDenominacion : ''} ${detalleCliente}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte)}</td></tr>`
+          retribucion += liquidacionElement.SumaImporte
           break
         default:
           break;
@@ -377,14 +379,14 @@ export class RecibosController extends BaseController {
     if (adelanto > 0)
       htmlAdelanto += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(adelanto)}</td></tr>`
     if (retribucion > 0)
-      htmlEgreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retribucion * -1)}</td></tr>`
+      htmlIngreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retribucion )}</td></tr>`
     if (retenciones > 0)
-      htmlIngreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retenciones)}</td></tr>`
+      htmlEgreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retenciones* -1)}</td></tr>`
 
-    neto = adelanto + retenciones - retribucion
+    neto = adelanto + retribucion - retenciones 
 
-    htmlContent = htmlContent.replace(/\${retribucion}/g, this.currencyPipe.format(retribucion));
-    htmlContent = htmlContent.replace(/\${retenciones}/g, this.currencyPipe.format(retenciones));
+    htmlContent = htmlContent.replace(/\${retribucion}/g, this.currencyPipe.format(retenciones));
+    htmlContent = htmlContent.replace(/\${retenciones}/g, this.currencyPipe.format(retribucion));
     htmlContent = htmlContent.replace(/\${adelanto}/g, this.currencyPipe.format(adelanto));
 
     htmlContent = htmlContent.replace(/\${textegreso}/g, htmlEgreso);
@@ -536,14 +538,16 @@ export class RecibosController extends BaseController {
     WHERE  liq.periodo_id = @0 AND  liq.tipocuenta_id = @2 AND  liq.persona_id = @1
     GROUP BY 
     liq.persona_id, 
-	 obj.ClienteId,
+	  obj.ClienteId,
     obj.ClienteElementoDependienteId,
     liq.custodia_id,
     liq.detalle,
     liq.tipo_movimiento_id, 
     tip.des_movimiento, 
     tip.indicador_recibo,
-    cli.ClienteDenominacion`
+    cli.ClienteDenominacion
+    
+    ORDER BY liq.persona_id ASC, liq.tipo_movimiento_id ASC`
       , [periodo_id, user_id, tipocuenta_id])
 
   }
@@ -924,7 +928,7 @@ export class RecibosController extends BaseController {
       const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
                         opacity: 0.6;">PRUEBA</div>`
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
-      const movimientosPendientes = (tipocuenta_id == 'G') ?
+      const recibosPersonal = (tipocuenta_id == 'G') ?
         await this.getLiquidacionCuentaGeneral(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual):
         await this.getLiquidacionCuentaCoordinador(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual)
 
@@ -935,16 +939,16 @@ export class RecibosController extends BaseController {
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
 
-      if (movimientosPendientes.length == 0)
+      if (recibosPersonal.length == 0)
         throw new ClientException(`La persona seleccionada no tiene datos en el período seleccionado`)
 
 
-      for (const movimiento of movimientosPendientes) {
-        persona_id = movimiento.PersonalId
+      for (const recibo of recibosPersonal) {
+        persona_id = recibo.PersonalId
         filesPath = (process.env.PATH_RECIBO_HTML_TEST) ? process.env.PATH_RECIBO_HTML_TEST : 'tmp' + '/' + persona_id + '-' + String(anio) + "-" + String(mes) + ".pdf"
         const den_documento = Math.floor(10000 + Math.random() * 90000);
-        await this.createPdf(queryRunner, filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
-          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer, tipocuenta_id)
+        await this.createPdf(queryRunner, filesPath, persona_id, den_documento, recibo.PersonalNombre, recibo.PersonalCUITCUILCUIT, recibo.DomicilioCompleto, recibo.SucursalDescripcion, recibo.PersonalNroLegajo,
+          recibo.GrupoActividadDetalle, periodo_id, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer, tipocuenta_id)
       }
 
 
