@@ -150,7 +150,7 @@ impuestosAfipRouter.get("/documento/download/:id", [authMiddleware.verifyToken, 
 });
 
 impuestosAfipRouter.get(
-  "/:anio/:mes{/:personalIdRel}",
+  "/:anio/:mes/:GrupoActividadId",
   authMiddleware.verifyToken,
   (req, res, next) => {
     impuestosAfipController.handleGetDescuentos(req, res,next);

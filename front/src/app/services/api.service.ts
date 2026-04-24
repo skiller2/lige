@@ -1137,10 +1137,10 @@ export class ApiService {
 
   getDescuentoByPeriodo(year: number, month: number, personaIdRel: number): Observable<ResponseDescuentos> {
     const emptyResponse: ResponseDescuentos = { RegistrosConComprobantes: 0, RegistrosSinComprobantes: 0, Registros: [] };
-    if (!month || !year || !personaIdRel) {
+    if (!month || !year) {
       return of(emptyResponse);
     }
-    const path = `/api/impuestos_afip/${year}/${month}` + (personaIdRel > 0 ? `/${personaIdRel}` : ``);
+    const path = `/api/impuestos_afip/${year}/${month}/${personaIdRel}`;
     return this.http.get<ResponseJSON<ResponseDescuentos>>(path).pipe(
       map((res: any) => res.data),
       catchError(() => of(emptyResponse))
