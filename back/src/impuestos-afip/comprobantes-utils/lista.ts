@@ -40,7 +40,7 @@ const listaColumnas: any[] = [
     hidden: false,
   },
   {
-    name: "Sit Revista",
+    name: "Sit. Revista",
     type: "string",
     id: "SituacionRevistaDescripcion",
     field: "SituacionRevistaDescripcion",
@@ -48,6 +48,16 @@ const listaColumnas: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: false
+  },
+  {
+    name: "Sit. Revista Desde",
+    type: "date",
+    id: "PersonalSituacionRevistaDesde",
+    field: "PersonalSituacionRevistaDesde",
+    fieldName: "sitrev.PersonalSituacionRevistaDesde",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
   },
   {
     name: "Importe",

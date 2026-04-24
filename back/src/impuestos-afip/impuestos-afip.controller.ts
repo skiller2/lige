@@ -213,65 +213,64 @@ export class ImpuestosAfipController extends BaseController {
       filterSql2 += `AND per.PersonalId IN (${listPersonalId})`
     }
 
-    return dataSource.query(
-      `SELECT DISTINCT 
-      CONCAT(per.PersonalId,'-',com.PersonalComprobantePagoAFIPId,'-',des.PersonalOtroDescuentoId,'-',doc.DocumentoId) id,
-      per.PersonalId PersonalId,
-      
-      cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
+    return dataSource.query(`
+      SELECT DISTINCT 
+        CONCAT(per.PersonalId,'-',com.PersonalComprobantePagoAFIPId,'-',des.PersonalOtroDescuentoId,'-',doc.DocumentoId) id,
+        per.PersonalId PersonalId,
+        
+        cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
 
-ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
-     
-      com.PersonalComprobantePagoAFIPId, com.PersonalComprobantePagoAFIPAno, com.PersonalComprobantePagoAFIPMes, com.PersonalComprobantePagoAFIPImporte monto,
-      des.PersonalOtroDescuentoImporteVariable montodescuento, 
-      ISNULL(CAST(excep.PersonalExencionCUIT AS VARCHAR), '0') AS PersonalExencionCUIT,
- 	 sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
- 	 doc.DocumentoId, doc.DocumentoPath,
-    2
-     FROM PersonalImpuestoAFIP imp
+        ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
+      
+        com.PersonalComprobantePagoAFIPId, com.PersonalComprobantePagoAFIPAno, com.PersonalComprobantePagoAFIPMes, com.PersonalComprobantePagoAFIPImporte monto,
+        des.PersonalOtroDescuentoImporteVariable montodescuento, 
+        ISNULL(CAST(excep.PersonalExencionCUIT AS VARCHAR), '0') AS PersonalExencionCUIT,
+        sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
+        doc.DocumentoId, doc.DocumentoPath,
+        2
+      FROM PersonalImpuestoAFIP imp
 
       JOIN Personal per ON per.PersonalId = imp.PersonalId
-     LEFT JOIN PersonalOtroDescuento des ON des.PersonalId = imp.PersonalId AND des.PersonalOtroDescuentoDescuentoId=@3 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
-     LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
+      LEFT JOIN PersonalOtroDescuento des ON des.PersonalId = imp.PersonalId AND des.PersonalOtroDescuentoDescuentoId=@3 AND des.PersonalOtroDescuentoAnoAplica = @1 AND des.PersonalOtroDescuentoMesesAplica = @2
+      LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId AND com.PersonalComprobantePagoAFIPAno =@1 AND com.PersonalComprobantePagoAFIPMes=@2
 
-     LEFT JOIN lige.dbo.liqmaperiodo peri ON peri.anio = @1 AND peri.mes = @2
-     LEFT JOIN Documento doc ON doc.PersonalId = com.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = peri.anio AND doc.DocumentoMes = peri.mes 
+      LEFT JOIN lige.dbo.liqmaperiodo peri ON peri.anio = @1 AND peri.mes = @2
+      LEFT JOIN Documento doc ON doc.PersonalId = com.PersonalId AND doc.DocumentoTipoCodigo='MONOT' AND doc.DocumentoAnio = peri.anio AND doc.DocumentoMes = peri.mes 
 
-	LEFT JOIN 
-  	( SELECT  gap2.GrupoActividadPersonalPersonalId, MAX(gap2.GrupoActividadId) GrupoActividadId FROM GrupoActividadPersonal gap2
-	  WHERE 
-	  EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap2.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gap2.GrupoActividadPersonalHasta , '9999-12-31')
-	  GROUP BY gap2.GrupoActividadPersonalPersonalId
-	  ) gap3 ON gap3.GrupoActividadPersonalPersonalId = imp.PersonalId 
-  LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = imp.PersonalId AND gap.GrupoActividadId = gap3.GrupoActividadId
-  LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
+      LEFT JOIN 
+        ( SELECT  gap2.GrupoActividadPersonalPersonalId, MAX(gap2.GrupoActividadId) GrupoActividadId FROM GrupoActividadPersonal gap2
+        WHERE 
+        EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap2.GrupoActividadPersonalDesde AND EOMONTH(DATEFROMPARTS(@1,@2,1)) < ISNULL(gap2.GrupoActividadPersonalHasta , '9999-12-31')
+        GROUP BY gap2.GrupoActividadPersonalPersonalId
+        ) gap3 ON gap3.GrupoActividadPersonalPersonalId = imp.PersonalId 
+      LEFT JOIN GrupoActividadPersonal gap ON gap.GrupoActividadPersonalPersonalId = imp.PersonalId AND gap.GrupoActividadId = gap3.GrupoActividadId
+      LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
 
-  LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-  LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
+      LEFT JOIN PersonalCUITCUIL cuit2 ON cuit2.PersonalId = per.PersonalId AND cuit2.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN PersonalExencion excep ON excep.PersonalId = per.PersonalId AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > excep.PersonalExencionDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(excep.PersonalExencionHasta,'9999-12-31')        
 
-  LEFT JOIN 
-		(
-		SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
-		FROM PersonalSituacionRevista sitrev2 
-		WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) >  sitrev2.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
-		GROUP BY sitrev2.PersonalId
-      ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
-   LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
+      LEFT JOIN 
+        (
+        SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+        FROM PersonalSituacionRevista sitrev2 
+        WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) >  sitrev2.PersonalSituacionRevistaDesde AND  DATEFROMPARTS(@1,@2,1) < ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
+        GROUP BY sitrev2.PersonalId
+          ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
+      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
 
-   LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
-     WHERE
-   1=1
+      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        WHERE
+      1=1
 
-   AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
---     AND excep.PersonalExencionCUIT IS NULL
+      AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.PersonalImpuestoAFIPDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.PersonalImpuestoAFIPHasta,'9999-12-31')
+    --     AND excep.PersonalExencionCUIT IS NULL
 
-	-- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
-  AND (sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26) OR com.PersonalComprobantePagoAFIPId IS NOT NULL)
-    AND (${filterSql2}) 
-    ${orderBy}
-   `,
-      [, params.anio, params.mes, params.descuentoId]
-    );
+    -- AND sit.SituacionRevistaId NOT IN (3,13,19,21,15,17,14,27,8,24,7)
+      AND (sit.SituacionRevistaId  IN (2,4,5,6,9,10,11,12,20,23,26) OR com.PersonalComprobantePagoAFIPId IS NOT NULL)
+      AND (${filterSql2}) 
+      ${orderBy}
+    `, [, params.anio, params.mes, params.descuentoId]);
+
   }
 
   getDescuentosByPeriodo(options: {
