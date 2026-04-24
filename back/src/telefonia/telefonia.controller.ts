@@ -477,9 +477,14 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
           continue
         }
 
-        if (telefonos.StockStock !==1) {
+        if (telefonos.StockStock > 1) {
           dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` tiene stock (${telefonos.StockStock}) diferente de 1` })
         }
+
+        if (telefonos.StockStock == null && telefonos.TelefoniaHasta == null) {
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` sin stock asignado` })
+        }
+
 
         const idx = telefonos.findIndex(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim())
         const fimpplanvoz = parseFloat(row[1])
