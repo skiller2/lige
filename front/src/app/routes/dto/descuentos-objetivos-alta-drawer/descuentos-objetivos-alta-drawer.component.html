@@ -50,7 +50,7 @@
                 nzPlaceHolder="Seleccione efecto" nzAllowClear [nzDropdownMatchSelectWidth]="false">
                 @for (efecto of listaEfectosObj.value(); track efecto.EfectoId+'_'+efecto.EfectoEfectoIndividualId+'_' +efecto.StockId) {
                   <nz-option [nzValue]="{EfectoId: efecto.EfectoId, StockId: efecto.StockId, EfectoIndividualId: efecto.EfectoEfectoIndividualId, Importe: efecto.Importe}"
-                    [nzLabel]="efecto.EfectoDescripcionCompleta + ' (Stock: ' + efecto.StockStock + ')' "></nz-option>
+                    [nzLabel]="efecto.EfectoDescripcionCompleto + ' (Stock: ' + efecto.StockStock + ')' "></nz-option>
                 }
                 @if (lastEfecto()?.EfectoId) {
                   <nz-option

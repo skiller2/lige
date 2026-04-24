@@ -195,7 +195,7 @@ const listaColumnasObjetivos: any[] = [
     hidden: true,
     searchHidden: true
   },
-  
+
   {
     name: "Cliente",
     type: "string",
@@ -303,36 +303,6 @@ const listaColumnasObjetivos: any[] = [
     hidden: false,
     searchHidden: false
   },
-  // {
-  //   name: "Objetivo Activo",
-  //   type: "number",
-  //   id: "ElementoDepependienteActivo",
-  //   field: "ElementoDepependienteActivo",
-  //   fieldName: "(CASE WHEN con.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=@0 THEN 1 ELSE 0)",
-  //   sortable: true,
-  //   hidden: false,
-  //   searchHidden: false
-  // },
-  {
-    name: "Objetivo Activo",
-    id: "Activo",
-    field: "Activo",
-    fieldName: "ISNULL(eledepcon.Activo,'0')",
-    type: 'string',
-    searchComponent: "inputForActivo",
-
-    sortable: true,
-
-    formatter: 'collectionFormatter',
-    params: { collection: getOptionsSINO },
-
-    exportWithFormatter: true,
-    hidden: false,
-    searchHidden: false,
-    minWidth: 70,
-    maxWidth: 70,
-    cssClass: 'text-center'
-  },
   {
     id: "EfectoId",
     name: "Efecto",
@@ -344,57 +314,6 @@ const listaColumnasObjetivos: any[] = [
     searchHidden: false,
     searchComponent: "inputForEfectoSearch",
   },
-  // {
-  //   id: "EfectoDescripcion",
-  //   name: "Efecto",
-  //   field: "EfectoDescripcion",
-  //   fieldName: "efe.EfectoDescripcion",
-  //   type: "string",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true
-  // },
-  // {
-  //   id: "EfectoAtrDescripcion",
-  //   name: "Atributo del Efecto",
-  //   field: "EfectoAtrDescripcion",
-  //   fieldName: "efe.EfectoAtrDescripcion",
-  //   type: "string",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true
-  // },
-  // {
-  //   id: "EfectoEfectoIndividualId",
-  //   name: "Efecto Individual Asociado al efecto",
-  //   field: "EfectoEfectoIndividualId",
-  //   fieldName: "stk.EfectoEfectoIndividualId",
-  //   type: "number",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true,
-  //   // searchComponent: "inputForEfectoIndividualSearch",
-  // },
-  // {
-  //   id: "EfectoEfectoIndividualDescripcion",
-  //   name: "Efecto Individual Asociado al efecto",
-  //   field: "EfectoEfectoIndividualDescripcion",
-  //   fieldName: "efeind.EfectoEfectoIndividualDescripcion",
-  //   type: "string",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true
-  // },
-  // {
-  //   id: "EfectoIndividualAtrDescripcion",
-  //   name: "Atributo del Efecto Individual",
-  //   field: "EfectoIndividualAtrDescripcion",
-  //   fieldName: "efeind.EfectoIndividualAtrDescripcion",
-  //   type: "string",
-  //   sortable: true,
-  //   hidden: true,
-  //   searchHidden: true
-  // },
   {
     id: "EfectoDescripcionCompleto",
     name: "Efecto Descripción Completa",
@@ -430,9 +349,7 @@ const listaColumnasObjetivos: any[] = [
     searchType: "numberAdvanced",
     searchComponent: "inputForNumberAdvancedSearch",
     maxWidth: 100,
-
   },
-
 ]
 
 export class EfectoController extends BaseController {
@@ -610,27 +527,23 @@ WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEf
     }
   }
 
-  private efectobyObjetivoIdQuery(queryRunner: any, objetivoId: number) {
+  private async efectobyObjetivoIdQuery(queryRunner: any, objetivoId: number) {
     const now = new Date();
-    return queryRunner.query(`
-      SELECT efe.ContieneEfectoIndividual,stk.StockId,obj.ClienteId,
-       obj.ClienteElementoDependienteId, 
-       
-       stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
-      efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,
-      CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta,  
-      ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
-      
-      1
-      FROM Stock stk
-      JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
-      JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
-      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId 
-      LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId and lp.ListaPrecioDesde<= @1 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @1
-      LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @1 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @1
+    const listOptions = {
+      filtros: [
+        {
+          index: 'ObjetivoId',
+          condition: 'AND',
+          operador: '=',
+          valor: [objetivoId],
+          type: 'number',
+        },
+      ],
+      sort: null,
+    };
 
-      WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND obj.ObjetivoId = @0
-    `, [objetivoId, now])
+    return this.getEfectoObjetivosQuery(queryRunner, listOptions);
+
   }
 
 
@@ -647,39 +560,41 @@ WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEf
   }
 
   private getEfectoObjetivosQuery(queryRunner: any, listOptions: any) {
+
+    console.log("listOptions", listOptions)
+
     const filterSql = filtrosToSql(listOptions.filtros, listaColumnasObjetivos)
     const now = new Date();
     return queryRunner.query(`
 
 SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, 
-             CASE WHEN efe.ContieneEfectoIndividual = 1 THEN 'Si' ELSE 'No' END as ContieneEfectoIndividual,
-             stk.StockId,
+          stk.StockId,
           obj.ClienteId,
           cli.ClienteDenominacion, obj.ClienteElementoDependienteId, 
           CONCAT(cli.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0), ' ',ele.ClienteElementoDependienteDescripcion) as ClienteElementoDependienteDescripcion, obj.ObjetivoId,
           stk.EfectoId, stk.EfectoEfectoIndividualId, ISNULL(stk.StockStock, 0) as StockStock, ISNULL(stk.StockReservado, 0) as StockReservado,
           efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, eledepcon.ClienteElementoDependienteContratoId,eledepcon.ClienteElementoDependienteContratoFechaDesde,eledepcon.ClienteElementoDependienteContratoFechaHasta,
           CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
-          suc.SucursalDescripcion, ISNULL(eledepcon.Activo,0) AS Activo,
-		  ga.GrupoActividadDetalle, ga.GrupoActividadId,
-		
-	1
+          suc.SucursalDescripcion, 
+          ga.GrupoActividadDetalle, ga.GrupoActividadId,
+          ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
+        1
     FROM Stock stk
     JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
     LEFT JOIN ClienteElementoDependiente ele on ele.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and ele.ClienteId=obj.ClienteId
     JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
     LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
-	LEFT JOIN (
+        LEFT JOIN (
                             SELECT 
                                 ec.ClienteId, 
                                 ec.ClienteElementoDependienteId, 
                                 ec.ClienteElementoDependienteContratoId, 
                                 ec.ClienteElementoDependienteContratoFechaDesde, 
                                 ec.ClienteElementoDependienteContratoFechaHasta,
-								CASE
-									WHEN ec.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=@0 THEN '1'
-									ELSE '0' END AS Activo,
+                                                                CASE
+                                                                       WHEN ec.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=@0 THEN '1'
+                                                                       ELSE '0' END AS Activo,
                                 ROW_NUMBER() OVER (PARTITION BY ec.ClienteId, ec.ClienteElementoDependienteId 
                                                     ORDER BY ec.ClienteElementoDependienteContratoFechaDesde DESC) AS RowNum
                             FROM ClienteElementoDependienteContrato ec
@@ -690,13 +605,15 @@ SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id,
                                     
     --LEFT JOIN ClienteElementoDependienteContrato con on con.ClienteId=obj.ClienteId and con.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and con.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(con.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>@0
     LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId ,cli.ClienteSucursalId)
-	
+
     LEFT JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND (SELECT MAX(GrupoActividadObjetivoId) FROM GrupoActividadObjetivo where GrupoActividadObjetivoObjetivoId=obj.ObjetivoId) = gap.GrupoActividadObjetivoId
     LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
-	
+    LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId AND stk.EfectoEfectoIndividualId IS NULL   and lp.ListaPrecioDesde<= @0 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
+    LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
 
-    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL))
-	  
+
+    WHERE stk.StockStock > 0 
+	
       AND ${filterSql} `, [now])
   }
 
