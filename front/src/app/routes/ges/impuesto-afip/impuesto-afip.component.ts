@@ -144,7 +144,7 @@ export class ImpuestoAfipComponent {
       let response = null
       
       try {
-        response = await firstValueFrom(this.apiService.getDescuentoByPeriodo(params.anio, params.mes, 0 )
+        response = await firstValueFrom(this.apiService.getDescuentoByPeriodo(params.anio, params.mes, 0)
           .pipe( map((items: any) => {
             return {
               RegistrosConComprobantes: items.RegistrosConComprobantes,
@@ -179,18 +179,18 @@ export class ImpuestoAfipComponent {
 
 
   ngAfterViewInit(): void {
-    // setTimeout(() => {
-    //   const now = new Date(); //date
-    //   const anio =
-    //     Number(localStorage.getItem('anio')) > 0
-    //       ? localStorage.getItem('anio')
-    //       : now.getFullYear();
-    //   const mes =
-    //     Number(localStorage.getItem('mes')) > 0
-    //       ? localStorage.getItem('mes')
-    //       : now.getMonth() + 1;
-    //   this.periodo.set(new Date(Number(anio), Number(mes) - 1, 1))
-    // }, 1);
+    setTimeout(() => {
+      const now = new Date(); //date
+      const anio =
+        Number(localStorage.getItem('anio')) > 0
+          ? localStorage.getItem('anio')
+          : now.getFullYear();
+      const mes =
+        Number(localStorage.getItem('mes')) > 0
+          ? localStorage.getItem('mes')
+          : now.getMonth() + 1;
+      this.periodo.set(new Date(Number(anio), Number(mes) - 1, 1))
+    }, 1);
   }
 
   handleChange({ file, fileList }: NzUploadChangeParam): void {

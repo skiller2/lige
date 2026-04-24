@@ -66,7 +66,7 @@ export class TableObjetivosEfectoComponent {
   gridData = resource({
     params: () => ({options: this.listOptions(), refresh: this.refreshGrid()}),
     loader: async ({ params }) => {
-      return await firstValueFrom(this.searchService.getEfectoPersonal(params.options))
+      return await firstValueFrom(this.searchService.getEfectoObjetivos(params.options))
     },
     defaultValue: []
   })
