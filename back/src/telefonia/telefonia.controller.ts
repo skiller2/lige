@@ -266,10 +266,18 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')') AS SitRevCom,
       sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
       sucp.SucursalDescripcion SucursalPersonal,sucp.SucursalId,suco.SucursalDescripcion SucursalObjetivo, suco.SucursalId,
+      stk.StockStock,
+      
       1
       FROM Telefonia tel 
       JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
       LEFT JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeatr.EfectoId =tel.TelefoniaEfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
+      
+		LEFT JOIN (
+		SELECT stk.EfectoId, stk.EfectoEfectoIndividualId, SUM(stk.StockStock) StockStock
+		FROM Stock stk 
+		WHERE stk.StockStock >0 AND (stk.DepositoId IS NOT NULL OR stk.PersonalId IS NOT NULL OR stk.SucursalAreaId IS NOT NULL OR stk.ProveedorId IS NOT NULL OR stk.ObjetivoId IS NOT NULL)
+		GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId) stk ON stk.EfectoId=tel.TelefoniaEfectoId AND stk.EfectoEfectoIndividualId=tel.TelefoniaEfectoEfectoIndividualId
       
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
@@ -469,6 +477,9 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
           continue
         }
 
+        if (telefonos.StockStock !==1) {
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` tiene stock (${telefonos.StockStock}) diferente de 1` })
+        }
 
         const idx = telefonos.findIndex(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim())
         const fimpplanvoz = parseFloat(row[1])
