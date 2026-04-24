@@ -1,19 +1,19 @@
 <nz-card #tabpersonalefecto class="small-margin">
     <ng-container>
   
-      @if(columns$ | async; as columnas) {
+      <!-- @if(columns(); as columnas) { -->
 
-        <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+        <shared-filtro-builder [fieldsToSelect]="columns()" (optionsChange)="listOptionsChange($event)" />
         
         <div class="gridContainerPersonalEfecto container-fluid">
           <angular-slickgrid 
             gridId="gridPersonalEfecto" 
-            [columns]="columnas | colsFilter"
+            [columns]="columns()"
             [options]="gridOptions" 
-            [dataset]="(gridData$ | async) || []"
+            [dataset]="gridData.value()"
             (onAngularGridCreated)="angularGridReady($event)">
           </angular-slickgrid>
         </div>
-      }
+      <!-- } -->
     </ng-container>
   </nz-card> 
