@@ -168,6 +168,7 @@ export class PreciosProductosComponent {
       response.list.push(
         {
           id: newId.toString(),
+          idTable: undefined,
           ClienteFacturacionCUIT: null,
           Cliente: {},
           ProductoCodigo: '',
@@ -245,16 +246,25 @@ export class PreciosProductosComponent {
         const response: any = await firstValueFrom(this.apiService.onchangecellPrecioProducto(row))
 
         if (response?.data?.action === 'I' && !row.idTable?.length) {
-          row.idTable = row.id
+          // Nuevo registro - asignar idTable desde backend
+          row.idTable = response?.data?.idTable || row.id
+          this.angularGridEdit.gridService.updateItemById(row.id, row)
+        } else if (response?.data?.action === 'U') {
+          // Actualización exitosa - mantener idTable desde backend
+          row.idTable = response?.data?.idTable || row.idTable
           this.angularGridEdit.gridService.updateItemById(row.id, row)
         }
 
         this.angularGridEdit.slickGrid.setSelectedRows([])
-        this.gridData.isLoading()
+        this.angularGridEdit.slickGrid.invalidate()
+        
+        // Recargar datos del servidor para sincronizar cambios
+        this.gridData.reload()
 
         this.rowLocked = false
       } catch (e: any) {
         //Si idTable != '' volver a colocar el valor anterior, si idTable == '' marcar en rojo el registro 
+        console.error('Error al guardar precio producto:', e)
 
         if (row.idTable) {
           const item = this.angularGridEdit.dataView.getItemById(row.id)
@@ -264,14 +274,14 @@ export class PreciosProductosComponent {
             item[fld] = editCommand.editor.args.item[fld]
           }
           this.angularGridEdit.gridService.updateItemById(row.id, item)
+          this.messageSrv.error(e?.error?.message || 'Error al actualizar el registro')
         } else {
-          //marcar el row en rojo
+          //marcar el row en rojo - es un nuevo registro con error
 
           this.angularGridEdit.slickGrid.setSelectedRows([]);
           this.angularGridEdit.slickGrid.render();
+          this.messageSrv.error(e?.error?.message || 'Error al crear el registro')
         }
-
-        //this.updateTotals(editCommand.editor.args.column.id, this.angularGridEdit)
 
         this.rowLocked = false
       }
@@ -304,13 +314,10 @@ export class PreciosProductosComponent {
         id: pro.id,
         idTable: pro.idTable,
         ProductoCodigo: pro.ProductoCodigo,
-        ProductoCodigoOLD: pro.ProductoCodigoOLD,
-        ClienteIdOLD: pro.ClienteIdOLD,
+        ClienteId: pro.ClienteId,
         ClienteDenominacion: pro.ClienteDenominacion,
         PeriodoDesdeAplica: pro.PeriodoDesdeAplica,
-        PeriodoDesdeAplicaOLD: pro.PeriodoDesdeAplicaOLD,
         Importe: pro.Importe,
-        ImporteOLD: pro.ImporteOLD,
         Cliente: pro.Cliente,
         ClienteFacturacionCUIT: pro.Cliente.ClienteFacturacionCUIT,
       }
@@ -337,6 +344,7 @@ export class PreciosProductosComponent {
 
     return {
       id: newId.toString(),
+      idTable: undefined,
       ClienteFacturacionCUIT: null,
       Cliente: {},
       ProductoCodigo: '',
@@ -386,7 +394,7 @@ export class PreciosProductosComponent {
         && !!item?.PeriodoDesdeAplica
         && item?.Importe != null
 
-      const hasInput = !!item?.Cliente?.id || !!item?.ProductoCodigo?.length || item?.Importe != null
+        const hasInput = !!item?.Cliente?.id || !!item?.ProductoCodigo?.length || item?.Importe != null
 
       if (!rowComplete && hasInput) {
         meta.cssClasses = 'element-add-no-complete'

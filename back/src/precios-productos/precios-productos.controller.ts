@@ -113,12 +113,10 @@ export class PreciosProductosController extends BaseController {
                 `SELECT 
                     ROW_NUMBER() OVER (ORDER BY prod.cod_producto) AS id,
                     prod.cod_producto AS codigo, 
-                    prod.cod_producto AS codigoOld,
                     prod.des_producto AS descripcion,
                     prod.nom_producto AS nombre,
                     tip.cod_tipo_producto AS TipoProductoId,
                     tip.des_tipo_producto AS TipoProductoDescripcion,
-                    vent.importe AS importeOld,
                     vent.importe AS importe,
                     vent.precio_venta_id as  precioVentaId,
                     vent.importe_desde AS desde,
@@ -166,13 +164,10 @@ export class PreciosProductosController extends BaseController {
     ROW_NUMBER() OVER (ORDER BY pp.PeriodoDesdeAplica, pp.ProductoCodigo, pp.ClienteId) AS id,
     CONCAT(pp.ProductoCodigo, '-', pp.ClienteId) AS idTable,
     pp.ProductoCodigo,
-    pp.ProductoCodigo AS ProductoCodigoOLD,
-    pp.ClienteId AS ClienteIdOLD,
+    pp.ClienteId,
     c.ClienteDenominacion,
     pp.PeriodoDesdeAplica,
-    pp.PeriodoDesdeAplica AS PeriodoDesdeAplicaOLD,
     pp.Importe,
-    pp.Importe AS ImporteOLD,
     pp.AudFechaIng,
     pp.AudUsuarioIng,
     pp.AudFechaMod,
@@ -202,7 +197,7 @@ LEFT JOIN ClienteFacturacion fac
             const formattedData = precios.map((item: any) => ({
                 ...item,
                 Cliente: {
-                    id: item.ClienteIdOLD,
+                    id: item.ClienteId,
                     fullName: item.ClienteDenominacion
                 }
             }));
@@ -247,6 +242,28 @@ LEFT JOIN ClienteFacturacion fac
         ) VALUES ( @0, @1, @2, @3, @4, @4, @5, @5, @6, @6, @7)
         `, [ProductoCodigo, ClienteId,  PeriodoDesdeAplica , Importe, fecha, usuario, ip, docId?docId:null])
     }
+
+    async updateProductoPrecioQuery(
+        queryRunner:any,
+        ProductoCodigo:string,
+        ClienteId:number, 
+        PeriodoDesdeAplicaActual:Date,
+        PeriodoDesdeAplicaNueva:Date,
+        Importe:number,
+        fecha:Date,
+        usuario:string,
+        ip:string
+    ){
+        await queryRunner.query(`
+        UPDATE ProductoPrecio SET 
+            PeriodoDesdeAplica = @3,
+            Importe = @4,
+            AudFechaMod = @5,
+            AudUsuarioMod = @6,
+            AudIpMod = @7
+        WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2
+        `, [ProductoCodigo, ClienteId, PeriodoDesdeAplicaActual, PeriodoDesdeAplicaNueva, Importe, fecha, usuario, ip])
+    }
     
     async changecell(req: any, res: Response, next: NextFunction) {
         const usuario = res.locals.userName
@@ -262,6 +279,11 @@ LEFT JOIN ClienteFacturacion fac
         const Importe = Number(req.body.Importe)
         const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica)
 
+        // Validaciones previas
+        if (!ClienteId) throw new ClientException('Cliente es requerido')
+        if (!ProductoCodigo) throw new ClientException('Producto es requerido')
+        if (Importe <= 0) throw new ClientException('El importe debe ser mayor a 0')
+
         // instanciar el primer dia del mes
         PeriodoDesdeAplica.setDate(1)
         PeriodoDesdeAplica.setHours(0,0,0,0)
@@ -272,73 +294,60 @@ LEFT JOIN ClienteFacturacion fac
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
-            
-            if ( idTable?.length > 0) { //Entro en update
 
-                const ProductoCodigoOLD = req.body.ProductoCodigoOLD
-                const ClienteIdOLD = req.body.ClienteIdOLD
-                const PeriodoDesdeAplicaOLD = new Date(req.body.PeriodoDesdeAplicaOLD)
-                // const ImporteOLD = req.body.ImporteOLD
+            const anio = PeriodoDesdeAplica.getFullYear()
+            const mes = PeriodoDesdeAplica.getMonth()+1
 
-                if (ProductoCodigoOLD != ProductoCodigo || ClienteIdOLD != ClienteId) {
-                    throw new ClientException('Solo puede ser modificado el importe unitario en registros existentes')
-                }
+            if (idTable != null && idTable.length > 0) { 
+                // UPDATE: existe registro anterior
                 
-                //Validar que el precio del producto no fue facturado
-                const anio = PeriodoDesdeAplicaOLD.getFullYear()
-                const mes = PeriodoDesdeAplicaOLD.getMonth()+1
+                // Obtener el período anterior del registro
+                const registroAnterior = await queryRunner.query(`
+                    SELECT PeriodoDesdeAplica, Importe FROM ProductoPrecio 
+                    WHERE ProductoCodigo = @0 AND ClienteId = @1
+                    ORDER BY PeriodoDesdeAplica DESC
+                `, [ProductoCodigo, ClienteId])
 
-                const checkComprobante = await queryRunner.query(`
-                    SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
-                `, [ProductoCodigoOLD, ClienteIdOLD, anio, mes])
-
-                const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1, usuario, ip)
-                const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
-                
-                if (!checkComprobante.length && !getRecibosGenerados[0]?.ind_recibos_generados) {
-                    
-                    await this.deleteProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica)
-                
-                }else{
-                    // Busca el periodo mas cercano que aun no se genero los recibos
-
-                    // let fechaHabil = await queryRunner.query(`
-                    //     SELECT anio, mes
-                    //     FROM lige.dbo.liqmaperiodo
-                    //     WHERE ind_recibos_generados IN (0) AND anio >= @0 AND mes >= @1
-                    //     ORDER BY anio, mes
-                    // `, [fechaActual.getFullYear(), fechaActual.getMonth()+1])
-                    
-                    // if (fechaHabil.length) PeriodoDesdeAplica.setFullYear(fechaHabil[0].anio, fechaHabil[0].mes-1, 1)
-                    // else PeriodoDesdeAplica.setFullYear(fechaHabil[0].anio, fechaHabil[0].mes-1, 1)
-
-                    throw new ClientException('No se puede modificar registros ya facturados')
+                if (!registroAnterior.length) {
+                    throw new ClientException('El registro a actualizar no existe')
                 }
 
-                dataResultado = {action:'U'}
-                message = "Actualizacion exitosa"
+                const PeriodoAnterior = new Date(registroAnterior[0].PeriodoDesdeAplica)
+                PeriodoAnterior.setHours(0,0,0,0)
+
+            //   validar que el registro nuevo , en dicho periodo no exista ya un precio para ese producto y cliente
+                const checkExistente = await queryRunner.query(`
+                    SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 AND NOT (PeriodoDesdeAplica = @3)
+                `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica, PeriodoAnterior])
+                if (checkExistente.length) throw new ClientException('Ya existe un registro con los mismos datos')
+                                 
+
+                // Actualizar registro anterior
+                await this.updateProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoAnterior, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
+
+                // Generar idTable consistente con frontend
+                const idTableResponse = `${ProductoCodigo}-${ClienteId}`
+                dataResultado = {action:'U', idTable: idTableResponse}
+                message = "Actualización exitosa"
               
-            } else {  //Es un nuevo registro de ProductoPrecio
+            } else {  
+                // INSERT: nuevo registro de ProductoPrecio
 
-                const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), PeriodoDesdeAplica.getFullYear(), PeriodoDesdeAplica.getMonth()+1, usuario, ip)
-                const getRecibosGenerados = await queryRunner.query(`SELECT ind_recibos_generados FROM lige.dbo.liqmaperiodo WHERE periodo_id = @0`, [periodo_id])
+                // Validar que no exista duplicado
+                const checkExistente = await queryRunner.query(`
+                    SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
+                `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
+                
+                if (checkExistente.length) throw new ClientException('Ya existe un registro con los mismos datos')
+                
+                // Insertar el nuevo registro
+                await this.addProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
 
-                // if (getRecibosGenerados[0]?.ind_recibos_generados == 1) {
-                //     throw new ClientException(`No se puede agregar un precio en un periodo con recibos generados.`)
-                // }
-
-                dataResultado = {action:'I'}
+                // Generar idTable consistente con frontend
+                const idTableResponse = `${ProductoCodigo}-${ClienteId}`
+                dataResultado = {action:'I', idTable: idTableResponse}
                 message = "Carga de nuevo Registro exitoso"
-
             }
-
-            const checkNewCodigo = await queryRunner.query(`
-                SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
-            `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
-            if (checkNewCodigo.length) throw new ClientException('Ya existe un registros con los mismos datos')
-            
-            if (Importe <= 0) throw new ClientException('El importe debe ser mayor a 0')
-            await this.addProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
 
             await queryRunner.commitTransaction()
             return this.jsonRes( dataResultado, res, message)
@@ -471,94 +480,6 @@ LEFT JOIN ClienteFacturacion fac
         } finally {
             await queryRunner.release()
         }
-    }
-
-    async validateForm(isNew:boolean, params:any, queryRunner:any,importeOld:any){
-        const now = new Date()
-        const desde = new Date(params.desde)
-        const hasta = new Date(params.hasta)
-        now.setHours(0, 0, 0, 0)
-        desde.setHours(0, 0, 0, 0)
-        hasta.setHours(0, 0, 0, 0)
-        desde.setDate(desde.getDate()+1)
-        hasta.setDate(hasta.getDate()+1)
-        if(isNew){
-        // true es Nuevo
-
-        }else{
-        // false es Edit
-        if (params.codigoOld && params.codigoOld !== "" && params.codigoOld !== params.codigo) 
-            throw new ClientException(`No puede modificar el codigo de un registro ya cargado`)
-            
-        }
-
-        if (params.SucursalId == null || params.SucursalId == "")
-            throw new ClientWarning(`Debe seleccionar la Sucursal`)
-
-        let resultSucursalCodigo = await queryRunner.query( `SELECT * FROM lige.dbo.lpv_precio_venta WHERE cod_Producto = @0 AND SucursalId = @1 AND precio_venta_id != @2`, [params.codigo, params.SucursalId, params.precioVentaId])
-        const codigoExist = await queryRunner.query( `SELECT *  FROM lige.dbo.lpv_precio_venta WHERE precio_venta_id = @0`, [params.precioVentaId])
-
-        if(params.codigoOld && params.codigo != params.codigoOld){
-        
-            // Validar si hay registros
-            if (resultSucursalCodigo.length > 0) 
-                throw new ClientException(`El codigo ingresado ya existe en la sucursal seleccionada`)
-        }
-
-
-        if (params.nombre == null || params.nombre == "")
-            throw new ClientWarning(`Debe completar el nombre del producto`)
-
-        if (params.TipoProductoId == null || params.TipoProductoId == "")
-            throw new ClientWarning(`Debe completar el tipo de producto`)
-
-        if (params.descripcion == null || params.descripcion == "")
-            throw new ClientWarning(`Debe completar la descripcion del producto`)
-
-        if (params.importe == null || params.importe == "")
-            throw new ClientWarning(`Debe completar el Importe`)
-
-        if (params.hasta && hasta < desde)
-            throw new ClientException(`La fecha "hasta" no puede ser menor que la fecha "desde".`)
-
-        if (params.hasta && hasta < now)
-            throw new ClientException(`La fecha "hasta" no puede ser menor que hoy.`)
-
-        if (desde < now && !(codigoExist.length && codigoExist[0].importe_desde < now && now < codigoExist[0].importe_hasta))
-            throw new ClientException(`La fecha "desde" no puede ser menor que hoy.`)
-
-        if (params.precioVentaId && params.codigo && params.hasta) {
-            const codigoExist = await queryRunner.query( `
-                SELECT a.importe_desde
-                FROM lige.dbo.lpv_precio_venta a
-                JOIN lige.dbo.lpv_precio_venta b ON b.precio_venta_id IN (@0) AND b.importe_hasta < a.importe_desde
-                WHERE a.cod_Producto = @1
-                ORDER BY a.importe_desde
-                `, [params.precioVentaId, params.codigo]
-            )
-            if (codigoExist.length && codigoExist[0].importe_desde && new Date(params.hasta) > new Date(codigoExist[0].importe_desde)) {
-                const fechaMaxima = new Date(codigoExist[0].importe_desde)
-                throw new ClientException(`La fecha "hasta" no puede ser mayor ${fechaMaxima.getDate()}/${fechaMaxima.getMonth()}/${fechaMaxima.getFullYear()}.`)
-            }
-        }
-
-        await this.validarRangoFechas(params.desde, params.hasta, resultSucursalCodigo)
-
-        if(importeOld == params.importe){
-
-            let result = await queryRunner.query( `SELECT TOP 1 importe_hasta FROM lige.dbo.lpv_precio_venta WHERE cod_producto = @0 ORDER BY importe_hasta DESC`, [params.codigo])
-            
-            if (result && result.length > 1) {
-
-                const fechaEspecial = new Date('9999-12-31');
-
-                if (new Date(result[0].importe_hasta).getTime() !== fechaEspecial.getTime())
-                    if( desde < new Date(result[0].importe_hasta))
-                        throw new ClientException(`'No se podra modificar precios que no sean vigentes`);
-
-            }
-        } 
-  
     }
 
 
