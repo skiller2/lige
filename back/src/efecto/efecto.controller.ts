@@ -627,6 +627,8 @@ SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id,
 
 
     WHERE stk.StockStock > 0 
+          AND    ((efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL) OR (efe.ContieneEfectoIndividual =0 AND stk.EfectoEfectoIndividualId IS NULL))
+
 	
       AND ${filterSql} `, [now])
   }
