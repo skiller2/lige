@@ -27,7 +27,7 @@ export interface FormDesc {
     DetalleAnulacion: string;
     ImportacionDocumentoId: number | null;
     oldObjetivoId: number;
-    EfectoKey: { EfectoId: number | null, EfectoIndividualId: number | null };
+    EfectoKey: { EfectoId: number | null, EfectoIndividualId?: number | null, StockId?: number | null, Importe?: string };
     EfectoId: number | null;
     EfectoIndividualId: number | null;
     Cantidad: number | any;
@@ -115,7 +115,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
     DescuentoId = computed(() => this.descuentoObjetivo().DescuentoId)
     effectoKey = computed(() => this.descuentoObjetivo().EfectoKey)
 
-    efectoCompareFn = (o1: any, o2: any): boolean => ((o1?.EfectoId === o2?.EfectoId && o1?.EfectoIndividualId === o2?.EfectoIndividualId) ? true : false)
+    efectoCompareFn = (o1: any, o2: any): boolean => ((o1?.EfectoId === o2?.EfectoId && o1?.EfectoIndividualId === o2?.EfectoIndividualId && o1?.StockId === o2?.StockId) ? true : false)
 
     listaEfectosObj = resource({
         params: () => ({ ObjetivoId: this.descuentoObjetivo().ObjetivoId, isEfecto: this.isEfecto() }),
@@ -131,35 +131,20 @@ export class DescuentosObjetivosAltaDrawerComponent {
     formEffect = effect(() => {
         if (this.DescuentoId() != 50) {
             this.descuentoObjetivo.update((state) => {
-                return { ...state, EfectoId: null, EfectoIndividualId: null, EfectoKey: { EfectoId: null, EfectoIndividualId: null }, PorcentajeDescuento: 100, Cantidad: 1 }
+                return { ...state, EfectoId: null, EfectoIndividualId: null, EfectoKey: { EfectoId: null, EfectoIndividualId: null, Importe: '' }, PorcentajeDescuento: 100, Cantidad: 1 }
             })
         }
 
         if (this.effectoKey()) {
             untracked(() => {
                 this.descuentoObjetivo.update((state) => {
-                    return { ...state, EfectoId: this.descuentoObjetivo().EfectoKey.EfectoId, EfectoIndividualId: this.descuentoObjetivo().EfectoKey.EfectoIndividualId }
+                    return { ...state, EfectoId: this.descuentoObjetivo().EfectoKey.EfectoId, EfectoIndividualId: this.descuentoObjetivo().EfectoKey.EfectoIndividualId ?? null, Importe: this.descuentoObjetivo().EfectoKey.Importe ?? '' }
                 })
             })
         }
     })
 
-    onEfectoChange() {
-        setTimeout(() => {
-            const listaEfectos = this.listaEfectosObj.value();
-            const efectoSeleccionado = listaEfectos.find((e: any) =>
-                e.EfectoId === this.descuentoObjetivo().EfectoKey.EfectoId &&
-                e.EfectoIndividualId === this.descuentoObjetivo().EfectoKey.EfectoIndividualId
-            );
-            if (efectoSeleccionado) {
-                this.descuentoObjetivo.update((state) => {
-                    return { ...state, Importe: efectoSeleccionado.Importe ?? '' }
-                })
-            }
-        }, 200);
-    }
-
-    lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleta: string } | null>(null)
+    lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleta: string,  Importe: string } | null>(null)
 
     importeTotal = computed(() => {
         const s = this.descuentoObjetivo();
@@ -192,7 +177,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
         this.descuentoObjetivo.set(infoDesc)
 
         if (infoDesc.EfectoId)
-            this.lastEfecto.set({ EfectoId: infoDesc.EfectoId, EfectoIndividualId: infoDesc.EfectoIndividualId, EfectoDescripcionCompleta: infoDesc.EfectoDescripcionCompleta })
+            this.lastEfecto.set({ EfectoId: infoDesc.EfectoId, EfectoIndividualId: infoDesc.EfectoIndividualId, EfectoDescripcionCompleta: infoDesc.EfectoDescripcionCompleta, Importe: infoDesc.Importe })
         else
             this.lastEfecto.set(null)
     }

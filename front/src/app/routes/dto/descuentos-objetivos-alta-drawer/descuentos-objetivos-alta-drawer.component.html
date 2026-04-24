@@ -1,8 +1,7 @@
 <nz-drawer [nzClosable]="false" [nzVisible]="visibleDesc()" [nzPlacement]="placement" [nzWidth]="700"
-  [nzTitle]="'Formulario Descuentos'" (nzOnClose)="visibleDesc.set(false)">
+  [nzTitle]="'Descuento de Objetivo'" (nzOnClose)="visibleDesc.set(false)">
   <ng-container *nzDrawerContent>
 
-    <nz-card nzType="inner" nzTitle="Descuento de Objetivo">
       <form (ngSubmit)="save()">
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Aplica El</nz-form-label>
@@ -48,14 +47,14 @@
             <nz-form-label [nzXs]="5">Efecto</nz-form-label>
             <nz-form-control [nzMd]="18">
               <nz-select [formField]="formDescuentoObjetivo.EfectoKey" [compareWith]="efectoCompareFn"
-                nzPlaceHolder="Seleccione efecto" nzAllowClear [nzDropdownMatchSelectWidth]="false" (nzBlur)="onEfectoChange()">
-                @for (efecto of listaEfectosObj.value(); track efecto.EfectoId) {
-                  <nz-option [nzValue]="{EfectoId: efecto.EfectoId, EfectoIndividualId: efecto.EfectoIndividualId}"
-                    [nzLabel]="efecto.EfectoDescripcionCompleta + ' (Stock: ' + efecto.StockStock + ')'"></nz-option>
+                nzPlaceHolder="Seleccione efecto" nzAllowClear [nzDropdownMatchSelectWidth]="false">
+                @for (efecto of listaEfectosObj.value(); track efecto.EfectoId+'_'+efecto.EfectoEfectoIndividualId+'_' +efecto.StockId) {
+                  <nz-option [nzValue]="{EfectoId: efecto.EfectoId, StockId: efecto.StockId, EfectoIndividualId: efecto.EfectoEfectoIndividualId, Importe: efecto.Importe}"
+                    [nzLabel]="efecto.EfectoDescripcionCompleta + ' (Stock: ' + efecto.StockStock + ')' "></nz-option>
                 }
                 @if (lastEfecto()?.EfectoId) {
                   <nz-option
-                    [nzValue]="{EfectoId: lastEfecto()?.EfectoId, EfectoIndividualId: lastEfecto()?.EfectoIndividualId}"
+                    [nzValue]="{EfectoId: lastEfecto()?.EfectoId, EfectoIndividualId: lastEfecto()?.EfectoIndividualId, Importe: lastEfecto()?.Importe}"
                     [nzLabel]="lastEfecto()?.EfectoDescripcionCompleta || ''"></nz-option>
                 }
               </nz-select>
@@ -200,7 +199,6 @@
         </nz-form-item>
       
       </form>
-    </nz-card>
 
           <!-- <nz-form-control *ngIf="$listaDecuentosPer | async as listaDecuentosPer ">
           <nz-table #list [nzData]="listaDecuentosPer" nzSize="small" [nzPageSize]="100000000"
