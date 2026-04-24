@@ -350,6 +350,20 @@ const listaColumnasObjetivos: any[] = [
     searchComponent: "inputForNumberAdvancedSearch",
     maxWidth: 100,
   },
+  {
+    id: "Importe",
+    name: "Importe",
+    field: "Importe",
+    fieldName: "ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio)",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
+  },
+
 ]
 
 export class EfectoController extends BaseController {
