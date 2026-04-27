@@ -568,7 +568,7 @@ export class EfectoController extends BaseController {
     const now = new Date();
     return queryRunner.query(`
 
-SELECT ROW_NUMBER() OVER (ORDER BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockId) as id, 
+      SELECT ROW_NUMBER() OVER (ORDER BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockId) as id, 
           stk.StockId,
           obj.ClienteId,
           cli.ClienteDenominacion, obj.ClienteElementoDependienteId, 
