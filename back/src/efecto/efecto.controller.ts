@@ -470,7 +470,7 @@ export class EfectoController extends BaseController {
       LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId and lp.ListaPrecioDesde<= @0 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
       LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
       WHERE  per.PersonalId = @1;
-    `, [personalId, now])
+    `, [now,personalId])
   }
 
   private getEfectoQuery(queryRunner: any, listOptions: any) {
