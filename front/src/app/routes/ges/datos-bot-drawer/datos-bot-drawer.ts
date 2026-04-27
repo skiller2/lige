@@ -8,8 +8,8 @@ import { SearchService } from '../../../services/search.service';
 
 export interface FormDataBot {
   id: number;
-  TelefonoBot: string;
-  ultimoReciboPeriodo: string;
+  Telefono: string;
+  periodoRecibo: string;
 }
 
 @Component({
@@ -34,17 +34,17 @@ export class DatosBotDrawerComponent {
 
   private datosBotDefault: FormDataBot = {
     id: 0,
-    TelefonoBot: '',
-    ultimoReciboPeriodo: '',
+    Telefono: '',
+    periodoRecibo: '',
   }
 
   readonly datosBot = signal<FormDataBot>(this.datosBotDefault);
 
   readonly formDatosBot = form(this.datosBot, (p) => {
-    required(p.TelefonoBot, { message: 'El teléfono es obligatorio' });
-    required(p.ultimoReciboPeriodo, { message: 'El período es obligatorio' });
-    disabled(p.TelefonoBot ,() => true);
-    disabled(p.ultimoReciboPeriodo, () => true);
+    required(p.Telefono, { message: 'El teléfono es obligatorio' });
+    required(p.periodoRecibo, { message: 'El período es obligatorio' });
+    disabled(p.Telefono ,() => true);
+    disabled(p.periodoRecibo, () => true);
   })
 
   loadEffect = effect(async () => {

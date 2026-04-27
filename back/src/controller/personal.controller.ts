@@ -944,7 +944,7 @@ export class PersonalController extends BaseController {
       Cilindrada,
       LugarFisicoLegajoId
     ])
-    
+
     let PersonalId = newId[0].id
     return PersonalId
   }
@@ -1080,8 +1080,8 @@ export class PersonalController extends BaseController {
       //Estudios
       for (const estudio of estudios) {
         if (estudio.TipoEstudioId == 8) throw new ClientException(`El tipo de estudio "Curso" debe ser registrado en modulo "Estudios".`)
-          
-        
+
+
 
         if (estudio.EstudioTitulo || estudio.TipoEstudioId || estudio.PersonalEstudioOtorgado || estudio.PersonalEstudioVencimiento || (estudio.DocTitulo && estudio.DocTitulo.length)) {
           const camposVacios: string[] = []
@@ -3314,7 +3314,7 @@ UNION ALL
   async addPersonalCambios(queryRunner: any, personalId: number, form: any, usuario: string, ip: string) {
     const PersonalCambiosJson = JSON.stringify(form)
     const now = new Date()
-    
+
     // Validar FK fields - convertir 0 a null
     const PaisId = form.domicilio.PaisId ? form.domicilio.PaisId : null
     const ProvinciaId = form.domicilio.ProvinciaId ? form.domicilio.ProvinciaId : null
@@ -3759,14 +3759,22 @@ UNION ALL
     const PersonalId = Number(req.params.personalId)
     try {
       const result = await dataSource.query(
-        `SELECT
-          @0 AS id,
-          (SELECT TOP 1 reg.Telefono FROM BotRegTelefonoPersonal reg WHERE reg.PersonalId = @0) AS TelefonoBot,
-          (SELECT TOP 1 CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio)
-             FROM DocumentoDescargaLog dl
-             JOIN Documento doc ON doc.DocumentoId = dl.DocumentoId
-             WHERE dl.PersonalId = @0 AND doc.DocumentoTipoCodigo = 'REC'
-             ORDER BY dl.FechaDescarga DESC) AS ultimoReciboPeriodo
+        `SELECT 
+              per.PersonalId id,
+              rt.Telefono,
+              rec.DocumentoId,
+              concat(rec.DocumentoMes,'/', rec.DocumentoAnio) periodoRecibo,
+              rec.DocumentoFecha,
+              rec.FechaDescarga
+          FROM Personal per
+          Left join BotRegTelefonoPersonal rt on per.PersonalId = rt.PersonalId
+          OUTER APPLY ( -- Último recibo descargado (según fecha de descarga)
+              SELECT TOP 1 doc.DocumentoId, doc.DocumentoMes,doc.DocumentoAnio,doc.DocumentoFecha,ddl.FechaDescarga
+              FROM Documento doc
+              JOIN DocumentoDescargaLog ddl ON ddl.DocumentoId = doc.DocumentoId
+              WHERE doc.DocumentoTipoCodigo = 'REC' AND doc.PersonalId = per.PersonalId
+              ORDER BY ddl.FechaDescarga DESC) rec
+          WHERE per.PersonalId = @0
         `, [PersonalId])
 
       const data = result[0] ?? { id: PersonalId, TelefonoBot: '', ultimoReciboPeriodo: '' }
