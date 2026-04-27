@@ -3787,4 +3787,21 @@ UNION ALL
     }
   }
 
+  async getUltimoNroReciboByPersonalId(req: any, res: Response, next: NextFunction) {
+    const PersonalId = Number(req.params.personalId)
+    try {
+      const result = await dataSource.query(
+        `SELECT TOP 1 doc.DocumentoId, doc.DocumentoMes,doc.DocumentoAnio,doc.DocumentoFecha, doc.DocumentoDenominadorDocumento 
+          FROM Documento doc
+          WHERE doc.DocumentoTipoCodigo = 'REC' AND doc.PersonalId = @0
+          ORDER BY doc.DocumentoFecha DESC`, [PersonalId])
+
+      const data = result[0] ?? { DocumentoId: null, DocumentoMes: null, DocumentoAnio: null, DocumentoFecha: null }
+      this.jsonRes(data, res)
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+
 }
