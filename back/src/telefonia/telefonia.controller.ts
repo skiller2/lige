@@ -44,7 +44,7 @@ export class TelefoniaController extends BaseController {
       type: "string",
       id: "EfectoDescripcionCompleto",
       field: "EfectoDescripcionCompleto",
-      fieldName: "CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' )",
+      fieldName: "stk.EfectoDescripcionCompleto",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -248,7 +248,7 @@ export class TelefoniaController extends BaseController {
     return dataSource.query(
       `
 SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, 
-      CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto, 
+		stk.EfectoDescripcionCompleto, 
       eledep.ClienteElementoDependienteDescripcion, 
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe, conx.importesum,
       per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId,
@@ -274,11 +274,10 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       LEFT JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeatr.EfectoId =tel.TelefoniaEfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
       
 		LEFT JOIN (
-		SELECT stk.EfectoId, stk.EfectoEfectoIndividualId, SUM(stk.StockStock) StockStock
-		FROM Stock stk 
-		WHERE stk.StockStock >0 AND (stk.DepositoId IS NOT NULL OR stk.PersonalId IS NOT NULL OR stk.SucursalAreaId IS NOT NULL OR stk.ProveedorId IS NOT NULL OR stk.ObjetivoId IS NOT NULL)
-		GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId) stk ON stk.EfectoId=tel.TelefoniaEfectoId AND stk.EfectoEfectoIndividualId=tel.TelefoniaEfectoEfectoIndividualId
-      
+		SELECT stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto, SUM(stk.StockStock) StockStock
+		FROM StockReal stk 
+		WHERE stk.StockStock >0 
+		GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto) stk ON stk.EfectoId=tel.TelefoniaEfectoId AND stk.EfectoEfectoIndividualId=tel.TelefoniaEfectoEfectoIndividualId
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
@@ -322,8 +321,6 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       ) conx ON conx.TelefoniaId = tel.TelefoniaId
         
 
-          LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = tel.TelefoniaEfectoId
-          LEFT JOIN EfectoIndividualDescripcion efeinddes ON efeinddes.EfectoId = tel.TelefoniaEfectoId AND efeinddes.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId
   
           LEFT JOIN 
           (
@@ -343,8 +340,8 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
 
       WHERE @0 >= tel.TelefoniaDesde AND @0 <= ISNULL(tel.TelefoniaHasta,'9999-12-31') 
-    AND tel.TelefoniaDesde <> ISNULL(tel.TelefoniaHasta,'9999-12-31')  
-       AND (${filterSql}) ${orderBy}`,
+    AND tel.TelefoniaDesde <> ISNULL(tel.TelefoniaHasta,'9999-12-31')
+           AND (${filterSql}) ${orderBy}`,
       [fecha, anio, mes])
 
   }
