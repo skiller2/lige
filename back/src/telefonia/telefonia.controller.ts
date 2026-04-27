@@ -276,7 +276,6 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 		LEFT JOIN (
 		SELECT stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto, SUM(stk.StockStock) StockStock
 		FROM StockReal stk 
-		WHERE stk.StockStock >0 
 		GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto) stk ON stk.EfectoId=tel.TelefoniaEfectoId AND stk.EfectoEfectoIndividualId=tel.TelefoniaEfectoEfectoIndividualId
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
