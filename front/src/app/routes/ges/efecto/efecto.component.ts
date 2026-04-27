@@ -12,9 +12,9 @@ import { SettingsService } from '@delon/theme';
     NzMenuModule,
     TablePersonalEfectoComponent,
     TableObjetivosEfectoComponent
-],
+  ],
   templateUrl: './efecto.component.html',
-  styleUrl: './efecto.component.less'
+  styleUrl: './efecto.component.less',
 })
 export class EfectoComponent {
   private settingsService = inject(SettingsService)

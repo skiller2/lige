@@ -27,14 +27,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 })
 export class TablePersonalEfectoComponent {
 
-  tableLoading$ = new BehaviorSubject<boolean>(false);
   refreshGrid = input<number>(0);
-  private angularGridEdit!: AngularGridInstance;
+  private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
   gridOptions!: GridOption;
   private excelExportService = new ExcelExportService();
-  private PersonalId: number = 8676;
   listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
@@ -79,12 +77,12 @@ export class TablePersonalEfectoComponent {
   }
 
   angularGridReady(angularGrid: any): void {
-    this.angularGridEdit = angularGrid.detail;
+    this.angularGrid = angularGrid.detail;
     this.gridObj = angularGrid.detail.slickGrid;
 
-    this.angularGridEdit.dataView.onRowsChanged.subscribe(() => {
-      totalRecords(this.angularGridEdit);
-      columnTotal('StockStock', this.angularGridEdit)
+    this.angularGrid.dataView.onRowsChanged.subscribe(() => {
+      totalRecords(this.angularGrid);
+      columnTotal('StockStock', this.angularGrid)
     });
 
   }
