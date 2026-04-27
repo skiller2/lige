@@ -244,8 +244,8 @@ export class ImpuestoAfipComponent {
 
   public forzadoUploadData(cuit: string | null | undefined, montoText: string | null | undefined) {
     return {
-      anio: this.anio,
-      mes: this.mes,
+      anio: this.anio(),
+      mes: this.mes(),
       cuit,
       monto: this.parseMontoForzado(montoText),
     };

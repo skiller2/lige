@@ -934,7 +934,7 @@ export class RecibosController extends BaseController {
 
 
 
-      const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, (tipocuenta_id == 'C') ? 'Coordinador' : '', anio, mes, header, body, footer)
+      const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, (tipocuenta_id == 'C') ? 'Coordinador Cuenta' : '', anio, mes, header, body, footer)
 
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
