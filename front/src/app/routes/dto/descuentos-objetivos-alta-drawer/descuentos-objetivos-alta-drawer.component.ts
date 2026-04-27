@@ -144,7 +144,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
         }
     })
 
-    lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleta: string,  Importe: string } | null>(null)
+    lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleto: string,  Importe: string } | null>(null)
 
     importeTotal = computed(() => {
         const s = this.descuentoObjetivo();
@@ -177,7 +177,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
         this.descuentoObjetivo.set(infoDesc)
 
         if (infoDesc.EfectoId)
-            this.lastEfecto.set({ EfectoId: infoDesc.EfectoId, EfectoIndividualId: infoDesc.EfectoIndividualId, EfectoDescripcionCompleta: infoDesc.EfectoDescripcionCompleta, Importe: infoDesc.Importe })
+            this.lastEfecto.set({ EfectoId: infoDesc.EfectoId, EfectoIndividualId: infoDesc.EfectoIndividualId, EfectoDescripcionCompleto: infoDesc.EfectoDescripcionCompleto, Importe: infoDesc.Importe })
         else
             this.lastEfecto.set(null)
     }

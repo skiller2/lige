@@ -224,7 +224,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         return total.toFixed(2); // string
     });
 
-    lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleta: string } | null>(null)
+    lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleto: string } | null>(null)
     private anioDef: number = 0
     private mesDef: number = 0
 
@@ -237,7 +237,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         })
 
         if (infoDes.EfectoId)
-            this.lastEfecto.set({ EfectoId: infoDes.EfectoId, EfectoIndividualId: infoDes.EfectoIndividualId, EfectoDescripcionCompleta: infoDes.EfectoDescripcionCompleta })
+            this.lastEfecto.set({ EfectoId: infoDes.EfectoId, EfectoIndividualId: infoDes.EfectoIndividualId, EfectoDescripcionCompleto: infoDes.EfectoDescripcionCompleto })
         else
             this.lastEfecto.set(null)
 

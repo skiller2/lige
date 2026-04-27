@@ -42,8 +42,8 @@ export class TelefoniaController extends BaseController {
     {
       name: "Efecto",
       type: "string",
-      id: "EfectoDescripcionCompleta",
-      field: "EfectoDescripcionCompleta",
+      id: "EfectoDescripcionCompleto",
+      field: "EfectoDescripcionCompleto",
       fieldName: "CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' )",
       sortable: true,
       searchHidden: false,
@@ -248,7 +248,7 @@ export class TelefoniaController extends BaseController {
     return dataSource.query(
       `
 SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, 
-      CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta, 
+      CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto, 
       eledep.ClienteElementoDependienteDescripcion, 
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe, conx.importesum,
       per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId,
@@ -538,7 +538,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       const telefonosRegistradosSinConsumo = telefonos.filter((row) => (Number(row.total) < 1 || isNaN(Number(row.total))))
       for (const tel of telefonosRegistradosSinConsumo) {
         if (!tel.TelefoniaHasta || tel.TelefoniaHasta > new Date()) {
-          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin consumos en archivo xls y sin fecha de baja (Efecto: ${tel.EfectoDescripcionCompleta}), TelefonoId: ${tel.TelefoniaId}` })
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin consumos en archivo xls y sin fecha de baja (Efecto: ${tel.EfectoDescripcionCompleto}), TelefonoId: ${tel.TelefoniaId}` })
         }
       }
 

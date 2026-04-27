@@ -4,6 +4,6 @@
   [nzDropdownMatchSelectWidth]="false" [nzLoading]="isLoading">
   @for (efecto of efectoOptions; track efecto.EfectoId) {
     <nz-option [nzValue]="efecto.EfectoId"
-      [nzLabel]="(efecto.EfectoDescripcionCompleta || efecto.EfectoDescripcion) + (efecto.StockStock !== undefined && efecto.StockStock !== null ? ' (Stock: ' + efecto.StockStock + ')' : '')"></nz-option>
+      [nzLabel]="(efecto.EfectoDescripcionCompleto || efecto.EfectoDescripcion) + (efecto.StockStock !== undefined && efecto.StockStock !== null ? ' (Stock: ' + efecto.StockStock + ')' : '')"></nz-option>
   }
 </nz-select>

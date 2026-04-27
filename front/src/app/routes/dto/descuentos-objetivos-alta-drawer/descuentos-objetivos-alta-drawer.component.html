@@ -55,7 +55,7 @@
                 @if (lastEfecto()?.EfectoId) {
                   <nz-option
                     [nzValue]="{EfectoId: lastEfecto()?.EfectoId, EfectoIndividualId: lastEfecto()?.EfectoIndividualId, Importe: lastEfecto()?.Importe}"
-                    [nzLabel]="lastEfecto()?.EfectoDescripcionCompleta || ''"></nz-option>
+                    [nzLabel]="lastEfecto()?.EfectoDescripcionCompleto || ''"></nz-option>
                 }
               </nz-select>
             </nz-form-control>

@@ -54,12 +54,12 @@
               nzPlaceHolder="Seleccione efecto" nzAllowClear [nzDropdownMatchSelectWidth]="false" (nzBlur)="onEfectoChange()">
               @for (efecto of listaEfectosPer.value(); track efecto.EfectoId) {
               <nz-option [nzValue]="{EfectoId: efecto.EfectoId, EfectoIndividualId: efecto.EfectoIndividualId}"
-                [nzLabel]="efecto.EfectoDescripcionCompleta + ' (Stock: ' + efecto.StockStock + ')'"></nz-option>
+                [nzLabel]="efecto.EfectoDescripcionCompleto + ' (Stock: ' + efecto.StockStock + ')'"></nz-option>
               }
               @if(lastEfecto()?.EfectoId){
               <nz-option
                 [nzValue]="{EfectoId: lastEfecto()?.EfectoId, EfectoIndividualId: lastEfecto()?.EfectoIndividualId}"
-                [nzLabel]="lastEfecto()?.EfectoDescripcionCompleta || ''"></nz-option>
+                [nzLabel]="lastEfecto()?.EfectoDescripcionCompleto || ''"></nz-option>
               }
             </nz-select>
           </nz-form-control>

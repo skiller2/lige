@@ -2040,7 +2040,7 @@ FROM cte
       , pod.EfectoIndividualId
       , pod.PersonalOtroDescuentoCantidad Cantidad
       , pod.PorcentajeDescuento
-      ,CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta
+      ,CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto
       FROM PersonalOtroDescuento pod
       LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = pod.EfectoId
       LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = pod.EfectoId AND efeind.EfectoEfectoIndividualId = pod.EfectoIndividualId
@@ -2078,7 +2078,7 @@ FROM cte
       , od.EfectoIndividualId
       , od.Cantidad
       , od.PorcentajeDescuento
-      , CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta
+      , CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto
       FROM ObjetivoDescuento od
       LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = od.EfectoId
       LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = od.EfectoId AND efeind.EfectoEfectoIndividualId = od.EfectoIndividualId

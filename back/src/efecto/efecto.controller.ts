@@ -460,18 +460,16 @@ export class EfectoController extends BaseController {
   private efectobyPersonalIdQuery(queryRunner: any, personalId: number) {
     const now = new Date();
     return queryRunner.query(`
-      SELECT efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId as EfectoIndividualId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
-      efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion,  
-      CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleta,  
-ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
-1
-FROM Stock stk
-JOIN Personal per ON per.PersonalId = stk.PersonalId
-JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
-LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
-LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId and lp.ListaPrecioDesde<= @1 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @1
-LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @1 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @1
-WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) AND per.PersonalId = @0
+      SELECT stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId as EfectoIndividualId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+      stk.EfectoDescripcion, stk.EfectoAtrDescripcion, stk.EfectoEfectoIndividualDescripcion, stk.EfectoIndividualAtrDescripcion,  
+      stk.EfectoDescripcionCompleto,  
+      ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
+      1
+      FROM StockReal stk
+      JOIN Personal per ON per.PersonalId = stk.PersonalId
+      LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId and lp.ListaPrecioDesde<= @0 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
+      LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
+      WHERE  per.PersonalId = @1;
     `, [personalId, now])
   }
 
@@ -479,30 +477,29 @@ WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEf
     const now = new Date();
     const filterSql = filtrosToSql(listOptions.filtros, listaColumnasPersonal)
     return queryRunner.query(`
-     SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) AS id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,per.PersonalId
-		, cuit.PersonalCUITCUILCUIT , sitrev.SituacionRevistaId, sitrev.SituacionRevistaDescripcion, persitrev.PersonalSituacionRevistaDesde,persitrev.PersonalSituacionRevistaHasta
-		, efe.ContieneEfectoIndividual, stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
-		efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, 
-    CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )') EfectoDescripcionCompleto, 
+     SELECT ROW_NUMBER() OVER (ORDER BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockId) AS id, 
+	    CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,per.PersonalId,
+	    cuit.PersonalCUITCUILCUIT , sitrev.SituacionRevistaId, sitrev.SituacionRevistaDescripcion, persitrev.PersonalSituacionRevistaDesde,persitrev.PersonalSituacionRevistaHasta,
+		  stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+		  stk.EfectoDescripcion, stk.EfectoAtrDescripcion, stk.EfectoEfectoIndividualDescripcion, stk.EfectoIndividualAtrDescripcion, 
+	    stk.EfectoDescripcionCompleto, 
 
-	ga.GrupoActividadDetalle,gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta, 
-	 suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
+	    ga.GrupoActividadDetalle,gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta, 
+	    suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
       1
-    FROM Stock stk
-    JOIN Personal per ON per.PersonalId = stk.PersonalId
-    JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
-    LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
-    LEFT join PersonalSituacionRevista persitrev on persitrev.PersonalId=per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=@0 AND ISNULL(persitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=@0
-    left JOIN SituacionRevista sitrev on sitrev.SituacionRevistaId=persitrev.PersonalSituacionRevistaSituacionId
-    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+    FROM StockReal stk
+      JOIN Personal per ON per.PersonalId = stk.PersonalId
+      LEFT join PersonalSituacionRevista persitrev on persitrev.PersonalId=per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=@0 AND ISNULL(persitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=@0
+      left JOIN SituacionRevista sitrev on sitrev.SituacionRevistaId=persitrev.PersonalSituacionRevistaSituacionId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
 	
-	LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
-	LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+	    LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+	    LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
 	
-	LEFT JOIN GrupoActividadPersonal gaper on gaper.GrupoActividadPersonalPersonalId=per.PersonalId and (select max(GrupoActividadPersonalId) from GrupoActividadPersonal where GrupoActividadPersonalPersonalId=per.PersonalId) = gaper.GrupoActividadPersonalId
-	LEFT JOIN GrupoActividad ga on ga.GrupoActividadId = gaper.GrupoActividadId
-    WHERE stk.StockStock > 0 AND (efe.ContieneEfectoIndividual =0 OR (efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL)) 
-    AND ${filterSql} `, [now])
+	    LEFT JOIN GrupoActividadPersonal gaper on gaper.GrupoActividadPersonalPersonalId=per.PersonalId and (select max(GrupoActividadPersonalId) from GrupoActividadPersonal where GrupoActividadPersonalPersonalId=per.PersonalId) = gaper.GrupoActividadPersonalId
+	    LEFT JOIN GrupoActividad ga on ga.GrupoActividadId = gaper.GrupoActividadId
+    WHERE stk.StockStock > 0 
+        AND ${filterSql} `, [now])
   }
 
   async getEfectoPersonal(req: any, res: Response, next: NextFunction) {

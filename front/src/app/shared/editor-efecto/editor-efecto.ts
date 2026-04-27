@@ -68,7 +68,7 @@ export class EditorEfectoComponent {
       this.selectedId = efecto.EfectoId;
       this.selectedItem = {
         id: efecto.EfectoId,
-        fullName: efecto.EfectoDescripcionCompleta || efecto.EfectoDescripcion,
+        fullName: efecto.EfectoDescripcionCompleto || efecto.EfectoDescripcion,
         EfectoId: efecto.EfectoId,
         EfectoIndividualId: efecto.EfectoIndividualId
       };
