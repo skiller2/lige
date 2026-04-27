@@ -24,7 +24,7 @@
 @if (anio()>0 && mes()>0){
 <nz-space-compact style="width: 100%;">
   <ng-container [ngTemplateOutlet]="selectTpl"></ng-container>
-  <button nz-button (click)="openDrawer()">
+  <button nz-button (click)="openDrawer()" [disabled]="!selectedIdNum">
     <span nz-icon nzType="user" nzTheme="outline" nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span>
   </button>
 </nz-space-compact>

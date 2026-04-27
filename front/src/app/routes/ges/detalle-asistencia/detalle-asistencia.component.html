@@ -481,7 +481,7 @@
               <app-personal-search name="PersonalId" [(ngModel)]="selectedPersonalId"
                 (ngModelChange)="selectedValueChange($event, Busqueda.Personal)" ngModel [anio]="selectedPeriod().year"
                 [mes]="selectedPeriod().month" style="flex: 1;" />
-              <button nz-button (click)="openDrawer()">
+              <button nz-button (click)="openDrawer()" [disabled]="!selectedPersonalId()">
                 <span nz-icon nzType="info-circle" nzTheme="outline" nz-tooltip nzTooltipTitle="{{ 'app.icon.datos.bot' | i18n }}"></span>
               </button>
             </div>
