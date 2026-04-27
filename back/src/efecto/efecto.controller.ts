@@ -14,16 +14,6 @@ const listaColumnasPersonal: any[] = [
     hidden: true,
     searchHidden: true
   },
-  // {
-  //   id: "StockId",
-  //   name: "Stock ID",
-  //   field: "StockId",
-  //   fieldName: "stk.StockId",
-  //   type: "number",
-  //   sortable: true,
-  //   hidden: false,
-  //   searchHidden: false
-  // },
   {
     name: "Apellido Nombre ",
     type: "number",
@@ -146,7 +136,7 @@ const listaColumnasPersonal: any[] = [
     id: "EfectoDescripcionCompleto",
     name: "Efecto Descripción Completa",
     field: "EfectoDescripcionCompleto",
-    fieldName: "CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )')",
+    fieldName: "stk.EfectoDescripcionCompleto",
     type: "string",
     sortable: true,
     hidden: false,
@@ -156,7 +146,7 @@ const listaColumnasPersonal: any[] = [
     id: "StockStock",
     name: "Stock",
     field: "StockStock",
-    fieldName: "ISNULL(stk.StockStock, 0)",
+    fieldName: "stk.StockStock",
     type: "number",
     sortable: true,
     hidden: false,
@@ -170,7 +160,7 @@ const listaColumnasPersonal: any[] = [
     id: "StockReservado",
     name: "Stock Reservado",
     field: "StockReservado",
-    fieldName: "ISNULL(stk.StockReservado, 0)",
+    fieldName: "stk.StockReservado",
     type: "number",
     sortable: true,
     hidden: false,
@@ -318,7 +308,7 @@ const listaColumnasObjetivos: any[] = [
     id: "EfectoDescripcionCompleto",
     name: "Efecto Descripción Completa",
     field: "EfectoDescripcionCompleto",
-    fieldName: "CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )')",
+    fieldName: "stk.EfectoDescripcionCompleto",
     type: "string",
     sortable: true,
     hidden: false,
@@ -328,7 +318,7 @@ const listaColumnasObjetivos: any[] = [
     id: "StockStock",
     name: "Stock",
     field: "StockStock",
-    fieldName: "ISNULL(stk.StockStock, 0)",
+    fieldName: "stk.StockStock",
     type: "number",
     sortable: true,
     hidden: false,
@@ -341,7 +331,7 @@ const listaColumnasObjetivos: any[] = [
     id: "StockReservado",
     name: "Stock Reservado",
     field: "StockReservado",
-    fieldName: "ISNULL(stk.StockReservado, 0)",
+    fieldName: "stk.StockReservado",
     type: "number",
     sortable: true,
     hidden: false,
@@ -578,24 +568,22 @@ export class EfectoController extends BaseController {
     const now = new Date();
     return queryRunner.query(`
 
-SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id, 
+SELECT ROW_NUMBER() OVER (ORDER BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockId) as id, 
           stk.StockId,
           obj.ClienteId,
           cli.ClienteDenominacion, obj.ClienteElementoDependienteId, 
           CONCAT(cli.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0), ' ',ele.ClienteElementoDependienteDescripcion) as ClienteElementoDependienteDescripcion, obj.ObjetivoId,
-          stk.EfectoId, stk.EfectoEfectoIndividualId, ISNULL(stk.StockStock, 0) as StockStock, ISNULL(stk.StockReservado, 0) as StockReservado,
-          efe.EfectoDescripcion, efe.EfectoAtrDescripcion, efeind.EfectoEfectoIndividualDescripcion, efeind.EfectoIndividualAtrDescripcion, eledepcon.ClienteElementoDependienteContratoId,eledepcon.ClienteElementoDependienteContratoFechaDesde,eledepcon.ClienteElementoDependienteContratoFechaHasta,
-          CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
+          stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+          stk.EfectoDescripcion, stk.EfectoAtrDescripcion, stk.EfectoEfectoIndividualDescripcion, stk.EfectoIndividualAtrDescripcion, eledepcon.ClienteElementoDependienteContratoId,eledepcon.ClienteElementoDependienteContratoFechaDesde,eledepcon.ClienteElementoDependienteContratoFechaHasta,
+          stk.EfectoDescripcionCompleto,
           suc.SucursalDescripcion, 
           ga.GrupoActividadDetalle, ga.GrupoActividadId,
           ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
         1
-    FROM Stock stk
+    FROM StockReal stk
     JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
     LEFT JOIN ClienteElementoDependiente ele on ele.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and ele.ClienteId=obj.ClienteId
-    JOIN EfectoDescripcion efe ON efe.EfectoId = stk.EfectoId
     LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-    LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = stk.EfectoId AND efeind.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
         LEFT JOIN (
                             SELECT 
                                 ec.ClienteId, 
@@ -624,7 +612,6 @@ SELECT ROW_NUMBER() OVER (ORDER BY stk.StockId) as id,
 
 
     WHERE stk.StockStock > 0 
-          AND    ((efe.ContieneEfectoIndividual =1 AND stk.EfectoEfectoIndividualId IS NOT NULL) OR (efe.ContieneEfectoIndividual =0 AND stk.EfectoEfectoIndividualId IS NULL))
 
 	
       AND ${filterSql} `, [now])
