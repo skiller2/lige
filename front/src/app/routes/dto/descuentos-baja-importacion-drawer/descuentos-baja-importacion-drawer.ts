@@ -55,6 +55,7 @@ export class DescuentosBajaImportacionDrawer {
       try {
         await firstValueFrom(this.apiService.deletedImportDescuento(this.DocumentoId(), table))
         this.onDeleteImport.emit()
+        this.visibleBajaImport.set(false)
       } catch (error) {
         
       }
