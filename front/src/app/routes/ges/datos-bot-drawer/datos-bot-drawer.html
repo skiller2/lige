@@ -8,26 +8,35 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="8">Teléfono Registrado</nz-form-label>
           <nz-form-control [nzMd]="16">
-            <input nz-input placeholder="Teléfono" [formField]="formDatosBot.Telefono" type="text" />
+            <span>{{ datosBot().Telefono }}</span>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="8">Último Recibo Descargado</nz-form-label>
           <nz-form-control [nzMd]="16">
-            <input nz-input placeholder="Período" [formField]="formDatosBot.periodoRecibo" type="text" />
+            <span>{{ datosBot().periodoRecibo }}</span>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-            <button type="submit" nzType="primary" nz-button
-              [nzLoading]="formDatosBot().submitting()"
-              [disabled]="formDatosBot().submitting() || formDatosBot().valid()==false">
+            <button type="button" nzType="primary" nz-button
+              [nzLoading]="loadingNroRecibo()"
+              (click)="verUltimoRecibo()">
               {{ 'app.btn.view.receipts' | i18n }}
             </button>
           </nz-form-control>
         </nz-form-item>
+
+        @if (ultimoNroRecibo()) {
+          <div class="nro-recibo-box">
+            <span class="nro-recibo-label">Último Nº de Recibo</span>
+            <span class="nro-recibo-value">
+              {{ ultimoNroRecibo().DocumentoDenominadorDocumento ?? ultimoNroRecibo().DocumentoId ?? '-' }}
+            </span>
+          </div>
+        }
 
       </form>
     </nz-card>

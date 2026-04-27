@@ -2077,6 +2077,17 @@ export class SearchService {
     );
   }
 
+  getUltimoNroReciboByPersonalId(personalId: number) {
+    if (!personalId) return of(null);
+    return this.http.get<ResponseJSON<any>>(`api/personal/datos-bot/nro-recibo/${personalId}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of(null);
+      })
+    );
+  }
+
   getDescuentosByPersonalId(PersonalId: number, anio: number, mes: number) {
     if (!PersonalId && anio && mes) return of([]);
     return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/personal`, { PersonalId, anio, mes }).pipe(

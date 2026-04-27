@@ -232,11 +232,11 @@ personalRouter.get(`${base}/sitrevistaaso/options/:personalId`, [authMiddleware.
   personalController.getSitRevistaAsoByPersonalId(req, res, next);
 });
 
-personalRouter.get(`${base}/datos-bot/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
-  personalController.getDatosBotByPersonalId(req, res, next);
+personalRouter.get(`${base}/datos-bot/nro-recibo/:personalId`, [authMiddleware.verifyToken], (req, res, next) => {
+  personalController.getUltimoNroReciboByPersonalId(req, res, next);
 });
 
-personalRouter.get(`${base}/datos-bot/nro-recibo`, [authMiddleware.verifyToken], (req, res, next) => {
-  personalController.getUltimoNroReciboByPersonalId(req, res, next);
+personalRouter.get(`${base}/datos-bot/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gSistemas`])], (req, res, next) => {
+  personalController.getDatosBotByPersonalId(req, res, next);
 });
 

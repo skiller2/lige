@@ -1,0 +1,20 @@
+.nro-recibo-box {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.nro-recibo-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.nro-recibo-value {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
