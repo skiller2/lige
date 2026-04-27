@@ -13,8 +13,18 @@
 
     <nz-form-label [nzSpan]="5">Impuesto interno %</nz-form-label>
     <nz-form-control [nzSpan]="3">
-      <input nz-input [(ngModel)]="ImpuestoInternoTelefoniaImpuesto" type="text" placeholder="Impuesto interno" appDotToComma
-        mask="separator.4" [readonly]="true"/>
+      <nz-input-group style="width: 100%" [nzAddOnAfter]="controlButton" nzSearch>
+        <input nz-input type="text" 
+          [(ngModel)]="ImpuestoInternoTelefoniaImpuesto" placeholder="Impuesto interno" 
+          appDotToComma mask="separator.4" [readonly]="true"
+        />
+      </nz-input-group>
+      <ng-template #controlButton>
+        <button type="button" nz-button nzType="primary" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
+          <span nz-icon nzType="edit"></span>
+        </button>
+      </ng-template>
+      
     </nz-form-control>
 
   </nz-form-item>
