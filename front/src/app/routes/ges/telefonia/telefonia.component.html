@@ -1,64 +1,81 @@
 <nz-card class="small-margin">
   <nz-form-item>
 
-    <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo" />
+    <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+    <nz-form-control [nzSpan]="4">
+      <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo" />
+    </nz-form-control>
 
     <nz-form-label [nzSpan]="5">Fecha control teléfonos </nz-form-label>
-    <nz-form-control>
+    <nz-form-control [nzSpan]="4">
       <nz-date-picker name="fecha" [(ngModel)]="fecha" />
     </nz-form-control>
 
-
     <nz-form-label [nzSpan]="5">Impuesto interno %</nz-form-label>
-    <nz-form-control [nzSpan]="5">
+    <nz-form-control [nzSpan]="3">
       <input nz-input [(ngModel)]="ImpuestoInternoTelefoniaImpuesto" type="text" placeholder="Impuesto interno" appDotToComma
         mask="separator.4" [readonly]="true"/>
     </nz-form-control>
 
-
-
   </nz-form-item>
 
   <div style="display: flex; justify-content: space-between;">
-  <ul nz-menu nzMode="horizontal">
-    <li nz-menu-item nzMatchRouter>
-      <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'telefonia','listado']" (click)="gridData.reload()">Listado</a>
-    </li>
-    <li nz-menu-item nzMatchRouter>
-      <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'telefonia','carga']">Carga</a>
-    </li>
+    <ul nz-menu nzMode="horizontal">
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'telefonia','listado']" (click)="gridData.reload()">Listado</a>
+      </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'telefonia','carga']">Carga</a>
+      </li>
 
-    @if (router.url === '/ges/telefonia/listado') {
-    <li nz-submenu nzTitle="Acciones">
-      <ul>
-        <li nz-menu-item (click)="exportGrid()">
-          <span nz-icon nzType="download"></span>XLS
-        </li>
-      </ul>
-    </li>
-    }
-  </ul>
+      @if (router.url === '/ges/telefonia/listado') {
+      <li nz-submenu nzTitle="Acciones">
+        <ul>
+          <li nz-menu-item (click)="exportGrid()">
+            <span nz-icon nzType="download"></span>XLS
+          </li>
+        </ul>
+      </li>
+      }
+    </ul>
 
-  <nz-button-group nz-button nzButtonGroup>
-    <button nz-button nzType="default" (click)="reloadGrid()"><span nz-icon
-      nzType="reload" nzTheme="outline" nz-tooltip
-      nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></button>
+    <nz-button-group nz-button nzButtonGroup>
+      @if(tabIndex() == 0){
+      <!-- Recarga -->
+      <button nz-button nzType="default" (click)="reloadGrid()">
+        <span nz-icon nzType="reload" nzTheme="outline" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.reload' | i18n }}">
+        </span>
+      </button>
+      }
+      @if(tabIndex() == 1){
+      <!-- Filtrar Errores -->
+      <button nz-button nzType="default" (click)="createFilterTels()">
+        <span nz-icon nzType="search" nzTheme="outline" nz-tooltip
+          nzTooltipTitle="Filtrar errores en Listado">
+        </span>
+      </button>
+      }
 
-  </nz-button-group>
-</div>
+    </nz-button-group>
+  </div>
 
   <form nz-form #telefonoForm="ngForm" [formGroup]="ngForm">
-    <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
       <nz-tab>
         <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
         @if ((columns().length > 0)) {
         <ng-template nz-tab>
           <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" [startFilters]="startFilters()" />
           <div class="gridContainer container-fluid">
-            <angular-slickgrid gridId="grid22" class="" [columns]="columns() | colsFilter" [options]="gridOptions"
-              [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event)">
+            <angular-slickgrid
+              gridId="gridTelefonia" 
+              [columns]="columns() | colsFilter"
+              [options]="gridOptions"
+              [dataset]="gridData.value()"
+              (onAngularGridCreated)="angularGridReady($event)" >
             </angular-slickgrid>
           </div>
         </ng-template>
@@ -68,7 +85,6 @@
       <nz-tab>
         <a nz-tab-link routerLink="/ges/telefonia/carga">Importar Consumos</a>
         <ng-template nz-tab>
-
 
           <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
@@ -89,26 +105,25 @@
                 </nz-upload>
               </ng-container>
             </nz-form-control>
-          </nz-form-item>-->
-            <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
-              <nz-form-label class="inputText">Archivo Telefonía</nz-form-label>
-              <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
-                [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'"
-                [showTipoDocs]="false"></app-file-upload>
-            </nz-form-item>
+            </nz-form-item>-->
 
-            <nz-form-item>
-              <nz-form-label class="inputText">Importe total</nz-form-label>
-              <nz-form-control [nzSpan]="5">
+            <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
+              <nz-form-label [nzXs]="24" [nzSm]="5" [nzMd]="4" [nzLg]="3">Archivo Telefonía</nz-form-label>
+              <nz-form-control [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="3">
+                <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
+                  [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'"
+                  [showTipoDocs]="false"></app-file-upload>
+              </nz-form-control>
+
+              <nz-form-label [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="4">Importe total</nz-form-label>
+              <nz-form-control [nzXs]="24" [nzSm]="7" [nzMd]="5" [nzLg]="4">
                 <input nz-input formControlName="totaldeclarado" type="text" placeholder="Importe total" appDotToComma
                   mask="separator.2" />
               </nz-form-control>
             </nz-form-item>
-
-
-
+            
             <nz-form-item>
-              <nz-form-label class="inputText">Importaciones anteriores</nz-form-label>
+              <nz-form-label [nzXs]="24" [nzSm]="6" [nzMd]="5" [nzLg]="4">Importaciones anteriores</nz-form-label>
               <nz-form-control>
 
                 @for (movimiento of importacionesAnteriores.value(); track movimiento.DocumentoId) {
@@ -125,23 +140,20 @@
                 }
               </nz-form-control>
             </nz-form-item>
+
           </nz-spin>
 
-
           <div class="gridContainer container-fluid">
-            <angular-slickgrid gridId="grid23" class="" [columns]="columnsImport() | colsFilter" [options]="gridOptions"
-              [dataset]="gridDataImport()">
+            <angular-slickgrid 
+              gridId="gridImport" 
+              [columns]="columnsImport() | colsFilter" 
+              [options]="gridOptions"
+              [dataset]="gridDataImport()"
+              (onAngularGridCreated)="angularGridImportReady($event)" >
             </angular-slickgrid>
           </div>
-          <span>Registros: {{ gridDataImport().length }}   </span>
-        
-              <button nz-button nzType="default" (click)="createFilterTels()"><span nz-icon
-            nzType="search" nzTheme="outline" nz-tooltip
-            nzTooltipTitle="Filtrar errores en Listado"></span></button>
-
         
         </ng-template>
-
 
       </nz-tab>
     </nz-tabs>

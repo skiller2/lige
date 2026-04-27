@@ -35,7 +35,7 @@ import { Selections } from '../../../shared/schemas/filtro';
   providers: [AngularUtilService]
 })
 export class TelefoniaComponent {
-  @ViewChild('telefonoForm', { static: true }) telefonoForm: NgForm = new NgForm([], []);
+  // @ViewChild('telefonoForm', { static: true }) telefonoForm: NgForm = new NgForm([], []);
   fecha = signal<Date>(new Date())
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?.getFullYear() || 0)
@@ -46,12 +46,14 @@ export class TelefoniaComponent {
   excelExportService = new ExcelExportService()
   gridDataImport = signal<any[]>([])
   angularGrid!: AngularGridInstance;
+  angularGridImport!: AngularGridInstance;
   gridObj!: SlickGrid;
   gridOptions!: GridOption;
   detailViewRowCount = 9;
   fileUploadComponent = viewChild.required(FileUploadComponent);
   lastErrorsTels: any[] = []
   startFilters = signal<Selections[]>([])
+  tabIndex = signal(0)
 
   constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
   private readonly loadingSrv = inject(LoadingService);
@@ -123,6 +125,34 @@ export class TelefoniaComponent {
   fb = inject(FormBuilder)
   ngForm = this.fb.group({ files: [], totaldeclarado: 0 })
 
+  importacionesAnteriores = resource({
+    params: () => ({ anio: this.anio(), mes: this.mes() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.apiService.getImportacionesTelefoniaAnteriores(params.anio, params.mes))
+      } catch (_e) { }
+      this.loadingSrv.close()
+
+      return response || [];
+    },
+    defaultValue: []
+  });
+
+  periodoEffect = effect(() => {
+    const periodo = this.periodo()
+    if (periodo) {
+      const anio = periodo.getFullYear();
+      const mes = periodo.getMonth() + 1;
+      localStorage.setItem('mes', String(mes));
+      localStorage.setItem('anio', String(anio));
+
+      this.files = [];
+    }
+
+  })
+
   ngOnInit(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
@@ -178,36 +208,6 @@ export class TelefoniaComponent {
     }, 1);
   }
 
-
-
-  importacionesAnteriores = resource({
-    params: () => ({ anio: this.anio(), mes: this.mes() }),
-    loader: async ({ params }) => {
-      let response = []
-      this.loadingSrv.open({ type: 'spin', text: '' })
-      try {
-        response = await firstValueFrom(this.apiService.getImportacionesTelefoniaAnteriores(params.anio, params.mes))
-      } catch (_e) { }
-      this.loadingSrv.close()
-
-      return response || [];
-    },
-    defaultValue: []
-  });
-
-  periodoEffect = effect(() => {
-    const periodo = this.periodo()
-    if (periodo) {
-      const anio = periodo.getFullYear();
-      const mes = periodo.getMonth() + 1;
-      localStorage.setItem('mes', String(mes));
-      localStorage.setItem('anio', String(anio));
-
-      this.files = [];
-    }
-
-  })
-
   exportGrid() {
     this.excelExportService.exportToExcel({
       filename: 'telefonos-listado',
@@ -218,7 +218,6 @@ export class TelefoniaComponent {
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-    //console.log('angularGridReady');
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds(['CUIT', "CUITJ", "ApellidoNombreJ"])
@@ -227,6 +226,13 @@ export class TelefoniaComponent {
       totalRecords(this.angularGrid)
       columnTotal('importesum', this.angularGrid)
       columnTotal('importe', this.angularGrid)
+    })
+  }
+
+  async angularGridImportReady(angularGrid: any) {
+    this.angularGridImport = angularGrid.detail
+    this.angularGridImport.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGridImport)
     })
   }
 
