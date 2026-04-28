@@ -1,6 +1,6 @@
 {
   "/mess/api": {
-    "target": "http://localhost:3010/",
+    "target": "http://localhost:4000/",
     "secure": false,
     "pathRewrite": {
       "^/mess": ""
