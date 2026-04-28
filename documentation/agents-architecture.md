@@ -6,6 +6,7 @@ Este proyecto automatiza tareas de análisis, refactorización, documentación y
 
 | Agente | Archivo | Rol Principal |
 |--------|---------|---------------|
+| **Orchestrator** | `orchestrator-agent.md` | Enrutador principal. No resuelve tareas; evalúa la intención del usuario, repregunta si hay dudas, y delega al sub-agente correcto o avisa si no se requiere ninguno. |
 | **Agent-Builder** | `agent-builder.md` | Mantiene y mejora a los demás agentes. Aplica "Interrogación Proactiva" antes de cambiar archivos y estandariza la redacción. |
 | **Ticket Agent** | `tkt-agent.md` | Transforma pedidos ambiguos en tickets estructurados (formato Redmine) exigiendo ubicaciones exactas de código y criterios de aceptación claros. |
 | **Documentador** | `doc-agent.md` | Analiza código para generar documentación de arquitectura, mapas de ramas e índices en la carpeta `documentation/`. |
