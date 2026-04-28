@@ -535,7 +535,7 @@ export class DocumentoController extends BaseController {
 
   async getPersonalNoDescarga(req: any, res: Response, next: NextFunction) {
     const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null }
-    const filterSql = filtrosToSql(options.filtros, this.listaPersonalDescarga)
+    const filterSql = filtrosToSql(options.filtros, this.listaPersonalNoDescarga)
     const orderBy = orderToSQL(options.sort)
     const doc_id = req.body.doc_id
     try {
