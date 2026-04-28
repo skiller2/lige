@@ -288,6 +288,26 @@ export class DocumentoController extends BaseController {
       hidden: false,
     },
     {
+      name: "Grupo Actividad",
+      type: "string",
+      id: "GrupoActividadDetalle",
+      field: "GrupoActividadDetalle",
+      fieldName: "ga.GrupoActividadDetalle",
+      sortable: true,
+      searchHidden: true
+    },
+    {
+      name: "Grupo Actividad",
+      type: "number",
+      id: "GrupoActividadId",
+      field: "GrupoActividadId",
+      fieldName: "ga.GrupoActividadId",
+      searchComponent: 'inputForGrupoActividadSearch',
+      sortable: false,
+      hidden: true,
+      searchHidden: false
+    },
+    {
       id: "telefono",
       name: "Telefono",
       field: "telefono",
@@ -472,26 +492,42 @@ export class DocumentoController extends BaseController {
 
   private async getPersonalNoDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
     return dataSource.query(`
-      
-      SELECT per.PersonalId AS id, tel.Telefono,
-            per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,
-            cuit.PersonalCUITCUILCUIT,
-          sitrev.SituacionRevistaDescripcion 
-      FROM Personal per
-      LEFT JOIN BotRegTelefonoPersonal tel ON tel.PersonalId = per.PersonalId
-      LEFT JOIN DocumentoDescargaLog des ON des.Telefono = tel.Telefono and des.DocumentoId = @0
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      --LEFT JOIN (
-      --    SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde
-      --    FROM PersonalSituacionRevista p
-      --    JOIN SituacionRevista s
-      --    ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
-      --  ) sitrev ON sitrev.PersonalId = per.PersonalId
-      LEFT JOIN PersonalSituacionRevista persitrev ON persitrev.PersonalId = per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta, '9999-12-31')>= GETDATE() 
-      LEFT JOIN SituacionRevista sitrev ON sitrev.SituacionRevistaId = persitrev.PersonalSituacionRevistaSituacionId
+        SELECT per.PersonalId AS id, tel.Telefono,
+          per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,
+          cuit.PersonalCUITCUILCUIT,
+        sitrev.SituacionRevistaDescripcion,
+  ga.GrupoActividadNumero, ga.GrupoActividadId,
+      ga.GrupoActividadDetalle
+    FROM Personal per
+    LEFT JOIN BotRegTelefonoPersonal tel ON tel.PersonalId = per.PersonalId
+    LEFT JOIN DocumentoDescargaLog des ON des.Telefono = tel.Telefono and des.DocumentoId = @0
+    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+    
+    LEFT JOIN PersonalSituacionRevista persitrev ON persitrev.PersonalId = per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=GETDATE() AND ISNULL(persitrev.PersonalSituacionRevistaHasta, '9999-12-31')>= GETDATE() 
+    LEFT JOIN SituacionRevista sitrev ON sitrev.SituacionRevistaId = persitrev.PersonalSituacionRevistaSituacionId
 
+      LEFT JOIN (
+			SELECT 
+				gap.GrupoActividadPersonalPersonalId,
+				ga.GrupoActividadNumero, ga.GrupoActividadId,gap.GrupoActividadPersonalDesde,gap.GrupoActividadPersonalHasta,
 
-      WHERE des.telefono IS NULL
+				CASE 
+					WHEN ga.GrupoActividadId IS NOT NULL THEN  
+						CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
+							   FORMAT(gap.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+							   CASE WHEN gap.GrupoActividadPersonalHasta IS NULL THEN 'Actualidad' 
+									ELSE FORMAT(gap.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
+							   END, ')'
+						)
+					ELSE '' 
+				END AS GrupoActividadDetalle
+			FROM GrupoActividadPersonal gap
+			LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+			WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= CAST(GETDATE() AS DATE)
+			  AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
+		) ga ON ga.GrupoActividadPersonalPersonalId= per.PersonalId
+
+    WHERE des.telefono IS NULL
       AND ${filterSql}
       ${orderBy}
     `, [doc_id])
