@@ -6,14 +6,14 @@ Este proyecto automatiza tareas de análisis, refactorización, documentación y
 
 | Agente | Archivo | Rol Principal |
 |--------|---------|---------------|
-| **Meta-Agent** | `meta-agent.md` | Mantiene y mejora a los demás agentes. Aplica "Interrogación Proactiva" antes de cambiar archivos y estandariza la redacción. |
+| **Agent-Builder** | `agent-builder.md` | Mantiene y mejora a los demás agentes. Aplica "Interrogación Proactiva" antes de cambiar archivos y estandariza la redacción. |
 | **Ticket Agent** | `tkt-agent.md` | Transforma pedidos ambiguos en tickets estructurados (formato Redmine) exigiendo ubicaciones exactas de código y criterios de aceptación claros. |
 | **Documentador** | `doc-agent.md` | Analiza código para generar documentación de arquitectura, mapas de ramas e índices en la carpeta `documentation/`. |
 | **QA Refactor** | `qa-refactor-agent.md` | Analiza calidad, propone mejoras de código y verifica estándares del proyecto. |
 
 ## Skills (Bases de Conocimiento)
 
-Las *skills* son archivos `.skill.md` que los agentes consultan como fuente de verdad. El `meta-agent` se encarga de actualizarlas para evitar que el equipo humano deba hacerlo manualmente repetidas veces.
+Las *skills* son archivos `.skill.md` que los agentes consultan como fuente de verdad. El `agent-builder` se encarga de actualizarlas para evitar que el equipo humano deba hacerlo manualmente repetidas veces.
 
 1. **`stack-context.skill.md`**: Mapeo real de la arquitectura del proyecto. Contiene controladores (ej. `procesos-automaticos.controller.ts`), rutas de UI, y nomenclatura de tablas de Base de Datos (ej. `Evento`, `EventoEstado`).
 2. **`prompt-engineering.skill.md`**: Manual de estilo para darle instrucciones a los agentes (usar voz imperativa, evitar negatividades difusas y forzar estructuras de salida).
@@ -25,6 +25,6 @@ Las *skills* son archivos `.skill.md` que los agentes consultan como fuente de v
 
 1. **Ejecución Operativa**: El usuario delega una tarea a un agente (`tkt-agent`, `doc-agent`).
 2. **Corrección Manual**: El usuario detecta que falta información o corrige un patrón (ej. cambiar nombre de tabla o pedir rutas exactas).
-3. **Invocación del Meta-Agent**: El usuario llama al `meta-agent` para revisar esa corrección.
-4. **Extracción y Aprendizaje**: El `meta-agent` extrae la convención nueva, actualiza la *skill* correspondiente (ej. `stack-context`) y modifica el prompt del agente original si hace falta.
+3. **Invocación del Agent-Builder**: El usuario llama al `agent-builder` para revisar esa corrección.
+4. **Extracción y Aprendizaje**: El `agent-builder` extrae la convención nueva, actualiza la *skill* correspondiente (ej. `stack-context`) y modifica el prompt del agente original si hace falta.
 5. **Iteración Optimizada**: En la próxima ejecución, el agente resuelve la tarea con mayor precisión sin intervención humana.
