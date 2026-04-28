@@ -635,6 +635,7 @@ export class LiquidacionesController extends BaseController {
       const convalorimpoexpo_id = await BaseController.getProxNumero(queryRunner, `convalorimpoexpo`, usuario, ip)
 
       let contador = 0
+      let sumImporte = 0
 
       newFilePath = `${anio}/${anio}-${mes
         .toString()
@@ -664,12 +665,12 @@ export class LiquidacionesController extends BaseController {
           anio
         ]
       );
+
       for (const row of sheet1.data) {
         const cuit = String(row[1]).match(/[0-9]{11}/)
         const detalle = String((row[2]) ? row[2] : '').match(/.{3,}/)
-        const importe = String(row[3]).match(/\d*[\.\,]\d*|\d{1,}/)
-
-        contador++
+        const Strimporte = String(row[3]).match(/\d*[\.\,]\d*|\d{1,}/)
+        const importe = Math.round((Number(Strimporte[0]) + Number.EPSILON) * 100) / 100
 
         if (contador == 1 && (cuit == null || detalle == null || importe == null))
           continue
@@ -687,7 +688,7 @@ export class LiquidacionesController extends BaseController {
         if (detalle == null)
           dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Detalle vacío` })
 
-        if (Number(importe[0]) <= 0 || Number.isNaN(Number(importe[0])))
+        if (importe <= 0 || Number.isNaN(importe))
           dataset.push({ id: datasetid++, NombreApellido: row[0], cuit: cuit, Detalle: ` Importe vacío` })
 
         if (dataset.length == 0)
@@ -705,11 +706,13 @@ export class LiquidacionesController extends BaseController {
               detalle[0],
               0,
               persona[0].personalId,
-              importe[0],
+              importe,
               usuario, ip, fechaActual, usuario, ip, fechaActual,
               convalorimpoexpo_id
             ]
           );
+        contador++
+        sumImporte += importe
       }//For
 
       if (dataset.length > 0)
@@ -717,7 +720,7 @@ export class LiquidacionesController extends BaseController {
 
       await queryRunner.commitTransaction();
       copyFileSync(file.path, `${this.directory}/${newFilePath}`);
-      this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros`);
+      this.jsonRes({}, res, `XLS Recibido y se procesaron ${contador} registros. Importe Total: ${this.currencyPipe.format(sumImporte)}`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
