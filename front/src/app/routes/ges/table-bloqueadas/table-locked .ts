@@ -71,8 +71,8 @@ export class TableBloqueadasComponent {
         .getListListaTablasBloqueadas()
         .pipe(
           map(data => {
-            this.dataAngularGrid = data.list
-            return data.list
+            this.dataAngularGrid = data
+            return data
           }),
           doOnSubscribe(() => this.tableLoading$.next(true)),
           tap({ complete: () => this.tableLoading$.next(false) })

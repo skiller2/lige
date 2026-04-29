@@ -17,7 +17,7 @@ procesosAutomaticosRouter.post("/list", [authMiddleware.verifyToken, authMiddlew
 });
 
 procesosAutomaticosRouter.post("/listtablasbloqueadas", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  procesosAutomaticosController.listProcesosAutomaticos(req, res, next);
+  procesosAutomaticosController.listtablasbloqueadas(req, res, next);
 });
 
 procesosAutomaticosRouter.get("/:logCodigo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
