@@ -2,5 +2,36 @@
   [nzTitle]="'Edición Telefonía Impuesto'" (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
 
+    <form (ngSubmit)="save()">
+      
+      <fieldset [disabled]=this.formImpuestoTelefonia().disabled()>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Desde</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="7">
+            <nz-date-picker nzMode="month" nzFormat="MM/yyyy" [formField]="formImpuestoTelefonia.ImpuestoInternoTelefoniaDesde">
+            </nz-date-picker>
+          </nz-form-control>
+
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Porcentaje [%]</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="7">
+            <input nz-input placeholder="" type="number" [formField]="formImpuestoTelefonia.ImpuestoInternoTelefoniaImpuesto"/>
+          </nz-form-control>
+        </nz-form-item>
+
+      </fieldset>
+
+      <nz-form-item>
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+          <button type="submit" nzType="primary" nz-button *ngIf="!this.formImpuestoTelefonia().disabled()"
+            [nzLoading]="formImpuestoTelefonia().submitting()"
+            [disabled]="formImpuestoTelefonia().submitting() || formImpuestoTelefonia().dirty()==false || formImpuestoTelefonia().valid()==false">
+            {{ 'app.btn.save' | i18n }}
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+
   </ng-container>
 </nz-drawer>

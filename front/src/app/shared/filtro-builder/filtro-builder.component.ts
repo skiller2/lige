@@ -704,9 +704,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (fieldObj.searchComponent == 'inputForSituacionRevistaSearch') {
       let valueSplit = value.split(";")
       let result = ''
-      for (const value of valueSplit) {
-        const situacion = await firstValueFrom(this.searchService.getSituacionRevistaSearch('SituacionRevistaId', value))
-        result += `${situacion[0].SituacionRevistaDescripcion};`
+      for (const val of valueSplit) {
+        const situacion = await firstValueFrom(this.searchService.getSituacionRevistaSearch('SituacionRevistaId', val))
+        if (situacion && situacion.length > 0) result += `${situacion[0].SituacionRevistaDescripcion};`
       }
       label = result
     }
