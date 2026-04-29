@@ -31,7 +31,7 @@ export class ProcesosAutomaticosDetalleComponent {
 
   fb = inject(FormBuilder)
   formProcAuto = this.fb.group({
-    ProcesoAutomaticoLogCodigo: 0,
+    EventoLogCodigo: 0,
     NombreProceso: "",
     FechaInicio: "",
     FechaFin: "",

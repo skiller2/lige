@@ -115,10 +115,10 @@ export class RecibosController extends BaseController {
     let den_documento: number
     let directorPathUnique = ""
     const fechaActual = new Date();
-    let ProcesoAutomaticoLogCodigo = 0
+    let EventoLogCodigo = 0
 
     try {
-      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(queryRunner, "Recibos", req.body, usuario, ip))
+      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(queryRunner, "Recibos", req.body, usuario, ip))
 
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
@@ -260,14 +260,14 @@ export class RecibosController extends BaseController {
       //      await queryRunner.commitTransaction()
 
 
-      await this.procesoAutomaticoLogFin(queryRunner, ProcesoAutomaticoLogCodigo, 'COM', { res: `Procesado correctamente`, 'CantRecibos': movimientosPendientes.length }, usuario, ip)
+      await this.procesoAutomaticoLogFin(queryRunner, EventoLogCodigo, 'COM', { res: `Procesado correctamente`, 'CantRecibos': movimientosPendientes.length }, usuario, ip)
 
       this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos correctamente para el periodo ${periodo.month}/${periodo.year}`);
 
     } catch (error) {
 
       await this.rollbackTransaction(queryRunner)
-      await this.procesoAutomaticoLogFin(queryRunner, ProcesoAutomaticoLogCodigo, 'ERR', { res: error }, usuario, ip)
+      await this.procesoAutomaticoLogFin(queryRunner, EventoLogCodigo, 'ERR', { res: error }, usuario, ip)
       return next(error)
     } finally {
       //   await queryRunner.release();

@@ -1158,12 +1158,12 @@ export class GestionDescuentosController extends BaseController {
     const fechaActual = new Date()
     const usuario = res?.locals.userName || 'server'
     const ip = this.getRemoteAddress(req)
-    let ProcesoAutomaticoLogCodigo = 0
+    let EventoLogCodigo = 0
 
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
         queryRunner,
         `Generación cuotas efectos`,
         { usuario, ip },
@@ -1336,7 +1336,7 @@ FROM cte
       const resMsg = `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}, CuotasEliminadas: ${countCuotasEliminadas}`
       await this.procesoAutomaticoLogFin(
         queryRunner,
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         'COM',
         {
           res: resMsg,
@@ -1355,7 +1355,7 @@ FROM cte
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       await this.procesoAutomaticoLogFin(queryRunner,
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         'ERR',
         { res: error },
         usuario,
@@ -2347,14 +2347,14 @@ FROM cte
     let altaDescuentos = 0
     let result: any
     let docFilePath: string | null = null
-    let ProcesoAutomaticoLogCodigo = 0
+    let EventoLogCodigo = 0
 
 
     try {
       let campos_vacios: any[] = [];
 
 
-      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
         queryRunner,
         `Importación xls DescuentoId ${descuentoIdRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
         { anioRequest, mesRequest, descuentoIdRequest, tableNameRequest, usuario, ip },
@@ -2544,7 +2544,7 @@ FROM cte
       await queryRunner.commitTransaction();
       await this.procesoAutomaticoLogFin(
         queryRunner,
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         'COM',
         { res: `Procesado correctamente`, altaDescuentos },
         usuario,
@@ -2557,7 +2557,7 @@ FROM cte
       if (docFilePath) await FileUploadController.deletePhysicalFile(docFilePath);
 
       await this.procesoAutomaticoLogFin(queryRunner,
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         'ERR',
         { res: error.message || error, list: JSON.stringify(dataset) },
         usuario,

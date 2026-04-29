@@ -376,16 +376,16 @@ export class BaseController {
 
     await queryRunner.startTransaction();
     const fechaActual = new Date()
-    const ProcesoAutomaticoLogCodigo = await BaseController.getProxNumero(queryRunner, `ProcesoAutomaticoLog`, usuario, ip)
+    const EventoLogCodigo = await BaseController.getProxNumero(queryRunner, `EventoLog`, usuario, ip)
     const EstadoCod = 'EJE'
 
     await queryRunner.query(
-      `INSERT INTO ProcesoAutomaticoLog (
-      ProcesoAutomaticoLogCodigo,
+      `INSERT INTO EventoLog (
+      EventoLogCodigo,
       NombreProceso,
       FechaInicio,
       FechaFin,
-      ProcesoAutomaticoEstadoCod,
+      EventoLogEstadoCodigo,
       ParametroEntrada,
       Resultado,
       AudFechaIng,
@@ -397,7 +397,7 @@ export class BaseController {
 
     ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @7, @8, @9)`,
       [
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         NombreProceso,
         fechaActual,
         null,
@@ -410,24 +410,24 @@ export class BaseController {
       ]
     );
     await queryRunner.commitTransaction();
-    return { ProcesoAutomaticoLogCodigo }
+    return { EventoLogCodigo }
   }
 
-  async procesoAutomaticoLogFin(queryRunner: QueryRunner, ProcesoAutomaticoLogCodigo: number, EstadoCod: string, Resultado: object, usuario: string, ip: string) {
+  async procesoAutomaticoLogFin(queryRunner: QueryRunner, EventoLogCodigo: number, EstadoCod: string, Resultado: object, usuario: string, ip: string) {
     const fechaActual = new Date()
     if (queryRunner.isTransactionActive) throw new Error('No se puede iniciar procesoAutomaticoLogFin dentro de una transacción activa')
     await queryRunner.startTransaction();
 
     await queryRunner.query(
-      `UPDATE ProcesoAutomaticoLog SET FechaFin=@1,
-      ProcesoAutomaticoEstadoCod=@2,
+      `UPDATE EventoLog SET FechaFin=@1,
+      EventoLogEstadoCodigo=@2,
       Resultado=@3,
       AudFechaMod=@4,
       AudUsuarioMod=@5,
       AudIpMod=@6
-      WHERE ProcesoAutomaticoLogCodigo=@0`,
+      WHERE EventoLogCodigo=@0`,
       [
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         fechaActual,
         EstadoCod,
         JSON.stringify(Resultado),
@@ -437,7 +437,7 @@ export class BaseController {
       ]
     );
     await queryRunner.commitTransaction();
-    return { ProcesoAutomaticoLogCodigo }
+    return { EventoLogCodigo }
   }
 
 

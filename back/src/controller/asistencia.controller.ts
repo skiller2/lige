@@ -3164,13 +3164,13 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     const usuario = res?.locals.userName || 'server'
     const ip = this.getRemoteAddress(req)
     let registrosActualizados = 0
-    let ProcesoAutomaticoLogCodigo = 0
+    let EventoLogCodigo = 0
     const anio = req.params.anio
     const mes = req.params.mes
 
 
     try {
-      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
         queryRunner,
         `Proceso Asistencia Biométrico ${mes}/${anio}`,
         { anio, mes, usuario, ip },
@@ -3497,7 +3497,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
       await this.procesoAutomaticoLogFin(
         queryRunner,
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         'COM',
         {
           res: `Procesado correctamente`,
@@ -3511,7 +3511,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       await this.procesoAutomaticoLogFin(queryRunner,
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         'ERR',
         { res: error },
         usuario,

@@ -25,5 +25,5 @@ procesosAutomaticosRouter.get("/:logCodigo", [authMiddleware.verifyToken, authMi
 });
 
 procesosAutomaticosRouter.get(`/estado/options`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  procesosAutomaticosController.getProcesoAutomaticoEstado(req, res, next);
+  procesosAutomaticosController.getEventoLogEstado(req, res, next);
 });

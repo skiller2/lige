@@ -509,7 +509,7 @@ UNION
 
     let segAltas = 0, segBajas = 0
     const queryRunner = dataSource.createQueryRunner();
-    let ProcesoAutomaticoLogCodigo = 0
+    let EventoLogCodigo = 0
 
 
 
@@ -517,7 +517,7 @@ UNION
     try {
       // Log de inicio
 
-      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
         queryRunner,
         `Actualización de Seguros ${mes}/${anio}`,
         { anio, mes, usuario, ip },
@@ -715,7 +715,7 @@ UNION
 
       await this.procesoAutomaticoLogFin(
         queryRunner,
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         'COM',
         { res: `Procesado correctamente`, segAltas, segBajas },
         usuario,
@@ -724,7 +724,7 @@ UNION
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       await this.procesoAutomaticoLogFin(queryRunner,
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         'ERR',
         { res: error },
         usuario,

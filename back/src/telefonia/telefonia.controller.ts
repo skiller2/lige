@@ -416,7 +416,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     const fechaActual = new Date()
     let totalsuma = 0
     let totalsumaxls = 0
-    let ProcesoAutomaticoLogCodigo = 0
+    let EventoLogCodigo = 0
     //console.log("req.body", req.body)
     //throw new ClientException(`test...`)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
@@ -436,7 +436,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
         throw new ClientException(`Los recibos para este periodo ya se generaron`);
 
 
-      ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
         queryRunner,
         `Importa XLS Telefonia`,
         { usuario, ip },
@@ -923,7 +923,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       const resMsg = "Se procesaron " + telefonos.length + " teléfonos, con un total de $ " + this.round2(totalsuma)
       await this.procesoAutomaticoLogFin(
         queryRunner,
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         'COM',
         {
           res: resMsg,
@@ -942,7 +942,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       await this.procesoAutomaticoLogFin(queryRunner,
-        ProcesoAutomaticoLogCodigo,
+        EventoLogCodigo,
         'ERR',
         {
           res: error, anio: anioRequest, mes: mesRequest, //cantErrores:dataset.le

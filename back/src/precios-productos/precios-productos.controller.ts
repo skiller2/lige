@@ -564,13 +564,13 @@ LEFT JOIN ClienteFacturacion fac
         let result: any
         let docFilePath: string | null = null
         let docId: number | null = null
-        let ProcesoAutomaticoLogCodigo = 0
+        let EventoLogCodigo = 0
 
         const queryRunner = dataSource.createQueryRunner();
         try {
             let campos_vacios: any[] = [];
 
-            ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+            ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
                 queryRunner,
                 `Importación xls Precios Producto ${productoCodigoRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
                 { anioRequest, mesRequest, productoCodigoRequest, tableNameRequest, usuario, ip },
@@ -711,7 +711,7 @@ LEFT JOIN ClienteFacturacion fac
             await queryRunner.commitTransaction();
             await this.procesoAutomaticoLogFin(
                 queryRunner,
-                ProcesoAutomaticoLogCodigo,
+                EventoLogCodigo,
                 'COM',
                 { res: `Procesado correctamente`, altaProductoPrecios },
                 usuario,
@@ -725,7 +725,7 @@ LEFT JOIN ClienteFacturacion fac
             if (docFilePath) await FileUploadController.deletePhysicalFile(docFilePath);
 
             await this.procesoAutomaticoLogFin(queryRunner,
-                ProcesoAutomaticoLogCodigo,
+                EventoLogCodigo,
                 'ERR',
                 { res: error.message || error, list: JSON.stringify(dataset) },
                 usuario,

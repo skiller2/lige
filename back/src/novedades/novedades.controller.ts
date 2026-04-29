@@ -1065,11 +1065,11 @@ export class NovedadesController extends BaseController {
         let usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
         let condition = (periodo) ? `DATEPART(YEAR,nov.Fecha)=@0 AND DATEPART(MONTH, nov.Fecha)=@1` : `1=1`
-        let ProcesoAutomaticoLogCodigo = 0
+        let EventoLogCodigo = 0
 
 
         try {
-            ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+            ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
                 queryRunner,
                 `Proceso Exportación de informe de novedades.`,
                 { condition, filterSql, year, month, usuario, ip },
@@ -1192,7 +1192,7 @@ export class NovedadesController extends BaseController {
 
             await this.procesoAutomaticoLogFin(
                 queryRunner,
-                ProcesoAutomaticoLogCodigo,
+                EventoLogCodigo,
                 'COM',
                 {
                 res: `Procesado correctamente`,
@@ -1207,7 +1207,7 @@ export class NovedadesController extends BaseController {
         } catch (error) {
 
             await this.procesoAutomaticoLogFin(queryRunner,
-                ProcesoAutomaticoLogCodigo,
+                EventoLogCodigo,
                 'ERR',
                 { res: error },
                 usuario,

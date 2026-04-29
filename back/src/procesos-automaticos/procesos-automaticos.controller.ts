@@ -14,8 +14,8 @@ const listaColumnas: any[] = [
     searchHidden: true,
   },
   {
-    id: 'ProcesoAutomaticoLogCodigo', name: 'Codigo', field: 'ProcesoAutomaticoLogCodigo',
-    fieldName: 'palog.ProcesoAutomaticoLogCodigo',
+    id: 'EventoLogCodigo', name: 'Codigo', field: 'EventoLogCodigo',
+    fieldName: 'palog.EventoLogCodigo',
     // searchComponent: '',
     type: 'number',
     searchType: 'number',
@@ -56,9 +56,9 @@ const listaColumnas: any[] = [
     searchHidden: false,
   },
   {
-    id: 'ProcesoAutomaticoEstadoCod', name: 'Descripcion', field: 'ProcesoAutomaticoEstadoCod',
-    fieldName: 'paest.ProcesoAutomaticoEstadoCod',
-    searchComponent: 'inputForProcesoAutomaticoEstadosSearch',
+    id: 'EventoLogEstadoCodigo', name: 'Descripcion', field: 'EventoLogEstadoCodigo',
+    fieldName: 'paest.EventoLogEstadoCodigo',
+    searchComponent: 'inputForEventoLogEstadosSearch',
     type: 'number',
     searchType: 'number',
     sortable: true,
@@ -353,12 +353,12 @@ export class ProcesosAutomaticosController extends BaseController {
       let list = await queryRunner.query(` 
         SELECT 
           ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
-          palog.ProcesoAutomaticoLogCodigo, palog.NombreProceso, 
-          palog.FechaInicio, palog.FechaFin, paest.ProcesoAutomaticoEstadoCod, 
+          palog.EventoLogCodigo, palog.NombreProceso, 
+          palog.FechaInicio, palog.FechaFin, paest.EventoLogEstadoCodigo, 
           paest.Descripcion, 1
-        FROM ProcesoAutomaticoLog palog
-        LEFT JOIN ProcesoAutomaticoEstado paest on paest.ProcesoAutomaticoEstadoCod=palog.ProcesoAutomaticoEstadoCod
-        Order by palog.ProcesoAutomaticoLogCodigo DESC
+        FROM EventoLog palog
+        LEFT JOIN EventoLogEstado paest on paest.EventoLogEstadoCodigo=palog.EventoLogEstadoCodigo
+        Order by palog.EventoLogCodigo DESC
       `,);
 
       this.jsonRes(list, res);
@@ -427,12 +427,12 @@ export class ProcesosAutomaticosController extends BaseController {
     try {
       let result = await queryRunner.query(` 
         SELECT 
-          palog.ProcesoAutomaticoLogCodigo, palog.NombreProceso, palog.FechaInicio,palog.FechaFin
-          , paest.ProcesoAutomaticoEstadoCod, paest.Descripcion, palog.ParametroEntrada,palog.Resultado
+          palog.EventoLogCodigo, palog.NombreProceso, palog.FechaInicio,palog.FechaFin
+          , paest.EventoLogEstadoCodigo, paest.Descripcion, palog.ParametroEntrada,palog.Resultado
           , palog.AudFechaIng, palog.AudUsuarioIng, palog.AudFechaMod, palog.AudUsuarioMod, 1
-        FROM ProcesoAutomaticoLog palog
-        LEFT JOIN ProcesoAutomaticoEstado paest on paest.ProcesoAutomaticoEstadoCod=palog.ProcesoAutomaticoEstadoCod
-        WHERE palog.ProcesoAutomaticoLogCodigo = @0
+        FROM EventoLog palog
+        LEFT JOIN EventoLogEstado paest on paest.EventoLogEstadoCodigo=palog.EventoLogEstadoCodigo
+        WHERE palog.EventoLogCodigo = @0
       `, [logCodigo]);
       
       this.jsonRes(result, res);
@@ -441,12 +441,12 @@ export class ProcesosAutomaticosController extends BaseController {
     }
   }
 
-  async getProcesoAutomaticoEstado(req: any, res: Response, next: NextFunction) {
+  async getEventoLogEstado(req: any, res: Response, next: NextFunction) {
     const queryRunner = dataSource.createQueryRunner();
     try {
       const options = await queryRunner.query(`
-        SELECT ProcesoAutomaticoEstadoCod value, Descripcion label
-        FROM ProcesoAutomaticoEstado
+        SELECT EventoLogEstadoCodigo value, Descripcion label
+        FROM EventoLogEstado
       `)
       this.jsonRes(options, res);
     } catch (error) {

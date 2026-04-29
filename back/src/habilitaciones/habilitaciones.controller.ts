@@ -1421,12 +1421,12 @@ SELECT doc.DocumentoId id,
         const usuario = res?.locals.userName || 'server'
         const ip = this.getRemoteAddress(req)
         let registrosActualizados = 0
-        let ProcesoAutomaticoLogCodigo = 0
+        let EventoLogCodigo = 0
         const { year: anio, month: mes } = this.getPreviousMonthYear(req.body.anio, req.body.mes);
 
 
         try {
-            ({ ProcesoAutomaticoLogCodigo } = await this.procesoAutomaticoLogInicio(
+            ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
                 queryRunner,
                 `Habilitación Necesaria ${mes}/${anio}`,
                 { anio, mes, usuario, ip },
@@ -1513,7 +1513,7 @@ SELECT doc.DocumentoId id,
 
             await this.procesoAutomaticoLogFin(
                 queryRunner,
-                ProcesoAutomaticoLogCodigo,
+                EventoLogCodigo,
                 'COM',
                 {
                     res: `Procesado correctamente`,
@@ -1529,7 +1529,7 @@ SELECT doc.DocumentoId id,
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             await this.procesoAutomaticoLogFin(queryRunner,
-                ProcesoAutomaticoLogCodigo,
+                EventoLogCodigo,
                 'ERR',
                 { res: error },
                 usuario,

@@ -112,7 +112,7 @@ export class ProcesosAutomaticosComponent {
       const rowNum = e.detail.args.changedSelectedRows[0]
       const row = this.angularGrid.dataView.getItemByIdx(rowNum)
 
-      this.logCodigo.set(Number(row?.ProcesoAutomaticoLogCodigo))
+      this.logCodigo.set(Number(row?.EventoLogCodigo))
     } else {
       this.logCodigo.set(0)
     }
