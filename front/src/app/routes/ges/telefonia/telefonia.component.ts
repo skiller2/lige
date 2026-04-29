@@ -17,7 +17,7 @@ import { LoadingService } from '@delon/abc/loading';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Selections } from '../../../shared/schemas/filtro';
-
+import { TelefoniaImpuestoDrawerComponent } from '../telefonia-impuesto-drawer/telefonia-impuesto-drawer';
 
 @Component({
   selector: 'app-telefonia',
@@ -29,7 +29,8 @@ import { Selections } from '../../../shared/schemas/filtro';
     NzAffixModule,
     FiltroBuilderComponent,
     NzUploadModule,
-    FileUploadComponent
+    FileUploadComponent,
+    TelefoniaImpuestoDrawerComponent
   ],
   standalone: true,
   providers: [AngularUtilService]
@@ -54,6 +55,7 @@ export class TelefoniaComponent {
   lastErrorsTels: any[] = []
   startFilters = signal<Selections[]>([])
   tabIndex = signal(0)
+  visibleImpuesto = signal<boolean>(false)
 
   constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
   private readonly loadingSrv = inject(LoadingService);
@@ -248,4 +250,9 @@ export class TelefoniaComponent {
   reloadGrid() {
     this.gridData.reload()
   }
+
+  openDrawerforImpuesto(): void {
+    this.visibleImpuesto.set(true)
+  }
+
 }

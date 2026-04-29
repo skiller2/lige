@@ -1153,6 +1153,13 @@ export class ApiService {
       catchError(() => of([]))
     );
   }
+  
+  setImpuestoTelefonia(params:any) {
+    return this.http.post<ResponseJSON<any>>(`api/telefonia/set-impuesto`, params)
+      .pipe(
+        tap((res: ResponseJSON<any>) => this.response(res)),
+      );
+  }
 
   getMessInfo() {
     const path = `/mess/api/chatbot/status`;
@@ -1734,7 +1741,6 @@ export class ApiService {
       .pipe(
         tap((res: ResponseJSON<any>) => this.response(res)),
       );
-
   }
 
   importXLSImporteVentaDescuentos(files: any, anio: number, mes: number, fecha: Date, DescuentoId: any, tableName: any, CuentaTipoCodigo: string) {

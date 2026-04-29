@@ -1032,5 +1032,85 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     }
   }
 
+  async setImpuesto(req: any, res: Response, next: NextFunction) {
+
+    const ImpuestoInternoTelefoniaDesde:Date|null = req.body.ImpuestoInternoTelefoniaDesde? new Date(req.body.ImpuestoInternoTelefoniaDesde) : null;
+    const ImpuestoInternoTelefoniaImpuesto:number = Number(req.body.ImpuestoInternoTelefoniaImpuesto)
+    
+    let usuario = res.locals.userName
+    let ip = this.getRemoteAddress(req)
+    const fechaActual:Date = new Date()
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction();
+      //VALIDACIONES
+      let campos_vacios:any[] = []
+      if (!ImpuestoInternoTelefoniaDesde) campos_vacios.push('- Desde')
+      if (!ImpuestoInternoTelefoniaImpuesto) campos_vacios.push('- Procentaje')
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos: ')
+        return new ClientException(campos_vacios)
+      }
+
+      ImpuestoInternoTelefoniaDesde.setDate(1)
+      ImpuestoInternoTelefoniaDesde.setHours(0,0,0,0)
+
+      const anio = ImpuestoInternoTelefoniaDesde.getFullYear()
+      const mes = ImpuestoInternoTelefoniaDesde.getMonth()+1
+      
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id);
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+        throw new ClientException(`Desde no puede ser un periodo con recibos generados`);
+
+      const lastImpuesto = await queryRunner.query(`
+        SELECT 
+          imp.ImpuestoInternoTelefoniaId, 
+          imp.ImpuestoInternoTelefoniaImpuesto, 
+          imp.ImpuestoInternoTelefoniaDesde, 
+          imp.ImpuestoInternoTelefoniaHasta
+        FROM ImpuestoInternoTelefonia imp
+        WHERE imp.ImpuestoInternoTelefoniaHasta IS NULL
+      `)
+      if (lastImpuesto[0].ImpuestoInternoTelefoniaImpuesto == ImpuestoInternoTelefoniaImpuesto) {
+        throw new ClientException(`El valor del porcetaje % debe ser distinto al vigente`);
+      }
+
+      const newImpuestoInternoTelefoniaId = lastImpuesto[0].ImpuestoInternoTelefoniaId + 1
+      const ImpuestoInternoTelefoniaHasta: Date = new Date(anio, mes-1, ImpuestoInternoTelefoniaDesde.getDate()-1)
+      ImpuestoInternoTelefoniaHasta.setHours(0, 0, 0, 0)
+
+      await queryRunner.query(`
+        UPDATE ImpuestoInternoTelefonia SET
+          ImpuestoInternoTelefoniaHasta = @1,
+          ImpuestoInternoTelefoniaAudFechaMod = @2,
+          ImpuestoInternoTelefoniaAudUsuarioMod = @3,
+          ImpuestoInternoTelefoniaAudIpMod = @4
+        WHERE ImpuestoInternoTelefoniaId IN (@0) AND ImpuestoInternoTelefoniaHasta IS NULL
+      `, [lastImpuesto[0].ImpuestoInternoTelefoniaId, ImpuestoInternoTelefoniaHasta, fechaActual, usuario, ip])
+      await queryRunner.query(`
+        INSERT INTO ImpuestoInternoTelefonia (
+          ImpuestoInternoTelefoniaImpuesto, 
+          ImpuestoInternoTelefoniaDesde,
+          ImpuestoInternoTelefoniaAudFechaIng,
+          ImpuestoInternoTelefoniaAudUsuarioIng,
+          ImpuestoInternoTelefoniaAudIpIng,
+          ImpuestoInternoTelefoniaAudFechaMod,
+          ImpuestoInternoTelefoniaAudUsuarioMod,
+          ImpuestoInternoTelefoniaAudIpMod
+        ) VALUES (@0, @1, @2, @3, @4, @2, @3, @4)
+      `, [ImpuestoInternoTelefoniaImpuesto, ImpuestoInternoTelefoniaDesde, fechaActual, usuario, ip])
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
 }
 

@@ -7,6 +7,7 @@ export const telefoniaRouter = Router();
 telefoniaRouter.get(`/lugar/options`, authMiddleware.verifyToken, (req, res, next) => {
   telefoniaController.getLugarTelefono(req, res, next);
 });
+
 telefoniaRouter.get('/tipo/options', authMiddleware.verifyToken, (req, res, next) => {
   telefoniaController.getTipoTelefono(req, res, next)
 });
@@ -36,5 +37,8 @@ telefoniaRouter.get('/importaciones_anteriores/:anio/:mes', [authMiddleware.veri
 
 telefoniaRouter.post("/import-xls-telefonia", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','gLogistica', 'gSistemas'])], (req, res, next) => {
   telefoniaController.handleXLSUploadTelefonia(req, res, next)
-  });
-  
+});
+
+telefoniaRouter.post("/set-impuesto", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','gLogistica', 'gSistemas'])], (req, res, next) => {
+  telefoniaController.setImpuesto(req, res, next)
+});  

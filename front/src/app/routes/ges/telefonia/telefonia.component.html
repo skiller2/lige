@@ -3,7 +3,7 @@
 
     <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
     <nz-form-control [nzSpan]="4">
-      <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo" />
+      <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo" nzFormat="MM/yyyy"/>
     </nz-form-control>
 
     <nz-form-label [nzSpan]="5">Fecha control teléfonos </nz-form-label>
@@ -20,7 +20,8 @@
         />
       </nz-input-group>
       <ng-template #controlButton>
-        <button type="button" nz-button nzType="primary" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}">
+        <button type="button" nz-button nzType="primary" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"
+        (click)="openDrawerforImpuesto()">
           <span nz-icon nzType="edit"></span>
         </button>
       </ng-template>
@@ -169,3 +170,4 @@
     </nz-tabs>
   </form>
 </nz-card>
+<app-telefonia-impuesto-drawer [(visible)]="visibleImpuesto" (onAddorUpdate)="reloadGrid()"></app-telefonia-impuesto-drawer>
