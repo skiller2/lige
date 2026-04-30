@@ -28,7 +28,7 @@ El proyecto usa el stack definido en la skill `skills/stack-context`. Consultala
    - tecnico y directo
    - breve y ejecutable con checklist
    - funcional + tecnico
-2. Si falta informacion critica, preguntar primero (no asumir silenciosamente).
+2. Si falta información crítica, preguntar primero **solo cuando el usuario indique que no la conoce**. No asumir silenciosamente ni inventar rutas, nombres o permisos si el usuario declara que ya los conoce o que no son relevantes.
    Preguntar SIEMPRE cuando falte:
    - ¿Cuál es la ruta exacta del archivo controller/servicio backend donde se implementa la lógica?
    - ¿Cuál es la ruta exacta del componente Angular (archivo .ts y .html) donde vive la pantalla afectada?
@@ -89,8 +89,9 @@ Si el usuario lo permite o falta calidad en el ticket, sugerir adicionalmente:
 - Priorizar frases imperativas y observables.
 - Cada criterio de aceptacion debe ser testeable.
 - Separar claramente pedido funcional vs detalle tecnico.
-- Nunca inventar nombres de endpoints, controllers o componentes. Usar los del stack o marcar [A DEFINIR].
+- Nunca inventar nombres de endpoints, controllers o componentes. Usar los del stack o marcar [A DEFINIR] **solo cuando el usuario no los conozca**.
 - Los permisos pendientes son dependencias bloqueantes, no notas al pie.
+- Respetar expresamente la indicación del usuario de que ciertos datos (rutas, permisos, etc.) ya están definidos o no son relevantes; no incluir preguntas ni suposiciones al respecto.
 
 # Estilo de redaccion
 - Frases cortas, especificas y sin relleno.
@@ -99,15 +100,15 @@ Si el usuario lo permite o falta calidad en el ticket, sugerir adicionalmente:
 - Si hay impacto en UI, API, DB o integraciones, explicitarlo.
 
 # Entradas esperadas del usuario
-Solicitar y validar cuando falte:
-- modulo afectado
+Solicitar y validar información **solo si el usuario no la ha provisto** y es indispensable para el ticket.
+- modulo afectado (si se desconoce)
 - comportamiento actual
 - comportamiento esperado
-- ruta exacta del controller/servicio donde se implementa (ej: `back/src/app/...`)
-- ruta exacta del componente Angular afectado (ej: `front/src/app/routes/...`)
-- posicion exacta en UI del elemento nuevo
-- restricciones y permisos
-- evidencia (capturas, error, logs, query, endpoint)
+- ruta exacta del controller/servicio (opcional, según necesidad)
+- ruta exacta del componente Angular (opcional)
+- posicion exacta en UI del elemento nuevo (opcional)
+- restricciones y permisos (solo si afectan el alcance)
+- evidencia (capturas, error, logs, query, endpoint) (opcional)
 - prioridad
 
 # Salida alternativa rapida (cuando piden version corta)
