@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
+import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, resource } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ActivatedRoute, Router } from '@angular/router';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
 import { LoadingService } from '@delon/abc/loading';
@@ -28,19 +28,17 @@ export class ProcesosAutomaticosComponent {
   periodo = signal(new Date());
   anio = computed(() => this.periodo()?.getFullYear());
   mes = computed(() => this.periodo()?.getMonth() + 1);
-  reload = signal<number>(0);
   logCodigo = signal<number>(0);
   visibleDetalle = model<boolean>(false);
   controlAccesoDisabled = signal(false)
   fechaBio = signal(new Date())
   gridOptions!: GridOption;
-  gridData: any;
   startFilters: any[] = [];
   selectedPeriod = { year: 0, month: 0 };
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  });
 
   private apiService = inject(ApiService);
   private searchService = inject(SearchService);
@@ -52,15 +50,14 @@ export class ProcesosAutomaticosComponent {
   private excelExportService = new ExcelExportService();
   private notification = inject(NzNotificationService)
 
-  listProcesosAutomaticos$ = new BehaviorSubject('');
   columns$ = this.apiService.getCols('/api/procesos-automaticos/cols');
-  gridData$ = this.listProcesosAutomaticos$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.apiService.getListProcesosAutomaticos(this.listOptions)
-        .pipe(map(data => { return data }))
-    })
-  )
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      return await firstValueFrom(this.apiService.getListProcesosAutomaticos(params.options))
+    },
+    defaultValue: []
+  });
 
   ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -143,13 +140,8 @@ export class ProcesosAutomaticosComponent {
     }
   }
 
-  listProcesosAutomaticos(): void {
-    this.listProcesosAutomaticos$.next('');
-  }
-
   listOptionsChange(options: any) {
-    this.listOptions = options;
-    this.listProcesosAutomaticos()
+    this.listOptions.set(options);
   }
 
   openDrawerforDetalle(): void {

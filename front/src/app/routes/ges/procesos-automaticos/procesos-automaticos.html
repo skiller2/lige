@@ -9,7 +9,7 @@
       </nz-form-control> -->
     </div>
 
-    <div nz-col style="display: flex;flex-direction: row-reverse;">
+    <div nz-col style="display: flex;flex-direction: row-reverse; gap: 4px;">
 
       <ng-template #confirm>
         <nz-form-label>Periodo</nz-form-label>
@@ -22,6 +22,11 @@
         nzTheme="outline"></span>
       </li>
 
+      <button nz-button nzType="default" (click)="gridData.reload()" nz-tooltip
+        nzTooltipTitle="{{ 'app.icon.reload' | i18n }}">
+        <span nz-icon nzType="reload" nzTheme="outline"></span>
+      </button>
+
     </div>
 
   </div>
@@ -31,7 +36,7 @@
       <ul nz-menu nzMode="horizontal" style="display: flex;">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'procesos-automaticos', 'listado']" (click)="listProcesosAutomaticos()">Lista</a>
+          <a [routerLink]="['/', 'ges', 'procesos-automaticos', 'listado']" (click)="gridData.reload()">Lista</a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
@@ -55,7 +60,7 @@
             [startFilters]="startFilters" />
             <div class="gridListContainer container-fluid">
               <angular-slickgrid gridId="grid" [columns]="columnas | colsFilter" [options]="gridOptions"
-                [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+                [dataset]="gridData.value() || []" (onAngularGridCreated)="angularGridReady($event)"
                 (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
               </angular-slickgrid>
             </div>
