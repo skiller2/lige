@@ -42,7 +42,8 @@ export class ChatBotController extends BaseController {
       return readFileSync(__dirname + '/../../agents/' + fileName, 'utf8');
     } catch (e) {
       console.log(`No se pudo leer el prompt del agente: ${fileName}`);
-      return botServer.iaPrompt || "Eres un asistente virtual.";
+      // Por ahora no se usa el prompt viejo
+      // return botServer.iaPrompt || "Eres un asistente virtual.";
     }
   }
 
@@ -71,7 +72,6 @@ export class ChatBotController extends BaseController {
       return this.jsonRes(ret, res, 'ok');
     } catch (err) {
       return next(err)
-      
     }
   }
 
@@ -82,15 +82,15 @@ export class ChatBotController extends BaseController {
     try {
       JSON.parse(iaTools)
 
-    if (iaToolsHash !== botServer.iaToolsHash)
-      throw new ClientException('Hay cambios posteriores a la última lectura')
+      if (iaToolsHash !== botServer.iaToolsHash)
+        throw new ClientException('Hay cambios posteriores a la última lectura')
 
       await writeFile(`${this.pathDocuments}/ia-tools.json`, iaTools, { encoding: 'utf8' })
       botServer.iaTools = JSON.parse(iaTools)
       botServer.iaToolsHash = CryptoJS.SHA256(iaTools).toString(CryptoJS.enc.Hex);
 
       botServer.chatmess = []
-      const ret = { iaTools, iaToolsHash:botServer.iaToolsHash}
+      const ret = { iaTools, iaToolsHash: botServer.iaToolsHash }
 
       return this.jsonRes(ret, res, 'ok');
 
@@ -138,6 +138,7 @@ export class ChatBotController extends BaseController {
       botServer.chatmess[chatId].push({ id: 0, role: "system", content: this.getAgentPrompt(activeAgent), sendIt: true });
 
     botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, role: "user", content: req.body.message })
+    let agentChangeMessages: any[] = [];
 
     try {
       let recall = false
@@ -154,33 +155,52 @@ export class ChatBotController extends BaseController {
 
         let routeChanged = false;
         if (activeAgent === "orchestrator" && responseIA.message.content) {
-           const content = responseIA.message.content.toLowerCase();
-           let newAgent: string | null = null;
-           if (content.includes("derivar a docs")) newAgent = "docs";
-           else if (content.includes("derivar a novedades")) newAgent = "novedades";
-           else if (content.includes("derivar a finanzas")) newAgent = "finanzas";
-           else if (content.includes("derivar a info")) newAgent = "info";
+          const content = responseIA.message.content.toLowerCase();
+          let newAgent: string | null = null;
+          if (content.includes("derivar a docs")) newAgent = "docs";
+          else if (content.includes("derivar a novedades")) newAgent = "novedades";
+          else if (content.includes("derivar a finanzas")) newAgent = "finanzas";
+          else if (content.includes("derivar a info")) newAgent = "info";
 
-           if (newAgent) {
-             ChatBotController.activeAgents.set(chatId, newAgent);
-             activeAgent = newAgent;
-             // Remove the routing message from history so the new agent doesn't get confused
-             botServer.chatmess[chatId].pop();
-             // Update System Prompt to the new agent
-             botServer.chatmess[chatId][0].content = this.getAgentPrompt(newAgent);
-             routeChanged = true;
-           }
+          if (newAgent) {
+            ChatBotController.activeAgents.set(chatId, newAgent);
+            activeAgent = newAgent;
+            // Remove the routing message from history so the new agent doesn't get confused
+            const routingMsg = botServer.chatmess[chatId].pop();
+            // Update System Prompt to the new agent
+            botServer.chatmess[chatId][0].content = this.getAgentPrompt(newAgent);
+
+            // Guardar el mensaje informativo SOLO para la respuesta HTTP (no toca Ollama)
+            agentChangeMessages.push({
+              id: new Date().getTime(),
+              role: 'assistant',
+              content: `🔄 **Cambio de agente:** Se derivó a \`${newAgent}\`.\n\n**Razonamiento del orquestador:**\n${routingMsg.content}`
+            });
+
+            routeChanged = true;
+          }
         }
 
         if (routeChanged) {
-           recall = true;
-           continue;
+          recall = true;
+          continue;
         }
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
 
+          const stateRes = await personalController.getPersonaState(chatId);
+          const autoPersonalId = stateRes.stateData?.personalId;
+
           for (const tool of responseIA.message.tool_calls) {
+            // Guardamos un mensaje visual extra para que el usuario vea qué agente está usando qué herramienta
+            agentChangeMessages.push({
+              id: new Date().getTime() + Math.random(),
+              role: 'assistant',
+              content: `⚙️ **[Agente: ${activeAgent}]** Ejecutando herramienta \`${tool.function.name}\`...`
+            });
+
             let output = {}
+            const pId = autoPersonalId || tool.function.arguments.personalId;
             switch (tool.function.name) {
               case 'genTelCode':
                 const linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
@@ -197,33 +217,39 @@ export class ChatBotController extends BaseController {
                 output = await personalController.removeCode(chatId)
                 break;
               case 'getInfoPersonal':
-                output = await personalController.getInfoPersonal(tool.function.arguments.personalId, chatId)
+                output = await personalController.getInfoPersonal(pId, chatId)
                 break;
               case 'getInfoEmpresa':
                 output = await personalController.getInfoEmpresa()
                 break;
               case 'getLastPeriodosOfComprobantesAFIP':
-                output = await documentosController.getLastPeriodosOfComprobantesAFIP(tool.function.arguments.personalId, tool.function.arguments.cant).then(array => { return array })
+                output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, tool.function.arguments.cant).then(array => { return array })
                 break;
               case 'getLastPeriodoOfComprobantes':
-                output = await documentosController.getLastPeriodoOfComprobantes(tool.function.arguments.personalId, tool.function.arguments.cant).then(array => { return array })
+                output = await documentosController.getLastPeriodoOfComprobantes(pId, tool.function.arguments.cant).then(array => { return array })
                 break;
               case 'getDocsPendDescarga':
-                output = await personalController.getDocsPendDescarga(tool.function.arguments.personalId)
+                output = await personalController.getDocsPendDescarga(pId)
                 break;
               case 'getAdelantoLimits':
                 tool.function.arguments.fecha = new Date()
                 output = await PersonalController.getAdelantoLimits(tool.function.arguments.fecha)
                 break;
               case 'getPersonalAdelanto':
-                output = await PersonalController.getPersonalAdelanto(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes)
+                const anioA = tool.function.arguments.anio || new Date().getFullYear();
+                const mesA = tool.function.arguments.mes || new Date().getMonth() + 1;
+                output = await PersonalController.getPersonalAdelanto(pId, anioA, mesA)
                 break;
               case 'deletePersonalAdelanto':
-                await personalController.deletePersonalAdelanto(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes)
+                const anioD = tool.function.arguments.anio || new Date().getFullYear();
+                const mesD = tool.function.arguments.mes || new Date().getMonth() + 1;
+                await personalController.deletePersonalAdelanto(pId, anioD, mesD)
                 output = { response: 'OK' }
                 break;
               case 'setPersonalAdelanto':
-                await personalController.setPersonalAdelanto(tool.function.arguments.personalId, tool.function.arguments.anio, tool.function.arguments.mes, tool.function.arguments.importe)
+                const anioS = tool.function.arguments.anio || new Date().getFullYear();
+                const mesS = tool.function.arguments.mes || new Date().getMonth() + 1;
+                await personalController.setPersonalAdelanto(pId, anioS, mesS, tool.function.arguments.importe)
                 output = { response: 'OK' }
                 break;
               case 'getURLDocumentoNew':
@@ -234,10 +260,10 @@ export class ChatBotController extends BaseController {
                 }
                 break;
               case 'getBackupNovedad':
-                output = await novedadController.getBackupNovedad(tool.function.arguments.personalId)
+                output = await novedadController.getBackupNovedad(pId)
                 break;
               case 'saveNovedad':
-                output = await novedadController.saveNovedad(tool.function.arguments.personalId, tool.function.arguments.novedad)
+                output = await novedadController.saveNovedad(pId, tool.function.arguments.novedad)
                 break;
               case 'getObjetivoByCodObjetivo':
                 output = await objetivoController.getObjetivoByCodObjetivo(tool.function.arguments.CodObjetivo)
@@ -246,10 +272,10 @@ export class ChatBotController extends BaseController {
                 output = await novedadController.getNovedadTipo()
                 break;
               case 'addNovedad':
-                output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, tool.function.arguments.personalId)
+                output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, pId)
                 break;
               case 'getNovedadesPendientesByResponsable':
-                output = await novedadController.getNovedadesPendientesByResponsable(tool.function.arguments.personalId)
+                output = await novedadController.getNovedadesPendientesByResponsable(pId)
                 break;
               case 'setNovedadVisualizacion':
                 //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
@@ -273,16 +299,24 @@ export class ChatBotController extends BaseController {
       } while (recall);
 
     } catch (err) {
-      err= new ClientException(`Error al procesar el mensaje del chatbot: ${err.message}`, { err });
+      err = new ClientException(`Error al procesar el mensaje del chatbot: ${err.message}`, { err });
       return next(err)
     }
 
-    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({ id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls, thinking: m.thinking }))
+    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => {
+      let finalContent = m.content;
+      if (m.role === 'assistant' && finalContent && (!m.tool_calls || m.tool_calls.length === 0)) {
+         finalContent = `👤 **[Agente: ${activeAgent}]**\n\n${finalContent}`;
+      }
+      return { id: m.id, content: finalContent, role: m.role, tool_calls: m.tool_calls, thinking: m.thinking };
+    });
+
+    // Inyectar los mensajes visuales de cambio de agente en la respuesta del frontend
+    const finalResponse = [...agentChangeMessages, ...response];
 
     botServer.chatmess[chatId].forEach(m => m.sendIt = true)
 
-
-    return this.jsonRes({ 'response': response }, res, 'ok');
+    return this.jsonRes({ 'response': finalResponse }, res, 'ok');
 
   }
 

@@ -49,7 +49,7 @@ El modelo local (Ollama, `gpt-oss:120b`) no recibe un "super prompt" con todas l
 - **Memoria de Sesión**: `botServer.chatmess[chatId]` — volátil, en memoria del proceso Node.
 - **Agente Activo**: `ChatBotController.activeAgents` — Map que guarda qué agente atiende cada `chatId`.
 - **Persistencia**: Todos los mensajes se registran en `BotLog` (SQL Server).
-- **Inyección de Contexto**: El `PersonalId` se obtiene del teléfono al inicio. **El usuario nunca provee su propio ID**.
+- **Inyección de Contexto y Seguridad**: El `PersonalId` (obtenido al inicio) y las fechas por defecto son inyectadas nativamente por el backend (`chatbot.controller.ts`) justo antes de ejecutar las tools. El modelo de IA está liberado de esta responsabilidad, lo que previene ataques de spoofing y fallos por parámetros faltantes.
 
 ## 5. Cómo Agregar un Nuevo Agente
 1. Crear `mess/agents/bot-<dominio>-agent.md`.

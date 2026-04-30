@@ -172,7 +172,7 @@ export class PersonalController extends BaseController {
     const res = await this.getPersonalQuery(telefono, 0)
     let activo = false
     let PersonalSituacionRevistaSituacionId = 0
-    let stateData = {}
+    let stateData: any = {}
     let firstName = ""
     let codigo = 0
     //force
