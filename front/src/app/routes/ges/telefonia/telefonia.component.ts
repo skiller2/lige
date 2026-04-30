@@ -18,6 +18,12 @@ import { FileUploadComponent } from "../../../shared/file-upload/file-upload.com
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Selections } from '../../../shared/schemas/filtro';
 import { TelefoniaImpuestoDrawerComponent } from '../telefonia-impuesto-drawer/telefonia-impuesto-drawer';
+import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
+
+export interface ImportacionTelefono {
+  files:any[],
+  totaldeclarado:string,
+}
 
 @Component({
   selector: 'app-telefonia',
@@ -30,7 +36,8 @@ import { TelefoniaImpuestoDrawerComponent } from '../telefonia-impuesto-drawer/t
     FiltroBuilderComponent,
     NzUploadModule,
     FileUploadComponent,
-    TelefoniaImpuestoDrawerComponent
+    TelefoniaImpuestoDrawerComponent,
+    FormField
   ],
   standalone: true,
   providers: [AngularUtilService]
@@ -42,7 +49,6 @@ export class TelefoniaComponent {
   anio = computed(() => this.periodo()?.getFullYear() || 0)
   mes = computed(() => this.periodo()?.getMonth() + 1 || 0)
 
-  files: NzUploadFile[] = [];
   uploading$ = new BehaviorSubject({ loading: false, event: null });
   excelExportService = new ExcelExportService()
   gridDataImport = signal<any[]>([])
@@ -56,10 +62,12 @@ export class TelefoniaComponent {
   startFilters = signal<Selections[]>([])
   tabIndex = signal(0)
   visibleImpuesto = signal<boolean>(false)
+  ImpuestoInternoTelefoniaImpuesto = signal(0)
 
-  constructor(public apiService: ApiService, public router: Router, private angularUtilService: AngularUtilService) { }
   private readonly loadingSrv = inject(LoadingService);
-
+  private readonly apiService = inject(ApiService);
+  private readonly router = inject(Router);
+  private readonly angularUtilService = inject(AngularUtilService);
 
   listOptions = signal<listOptionsT>({
     filtros: [],
@@ -97,15 +105,11 @@ export class TelefoniaComponent {
       searchHidden: false,
       hidden: false,
     },
-
-
   ])
 
   columns = toSignal(this.apiService.getCols('/api/telefonia/cols').pipe(map((cols) => {
     return cols
   })), { initialValue: [] as Column[] })
-
-  ImpuestoInternoTelefoniaImpuesto = signal(0)
 
   gridData = resource({
     params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), fecha: this.fecha() }),
@@ -123,9 +127,13 @@ export class TelefoniaComponent {
     defaultValue: []
   });
 
+  private importacionTelefonoDefault: ImportacionTelefono = {
+    files: [],
+    totaldeclarado: '',
+  }
 
-  fb = inject(FormBuilder)
-  ngForm = this.fb.group({ files: [], totaldeclarado: 0 })
+  readonly importacionTelefono = signal<ImportacionTelefono>(this.importacionTelefonoDefault);
+  readonly formImportacionTelefono = form(this.importacionTelefono)
 
   importacionesAnteriores = resource({
     params: () => ({ anio: this.anio(), mes: this.mes() }),
@@ -149,26 +157,17 @@ export class TelefoniaComponent {
       const mes = periodo.getMonth() + 1;
       localStorage.setItem('mes', String(mes));
       localStorage.setItem('anio', String(anio));
-
-      this.files = [];
     }
 
   })
 
-  ngOnInit(): void {
-    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
-    this.gridOptions.showFooterRow = true
-    this.gridOptions.createFooterRow = true
-
-
-    // Escuchar cambios en ngForm.files
-    this.ngForm.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
-      if (filesValue.length > 0) {
+  importEffect = effect(async () => {
+    const filesValue = this.importacionTelefono().files
+    if (filesValue.length > 0) {
         this.loadingSrv.open({ type: 'spin', text: '' })
         this.lastErrorsTels = []  
         this.gridDataImport.set([])
-        const totaldeclarado = this.ngForm.get('totaldeclarado')?.value || 0
+        const totaldeclarado = Number(this.importacionTelefono().totaldeclarado) || 0
 
         try {
           await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio(), this.mes(), this.fecha(), totaldeclarado))
@@ -187,7 +186,13 @@ export class TelefoniaComponent {
         this.loadingSrv.close()
 
       }
-    });
+  })
+
+  ngOnInit(): void {
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
   }
 
   ngAfterViewInit(): void {

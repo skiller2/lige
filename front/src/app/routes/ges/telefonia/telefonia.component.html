@@ -3,7 +3,7 @@
 
     <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
     <nz-form-control [nzSpan]="4">
-      <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo" nzFormat="MM/yyyy"/>
+      <nz-date-picker nzMode="month" nzFormat="MM/yyyy" name="periodo" [(ngModel)]="periodo" />
     </nz-form-control>
 
     <nz-form-label [nzSpan]="5">Fecha control teléfonos </nz-form-label>
@@ -41,7 +41,8 @@
         <a [routerLink]="['/', 'ges', 'telefonia','carga']">Carga</a>
       </li>
 
-      @if (router.url === '/ges/telefonia/listado') {
+      <!-- Dependen de la grilla de listado -->
+      @if (tabIndex() == 0) {
       <li nz-submenu nzTitle="Acciones">
         <ul>
           <li nz-menu-item (click)="exportGrid()">
@@ -73,30 +74,30 @@
     </nz-button-group>
   </div>
 
-  <form nz-form #telefonoForm="ngForm" [formGroup]="ngForm">
-    <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
-        @if ((columns().length > 0)) {
-        <ng-template nz-tab>
-          <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" [startFilters]="startFilters()" />
-          <div class="gridContainer container-fluid">
-            <angular-slickgrid
-              gridId="gridTelefonia" 
-              [columns]="columns() | colsFilter"
-              [options]="gridOptions"
-              [dataset]="gridData.value()"
-              (onAngularGridCreated)="angularGridReady($event)" >
-            </angular-slickgrid>
-          </div>
-        </ng-template>
-        }
+  
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/telefonia/listado">Listado</a>
+      @if ((columns().length > 0)) {
+      <ng-template nz-tab>
+        <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" [startFilters]="startFilters()" />
+        <div class="gridContainer container-fluid">
+          <angular-slickgrid
+            gridId="gridTelefonia" 
+            [columns]="columns() | colsFilter"
+            [options]="gridOptions"
+            [dataset]="gridData.value()"
+            (onAngularGridCreated)="angularGridReady($event)" >
+          </angular-slickgrid>
+        </div>
+      </ng-template>
+      }
 
-      </nz-tab>
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/telefonia/carga">Importar Consumos</a>
-        <ng-template nz-tab>
-
+    </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/telefonia/carga">Importar Consumos</a>
+      <ng-template nz-tab>
+        <form>
           <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
             <!--<nz-form-item>
@@ -121,14 +122,14 @@
             <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
               <nz-form-label [nzXs]="24" [nzSm]="5" [nzMd]="4" [nzLg]="3">Archivo Telefonía</nz-form-label>
               <nz-form-control [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="3">
-                <app-file-upload formControlName="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
+                <app-file-upload [formField]="formImportacionTelefono.files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
                   [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'"
                   [showTipoDocs]="false"></app-file-upload>
               </nz-form-control>
 
               <nz-form-label [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="4">Importe total</nz-form-label>
               <nz-form-control [nzXs]="24" [nzSm]="7" [nzMd]="5" [nzLg]="4">
-                <input nz-input formControlName="totaldeclarado" type="text" placeholder="Importe total" appDotToComma
+                <input nz-input [formField]="formImportacionTelefono.totaldeclarado" type="text" placeholder="Importe total" appDotToComma
                   mask="separator.2" />
               </nz-form-control>
             </nz-form-item>
@@ -151,23 +152,23 @@
                 }
               </nz-form-control>
             </nz-form-item>
-
+          
           </nz-spin>
+        </form>
 
-          <div class="gridContainer container-fluid">
-            <angular-slickgrid 
-              gridId="gridImport" 
-              [columns]="columnsImport() | colsFilter" 
-              [options]="gridOptions"
-              [dataset]="gridDataImport()"
-              (onAngularGridCreated)="angularGridImportReady($event)" >
-            </angular-slickgrid>
-          </div>
+        <div class="gridContainer container-fluid">
+          <angular-slickgrid 
+            gridId="gridImport" 
+            [columns]="columnsImport() | colsFilter" 
+            [options]="gridOptions"
+            [dataset]="gridDataImport()"
+            (onAngularGridCreated)="angularGridImportReady($event)" >
+          </angular-slickgrid>
+        </div>
         
-        </ng-template>
+      </ng-template>
 
-      </nz-tab>
-    </nz-tabs>
-  </form>
+    </nz-tab>
+  </nz-tabs>
 </nz-card>
 <app-telefonia-impuesto-drawer [(visible)]="visibleImpuesto" (onAddorUpdate)="reloadGrid()"></app-telefonia-impuesto-drawer>

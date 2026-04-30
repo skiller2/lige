@@ -150,34 +150,34 @@ export class DescuentosImportacionMasivaComponent {
       this.gridOptionsObj.showFooterRow = true
       this.gridOptionsObj.createFooterRow = true
 
-                // Escuchar cambios en formAltaDesc.files
-        this.formAltaDesc.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
-          if (filesValue.length > 0) {
-            this.loadingSrv.open({ type: 'spin', text: '' })
+      // Escuchar cambios en formAltaDesc.files
+      this.formAltaDesc.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
+        if (filesValue.length > 0) {
+          this.loadingSrv.open({ type: 'spin', text: '' })
 
-            this.gridDataImport$.next([])
- 
+          this.gridDataImport$.next([])
 
-            try {
-              const descuentoId = this.formAltaDesc.get('DescuentoId')?.value
-              const tableName = this.formAltaDesc.get('tableName')?.value
-              const CuentaTipoCodigo = this.formAltaDesc.get('CuentaTipoCodigo')?.value || ''
 
-              await firstValueFrom(this.apiService.importXLSImporteVentaDescuentos(filesValue, this.anio(), this.mes(),this.fecha, descuentoId, tableName,CuentaTipoCodigo))  
-              this.formChange$.next('changed');
-              this.fileUploadComponent().DeleteFileByExporterror(filesValue)
-            } catch (e: any) {
-              this.fileUploadComponent().DeleteFileByExporterror(filesValue)
-              if (e.error?.data?.list) {
-                this.gridDataImport$.next(e.error.data.list)
-              }
-              this.uploading$.next({ loading: false, event: null })
+          try {
+            const descuentoId = this.formAltaDesc.get('DescuentoId')?.value
+            const tableName = this.formAltaDesc.get('tableName')?.value
+            const CuentaTipoCodigo = this.formAltaDesc.get('CuentaTipoCodigo')?.value || ''
+
+            await firstValueFrom(this.apiService.importXLSImporteVentaDescuentos(filesValue, this.anio(), this.mes(),this.fecha, descuentoId, tableName,CuentaTipoCodigo))  
+            this.formChange$.next('changed');
+            this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+          } catch (e: any) {
+            this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+            if (e.error?.data?.list) {
+              this.gridDataImport$.next(e.error.data.list)
             }
-            this.loadingSrv.close()
-
+            this.uploading$.next({ loading: false, event: null })
           }
-        });
-      }
+          this.loadingSrv.close()
+
+        }
+      });
+    }
 
     tableName():string {
         const value = this.formAltaDesc.get("tableName")?.value
