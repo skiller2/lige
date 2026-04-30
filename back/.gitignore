@@ -9,5 +9,5 @@ tmp/
 temp/
 uploads/
 /recibos/
-
+docs/
 package-lock.json
