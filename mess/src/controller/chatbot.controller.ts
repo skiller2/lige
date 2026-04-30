@@ -11,6 +11,45 @@ import { documentosController, personalController, novedadController, objetivoCo
 import { PersonalController } from "./personal.controller.ts";
 
 export class ChatBotController extends BaseController {
+  static activeAgents = new Map<string, string>();
+
+  static agentConfigs: { [key: string]: { file: string, tools: string[] } } = {
+    "orchestrator": {
+      file: "bot-orchestrator-agent.md",
+      tools: ["getPersonaState", "genTelCode", "removeCode", "delTelefonoPersona"]
+    },
+    "novedades": {
+      file: "bot-novedades-agent.md",
+      tools: ["getBackupNovedad", "saveNovedad", "getObjetivoByCodObjetivo", "getNovedadTipo", "addNovedad", "getNovedadesPendientesByResponsable", "setNovedadVisualizacion"]
+    },
+    "docs": {
+      file: "bot-docs-agent.md",
+      tools: ["getLastPeriodosOfComprobantesAFIP", "getLastPeriodoOfComprobantes", "getDocsPendDescarga", "getURLDocumentoNew"]
+    },
+    "finanzas": {
+      file: "bot-finanzas-agent.md",
+      tools: ["getAdelantoLimits", "getPersonalAdelanto", "deletePersonalAdelanto", "setPersonalAdelanto"]
+    },
+    "info": {
+      file: "bot-info-agent.md",
+      tools: ["getInfoPersonal", "getInfoEmpresa"]
+    }
+  };
+
+  getAgentPrompt(agentName: string): string {
+    const fileName = ChatBotController.agentConfigs[agentName]?.file || "bot-orchestrator-agent.md";
+    try {
+      return readFileSync(__dirname + '/../../agents/' + fileName, 'utf8');
+    } catch (e) {
+      console.log(`No se pudo leer el prompt del agente: ${fileName}`);
+      return botServer.iaPrompt || "Eres un asistente virtual.";
+    }
+  }
+
+  getAgentTools(agentName: string, allTools: any[]): any[] {
+    const allowed = ChatBotController.agentConfigs[agentName]?.tools || [];
+    return allTools.filter((t: any) => allowed.includes(t.function.name));
+  }
   async setPrompt(req: any, res: any, next: any) {
     const iaPrompt = req.body.iaPrompt
     const iaPromptHash = req.body.iaPromptHash
@@ -76,6 +115,7 @@ export class ChatBotController extends BaseController {
   async reinicia(req: Request, res: Response, next: NextFunction) {
     const chatId = req.body.chatId
     botServer.chatmess[chatId] = []
+    ChatBotController.activeAgents.delete(chatId);
     const ret = {}
     return this.jsonRes(ret, res, 'ok');
   }
@@ -92,10 +132,10 @@ export class ChatBotController extends BaseController {
     if (!botServer.chatmess[chatId])
       botServer.chatmess[chatId] = []
 
-
+    let activeAgent = ChatBotController.activeAgents.get(chatId) || "orchestrator";
 
     if (botServer.chatmess[chatId].length == 0)
-      botServer.chatmess[chatId].push({ id: 0, role: "system", content: botServer.iaPrompt, sendIt: true });
+      botServer.chatmess[chatId].push({ id: 0, role: "system", content: this.getAgentPrompt(activeAgent), sendIt: true });
 
     botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, role: "user", content: req.body.message })
 
@@ -107,10 +147,35 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess[chatId],
           stream: false,
-          tools: botServer.iaTools,
+          tools: this.getAgentTools(activeAgent, botServer.iaTools),
         });
 
         botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, ...responseIA.message });
+
+        let routeChanged = false;
+        if (activeAgent === "orchestrator" && responseIA.message.content) {
+           const content = responseIA.message.content.toLowerCase();
+           let newAgent: string | null = null;
+           if (content.includes("derivar a docs")) newAgent = "docs";
+           else if (content.includes("derivar a novedades")) newAgent = "novedades";
+           else if (content.includes("derivar a finanzas")) newAgent = "finanzas";
+           else if (content.includes("derivar a info")) newAgent = "info";
+
+           if (newAgent) {
+             ChatBotController.activeAgents.set(chatId, newAgent);
+             activeAgent = newAgent;
+             // Remove the routing message from history so the new agent doesn't get confused
+             botServer.chatmess[chatId].pop();
+             // Update System Prompt to the new agent
+             botServer.chatmess[chatId][0].content = this.getAgentPrompt(newAgent);
+             routeChanged = true;
+           }
+        }
+
+        if (routeChanged) {
+           recall = true;
+           continue;
+        }
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
 
