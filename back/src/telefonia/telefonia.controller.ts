@@ -1034,17 +1034,17 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
   async setImpuesto(req: any, res: Response, next: NextFunction) {
 
-    const ImpuestoInternoTelefoniaDesde:Date|null = req.body.ImpuestoInternoTelefoniaDesde? new Date(req.body.ImpuestoInternoTelefoniaDesde) : null;
-    const ImpuestoInternoTelefoniaImpuesto:number = Number(req.body.ImpuestoInternoTelefoniaImpuesto)
-    
+    const ImpuestoInternoTelefoniaDesde: Date | null = req.body.ImpuestoInternoTelefoniaDesde ? new Date(req.body.ImpuestoInternoTelefoniaDesde) : null;
+    const ImpuestoInternoTelefoniaImpuesto: number = Number(req.body.ImpuestoInternoTelefoniaImpuesto)
+
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
-    const fechaActual:Date = new Date()
+    const fechaActual: Date = new Date()
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction();
       //VALIDACIONES
-      let campos_vacios:any[] = []
+      let campos_vacios: any[] = []
       if (!ImpuestoInternoTelefoniaDesde) campos_vacios.push('- Desde')
       if (!ImpuestoInternoTelefoniaImpuesto) campos_vacios.push('- Procentaje')
       if (campos_vacios.length) {
@@ -1053,17 +1053,16 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       }
 
       ImpuestoInternoTelefoniaDesde.setDate(1)
-      ImpuestoInternoTelefoniaDesde.setHours(0,0,0,0)
+      ImpuestoInternoTelefoniaDesde.setHours(0, 0, 0, 0)
 
       const anio = ImpuestoInternoTelefoniaDesde.getFullYear()
-      const mes = ImpuestoInternoTelefoniaDesde.getMonth()+1
-      
+      const mes = ImpuestoInternoTelefoniaDesde.getMonth() + 1
+
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id);
 
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
-        throw new ClientException(`Desde no puede ser un periodo con recibos generados`);
-
+        throw new ClientException(`El período seleccionado ya tiene recibos generados. No es posible modificar el impuesto interno de telefonía.`);
       const lastImpuesto = await queryRunner.query(`
         SELECT 
           imp.ImpuestoInternoTelefoniaId, 
@@ -1074,11 +1073,11 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
         WHERE imp.ImpuestoInternoTelefoniaHasta IS NULL
       `)
       if (lastImpuesto[0].ImpuestoInternoTelefoniaImpuesto == ImpuestoInternoTelefoniaImpuesto) {
-        throw new ClientException(`El valor del porcetaje % debe ser distinto al vigente`);
+        throw new ClientException(`El valor del porcentaje % debe ser distinto al vigente`);
       }
 
       const newImpuestoInternoTelefoniaId = lastImpuesto[0].ImpuestoInternoTelefoniaId + 1
-      const ImpuestoInternoTelefoniaHasta: Date = new Date(anio, mes-1, ImpuestoInternoTelefoniaDesde.getDate()-1)
+      const ImpuestoInternoTelefoniaHasta: Date = new Date(anio, mes - 1, ImpuestoInternoTelefoniaDesde.getDate() - 1)
       ImpuestoInternoTelefoniaHasta.setHours(0, 0, 0, 0)
 
       await queryRunner.query(`
