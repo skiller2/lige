@@ -75,6 +75,15 @@ const listaColumnas: any[] = [
     hidden: false,
     searchHidden: true,
   },
+  {
+    id: 'Duracion', name: 'Duración (min)', field: 'Duracion',
+    fieldName: 'DATEDIFF(MINUTE, palog.FechaInicio, ISNULL(palog.FechaFin, GETDATE()))',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
 ]
 
 
@@ -360,7 +369,9 @@ export class ProcesosAutomaticosController extends BaseController {
           ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
           palog.EventoLogCodigo, palog.NombreProceso,
           palog.FechaInicio, palog.FechaFin, paest.EventoLogEstadoCodigo,
-          paest.Descripcion, 1
+          paest.Descripcion,
+          DATEDIFF(MINUTE, palog.FechaInicio, ISNULL(palog.FechaFin, GETDATE())) AS Duracion,
+          1
         FROM EventoLog palog
         LEFT JOIN EventoLogEstado paest on paest.EventoLogEstadoCodigo=palog.EventoLogEstadoCodigo
         WHERE (${filterSql})
