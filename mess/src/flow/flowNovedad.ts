@@ -10,7 +10,7 @@ import { FileUploadController } from '../controller/file-upload.controller.ts';
 import { Utils } from '../controller/util.ts';
 
 const delay = chatBotController.getDelay()
-const apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"
+const apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4000/mess/api"
 
 const dirtmp = `${process.env.PATH_DOCUMENTS}/temp`;
 if (!existsSync(dirtmp)) {

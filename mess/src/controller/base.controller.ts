@@ -337,7 +337,7 @@ export class BaseController {
 
 
   pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige
-  apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4200/mess/api"
+  apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4000/mess/api"
 
   async getURLDocumentoNew(DocumentoId: number) {
     const queryRunner = dbServer.dataSource.createQueryRunner();
