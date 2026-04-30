@@ -55,4 +55,36 @@
     </nz-form-control>
   </nz-form-item>
 
+    
+  @if (logCod()) {
+    <nz-form-item class="marginElement">
+      <nz-form-control [nzXs]="23" style="text-align: right;">
+        <button nz-button nzType="default" nz-popover nzPopoverTitle="Historial de Auditoria" [nzPopoverContent]="contentTemplate" [nzPopoverPlacement]="['topRight', 'top', 'topLeft']">
+          <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
+        </button>
+        <ng-template #contentTemplate>
+          <nz-table #history [nzData]="auditHistory()" [nzShowPagination]="false">
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Fecha</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of history.data; track item) {
+                <tr>
+                  <td>{{ item.usuario }}</td>
+                  <td>{{ item.fecha }}</td>
+                  <td>{{ item.accion }}</td>
+                </tr>
+              }
+            </tbody>
+          </nz-table>
+        </ng-template>
+      </nz-form-control>
+    </nz-form-item>
+  }
+
+
 </form>
