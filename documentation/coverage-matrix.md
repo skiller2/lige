@@ -65,12 +65,16 @@ Leyenda:
 
 | Modulo | Estado | Documento | Notas |
 |---|---|---|---|
-| controller | Sin documentar | Pendiente | |
-| flow | Sin documentar | Pendiente | |
+| controller (chatbot) | Completa | [multi-agent-system.md](mess/multi-agent-system.md), [api-chatbot.md](mess/api-chatbot.md) | Sistema multi-agente IA, endpoints HTTP |
+| controller (otros) | Completa | [architecture.md](mess/architecture.md) | PersonalController, DocumentosController, NovedadController, ObjetivoController |
+| flow | Completa | [whatsapp-flows.md](mess/whatsapp-flows.md) | 26 flujos documentados con tabla comparativa IA |
+| agents | Completa | [multi-agent-system.md](mess/multi-agent-system.md) | 5 agentes + guía de extensión |
+| data-model | Completa | [data-model.md](mess/data-model.md) | BotLog, BotRegTelefonoPersonal, BotColaMensajes, DocumentoDescargaLog |
+| decisiones | Completa | [decisions.md](mess/decisions.md) | 5 ADRs documentadas |
 | info | Sin documentar | Pendiente | |
-| middlewares | Sin documentar | Pendiente | |
-| routes | Sin documentar | Pendiente | |
-| sqlserver-database | Sin documentar | Pendiente | |
+| middlewares | Parcial | [api-chatbot.md](mess/api-chatbot.md) | authMiddleware documentado en endpoints |
+| routes | Completa | [api-chatbot.md](mess/api-chatbot.md) | Todos los endpoints del chatbot |
+| sqlserver-database | Parcial | [architecture.md](mess/architecture.md) | Adaptador @builderbot mencionado |
 
 ## Regla de mantenimiento
 - Cuando se cree un documento de modulo, actualizar Estado y Documento en esta matriz.
