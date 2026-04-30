@@ -70,6 +70,12 @@ export class ProcesosAutomaticosComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
 
+    const now = new Date()
+    const primerDiaMes = new Date(now.getFullYear(), now.getMonth(), 1)
+    this.startFilters = [
+      { index: 'FechaInicio', condition: 'AND', operator: '>=', value: primerDiaMes, closeable: true }
+    ]
+
     this.selectedDate()
     // this.settingsService.setLayout('collapsed', true)
   }

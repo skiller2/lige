@@ -347,18 +347,24 @@ export class ProcesosAutomaticosController extends BaseController {
   
 
   async listProcesosAutomaticos(req: any, res: Response, next: NextFunction ) {
+    const options: Options = isOptions(req.body.options)
+      ? req.body.options
+      : { filtros: [], sort: null };
+    const filterSql = filtrosToSql(options.filtros, listaColumnas);
+    const orderBy = orderToSQL(options.sort);
 
     const queryRunner = dataSource.createQueryRunner();
     try {
-      let list = await queryRunner.query(` 
-        SELECT 
+      let list = await queryRunner.query(`
+        SELECT
           ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
-          palog.EventoLogCodigo, palog.NombreProceso, 
-          palog.FechaInicio, palog.FechaFin, paest.EventoLogEstadoCodigo, 
+          palog.EventoLogCodigo, palog.NombreProceso,
+          palog.FechaInicio, palog.FechaFin, paest.EventoLogEstadoCodigo,
           paest.Descripcion, 1
         FROM EventoLog palog
         LEFT JOIN EventoLogEstado paest on paest.EventoLogEstadoCodigo=palog.EventoLogEstadoCodigo
-        Order by palog.EventoLogCodigo DESC
+        WHERE (${filterSql})
+        ${orderBy ? orderBy : 'ORDER BY palog.EventoLogCodigo DESC'}
       `,);
 
       this.jsonRes(list, res);
