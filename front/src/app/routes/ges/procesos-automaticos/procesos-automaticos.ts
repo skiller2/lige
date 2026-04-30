@@ -22,6 +22,7 @@ import { TableBloqueadasComponent } from '../table-bloqueadas/table-locked '
   providers: [AngularUtilService],
   imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProcesosAutomaticosDetalleComponent,TableBloqueadasComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
 })
 export class ProcesosAutomaticosComponent {
   periodo = signal(new Date());
@@ -77,12 +78,30 @@ export class ProcesosAutomaticosComponent {
 
     this.angularGrid = angularGrid.detail
 
+    this.angularGrid.dataView.getItemMetadata = this.updateItemMetadata(this.angularGrid.dataView.getItemMetadata)
+
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-      // totalRecords(this.angularGrid)
+      this.angularGrid.slickGrid.invalidate()
     })
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
+  }
+
+  updateItemMetadata(previousItemMetadata: any) {
+    return (rowNumber: number) => {
+      const item = this.angularGrid.dataView.getItem(rowNumber)
+      let meta: any = { cssClasses: '', columns: {} }
+      if (typeof previousItemMetadata === 'object')
+        meta = { columns: {}, ...previousItemMetadata(rowNumber) }
+
+      if (item?.Descripcion === 'Error')
+        meta.columns = { ...meta.columns, Descripcion: { cssClass: 'cell-error' } }
+      else if (item?.Descripcion === 'Completado')
+        meta.columns = { ...meta.columns, Descripcion: { cssClass: 'cell-completado' } }
+
+      return meta
+    }
   }
 
   selectedDate() {
