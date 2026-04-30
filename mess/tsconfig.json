@@ -1,7 +1,6 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "rootDir": "./src",
     "outDir": "./dist",
 
@@ -10,7 +9,6 @@
     "moduleResolution": "NodeNext",
 
     "sourceMap": true,
-    "downlevelIteration": true,
 
     "strict": false,
     "skipLibCheck": true,
