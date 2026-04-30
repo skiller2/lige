@@ -1042,6 +1042,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     const fechaActual: Date = new Date()
     const queryRunner = dataSource.createQueryRunner();
     try {
+      await queryRunner.connect();
       await queryRunner.startTransaction();
       //VALIDACIONES
       let campos_vacios: any[] = []
@@ -1076,7 +1077,6 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
         throw new ClientException(`El valor del porcentaje % debe ser distinto al vigente`);
       }
 
-      const newImpuestoInternoTelefoniaId = lastImpuesto[0].ImpuestoInternoTelefoniaId + 1
       const ImpuestoInternoTelefoniaHasta: Date = new Date(anio, mes - 1, ImpuestoInternoTelefoniaDesde.getDate() - 1)
       ImpuestoInternoTelefoniaHasta.setHours(0, 0, 0, 0)
 

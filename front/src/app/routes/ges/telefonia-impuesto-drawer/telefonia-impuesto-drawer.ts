@@ -3,11 +3,9 @@ import { firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
-import { SearchService } from '../../../services/search.service';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { LoadingService } from '@delon/abc/loading';
 import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
 
@@ -30,25 +28,30 @@ export class TelefoniaImpuestoDrawerComponent {
     visible = model<boolean>(false)
     onAddorUpdate = output()
 
-    private searchService = inject(SearchService)
     private apiService = inject(ApiService)
-    private readonly loadingSrv = inject(LoadingService);
-    private defaultImpuestoTelefonia: ImpuestoTelefonia = { 
-        ImpuestoInternoTelefoniaDesde: new Date(), 
+    private readonly defaultImpuestoTelefonia: ImpuestoTelefonia = { 
+        ImpuestoInternoTelefoniaDesde: null, 
         ImpuestoInternoTelefoniaImpuesto: NaN
     }
       
     readonly impuestoTelefonia = signal<ImpuestoTelefonia>(this.defaultImpuestoTelefonia);
     readonly formImpuestoTelefonia = form(this.impuestoTelefonia)
 
-    loadEffect = effect(async () => {
+    loadEffect = effect(() => {
         if (!this.visible()) return;
 
+        const now = new Date();
+        const anio = Number(localStorage.getItem('anio')) > 0 ? localStorage.getItem('anio') : now.getFullYear();
+        const mes = Number(localStorage.getItem('mes')) > 0 ? localStorage.getItem('mes') : now.getMonth() + 1;
+        // console.log('anio: ', anio);
+        // console.log('mes: ', mes);
+        // console.log(new Date(Number(anio), Number(mes) - 1, 1));
+        
         this.impuestoTelefonia.update((state) => {
-            return { ...state, ImpuestoInternoTelefoniaDesde: new Date()}
+            return { ...state, ImpuestoInternoTelefoniaDesde: new Date(Number(anio), Number(mes) - 1, 1)}
         })
 
-        untracked(() => queueMicrotask(() => this.resetForm()));
+        untracked(() => queueMicrotask(() => this.formImpuestoTelefonia().reset()));
     });
 
     async save() {
@@ -64,9 +67,4 @@ export class TelefoniaImpuestoDrawerComponent {
         })
     }
 
-    resetForm() {
-        this.impuestoTelefonia.set(this.defaultImpuestoTelefonia)
-
-        this.formImpuestoTelefonia().reset()
-    }
 }

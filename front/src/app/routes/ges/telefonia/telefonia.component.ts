@@ -150,17 +150,6 @@ export class TelefoniaComponent {
     defaultValue: []
   });
 
-  periodoEffect = effect(() => {
-    const periodo = this.periodo()
-    if (periodo) {
-      const anio = periodo.getFullYear();
-      const mes = periodo.getMonth() + 1;
-      localStorage.setItem('mes', String(mes));
-      localStorage.setItem('anio', String(anio));
-    }
-
-  })
-
   importEffect = effect(async () => {
     const filesValue = this.importacionTelefono().files
     if (filesValue.length > 0) {
