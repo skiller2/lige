@@ -45,9 +45,15 @@ export interface ImportacionTelefono {
 export class TelefoniaComponent {
   // @ViewChild('telefonoForm', { static: true }) telefonoForm: NgForm = new NgForm([], []);
   fecha = signal<Date>(new Date())
-  periodo = signal<Date>(new Date())
-  anio = computed(() => this.periodo()?.getFullYear() || 0)
-  mes = computed(() => this.periodo()?.getMonth() + 1 || 0)
+  periodo = signal<Date|null>(null)
+  anio = computed(() => { 
+    if (this.periodo()?.getFullYear()) localStorage.setItem('anio', String(this.periodo()?.getFullYear()));
+    return this.periodo()?.getFullYear() || 0
+  })
+  mes = computed(() => { 
+    if (this.periodo()) localStorage.setItem('mes', String(this.periodo()!.getMonth()+1));
+    return this.periodo()?.getMonth()!+1 || 0
+  })
 
   uploading$ = new BehaviorSubject({ loading: false, event: null });
   excelExportService = new ExcelExportService()
@@ -117,7 +123,8 @@ export class TelefoniaComponent {
       let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
-        response = await firstValueFrom(this.apiService.getTelefonos({ anio: params.anio, mes: params.mes, fecha: params.fecha, options: params.options, toggle: false }))
+        if (params.anio && params.mes) 
+          response = await firstValueFrom(this.apiService.getTelefonos({ anio: params.anio, mes: params.mes, fecha: params.fecha, options: params.options, toggle: false }))
       } catch (_e) { }
       this.loadingSrv.close()
       this.ImpuestoInternoTelefoniaImpuesto.set(response?.ImpuestoInternoTelefoniaImpuesto || 0)
@@ -199,7 +206,7 @@ export class TelefoniaComponent {
       this.periodo.set(new Date(Number(anio), Number(mes) - 1, 1))
 
       const fechacorte = new Date()
-      fechacorte.setDate(this.periodo().getDate() - 1)
+      fechacorte.setDate(this.periodo()!.getDate() - 1)
       this.fecha.set(fechacorte)
     }, 1);
   }
@@ -247,6 +254,13 @@ export class TelefoniaComponent {
 
   openDrawerforImpuesto(): void {
     this.visibleImpuesto.set(true)
+  }
+
+  dateChange(result: Date): void {
+    if (!result) return
+
+    localStorage.setItem('anio', String(this.anio()));
+    localStorage.setItem('mes', String(this.mes()));
   }
 
 }

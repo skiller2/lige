@@ -3,7 +3,7 @@
 
     <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
     <nz-form-control [nzSpan]="4">
-      <nz-date-picker nzMode="month" nzFormat="MM/yyyy" name="periodo" [(ngModel)]="periodo" />
+      <nz-date-picker nzMode="month" nzFormat="MM/yyyy" name="periodo" [(ngModel)]="periodo" (ngModelChange)="dateChange($event)"/>
     </nz-form-control>
 
     <nz-form-label [nzSpan]="5">Fecha control teléfonos </nz-form-label>

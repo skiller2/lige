@@ -37,21 +37,14 @@ export class TelefoniaImpuestoDrawerComponent {
     readonly impuestoTelefonia = signal<ImpuestoTelefonia>(this.defaultImpuestoTelefonia);
     readonly formImpuestoTelefonia = form(this.impuestoTelefonia)
 
-    loadEffect = effect(() => {
+    loadEffect = effect(async() => {
         if (!this.visible()) return;
 
         const now = new Date();
         const anio = Number(localStorage.getItem('anio')) > 0 ? localStorage.getItem('anio') : now.getFullYear();
         const mes = Number(localStorage.getItem('mes')) > 0 ? localStorage.getItem('mes') : now.getMonth() + 1;
-        // console.log('anio: ', anio);
-        // console.log('mes: ', mes);
-        // console.log(new Date(Number(anio), Number(mes) - 1, 1));
         
-        this.impuestoTelefonia.update((state) => {
-            return { ...state, ImpuestoInternoTelefoniaDesde: new Date(Number(anio), Number(mes) - 1, 1)}
-        })
-
-        untracked(() => queueMicrotask(() => this.formImpuestoTelefonia().reset()));
+        untracked(() => queueMicrotask(() => this.formImpuestoTelefonia().reset({ ImpuestoInternoTelefoniaDesde: new Date(Number(anio), Number(mes) - 1, 1), ImpuestoInternoTelefoniaImpuesto:NaN})));
     });
 
     async save() {
