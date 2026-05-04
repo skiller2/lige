@@ -1050,7 +1050,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       if (!ImpuestoInternoTelefoniaImpuesto) campos_vacios.push('- Procentaje')
       if (campos_vacios.length) {
         campos_vacios.unshift('Debe completar los siguientes campos: ')
-        return new ClientException(campos_vacios)
+        throw new ClientException(campos_vacios)
       }
 
       ImpuestoInternoTelefoniaDesde.setDate(1)
@@ -1077,29 +1077,41 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
         throw new ClientException(`El valor del porcentaje % debe ser distinto al vigente`);
       }
 
-      const ImpuestoInternoTelefoniaHasta: Date = new Date(anio, mes - 1, ImpuestoInternoTelefoniaDesde.getDate() - 1)
-      ImpuestoInternoTelefoniaHasta.setHours(0, 0, 0, 0)
+      if (new Date(lastImpuesto[0].ImpuestoInternoTelefoniaDesde).getTime() == ImpuestoInternoTelefoniaDesde.getTime()) {
+        await queryRunner.query(`
+          UPDATE ImpuestoInternoTelefonia SET
+            ImpuestoInternoTelefoniaImpuesto = @1,
+            ImpuestoInternoTelefoniaAudFechaMod = @2,
+            ImpuestoInternoTelefoniaAudUsuarioMod = @3,
+            ImpuestoInternoTelefoniaAudIpMod = @4
+          WHERE ImpuestoInternoTelefoniaId IN (@0) AND ImpuestoInternoTelefoniaHasta IS NULL
+        `, [lastImpuesto[0].ImpuestoInternoTelefoniaId, ImpuestoInternoTelefoniaImpuesto, fechaActual, usuario, ip])
+      } else {
 
-      await queryRunner.query(`
-        UPDATE ImpuestoInternoTelefonia SET
-          ImpuestoInternoTelefoniaHasta = @1,
-          ImpuestoInternoTelefoniaAudFechaMod = @2,
-          ImpuestoInternoTelefoniaAudUsuarioMod = @3,
-          ImpuestoInternoTelefoniaAudIpMod = @4
-        WHERE ImpuestoInternoTelefoniaId IN (@0) AND ImpuestoInternoTelefoniaHasta IS NULL
-      `, [lastImpuesto[0].ImpuestoInternoTelefoniaId, ImpuestoInternoTelefoniaHasta, fechaActual, usuario, ip])
-      await queryRunner.query(`
-        INSERT INTO ImpuestoInternoTelefonia (
-          ImpuestoInternoTelefoniaImpuesto, 
-          ImpuestoInternoTelefoniaDesde,
-          ImpuestoInternoTelefoniaAudFechaIng,
-          ImpuestoInternoTelefoniaAudUsuarioIng,
-          ImpuestoInternoTelefoniaAudIpIng,
-          ImpuestoInternoTelefoniaAudFechaMod,
-          ImpuestoInternoTelefoniaAudUsuarioMod,
-          ImpuestoInternoTelefoniaAudIpMod
-        ) VALUES (@0, @1, @2, @3, @4, @2, @3, @4)
-      `, [ImpuestoInternoTelefoniaImpuesto, ImpuestoInternoTelefoniaDesde, fechaActual, usuario, ip])
+        const ImpuestoInternoTelefoniaHasta: Date = new Date(anio, mes - 1, ImpuestoInternoTelefoniaDesde.getDate() - 1)
+        ImpuestoInternoTelefoniaHasta.setHours(0, 0, 0, 0)
+
+        await queryRunner.query(`
+          UPDATE ImpuestoInternoTelefonia SET
+            ImpuestoInternoTelefoniaHasta = @1,
+            ImpuestoInternoTelefoniaAudFechaMod = @2,
+            ImpuestoInternoTelefoniaAudUsuarioMod = @3,
+            ImpuestoInternoTelefoniaAudIpMod = @4
+          WHERE ImpuestoInternoTelefoniaId IN (@0) AND ImpuestoInternoTelefoniaHasta IS NULL
+        `, [lastImpuesto[0].ImpuestoInternoTelefoniaId, ImpuestoInternoTelefoniaHasta, fechaActual, usuario, ip])
+        await queryRunner.query(`
+          INSERT INTO ImpuestoInternoTelefonia (
+            ImpuestoInternoTelefoniaImpuesto, 
+            ImpuestoInternoTelefoniaDesde,
+            ImpuestoInternoTelefoniaAudFechaIng,
+            ImpuestoInternoTelefoniaAudUsuarioIng,
+            ImpuestoInternoTelefoniaAudIpIng,
+            ImpuestoInternoTelefoniaAudFechaMod,
+            ImpuestoInternoTelefoniaAudUsuarioMod,
+            ImpuestoInternoTelefoniaAudIpMod
+          ) VALUES (@0, @1, @2, @3, @4, @2, @3, @4)
+        `, [ImpuestoInternoTelefoniaImpuesto, ImpuestoInternoTelefoniaDesde, fechaActual, usuario, ip])
+      }
 
       await queryRunner.commitTransaction();
       this.jsonRes({}, res, 'Carga Exitosa');
