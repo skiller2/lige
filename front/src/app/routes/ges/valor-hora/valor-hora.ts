@@ -58,6 +58,7 @@ export class ValorHoraComponent {
   aumentoLoading = false
   aumentoTipo = signal<string>('porcentaje')
   aumentoValor: number = 0
+  recibosGenerados = signal<boolean>(false)
 
   porcentajeFormatter = (value: number): string => `${value} %`
   porcentajeParser = (value: string): number => Number(value.replace(' %', '').replace('%', ''))
@@ -327,7 +328,8 @@ console.log('row a guardar', row)
       const mes = this.periodo().getMonth() + 1
       return this.apiService.getValorHoraData(anio, mes, { options: this.listOptions })
         .pipe(map(data => {
-          const list = data.list
+          this.recibosGenerados.set(!!data?.recibosGenerados)
+          const list = data?.list ?? []
           const newId = list.length + 1
           list.push({
             id: newId,
@@ -360,7 +362,7 @@ console.log('row a guardar', row)
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';
       const item = this.angularGridEdit.dataView.getItem(rowNumber);
-      let meta = {
+      let meta: any = {
         cssClasses: ''
       };
       if (typeof previousItemMetadata === 'object') {
@@ -379,12 +381,25 @@ console.log('row a guardar', row)
       else
         meta.cssClasses = ''
 
+      if (this.recibosGenerados() && item?.ValorLiquidacionDesde) {
+        meta.columns = {
+          ...(meta.columns || {}),
+          ValorLiquidacionHoraNormal: { cssClass: 'cell-disabled' }
+        };
+      }
+
       return meta;
     };
   }
 
   handleOnBeforeEditCell(e: Event) {
     const { column, item, grid } = (<CustomEvent>e).detail.args;
+
+    if (column.id === 'ValorLiquidacionHoraNormal' && this.recibosGenerados()) {
+      e.stopImmediatePropagation();
+      return false;
+    }
+
     const lockedColumns = ['SucursalId', 'TipoAsociadoId', 'CategoriaPersonalId'];
     if (item?.ValorLiquidacionDesde && lockedColumns.includes(column.id)) {
       e.stopImmediatePropagation();

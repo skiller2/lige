@@ -80,6 +80,13 @@ background: white;
 }
 
 
+.cell-disabled {
+  background-color: #f5f5f5 !important;
+  color: #00000040 !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
 .element-add-no-complete1 > .slickgrid-container .grid-canvas .slick-cell.selected {
   background-color: #c1707045 !important;
 }
