@@ -91,10 +91,10 @@ h2. Requerimientos Funcionales
 h2. Requerimientos Tecnicos
 
 * *Controller/Servicio backend*: @NombreController@
-* *Componente Angular*: @nombre-componente.component.ts@
+* *Componente Angular*: @nombre-componente.ts@
 * *Módulo de ruta*: @ges/modulo@
 * *Endpoint*: @GET /api/ruta@ o [A DEFINIR]
-* *Tablas DB*: @NombreTabla@ o [A DEFINIR]
+* *Tablas DB involucradas*: @NombreTabla@ o [A DEFINIR]
 
 h2. Queries / Scripts adjuntos
 

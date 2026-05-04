@@ -114,14 +114,19 @@ Los drawers se implementan con `nz-drawer` de ng-zorro-antd:
 ## Convenciones del proyecto
 
 ### Endpoints
-- Patron: `GET|POST /api/[modulo]/[accion]`
+- Patron general: `GET|POST /api/[modulo]/[accion]`
+- Patron preferido de obtención de listas/tablas: `GET /api/[modulo]/get[Modulo][Subentidad]` (Ej: `getEfectoDeposito`)
 - Autenticacion: JWT via middleware
 - Parametros de lista: `{ options: { filtros, sort } }` via `POST`
 
-### Servicios Angular
+### Servicios Angular y Componentes
+- Nomenclatura preferida para componentes de grillas/tablas: `table-[subentidad]-[modulo].ts` (Ej: `table-deposito-efecto.ts`)
 - HTTP via `ApiService` (`api.service.ts`) o `_HttpClient` de `@delon`
 - Listas reactivas con `BehaviorSubject` + `switchMap`
 - Signals para estado local: `signal()`, `computed()`
+
+### Permisos y Seguridad
+- El permiso de solo consulta o lectura para el área de sistemas se denomina expresamente `gSistemas`.
 
 ### Patrones de log / auditoria
 - Tabla `EventoLog` para registrar acciones sensibles

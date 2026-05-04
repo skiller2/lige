@@ -91,7 +91,9 @@ Si el usuario lo permite o falta calidad en el ticket, sugerir adicionalmente:
 - Cada criterio de aceptacion debe ser testeable.
 - **Respetar estrictamente el alcance solicitado:** No asumir requerimientos ni agregar alcance adicional por iniciativa propia (ej: no asumir refactorizaciones de nombres o rutas si el usuario solo pidió agregar un listado).
 - Separar claramente pedido funcional vs detalle tecnico.
-- Nunca inventar nombres de endpoints, controllers o componentes. Usar los del stack o marcar [A DEFINIR] **solo cuando el usuario no los conozca**.
+- **Nomenclatura de Endpoints y Componentes:** Aplicar los patrones definidos en `stack-context` (ej. `table-[subentidad]-[modulo].ts` para grillas, y `GET /api/[modulo]/get[Modulo][Subentidad]` para endpoints).
+- **Permisos:** Si el permiso es de "solo consulta" para Sistemas, usar explícitamente el término `gSistemas`.
+- Nunca inventar nombres de endpoints, controllers o componentes si no siguen los patrones establecidos. Usar los del stack o marcar [A DEFINIR] **solo cuando el usuario no los conozca**.
 - Los permisos pendientes son dependencias bloqueantes, no notas al pie.
 - Respetar expresamente la indicación del usuario de que ciertos datos (rutas, permisos, etc.) ya están definidos o no son relevantes; no incluir preguntas ni suposiciones al respecto.
 
