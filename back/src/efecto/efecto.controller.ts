@@ -287,11 +287,31 @@ const listaColumnasObjetivos: any[] = [
     type: "date",
     id: "ClienteElementoDependienteContratoFechaHasta",
     field: "ClienteElementoDependienteContratoFechaHasta",
-    fieldName: "eledepcon.ClienteElementoDependienteContratoFechaHasta",
+    fieldName: "ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, '9999-12-31')",
     searchComponent: "inputForFechaSearch",
     sortable: true,
     hidden: false,
     searchHidden: false
+  },
+  {
+    name: "Objetivo Activo",
+    id: "Activo",
+    field: "Activo",
+    fieldName: "ISNULL(eledepcon.Activo,'0')",
+    type: 'string',
+    searchComponent: "inputForActivo",
+
+    sortable: true,
+
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsSINO },
+
+    exportWithFormatter: true,
+    hidden: false,
+    searchHidden: false,
+    minWidth: 70,
+    maxWidth: 70,
+    cssClass: 'text-center'
   },
   {
     id: "EfectoId",
@@ -460,7 +480,7 @@ export class EfectoController extends BaseController {
       LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId and lp.ListaPrecioDesde<= @0 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
       LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
       WHERE  per.PersonalId = @1;
-    `, [now,personalId])
+    `, [now, personalId])
   }
 
   private getEfectoQuery(queryRunner: any, listOptions: any) {
@@ -579,6 +599,7 @@ export class EfectoController extends BaseController {
           suc.SucursalDescripcion, 
           ga.GrupoActividadDetalle, ga.GrupoActividadId,
           ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
+           ISNULL(eledepcon.Activo,0) AS Activo,
         1
     FROM StockReal stk
     JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
