@@ -265,9 +265,9 @@ export class ValorHoraController extends BaseController {
 
       
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
-        throw new ClientException(`Los recibos para este periodo ya se generaron`)
+        throw new ClientException(`No es posible modificar valores de periodos con recibos generados.`)
 
-      //console.log("Aumentando valores: tipo =", tipo, "valor =", valor) 
+      //console.log("Aumentando valores: tipo =", tipo, "valor =", valor)
       if (tipo === 'porcentaje') {
         await queryRunner.query(`
           UPDATE vl SET vl.ValorLiquidacionHoraNormal = ROUND(vl.ValorLiquidacionHoraNormal * (1 + @2 / 100.0), 2)

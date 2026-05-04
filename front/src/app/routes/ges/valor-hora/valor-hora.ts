@@ -58,6 +58,7 @@ export class ValorHoraComponent {
   aumentoLoading = false
   aumentoTipo = signal<string>('porcentaje')
   aumentoValor: number = 0
+  aumentoPeriodo = signal<Date>(new Date())
   recibosGenerados = signal<boolean>(false)
 
   porcentajeFormatter = (value: number): string => `${value} %`
@@ -67,6 +68,7 @@ export class ValorHoraComponent {
   async abrirAumentoModal() {
     this.aumentoTipo.set('porcentaje');
     this.aumentoValor = 0;
+    this.aumentoPeriodo.set(this.periodo());
     this.showAumentoModal = true;
   }
 
@@ -75,8 +77,12 @@ export class ValorHoraComponent {
       this.messageSrv.warning('Ingrese un valor mayor a 0');
       return;
     }
-    const anio = this.periodo().getFullYear();
-    const mes = this.periodo().getMonth() + 1;
+    if (!this.aumentoPeriodo()) {
+      this.messageSrv.warning('Seleccione un período');
+      return;
+    }
+    const anio = this.aumentoPeriodo().getFullYear();
+    const mes = this.aumentoPeriodo().getMonth() + 1;
     this.aumentoLoading = true;
     try {
       await firstValueFrom(this.apiService.aumentarValorHora({ anio, mes, tipo: this.aumentoTipo(), valor: this.aumentoValor }));
