@@ -40,6 +40,14 @@ h3. Subseccion
 @NombreComponente@
 ```
 
+### Bloques de código (Queries SQL, JSON, etc.)
+Debe usarse siempre la etiqueta `<pre>` para que Redmine respete el espaciado y saltos de línea de los bloques grandes de código.
+```
+<pre>
+SELECT * FROM tabla;
+</pre>
+```
+
 ### Checkboxes (criterios / checklist)
 Pendiente:  * [ ] descripcion
 Completado: * [x] descripcion
@@ -61,44 +69,61 @@ Usar siempre este orden al generar el ticket en formato Redmine:
 
 ```
 h2. Contexto / Problema
+
 [contenido]
 
 h2. Objetivo Esperado
+
 [contenido]
 
 h2. Alcance
+
 * [item]
 
 h2. No Alcance
+
 * [item]
 
 h2. Requerimientos Funcionales
+
 * [item]
 
 h2. Requerimientos Tecnicos
+
 * *Controller/Servicio backend*: @NombreController@
 * *Componente Angular*: @nombre-componente.component.ts@
 * *Módulo de ruta*: @ges/modulo@
 * *Endpoint*: @GET /api/ruta@ o [A DEFINIR]
 * *Tablas DB*: @NombreTabla@ o [A DEFINIR]
 
+h2. Queries / Scripts adjuntos
+
+<pre>
+-- [Si el usuario proveyó SQL u otro código, insertarlo aquí]
+</pre>
+
 h2. Datos de Prueba / Casos
+
 |_.Campo|_.Valor|
 |Usuario|[A COMPLETAR]|
 
 h2. Criterios de Aceptacion
+
 * [x] criterio 1
 * [x] criterio 2
 
 h2. Riesgos / Dependencias
+
 * *Dependencia*: [descripcion] [A COMPLETAR / A DEFINIR]
 * *Riesgo*: [descripcion]
 
 h2. Checklist para Desarrollo
+
 * [ ] tarea 1
 * [ ] tarea 2
 
 h2. Notas
+
 * [A COMPLETAR]: [campo pendiente]
 ```
 
