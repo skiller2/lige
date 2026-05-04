@@ -11,7 +11,7 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
-import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
+// import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
 import { ObjetivoHistorialDrawerComponent } from '../objetivo-historial-drawer/objetivo-historial-drawer.component'
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { Selections } from '../../../shared/schemas/filtro';
@@ -27,7 +27,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
   imports: [
     SHARED_IMPORTS,
     CommonModule,
-    ObjetivosFormComponent,
+    // ObjetivosFormComponent,
     FiltroBuilderComponent,
     ObjetivoHistorialDrawerComponent
   ],
@@ -99,9 +99,9 @@ export class ObjetivosComponent {
   )
 
 
-  childAlta = viewChild.required<ObjetivosFormComponent>('objetivoFormAlta')
-  childDeta = viewChild.required<ObjetivosFormComponent>('objetivoFormDeta')
-  childEdit = viewChild.required<ObjetivosFormComponent>('objetivoFormEdit')
+  // childAlta = viewChild.required<ObjetivosFormComponent>('objetivoFormAlta')
+  // childDeta = viewChild.required<ObjetivosFormComponent>('objetivoFormDeta')
+  // childEdit = viewChild.required<ObjetivosFormComponent>('objetivoFormEdit')
 
 
   gridData = resource({
@@ -181,20 +181,20 @@ export class ObjetivosComponent {
   onTabsetChange(_event: any) {
     switch (_event.index) {
       case 4: //INSERT
-        this.childAlta().newRecord()
-        this.childAlta().mostrarDocs.set(false)
+        // this.childAlta().newRecord()
+        // this.childAlta().mostrarDocs.set(false)
         break
       case 3: //DETAIL
-        this.childDeta().viewRecord(true)
-        this.childDeta().mostrarDocs.set(true)
+        // this.childDeta().viewRecord(true)
+        // this.childDeta().mostrarDocs.set(true)
         break;
       case 2: //EDIT
-        this.childEdit().viewRecord(false)
-        this.childEdit().mostrarDocs.set(true)
+        // this.childEdit().viewRecord(false)
+        // this.childEdit().mostrarDocs.set(true)
         break;
       case 1:
-        this.childEdit().mostrarDocs.set(false)
-        this.childDeta().mostrarDocs.set(false)
+        // this.childEdit().mostrarDocs.set(false)
+        // this.childDeta().mostrarDocs.set(false)
         break;
       default:
         break;
