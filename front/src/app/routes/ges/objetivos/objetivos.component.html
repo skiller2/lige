@@ -75,29 +75,28 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/objetivos/editar" >{{ 'app.icon.edit' | i18n }}</a>
-      <app-objetivos-form #objetivoFormEdit
+      <!-- <app-objetivos-form #objetivoFormEdit
         (onAddorUpdate)="handleAddOrUpdate()"
         [ObjetivoId]="editObjetivoId()"
         [ClienteElementoDependienteId]="editClienteElementoDependienteId()"
         [ClienteId]="editClienteId()">
-      </app-objetivos-form>
+      </app-objetivos-form> -->
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/objetivos/detalle" >{{ 'app.detail' | i18n }}</a>
-      <app-objetivos-form #objetivoFormDeta
+      <!-- <app-objetivos-form #objetivoFormDeta
         [ObjetivoId]="editObjetivoId()"
         [ClienteElementoDependienteId]="editClienteElementoDependienteId()"
         [ClienteId]="editClienteId()">
-      </app-objetivos-form>
+      </app-objetivos-form> -->
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/objetivos/alta" >{{ 'app.alta' | i18n }}</a>
-      <app-objetivos-form #objetivoFormAlta
-        (onAddorUpdate)="handleAddOrUpdate()"
-        (pristineChange)="onPristineChange($event)">
-      </app-objetivos-form>
+      <!-- <app-objetivos-form #objetivoFormAlta
+        (onAddorUpdate)="handleAddOrUpdate()">
+      </app-objetivos-form> -->
     </nz-tab>
 
   </nz-tabs>

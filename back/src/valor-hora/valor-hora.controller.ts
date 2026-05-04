@@ -103,10 +103,14 @@ export class ValorHoraController extends BaseController {
         [anio, mes]
       );
 
+      const per = await this.getPeriodoQuery(queryRunner, anio, mes)
+      const recibosGenerados = Number(per?.[0]?.ind_recibos_generados ?? 0) === 1;
+
       this.jsonRes(
         {
           total: data.length,
           list: data,
+          recibosGenerados,
         },
         res
       );
@@ -115,6 +119,14 @@ export class ValorHoraController extends BaseController {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async getPeriodoQuery(queryRunner: any, anio: number, mes: number) {
+    return await queryRunner.query(`
+      SELECT periodo_id, anio, mes, ind_recibos_generados
+      FROM lige.dbo.liqmaperiodo
+      WHERE anio = @0 AND mes = @1
+    `, [anio, mes])
   }
 
   async changecellvalorHora(req: Request, res: Response, next: NextFunction) {

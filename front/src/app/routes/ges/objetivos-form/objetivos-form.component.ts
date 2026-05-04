@@ -16,6 +16,60 @@ import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.co
 import { Router } from '@angular/router';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { TableObjetivoDocumentoComponent } from '../../../routes/ges/table-objetivo-documentos/table-objetivo-documentos';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
+
+export interface CoordinadorCuenta {
+  ObjetivoId: number,
+  PersonalId: number,
+  ObjetivoPersonalJerarquicoId: number,
+  ObjetivoPersonalJerarquicoComision: number, 
+  ObjetivoPersonalJerarquicoDescuentos: boolean,
+  ObjetivoPersonalJerarquicoSeDescuentaTelefono: boolean,
+  DescuentoRetiros: boolean,
+}
+
+export interface Actividad {
+  GrupoActividadObjetivoId: number,
+  GrupoActividadId: number,
+  GrupoActividadOriginal: number,
+  GrupoActividadObjetivoDesde: Date | null,
+  GrupoActividadObjetivoDesdeOriginal: string
+}
+
+export interface Objetivo {
+  id: number,
+  ClienteId: number,
+  clienteOld: number,
+  ClienteElementoDependienteId: number,
+  ObjetivoId: number,
+  Descripcion: string,
+  SucursalId: number,
+  CoberturaServicio: string,
+  ContratoFechaDesde: string,
+  ContratoFechaHasta: string,
+  ContratoId: number,
+  ClienteElementoDependienteContratoUltNro: number,
+  RubroUltNro: number,
+  DomicilioId: number, DomicilioDomCalle: string,
+  DomicilioFulllAdress: string,
+  DomicilioDomNro: number, DomicilioCodigoPostal: number, DomicilioDomLugar: string,
+  DomicilioProvinciaId: number, DomicilioLocalidadId: number, DomicilioBarrioId: number,
+  infoCoordinadorCuenta: CoordinadorCuenta[], 
+  rubrosCliente: any[],  
+  docsRequerido: any[],
+  infoActividad: Actividad[], 
+  estado: number,
+  files: any[],
+  codigo: string,
+  DireccionModificada: boolean,
+  FechaModificada: boolean,
+  ContratoFechaDesdeOLD: string,
+  ContratoFechaHastaOLD: string,
+  GrupoActividadId: number,
+  habilitacion: any[],
+  GrupoActividadJerarquicoPersonalId: number,
+}
 
 @Component({
     selector: 'app-objetivos-form',
@@ -34,7 +88,8 @@ import { TableObjetivoDocumentoComponent } from '../../../routes/ges/table-objet
         GrupoActividadSearchComponent,
         NzCheckboxModule,
         DetallePersonaComponent,
-        TableObjetivoDocumentoComponent
+        TableObjetivoDocumentoComponent,
+        FormField
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -46,23 +101,23 @@ export class ObjetivosFormComponent {
   periodo = signal({ year: 0, month: 0 })
 //  visibleDrawer: boolean = false
 
-  objCoordinadorCuenta = { 
-    ObjetivoId:0,
-    PersonalId:0,
-    ObjetivoPersonalJerarquicoId:0,
-    ObjetivoPersonalJerarquicoComision: 0, 
-    ObjetivoPersonalJerarquicoDescuentos:false,
-    ObjetivoPersonalJerarquicoSeDescuentaTelefono:false,
-    DescuentoRetiros:false,
-  }
+  // objCoordinadorCuenta = { 
+  //   ObjetivoId:0,
+  //   PersonalId:0,
+  //   ObjetivoPersonalJerarquicoId:0,
+  //   ObjetivoPersonalJerarquicoComision: 0, 
+  //   ObjetivoPersonalJerarquicoDescuentos:false,
+  //   ObjetivoPersonalJerarquicoSeDescuentaTelefono:false,
+  //   DescuentoRetiros:false,
+  // }
 
-  objActividad = {
-    GrupoActividadObjetivoId:0,
-    GrupoActividadId:0,
-    GrupoActividadOriginal:0,
-    GrupoActividadObjetivoDesde:new Date(),
-    GrupoActividadObjetivoDesdeOriginal: ''
-  }
+  // objActividad = {
+  //   GrupoActividadObjetivoId:0,
+  //   GrupoActividadId:0,
+  //   GrupoActividadOriginal:0,
+  //   GrupoActividadObjetivoDesde:new Date(),
+  //   GrupoActividadObjetivoDesdeOriginal: ''
+  // }
   ObjetivoId = input(0)
   ClienteId = input(0)
   ClienteElementoDependienteId = input(0)
@@ -73,15 +128,29 @@ export class ObjetivosFormComponent {
   files = []
   pristineChange = output<boolean>()
   mostrarDocs = model<boolean>(false)
+  readonly = input<boolean>(false)
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private injector = inject(Injector)
   private router = inject(Router);
-
-
-  fb = inject(FormBuilder)
-  formObj = this.fb.group({
+  private readonly coordinadorCuentaDefault: CoordinadorCuenta = { 
+    ObjetivoId:0,
+    PersonalId:0,
+    ObjetivoPersonalJerarquicoId:0,
+    ObjetivoPersonalJerarquicoComision: 0, 
+    ObjetivoPersonalJerarquicoDescuentos: false,
+    ObjetivoPersonalJerarquicoSeDescuentaTelefono: false,
+    DescuentoRetiros: false,
+  }
+  private readonly actividadDefault: Actividad = { 
+    GrupoActividadObjetivoId: 0,
+    GrupoActividadId: 0,
+    GrupoActividadOriginal: 0,
+    GrupoActividadObjetivoDesde: new Date(),
+    GrupoActividadObjetivoDesdeOriginal: ''
+  }
+  private readonly objetivoDefault: Objetivo = { 
     id: 0,
     ClienteId: 0,
     clienteOld: 0,
@@ -97,47 +166,26 @@ export class ObjetivosFormComponent {
     RubroUltNro:0,
     DomicilioId:0,DomicilioDomCalle: "",
     DomicilioFulllAdress:"",
-    DomicilioDomNro:0, DomicilioCodigoPostal: 0,DomicilioDomLugar:null,
-    DomicilioProvinciaId: null,DomicilioLocalidadId: null, DomicilioBarrioId: null,
-    infoCoordinadorCuenta: this.fb.array([this.fb.group({ ...this.objCoordinadorCuenta })]), 
+    DomicilioDomNro:0, DomicilioCodigoPostal: 0, DomicilioDomLugar: '',
+    DomicilioProvinciaId: 0,DomicilioLocalidadId: 0, DomicilioBarrioId: 0,
+    infoCoordinadorCuenta: [structuredClone(this.coordinadorCuentaDefault)], 
     rubrosCliente: [],  
     docsRequerido: [],
-    infoActividad: this.fb.array([this.fb.group({ ...this.objActividad })]), 
+    infoActividad: [structuredClone(this.actividadDefault)], 
     estado: 0,
-    files:[],
+    files: [],
     codigo: "",
     DireccionModificada: false,
     FechaModificada: false,
-    ContratoFechaDesdeOLD:"",
-    ContratoFechaHastaOLD:"",
-    GrupoActividadId:0,
+    ContratoFechaDesdeOLD: "",
+    ContratoFechaHastaOLD: "",
+    GrupoActividadId: 0,
     habilitacion: [],
-    GrupoActividadJerarquicoPersonalId:0,
-  })
-
-  clienteIdForm():number {
-    const value = this.formObj.get("ClienteId")?.value
-    if (value) {
-      return value
-    }
-    return 0
+    GrupoActividadJerarquicoPersonalId: 0,
   }
 
-  clienteElementoDependienteIdForm():number {
-    const value = this.formObj.get("ClienteElementoDependienteId")?.value
-    if (value) {
-      return value
-    }
-    return 0
-  }
-
-  idForm():number {
-    const value = this.formObj.get("id")?.value
-    if (value) {
-      return value
-    }
-    return 0
-  }
+  readonly objetivo = signal<Objetivo>(this.objetivoDefault);
+  readonly formObjetivo = form(this.objetivo)
 
   childDocsGrid = viewChild.required<TableObjetivoDocumentoComponent>('docsGrid')
  
@@ -161,48 +209,43 @@ export class ObjetivosFormComponent {
 
   async ngOnInit() {
 
-    this.formObj.statusChanges.subscribe(() => {
-      this.checkPristine();
-   });
+  //   this.formObj.statusChanges.subscribe(() => {
+  //     this.checkPristine();
+  //  });
 
   }
 
   checkPristine() {
-    this.pristineChange.emit(this.formObj.pristine);
+    // this.pristineChange.emit(this.formObj.pristine);
   }
 
   resetForm() {
-    this.formObj.reset()
-    this.infoCoordinadorCuenta().clear()
-    this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-    this.formObj.markAsPristine()
+    this.formObjetivo().reset()
+    // this.infoCoordinadorCuenta().clear()
+    // this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+    // this.formObj.markAsPristine()
   }
 
   async newRecord() {
-    if (this.formObj.pristine) {
+    if (!this.formObjetivo().dirty()) {
     
-      this.formObj.enable()
-      this.formObj.get('codigo')?.disable()
-      this.formObj.reset()
-      this.infoCoordinadorCuenta().clear()
-      this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-      this.formObj.markAsPristine()
+      this.formObjetivo().reset()
     }
   }
 
   async viewRecord(readonly:boolean) {
       if (this.ObjetivoId()) 
         await this.load()
-      if (readonly){
-        this.formObj.disable()
-        this.formObj.get('GrupoActividadId')?.disable()
-        this.formObj.get('DocumentoTipoCodigo')?.disable()
-      }else{
-        this.formObj.enable()
-      }
+      // if (readonly){
+      //   this.formObj.disable()
+      //   this.formObj.get('GrupoActividadId')?.disable()
+      //   this.formObj.get('DocumentoTipoCodigo')?.disable()
+      // }else{
+      //   this.formObj.enable()
+      // }
         
-      this.formObj.get('codigo')?.disable()
-      this.formObj.markAsPristine()        
+      // this.formObj.get('codigo')?.disable()
+      // this.formObj.markAsPristine()        
 
    }
 
@@ -213,145 +256,175 @@ export class ObjetivosFormComponent {
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
     // console.log('infoObjetivo: ', infoObjetivo);
     
-    this.infoCoordinadorCuenta().clear()
-    this.infoActividad().clear()
+    // this.infoCoordinadorCuenta().clear()
+    // this.infoActividad().clear()
     
-    infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
-      this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-    });
+    // infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
+    //   this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+    // });
 
-    if(infoObjetivo.infoCoordinadorCuenta.length == 0){
-      this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
+    // if(infoObjetivo.infoCoordinadorCuenta.length == 0){
+    //   this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
      
-    }  
+    // }  
 
-    infoObjetivo?.infoActividad.forEach((obj: any) => {
-      this.infoActividad().push(this.fb.group({ ...this.objActividad }))
-    });
+    // infoObjetivo?.infoActividad.forEach((obj: any) => {
+    //   this.infoActividad().push(this.fb.group({ ...this.objActividad }))
+    // });
     
-    if(infoObjetivo.infoActividad.length == 0){
-      this.infoActividad().push(this.fb.group({ ...this.objActividad }))
-    }
+    // if(infoObjetivo.infoActividad.length == 0){
+    //   this.infoActividad().push(this.fb.group({ ...this.objActividad }))
+    // }
     
-    if (this.formObj.disabled){
-      this.infoCoordinadorCuenta().disable()
-      this.infoActividad().disable()
-    }else {
-      this.infoCoordinadorCuenta().enable()
-      this.infoActividad().disable()
-    }
+    // if (this.formObj.disabled){
+    //   this.infoCoordinadorCuenta().disable()
+    //   this.infoActividad().disable()
+    // }else {
+    //   this.infoCoordinadorCuenta().enable()
+    //   this.infoActividad().disable()
+    // }
 
-    this.formObj.reset(infoObjetivo)
-    this.formObj.patchValue({
+    this.formObjetivo().reset(infoObjetivo)
+    this.objetivo.update(m => ({
+      ...m,
       DireccionModificada:false,
       FechaModificada:false,
       ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
       ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
       codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
       GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
-      clienteOld:this.ClienteId(),
+      clienteOld: this.ClienteId(),
       GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
-    });
+    }));
+    // this.formObj.patchValue({
+    //   DireccionModificada:false,
+    //   FechaModificada:false,
+    //   ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
+    //   ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
+    //   codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
+    //   GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
+    //   clienteOld: this.ClienteId(),
+    //   GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
+    // });
 
 
-    this.formObj.get('codigo')?.disable()
-    //this.formObj.get('ClienteId')?.disable();
-    this.formObj.get('GrupoActividadId')?.disable()
-    this.formObj.get('DocumentoTipoCodigo')?.disable()
-    //this.formObj.reset(infoObjetivo)
+    // this.formObj.get('codigo')?.disable()
+    // //this.formObj.get('ClienteId')?.disable();
+    // this.formObj.get('GrupoActividadId')?.disable()
+    // this.formObj.get('DocumentoTipoCodigo')?.disable()
+    // // this.formObj.reset(infoObjetivo)
   }
 
 
 
 
   async save() {
-    this.isLoading.set(true)
-    let form = this.formObj.getRawValue();
-    try {
-        if (this.idForm()) {
-          let CordinadorCuenta = form.infoCoordinadorCuenta
-          // este es para cuando es update
+    await submit(this.formObjetivo, async (form) => {
+      this.isLoading.set(true)
+      let value = form().value();
+      try {
+          if (value.id) {
+            let CordinadorCuenta = value.infoCoordinadorCuenta
+            // este es para cuando es update
 
-          if( CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonalId) === '')
-            form.infoCoordinadorCuenta = []   
+            if( CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonalId) === '')
+              value.infoCoordinadorCuenta = []   
+            
+
+            let result = await firstValueFrom(this.apiService.updateObjetivo(value, this.objetivo().id))
+            //this.formObj.reset(result.data)
+            //console.log("result ", result)
+            this.objetivo.update(m => ({
+              ...m,
+              infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
+              infoActividad: result.data.infoActividad,
+              codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
+              clienteOld: result.data.ClienteId,
+              DomicilioId: result.data.DomicilioId
+            }));
+            // this.formObj.patchValue({
+            //   infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
+            //   infoActividad: result.data.infoActividad,
+            //   codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
+            //   clienteOld: result.data.ClienteId,
+            //   DomicilioId: result.data.DomicilioId
+            // });
           
+            //this.edit.set(false)
 
-          let result = await firstValueFrom(this.apiService.updateObjetivo(form, this.idForm()))
-          //this.formObj.reset(result.data)
-          //console.log("result ", result)
-          this.formObj.patchValue({
-            infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
-            infoActividad: result.data.infoActividad,
-            codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
-            clienteOld: result.data.ClienteId,
-            DomicilioId: result.data.DomicilioId
-          });
-        
-          //this.edit.set(false)
+          } else {
 
-        } else {
+            // este es para cuando es un nuevo registro
 
-          // este es para cuando es un nuevo registro
+            let result = await firstValueFrom(this.apiService.addObjetivo(value))
+            const infoObjetivo = result.data
+            // this.formObj.get('ClienteId')?.disable();
 
-          let result = await firstValueFrom(this.apiService.addObjetivo(form))
-          const infoObjetivo = result.data
-          this.formObj.get('ClienteId')?.disable();
+            this.objetivo.update(m => ({
+              ...infoObjetivo,
+              DireccionModificada:false,
+              FechaModificada:false,
+              ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
+              ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
+              codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
+              GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
+              clienteOld: infoObjetivo.ClienteId,
+              GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
+            }));
 
-          this.formObj.reset(infoObjetivo)
-          this.formObj.patchValue({
-            DireccionModificada:false,
-            FechaModificada:false,
-            ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
-            ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
-            codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
-            GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
-            clienteOld: infoObjetivo.ClienteId,
-            GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
-          });
+            // this.formObj.reset(infoObjetivo)
+            // this.formObj.patchValue({
+            //   DireccionModificada:false,
+            //   FechaModificada:false,
+            //   ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
+            //   ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
+            //   codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
+            //   GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
+            //   clienteOld: infoObjetivo.ClienteId,
+            //   GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
+            // });
+            
+            //this.addNew.set(true)
+            this.mostrarDocs.set(true)
+          }
+
+          if (this.mostrarDocs()) {
+            this.childDocsGrid().refreshGrid()
+          }
+
+          this.onAddorUpdate.emit()
+      } catch (e) {
           
-          //this.addNew.set(true)
-          this.mostrarDocs.set(true)
-        }
-
-        if (this.mostrarDocs()) {
-          this.childDocsGrid().refreshGrid()
-        }
-
-        this.onAddorUpdate.emit()
-        this.formObj.markAsUntouched()
-        this.formObj.markAsPristine()
-    } catch (e) {
-        
-    }
-    this.isLoading.set(false)
+      }
+      this.isLoading.set(false)
+  })
 }
 
-  infoCoordinadorCuenta(): FormArray {
-    return this.formObj.get("infoCoordinadorCuenta") as FormArray
-  }
-
-  infoActividad(): FormArray {
-    return this.formObj.get("infoActividad") as FormArray
-  }
-
   addCoordinadorCuenta(e?: MouseEvent): void {
-
     e?.preventDefault();
-    this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-    
+
+    const newEstudio = structuredClone(this.coordinadorCuentaDefault)
+
+    this.objetivo.update(m => ({
+      ...m,
+      infoCoordinadorCuenta: [...m.infoCoordinadorCuenta, newEstudio],
+    }));
   }
 
   removeCordinadorCuenta(index: number, e: MouseEvent): void {
-   
     e.preventDefault();
-    if (this.infoCoordinadorCuenta().length > 1 ) {
-      this.infoCoordinadorCuenta().removeAt(index)
+    this.objetivo.update(m => ({
+      ...m,
+      infoCoordinadorCuenta: m.infoCoordinadorCuenta.filter((_, i) => i !== index),
+    }));
+
+    if (this.objetivo().infoCoordinadorCuenta.length == 0) {
+      this.addCoordinadorCuenta(undefined)
     }
-    this.formObj.markAsDirty();
   }
 
   async deleteObjetivo() {
-    const form = this.formObj.value
+    const form = this.formObjetivo().value()
     try {
       await firstValueFrom(this.apiService.deleteObjetivos(form));
       this.onAddorUpdate.emit();
