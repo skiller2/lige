@@ -296,6 +296,16 @@ const columns: any[] = [
     searchHidden: true,
     showGridColumn: false
   },
+  {
+    name: "Identificador Bot",
+    type: "string",
+    id: "telefono",
+    field: "telefono",
+    fieldName: "rt.telefono",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
 ]
 
 
@@ -634,31 +644,32 @@ export class PersonalController extends BaseController {
   private async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
     return await queryRunner.query(`
     
-    SELECT
+      SELECT
         CONCAT(per.PersonalId,'-',sitrev.PersonalSituacionRevistaSituacionId) id,
         per.PersonalId,
         cuit.PersonalCUITCUILCUIT,
-            CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-            per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
+        CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+        per.PersonalNroLegajo, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
         sitrev.PersonalSituacionRevistaSituacionId,
-            sitrev.SituacionRevistaDescripcion,
-            sitrev.PersonalSituacionRevistaDesde,
+        sitrev.SituacionRevistaDescripcion,
+        sitrev.PersonalSituacionRevistaDesde,
         sitrev.sitRevCom,
-            ga.GrupoActividadNumero, ga.GrupoActividadId,
+        ga.GrupoActividadNumero, ga.GrupoActividadId,
         ga.GrupoActividadDetalle,
-            ing.PersonalFechaIngreso, ing.PersonalFechaBaja, 
-            tels.Telefonos,
-            peredad.PersonalEdad,
+        ing.PersonalFechaIngreso, ing.PersonalFechaBaja, 
+        tels.Telefonos,
+        peredad.PersonalEdad,
         perdom.domCompleto,
         perdom.domCalleNro,
         perdom.DomicilioCodigoPostal, perdom.DomicilioPaisId, perdom.DomicilioProvinciaId,perdom.DomicilioLocalidadId,perdom.DomicilioBarrioId,
         percat.PersonalCategoriaCom,percat.CategoriaCod,
         TRIM(email.PersonalEmailEmail) AS PersonalEmailEmail,
-        per.PersonalFechaNacimiento
+        per.PersonalFechaNacimiento,
+        rt.telefono
 
-        FROM Personal per
-        LEFT JOIN (
-          SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
+      FROM Personal per
+      LEFT JOIN (
+        SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
 		  CASE 
 				WHEN p.PersonalSituacionRevistaId IS NOT NULL THEN  
 					CONCAT(TRIM(s.SituacionRevistaDescripcion), ' (Desde: ', 
@@ -713,7 +724,7 @@ export class PersonalController extends BaseController {
           END AS PersonalEdad
           FROM Personal per ) as peredad on  peredad.PersonalId=per.PersonalId
 
-		Left join (Select  (TRIM(dom.DomicilioDomCalle) + ' '+ TRIM(dom.DomicilioDomNro)) domCalleNro, per.PersonalId, 
+		LEFT JOIN (Select  (TRIM(dom.DomicilioDomCalle) + ' '+ TRIM(dom.DomicilioDomNro)) domCalleNro, per.PersonalId, 
 								
 								CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')),NULLIF(CONCAT('C', TRIM(dom.DomicilioCodigoPostal)), 'C'),
 								NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domCompleto
@@ -736,8 +747,8 @@ export class PersonalController extends BaseController {
 					WHERE  percat.PersonalCategoriaDesde<=GETDATE() AND ISNULL(percat.PersonalCategoriaHasta,'9999-12-31')>=GETDATE()
 					GROUP BY per.PersonalId
 					) AS percat on percat.PersonalId= per.PersonalId
-		Left join PersonalEmail email on email.PersonalId=per.PersonalId and email.PersonalEmailInactivo=0
-
+		LEFT JOIN PersonalEmail email on email.PersonalId=per.PersonalId and email.PersonalEmailInactivo=0
+    LEFT JOIN BotRegTelefonoPersonal rt ON rt.PersonalId = per.PersonalId
         WHERE (1=1)
         AND (${filterSql})
         ${orderBy}`)
