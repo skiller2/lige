@@ -574,7 +574,7 @@ export class CustodiaController extends BaseController {
         const HorasTrabajadas = infoPersonal.HorasTrabajadas ? infoPersonal.HorasTrabajadas : null
         const ImporteSumaFija = infoPersonal.ImporteSumaFija ? infoPersonal.ImporteSumaFija : null
         const fechaActual = new Date()
-        
+
         //NEW TABLE
         return await queryRunner.query(`
             INSERT PersonalCustodia(
@@ -675,11 +675,11 @@ export class CustodiaController extends BaseController {
     }
 
 
-    getPreviousMonthYear(year: number,month: number): { year: number,month: number } {
+    getPreviousMonthYear(year: number, month: number): { year: number, month: number } {
         if (month === 1) {
             return { year: year - 1, month: 12 };
         } else {
-            return { year: year, month: month - 1  };
+            return { year: year, month: month - 1 };
         }
     }
 
@@ -747,8 +747,8 @@ export class CustodiaController extends BaseController {
                 AudFechaMod = @22
             WHERE CustodiaCodigo = @0`,
             [CustodiaCodigo, ClienteId, DescripcionRequirente, Descripcion, FechaInicio, Origen, FechaFin, Destino,
-            CantidadModulos, ImporteModulo, CantidadHorasExcedente, ImporteHorasExcedente, CantidadKmExcedente, ImporteKmExcedente,
-            ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo, FechaLiquidacion, usuario, ip, fechaActual]
+                CantidadModulos, ImporteModulo, CantidadHorasExcedente, ImporteHorasExcedente, CantidadKmExcedente, ImporteKmExcedente,
+                ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo, FechaLiquidacion, usuario, ip, fechaActual]
         )
     }
 
@@ -783,7 +783,7 @@ export class CustodiaController extends BaseController {
         const ImporteVehiculo = infoVehiculo.ImporteVehiculo ? infoVehiculo.ImporteVehiculo : null
         const PeajeVehiculo = infoVehiculo.PeajeVehiculo ? infoVehiculo.PeajeVehiculo : null
         const fechaActual = new Date()
-        
+
         //NEW TABLE
         return await queryRunner.query(`
             UPDATE VehiculoCustodia
@@ -798,7 +798,7 @@ export class CustodiaController extends BaseController {
             WHERE CustodiaCodigo = @0`,
             [CustodiaCodigo, Patente, PersonalId, ImporteVehiculo, PeajeVehiculo, usuario, ip, fechaActual]
         )
-        
+
     }
 
     async getObjetivoCustodiaQuery(queryRunner: any, CustodiaCodigo: any) {
@@ -852,7 +852,7 @@ export class CustodiaController extends BaseController {
         INNER JOIN Personal per 
             ON per.PersonalId = reg.PersonalId
         WHERE reg.CustodiaCodigo = @0`,
-                    [CustodiaCodigo])
+            [CustodiaCodigo])
     }
 
     async getRegVehiculoObjCustodiaQuery(queryRunner: any, CustodiaCodigo: any) {
@@ -884,7 +884,7 @@ export class CustodiaController extends BaseController {
         return await queryRunner.query(`
         DELETE FROM VehiculoCustodia
         WHERE CustodiaCodigo = @0 AND Patente = @1`,
-        [custodiaId, patente])
+            [custodiaId, patente])
 
     }
 
@@ -913,10 +913,10 @@ export class CustodiaController extends BaseController {
         if (categoria.length == 0)
             errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene categoría de custodia vigente al ${this.dateOutputFormat(fechaDesde)}`)
 
-        if (categoria.length > 1)  
+        if (categoria.length > 1)
             errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) posee mas de una categoría vigente al ${this.dateOutputFormat(fechaDesde)}`)
 
-        if (categoria.length ==1 && !(Number(categoria[0].ValorLiquidacionHoraNormal)>0))
+        if (categoria.length == 1 && !(Number(categoria[0].ValorLiquidacionHoraNormal) > 0))
             errores.push(`${sitrev[0].ApellidoNombre} (${PersonalId}) no tiene cargado importe en la categoria ${categoria[0].CategoriaPersonalDescripcion} vigente al ${this.dateOutputFormat(fechaDesde)}`)
 
         const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
@@ -1098,7 +1098,7 @@ export class CustodiaController extends BaseController {
             const orderBy = orderToSQL(options.sort)
 
             let result: any
-            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas')|| await this.hasGroup(req, 'Administrativo')) {
+            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas') || await this.hasGroup(req, 'Administrativo')) {
                 result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo)
             } else {
                 result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo, ResponsableId)
@@ -1106,7 +1106,7 @@ export class CustodiaController extends BaseController {
 
             let list = result.map((obj: any) => {
                 return {
-                    ... obj,
+                    ...obj,
                     Responsable: { id: obj.ResponsableId, fullName: obj.Responsable },
                     Cliente: { id: obj.ClienteId, fullName: obj.Cliente },
                     FechaFin: obj.FechaFin ? obj.FechaFin : null,
@@ -1342,7 +1342,7 @@ export class CustodiaController extends BaseController {
                 }
         */
         if (this.valByEstado(custodiaForm.EstadoCodigo)) {
-            if ((!custodiaForm.ImporteFactura && custodiaForm.EstadoCodigo!= 5) || !custodiaForm.FechaFin || !custodiaForm.Destino) {
+            if ((!custodiaForm.ImporteFactura && custodiaForm.EstadoCodigo != 5) || !custodiaForm.FechaFin || !custodiaForm.Destino) {
                 errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
             }
             if (custodiaForm.EstadoCodigo == 4 && !custodiaForm.NumeroFactura) {
@@ -1431,7 +1431,7 @@ export class CustodiaController extends BaseController {
         try {
             await queryRunner.startTransaction()
             const { value } = req.body;
-            
+
             //NEW TABLE
             const list = await queryRunner.query(`
                 SELECT DISTINCT obj.DescripcionRequirente fullName
@@ -1466,6 +1466,7 @@ export class CustodiaController extends BaseController {
 
                 const authEditAdmin: boolean = await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Administrativo')
                 const adminEdit: boolean = await this.hasGroup(req, 'administrativo')
+                const fullEdit: boolean = await this.hasGroup(req, 'gSistemas')
 
                 if (EstadoCodigo == 4 && !adminEdit)
                     throw new ClientException(`Requiere ser miembro del grupo Administrativo`)
@@ -1489,8 +1490,10 @@ export class CustodiaController extends BaseController {
                     }
                     //Validaciones
                     if (infoCustodia.EstadoCodigo == 4 && EstadoCodigo != infoCustodia.EstadoCodigo) {
-                        errores.push(`Codigo ${id}: No se puede modificar el estado.`)
-                        continue
+                        if (!fullEdit) {
+                            errores.push(`Codigo ${id}: No se puede modificar el estado.`)
+                            continue
+                        }
                     }
 
                     let msgError: string = ''
@@ -1523,7 +1526,7 @@ export class CustodiaController extends BaseController {
                         errores.push(`Codigo ${id}: ${valCustodiaForm.messageArr}`)
                         continue
                     }
-                    
+
                     await this.updateObjetivoCustodiaQuery(queryRunner, infoCustodia, usuario, ip)
                 }
 
