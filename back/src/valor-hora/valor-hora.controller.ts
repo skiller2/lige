@@ -42,6 +42,7 @@ export class ValorHoraController extends BaseController {
       searchHidden: false,
       hidden: false,
       searchType: "number",
+      searchComponent: "inputForTipoAsociadoSearch",
     },
     {
       name: "Categoría",
