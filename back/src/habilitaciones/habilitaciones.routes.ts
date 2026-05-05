@@ -16,6 +16,14 @@ habilitacionesRouter.get("/doc-cols", [authMiddleware.verifyToken], (req, res, n
   habilitacionesController.getGridDocCols(req, res, next);
 });
 
+habilitacionesRouter.get("/listado-cols", [authMiddleware.verifyToken], (req, res, next) => {
+  habilitacionesController.getGridListadoCols(req, res, next);
+});
+
+habilitacionesRouter.post('/listado', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon', 'gSistemas'])], (req, res, next) => {
+  habilitacionesController.listado(req, res, next)
+})
+
 habilitacionesRouter.get("/estados/options", [authMiddleware.verifyToken], (req, res, next) => {
   habilitacionesController.getEstadosHabilitaciones(req, res, next);
 });

@@ -365,6 +365,170 @@ const GridDetalleColums: any[] = [
     },
 ]
 
+const GridListadoColums: any[] = [
+    {
+        id: "id",
+        name: "id",
+        field: "id",
+        fieldName: "id",
+        type: "number",
+        sortable: false,
+        hidden: true,
+        searchHidden: true
+    },
+    {
+        name: "Apellido Nombre",
+        type: "number",
+        id: "PersonalId",
+        field: "PersonalId",
+        fieldName: "per.PersonalId",
+        searchComponent: "inputForPersonalSearch",
+        sortable: false,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Apellido Nombre",
+        type: "string",
+        id: "ApellidoNombre",
+        field: "ApellidoNombre",
+        fieldName: "ApellidoNombre",
+        sortable: true,
+        hidden: false,
+        searchHidden: true,
+    },
+    {
+        name: "Sucursal Persona",
+        type: "string",
+        id: "SucursalDescripcion",
+        field: "SucursalDescripcion",
+        fieldName: "suc.SucursalId",
+        searchComponent: "inputForSucursalSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Situacion Revista",
+        type: "number",
+        id: "SituacionRevistaId",
+        field: "SituacionRevistaId",
+        fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+        searchComponent: "inputForSituacionRevistaSearch",
+        searchType: "number",
+        sortable: true,
+        searchHidden: false,
+        hidden: true,
+    },
+    {
+        name: "Situación Revista",
+        type: "string",
+        id: "SituacionRevistaDescripcion",
+        field: "SituacionRevistaDescripcion",
+        fieldName: "sit.SituacionRevistaDescripcion",
+        sortable: true,
+        hidden: false,
+        searchHidden: true,
+    },
+    {
+        name: "Fecha Situación Revista",
+        type: "date",
+        id: "PersonalSituacionRevistaDesde",
+        field: "PersonalSituacionRevistaDesde",
+        fieldName: "sitrev.PersonalSituacionRevistaDesde",
+        searchComponent: "inputForFechaSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Grupo Actividad",
+        type: "string",
+        id: "GrupoActividadDetalle",
+        field: "GrupoActividadDetalle",
+        fieldName: "ga.GrupoActividadDetalle",
+        sortable: true,
+        searchHidden: true
+    },
+    {
+        name: "Grupo Actividad",
+        type: "number",
+        id: "GrupoActividadId",
+        field: "GrupoActividadId",
+        fieldName: "ga.GrupoActividadId",
+        searchComponent: 'inputForGrupoActividadSearch',
+        sortable: false,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Habilitacion Necesaria",
+        type: "string",
+        id: "HabNecesaria",
+        field: "HabNecesaria",
+        fieldName: "IIF(c.PersonalId IS NULL,'0','1')",
+        formatter: 'collectionFormatter',
+        params: { collection: getHabNecesariaOptions, },
+        sortable: true,
+        hidden: false,
+        searchComponent: "inputForActivo",
+    },
+    {
+        name: "Lugar Habilitación",
+        type: "number",
+        id: "LugarHabilitacionId",
+        field: "LugarHabilitacionId",
+        fieldName: "vishab.LugarHabilitacionId",
+        searchComponent: "inputForLugarHabilitacionSearch",
+        searchType: "number",
+        sortable: true,
+        hidden: true,
+        searchHidden: false
+    },
+    {
+        name: "Lugar Habilitación",
+        type: "string",
+        id: "LugarHabilitacionDescripcion",
+        field: "LugarHabilitacionDescripcion",
+        fieldName: "d.LugarHabilitacionDescripcion",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
+    },
+    {
+        name: "Estado",
+        type: "string",
+        id: "Estado",
+        field: "Estado",
+        fieldName: "est.Detalle",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
+    },
+    {
+        name: "Gestión Estado",
+        type: "string",
+        id: "GestionHabilitacionEstado",
+        field: "GestionHabilitacionEstado",
+        fieldName: "IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle)",
+        sortable: true,
+        hidden: false,
+        searchHidden: true
+    },
+    {
+        name: "Días Faltantes Vencimiento",
+        type: "number",
+        id: "DiasFaltantesVencimiento",
+        field: "DiasFaltantesVencimiento",
+        fieldName: "CASE WHEN hab.PersonalHabilitacionHasta >= @0 THEN DATEDIFF(DAY, @0, hab.PersonalHabilitacionHasta) ELSE 0 END",
+        sortable: true,
+        hidden: false,
+        searchHidden: false,
+        searchType: "numberAdvanced",
+        searchComponent: "inputForNumberAdvancedSearch",
+    },
+];
+
 const GridDocColums: any[] = [
     {
         name: "DocumentoId",
@@ -443,6 +607,121 @@ export class HabilitacionesController extends BaseController {
 
     async getGridDocCols(req, res, next) {
         this.jsonRes(GridDocColums, res);
+    }
+
+    async getGridListadoCols(req, res, next) {
+        this.jsonRes(GridListadoColums, res, next);
+    }
+
+    async listadoQuery(queryRunner: any, periodo: any, filterSql: any, orderBy: any) {
+        periodo.setHours(0, 0, 0, 0)
+        return await queryRunner.query(`
+        WITH
+        vishab AS (
+            SELECT PersonalId, PersonalHabilitacionLugarHabilitacionId AS LugarHabilitacionId
+            FROM PersonalHabilitacion
+            WHERE PersonalHabilitacionDesde <= @0
+              AND ISNULL(PersonalHabilitacionHasta, '9999-12-31') >= @0
+            UNION
+            SELECT PersonalId, PersonalHabilitacionNecesariaLugarHabilitacionId
+            FROM PersonalHabilitacionNecesaria
+        ),
+        hab_activa AS (
+            SELECT
+                PersonalId,
+                PersonalHabilitacionLugarHabilitacionId AS LugarHabilitacionId,
+                PersonalHabilitacionId,
+                GestionHabilitacionCodigoUlt,
+                PersonalHabilitacionHasta,
+                ROW_NUMBER() OVER (
+                    PARTITION BY PersonalId, PersonalHabilitacionLugarHabilitacionId
+                    ORDER BY PersonalHabilitacionDesde DESC, PersonalHabilitacionId DESC
+                ) AS rn
+            FROM PersonalHabilitacion
+            WHERE
+                (PersonalHabilitacionDesde <= @0 AND ISNULL(PersonalHabilitacionHasta, '9999-12-31') >= @0)
+                AND ISNULL(PersonalHabilitacionClase, '') != 'C'
+        )
+        SELECT
+            ROW_NUMBER() OVER (ORDER BY per.PersonalId, vishab.LugarHabilitacionId) AS id,
+            per.PersonalId,
+            CONCAT(TRIM(per.PersonalApellido), ' ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+            d.LugarHabilitacionDescripcion,
+            est.Detalle AS Estado,
+            vishab.LugarHabilitacionId,
+            IIF(c.PersonalId IS NULL, '0', '1') AS HabNecesaria,
+            IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado,
+            CASE
+                WHEN hab.PersonalHabilitacionHasta >= @0 THEN DATEDIFF(DAY, @0, hab.PersonalHabilitacionHasta)
+                ELSE 0
+            END AS DiasFaltantesVencimiento,
+            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde,
+            suc.SucursalId, suc.SucursalDescripcion,
+            ga.GrupoActividadNumero, ga.GrupoActividadId, ga.GrupoActividadDetalle
+        FROM Personal per
+        JOIN vishab ON vishab.PersonalId = per.PersonalId
+        LEFT JOIN hab_activa hab ON hab.PersonalId = per.PersonalId AND hab.LugarHabilitacionId = vishab.LugarHabilitacionId AND hab.rn = 1
+        LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId AND c.PersonalHabilitacionNecesariaLugarHabilitacionId = vishab.LugarHabilitacionId
+        LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
+        LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = hab.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId
+            AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND e.PersonalHabilitacionId = hab.PersonalHabilitacionId
+        LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo = e.GestionHabilitacionEstadoCodigo
+        LEFT JOIN (
+            SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+            FROM PersonalSituacionRevista sitrev2
+            WHERE @0 >= sitrev2.PersonalSituacionRevistaDesde AND @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
+            GROUP BY sitrev2.PersonalId
+        ) sitrev3 ON sitrev3.PersonalId = per.PersonalId
+        LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+        LEFT JOIN Sucursal suc ON suc.SucursalId = sucper.PersonalSucursalPrincipalSucursalId
+        LEFT JOIN (
+            SELECT
+                gap.GrupoActividadPersonalPersonalId,
+                ga.GrupoActividadNumero, ga.GrupoActividadId, gap.GrupoActividadPersonalDesde, gap.GrupoActividadPersonalHasta,
+                CASE
+                    WHEN ga.GrupoActividadId IS NOT NULL THEN
+                        CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ',
+                               FORMAT(gap.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ',
+                               CASE WHEN gap.GrupoActividadPersonalHasta IS NULL THEN ''
+                                    ELSE FORMAT(gap.GrupoActividadPersonalHasta, 'dd/MM/yyyy')
+                               END, ')'
+                        )
+                    ELSE ''
+                END AS GrupoActividadDetalle
+            FROM GrupoActividadPersonal gap
+            LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+            WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= CAST(@0 AS DATE)
+              AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= CAST(@0 AS DATE)
+        ) ga ON ga.GrupoActividadPersonalPersonalId = per.PersonalId
+        WHERE d.LugarHabilitacionId NOT IN (9,4)
+          AND (${filterSql})
+        ${orderBy}
+        `, [periodo])
+    }
+
+    async listado(req: any, res: Response, next: NextFunction) {
+        const filterSql = filtrosToSql(req.body.options.filtros, GridListadoColums);
+        const orderBy = orderToSQL(req.body.options.sort)
+        const queryRunner = dataSource.createQueryRunner();
+        const periodo = new Date()
+        try {
+            const habilitaciones = await this.listadoQuery(queryRunner, periodo, filterSql, orderBy);
+
+            this.jsonRes(
+                {
+                    total: habilitaciones.length,
+                    list: habilitaciones,
+                },
+                res
+            );
+
+        } catch (error) {
+            return next(error)
+        } finally {
+            await queryRunner.release()
+        }
     }
 
     async getHabilitacionesClasesOptions(req, res, next) {
