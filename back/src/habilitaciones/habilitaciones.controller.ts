@@ -522,7 +522,7 @@ const GridListadoColums: any[] = [
         type: "number",
         id: "DiasFaltantesVencimiento",
         field: "DiasFaltantesVencimiento",
-        fieldName: "CASE WHEN hab.PersonalHabilitacionHasta >= @0 THEN DATEDIFF(DAY, @0, hab.PersonalHabilitacionHasta) ELSE 0 END",
+        fieldName: "IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento)",
         sortable: true,
         hidden: false,
         searchHidden: false,
@@ -615,106 +615,91 @@ export class HabilitacionesController extends BaseController {
         this.jsonRes(GridListadoColums, res, next);
     }
 
-    async listadoQuery(queryRunner: any, periodo: any, filterSql: any, orderBy: any) {
-        periodo.setHours(0, 0, 0, 0)
-        return await queryRunner.query(`
-        WITH
-        vishab AS (
-            SELECT PersonalId, PersonalHabilitacionLugarHabilitacionId AS LugarHabilitacionId
-            FROM PersonalHabilitacion
-            WHERE PersonalHabilitacionDesde <= @0
-              AND ISNULL(PersonalHabilitacionHasta, '9999-12-31') >= @0
-            UNION
-            SELECT PersonalId, PersonalHabilitacionNecesariaLugarHabilitacionId
-            FROM PersonalHabilitacionNecesaria
-        ),
-        hab_activa AS (
-            SELECT
-                PersonalId,
-                PersonalHabilitacionLugarHabilitacionId AS LugarHabilitacionId,
-                PersonalHabilitacionId,
-                GestionHabilitacionCodigoUlt,
-                PersonalHabilitacionHasta,
-                ROW_NUMBER() OVER (
-                    PARTITION BY PersonalId, PersonalHabilitacionLugarHabilitacionId
-                    ORDER BY PersonalHabilitacionDesde DESC, PersonalHabilitacionId DESC
-                ) AS rn
-            FROM PersonalHabilitacion
-            WHERE
-                (PersonalHabilitacionDesde <= @0 AND ISNULL(PersonalHabilitacionHasta, '9999-12-31') >= @0)
-                AND ISNULL(PersonalHabilitacionClase, '') != 'C'
-        )
-        SELECT
-            ROW_NUMBER() OVER (ORDER BY per.PersonalId, vishab.LugarHabilitacionId) AS id,
-            per.PersonalId,
-            CONCAT(TRIM(per.PersonalApellido), ' ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-            d.LugarHabilitacionDescripcion,
-            est.Detalle AS Estado,
-            vishab.LugarHabilitacionId,
-            IIF(c.PersonalId IS NULL, '0', '1') AS HabNecesaria,
-            IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado,
-            CASE
-                WHEN hab.PersonalHabilitacionHasta >= @0 THEN DATEDIFF(DAY, @0, hab.PersonalHabilitacionHasta)
-                ELSE 0
-            END AS DiasFaltantesVencimiento,
-            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde,
-            suc.SucursalId, suc.SucursalDescripcion,
-            ga.GrupoActividadNumero, ga.GrupoActividadId, ga.GrupoActividadDetalle
-        FROM Personal per
-        JOIN vishab ON vishab.PersonalId = per.PersonalId
-        LEFT JOIN hab_activa hab ON hab.PersonalId = per.PersonalId AND hab.LugarHabilitacionId = vishab.LugarHabilitacionId AND hab.rn = 1
-        LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId AND c.PersonalHabilitacionNecesariaLugarHabilitacionId = vishab.LugarHabilitacionId
-        LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
-        LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = hab.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId
-            AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND e.PersonalHabilitacionId = hab.PersonalHabilitacionId
-        LEFT JOIN GestionHabilitacionEstado est ON est.GestionHabilitacionEstadoCodigo = e.GestionHabilitacionEstadoCodigo
-        LEFT JOIN (
-            SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
-            FROM PersonalSituacionRevista sitrev2
-            WHERE @0 >= sitrev2.PersonalSituacionRevistaDesde AND @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31')
-            GROUP BY sitrev2.PersonalId
-        ) sitrev3 ON sitrev3.PersonalId = per.PersonalId
-        LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
-        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
-        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
-        LEFT JOIN Sucursal suc ON suc.SucursalId = sucper.PersonalSucursalPrincipalSucursalId
-        LEFT JOIN (
-            SELECT
-                gap.GrupoActividadPersonalPersonalId,
-                ga.GrupoActividadNumero, ga.GrupoActividadId, gap.GrupoActividadPersonalDesde, gap.GrupoActividadPersonalHasta,
-                CASE
-                    WHEN ga.GrupoActividadId IS NOT NULL THEN
-                        CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ',
-                               FORMAT(gap.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ',
-                               CASE WHEN gap.GrupoActividadPersonalHasta IS NULL THEN ''
-                                    ELSE FORMAT(gap.GrupoActividadPersonalHasta, 'dd/MM/yyyy')
-                               END, ')'
-                        )
-                    ELSE ''
-                END AS GrupoActividadDetalle
-            FROM GrupoActividadPersonal gap
-            LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
-            WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= CAST(@0 AS DATE)
-              AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= CAST(@0 AS DATE)
-        ) ga ON ga.GrupoActividadPersonalPersonalId = per.PersonalId
-        WHERE d.LugarHabilitacionId NOT IN (9,4)
-          AND (${filterSql})
-        ${orderBy}
-        `, [periodo])
-    }
-
     async listado(req: any, res: Response, next: NextFunction) {
+        const periodo = new Date()
+        // const arrayFilters = [{
+        //     index: 'GestionHabilitacionEstadoCodigo',
+        //     name: 'Estado',
+        //     condition: 'AND',
+        //     operador: 'LIKE',
+        //     valor: ['HABORG'],
+        //     type: 'string',
+        //     closeable: true,
+        //     inicial: false
+        // },
+        // {
+        //     index: 'DiasFaltantesVencimiento',
+        //     name: 'Días Faltantes Vencimiento',
+        //     condition: 'AND',
+        //     operador: '>',
+        //     valor: [0],
+        //     type: 'number',
+        //     closeable: true,
+        //     inicial: false
+        // },
+        // {
+        //     index: 'PersonalHabilitacionDesde',
+        //     name: 'Habilitación Desde',
+        //     condition: 'AND',
+        //     operador: '<=',
+        //     valor: [periodo],
+        //     type: 'date',
+        //     closeable: true,
+        //     inicial: false
+        // },
+        // {
+        //     index: 'PersonalHabilitacionHasta',
+        //     name: 'Habilitación Hasta',
+        //     condition: 'AND',
+        //     operador: '>=',
+        //     valor: [periodo],
+        //     type: 'date',
+        //     closeable: true,
+        //     inicial: false
+        // },
+        // ...req.body.options.filtros]
+
         const filterSql = filtrosToSql(req.body.options.filtros, GridListadoColums);
         const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = dataSource.createQueryRunner();
-        const periodo = new Date()
+
         try {
-            const habilitaciones = await this.listadoQuery(queryRunner, periodo, filterSql, orderBy);
+            const habilitaciones = await this.habilitacionesListQuery(queryRunner, periodo, filterSql, orderBy);
+
+            const agrupados: Map<string, any> = habilitaciones.reduce((map, habilitacion) => {
+                const key = `${habilitacion.PersonalId}-${habilitacion.LugarHabilitacionId}`
+                const actual = map.get(key) ?? { ...habilitacion, _cantidad: 0 }
+
+                actual._cantidad += 1
+
+                const desdeActual = actual.PersonalHabilitacionDesde ? new Date(actual.PersonalHabilitacionDesde).getTime() : Infinity
+                const desdeNueva = habilitacion.PersonalHabilitacionDesde ? new Date(habilitacion.PersonalHabilitacionDesde).getTime() : Infinity
+                if (desdeNueva < desdeActual) actual.PersonalHabilitacionDesde = habilitacion.PersonalHabilitacionDesde
+
+                const hastaActual = actual.PersonalHabilitacionHasta ? new Date(actual.PersonalHabilitacionHasta).getTime() : -Infinity
+                const hastaNueva = habilitacion.PersonalHabilitacionHasta ? new Date(habilitacion.PersonalHabilitacionHasta).getTime() : -Infinity
+                if (hastaNueva > hastaActual) actual.PersonalHabilitacionHasta = habilitacion.PersonalHabilitacionHasta
+
+                map.set(key, actual)
+                return map
+            }, new Map())
+
+            const habilitacionesNormalizadas = Array.from(agrupados.values()).map(({ _cantidad, ...hab }) => hab)
+
+            const duplicados = Array.from(agrupados.values()).filter((g: any) => g._cantidad > 1)
+            // console.log('duplicados', duplicados)
+
+            const personal29579 = Array.from(agrupados.values())
+                .filter((g: any) => g.PersonalId == 29579)
+                .map(({ _cantidad, ...hab }) => hab)
+            console.log('personal29579', personal29579)
+
+            // console.log('habilitacionesNormalizadas', habilitacionesNormalizadas)
 
             this.jsonRes(
                 {
-                    total: habilitaciones.length,
-                    list: habilitaciones,
+                    total: habilitacionesNormalizadas.length,
+                    list: habilitacionesNormalizadas,
                 },
                 res
             );
@@ -741,6 +726,7 @@ export class HabilitacionesController extends BaseController {
             est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite, b.PersonalHabilitacionClase,
             b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,
 		    IIF(b.PersonalHabilitacionId IS NULL, 0, dias.DiasFaltantesVencimiento) as DiasFaltantesVencimiento,
+			IIF(dias.Habilitado IS NULL, '0', dias.Habilitado) AS Habilitado,
 
 			IIF(c.PersonalId IS NULL,'0','1') HabNecesaria,
             IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle) AS GestionHabilitacionEstado,
@@ -789,12 +775,14 @@ export class HabilitacionesController extends BaseController {
 				b2.PersonalHabilitacionId,
 				b2.PersonalHabilitacionLugarHabilitacionId,
 				CASE 
-					WHEN b2.PersonalHabilitacionHasta>=@0 THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
+					WHEN b2.PersonalHabilitacionHasta>=@0 and g2.GestionHabilitacionEstadoCodigo='HABORG' THEN DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)
                     --WHEN b2.PersonalHabilitacionHasta IS NULL and b2.PersonalHabilitacionDesde is null THEN NULL
 					--WHEN b2.PersonalHabilitacionHasta IS NULL AND b2.PersonalHabilitacionDesde IS NOT NULL THEN NULL
 					ELSE 0
-				END AS DiasFaltantesVencimiento
+				END AS DiasFaltantesVencimiento,
+				IIF(b2.PersonalHabilitacionDesde<=@0 and b2.PersonalHabilitacionHasta>=@0 and g2.GestionHabilitacionEstadoCodigo='HABORG' and DATEDIFF(DAY, @0, b2.PersonalHabilitacionHasta)>0,'1','0') AS Habilitado
 			FROM PersonalHabilitacion b2
+			LEFT JOIN GestionHabilitacion g2 on g2.GestionHabilitacionCodigo = b2.GestionHabilitacionCodigoUlt AND g2.PersonalId = b2.PersonalId AND g2.PersonalHabilitacionLugarHabilitacionId = b2.PersonalHabilitacionLugarHabilitacionId AND g2.PersonalHabilitacionId = b2.PersonalHabilitacionId
 		) dias ON dias.PersonalId = vishab.PersonalId AND dias.PersonalHabilitacionId = b.PersonalHabilitacionId AND dias.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId
 
         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
