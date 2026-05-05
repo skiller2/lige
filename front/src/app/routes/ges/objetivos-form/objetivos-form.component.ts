@@ -3,7 +3,6 @@ import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, i
 import { AngularUtilService } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
-import { NgForm, FormArray, FormBuilder, ValueChangeEvent } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
@@ -23,7 +22,7 @@ export interface CoordinadorCuenta {
   ObjetivoId: number,
   PersonalId: number,
   ObjetivoPersonalJerarquicoId: number,
-  ObjetivoPersonalJerarquicoComision: number, 
+  ObjetivoPersonalJerarquicoComision: string, 
   ObjetivoPersonalJerarquicoDescuentos: boolean,
   ObjetivoPersonalJerarquicoSeDescuentaTelefono: boolean,
   DescuentoRetiros: boolean,
@@ -100,24 +99,6 @@ export class ObjetivosFormComponent {
   visibleDrawer = signal(false)
   periodo = signal({ year: 0, month: 0 })
 //  visibleDrawer: boolean = false
-
-  // objCoordinadorCuenta = { 
-  //   ObjetivoId:0,
-  //   PersonalId:0,
-  //   ObjetivoPersonalJerarquicoId:0,
-  //   ObjetivoPersonalJerarquicoComision: 0, 
-  //   ObjetivoPersonalJerarquicoDescuentos:false,
-  //   ObjetivoPersonalJerarquicoSeDescuentaTelefono:false,
-  //   DescuentoRetiros:false,
-  // }
-
-  // objActividad = {
-  //   GrupoActividadObjetivoId:0,
-  //   GrupoActividadId:0,
-  //   GrupoActividadOriginal:0,
-  //   GrupoActividadObjetivoDesde:new Date(),
-  //   GrupoActividadObjetivoDesdeOriginal: ''
-  // }
   ObjetivoId = input(0)
   ClienteId = input(0)
   ClienteElementoDependienteId = input(0)
@@ -138,7 +119,7 @@ export class ObjetivosFormComponent {
     ObjetivoId:0,
     PersonalId:0,
     ObjetivoPersonalJerarquicoId:0,
-    ObjetivoPersonalJerarquicoComision: 0, 
+    ObjetivoPersonalJerarquicoComision: '', 
     ObjetivoPersonalJerarquicoDescuentos: false,
     ObjetivoPersonalJerarquicoSeDescuentaTelefono: false,
     DescuentoRetiros: false,
@@ -154,19 +135,19 @@ export class ObjetivosFormComponent {
     id: 0,
     ClienteId: 0,
     clienteOld: 0,
-    ClienteElementoDependienteId:0,
-    ObjetivoId:0,
-    Descripcion:"",
-    SucursalId:0,
-    CoberturaServicio:"",
-    ContratoFechaDesde:"",
-    ContratoFechaHasta:"",
-    ContratoId:0,
-    ClienteElementoDependienteContratoUltNro:0,
-    RubroUltNro:0,
-    DomicilioId:0,DomicilioDomCalle: "",
+    ClienteElementoDependienteId: 0,
+    ObjetivoId: 0,
+    Descripcion: "",
+    SucursalId: 0,
+    CoberturaServicio: "",
+    ContratoFechaDesde: "",
+    ContratoFechaHasta: "",
+    ContratoId: 0,
+    ClienteElementoDependienteContratoUltNro: 0,
+    RubroUltNro: 0,
+    DomicilioId: 0, DomicilioDomCalle: "",
     DomicilioFulllAdress:"",
-    DomicilioDomNro:0, DomicilioCodigoPostal: 0, DomicilioDomLugar: '',
+    DomicilioDomNro: NaN, DomicilioCodigoPostal: NaN, DomicilioDomLugar: '',
     DomicilioProvinciaId: 0,DomicilioLocalidadId: 0, DomicilioBarrioId: 0,
     infoCoordinadorCuenta: [structuredClone(this.coordinadorCuentaDefault)], 
     rubrosCliente: [],  
@@ -185,26 +166,32 @@ export class ObjetivosFormComponent {
   }
 
   readonly objetivo = signal<Objetivo>(this.objetivoDefault);
-  readonly formObjetivo = form(this.objetivo)
+  readonly formObjetivo = form(this.objetivo, (p) => {
+    disabled(p, () => this.readonly())
+  })
 
   childDocsGrid = viewChild.required<TableObjetivoDocumentoComponent>('docsGrid')
  
-  $optionsProvincia = this.searchService.getProvincia();
-  $optionsLocalidad = this.searchService.getLocalidad();
-  $optionsBarrio = this.searchService.getBarrio();
-  $optionsDescuento = this.searchService.getDescuento();
-  $sucursales = this.searchService.getSucursales();
-  $optionsDocumentoTipo = this.searchService.getDocumentoTipoOptions();
-  $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
-  $optionsRubroCliente = this.searchService.getRubroClienteOptions();
+  optionsProvincia = toSignal(this.searchService.getProvincia(), { initialValue: [] });
+  optionsLocalidad = toSignal(this.searchService.getLocalidad(), { initialValue: [] });
+  optionsBarrio = toSignal(this.searchService.getBarrio(), { initialValue: [] });
+  optionsDescuento = toSignal(this.searchService.getDescuento(), { initialValue: [] });
+  sucursales = toSignal(this.searchService.getSucursales(), { initialValue: [] });
+  optionsDocumentoTipo = toSignal(this.searchService.getDocumentoTipoOptions(), { initialValue: [] });
+  optionsLugarHabilitacion = toSignal(this.searchService.getLugarHabilitacionOptions(), { initialValue: [] });
+  optionsRubroCliente = toSignal(this.searchService.getRubroClienteOptions(), { initialValue: [] });
 
-  onChangePeriodo(result: Date): void {
+  onChangePeriodo(result: any): void {
     if (result) {
       const date = new Date(result)
       const year = date.getFullYear()
       const month = date.getMonth() + 1
       this.periodo.set({ year, month })
     }
+    this.objetivo.update(m => ({
+      ...m,
+      FechaModificada: true
+    }));
   }
 
   async ngOnInit() {
@@ -403,11 +390,11 @@ export class ObjetivosFormComponent {
   addCoordinadorCuenta(e?: MouseEvent): void {
     e?.preventDefault();
 
-    const newEstudio = structuredClone(this.coordinadorCuentaDefault)
+    const newCoordinadorCuenta = structuredClone(this.coordinadorCuentaDefault)
 
     this.objetivo.update(m => ({
       ...m,
-      infoCoordinadorCuenta: [...m.infoCoordinadorCuenta, newEstudio],
+      infoCoordinadorCuenta: [...m.infoCoordinadorCuenta, newCoordinadorCuenta],
     }));
   }
 
@@ -437,5 +424,11 @@ export class ObjetivosFormComponent {
     this.visibleDrawer.set( false)
   }
 
+  onChangeDireccion(value: any) {
+    this.objetivo.update(m => ({
+      ...m,
+      DireccionModificada: true
+    }));
+  }
 
 }

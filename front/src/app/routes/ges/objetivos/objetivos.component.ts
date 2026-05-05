@@ -11,7 +11,7 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
-// import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
+import { ObjetivosFormComponent } from "../objetivos-form/objetivos-form.component"
 import { ObjetivoHistorialDrawerComponent } from '../objetivo-historial-drawer/objetivo-historial-drawer.component'
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { Selections } from '../../../shared/schemas/filtro';
@@ -27,7 +27,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
   imports: [
     SHARED_IMPORTS,
     CommonModule,
-    // ObjetivosFormComponent,
+    ObjetivosFormComponent,
     FiltroBuilderComponent,
     ObjetivoHistorialDrawerComponent
   ],
