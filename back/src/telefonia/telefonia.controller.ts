@@ -479,7 +479,8 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
       const now = fechaRequest
 
-      let telefonos = await this.getTelefonos(fechaRequest, 1, 1, { filtros: [], sort: [] })
+      let telefonos = await this.getTelefonos(fechaRequest, anioRequest, mesRequest, { filtros: [], sort: [] })
+
 
       telefonos = telefonos.map(tel => ({ ...tel, ...{ fimpplanvoz: 0, fserviciosvoz: 0, fpacksms: 0, fpackdatos: 0, fgarantia: 0, fotros: 0, vvoz: 0, vldnldi: 0, vmensajes: 0, vdatos: 0, vroaming: 0, votros: 0, unicavez: 0, total: 0 } }));
 
@@ -496,15 +497,17 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
         if (telefonos.filter(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim()).length > 1) {
           dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` se encuentra asignado a mas de una persona` })
-          continue
+//          continue
         }
 
-        if (telefonos.StockStock > 1) {
-          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` tiene stock (${telefonos.StockStock}) diferente de 1` })
+        const currTel = telefonos.find(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim())
+
+        if (currTel && currTel.StockStock > 1) {
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` tiene stock (${currTel.StockStock}) diferente de 1` })
         }
 
-        if (telefonos.StockStock == null && telefonos.TelefoniaHasta == null) {
-          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` sin stock asignado` })
+        if (currTel && (currTel.StockStock == null || currTel.StockStock < 1)) {
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` sin stock asignado ${currTel.StockStock}` })
         }
 
 
@@ -553,14 +556,14 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       }
 
       if (Math.abs(totalsumaxls - totaldeclarado) > 0.0001)
-        throw new ClientException(`Importe declarado (${totaldeclarado}) no coincide con el total calculado`, { totaldeclarado, totalsumaxls })
+        throw new ClientException(`Importe declarado (${this.currencyPipe.format( totaldeclarado)}) no coincide con el total calculado`, { totaldeclarado, totalsumaxls })
 
 
 
       const telefonosRegistradosSinConsumo = telefonos.filter((row) => (Number(row.total) < 1 || isNaN(Number(row.total))))
       for (const tel of telefonosRegistradosSinConsumo) {
         if (!tel.TelefoniaHasta || tel.TelefoniaHasta > new Date()) {
-          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin consumos en archivo xls y sin fecha de baja (Efecto: ${tel.EfectoDescripcionCompleto}), TelefonoId: ${tel.TelefoniaId}` })
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` figura en sistema de gestion y no en xls (Efecto: ${tel.EfectoDescripcionCompleto}), TelefonoId: ${tel.TelefoniaId}` })
         }
       }
 
