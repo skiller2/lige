@@ -13,10 +13,10 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { ObjectViewerComponent } from '../../../shared/object-viewer/object-viewer';
 
 @Component({
-  selector: 'app-procesos-automaticos-detalle',
+  selector: 'app-evento-log-detalle',
   imports: [SHARED_IMPORTS, NzDescriptionsModule, ReactiveFormsModule, FormsModule, NzInputModule, ObjectViewerComponent],
-  templateUrl: './procesos-automaticos-detalle.html',
-  styleUrl: './procesos-automaticos-detalle.less'
+  templateUrl: './evento-log-detalle.html',
+  styleUrl: './evento-log-detalle.less'
 })
 
 export class ProcesosAutomaticosDetalleComponent {
@@ -44,7 +44,7 @@ export class ProcesosAutomaticosDetalleComponent {
     
     effect(async() => {
       if (this.logCod()) {
-        let res = await firstValueFrom(this.searchService.getProcesoAutomatico(this.logCod()))
+        let res = await firstValueFrom(this.searchService.getEventoLog(this.logCod()))
 
         this.ParametroEntrada.set(JSON.parse(res[0].ParametroEntrada))
         this.Resultado.set(JSON.parse(res[0].Resultado))

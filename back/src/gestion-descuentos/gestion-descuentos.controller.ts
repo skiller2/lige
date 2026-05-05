@@ -1163,7 +1163,7 @@ export class GestionDescuentosController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
 
     try {
-      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
         `Generación cuotas efectos`,
         { usuario, ip },
@@ -1334,7 +1334,7 @@ FROM cte
       await queryRunner.commitTransaction()
 
       const resMsg = `Actualización Exitosa PersonalDescuentoPorcentajeDescuento: ${countPersonalDescuentoPorcentajeDescuento}, FechaAnulacionCuota: ${countFechaAnulacionCuota}, PersonalFechaBaja: ${countPersonalFechaBaja}, CuotasGeneradas: ${countCuotasGeneradas}, SinCuotasGeneradas: ${countSinCuotasGeneradas}, DiferenciaPagasGeneradas: ${countDiferenciaPagasGeneradas}, CuotasEliminadas: ${countCuotasEliminadas}`
-      await this.procesoAutomaticoLogFin(
+      await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
@@ -1354,7 +1354,7 @@ FROM cte
       return this.jsonRes({}, res, resMsg);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-      await this.procesoAutomaticoLogFin(queryRunner,
+      await this.eventoLogFin(queryRunner,
         EventoLogCodigo,
         'ERR',
         { res: error },
@@ -2354,7 +2354,7 @@ FROM cte
       let campos_vacios: any[] = [];
 
 
-      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
         `Importación xls DescuentoId ${descuentoIdRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
         { anioRequest, mesRequest, descuentoIdRequest, tableNameRequest, usuario, ip },
@@ -2542,7 +2542,7 @@ FROM cte
       }
 
       await queryRunner.commitTransaction();
-      await this.procesoAutomaticoLogFin(
+      await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
@@ -2556,7 +2556,7 @@ FROM cte
 
       if (docFilePath) await FileUploadController.deletePhysicalFile(docFilePath);
 
-      await this.procesoAutomaticoLogFin(queryRunner,
+      await this.eventoLogFin(queryRunner,
         EventoLogCodigo,
         'ERR',
         { res: error.message || error, list: JSON.stringify(dataset) },

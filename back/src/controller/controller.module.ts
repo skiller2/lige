@@ -54,7 +54,7 @@ import { AdministradoresController } from "../administradores/administradores.co
 import { ImporteVentaVigilanciaController } from "../importe-venta-vigilancia/importe-venta-vigilancia.controller.ts";
 import { FacturacionController } from "../facturacion/facturacion.controller.ts";
 import { NovedadesController } from "../novedades/novedades.controller.ts";
-import { ProcesosAutomaticosController } from "../procesos-automaticos/procesos-automaticos.controller.ts";
+import { ProcesosAutomaticosController } from "../evento-log/evento-log.controller.ts";
 import { ExcepcionesAsistenciaController } from "../excepciones-asistencia/excepciones-asistencia.controller.ts";
 import { CompensaGeneralACordinadorController } from "../liquidaciones/compensa-general-a-coordinador/compensa-general-a-coordinador.controller.ts";
 import { EfectoController } from "../efecto/efecto.controller.ts";

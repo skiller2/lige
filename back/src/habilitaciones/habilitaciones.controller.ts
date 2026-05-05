@@ -1426,7 +1426,7 @@ SELECT doc.DocumentoId id,
 
 
         try {
-            ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
+            ({ EventoLogCodigo } = await this.eventoLogInicio(
                 queryRunner,
                 `Habilitación Necesaria ${mes}/${anio}`,
                 { anio, mes, usuario, ip },
@@ -1511,7 +1511,7 @@ SELECT doc.DocumentoId id,
 
             await queryRunner.commitTransaction();
 
-            await this.procesoAutomaticoLogFin(
+            await this.eventoLogFin(
                 queryRunner,
                 EventoLogCodigo,
                 'COM',
@@ -1528,7 +1528,7 @@ SELECT doc.DocumentoId id,
 
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
-            await this.procesoAutomaticoLogFin(queryRunner,
+            await this.eventoLogFin(queryRunner,
                 EventoLogCodigo,
                 'ERR',
                 { res: error },

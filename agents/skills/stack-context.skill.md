@@ -42,7 +42,7 @@ back/src/[modulo]/
 | `novedades.controller.ts` | `/api/novedades` | Novedades de liquidacion |
 | `liquidaciones.controller.ts` | `/api/liquidaciones` | Liquidaciones de sueldos |
 | `auth.controller.ts` | `/api/auth` | Autenticacion JWT |
-| `procesos-automaticos.controller.ts` | `/api/procesos-automaticos` | Procesos Automaticos |
+| `evento-log.controller.ts` | `/api/evento-log` | Procesos Automaticos |
 
 ### Controllers de uso transversal (`back/src/controller/`)
 | Controller | Uso |
@@ -80,7 +80,7 @@ front/src/app/
 | `AccesoBotFormComponent` | `ges/accesso-bot-form` | Formulario de acceso bot |
 | `RecibosModalComponent` | `ges/recibos-modal` | Modal de recibos |
 | `PersonalGrupoComponent` | `ges/personal-grupo` | Grupo de personal |
-| `ProcesosAutomaticosComponent` | `ges/procesos-automaticos` | Grilla y ABM de procesos automaticos |
+| `ProcesosAutomaticosComponent` | `ges/evento-log` | Grilla y ABM de procesos automaticos |
 
 ### Patron de Drawer en el proyecto
 Los drawers se implementan con `nz-drawer` de ng-zorro-antd:

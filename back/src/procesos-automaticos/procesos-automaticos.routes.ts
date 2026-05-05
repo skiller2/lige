@@ -13,7 +13,7 @@ procesosAutomaticosRouter.get("/colsBloqueadas", [authMiddleware.verifyToken, au
 });
 
 procesosAutomaticosRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-    procesosAutomaticosController.listProcesosAutomaticos(req, res, next);
+    procesosAutomaticosController.listEventoLog(req, res, next);
 });
 
 procesosAutomaticosRouter.post("/listtablasbloqueadas", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
@@ -21,7 +21,7 @@ procesosAutomaticosRouter.post("/listtablasbloqueadas", [authMiddleware.verifyTo
 });
 
 procesosAutomaticosRouter.get("/:logCodigo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  procesosAutomaticosController.getProcesoAutomatico(req, res, next);
+  procesosAutomaticosController.getEventoLog(req, res, next);
 });
 
 procesosAutomaticosRouter.get(`/estado/options`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {

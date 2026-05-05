@@ -517,7 +517,7 @@ UNION
     try {
       // Log de inicio
 
-      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
         `Actualización de Seguros ${mes}/${anio}`,
         { anio, mes, usuario, ip },
@@ -713,7 +713,7 @@ UNION
 
       await queryRunner.commitTransaction()
 
-      await this.procesoAutomaticoLogFin(
+      await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
@@ -723,7 +723,7 @@ UNION
       );
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-      await this.procesoAutomaticoLogFin(queryRunner,
+      await this.eventoLogFin(queryRunner,
         EventoLogCodigo,
         'ERR',
         { res: error },

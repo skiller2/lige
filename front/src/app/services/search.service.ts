@@ -693,7 +693,7 @@ export class SearchService {
     );
   }
   getProcAutoEstadosOptions(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/procesos-automaticos/estado/options`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/evento-log/estado/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -2199,11 +2199,11 @@ export class SearchService {
     );
   }
 
-  getProcesoAutomatico(logCod: number) {
+  getEventoLog(logCod: number) {
     if (!logCod) {
       return of({});
     }
-    return this.http.get<ResponseJSON<any>>(`api/procesos-automaticos/${logCod}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/evento-log/${logCod}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

@@ -570,7 +570,7 @@ LEFT JOIN ClienteFacturacion fac
         try {
             let campos_vacios: any[] = [];
 
-            ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
+            ({ EventoLogCodigo } = await this.eventoLogInicio(
                 queryRunner,
                 `Importación xls Precios Producto ${productoCodigoRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
                 { anioRequest, mesRequest, productoCodigoRequest, tableNameRequest, usuario, ip },
@@ -709,7 +709,7 @@ LEFT JOIN ClienteFacturacion fac
             }
             
             await queryRunner.commitTransaction();
-            await this.procesoAutomaticoLogFin(
+            await this.eventoLogFin(
                 queryRunner,
                 EventoLogCodigo,
                 'COM',
@@ -724,7 +724,7 @@ LEFT JOIN ClienteFacturacion fac
 
             if (docFilePath) await FileUploadController.deletePhysicalFile(docFilePath);
 
-            await this.procesoAutomaticoLogFin(queryRunner,
+            await this.eventoLogFin(queryRunner,
                 EventoLogCodigo,
                 'ERR',
                 { res: error.message || error, list: JSON.stringify(dataset) },

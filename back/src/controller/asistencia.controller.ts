@@ -3207,7 +3207,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
 
     try {
-      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
         `Proceso Asistencia Biométrico ${mes}/${anio}`,
         { anio, mes, usuario, ip },
@@ -3532,7 +3532,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
       await queryRunner.commitTransaction();
 
-      await this.procesoAutomaticoLogFin(
+      await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
@@ -3547,7 +3547,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes(listadoProcessed, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-      await this.procesoAutomaticoLogFin(queryRunner,
+      await this.eventoLogFin(queryRunner,
         EventoLogCodigo,
         'ERR',
         { res: error },

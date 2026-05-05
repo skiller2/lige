@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ProcesosAutomaticosComponent } from './procesos-automaticos';
+import { ProcesosAutomaticosComponent } from './evento-log';
 
 describe('ProcesosAutomaticosComponent', () => {
   let component: ProcesosAutomaticosComponent;
