@@ -915,7 +915,7 @@ export class AsistenciaController extends BaseController {
           PersonalArt14Horas == Horas &&
           PersonalArt14DetalleMotivo == String(Motivo).trim()
         ) {
-          throw new ClientException("Ya se encuentra registrada la excepción")
+          throw new ClientException("Ya se encuentra registrada la excepción con idénticos valores")
         }
 
         let hasta: Date = new Date(fechaDesde);
