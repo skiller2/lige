@@ -3,6 +3,7 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { dataSource } from "../data-source.ts";
 import { recibosController } from "../controller/controller.module.ts";
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
+import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 
 export class ValorHoraController extends BaseController {
 
@@ -27,6 +28,8 @@ export class ValorHoraController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
+      searchType: "number",
+      searchComponent: "inputForSucursalSearch",
     },
     {
       name: "Tipo Asociado",
@@ -38,17 +41,29 @@ export class ValorHoraController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
+      searchType: "number",
     },
     {
       name: "Categoría",
       type: "string",
-      id: "CategoriaPersonalId",
-      field: "ValorLiquidacionCategoriaPersonalId",
-      fieldName: "vl.ValorLiquidacionCategoriaPersonalId",
-      formatter: 'collectionFormatter',
+      id: "CategoriaCod",
+      field: "CategoriaCod",
+      fieldName: "percat.CategoriaCod",
+      searchComponent: "inputForTipoAsociadoCategoriaSearch",
       sortable: true,
-      searchHidden: false,
+      hidden: true,
+      searchHidden: false
+    },
+    {
+      name: "Categoría",
+      type: "string",
+      id: "PersonalCategoriaCom",
+      field: "PersonalCategoriaCom",
+      fieldName: "percat.PersonalCategoriaCom",
+      sortable: true,
       hidden: false,
+      searchHidden: true,
+      showGridColumn: false
     },
     {
       name: "Importe",
@@ -59,6 +74,8 @@ export class ValorHoraController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
+      searchType: "numberAdvanced",
+      searchComponent: "inputForNumberAdvancedSearch",
     },
   ];
 
@@ -87,19 +104,30 @@ export class ValorHoraController extends BaseController {
     const mes = Number(req.body.mes);
     if (!anio || !mes) return next(new ClientException("Debe indicar año y mes"));
 
+    const filterSql = filtrosToSql(req.body?.options?.filtros ?? [], this.listaColumnas);
+    const orderBy = orderToSQL(req.body?.options?.sort);
+
     const queryRunner = dataSource.createQueryRunner();
     try {
       const data = await queryRunner.query(`
         SELECT vl.ValorLiquidacionId AS id, vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId,
                ta.TipoAsociadoDescripcion, vl.ValorLiquidacionCategoriaPersonalId, vl.ValorLiquidacionHoraNormal,
                cp.CategoriaPersonalDescripcion, s.SucursalDescripcion,
-               vl.ValorLiquidacionDesde, vl.ValorLiquidacionHasta
+               vl.ValorLiquidacionDesde, vl.ValorLiquidacionHasta,
+               percat.CategoriaCod, percat.PersonalCategoriaCom
         FROM ValorLiquidacion vl
         LEFT JOIN TipoAsociado ta ON ta.TipoAsociadoId = vl.ValorLiquidacionTipoAsociadoId
         LEFT JOIN CategoriaPersonal cp ON cp.CategoriaPersonalId = vl.ValorLiquidacionCategoriaPersonalId AND vl.ValorLiquidacionTipoAsociadoId = cp.TipoAsociadoId
         LEFT JOIN Sucursal s ON s.SucursalId = vl.ValorLiquidacionSucursalId
+        CROSS APPLY (
+          SELECT
+            CONCAT(vl.ValorLiquidacionTipoAsociadoId, '/', vl.ValorLiquidacionCategoriaPersonalId) AS CategoriaCod,
+            CONCAT(TRIM(ta.TipoAsociadoDescripcion), ' - ', TRIM(cp.CategoriaPersonalDescripcion)) AS PersonalCategoriaCom
+        ) percat
         WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
-          AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
+          AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+          AND (${filterSql})
+        ${orderBy}`,
         [anio, mes]
       );
 

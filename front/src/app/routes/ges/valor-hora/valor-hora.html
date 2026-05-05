@@ -64,6 +64,7 @@
 
   @if ((columns$|async); as columnas) {
     <div nz-tab>
+        <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
         <div class="gridContainer container-fluid">
           <angular-slickgrid gridId="gridEdit" [columns]="columnas  | colsFilter" [options]="gridOptionsEdit"
             [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"

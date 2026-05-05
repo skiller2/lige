@@ -14,6 +14,7 @@ import { Component, signal, inject } from '@angular/core';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { Selections } from '../../../shared/schemas/filtro';
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 
 
 @Component({
@@ -22,7 +23,8 @@ import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/cust
   imports: [
     ...SHARED_IMPORTS,
     CommonModule,
-    NzInputNumberModule
+    NzInputNumberModule,
+    FiltroBuilderComponent
   ],
   templateUrl: './valor-hora.html',
   styleUrl: './valor-hora.scss'
