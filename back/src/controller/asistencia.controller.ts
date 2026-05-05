@@ -882,7 +882,7 @@ export class AsistenciaController extends BaseController {
 
       let resultNoAutoriz = await queryRunner.query(
         `SELECT art.PersonalArt14Id, art.Personalid, art.PersonalArt14ObjetivoId, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, 
-                art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta,
+                art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta, art.PersonalArt14DetalleMotivo,
                 
                 1
                 
@@ -904,6 +904,7 @@ export class AsistenciaController extends BaseController {
         const PersonalArt14SumaFija = row["PersonalArt14SumaFija"];
         const PersonalArt14Horas = row["PersonalArt14Horas"];
         const PersonalArt14AdicionalHora = row["PersonalArt14AdicionalHora"];
+        const PersonalArt14DetalleMotivo = String(row["PersonalArt14DetalleMotivo"]).trim();
 
         if (
           PersonalArt14FormaArt14 == metodo &&
@@ -911,7 +912,8 @@ export class AsistenciaController extends BaseController {
           PersonalArt14TipoAsociadoId == Equivalencia.TipoAsociadoId &&
           PersonalArt14SumaFija == SumaFija &&
           PersonalArt14AdicionalHora == AdicionalHora &&
-          PersonalArt14Horas == Horas
+          PersonalArt14Horas == Horas &&
+          PersonalArt14DetalleMotivo == String(Motivo).trim()
         ) {
           throw new ClientException("Ya se encuentra registrada la excepción")
         }
