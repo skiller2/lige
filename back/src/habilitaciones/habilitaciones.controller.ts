@@ -498,15 +498,16 @@ const GridListadoColums: any[] = [
     {
         name: "Estado",
         type: "string",
-        id: "Estado",
-        field: "Estado",
-        fieldName: "est.Detalle",
+        id: "GestionHabilitacionEstadoCodigo",
+        field: "GestionHabilitacionEstadoCodigo",
+        fieldName: "iif(e.GestionHabilitacionCodigo is null, 'PEN', e.GestionHabilitacionEstadoCodigo)",
+        searchComponent: "inputForHabilitacionEstadoSearch",
         sortable: true,
-        hidden: false,
-        searchHidden: true
+        hidden: true,
+        searchHidden: false
     },
     {
-        name: "Gestión Estado",
+        name: "Estado",
         type: "string",
         id: "GestionHabilitacionEstado",
         field: "GestionHabilitacionEstado",
@@ -515,6 +516,7 @@ const GridListadoColums: any[] = [
         hidden: false,
         searchHidden: true
     },
+
     {
         name: "Días Faltantes Vencimiento",
         type: "number",
