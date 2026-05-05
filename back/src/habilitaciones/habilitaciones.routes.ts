@@ -48,11 +48,11 @@ habilitacionesRouter.get("/necesarias/:PersonalId", [authMiddleware.verifyToken,
   habilitacionesController.getHabilitacionNecesariaByPersonalId(req, res, next);
 });
 
-habilitacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon'])], (req, res, next) => {
+habilitacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon','gSistemas'])], (req, res, next) => {
   habilitacionesController.list(req, res, next)
 })
 
-habilitacionesRouter.post('/detalle-list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon'])], (req, res, next) => {
+habilitacionesRouter.post('/detalle-list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon','gSistemas'])], (req, res, next) => {
   habilitacionesController.getDetalleGestiones(req, res, next)
 })
 
@@ -76,7 +76,7 @@ habilitacionesRouter.post('/gestion/update', [authMiddleware.verifyToken, authMi
   habilitacionesController.updateHabilitacionDetalle(req, res, next)
 })
 
-habilitacionesRouter.post('/personal', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon'])], (req, res, next) => {
+habilitacionesRouter.post('/personal', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon','gSistemas'])], (req, res, next) => {
   habilitacionesController.getPersonalHabilitacion(req, res, next)
 })
 
@@ -84,7 +84,7 @@ habilitacionesRouter.post('/update-hab-necesaria', [authMiddleware.verifyToken, 
   habilitacionesController.jobHabilitacionNecesaria(req, res, next)
 })
 
-habilitacionesRouter.post('/gestion', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon'])], (req, res, next) => {
+habilitacionesRouter.post('/gestion', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon','gSistemas'])], (req, res, next) => {
   habilitacionesController.getGestionHabilitacion(req, res, next)
 })
 
