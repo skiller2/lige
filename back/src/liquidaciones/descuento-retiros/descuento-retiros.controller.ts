@@ -3,6 +3,7 @@ import { dataSource } from "../../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { Utils } from "../liquidaciones.utils.ts";
 import { recibosController } from "../../controller/controller.module.ts";
+import type { QueryRunner } from "typeorm";
 
 
 type GroupedResult = {
@@ -17,7 +18,7 @@ type GroupedResult = {
 
 export class DescuentoRetirosController extends BaseController {
 
-  groupAndSum(
+  static groupAndSum(
     data: any[]
   ): GroupedResult[] {
 
@@ -59,34 +60,8 @@ export class DescuentoRetirosController extends BaseController {
   }
 
 
-  async procesaCambios(req: any, res: Response, next: NextFunction) {
-    const options = {}
-
-    const queryRunner = dataSource.createQueryRunner();
-    const anio = Number(req.body.anio)
-    const mes = Number(req.body.mes)
-    const ip = this.getRemoteAddress(req)
-    const usuario = res.locals.userName
-
-
-    let fechaActual = new Date()
-    fechaActual.setHours(0, 0, 0, 0)
-    let cantRegistros = 0
-    const tipo_movimiento_id = 29
-
-    try {
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
-
-      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
-
-      if (getRecibosGenerados[0].ind_recibos_generados == 1)
-        throw new ClientException(`Los recibos para este periodo ya se generaron`)
-
-
-      await queryRunner.query(
-        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `, [periodo_id, tipo_movimiento_id])
-
-
+  static async getDescuentosRetiros(queryRunner:QueryRunner, anio: number, mes: number, personalId: number | null = null) {
+      const filtroSupervisor = personalId ? `AND coo.ObjetivoPersonalJerarquicoPersonalId = ${personalId}` : '' 
 
       const retiros = await queryRunner.query(
         `      SELECT  suc.SucursalId, 
@@ -273,10 +248,43 @@ export class DescuentoRetirosController extends BaseController {
       WHERE obja.ObjetivoAsistenciaAnoAno = @1 
       AND objm.ObjetivoAsistenciaAnoMesMes = @2
       AND objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras IN ('N','C','R')
+      ${filtroSupervisor}
 `, [, anio, mes])
 
 
-      const retirosxobj = this.groupAndSum(retiros)
+      return DescuentoRetirosController.groupAndSum(retiros)
+  
+  }
+
+
+  async procesaCambios(req: any, res: Response, next: NextFunction) {
+    const options = {}
+
+    const queryRunner = dataSource.createQueryRunner();
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+    const ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
+
+
+    let fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
+    let cantRegistros = 0
+    const tipo_movimiento_id = 29
+
+    try {
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
+
+
+      await queryRunner.query(
+        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `, [periodo_id, tipo_movimiento_id])
+
+      const retirosxobj = await DescuentoRetirosController.getDescuentosRetiros(queryRunner, anio, mes)
 
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)

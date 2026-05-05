@@ -10,6 +10,7 @@ import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
 import { GestionDescuentosController } from "../gestion-descuentos/gestion-descuentos.controller.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
+import { DescuentoRetirosController } from "../liquidaciones/descuento-retiros/descuento-retiros.controller.ts";
 
 interface DigestAuthOptions {
   username: string;
@@ -1637,9 +1638,45 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
+     const retirosxobj = await DescuentoRetirosController.getDescuentosRetiros(queryRunner, anio, mes, personalId)
 
-      const resultC = result.filter(row => row.tipocuenta_id == 'C')
-      let totalC: number = resultC.reduce((totalC, row) => totalC + row.importe, 0)
+      const retirosxobjnromalizado = retirosxobj.map(item => ({
+        DescuentoDescripcion: "Retiro Objetivo",
+        desmovimiento: `${item.ClienteId} / ${item.ClienteElementoDependienteId} ${(item.ObjetivoAsistenciaAnoMesHasta)?'':'en carga'}`,
+        importeTotal: item.totalImporte,
+        importe: item.totalImporte
+      }));
+
+
+
+      const resultCTemp = result.filter(row => row.tipocuenta_id == 'C')
+      const resultC = [...resultCTemp, ...retirosxobjnromalizado]
+
+
+
+      const totalC: number = resultC.reduce((totalC, row) => totalC + row.importe, 0)
+
+     
+      
+
+
+      /*
+      DescuentoDescripcion
+      desmovimiento
+      importetotal
+      importe
+
+
+       ObjetivoId: 1288,
+      ClienteId: 11236,
+      ClienteElementoDependienteId: 2,
+      ObjetivoAsistenciaAnoMesHasta: undefined,
+      totalImporte: 5525128
+      
+      */
+
+
+      console.log('retirosxobj', retirosxobj)
 
       this.jsonRes({ descuentos: resultC, totalC }, res);
     } catch (error) {
