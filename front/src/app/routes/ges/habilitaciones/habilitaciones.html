@@ -11,6 +11,10 @@
           <span nz-icon nzType=""></span>
           <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']" (click)="goToDetail()">{{ 'app.detail' | i18n }} </a>
         </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'habilitaciones', 'personas-listado']" (click)="goToListado()">{{ 'app.listado' | i18n }} </a>
+        </li>
         <!-- <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'habilitaciones', 'credenciales']" (click)="goToCredentials()">{{ 'app.credenciales' | i18n }} </a>
@@ -66,6 +70,13 @@
   @if (selectedIndex() === 2) {
     <app-habilitaciones-detalle [personalId]="personalId()" [(personalHabilitacionId)]="personalHabilitacionId" [lugarHabilitacionId]="lugarHabilitacionId()"
     [detalle]="detalleSelected()"></app-habilitaciones-detalle>
+  }
+</nz-tab>
+
+<nz-tab>
+  <a nz-tab-link routerLink="/ges/habilitaciones/personas-listado">{{ 'app.listado' | i18n }}</a>
+  @if (selectedIndex() === 3) {
+    <app-habilitaciones-listado></app-habilitaciones-listado>
   }
 </nz-tab>
 

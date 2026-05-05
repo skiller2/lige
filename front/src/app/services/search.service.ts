@@ -2298,6 +2298,16 @@ export class SearchService {
     );
   }
 
+  getHabilitacionesListado(options: any) {
+    return this.http.post<ResponseJSON<any>>(`api/habilitaciones/listado`, { options }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getDetalleGestionesByHabilitacion(PersonalId: number, PersonalHabilitacionId: number, LugarHabilitacionId: number) {
     if (!PersonalId || !PersonalHabilitacionId || !LugarHabilitacionId) {
       return of([]);

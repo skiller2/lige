@@ -12,6 +12,7 @@ import { columnTotal, totalRecords } from "../../..//shared/custom-search/custom
 import { SettingsService } from '@delon/theme';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { HabilitacionesDetalleComponent } from '../../../routes/ges/habilitaciones-detalle/habilitaciones-detalle';
+import { HabilitacionesListadoComponent } from '../../../routes/ges/habilitaciones-listado/habilitaciones-listado';
 import { HabilitacionesFormDrawerComponent } from '../../../routes/ges/habilitaciones-form-drawer/habilitaciones-form-drawer';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -22,7 +23,7 @@ import { Selections } from '../../../shared/schemas/filtro';
 @Component({
   selector: 'app-habilitaciones',
   imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzButtonModule,
-    HabilitacionesDetalleComponent, HabilitacionesFormDrawerComponent,
+    HabilitacionesDetalleComponent, HabilitacionesListadoComponent, HabilitacionesFormDrawerComponent,
     HabilitacionNecesariaFormModalComponent, DetallePersonaComponent],
   providers: [AngularUtilService],
   templateUrl: './habilitaciones.html',
@@ -93,7 +94,7 @@ export class HabilitacionesComponent {
   }
 
   ngAfterViewInit(): void {
-    
+
     this.route.queryParams.subscribe(params => {
       if (params['DiasFaltantesVencimiento'] && params['GestionHabilitacionEstadoCodigo']) {
         this.startFilters.set([
@@ -168,6 +169,10 @@ export class HabilitacionesComponent {
     // if (this.personalId() && this.personalHabilitacionId() && this.lugarHabilitacionId()) {
     this.selectedIndex.set(3)
     // }
+  }
+
+  goToListado() {
+    this.selectedIndex.set(3)
   }
 
   onTabsetChange(_event: any) {
