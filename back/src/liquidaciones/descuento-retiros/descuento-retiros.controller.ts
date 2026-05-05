@@ -11,6 +11,8 @@ type GroupedResult = {
   ObjetivoId: number;
   ClienteId: number;
   ClienteElementoDependienteId: number;
+  ClienteElementoDependienteDescripcion:string,
+  ClienteDenominacion:string,
   ObjetivoAsistenciaAnoMesHasta: Date | null;
   totalImporte: number;
 };
@@ -43,6 +45,8 @@ export class DescuentoRetirosController extends BaseController {
               item.ClienteElementoDependienteId,
             ObjetivoAsistenciaAnoMesHasta:
               item.ObjetivoAsistenciaAnoMesHasta,
+            ClienteElementoDependienteDescripcion: item.ClienteElementoDependienteDescripcion,
+            ClienteDenominacion: item.ClienteDenominacion,
             totalImporte: 0
           };
         }
@@ -74,7 +78,9 @@ export class DescuentoRetirosController extends BaseController {
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
       obj.ClienteId,
       obj.ClienteElementoDependienteId,
-		-- clidep.ClienteElementoDependienteDescripcion,
+		  clidep.ClienteElementoDependienteDescripcion,
+      cli.ClienteDenominacion,
+
 
 --      ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 --      gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,

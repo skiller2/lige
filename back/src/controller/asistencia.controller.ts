@@ -1642,7 +1642,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
       const retirosxobjnromalizado = retirosxobj.map(item => ({
         DescuentoDescripcion: "Retiro Objetivo",
-        desmovimiento: `${item.ClienteId} / ${item.ClienteElementoDependienteId} ${(item.ObjetivoAsistenciaAnoMesHasta)?'':'en carga'}`,
+        desmovimiento: `${item.ClienteId}/${item.ClienteElementoDependienteId} ${item.ClienteDenominacion} ${item.ClienteElementoDependienteDescripcion} ${(item.ObjetivoAsistenciaAnoMesHasta)?'':'(en carga)'}`,
         importeTotal: item.totalImporte,
         importe: item.totalImporte
       }));
@@ -1676,7 +1676,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       */
 
 
-      console.log('retirosxobj', retirosxobj)
+      //console.log('retirosxobj', retirosxobj)
 
       this.jsonRes({ descuentos: resultC, totalC }, res);
     } catch (error) {
