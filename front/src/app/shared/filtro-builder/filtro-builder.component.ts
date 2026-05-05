@@ -25,6 +25,7 @@ import { ClienteSearchComponent } from '../cliente-search/cliente-search.compone
 import { EfectoSearchComponent } from '../efecto-search/efecto-search';
 import { EfectoIndividualSearchComponent } from '../efecto-individual-search/efecto-individual-search';
 import { TipoAsociadoCategoriaSearchComponent } from '../tipo-asociado-categoria-search/tipo-asociado-categoria-search';
+import { TipoAsociadoSearchComponent } from '../tipo-asociado-search/tipo-asociado-search';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
 import { GrupoActividadSearchComponent } from '../grupo-actividad-search/grupo-actividad-search.component';
 import { RequirenteSearchComponent } from '../requirente-search/requirente-search.component';
@@ -55,7 +56,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   selector: 'shared-filtro-builder',
   imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
     ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent, EfectoSearchComponent, EfectoIndividualSearchComponent,
-    TipoAsociadoCategoriaSearchComponent, RequirenteSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent, AsyncPipe
+    TipoAsociadoCategoriaSearchComponent, TipoAsociadoSearchComponent, RequirenteSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent, AsyncPipe
   ],
   templateUrl: './filtro-builder.component.html',
   styles: [],

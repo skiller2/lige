@@ -2213,15 +2213,15 @@ export class ApiService {
   }
 
 
-  getValorHoraData(anio: number, mes: number,filters: any) {
- 
-      const parameter = { filter,anio,mes } 
+  getValorHoraData(anio: number, mes: number, filters: any) {
 
-        return this.http.post<ResponseJSON<any>>('/api/valor-hora/data', parameter).pipe(
-          map((res: { data: any; }) => res.data),
-          catchError(() => of([]))
-        );
-    
+    const parameter = { ...filters, anio, mes }
+
+    return this.http.post<ResponseJSON<any>>('/api/valor-hora/data', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+
   }
 
   aumentarValorHora(params: { anio: number, mes: number, tipo: string, valor: number }) {

@@ -1,0 +1,7 @@
+<nz-select #csc [(ngModel)]="listOfSelectedValue" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+  style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Tipo Asociado"
+  nzShowSearch nzMode="multiple" [nzLoading]="isLoading">
+  @for (option of options; track option) {
+    <nz-option [nzValue]="option.value" [nzLabel]="option.label" />
+  }
+</nz-select>
