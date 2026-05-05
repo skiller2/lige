@@ -1069,7 +1069,7 @@ export class NovedadesController extends BaseController {
 
 
         try {
-            ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
+            ({ EventoLogCodigo } = await this.eventoLogInicio(
                 queryRunner,
                 `Proceso Exportación de informe de novedades.`,
                 { condition, filterSql, year, month, usuario, ip },
@@ -1190,7 +1190,7 @@ export class NovedadesController extends BaseController {
                 fs.rmSync(filesPath, { recursive: true, force: true });
             }
 
-            await this.procesoAutomaticoLogFin(
+            await this.eventoLogFin(
                 queryRunner,
                 EventoLogCodigo,
                 'COM',
@@ -1206,7 +1206,7 @@ export class NovedadesController extends BaseController {
 
         } catch (error) {
 
-            await this.procesoAutomaticoLogFin(queryRunner,
+            await this.eventoLogFin(queryRunner,
                 EventoLogCodigo,
                 'ERR',
                 { res: error },

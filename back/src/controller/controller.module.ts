@@ -1,7 +1,7 @@
 import { AuthController } from "./auth.controller.ts";
 import { InfoController } from "./info.controller.ts";
 import { PersonalController } from "./personal.controller.ts";
-import { ClienteController } from "./cliente.controller.ts";
+import { ClienteController } from "./cliente.Controller.ts";
 import { InitController } from "./init.controller.ts";
 import { SucursalController } from "./sucursal.controller.ts";
 import { ObjetivoController } from "./objetivo.controller.ts";
@@ -54,7 +54,7 @@ import { AdministradoresController } from "../administradores/administradores.co
 import { ImporteVentaVigilanciaController } from "../importe-venta-vigilancia/importe-venta-vigilancia.controller.ts";
 import { FacturacionController } from "../facturacion/facturacion.controller.ts";
 import { NovedadesController } from "../novedades/novedades.controller.ts";
-import { ProcesosAutomaticosController } from "../procesos-automaticos/procesos-automaticos.controller.ts";
+import { EventoLogController } from "../evento-log/evento-log.controller.ts";
 import { ExcepcionesAsistenciaController } from "../excepciones-asistencia/excepciones-asistencia.controller.ts";
 import { CompensaGeneralACordinadorController } from "../liquidaciones/compensa-general-a-coordinador/compensa-general-a-coordinador.controller.ts";
 import { EfectoController } from "../efecto/efecto.controller.ts";
@@ -125,7 +125,7 @@ export const administradoresController = new AdministradoresController()
 export const importeVentaVigilanciaController = new ImporteVentaVigilanciaController()
 export const facturacionController = new FacturacionController()
 export const novedadesController = new NovedadesController()
-export const procesosAutomaticosController = new ProcesosAutomaticosController()
+export const eventoLogController = new EventoLogController()
 export const excepcionesAsistenciaController = new ExcepcionesAsistenciaController()
 export const compensaGeneralACordinadorController = new CompensaGeneralACordinadorController()
 export const efectoController = new EfectoController()

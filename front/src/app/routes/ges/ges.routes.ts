@@ -171,11 +171,11 @@ export const GesRoutes: Routes = [
     loadComponent: () => import('./facturacion/facturacion').then(c => c.FacturacionComponent),
   },
   {
-    path: 'procesos-automaticos', redirectTo: 'procesos-automaticos/listado'
+    path: 'evento-log', redirectTo: 'evento-log/listado'
   },
   {
-    path: 'procesos-automaticos/:tab',
-    loadComponent: () => import('./procesos-automaticos/procesos-automaticos').then(c => c.ProcesosAutomaticosComponent),
+    path: 'evento-log/:tab',
+    loadComponent: () => import('./evento-log/evento-log').then(c => c.EventoLogComponent),
   },
   {
     path: 'excepciones-asistencia', redirectTo: 'excepciones-asistencia/listado'

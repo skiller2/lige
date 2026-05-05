@@ -47,7 +47,7 @@ import { AdministradoresRouter } from "../administradores/administradores.routes
 import { importeVentaVigilanciaRouter } from "../importe-venta-vigilancia/importe-venta-vigilancia.routes.ts";
 import { facturacionRouter } from "../facturacion/facturacion.routes.ts";
 import { novedadesRouter } from "../novedades/novedades.routes.ts";
-import { procesosAutomaticosRouter } from "../procesos-automaticos/procesos-automaticos.routes.ts";
+import { eventoLogRouter } from "../evento-log/evento-log.routes.ts";
 import { excepcionesAsistenciaRouter } from "../excepciones-asistencia/excepciones-asistencia.routes.ts";
 import { efectoRouter } from "../efecto/efecto.router.ts";
 import { habilitacionesRouter } from "../habilitaciones/habilitaciones.routes.ts";
@@ -106,7 +106,7 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/importe-venta-vigilancia", importeVentaVigilanciaRouter)
   server.setRoute("/api/facturacion", facturacionRouter)
   server.setRoute("/api/novedades", novedadesRouter)
-  server.setRoute("/api/procesos-automaticos", procesosAutomaticosRouter)
+  server.setRoute("/api/evento-log", eventoLogRouter)
   server.setRoute("/api/excepciones-asistencia", excepcionesAsistenciaRouter)
   server.setRoute("/api/efecto", efectoRouter)
   server.setRoute("/api/habilitaciones", habilitacionesRouter)

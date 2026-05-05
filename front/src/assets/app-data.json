@@ -235,9 +235,9 @@
           "link": "/ges/novedades"
         },
         {
-          "text": "Procesos Automáticos",
+          "text": "Evento Log",
           "icon": "anticon-profile",
-          "link": "/ges/procesos-automaticos"
+          "link": "/ges/evento-log"
         },
         {
           "text": "Permisos",

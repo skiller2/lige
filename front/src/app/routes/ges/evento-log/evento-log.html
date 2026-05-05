@@ -36,15 +36,15 @@
       <ul nz-menu nzMode="horizontal" style="display: flex;">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'procesos-automaticos', 'listado']" (click)="gridData.reload()">Lista</a>
+          <a [routerLink]="['/', 'ges', 'evento-log', 'listado']" (click)="gridData.reload()">Lista</a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'procesos-automaticos', 'detalle']">Detalle</a>
+          <a [routerLink]="['/', 'ges', 'evento-log', 'detalle']">Detalle</a>
         </li>
          <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'procesos-automaticos', 'tablas-locked']">Tablas Bloqueadas</a> 
+          <a [routerLink]="['/', 'ges', 'evento-log', 'tablas-locked']">Tablas Bloqueadas</a> 
         </li>
       </ul>
     </div>
@@ -53,7 +53,7 @@
   <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" >
     <nz-tab></nz-tab>
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/procesos-automaticos/listado">Lista</a>
+      <a nz-tab-link routerLink="/ges/evento-log/listado">Lista</a>
       @if ((columns$|async); as columnas) {
         <ng-template nz-tab>
           <shared-filtro-builder  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)"
@@ -69,12 +69,12 @@
       </nz-tab>
 
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/procesos-automaticos/detalle">Detalle</a>
-        <app-procesos-automaticos-detalle [logCod]="logCodigo()"></app-procesos-automaticos-detalle>
+        <a nz-tab-link routerLink="/ges/evento-log/detalle">Detalle</a>
+        <app-evento-log-detalle [logCod]="logCodigo()"></app-evento-log-detalle>
       </nz-tab>
 
       <nz-tab>
-        <a nz-tab-link routerLink="/ges/procesos-automaticos/tablas-locked">Tablas Bloqueadas</a>
+        <a nz-tab-link routerLink="/ges/evento-log/tablas-locked">Tablas Bloqueadas</a>
         <ng-template nz-tab>
           <app-table-locked></app-table-locked>
         </ng-template>

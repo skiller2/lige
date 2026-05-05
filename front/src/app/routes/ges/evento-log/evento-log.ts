@@ -11,20 +11,20 @@ import { ApiService } from '../../../services/api.service';
 import { LoadingService } from '@delon/abc/loading';
 import { SettingsService } from '@delon/theme';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
-import { ProcesosAutomaticosDetalleComponent } from "../procesos-automaticos-detalle/procesos-automaticos-detalle";
+import { EventoLogDetalleComponent } from "../evento-log-detalle/evento-log-detalle";
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TableBloqueadasComponent } from '../table-bloqueadas/table-locked '
 
 @Component({
-  selector: 'app-procesos-automaticos',
-  templateUrl: './procesos-automaticos.html',
-  styleUrl: './procesos-automaticos.less',
+  selector: 'app-evento-log',
+  templateUrl: './evento-log.html',
+  styleUrl: './evento-log.less',
   providers: [AngularUtilService],
-  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProcesosAutomaticosDetalleComponent,TableBloqueadasComponent],
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, EventoLogDetalleComponent,TableBloqueadasComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
-export class ProcesosAutomaticosComponent {
+export class EventoLogComponent {
   periodo = signal(new Date());
   anio = computed(() => this.periodo()?.getFullYear());
   mes = computed(() => this.periodo()?.getMonth() + 1);
@@ -50,11 +50,11 @@ export class ProcesosAutomaticosComponent {
   private excelExportService = new ExcelExportService();
   private notification = inject(NzNotificationService)
 
-  columns$ = this.apiService.getCols('/api/procesos-automaticos/cols');
+  columns$ = this.apiService.getCols('/api/evento-log/cols');
   gridData = resource({
     params: () => ({ options: this.listOptions() }),
     loader: async ({ params }) => {
-      return await firstValueFrom(this.apiService.getListProcesosAutomaticos(params.options))
+      return await firstValueFrom(this.apiService.getListEventoLog(params.options))
     },
     defaultValue: []
   });

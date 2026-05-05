@@ -16,7 +16,7 @@ Este proyecto automatiza tareas de análisis, refactorización, documentación y
 
 Las *skills* son archivos `.skill.md` que los agentes consultan como fuente de verdad. El `agent-builder` se encarga de actualizarlas para evitar que el equipo humano deba hacerlo manualmente repetidas veces.
 
-1. **`stack-context.skill.md`**: Mapeo real de la arquitectura del proyecto. Contiene controladores (ej. `procesos-automaticos.controller.ts`), rutas de UI, y nomenclatura de tablas de Base de Datos (ej. `Evento`, `EventoEstado`).
+1. **`stack-context.skill.md`**: Mapeo real de la arquitectura del proyecto. Contiene controladores (ej. `evento-log.controller.ts`), rutas de UI, y nomenclatura de tablas de Base de Datos (ej. `Evento`, `EventoEstado`).
 2. **`prompt-engineering.skill.md`**: Manual de estilo para darle instrucciones a los agentes (usar voz imperativa, evitar negatividades difusas y forzar estructuras de salida).
 3. **`knowledge-extraction.skill.md`**: Reglas para que el sistema aprenda de las correcciones del usuario y extraiga patrones universales hacia las bases de conocimiento.
 4. **`acceptance-criteria.skill.md`**: Estándar para escribir criterios testeables. Incluye directivas como especificar siempre operadores exactos (`>=`, `<=`) en vez de rangos difusos.

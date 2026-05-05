@@ -13,7 +13,7 @@ Extraer el conocimiento persistente (arquitectura, reglas de negocio, convencion
 ### ¿Qué DEBE ser extraído?
 1. **Nuevos componentes o entidades de dominio:** "Acabamos de crear el módulo de reportes." -> Va a `stack-context.skill.md`.
 2. **Convenciones o Patrones:** "De ahora en más los endpoints de borrado usarán método PATCH con campo activo=false." -> Va a reglas de Backend.
-3. **Diccionario de equivalencias:** "La tabla en BD se llama `Evento`, pero el modelo en Angular se llama `ProcesoAutomatico`." -> Va a `stack-context.skill.md`.
+3. **Diccionario de equivalencias:** "La tabla en BD se llama `Evento`, pero el modelo en Angular se llama `EventoLog`." -> Va a `stack-context.skill.md`.
 4. **Errores recurrentes:** "El agente siempre genera botones sin la clase ant-btn." -> Genera una regla de calidad en el agente o skill frontend.
 
 ### ¿Qué NO DEBE ser extraído?

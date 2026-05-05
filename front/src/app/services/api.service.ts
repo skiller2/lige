@@ -716,7 +716,7 @@ export class ApiService {
 
 
   getListListaTablasBloqueadas() {
-    return this.http.post<ResponseJSON<any>>('/api/procesos-automaticos/listtablasbloqueadas').pipe(
+    return this.http.post<ResponseJSON<any>>('/api/evento-log/listtablasbloqueadas').pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
@@ -1993,8 +1993,8 @@ export class ApiService {
     )
   }
 
-  getListProcesosAutomaticos(options: any) {
-    return this.http.post<ResponseJSON<any>>(`api/procesos-automaticos/list`, { options }).pipe(
+  getListEventoLog(options: any) {
+    return this.http.post<ResponseJSON<any>>(`api/evento-log/list`, { options }).pipe(
       map(res => res.data),
       catchError(() => of([]))
     );

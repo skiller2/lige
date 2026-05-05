@@ -343,7 +343,7 @@ const listaColumnasBloqueadas: any[] = [
 ]
 
 
-export class ProcesosAutomaticosController extends BaseController {
+export class EventoLogController extends BaseController {
 
   async getGridCols(req, res, next) {
     this.jsonRes(listaColumnas, res);
@@ -355,7 +355,7 @@ export class ProcesosAutomaticosController extends BaseController {
 
   
 
-  async listProcesosAutomaticos(req: any, res: Response, next: NextFunction ) {
+  async listEventoLog(req: any, res: Response, next: NextFunction ) {
     const options: Options = isOptions(req.body.options)
       ? req.body.options
       : { filtros: [], sort: null };
@@ -437,7 +437,7 @@ export class ProcesosAutomaticosController extends BaseController {
     }
   }
 
-  async getProcesoAutomatico(req: any, res: Response, next: NextFunction ) {
+  async getEventoLog(req: any, res: Response, next: NextFunction ) {
     const logCodigo = req.params.logCodigo
 
     const queryRunner = dataSource.createQueryRunner();

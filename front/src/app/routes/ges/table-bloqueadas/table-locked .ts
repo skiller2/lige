@@ -46,7 +46,7 @@ export class TableBloqueadasComponent {
   
 
 
-  columns$ = this.apiService.getCols('/api/procesos-automaticos/colsBloqueadas').pipe(map((cols) => {
+  columns$ = this.apiService.getCols('/api/evento-log/colsBloqueadas').pipe(map((cols) => {
 
     return cols
   }));

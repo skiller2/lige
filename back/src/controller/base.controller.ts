@@ -370,9 +370,9 @@ export class BaseController {
     return (value == null || (typeof value === "string" && value.trim().length === 0));
   }
 
-  // TODO: FUNCION QUE HAGA INSERT DE DATOS EN TABLA DE REGISTROS DE PROCESOS AUTOMATICOS
-  async procesoAutomaticoLogInicio(queryRunner: QueryRunner, NombreProceso: string, ParametroEntrada: object, usuario: string, ip: string) {
-    if (queryRunner.isTransactionActive) throw new Error('No se puede iniciar procesoAutomaticoLogInicio dentro de una transacción activa')
+  // TODO: FUNCION QUE HAGA INSERT DE DATOS EN TABLA DE REGISTROS DE Evento Log
+  async eventoLogInicio(queryRunner: QueryRunner, NombreProceso: string, ParametroEntrada: object, usuario: string, ip: string) {
+    if (queryRunner.isTransactionActive) throw new Error('No se puede iniciar eventoLogInicio dentro de una transacción activa')
 
     await queryRunner.startTransaction();
     const fechaActual = new Date()
@@ -413,9 +413,9 @@ export class BaseController {
     return { EventoLogCodigo }
   }
 
-  async procesoAutomaticoLogFin(queryRunner: QueryRunner, EventoLogCodigo: number, EstadoCod: string, Resultado: object, usuario: string, ip: string) {
+  async eventoLogFin(queryRunner: QueryRunner, EventoLogCodigo: number, EstadoCod: string, Resultado: object, usuario: string, ip: string) {
     const fechaActual = new Date()
-    if (queryRunner.isTransactionActive) throw new Error('No se puede iniciar procesoAutomaticoLogFin dentro de una transacción activa')
+    if (queryRunner.isTransactionActive) throw new Error('No se puede iniciar eventoLogFin dentro de una transacción activa')
     await queryRunner.startTransaction();
 
     await queryRunner.query(

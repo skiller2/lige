@@ -462,7 +462,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
         throw new ClientException(`Los recibos para este periodo ya se generaron`);
 
 
-      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
         `Importa XLS Telefonia`,
         { usuario, ip },
@@ -947,7 +947,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       await queryRunner.commitTransaction();
 
       const resMsg = "Se procesaron " + telefonos.length + " teléfonos, con un total de $ " + this.round2(totalsuma)
-      await this.procesoAutomaticoLogFin(
+      await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
@@ -967,7 +967,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       this.jsonRes({}, res, resMsg);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-      await this.procesoAutomaticoLogFin(queryRunner,
+      await this.eventoLogFin(queryRunner,
         EventoLogCodigo,
         'ERR',
         {

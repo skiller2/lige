@@ -41,7 +41,7 @@ Leyenda:
 | parametro-venta | Sin documentar | Pendiente | |
 | personal-objetivo | Sin documentar | Pendiente | |
 | precios-productos | Sin documentar | Pendiente | |
-| procesos-automaticos | Sin documentar | Pendiente | |
+| evento-log | Sin documentar | Pendiente | |
 | recibos | Sin documentar | Pendiente | |
 | reportes | Sin documentar | Pendiente | |
 | routes | Sin documentar | Pendiente | |

@@ -882,7 +882,7 @@ export class AsistenciaController extends BaseController {
 
       let resultNoAutoriz = await queryRunner.query(
         `SELECT art.PersonalArt14Id, art.Personalid, art.PersonalArt14ObjetivoId, art.PersonalArt14Autorizado, art.PersonalArt14FormaArt14, art.PersonalArt14CategoriaId, art.PersonalArt14TipoAsociadoId, art.PersonalArt14SumaFija, art.PersonalArt14AdicionalHora, art.PersonalArt14Horas, 
-                art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta,
+                art.PersonalArt14AutorizadoDesde, art.PersonalArt14Desde, art.PersonalArt14AutorizadoHasta, art.PersonalArt14Hasta, art.PersonalArt14DetalleMotivo,
                 
                 1
                 
@@ -904,6 +904,7 @@ export class AsistenciaController extends BaseController {
         const PersonalArt14SumaFija = row["PersonalArt14SumaFija"];
         const PersonalArt14Horas = row["PersonalArt14Horas"];
         const PersonalArt14AdicionalHora = row["PersonalArt14AdicionalHora"];
+        const PersonalArt14DetalleMotivo = String(row["PersonalArt14DetalleMotivo"]).trim();
 
         if (
           PersonalArt14FormaArt14 == metodo &&
@@ -911,9 +912,10 @@ export class AsistenciaController extends BaseController {
           PersonalArt14TipoAsociadoId == Equivalencia.TipoAsociadoId &&
           PersonalArt14SumaFija == SumaFija &&
           PersonalArt14AdicionalHora == AdicionalHora &&
-          PersonalArt14Horas == Horas
+          PersonalArt14Horas == Horas &&
+          PersonalArt14DetalleMotivo == String(Motivo).trim()
         ) {
-          throw new ClientException("Ya se encuentra registrada la excepción")
+          throw new ClientException("Ya se encuentra registrada la excepción con idénticos valores")
         }
 
         let hasta: Date = new Date(fechaDesde);
@@ -3207,7 +3209,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
 
     try {
-      ({ EventoLogCodigo } = await this.procesoAutomaticoLogInicio(
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
         `Proceso Asistencia Biométrico ${mes}/${anio}`,
         { anio, mes, usuario, ip },
@@ -3532,7 +3534,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
 
       await queryRunner.commitTransaction();
 
-      await this.procesoAutomaticoLogFin(
+      await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
@@ -3547,7 +3549,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       this.jsonRes(listadoProcessed, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-      await this.procesoAutomaticoLogFin(queryRunner,
+      await this.eventoLogFin(queryRunner,
         EventoLogCodigo,
         'ERR',
         { res: error },
