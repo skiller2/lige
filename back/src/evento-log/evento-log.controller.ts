@@ -343,7 +343,7 @@ const listaColumnasBloqueadas: any[] = [
 ]
 
 
-export class ProcesosAutomaticosController extends BaseController {
+export class EventoLogController extends BaseController {
 
   async getGridCols(req, res, next) {
     this.jsonRes(listaColumnas, res);

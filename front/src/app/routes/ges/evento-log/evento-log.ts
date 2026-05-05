@@ -11,7 +11,7 @@ import { ApiService } from '../../../services/api.service';
 import { LoadingService } from '@delon/abc/loading';
 import { SettingsService } from '@delon/theme';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
-import { ProcesosAutomaticosDetalleComponent } from "../evento-log-detalle/evento-log-detalle";
+import { EventoLogDetalleComponent } from "../evento-log-detalle/evento-log-detalle";
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TableBloqueadasComponent } from '../table-bloqueadas/table-locked '
 
@@ -20,11 +20,11 @@ import { TableBloqueadasComponent } from '../table-bloqueadas/table-locked '
   templateUrl: './evento-log.html',
   styleUrl: './evento-log.less',
   providers: [AngularUtilService],
-  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProcesosAutomaticosDetalleComponent,TableBloqueadasComponent],
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, EventoLogDetalleComponent,TableBloqueadasComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
-export class ProcesosAutomaticosComponent {
+export class EventoLogComponent {
   periodo = signal(new Date());
   anio = computed(() => this.periodo()?.getFullYear());
   mes = computed(() => this.periodo()?.getMonth() + 1);

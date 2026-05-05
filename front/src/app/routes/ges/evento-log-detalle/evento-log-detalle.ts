@@ -19,7 +19,7 @@ import { ObjectViewerComponent } from '../../../shared/object-viewer/object-view
   styleUrl: './evento-log-detalle.less'
 })
 
-export class ProcesosAutomaticosDetalleComponent {
+export class EventoLogDetalleComponent {
 
   logCod = model<number>(0);
   ParametroEntrada = signal<any>(null)

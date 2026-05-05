@@ -80,7 +80,7 @@ front/src/app/
 | `AccesoBotFormComponent` | `ges/accesso-bot-form` | Formulario de acceso bot |
 | `RecibosModalComponent` | `ges/recibos-modal` | Modal de recibos |
 | `PersonalGrupoComponent` | `ges/personal-grupo` | Grupo de personal |
-| `ProcesosAutomaticosComponent` | `ges/evento-log` | Grilla y ABM de procesos automaticos |
+| `EventoLogComponent` | `ges/evento-log` | Grilla y ABM de procesos automaticos |
 
 ### Patron de Drawer en el proyecto
 Los drawers se implementan con `nz-drawer` de ng-zorro-antd:

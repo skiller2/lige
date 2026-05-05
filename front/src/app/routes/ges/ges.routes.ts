@@ -175,7 +175,7 @@ export const GesRoutes: Routes = [
   },
   {
     path: 'evento-log/:tab',
-    loadComponent: () => import('./evento-log/evento-log').then(c => c.ProcesosAutomaticosComponent),
+    loadComponent: () => import('./evento-log/evento-log').then(c => c.EventoLogComponent),
   },
   {
     path: 'excepciones-asistencia', redirectTo: 'excepciones-asistencia/listado'
