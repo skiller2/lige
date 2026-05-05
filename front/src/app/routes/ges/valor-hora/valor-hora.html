@@ -26,6 +26,15 @@
       <ng-container *nzModalContent>
         <div style="display: flex; flex-direction: column; gap: 16px;">
           <nz-form-item style="margin-bottom: 0;">
+            <nz-form-label>Período</nz-form-label>
+            <nz-form-control>
+              <nz-date-picker nzMode="month" [ngModel]="aumentoPeriodo()"
+                (ngModelChange)="aumentoPeriodo.set($event)" nzPlaceHolder="Seleccione período"
+                style="width: 100%;">
+              </nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+          <nz-form-item style="margin-bottom: 0;">
             <nz-form-label>Tipo de aumento</nz-form-label>
             <nz-form-control>
               <nz-radio-group [ngModel]="aumentoTipo()" (ngModelChange)="aumentoTipo.set($event); aumentoValor = 0">
