@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild, forwardRef } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, signal } from '@angular/core';
 import {
   BehaviorSubject,
   Observable,
@@ -39,11 +39,12 @@ export class ClienteSearchComponent implements ControlValueAccessor {
   @ViewChild("csc") csc!: NzSelectComponent
   
   private _selectedId: string = ''
-  _selected = ''
+  _selected = signal('')
   extendedOption = { ClienteId: 0, fullName: "" }
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
+  controlDisabled = signal(true)
 
   registerOnChange(fn: any) {
     this.propagateChange = fn
@@ -83,7 +84,7 @@ export class ClienteSearchComponent implements ControlValueAccessor {
 
       if (this._selectedId == '') {
         this.valueExtendedEmitter.emit({})
-        this._selected = ''
+        this._selected.set('')
         this.propagateChange(this._selectedId)
         return
       }
@@ -93,7 +94,7 @@ export class ClienteSearchComponent implements ControlValueAccessor {
           .getClientFromName('ClienteId', this._selectedId)
           .pipe(tap(res => {
             this.extendedOption = { ClienteId: res[0].ClienteId, fullName: res[0].ClienteDenominacion }
-            this._selected = this._selectedId
+            this._selected.set(this._selectedId)
             this.valueExtendedEmitter.emit(this.extendedOption)
             if (this.tmpInputVal != this._selected) {
               this.propagateChange(this._selectedId)
@@ -121,16 +122,6 @@ export class ClienteSearchComponent implements ControlValueAccessor {
       });
   }
 */
-
-
-
-
-
-
-
-
-
-
 
   writeValue(value: any) {
     this.tmpInputVal = value
@@ -165,7 +156,8 @@ export class ClienteSearchComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.csc?.setDisabledState(isDisabled)
+    this.controlDisabled.set(isDisabled)
+    // this.csc?.setDisabledState(isDisabled)
   } 
 
 }

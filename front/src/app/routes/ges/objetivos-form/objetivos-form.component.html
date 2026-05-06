@@ -1,5 +1,5 @@
 <ng-template #suffixReloadTpl>
-  <button nz-button (click)="visibleDrawer.set(true)">
+  <button type="button" nz-button (click)="visibleDrawer.set(true)">
     <span nz-icon nzType="user" nzTheme="outline" nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span>
   </button>
 </ng-template>
@@ -281,7 +281,7 @@
       <div class="input-label">Documentos</div>
     </div>
 
-    <!-- @if(formObj.enabled){ -->
+    @if(!readonly()){
       <nz-form-item>
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Carga </nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="15" [nzLg]="8">
@@ -290,7 +290,7 @@
         </nz-form-control>
 
       </nz-form-item>
-    <!-- } -->
+    }
   </fieldset>
 
   <nz-form-item>
@@ -306,7 +306,7 @@
     </nz-form-control>
   </nz-form-item>
 
-  <!-- @if (formObj.enabled) { -->
+  @if (!readonly()) {
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">
         <button type="submit" nzType="primary" nz-button [nzLoading]="isLoading()" 
@@ -325,7 +325,7 @@
         }
       </nz-form-control>
     </nz-form-item>
-  <!-- } -->
+  }
 
   <!-- {{objetivo() | json}} -->
 </form>

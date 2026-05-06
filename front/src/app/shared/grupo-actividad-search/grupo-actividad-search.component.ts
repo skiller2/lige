@@ -40,7 +40,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   @Input() valueExtended: any
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("psc") psc!: NzSelectComponent
-  private isDisabled = false
+  // private isDisabled = false
   $searchChange = new BehaviorSubject('')
   $isOptionsLoading = new BehaviorSubject<boolean>(false)
   onItemChanged = new Subject<any>();    // object
@@ -52,7 +52,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
-
+  controlDisabled = signal(true)
 
   registerOnChange(fn: any) {
 
@@ -89,7 +89,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
     setTimeout(() => {
       this.psc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
       // this.psc.focus()  //Al hacer click en el componente hace foco
-      this.psc.setDisabledState(this.isDisabled)
+      // this.psc.setDisabledState(this.isDisabled)
 
     }, 1);
   }
@@ -173,8 +173,8 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   visibleDrawer = signal(false)
   setDisabledState(isDisabled: boolean): void {
-    this.isDisabled = isDisabled
-    this.psc?.setDisabledState(isDisabled)
+    this.controlDisabled.set(isDisabled)
+    // this.psc?.setDisabledState(isDisabled)
   }
 
   openDrawer(): void {

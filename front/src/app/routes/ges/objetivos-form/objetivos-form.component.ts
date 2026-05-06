@@ -168,7 +168,10 @@ export class ObjetivosFormComponent {
   readonly objetivo = signal<Objetivo>(this.objetivoDefault);
   readonly formObjetivo = form(this.objetivo, (p) => {
     disabled(p, () => this.readonly()),
-    disabled(p.codigo, () => true)
+    disabled(p.codigo, () => true),
+    applyEach(p.infoActividad, (infoActividad) => {
+      disabled(infoActividad.GrupoActividadId, () => (this.ObjetivoId()? true : false))
+    });
   })
 
   childDocsGrid = viewChild.required<TableObjetivoDocumentoComponent>('docsGrid')
@@ -187,16 +190,27 @@ export class ObjetivosFormComponent {
     this.pristineChange.emit(pristine)
   })
 
-  onChangePeriodo(result: any): void {
+  onChangePeriodo(result: any) {
     if (result) {
       const date = new Date(result)
       const year = date.getFullYear()
       const month = date.getMonth() + 1
       this.periodo.set({ year, month })
     }
+    // console.log('FechaModificada');
+    
     this.objetivo.update(m => ({
       ...m,
       FechaModificada: true
+    }));
+  }
+
+  onChangeDireccion(value: any) {
+    // console.log('onChangeDireccion');
+    
+    this.objetivo.update(m => ({
+      ...m,
+      DireccionModificada: true
     }));
   }
 
@@ -298,17 +312,13 @@ export class ObjetivosFormComponent {
     // // this.formObj.reset(infoObjetivo)
   }
 
-
-
-
   async save() {
     await submit(this.formObjetivo, async (form) => {
       this.isLoading.set(true)
       let value = form().value();
       try {
-          if (value.id) {
+          if (value.id) { //UPDATE
             let CordinadorCuenta = value.infoCoordinadorCuenta
-            // este es para cuando es update
 
             if( CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonalId) === '')
               value.infoCoordinadorCuenta = []   
@@ -335,9 +345,7 @@ export class ObjetivosFormComponent {
           
             //this.edit.set(false)
 
-          } else {
-
-            // este es para cuando es un nuevo registro
+          } else { //INSERT (nuevo registro)
 
             let result = await firstValueFrom(this.apiService.addObjetivo(value))
             const infoObjetivo = result.data
@@ -418,13 +426,6 @@ export class ObjetivosFormComponent {
 
   closeDrawer(): void {
     this.visibleDrawer.set( false)
-  }
-
-  onChangeDireccion(value: any) {
-    this.objetivo.update(m => ({
-      ...m,
-      DireccionModificada: true
-    }));
   }
 
 }
