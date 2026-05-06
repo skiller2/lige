@@ -167,7 +167,8 @@ export class ObjetivosFormComponent {
 
   readonly objetivo = signal<Objetivo>(this.objetivoDefault);
   readonly formObjetivo = form(this.objetivo, (p) => {
-    disabled(p, () => this.readonly())
+    disabled(p, () => this.readonly()),
+    disabled(p.codigo, () => true)
   })
 
   childDocsGrid = viewChild.required<TableObjetivoDocumentoComponent>('docsGrid')
@@ -180,6 +181,11 @@ export class ObjetivosFormComponent {
   optionsDocumentoTipo = toSignal(this.searchService.getDocumentoTipoOptions(), { initialValue: [] });
   optionsLugarHabilitacion = toSignal(this.searchService.getLugarHabilitacionOptions(), { initialValue: [] });
   optionsRubroCliente = toSignal(this.searchService.getRubroClienteOptions(), { initialValue: [] });
+
+  effect = effect(() => {
+    const pristine = !this.formObjetivo().dirty()
+    this.pristineChange.emit(pristine)
+  })
 
   onChangePeriodo(result: any): void {
     if (result) {
@@ -196,15 +202,15 @@ export class ObjetivosFormComponent {
 
   async ngOnInit() {
 
-  //   this.formObj.statusChanges.subscribe(() => {
-  //     this.checkPristine();
-  //  });
+    // this.formObj.statusChanges.subscribe(() => {
+    //   this.checkPristine();
+    // });
 
   }
 
-  checkPristine() {
-    // this.pristineChange.emit(this.formObj.pristine);
-  }
+  // checkPristine() {
+  //   this.pristineChange.emit(!this.formObjetivo().dirty());
+  // }
 
   resetForm() {
     this.formObjetivo().reset()
@@ -220,20 +226,9 @@ export class ObjetivosFormComponent {
     }
   }
 
-  async viewRecord(readonly:boolean) {
+  async viewRecord() {
       if (this.ObjetivoId()) 
         await this.load()
-      // if (readonly){
-      //   this.formObj.disable()
-      //   this.formObj.get('GrupoActividadId')?.disable()
-      //   this.formObj.get('DocumentoTipoCodigo')?.disable()
-      // }else{
-      //   this.formObj.enable()
-      // }
-        
-      // this.formObj.get('codigo')?.disable()
-      // this.formObj.markAsPristine()        
-
    }
 
 
@@ -271,9 +266,9 @@ export class ObjetivosFormComponent {
     //   this.infoActividad().disable()
     // }
 
-    this.formObjetivo().reset(infoObjetivo)
     this.objetivo.update(m => ({
       ...m,
+      ...infoObjetivo,
       DireccionModificada:false,
       FechaModificada:false,
       ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
@@ -283,6 +278,7 @@ export class ObjetivosFormComponent {
       clienteOld: this.ClienteId(),
       GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
     }));
+    setTimeout(() => { this.formObjetivo().reset() }, 400);
     // this.formObj.patchValue({
     //   DireccionModificada:false,
     //   FechaModificada:false,

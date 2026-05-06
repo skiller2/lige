@@ -30,7 +30,7 @@
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-select [formField]="formObjetivo.SucursalId" nzPlaceHolder="Sucursal" nzAllowClear [nzDropdownMatchSelectWidth]="false"
           style="width: 100%">
-          @for (option of sucursales(); track option.SucursalId) {
+          @for (option of sucursales(); track option) {
             <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
           }
         </nz-select>
@@ -327,5 +327,5 @@
     </nz-form-item>
   <!-- } -->
 
-  {{objetivo() | json}}
+  <!-- {{objetivo() | json}} -->
 </form>
