@@ -9,22 +9,21 @@
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']" (click)="goToDetail()">{{ 'app.detail' | i18n }} </a>
+          <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']">{{ 'app.detail' | i18n }} </a>
         </li>
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'habilitaciones', 'personas-listado']" (click)="goToListado()">{{ 'app.listado' | i18n }} </a>
+          <a [routerLink]="['/', 'ges', 'habilitaciones', 'personas-listado']">{{ 'app.listado' | i18n }} </a>
         </li>
         <!-- <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'habilitaciones', 'credenciales']" (click)="goToCredentials()">{{ 'app.credenciales' | i18n }} </a>
+        <a [routerLink]="['/', 'ges', 'habilitaciones', 'credenciales']">{{ 'app.credenciales' | i18n }} </a>
       </li> -->
     </ul>
   </div>
 
 </div>
-<!--selectedIndex: {{selectedIndex()}}-->
-<nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" [nzSelectedIndex]="selectedIndex()" [nzLinkExact]="false">
+<nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)" [nzLinkExact]="false">
   <nz-tab>
     <a nz-tab-link routerLink="/ges/habilitaciones/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
     @if ((columns$|async); as columnas) {
@@ -67,17 +66,17 @@
 
 <nz-tab>
   <a nz-tab-link routerLink="/ges/habilitaciones/detalle" >{{ 'app.detail' | i18n }}</a>
-  @if (selectedIndex() === 2) {
+  <ng-template nz-tab>
     <app-habilitaciones-detalle [personalId]="personalId()" [(personalHabilitacionId)]="personalHabilitacionId" [lugarHabilitacionId]="lugarHabilitacionId()"
     [detalle]="detalleSelected()"></app-habilitaciones-detalle>
-  }
+  </ng-template>
 </nz-tab>
 
 <nz-tab>
   <a nz-tab-link routerLink="/ges/habilitaciones/personas-listado">{{ 'app.listado' | i18n }}</a>
-  @if (selectedIndex() === 3) {
+  <ng-template nz-tab>
     <app-habilitaciones-listado></app-habilitaciones-listado>
-  }
+  </ng-template>
 </nz-tab>
 
 <!-- <nz-tab>
