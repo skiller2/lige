@@ -99,9 +99,9 @@ export class ObjetivosComponent {
   )
 
 
-  // childAlta = viewChild.required<ObjetivosFormComponent>('objetivoFormAlta')
-  // childDeta = viewChild.required<ObjetivosFormComponent>('objetivoFormDeta')
-  // childEdit = viewChild.required<ObjetivosFormComponent>('objetivoFormEdit')
+  childAlta = viewChild.required<ObjetivosFormComponent>('objetivoFormAlta')
+  childDeta = viewChild.required<ObjetivosFormComponent>('objetivoFormDeta')
+  childEdit = viewChild.required<ObjetivosFormComponent>('objetivoFormEdit')
 
 
   gridData = resource({
@@ -181,20 +181,20 @@ export class ObjetivosComponent {
   onTabsetChange(_event: any) {
     switch (_event.index) {
       case 4: //INSERT
-        // this.childAlta().newRecord()
-        // this.childAlta().mostrarDocs.set(false)
+        this.childAlta().newRecord()
+        this.childAlta().mostrarDocs.set(false)
         break
       case 3: //DETAIL
-        // this.childDeta().viewRecord(true)
-        // this.childDeta().mostrarDocs.set(true)
+        this.childDeta().viewRecord()
+        this.childDeta().mostrarDocs.set(true)
         break;
       case 2: //EDIT
-        // this.childEdit().viewRecord(false)
-        // this.childEdit().mostrarDocs.set(true)
+        this.childEdit().viewRecord()
+        this.childEdit().mostrarDocs.set(true)
         break;
       case 1:
-        // this.childEdit().mostrarDocs.set(false)
-        // this.childDeta().mostrarDocs.set(false)
+        this.childEdit().mostrarDocs.set(false)
+        this.childDeta().mostrarDocs.set(false)
         break;
       default:
         break;

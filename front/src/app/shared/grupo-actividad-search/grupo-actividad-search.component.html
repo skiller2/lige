@@ -1,6 +1,6 @@
 <nz-select #psc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Detalle o Codigo"
-  nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [disabled]="controlDisabled()">
   @for (option of $optionsArray | async; track option) {
     @if (($isOptionsLoading | async) == false) {
       <nz-option [nzValue]="option.GrupoActividadId"  [nzLabel]="option.GrupoActividadDetalle +' '+option.GrupoActividadNumero" />

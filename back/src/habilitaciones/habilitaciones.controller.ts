@@ -1,7 +1,7 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { dataSource } from "../data-source.ts";
 import type { NextFunction, Response } from "express";
-import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { filtrosToSql, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import { CustodiaController } from "../controller/custodia.controller.ts";
@@ -459,7 +459,7 @@ const GridListadoColums: any[] = [
         searchComponent: 'inputForGrupoActividadSearch',
         sortable: false,
         hidden: true,
-        searchHidden: false
+        searchHidden: true
     },
     {
         name: "Habilitacion Necesaria",
@@ -470,7 +470,7 @@ const GridListadoColums: any[] = [
         formatter: 'collectionFormatter',
         params: { collection: getHabNecesariaOptions, },
         sortable: true,
-        hidden: false,
+        hidden: true,
         searchComponent: "inputForActivo",
     },
     {
@@ -504,7 +504,7 @@ const GridListadoColums: any[] = [
         searchComponent: "inputForHabilitacionEstadoSearch",
         sortable: true,
         hidden: true,
-        searchHidden: false
+        searchHidden: true
     },
     {
         name: "Estado",
@@ -513,8 +513,30 @@ const GridListadoColums: any[] = [
         field: "GestionHabilitacionEstado",
         fieldName: "IIF(e.GestionHabilitacionCodigo IS NULL, 'Pendiente', est.Detalle)",
         sortable: true,
-        hidden: false,
+        hidden: true,
         searchHidden: true
+    },
+    {
+        name: "Habilitación Desde",
+        type: "date",
+        id: "PersonalHabilitacionDesde",
+        field: "PersonalHabilitacionDesde",
+        fieldName: "ISNULL(b.PersonalHabilitacionDesde, '9999-12-31')",
+        searchComponent: "inputForFechaSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
+    },
+    {
+        name: "Habilitación Hasta",
+        type: "date",
+        id: "PersonalHabilitacionHasta",
+        field: "PersonalHabilitacionHasta",
+        fieldName: "ISNULL(b.PersonalHabilitacionHasta, '9999-12-31')",
+        searchComponent: "inputForFechaSearch",
+        sortable: true,
+        hidden: false,
+        searchHidden: false
     },
 
     {
@@ -528,6 +550,26 @@ const GridListadoColums: any[] = [
         searchHidden: false,
         searchType: "numberAdvanced",
         searchComponent: "inputForNumberAdvancedSearch",
+    },
+    {
+        name: "Habilitado",
+        id: "Habilitado",
+        field: "Habilitado",
+        fieldName: "IIF(dias.Habilitado IS NULL, '0', dias.Habilitado)",
+        type: 'string',
+        searchComponent: "inputForActivo",
+
+        sortable: true,
+
+        formatter: 'collectionFormatter',
+        params: { collection: getOptionsSINO },
+
+        exportWithFormatter: true,
+        hidden: false,
+        searchHidden: false,
+        minWidth: 100,
+        maxWidth: 100,
+        cssClass: 'text-center'
     },
 ];
 
@@ -666,35 +708,77 @@ export class HabilitacionesController extends BaseController {
         try {
             const habilitaciones = await this.habilitacionesListQuery(queryRunner, periodo, filterSql, orderBy);
 
-            const agrupados: Map<string, any> = habilitaciones.reduce((map, habilitacion) => {
-                const key = `${habilitacion.PersonalId}-${habilitacion.LugarHabilitacionId}`
-                const actual = map.get(key) ?? { ...habilitacion, _cantidad: 0 }
+            const hoy = new Date(periodo)
+            hoy.setHours(0, 0, 0, 0)
 
-                actual._cantidad += 1
-
-                const desdeActual = actual.PersonalHabilitacionDesde ? new Date(actual.PersonalHabilitacionDesde).getTime() : Infinity
-                const desdeNueva = habilitacion.PersonalHabilitacionDesde ? new Date(habilitacion.PersonalHabilitacionDesde).getTime() : Infinity
-                if (desdeNueva < desdeActual) actual.PersonalHabilitacionDesde = habilitacion.PersonalHabilitacionDesde
-
-                const hastaActual = actual.PersonalHabilitacionHasta ? new Date(actual.PersonalHabilitacionHasta).getTime() : -Infinity
-                const hastaNueva = habilitacion.PersonalHabilitacionHasta ? new Date(habilitacion.PersonalHabilitacionHasta).getTime() : -Infinity
-                if (hastaNueva > hastaActual) actual.PersonalHabilitacionHasta = habilitacion.PersonalHabilitacionHasta
-
-                map.set(key, actual)
+            // Agrupar por PersonalId + LugarHabilitacionId
+            const agrupados: Map<string, { _base: any, _registros: any[] }> = habilitaciones.reduce((map, hab) => {
+                const key = `${hab.PersonalId}-${hab.LugarHabilitacionId}`
+                const grupo = map.get(key) ?? { _base: hab, _registros: [] }
+                grupo._registros.push(hab)
+                map.set(key, grupo)
                 return map
             }, new Map())
 
-            const habilitacionesNormalizadas = Array.from(agrupados.values()).map(({ _cantidad, ...hab }) => hab)
+            const UN_DIA_MS = 86400000
+            const hoyMs = hoy.getTime()
 
-            const duplicados = Array.from(agrupados.values()).filter((g: any) => g._cantidad > 1)
-            // console.log('duplicados', duplicados)
+            // Normalizar cada grupo: resolver vigencia real por cadena contigua
+            const habilitacionesNormalizadas = Array.from(agrupados.values()).map(({ _base, _registros }) => {
 
-            const personal29579 = Array.from(agrupados.values())
-                .filter((g: any) => g.PersonalId == 29579)
-                .map(({ _cantidad, ...hab }) => hab)
-            console.log('personal29579', personal29579)
+                // Fecha desde mínima global del grupo (conserva el historial completo)
+                const desdeMin = _registros.reduce((min: any, r: any) => {
+                    if (!r.PersonalHabilitacionDesde) return min
+                    if (!min) return r.PersonalHabilitacionDesde
+                    return new Date(r.PersonalHabilitacionDesde) < new Date(min) ? r.PersonalHabilitacionDesde : min
+                }, null)
 
-            // console.log('habilitacionesNormalizadas', habilitacionesNormalizadas)
+                // Solo registros aprobados con ambas fechas, ordenados por Desde ASC
+                const rangosAprobados = _registros
+                    .filter((r: any) => r.GestionHabilitacionEstadoCodigo === 'HABORG'
+                        && r.PersonalHabilitacionDesde
+                        && r.PersonalHabilitacionHasta)
+                    .map((r: any) => ({
+                        desde: new Date(r.PersonalHabilitacionDesde).getTime(),
+                        hasta: new Date(r.PersonalHabilitacionHasta).getTime(),
+                    }))
+                    .sort((a: any, b: any) => a.desde - b.desde)
+
+                // Merge de rangos contiguos (gap <= 1 día) o solapados
+                const cadenas: { desde: number, hasta: number }[] = []
+                for (const rango of rangosAprobados) {
+                    const ultima = cadenas[cadenas.length - 1]
+                    if (!ultima || rango.desde > ultima.hasta + UN_DIA_MS) {
+                        cadenas.push({ ...rango })
+                    } else if (rango.hasta > ultima.hasta) {
+                        ultima.hasta = rango.hasta
+                    }
+                }
+
+                // Cadena que cubre hoy → define la vigencia real del registro
+                const cadenaActiva = cadenas.find(c => c.desde <= hoyMs && c.hasta >= hoyMs)
+
+                if (cadenaActiva) {
+                    return {
+                        ..._base,
+                        PersonalHabilitacionDesde: desdeMin,
+                        PersonalHabilitacionHasta: new Date(cadenaActiva.hasta),
+                        DiasFaltantesVencimiento: Math.max(0, Math.floor((cadenaActiva.hasta - hoyMs) / UN_DIA_MS)),
+                        Habilitado: '1',
+                    }
+                }
+
+                // Sin cadena activa: no está vigente hoy
+                return {
+                    ..._base,
+                    PersonalHabilitacionDesde: desdeMin,
+                    DiasFaltantesVencimiento: 0,
+                    Habilitado: '0',
+                }
+            })
+
+            console.log('duplicados count', Array.from(agrupados.values()).filter(g => g._registros.length > 1).length)
+            console.log('personal30360', habilitacionesNormalizadas.filter((h: any) => h.PersonalId == 30360))
 
             this.jsonRes(
                 {

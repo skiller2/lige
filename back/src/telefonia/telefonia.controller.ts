@@ -501,13 +501,6 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
         const currTel = telefonos.find(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim())
 
-        if (currTel && currTel.StockStock > 1) {
-          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` tiene stock (${currTel.StockStock}) debe ser 1` })
-        }
-
-        if (currTel && (currTel.StockStock == null || currTel.StockStock < 1)) {
-          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` sin stock asignado ${currTel.StockStock}` })
-        }
 
 
         const idx = telefonos.findIndex(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim())
@@ -535,11 +528,20 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
           dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` Importe total calculado (${this.currencyPipe.format(total)}) difiere del indicado en la última columna (${this.currencyPipe.format(totalxls) }) ` })
 
 
-        if(total==0)
+        if(totalxls==0)
           continue
 
         totalsumaxls += totalxls
         rowCount++
+
+        if (currTel && currTel.StockStock > 1) {
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` tiene stock (${currTel.StockStock}) debe ser 1,   EfectoId: ${currTel.TelefoniaEfectoId}, EfectoEfectoIndividualId: ${currTel.TelefoniaEfectoEfectoIndividualId}` })
+        }
+
+        if (currTel && (currTel.StockStock == null || currTel.StockStock < 1)) {
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` sin stock asignado ${currTel.StockStock}` })
+        }
+
 
 
         if (idx === -1) {
