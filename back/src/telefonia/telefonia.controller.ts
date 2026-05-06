@@ -475,7 +475,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
       let dataset = []
       let datasetid = 0
-
+      let rowCount = 0
 
       const now = fechaRequest
 
@@ -486,24 +486,23 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file.tempfilename))
       const sheet1 = workSheetsFromBuffer[0];
-      //      console.log('telefonos', telefonos)
 
-      sheet1.data.splice(0, 2)
+      //sheet1.data.splice(0, 1)
 
       for (const row of sheet1.data) {
         const TelefoniaNro = String(row[0])
-        if (TelefoniaNro === 'undefined')
+        if (TelefoniaNro === 'undefined' || !Number(TelefoniaNro))
           continue
 
         if (telefonos.filter(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim()).length > 1) {
           dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` se encuentra asignado a mas de una persona` })
-//          continue
+          //          continue
         }
 
         const currTel = telefonos.find(tel => String(tel.EfectoAtributoIngresoValor).trim() === TelefoniaNro.trim())
 
         if (currTel && currTel.StockStock > 1) {
-          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` tiene stock (${currTel.StockStock}) diferente de 1` })
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` tiene stock (${currTel.StockStock}) debe ser 1` })
         }
 
         if (currTel && (currTel.StockStock == null || currTel.StockStock < 1)) {
@@ -526,15 +525,28 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
         const votros = parseFloat(row[13])
         const unicavez = parseFloat(row[15])
         const totalxls = parseFloat(row[16])
+
+
+
+        //console.log('row',totalxls,totalsumaxls, rowCount)
+
         const total = this.round2(fimpplanvoz + fserviciosvoz + fpacksms + fpackdatos + fgarantia + fotros + vvoz + vldnldi + vmensajes + vdatos + vroaming + votros + unicavez)
         if (Math.abs(totalxls - total) > 0.0001)
-          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` Importe total calculado ($ ${total}) difiere del indicado en la última columna ($ ${totalxls}) ` })
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` Importe total calculado (${this.currencyPipe.format(total)}) difiere del indicado en la última columna (${this.currencyPipe.format(totalxls) }) ` })
+
+
+        if(total==0)
+          continue
+
+        totalsumaxls += totalxls
+        rowCount++
+
 
         if (idx === -1) {
-          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` sin registro vigente en el sistema, consumo $ ${total}` })
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` sin registro vigente en el sistema, consumo ${this.currencyPipe.format(total)}` })
         } else {
           //          if (telefonos[idx].total > 0)
-          //            dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` duplicado en XLS, consumo $ ${total}` })
+          //            dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` duplicado en XLS, consumo ${this.currencyPipe.format(total)}` })
 
           telefonos[idx].fimpplanvoz += fimpplanvoz  //1
           telefonos[idx].fserviciosvoz += fserviciosvoz  //2 
@@ -552,11 +564,13 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
           telefonos[idx].total += total
 
         }
-        totalsumaxls += totalxls
+
       }
+      totalsumaxls = this.round2(totalsumaxls)
+
 
       if (Math.abs(totalsumaxls - totaldeclarado) > 0.0001)
-        throw new ClientException(`Importe declarado (${this.currencyPipe.format( totaldeclarado)}) no coincide con el total calculado`, { totaldeclarado, totalsumaxls })
+        throw new ClientException(`Importe declarado (${this.currencyPipe.format(totaldeclarado)}) no coincide con el total calculado`, { totaldeclarado, totalsumaxls })
 
 
 
