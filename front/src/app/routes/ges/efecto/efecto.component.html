@@ -8,8 +8,8 @@
         <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
       </nz-form-control> -->
     </div>
-    
-    <ul nz-menu nzMode="horizontal" style="display: flex;">   
+
+    <ul nz-menu nzMode="horizontal" style="display: flex;">
       <li nz-menu-item  nzMatchRouter>
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'efecto', 'personal']">Personal</a>
@@ -18,16 +18,28 @@
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'efecto', 'objetivos']">Objetivos</a>
       </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'efecto', 'deposito']">Depósito</a>
+      </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'efecto', 'proveedores']">Proveedores</a>
+      </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'efecto', 'efectos']">Efectos</a>
+      </li>
     </ul>
 
     <nz-button-group nz-button nz-buttonGroup>
       <!-- Recarga de grilla -->
-      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}" 
+      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
         (click)="reloadGrid()">
         <span nz-icon nzType="reload" nzTheme="outline"></span>
       </button>
     </nz-button-group>
-    
+
   </div>
 
   <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
@@ -44,6 +56,33 @@
       <ng-template nz-tab>
         @defer (on idle) {
           <app-table-objetivos-efecto [refreshGrid]="refreshObjetivoEfecto()"></app-table-objetivos-efecto>
+        }
+      </ng-template>
+    </nz-tab>
+
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/efecto/deposito">Depósito</a>
+      <ng-template nz-tab>
+        @defer (on idle) {
+          <app-table-efecto-deposito [refreshGrid]="refreshDepositoEfecto()"></app-table-efecto-deposito>
+        }
+      </ng-template>
+    </nz-tab>
+
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/efecto/proveedores">Proveedores</a>
+      <ng-template nz-tab>
+        @defer (on idle) {
+          <app-table-efecto-proveedores [refreshGrid]="refreshProveedoresEfecto()"></app-table-efecto-proveedores>
+        }
+      </ng-template>
+    </nz-tab>
+
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/efecto/efectos">Efectos</a>
+      <ng-template nz-tab>
+        @defer (on idle) {
+          <app-table-efecto-efectos [refreshGrid]="refreshEfectosEfecto()"></app-table-efecto-efectos>
         }
       </ng-template>
     </nz-tab>
