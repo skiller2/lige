@@ -671,82 +671,77 @@ export class HabilitacionesController extends BaseController {
             hoy.setHours(0, 0, 0, 0)
 
             // Agrupar por PersonalId + LugarHabilitacionId
-            const agrupados: Map<string, { _base: any, _registros: any[] }> = habilitaciones.reduce((map, hab) => {
+            const data: Map<string, { base: any, registros: any[] }> = habilitaciones.reduce((map, hab) => {
                 const key = `${hab.PersonalId}-${hab.LugarHabilitacionId}`
-                const grupo = map.get(key) ?? { _base: hab, _registros: [] }
-                grupo._registros.push(hab)
+                const grupo = map.get(key) ?? { base: hab, registros: [] }
+                grupo.registros.push(hab)
                 map.set(key, grupo)
                 return map
             }, new Map())
 
-            const UN_DIA_MS = 86400000
-            const hoyMs = hoy.getTime()
+            const UN_DIA_MS = 86400000;
+            const hoyMs = hoy.getTime();
+            const situacionesPermitidasSinHabilitacion = new Set([2, 10, 12]);
+            const habilitacionesFiltradas: any[] = [];
 
-            // Normalizar cada grupo: resolver vigencia real por cadena contigua
-            const habilitacionesNormalizadas = Array.from(agrupados.values()).map(({ _base, _registros }) => {
+            // Procesar cada grupo directamente y armar la lista filtrada final
+            for (const { base, registros } of data.values()) {
+                let desdeMin: Date | null = null;
+                const rangosAprobados: { desde: number, hasta: number }[] = [];
 
-                // Fecha desde mínima global del grupo (conserva el historial completo)
-                const desdeMin = _registros.reduce((min: any, r: any) => {
-                    if (!r.PersonalHabilitacionDesde) return min
-                    if (!min) return r.PersonalHabilitacionDesde
-                    return new Date(r.PersonalHabilitacionDesde) < new Date(min) ? r.PersonalHabilitacionDesde : min
-                }, null)
+                // 1. Unificar la búsqueda del 'desdeMin' y los rangos válidos en una sola iteración
+                for (const r of registros) {
+                    if (r.PersonalHabilitacionDesde) {
+                        const fDesde = new Date(r.PersonalHabilitacionDesde);
 
-                // Solo registros aprobados con ambas fechas, ordenados por Desde ASC
-                const rangosAprobados = _registros
-                    .filter((r: any) => r.GestionHabilitacionEstadoCodigo === 'HABORG'
-                        && r.PersonalHabilitacionDesde
-                        && r.PersonalHabilitacionHasta)
-                    .map((r: any) => ({
-                        desde: new Date(r.PersonalHabilitacionDesde).getTime(),
-                        hasta: new Date(r.PersonalHabilitacionHasta).getTime(),
-                    }))
-                    .sort((a: any, b: any) => a.desde - b.desde)
+                        if (!desdeMin || fDesde < desdeMin) {
+                            desdeMin = fDesde;
+                        }
 
-                // Merge de rangos contiguos (gap <= 1 día) o solapados
-                const cadenas: { desde: number, hasta: number }[] = []
+                        if (r.GestionHabilitacionEstadoCodigo === 'HABORG' && r.PersonalHabilitacionHasta) {
+                            rangosAprobados.push({
+                                desde: fDesde.getTime(),
+                                hasta: new Date(r.PersonalHabilitacionHasta).getTime(),
+                            });
+                        }
+                    }
+                }
+
+                // 2. Ordenar y hacer merge de rangos contiguos
+                rangosAprobados.sort((a, b) => a.desde - b.desde);
+                const cadenas: { desde: number, hasta: number }[] = [];
+
                 for (const rango of rangosAprobados) {
-                    const ultima = cadenas[cadenas.length - 1]
+                    const ultima = cadenas[cadenas.length - 1];
                     if (!ultima || rango.desde > ultima.hasta + UN_DIA_MS) {
-                        cadenas.push({ ...rango })
+                        cadenas.push({ ...rango });
                     } else if (rango.hasta > ultima.hasta) {
-                        ultima.hasta = rango.hasta
+                        ultima.hasta = rango.hasta;
                     }
                 }
 
-                // Cadena que cubre hoy → define la vigencia real del registro
-                const cadenaActiva = cadenas.find(c => c.desde <= hoyMs && c.hasta >= hoyMs)
+                // 3. Evaluar vigencia actual
+                const cadenaActiva = cadenas.find(c => c.desde <= hoyMs && c.hasta >= hoyMs);
+                const habilitado = cadenaActiva ? '1' : '0';
+                const situacionId = Number(base.PersonalSituacionRevistaSituacionId);
 
-                if (cadenaActiva) {
-                    return {
-                        ..._base,
+                // 4. Filtrar: Agregar solo si está habilitado o tiene excepción
+                if (habilitado === '1' || situacionesPermitidasSinHabilitacion.has(situacionId)) {
+                    const registroNormalizado = {
+                        ...base,
                         PersonalHabilitacionDesde: desdeMin,
-                        PersonalHabilitacionHasta: new Date(cadenaActiva.hasta),
-                        DiasFaltantesVencimiento: Math.max(0, Math.floor((cadenaActiva.hasta - hoyMs) / UN_DIA_MS)),
-                        Habilitado: '1',
+                        DiasFaltantesVencimiento: cadenaActiva ? Math.max(0, Math.floor((cadenaActiva.hasta - hoyMs) / UN_DIA_MS)) : 0,
+                        Habilitado: habilitado,
+                    };
+
+                    // Solo pisamos la fecha 'Hasta' si hay cadena activa, igual que el código original
+                    if (cadenaActiva) {
+                        registroNormalizado.PersonalHabilitacionHasta = new Date(cadenaActiva.hasta);
                     }
+
+                    habilitacionesFiltradas.push(registroNormalizado);
                 }
-
-                // Sin cadena activa: no está vigente hoy
-                return {
-                    ..._base,
-                    PersonalHabilitacionDesde: desdeMin,
-                    DiasFaltantesVencimiento: 0,
-                    Habilitado: '0',
-                }
-            })
-
-            const situacionesPermitidasSinHabilitacion = new Set([2, 10, 12])
-            const habilitacionesFiltradas = habilitacionesNormalizadas.filter((h: any) => {
-                const situacionId = Number(h.PersonalSituacionRevistaSituacionId)
-                const tieneHabilitacionVigenteAprobada = h.Habilitado === '1'
-                const situacionHabilitaExcepcion = situacionesPermitidasSinHabilitacion.has(situacionId)
-
-                return tieneHabilitacionVigenteAprobada || situacionHabilitaExcepcion
-            })
-
-            // console.log('duplicados count', Array.from(agrupados.values()).filter(g => g._registros.length > 1).length)
-            // console.log('personal30360', habilitacionesNormalizadas.filter((h: any) => h.PersonalId == 30360))
+            }
 
             this.jsonRes(
                 {
