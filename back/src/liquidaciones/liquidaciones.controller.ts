@@ -666,7 +666,12 @@ export class LiquidacionesController extends BaseController {
         ]
       );
 
+console.log('row',sheet1.data)
+
       for (const row of sheet1.data) {
+        if (row.length == 0)
+          continue
+
         const cuit = String(row[1]).match(/[0-9]{11}/)
         const detalle = String((row[2]) ? row[2] : '').match(/.{3,}/)
         const Strimporte = String(row[3]).match(/\d*[\.\,]\d*|\d{1,}/)
