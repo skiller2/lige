@@ -46,7 +46,6 @@ export class HabilitacionesComponent {
     sort: null,
   };
   hiddenColumnIds: string[] = [];
-  selectedIndex = signal(1)
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
@@ -156,23 +155,6 @@ export class HabilitacionesComponent {
 
   refreshListado() {
     this.listHabilitaciones$.next('')
-    this.selectedIndex.set(1)
-  }
-
-  goToDetail() {
-    // if (this.personalId() && this.personalHabilitacionId() && this.lugarHabilitacionId()) {
-      this.selectedIndex.set(2)
-    // }
-  }
-
-  goToCredentials() {
-    // if (this.personalId() && this.personalHabilitacionId() && this.lugarHabilitacionId()) {
-    this.selectedIndex.set(3)
-    // }
-  }
-
-  goToListado() {
-    this.selectedIndex.set(3)
   }
 
   onTabsetChange(_event: any) {

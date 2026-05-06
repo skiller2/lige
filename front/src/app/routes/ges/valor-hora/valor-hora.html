@@ -47,14 +47,11 @@
             <nz-form-label>Valor</nz-form-label>
             <nz-form-control>
               @if (aumentoTipo() === 'porcentaje') {
-                <nz-input-number [(ngModel)]="aumentoValor" [nzMin]="0" [nzStep]="0.5"
-                  [nzFormatter]="porcentajeFormatter" [nzParser]="porcentajeParser"
-                  style="width: 100%;">
-                </nz-input-number>
+                <nz-input-group nzAddOnAfter="%">
+                  <input nz-input type="text" [(ngModel)]="aumentoValor" appDotToComma mask="separator.2" placeholder="" />
+                </nz-input-group>
               } @else {
-                <nz-input-number [(ngModel)]="aumentoValor" [nzMin]="0" [nzStep]="100"
-                  style="width: 100%;">
-                </nz-input-number>
+                <input nz-input type="text" [(ngModel)]="aumentoValor" appDotToComma mask="separator.2" placeholder="" style="width: 100%;" />
               }
             </nz-form-control>
           </nz-form-item>

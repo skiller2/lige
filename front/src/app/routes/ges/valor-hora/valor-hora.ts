@@ -11,7 +11,6 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { Component, signal, inject } from '@angular/core';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { Selections } from '../../../shared/schemas/filtro';
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -23,7 +22,6 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
   imports: [
     ...SHARED_IMPORTS,
     CommonModule,
-    NzInputNumberModule,
     FiltroBuilderComponent
   ],
   templateUrl: './valor-hora.html',
@@ -62,10 +60,6 @@ export class ValorHoraComponent {
   aumentoValor: number = 0
   aumentoPeriodo = signal<Date>(new Date())
   recibosGenerados = signal<boolean>(false)
-
-  porcentajeFormatter = (value: number): string => `${value} %`
-  porcentajeParser = (value: string): number => Number(value.replace(' %', '').replace('%', ''))
-
 
   async abrirAumentoModal() {
     this.aumentoTipo.set('porcentaje');
