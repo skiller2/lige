@@ -720,8 +720,19 @@ export class HabilitacionesController extends BaseController {
                     }
                 }
 
-                // 3. Evaluar vigencia actual
-                const cadenaActiva = cadenas.find(c => c.desde <= hoyMs && c.hasta >= hoyMs);
+                // 3. Evaluar vigencia actual o futura
+                // Buscar todas las cadenas que terminen hoy o en el futuro
+                const cadenasValidas = cadenas.filter(c => c.hasta >= hoyMs);
+                let cadenaActiva = null;
+
+                if (cadenasValidas.length > 0) {
+                    // Si hay varias (por ejemplo, una vigente hoy y otra a futuro con un bache en el medio),
+                    // tomamos la que tenga el vencimiento MÁS lejano.
+                    cadenaActiva = cadenasValidas.reduce((max, c) => c.hasta > max.hasta ? c : max, cadenasValidas[0]);
+                }
+
+                // Si encontramos una cadena (vigente o futura), consideramos que está habilitado 
+                // y calculamos sus días faltantes respecto a ese vencimiento máximo.
                 const habilitado = cadenaActiva ? '1' : '0';
                 const situacionId = Number(base.PersonalSituacionRevistaSituacionId);
 
@@ -734,7 +745,7 @@ export class HabilitacionesController extends BaseController {
                         Habilitado: habilitado,
                     };
 
-                    // Solo pisamos la fecha 'Hasta' si hay cadena activa, igual que el código original
+                    // Solo pisamos la fecha 'Hasta' si hay cadena activa
                     if (cadenaActiva) {
                         registroNormalizado.PersonalHabilitacionHasta = new Date(cadenaActiva.hasta);
                     }
