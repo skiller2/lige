@@ -659,47 +659,6 @@ export class HabilitacionesController extends BaseController {
 
     async listado(req: any, res: Response, next: NextFunction) {
         const periodo = new Date()
-        // const arrayFilters = [{
-        //     index: 'GestionHabilitacionEstadoCodigo',
-        //     name: 'Estado',
-        //     condition: 'AND',
-        //     operador: 'LIKE',
-        //     valor: ['HABORG'],
-        //     type: 'string',
-        //     closeable: true,
-        //     inicial: false
-        // },
-        // {
-        //     index: 'DiasFaltantesVencimiento',
-        //     name: 'Días Faltantes Vencimiento',
-        //     condition: 'AND',
-        //     operador: '>',
-        //     valor: [0],
-        //     type: 'number',
-        //     closeable: true,
-        //     inicial: false
-        // },
-        // {
-        //     index: 'PersonalHabilitacionDesde',
-        //     name: 'Habilitación Desde',
-        //     condition: 'AND',
-        //     operador: '<=',
-        //     valor: [periodo],
-        //     type: 'date',
-        //     closeable: true,
-        //     inicial: false
-        // },
-        // {
-        //     index: 'PersonalHabilitacionHasta',
-        //     name: 'Habilitación Hasta',
-        //     condition: 'AND',
-        //     operador: '>=',
-        //     valor: [periodo],
-        //     type: 'date',
-        //     closeable: true,
-        //     inicial: false
-        // },
-        // ...req.body.options.filtros]
 
         const filterSql = filtrosToSql(req.body.options.filtros, GridListadoColums);
         const orderBy = orderToSQL(req.body.options.sort)
@@ -777,13 +736,22 @@ export class HabilitacionesController extends BaseController {
                 }
             })
 
-            console.log('duplicados count', Array.from(agrupados.values()).filter(g => g._registros.length > 1).length)
-            console.log('personal30360', habilitacionesNormalizadas.filter((h: any) => h.PersonalId == 30360))
+            const situacionesPermitidasSinHabilitacion = new Set([2, 10, 12])
+            const habilitacionesFiltradas = habilitacionesNormalizadas.filter((h: any) => {
+                const situacionId = Number(h.PersonalSituacionRevistaSituacionId)
+                const tieneHabilitacionVigenteAprobada = h.Habilitado === '1'
+                const situacionHabilitaExcepcion = situacionesPermitidasSinHabilitacion.has(situacionId)
+
+                return tieneHabilitacionVigenteAprobada || situacionHabilitaExcepcion
+            })
+
+            // console.log('duplicados count', Array.from(agrupados.values()).filter(g => g._registros.length > 1).length)
+            // console.log('personal30360', habilitacionesNormalizadas.filter((h: any) => h.PersonalId == 30360))
 
             this.jsonRes(
                 {
-                    total: habilitacionesNormalizadas.length,
-                    list: habilitacionesNormalizadas,
+                    total: habilitacionesFiltradas.length,
+                    list: habilitacionesFiltradas,
                 },
                 res
             );
@@ -804,7 +772,7 @@ export class HabilitacionesController extends BaseController {
         return await queryRunner.query(`
         SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
-            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, 
+            sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaSituacionId,
             d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, 
             iif(e.GestionHabilitacionCodigo is null, 'PEN', e.GestionHabilitacionEstadoCodigo) GestionHabilitacionEstadoCodigo, e.Detalle,
             est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite, b.PersonalHabilitacionClase,
