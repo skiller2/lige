@@ -25,10 +25,8 @@ const listaColumnas: any[] = [
     maxWidth: 150,
     // minWidth: 10,
   },
-  //           c.EventoLogClaseCodigo, c.Descripcion
-
   {
-    id: 'EventoLogClaseCodigo', name: 'EventoLogClaseCodigo', field: 'EventoLogClaseCodigo',
+    id: 'EventoLogClaseCodigo', name: 'Clase', field: 'EventoLogClaseCodigo',
     fieldName: 'c.EventoLogClaseCodigo',
     // searchComponent: '',
     type: 'string',
