@@ -3214,7 +3214,8 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
         `Proceso Asistencia Biométrico ${mes}/${anio}`,
         { anio, mes, usuario, ip },
         usuario,
-        ip
+        ip,
+        "ASI"
       ));
 
       let listado = [];

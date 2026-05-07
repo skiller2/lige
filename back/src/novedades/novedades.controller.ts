@@ -1074,7 +1074,8 @@ export class NovedadesController extends BaseController {
                 `Proceso Exportación de informe de novedades.`,
                 { condition, filterSql, year, month, usuario, ip },
                 usuario,
-                ip
+                ip,
+                "NOV"
             ))
 
 

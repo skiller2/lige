@@ -3802,10 +3802,19 @@ UNION ALL
     const PersonalId = Number(req.params.personalId)
     const queryRunner = dataSource.createQueryRunner();
     const now = new Date()
-    const mes = now.getMonth() + 1
-    const anio = now.getFullYear()
+    let usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    let EventoLogCodigo = 0
 
     try {
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Consulta Último Número de Recibo - PersonalId: ${PersonalId}`,
+        { usuario, ip },
+        usuario,
+        ip,
+        "REC"
+      ));
 
       const result = await dataSource.query(
         `SELECT TOP 1 doc.DocumentoId, doc.DocumentoMes,doc.DocumentoAnio,doc.DocumentoFecha, doc.DocumentoDenominadorDocumento 
@@ -3814,9 +3823,28 @@ UNION ALL
           ORDER BY doc.DocumentoFecha DESC`, [PersonalId])
 
       const data = result[0] ?? { DocumentoId: null, DocumentoMes: null, DocumentoAnio: null, DocumentoFecha: null, DocumentoDenominadorDocumento: null }
+
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: `Procesado correctamente`,
+          'Data': data
+        },
+        usuario,
+        ip
+      );
       this.jsonRes(data, res)
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
       return next(error)
     } finally {
       await queryRunner.release()

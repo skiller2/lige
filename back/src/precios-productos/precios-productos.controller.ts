@@ -575,7 +575,9 @@ LEFT JOIN ClienteFacturacion fac
                 `Importación xls Precios Producto ${productoCodigoRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
                 { anioRequest, mesRequest, productoCodigoRequest, tableNameRequest, usuario, ip },
                 usuario,
-                ip
+                ip,
+                'PRE'
+
             ))
 
 
