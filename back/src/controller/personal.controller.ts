@@ -3800,8 +3800,13 @@ UNION ALL
 
   async getUltimoNroReciboByPersonalId(req: any, res: Response, next: NextFunction) {
     const PersonalId = Number(req.params.personalId)
-    
+    const queryRunner = dataSource.createQueryRunner();
+    const now = new Date()
+    const mes = now.getMonth() + 1
+    const anio = now.getFullYear()
+
     try {
+
       const result = await dataSource.query(
         `SELECT TOP 1 doc.DocumentoId, doc.DocumentoMes,doc.DocumentoAnio,doc.DocumentoFecha, doc.DocumentoDenominadorDocumento 
           FROM Documento doc
@@ -3811,7 +3816,10 @@ UNION ALL
       const data = result[0] ?? { DocumentoId: null, DocumentoMes: null, DocumentoAnio: null, DocumentoFecha: null, DocumentoDenominadorDocumento: null }
       this.jsonRes(data, res)
     } catch (error) {
+      await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
