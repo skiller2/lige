@@ -6,6 +6,7 @@ import { personalRouter } from "./personal.routes.ts";
 import { clienteRouter } from "./cliente.routes.ts";
 import { initRouter } from "./init.routes.ts";
 import { sucursalRouter } from "./sucursal.routes.ts";
+import { depositoRouter } from "./deposito.routes.ts";
 import { objetivoRouter } from "./objetivo.routes.ts";
 import { asistenciaRouter } from "./asistencia.routes.ts";
 import { adelantosRouter } from "../adelantos/adelantos.routes.ts";
@@ -65,6 +66,7 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/cliente", clienteRouter);
   server.setRoute("/api/init", initRouter);
   server.setRoute("/api/sucursales", sucursalRouter);
+  server.setRoute("/api/depositos", depositoRouter);
   server.setRoute("/api/objetivos", objetivoRouter);
   server.setRoute("/api/asistencia", asistenciaRouter);
   server.setRoute("/api/adelantos", adelantosRouter);

@@ -563,6 +563,16 @@ export class SearchService {
     );
   }
 
+  getDepositos(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/depositos`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getPersonas(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/sucursales`).pipe(
       map(res => res.data),

@@ -121,6 +121,15 @@
       }
     </nz-select>
     }
+    @if (selections.field.searchComponent=='inputForDepositoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Depósito" nzShowSearch
+      (ngModelChange)="selectedValueDeposito($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsDepositos | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.DepositoNombre"></nz-option>
+      }
+    </nz-select>
+    }
     @if (selections.field.searchComponent=='inputForSePaga') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Se paga" nzShowSearch
       (ngModelChange)="selectedValueSePaga($event)" [nzDropdownMatchSelectWidth]="false"
