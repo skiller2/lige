@@ -2262,6 +2262,17 @@ export class SearchService {
     );
   }
 
+  getEfectoDeposito(listOptions: any) {
+    
+    return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoDeposito`, { listOptions }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getEfectoByPersonalId(personalId: number) {
     if (!personalId) {
       return of([]);

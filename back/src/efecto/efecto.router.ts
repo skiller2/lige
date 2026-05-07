@@ -25,6 +25,13 @@ efectoRouter.post("/getEfectoObjetivos", [authMiddleware.verifyToken,authMiddlew
   efectoController.getEfectoObjetivos(req, res, next);
 });
 
+efectoRouter.get("/colsDeposito", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res) => {
+  efectoController.getGridColsDeposito(req, res);
+});
+efectoRouter.post("/getEfectoDeposito", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+  efectoController.getEfectoDeposito(req, res, next);
+});
+
 efectoRouter.post("/searchEfecto", authMiddleware.verifyToken, (req, res, next) => {efectoController.searchEfecto(req, res, next);
 });
 

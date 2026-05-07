@@ -42,48 +42,39 @@
 
   </div>
 
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
-    <nz-tab></nz-tab>
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
     <nz-tab>
       <a nz-tab-link routerLink="/ges/efecto/personal">Personal</a>
       <ng-template nz-tab>
-        <app-table-personal-efecto [refreshGrid]="refreshPersonalEfecto()"></app-table-personal-efecto>
+        <app-table-personal-efecto [refreshGrid]="refreshTick()"></app-table-personal-efecto>
       </ng-template>
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/efecto/objetivos">Objetivos</a>
       <ng-template nz-tab>
-        @defer (on idle) {
-          <app-table-objetivos-efecto [refreshGrid]="refreshObjetivoEfecto()"></app-table-objetivos-efecto>
-        }
+        <app-table-objetivos-efecto [refreshGrid]="refreshTick()"></app-table-objetivos-efecto>
       </ng-template>
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/efecto/deposito">Depósito</a>
       <ng-template nz-tab>
-        @defer (on idle) {
-          <app-table-efecto-deposito [refreshGrid]="refreshDepositoEfecto()"></app-table-efecto-deposito>
-        }
+        <app-table-deposito-efecto [refreshGrid]="refreshTick()"></app-table-deposito-efecto>
       </ng-template>
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/efecto/proveedores">Proveedores</a>
       <ng-template nz-tab>
-        @defer (on idle) {
-          <app-table-efecto-proveedores [refreshGrid]="refreshProveedoresEfecto()"></app-table-efecto-proveedores>
-        }
+        <app-table-proveedores-efecto [refreshGrid]="refreshTick()"></app-table-proveedores-efecto>
       </ng-template>
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/efecto/efectos">Efectos</a>
       <ng-template nz-tab>
-        @defer (on idle) {
-          <app-table-efecto-efectos [refreshGrid]="refreshEfectosEfecto()"></app-table-efecto-efectos>
-        }
+        <app-table-efecto-general [refreshGrid]="refreshTick()"></app-table-efecto-general>
       </ng-template>
     </nz-tab>
   </nz-tabs>
