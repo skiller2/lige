@@ -126,7 +126,7 @@ export class ValorHoraController extends BaseController {
             CONCAT(TRIM(ta.TipoAsociadoDescripcion), ' - ', TRIM(cp.CategoriaPersonalDescripcion)) AS PersonalCategoriaCom
         ) percat
         WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
-          AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+          AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1) and ISNULL(cp.CategoriaPersonalInactivo, 0) = 0
           AND (${filterSql})
         ${orderBy}`,
         [anio, mes]
