@@ -2273,8 +2273,19 @@ export class SearchService {
   }
 
   getEfectoDeposito(listOptions: any) {
-    
+
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoDeposito`, { listOptions }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
+  getEfectoProveedores(listOptions: any) {
+
+    return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoProveedores`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');

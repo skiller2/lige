@@ -495,6 +495,100 @@ const listaColumnasDeposito: any[] = [
   },
 ]
 
+const listaColumnasProveedores: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "ProveedorRazonSocial",
+    name: "Proveedor",
+    field: "ProveedorRazonSocial",
+    fieldName: "pro.ProveedorRazonSocial",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    name: "Sucursal",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: "EfectoId",
+    name: "Efecto",
+    field: "EfectoId",
+    fieldName: "stk.EfectoId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+    searchComponent: "inputForEfectoSearch",
+  },
+  {
+    id: "EfectoDescripcionCompleto",
+    name: "Efecto",
+    field: "EfectoDescripcionCompleto",
+    fieldName: "stk.EfectoDescripcionCompleto",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "StockStock",
+    name: "Stock",
+    field: "StockStock",
+    fieldName: "stk.StockStock",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
+  },
+  {
+    id: "StockReservado",
+    name: "Stock Reservado",
+    field: "StockReservado",
+    fieldName: "stk.StockReservado",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
+  },
+  {
+    id: "Importe",
+    name: "Importe",
+    field: "Importe",
+    fieldName: "ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio)",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
+  },
+]
+
 export class EfectoController extends BaseController {
 
   searchEfecto(req: any, res: Response, next: NextFunction) {
@@ -588,6 +682,10 @@ export class EfectoController extends BaseController {
 
   async getGridColsDeposito(req, res) {
     this.jsonRes(listaColumnasDeposito, res);
+  }
+
+  async getGridColsProveedores(req, res) {
+    this.jsonRes(listaColumnasProveedores, res);
   }
 
   private efectobyPersonalIdQuery(queryRunner: any, personalId: number) {
@@ -794,6 +892,38 @@ export class EfectoController extends BaseController {
       LEFT JOIN ListaPrecioIndividual lpi ON lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
       JOIN Deposito dep ON dep.DepositoId = stk.DepositoId
       LEFT JOIN Sucursal suc ON suc.SucursalId = dep.DepositoSucursalId
+      WHERE ${filterSql} `, [now])
+  }
+
+  async getEfectoProveedores(req: any, res: Response, next: NextFunction) {
+    const listOptions = req.body.listOptions
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const list = await this.getEfectoProveedoresQuery(queryRunner, listOptions);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  private getEfectoProveedoresQuery(queryRunner: any, listOptions: any) {
+    const filterSql = filtrosToSql(listOptions.filtros, listaColumnasProveedores)
+    const now = new Date();
+    return queryRunner.query(`
+      SELECT ROW_NUMBER() OVER (ORDER BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockId) as id,
+          stk.StockId,
+          stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
+          stk.EfectoDescripcion, stk.EfectoAtrDescripcion, stk.EfectoEfectoIndividualDescripcion, stk.EfectoIndividualAtrDescripcion,
+          stk.EfectoDescripcionCompleto,
+          pro.ProveedorRazonSocial,
+          suc.SucursalDescripcion,
+          ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
+          1
+      FROM StockReal stk
+      LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId AND stk.EfectoEfectoIndividualId IS NULL AND lp.ListaPrecioDesde <= @0 AND ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
+      LEFT JOIN ListaPrecioIndividual lpi ON lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
+      JOIN Proveedor pro ON pro.ProveedorId = stk.ProveedorId
+      LEFT JOIN Sucursal suc ON suc.SucursalId = pro.ProveedorSucursalId
       WHERE ${filterSql} `, [now])
   }
 

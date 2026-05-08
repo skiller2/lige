@@ -32,6 +32,13 @@ efectoRouter.post("/getEfectoDeposito", [authMiddleware.verifyToken,authMiddlewa
   efectoController.getEfectoDeposito(req, res, next);
 });
 
+efectoRouter.get("/colsProveedores", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res) => {
+  efectoController.getGridColsProveedores(req, res);
+});
+efectoRouter.post("/getEfectoProveedores", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+  efectoController.getEfectoProveedores(req, res, next);
+});
+
 efectoRouter.post("/searchEfecto", authMiddleware.verifyToken, (req, res, next) => {efectoController.searchEfecto(req, res, next);
 });
 
