@@ -52,15 +52,15 @@ habilitacionesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.h
   habilitacionesController.list(req, res, next)
 })
 
-habilitacionesRouter.post('/detalle-list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon','gSistemas'])], (req, res, next) => {
+habilitacionesRouter.post('/detalle-list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.getDetalleGestiones(req, res, next)
 })
 
-habilitacionesRouter.post('/doc-list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon'])], (req, res, next) => {
+habilitacionesRouter.post('/doc-list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.getDocRelacionados(req, res, next)
 })
 
-habilitacionesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec'])], (req, res, next) => {
+habilitacionesRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.addHabilitacion(req, res, next)
 })
 
@@ -68,15 +68,15 @@ habilitacionesRouter.post('/necesaria/update', [authMiddleware.verifyToken, auth
   habilitacionesController.updatePersonalHabilitacionNecesaria(req, res, next)
 })
 
-habilitacionesRouter.post('/gestion/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec'])], (req, res, next) => {
+habilitacionesRouter.post('/gestion/add', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.addHabilitacionDetalle(req, res, next)
 })
 
-habilitacionesRouter.post('/gestion/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec'])], (req, res, next) => {
+habilitacionesRouter.post('/gestion/update', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.updateHabilitacionDetalle(req, res, next)
 })
 
-habilitacionesRouter.post('/personal', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gDireTec', 'gDirecTecCon','gSistemas'])], (req, res, next) => {
+habilitacionesRouter.post('/personal', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   habilitacionesController.getPersonalHabilitacion(req, res, next)
 })
 
