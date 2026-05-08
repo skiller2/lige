@@ -63,6 +63,13 @@ export class HabilitacionesDetalleComponent {
   columnsDetalle$ = this.apiService.getCols('/api/habilitaciones/detalle-cols')
   columnsDoc$ = this.apiService.getCols('/api/habilitaciones/doc-cols')
 
+  private reloadOnInputChange = effect(() => {
+    this.personalId()
+    this.personalHabilitacionId()
+    this.lugarHabilitacionId()
+    this.habilitacionesChange$.next('')
+  })
+
   ngOnInit() {
 
     this.gridDetalleOptions = this.apiService.getDefaultGridOptions('.gridDetalleContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -139,13 +146,6 @@ export class HabilitacionesDetalleComponent {
   refreshGrid(_e: any) {
     this.habilitacionesChange$.next('');
   }
-
-  // cambios = computed(async () => {
-  //   this.personalId()
-  //   this.personalHabilitacionId()
-  //   this.lugarHabilitacionId()
-  //   this.refreshGrid('')
-  // });
 
   openDrawerforForm(): void {
     this.visibleForm.set(true)
