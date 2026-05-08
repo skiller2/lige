@@ -4,6 +4,7 @@ import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
 import type { QueryRunner } from "typeorm";
+import { personalController } from "../controller/controller.module.ts";
 
 const getOptions: any[] = [
     { label: 'Si', value: 'True' },
@@ -727,6 +728,7 @@ export class ObjetivosController extends BaseController {
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const grupoactividadjerarquico = await this.getGrupoActividadJerarquico(queryRunner, grupoactividad[0]?.GrupoActividadId)
             const habilitacion = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
+            const descuentoAplica = await this.getDescuentoAplicaQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
 
             if (!facturacion) {
                 infObjetivo = { ...infObjetivo[0], ...domiclio[0] };
@@ -740,6 +742,7 @@ export class ObjetivosController extends BaseController {
             infObjetivo.infoActividadJerarquico = grupoactividadjerarquico
             infObjetivo.rubrosCliente = rubrosCliente
             infObjetivo.habilitacion = habilitacion
+            infObjetivo.descuentoAplica = descuentoAplica
 
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
@@ -909,8 +912,6 @@ export class ObjetivosController extends BaseController {
 
     }
 
-
-
     async getCoordinadorCuentaQuery(queryRunner: any, ObjetivoId: any) {
         return await queryRunner.query(`SELECT
                 ObjetivoId,
@@ -926,6 +927,19 @@ export class ObjetivosController extends BaseController {
 
                 WHERE ObjetivoId = @0 AND ObjetivoPersonalJerarquicoDesde <= @1 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @1`,
             [ObjetivoId, new Date()])
+    }
+
+    async getDescuentoAplicaQuery(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any) {
+        let des:number[] = []
+        const ObjetivoDescuentoAplica = await queryRunner.query(`
+            SELECT DesctuentoId
+            FROM ObjetivoDescuentoAplica 
+            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`,
+            [ClienteId, ClienteElementoDependienteId])
+        for (const obj of ObjetivoDescuentoAplica)
+            des.push(obj.DesctuentoId)
+
+        return des
     }
 
     async getRubroQuery(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any) {
@@ -1358,6 +1372,7 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             await this.ObjetivoRubro(queryRunner, Obj.rubrosCliente, Obj.ClienteId, Obj.ClienteElementoDependienteId)
             await this.ObjetivoDocRequerido(queryRunner, Obj.docsRequerido, Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoAplica, Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
 
             await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuario, ip)
 
@@ -1545,6 +1560,44 @@ export class ObjetivosController extends BaseController {
             await queryRunner.query(`
             INSERT INTO ClienteElementoDependienteDocRequerido (ClienteId, ClienteElementoDependienteId, DocumentoTipoCodigo, AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod )
             VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5)`, [ClienteId, ClienteElementoDependienteId, DocumentoTipoCodigo, now, usuario, ip])
+        }
+    }
+
+    async setObjetivoDescuentoAplica(queryRunner: QueryRunner, descuentosAplica: any[], ClienteId: number, ClienteElementoDependienteId: number, usuario: string, ip: string){
+        //Verifica si existen los coordinadores
+        // let errorCoordinadores:string[] = []
+        // const coordinadoresActuales = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
+        // for (const descuento of descuentosAplica) {
+        //     if(coordinadoresActuales.find(coor => coor.PersonalId != descuento.AplicaA)){
+        //         const res = await personalController.getNameFromIdQuery(queryRunner, descuento.AplicaA)
+        //         errorCoordinadores.push(`- ${res[0].apellido} ${res[0].nombre}`)
+        //     }
+        // }
+        // if (errorCoordinadores.length) {
+        //     errorCoordinadores.unshift('No son coordinadores del objetivo: ')
+        //     return new ClientException(errorCoordinadores)
+        // }
+        
+        //Verifica si hay un nuevo descuento
+        const descuentoAplicaOld = await this.getDescuentoAplicaQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
+        let cambios = false
+        if (descuentosAplica.length != descuentoAplicaOld.length)
+            cambios = true
+        else
+            descuentoAplicaOld.forEach((des: any, index: number) => {
+                if (descuentosAplica.find(d => des != d)) {
+                    cambios = true
+                }
+            });
+        if (!cambios) return
+
+        await queryRunner.query(`DELETE FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
+
+        const now: Date = new Date()
+        for (const DescuentoId of descuentosAplica) {
+            await queryRunner.query(`
+            INSERT INTO ObjetivoDescuentoAplica (DescuentoId, ClienteId, ClienteElementoDependienteId, AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod )
+            VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5)`, [DescuentoId, ClienteId, ClienteElementoDependienteId, now, usuario, ip])
         }
     }
 
@@ -1862,6 +1915,7 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             await this.ObjetivoRubro(queryRunner, Obj.rubrosCliente, Obj.ClienteId, ClienteElementoDependienteUltNro)
             await this.ObjetivoDocRequerido(queryRunner, Obj.docsRequerido, Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoAplica, Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
 
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
