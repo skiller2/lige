@@ -45,6 +45,13 @@ import { format, promisify } from "node:util";
 import { once } from "events";
 import { Utils } from "../liquidaciones.utils.ts";
 
+
+const getOptsSINO: any[] = [
+    { label: 'Si', value: '1' },
+    { label: 'No', value: '0' },
+]
+
+
 export class LiquidacionesBancoController extends BaseController {
 
   directory = process.env.PATH_BANCO || "tmp";
@@ -159,7 +166,21 @@ export class LiquidacionesBancoController extends BaseController {
       sortable: true,
       hidden: true,
       searchHidden: true
-    }
+    },
+    {
+        name: "Excede Importe",
+        type: "string",
+        id: "ExcedeImporte",
+        field: "ExcedeImporte",
+        fieldName: "calc.ExcedeImporte",
+        formatter: 'collectionFormatter',
+        params: { collection: getOptsSINO, },
+        sortable: true,
+        hidden: false,
+        searchComponent: "inputForActivo",
+        maxWidth: 60,
+    },
+
 
 
   ];
@@ -366,23 +387,96 @@ export class LiquidacionesBancoController extends BaseController {
     stmactual.setHours(0, 0, 0, 0)
 
     return dataSource.query(
-      `SELECT CONCAT(per.PersonalId,movpos.tipocuenta_id) as id,per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion,movpos.tipocuenta_id, movpos.importe, 'CUE' as ind_imputacion,
-      '' as clave_id,
-      sit.SituacionRevistaDescripcion
-      FROM Personal per
-      JOIN(SELECT liq.persona_id, liq.tipocuenta_id, SUM(liq.importe * tipo.signo) importe FROM lige.dbo.liqmamovimientos liq
-       JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
-       JOIN lige.dbo.liqmaperiodo per ON per.periodo_id = liq.periodo_id AND per.anio=@1 AND per.mes=@2
-       GROUP BY liq.persona_id, liq.tipocuenta_id 
-       HAVING SUM(liq.importe* tipo.signo) <> 0
-      ) AS movpos ON movpos.persona_id = per.PersonalId
-      LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId  AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0) 
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@0 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @0
-      LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
-      
-      
-      LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+      `
+WITH Movimientos AS (
+	SELECT 
+		liq.persona_id,
+		liq.tipocuenta_id,
+		SUM(liq.importe * tipo.signo) AS importe
+	FROM lige.dbo.liqmamovimientos liq
+	JOIN lige.dbo.liqcotipomovimiento tipo 
+		ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
+	JOIN lige.dbo.liqmaperiodo per 
+		ON per.periodo_id = liq.periodo_id 
+		AND per.anio = @1 
+		AND per.mes = @2
+	GROUP BY 
+		liq.persona_id, 
+		liq.tipocuenta_id
+	HAVING SUM(liq.importe * tipo.signo) <> 0
+),
+ValorHora AS (
+	SELECT 
+		MAX(val.ValorLiquidacionHoraNormal) AS ValorLiquidacionHoraNormal
+	FROM ValorLiquidacion val
+	WHERE val.ValorLiquidacionDesde <= DATEFROMPARTS(@1,@2,1)
+		AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') > DATEFROMPARTS(@1,@2,1)
+)
+
+SELECT 
+	CONCAT(per.PersonalId, movpos.tipocuenta_id) AS id,
+	per.PersonalId,
+	CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS PersonalApellidoNombre,
+	cuit.PersonalCUITCUILCUIT,
+	perban.PersonalBancoCBU,
+	banc.BancoDescripcion,
+	movpos.tipocuenta_id,
+	movpos.importe,
+	'CUE' AS ind_imputacion,
+	'' AS clave_id,
+	sit.SituacionRevistaDescripcion,
+
+	calc.PonHoras,
+	calc.ExcedeImporte
+
+FROM Personal per
+
+JOIN Movimientos movpos 
+	ON movpos.persona_id = per.PersonalId
+
+CROSS JOIN ValorHora val
+
+CROSS APPLY (
+	SELECT
+		movpos.importe / val.ValorLiquidacionHoraNormal AS PonHoras,
+
+		IIF(
+			ISNULL(per.HorasAutorizadasMax,0) < 
+			(movpos.importe / val.ValorLiquidacionHoraNormal),
+			'1',
+			'0'
+		) AS ExcedeImporte
+) calc
+
+LEFT JOIN PersonalBanco perban 
+	ON perban.PersonalId = per.PersonalId
+	AND perban.PersonalBancoId = (
+		SELECT MAX(perbanmax.PersonalBancoId)
+		FROM PersonalBanco perbanmax
+		WHERE perbanmax.PersonalId = per.PersonalId
+			AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0
+	)
+
+LEFT JOIN PersonalCUITCUIL cuit 
+	ON cuit.PersonalId = per.PersonalId
+	AND cuit.PersonalCUITCUILId = (
+		SELECT MAX(cuitmax.PersonalCUITCUILId)
+		FROM PersonalCUITCUIL cuitmax
+		WHERE cuitmax.PersonalId = per.PersonalId
+	)
+
+LEFT JOIN PersonalSituacionRevista sitrev 
+	ON sitrev.PersonalId = per.PersonalId
+	AND sitrev.PersonalSituacionRevistaDesde <= @0
+	AND ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @0
+
+LEFT JOIN SituacionRevista sit 
+	ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+
+LEFT JOIN banco banc 
+	ON banc.BancoId = perban.PersonalBancoBancoId
+
+
 
         WHERE  (${filterSql}) 
         ${orderBy}
@@ -713,14 +807,21 @@ export class LiquidacionesBancoController extends BaseController {
           array.findIndex(p => p.PersonalId === item.PersonalId) !== index
       );
 
-console.log('bancoDups', bancoDups)
+const bancoExcede = banco.filter(
+        (p) =>
+           p.ExcedeImporte == '1'
+      );
+
 
       if (bancoDups.length > 0) {
         const dupIds = bancoDups.map((p: any) => p.PersonalApellidoNombre).join(', ')
         throw new ClientException(`Existen registros duplicados para : ${dupIds}.`)
       }
 
-
+      if (bancoExcede.length > 0) {
+        const excedeIds = bancoExcede.map((p: any) => p.PersonalApellidoNombre).join(', ')
+        throw new ClientException(`Existen registros que exceden el importe autorizado para : ${excedeIds}.`)
+      }
 
       if (banco.length == 0)
         throw new ClientException('No hay registros para generar archivo')
