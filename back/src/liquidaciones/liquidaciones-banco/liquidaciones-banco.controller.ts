@@ -807,14 +807,21 @@ LEFT JOIN banco banc
           array.findIndex(p => p.PersonalId === item.PersonalId) !== index
       );
 
-console.log('bancoDups', bancoDups)
+const bancoExcede = banco.filter(
+        (p) =>
+           p.ExcedeImporte == '1'
+      );
+
 
       if (bancoDups.length > 0) {
         const dupIds = bancoDups.map((p: any) => p.PersonalApellidoNombre).join(', ')
         throw new ClientException(`Existen registros duplicados para : ${dupIds}.`)
       }
 
-
+      if (bancoExcede.length > 0) {
+        const excedeIds = bancoExcede.map((p: any) => p.PersonalApellidoNombre).join(', ')
+        throw new ClientException(`Existen registros que exceden el importe autorizado para : ${excedeIds}.`)
+      }
 
       if (banco.length == 0)
         throw new ClientException('No hay registros para generar archivo')
