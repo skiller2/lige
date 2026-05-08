@@ -47,8 +47,8 @@ import { Utils } from "../liquidaciones.utils.ts";
 
 
 const getOptsSINO: any[] = [
-    { label: 'Si', value: '1' },
-    { label: 'No', value: '0' },
+  { label: 'Si', value: '1' },
+  { label: 'No', value: '0' },
 ]
 
 
@@ -168,17 +168,17 @@ export class LiquidacionesBancoController extends BaseController {
       searchHidden: true
     },
     {
-        name: "Excede Importe",
-        type: "string",
-        id: "ExcedeImporte",
-        field: "ExcedeImporte",
-        fieldName: "calc.ExcedeImporte",
-        formatter: 'collectionFormatter',
-        params: { collection: getOptsSINO, },
-        sortable: true,
-        hidden: false,
-        searchComponent: "inputForActivo",
-        maxWidth: 60,
+      name: "Excede Importe",
+      type: "string",
+      id: "ExcedeImporte",
+      field: "ExcedeImporte",
+      fieldName: "calc.ExcedeImporte",
+      formatter: 'collectionFormatter',
+      params: { collection: getOptsSINO, },
+      sortable: true,
+      hidden: false,
+      searchComponent: "inputForActivo",
+      maxWidth: 60,
     },
 
 
@@ -807,9 +807,9 @@ LEFT JOIN banco banc
           array.findIndex(p => p.PersonalId === item.PersonalId) !== index
       );
 
-const bancoExcede = banco.filter(
+      const bancoExcede = banco.filter(
         (p) =>
-           p.ExcedeImporte == '1'
+          p.ExcedeImporte == '1'
       );
 
 
@@ -1203,6 +1203,104 @@ const bancoExcede = banco.filter(
 
   }
 
+
+
+  async jobLimiteImporteBanco(req: any, res: Response, next: NextFunction) {   //Actualiza el campo HorasAutorizadasMax de Personal con el valor calculado en funcion de los ultimos meses
+
+    const fechaActual = new Date()
+    const usuario = res?.locals.userName || 'server'
+    const ip = this.getRemoteAddress(req)
+    let EventoLogCodigo = 0
+    const anio = fechaActual.getFullYear()
+    const mes = fechaActual.getMonth() + 1
+
+    const queryRunner = dataSource.createQueryRunner();
+
+    try {
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Limite Importe Banco`,
+        { usuario, ip },
+        usuario,
+        ip,
+        "DES"
+      ));
+
+      await queryRunner.startTransaction()
+
+
+      const cuentalimite = await queryRunner.query(`
+        WITH Movimientos AS (
+        SELECT 
+          liq.persona_id PersonaId,
+          liq.tipocuenta_id,
+          SUM(liq.importe ) AS importe
+        FROM lige.dbo.liqmamovimientos liq
+        JOIN lige.dbo.liqcotipomovimiento tipo 
+          ON tipo.tipo_movimiento_id = liq.tipo_movimiento_id
+        JOIN lige.dbo.liqmaperiodo per 
+          ON per.periodo_id = liq.periodo_id 
+          AND per.anio = @1
+          AND per.mes = @2
+        WHERE tipo.tipo_movimiento_id IN (11,24,28)
+        GROUP BY 
+          liq.persona_id, 
+          liq.tipocuenta_id
+        HAVING SUM(liq.importe ) > 0
+        
+      ),
+      ValorHora AS (
+        SELECT 
+          MAX(val.ValorLiquidacionHoraNormal) AS ValorLiquidacionHoraNormal
+        FROM ValorLiquidacion val
+        WHERE val.ValorLiquidacionDesde <= DATEFROMPARTS(@1,@2,1)
+          AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') > DATEFROMPARTS(@1,@2,1)
+      )
+      SELECT mov.*, val.*, ROUND(mov.importe / val.ValorLiquidacionHoraNormal,0) PonHoras, per.HorasAutorizadasMax 
+      FROM Movimientos mov
+      JOIN Personal per ON per.PersonalId=mov.persona_id
+      CROSS JOIN ValorHora val
+`, [fechaActual, anio, mes])
+
+      for (const limite of cuentalimite) {
+        const PersonalId = limite.PersonaId
+        const HorasAutorizadasMax = 0
+
+        await queryRunner.query(`
+              UPDATE Personal SET HorasAutorizadasMax=@1 WHERE PersonalId=@0)
+          `, [PersonalId, HorasAutorizadasMax])
+
+      }
+
+      await queryRunner.commitTransaction()
+
+      const resMsg = `Se actualizaron los limites de importe para ${cuentalimite.length} personas.`
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: resMsg,
+        },
+        usuario,
+        ip
+      );
+      return this.jsonRes({}, res, resMsg);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 }
 
 
