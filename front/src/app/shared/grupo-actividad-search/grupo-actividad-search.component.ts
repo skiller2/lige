@@ -52,7 +52,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
-  controlDisabled = signal(true)
+  controlDisabled = signal(false)
 
   registerOnChange(fn: any) {
 
