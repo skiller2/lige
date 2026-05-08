@@ -1264,7 +1264,7 @@ LEFT JOIN banco banc
 
       for (const limite of cuentalimite) {
         const PersonalId = limite.PersonaId
-        const HorasAutorizadasMax = 0
+        const HorasAutorizadasMax = 0  //Minimo 65
 
         await queryRunner.query(`
               UPDATE Personal SET HorasAutorizadasMax=@1 WHERE PersonalId=@0)
