@@ -932,12 +932,12 @@ export class ObjetivosController extends BaseController {
     async getDescuentoAplicaQuery(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any) {
         let des:number[] = []
         const ObjetivoDescuentoAplica = await queryRunner.query(`
-            SELECT DesctuentoId
+            SELECT DescuentoId
             FROM ObjetivoDescuentoAplica 
             WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`,
             [ClienteId, ClienteElementoDependienteId])
         for (const obj of ObjetivoDescuentoAplica)
-            des.push(obj.DesctuentoId)
+            des.push(obj.DescuentoId)
 
         return des
     }
