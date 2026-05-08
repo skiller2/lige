@@ -128,6 +128,7 @@ export class AuthMiddleware {
       const mes = stmActual.getMonth() + 1
       if (PersonalId == PersonalId_auth) {
         res.locals.skipMiddleware = skipNextonPass
+        res.locals.authResp = true
         return next()
       }
       if (PersonalId < 1) {

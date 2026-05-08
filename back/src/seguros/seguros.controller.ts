@@ -522,7 +522,8 @@ UNION
         `Actualización de Seguros ${mes}/${anio}`,
         { anio, mes, usuario, ip },
         usuario,
-        ip
+        ip,
+        'SEG'
       ))
 
 

@@ -371,7 +371,7 @@ export class BaseController {
   }
 
   // TODO: FUNCION QUE HAGA INSERT DE DATOS EN TABLA DE REGISTROS DE Evento Log
-  async eventoLogInicio(queryRunner: QueryRunner, NombreProceso: string, ParametroEntrada: object, usuario: string, ip: string) {
+  async eventoLogInicio(queryRunner: QueryRunner, NombreProceso: string, ParametroEntrada: object, usuario: string, ip: string, EventoLogClaseCodigo: string) {
     if (queryRunner.isTransactionActive) throw new Error('No se puede iniciar eventoLogInicio dentro de una transacción activa')
 
     await queryRunner.startTransaction();
@@ -393,9 +393,10 @@ export class BaseController {
       AudIpIng,
       AudFechaMod,
       AudUsuarioMod,
-      AudIpMod
+      AudIpMod,
+      EventoLogClaseCodigo
 
-    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @7, @8, @9)`,
+    ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @7, @8, @9,@10)`,
       [
         EventoLogCodigo,
         NombreProceso,
@@ -406,7 +407,8 @@ export class BaseController {
         null,
         fechaActual,
         usuario,
-        ip
+        ip,
+        EventoLogClaseCodigo
       ]
     );
     await queryRunner.commitTransaction();

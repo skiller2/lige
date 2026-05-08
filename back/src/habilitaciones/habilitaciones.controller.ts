@@ -1758,7 +1758,8 @@ SELECT doc.DocumentoId id,
                 `Habilitación Necesaria ${mes}/${anio}`,
                 { anio, mes, usuario, ip },
                 usuario,
-                ip
+                ip,
+                "HAB"
             ));
 
             await queryRunner.startTransaction();

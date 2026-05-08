@@ -26,7 +26,27 @@ const listaColumnas: any[] = [
     // minWidth: 10,
   },
   {
-    id: 'NombreProceso', name: 'Nombre', field: 'NombreProceso',
+    id: 'EventoLogClaseCodigo', name: 'Clase', field: 'EventoLogClaseCodigo',
+    fieldName: 'c.EventoLogClaseCodigo',
+    // searchComponent: '',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+    // crear y agregar el searchComponent para filtrar por clase de evento
+  },
+  {
+    id: 'ClaseDescripcion', name: 'Clase', field: 'ClaseDescripcion',
+    fieldName: 'c.Descripcion',
+    type: 'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: 'NombreProceso', name: 'Nombre Proceso', field: 'NombreProceso',
     fieldName: 'palog.NombreProceso',
     // searchComponent: '',
     type: 'string',
@@ -66,7 +86,7 @@ const listaColumnas: any[] = [
     searchHidden: false,
   },
   {
-    id: 'Descripcion', name: 'Descripcion', field: 'Descripcion',
+    id: 'Descripcion', name: 'Estado', field: 'Descripcion',
     fieldName: 'paest.Descripcion',
     // searchComponent: '',
     type: 'string',
@@ -339,7 +359,7 @@ const listaColumnasBloqueadas: any[] = [
     hidden: false,
     searchHidden: false,
   },
- 
+
 ]
 
 
@@ -353,9 +373,9 @@ export class EventoLogController extends BaseController {
     this.jsonRes(listaColumnasBloqueadas, res);
   }
 
-  
 
-  async listEventoLog(req: any, res: Response, next: NextFunction ) {
+
+  async listEventoLog(req: any, res: Response, next: NextFunction) {
     const options: Options = isOptions(req.body.options)
       ? req.body.options
       : { filtros: [], sort: null };
@@ -371,9 +391,11 @@ export class EventoLogController extends BaseController {
           palog.FechaInicio, palog.FechaFin, paest.EventoLogEstadoCodigo,
           paest.Descripcion,
           DATEDIFF(MINUTE, palog.FechaInicio, ISNULL(palog.FechaFin, GETDATE())) AS Duracion,
+          c.EventoLogClaseCodigo, c.Descripcion as ClaseDescripcion,
           1
         FROM EventoLog palog
         LEFT JOIN EventoLogEstado paest on paest.EventoLogEstadoCodigo=palog.EventoLogEstadoCodigo
+        LEFT JOIN EventoLogClase c on c.EventoLogClaseCodigo=palog.EventoLogClaseCodigo
         WHERE (${filterSql})
         ${orderBy ? orderBy : 'ORDER BY palog.EventoLogCodigo DESC'}
       `,);
@@ -385,7 +407,7 @@ export class EventoLogController extends BaseController {
   }
 
 
-  async listtablasbloqueadas(req: any, res: Response, next: NextFunction ) {
+  async listtablasbloqueadas(req: any, res: Response, next: NextFunction) {
 
     const queryRunner = dataSource.createQueryRunner();
     try {
@@ -437,7 +459,7 @@ export class EventoLogController extends BaseController {
     }
   }
 
-  async getEventoLog(req: any, res: Response, next: NextFunction ) {
+  async getEventoLog(req: any, res: Response, next: NextFunction) {
     const logCodigo = req.params.logCodigo
 
     const queryRunner = dataSource.createQueryRunner();
@@ -451,7 +473,7 @@ export class EventoLogController extends BaseController {
         LEFT JOIN EventoLogEstado paest on paest.EventoLogEstadoCodigo=palog.EventoLogEstadoCodigo
         WHERE palog.EventoLogCodigo = @0
       `, [logCodigo]);
-      
+
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)

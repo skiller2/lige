@@ -340,16 +340,21 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async getNameFromId(PersonalId, res: Response, next: NextFunction) {
-    try {
-      const result = await dataSource.query(
-        `SELECT per.PersonalId personalId, cuit.PersonalCUITCUILCUIT cuit,
+  async getNameFromIdQuery(queryRunner:any, PersonalId:number) {
+    return queryRunner.query(`
+      SELECT per.PersonalId personalId, cuit.PersonalCUITCUILCUIT cuit,
       TRIM(per.PersonalNombre) nombre, TRIM(per.PersonalApellido) apellido
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       WHERE per.PersonalId = @0`,
-        [PersonalId]
-      );
+      [PersonalId]
+    );
+  }
+
+  async getNameFromId(PersonalId, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const result = await this.getNameFromIdQuery(queryRunner, PersonalId)
 
       const info = result[0];
       this.jsonRes(info, res);
@@ -3800,8 +3805,22 @@ UNION ALL
 
   async getUltimoNroReciboByPersonalId(req: any, res: Response, next: NextFunction) {
     const PersonalId = Number(req.params.personalId)
-    
+    const queryRunner = dataSource.createQueryRunner();
+    const now = new Date()
+    let usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    let EventoLogCodigo = 0
+
     try {
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Consulta Último Número de Recibo - PersonalId: ${PersonalId}`,
+        { usuario, ip },
+        usuario,
+        ip,
+        "REC"
+      ));
+
       const result = await dataSource.query(
         `SELECT TOP 1 doc.DocumentoId, doc.DocumentoMes,doc.DocumentoAnio,doc.DocumentoFecha, doc.DocumentoDenominadorDocumento 
           FROM Documento doc
@@ -3809,9 +3828,31 @@ UNION ALL
           ORDER BY doc.DocumentoFecha DESC`, [PersonalId])
 
       const data = result[0] ?? { DocumentoId: null, DocumentoMes: null, DocumentoAnio: null, DocumentoFecha: null, DocumentoDenominadorDocumento: null }
+
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: `Procesado correctamente`,
+          'Data': data
+        },
+        usuario,
+        ip
+      );
       this.jsonRes(data, res)
     } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

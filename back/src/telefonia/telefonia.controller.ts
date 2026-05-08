@@ -467,7 +467,8 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
         `Importa XLS Telefonia`,
         { usuario, ip },
         usuario,
-        ip
+        ip,
+        'DES'
       ))
 
 

@@ -118,7 +118,7 @@ export class RecibosController extends BaseController {
     let EventoLogCodigo = 0
 
     try {
-      ({ EventoLogCodigo } = await this.eventoLogInicio(queryRunner, "Recibos", req.body, usuario, ip))
+      ({ EventoLogCodigo } = await this.eventoLogInicio(queryRunner, "Recibos", req.body, usuario, ip, 'REC'))
 
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)

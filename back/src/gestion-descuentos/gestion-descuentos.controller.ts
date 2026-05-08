@@ -1168,7 +1168,8 @@ export class GestionDescuentosController extends BaseController {
         `Generación cuotas efectos`,
         { usuario, ip },
         usuario,
-        ip
+        ip,
+        "DES"
       ));
 
       await queryRunner.startTransaction()
@@ -2359,7 +2360,8 @@ FROM cte
         `Importación xls DescuentoId ${descuentoIdRequest} - ${tableNameRequest} - ${mesRequest}/${anioRequest}`,
         { anioRequest, mesRequest, descuentoIdRequest, tableNameRequest, usuario, ip },
         usuario,
-        ip
+        ip,
+        "DES"
       ))
 
 
