@@ -58,6 +58,7 @@ export interface Objetivo {
   rubrosCliente: any[],  
   docsRequerido: any[],
   infoActividad: Actividad[], 
+  descuentoAplica: number[], 
   estado: number,
   files: any[],
   codigo: string,
@@ -153,6 +154,7 @@ export class ObjetivosFormComponent {
     rubrosCliente: [],  
     docsRequerido: [],
     infoActividad: [structuredClone(this.actividadDefault)], 
+    descuentoAplica: [], 
     estado: 0,
     files: [],
     codigo: "",
@@ -179,7 +181,7 @@ export class ObjetivosFormComponent {
   optionsProvincia = toSignal(this.searchService.getProvincia(), { initialValue: [] });
   optionsLocalidad = toSignal(this.searchService.getLocalidad(), { initialValue: [] });
   optionsBarrio = toSignal(this.searchService.getBarrio(), { initialValue: [] });
-  optionsDescuento = toSignal(this.searchService.getDescuento(), { initialValue: [] });
+  optionsDecuentosTipo = toSignal(this.searchService.getDecuentosTipoOptions(), { initialValue: [] });
   sucursales = toSignal(this.searchService.getSucursales(), { initialValue: [] });
   optionsDocumentoTipo = toSignal(this.searchService.getDocumentoTipoOptions(), { initialValue: [] });
   optionsLugarHabilitacion = toSignal(this.searchService.getLugarHabilitacionOptions(), { initialValue: [] });

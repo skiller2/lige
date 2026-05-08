@@ -340,16 +340,21 @@ export class PersonalController extends BaseController {
     }
   }
 
-  async getNameFromId(PersonalId, res: Response, next: NextFunction) {
-    try {
-      const result = await dataSource.query(
-        `SELECT per.PersonalId personalId, cuit.PersonalCUITCUILCUIT cuit,
+  async getNameFromIdQuery(queryRunner:any, PersonalId:number) {
+    return queryRunner.query(`
+      SELECT per.PersonalId personalId, cuit.PersonalCUITCUILCUIT cuit,
       TRIM(per.PersonalNombre) nombre, TRIM(per.PersonalApellido) apellido
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       WHERE per.PersonalId = @0`,
-        [PersonalId]
-      );
+      [PersonalId]
+    );
+  }
+
+  async getNameFromId(PersonalId, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const result = await this.getNameFromIdQuery(queryRunner, PersonalId)
 
       const info = result[0];
       this.jsonRes(info, res);
