@@ -263,11 +263,11 @@ export class CategoriasController extends BaseController {
 
       const actualizarAsistencia = await queryRunner.query(
         `
-      SELECT obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
+      SELECT DISTINCT obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
       persona.PersonalId,
-      obj.ObjetivoId, 
-      CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
-      clidep.ClienteElementoDependienteDescripcion,
+      -- obj.ObjetivoId, 
+      -- CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
+      -- clidep.ClienteElementoDependienteDescripcion,
 
       objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,
       
@@ -301,7 +301,7 @@ export class CategoriasController extends BaseController {
       WHERE obja.ObjetivoAsistenciaAnoAno = @1 
       AND objm.ObjetivoAsistenciaAnoMesMes = @2
 AND objd.ObjetivoAsistenciaCategoriaPersonalId <> percat.PersonalCategoriaCategoriaPersonalId`,
-        [anio, mes]
+        [,anio, mes]
       )
 
       for (const reg of actualizarAsistencia) {
@@ -350,7 +350,7 @@ AND objd.ObjetivoAsistenciaCategoriaPersonalId <> percat.PersonalCategoriaCatego
 
       await queryRunner.commitTransaction();
 
-      const resp = `Se procesaron ${pendientes.length} ascensos`
+      const resp = `Se procesaron ${pendientes.length} ascensos, se actualizaron ${actualizarAsistencia.length} registros de asistencia`
       await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
