@@ -28,7 +28,7 @@
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'efecto', 'efectos']">Efectos</a>
+        <a [routerLink]="['/', 'ges', 'efecto', 'general']">General</a>
       </li>
     </ul>
 
@@ -72,7 +72,7 @@
     </nz-tab>
 
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/efecto/efectos">Efectos</a>
+      <a nz-tab-link routerLink="/ges/efecto/general">General</a>
       <ng-template nz-tab>
         <app-table-efecto-general [refreshGrid]="refreshTick()"></app-table-efecto-general>
       </ng-template>

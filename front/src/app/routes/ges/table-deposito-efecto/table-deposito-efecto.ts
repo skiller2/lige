@@ -1,4 +1,4 @@
-import { Component, input, resource, signal } from '@angular/core';
+import { Component, inject, input, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { firstValueFrom } from 'rxjs';
@@ -12,6 +12,7 @@ import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-deta
 import { totalRecords, columnTotal } from '../../../shared/custom-search/custom-search';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Selections } from '../../../shared/schemas/filtro';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-table-deposito-efecto',
@@ -41,6 +42,8 @@ export class TableDepositoEfectoComponent {
     { index: 'StockStock', condition: 'AND', operator: '>', value: '0', closeable: true },
   ])
 
+  private readonly loadingSrv = inject(LoadingService)
+
   constructor(
     private apiService: ApiService,
     private angularUtilService: AngularUtilService,
@@ -52,7 +55,13 @@ export class TableDepositoEfectoComponent {
   gridData = resource({
     params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
     loader: async ({ params }) => {
-      return await firstValueFrom(this.searchService.getEfectoDeposito(params.options))
+      let response: any = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.searchService.getEfectoDeposito(params.options))
+      } catch (_e) { }
+      this.loadingSrv.close()
+      return response || []
     },
     defaultValue: []
   })

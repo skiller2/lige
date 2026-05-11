@@ -1,4 +1,4 @@
-import { Component, input, resource, signal } from '@angular/core';
+import { Component, inject, input, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
@@ -11,6 +11,7 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords, columnTotal } from '../../../shared/custom-search/custom-search';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-table-personal-efecto',
@@ -37,6 +38,8 @@ export class TablePersonalEfectoComponent {
     filtros: [],
     sort: null,
   })
+  private readonly loadingSrv = inject(LoadingService)
+
   constructor(
     private apiService: ApiService,
     private angularUtilService: AngularUtilService,
@@ -48,7 +51,13 @@ export class TablePersonalEfectoComponent {
   gridData = resource({
     params: () => ({options: this.listOptions(), refresh: this.refreshGrid()}),
     loader: async ({ params }) => {
-      return await firstValueFrom(this.searchService.getEfectoPersonal(params.options))
+      let response: any = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.searchService.getEfectoPersonal(params.options))
+      } catch (_e) { }
+      this.loadingSrv.close()
+      return response || []
     },
     defaultValue: []
   })
