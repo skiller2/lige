@@ -98,6 +98,20 @@ scheduleJob('6 0 * * *', async function (fireDate) {  //At 12:06 AM
   await habilitacionesController.jobHabilitacionNecesaria(mockReq, null, (ret: any) => ret)
 });
 
+scheduleJob('7 0 * * *', async function (fireDate) {  //At 12:06 AM
+  const actual = new Date()
+  const anio = actual.getFullYear()
+  const mes = actual.getMonth() + 1
+  
+  const mockReq: any = {
+    body: { anio, mes },
+    headers: {},
+    socket: { remoteAddress: '127.0.0.1' }
+  }
+  
+  await categoriasController.jobCambioCategoria(mockReq, null, (ret: any) => ret)
+});
+
 
 let fechaActual = new Date()
 fechaActual.setHours(0, 0, 0, 0)

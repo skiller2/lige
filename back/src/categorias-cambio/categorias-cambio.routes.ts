@@ -15,5 +15,5 @@ categoriasRouter.post('/list',[authMiddleware.verifyToken, authMiddleware.hasGro
 
 
 categoriasRouter.post('/cambiarCategorias', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])], async (req, res, next) => {
-    categoriasController.procesaCambios(req, res, next)
+    categoriasController.jobCambioCategoria(req, res, next)
 })

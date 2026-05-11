@@ -161,18 +161,33 @@ export class CategoriasController extends BaseController {
     }
   }
 
-  async procesaCambios(req: any, res: Response, next: NextFunction) {
+  async jobCambioCategoria(req: any, res: Response, next: NextFunction) {
     const options = {}
 
     const queryRunner = dataSource.createQueryRunner();
-    let fechaActual = new Date()
+    const fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
 
-    let fechaAyer = new Date()
+    const fechaAyer = new Date()
     fechaAyer.setDate(fechaAyer.getDate() - 1);
     fechaAyer.setHours(0, 0, 0, 0)
 
+    const usuario = res?.locals.userName || 'server'
+    const ip = this.getRemoteAddress(req)
+    let EventoLogCodigo = 0
+
+
     try {
+
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Cambio Categoría`,
+        { usuario, ip },
+        usuario,
+        ip,
+        "JOB"
+      ));
+
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
@@ -243,12 +258,32 @@ export class CategoriasController extends BaseController {
         );
 
       }
+      const resp =  `Se procesaron ${pendientes.length} ascensos`
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: resp,
+          pendientes
+        },
+        usuario,
+        ip
+      );
 
       await queryRunner.commitTransaction();
       if (res)
-        this.jsonRes({list:[] }, res, `Se procesaron ${pendientes.length} ascensos `);
+        this.jsonRes({list:[] }, res, resp);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+
       return next(error)
     } finally {
       await queryRunner.release();
