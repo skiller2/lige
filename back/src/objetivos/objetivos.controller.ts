@@ -728,7 +728,8 @@ export class ObjetivosController extends BaseController {
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const grupoactividadjerarquico = await this.getGrupoActividadJerarquico(queryRunner, grupoactividad[0]?.GrupoActividadId)
             const habilitacion = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
-            const descuentoAplica = await this.getDescuentoAplicaQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
+            const descuentoCoordinador = await this.getDescuentoAplicaQuery(queryRunner, 'C', ClienteId, ClienteElementoDependienteId)
+            const descuentoLince = await this.getDescuentoAplicaQuery(queryRunner, 'L', ClienteId, ClienteElementoDependienteId)
 
             if (!facturacion) {
                 infObjetivo = { ...infObjetivo[0], ...domiclio[0] };
@@ -742,7 +743,8 @@ export class ObjetivosController extends BaseController {
             infObjetivo.infoActividadJerarquico = grupoactividadjerarquico
             infObjetivo.rubrosCliente = rubrosCliente
             infObjetivo.habilitacion = habilitacion
-            infObjetivo.descuentoAplica = descuentoAplica
+            infObjetivo.descuentoCoordinador = descuentoCoordinador
+            infObjetivo.descuentoLince = descuentoLince
 
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
@@ -929,13 +931,13 @@ export class ObjetivosController extends BaseController {
             [ObjetivoId, new Date()])
     }
 
-    async getDescuentoAplicaQuery(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any) {
+    async getDescuentoAplicaQuery(queryRunner: any, aplicaA:string, ClienteId: any, ClienteElementoDependienteId: any) {
         let des:number[] = []
         const ObjetivoDescuentoAplica = await queryRunner.query(`
             SELECT DescuentoId
             FROM ObjetivoDescuentoAplica 
-            WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`,
-            [ClienteId, ClienteElementoDependienteId])
+            WHERE ClienteId IN (@0) AND ClienteElementoDependienteId IN (@1) AND AplicaA IN (@2)`,
+            [ClienteId, ClienteElementoDependienteId, aplicaA])
         for (const obj of ObjetivoDescuentoAplica)
             des.push(obj.DescuentoId)
 
@@ -1372,7 +1374,8 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             await this.ObjetivoRubro(queryRunner, Obj.rubrosCliente, Obj.ClienteId, Obj.ClienteElementoDependienteId)
             await this.ObjetivoDocRequerido(queryRunner, Obj.docsRequerido, Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
-            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoAplica, Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCoordinador, 'C', Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoLince, 'L', Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
 
             await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuario, ip)
 
@@ -1563,41 +1566,29 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    async setObjetivoDescuentoAplica(queryRunner: QueryRunner, descuentosAplica: any[], ClienteId: number, ClienteElementoDependienteId: number, usuario: string, ip: string){
-        //Verifica si existen los coordinadores
-        // let errorCoordinadores:string[] = []
-        // const coordinadoresActuales = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
-        // for (const descuento of descuentosAplica) {
-        //     if(coordinadoresActuales.find(coor => coor.PersonalId != descuento.AplicaA)){
-        //         const res = await personalController.getNameFromIdQuery(queryRunner, descuento.AplicaA)
-        //         errorCoordinadores.push(`- ${res[0].apellido} ${res[0].nombre}`)
-        //     }
-        // }
-        // if (errorCoordinadores.length) {
-        //     errorCoordinadores.unshift('No son coordinadores del objetivo: ')
-        //     return new ClientException(errorCoordinadores)
-        // }
+    async setObjetivoDescuentoAplica(queryRunner: QueryRunner, descuentos: number[], aplicaA:string, ClienteId: number, ClienteElementoDependienteId: number, usuario: string, ip: string){
         
         //Verifica si hay un nuevo descuento
-        const descuentoAplicaOld = await this.getDescuentoAplicaQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
+        const descuentoOld = await this.getDescuentoAplicaQuery(queryRunner, aplicaA, ClienteId, ClienteElementoDependienteId)
         let cambios = false
-        if (descuentosAplica.length != descuentoAplicaOld.length)
+        if (descuentos.length != descuentoOld.length)
             cambios = true
         else
-            descuentoAplicaOld.forEach((des: any, index: number) => {
-                if (descuentosAplica.find(d => des != d)) {
+            descuentoOld.forEach((des: any, index: number) => {
+                if (descuentos.find(d => des != d)) {
                     cambios = true
                 }
             });
         if (!cambios) return
 
-        await queryRunner.query(`DELETE FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
+        await queryRunner.query(`DELETE FROM ObjetivoDescuentoAplica WHERE ClienteId IN (@0) AND ClienteElementoDependienteId IN (@1) AND AplicaA IN (@2)`, [ClienteId, ClienteElementoDependienteId, aplicaA])
 
         const now: Date = new Date()
-        for (const DescuentoId of descuentosAplica) {
+        for (const DescuentoId of descuentos) {
             await queryRunner.query(`
-            INSERT INTO ObjetivoDescuentoAplica (DescuentoId, ClienteId, ClienteElementoDependienteId, AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod )
-            VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5)`, [DescuentoId, ClienteId, ClienteElementoDependienteId, now, usuario, ip])
+                INSERT INTO ObjetivoDescuentoAplica (DescuentoId, ClienteId, ClienteElementoDependienteId, AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod, AplicaA)
+                VALUES (@0,@1,@2,@3,@4,@5,@3,@4,@5,@6)
+            `, [DescuentoId, ClienteId, ClienteElementoDependienteId, now, usuario, ip, aplicaA])
         }
     }
 
@@ -1633,21 +1624,20 @@ export class ObjetivosController extends BaseController {
     }
 
     async FormValidations(form: any) {
+        let msgError: string[] = []
 
-
+    //Validaciones de campos incompletos
         if (!form.ClienteId) {
-            throw new ClientException(`Debe completar el campo Cliente.`)
+            throw new ClientException(`- Cliente.`)
         }
 
         if (!form.Descripcion) {
-            throw new ClientException(`Debe completar el campo  Descripcion.`)
+            throw new ClientException(`-  Descripcion.`)
         }
 
         if (!form.SucursalId) {
-            throw new ClientException(`Debe completar el campo Sucursal.`)
+            throw new ClientException(`- Sucursal.`)
         }
-
-
 
         // if(!form.ContratoFechaHasta) {
         //     throw new ClientException(`El campo Contrato Hasta NO pueden estar vacio.`)
@@ -1656,11 +1646,11 @@ export class ObjetivosController extends BaseController {
         //Domicilio
 
         if (!form.DomicilioDomCalle) {
-            throw new ClientException(`Debe completar el campo Dirección Calle.`)
+            throw new ClientException(`- Dirección Calle.`)
         }
 
         if (!form.DomicilioDomNro) {
-            throw new ClientException(`Debe completar el campo Nro.`)
+            throw new ClientException(`- Nro.`)
         }
 
         if (form.DomicilioDomNro.length > 5) {
@@ -1668,7 +1658,7 @@ export class ObjetivosController extends BaseController {
         }
 
         if (!form.DomicilioCodigoPostal) {
-            throw new ClientException(`Debe completar el campo Cod Postal.`)
+            throw new ClientException(`- Cod Postal.`)
         }
 
         if (form.DomicilioCodigoPostal.length > 8) {
@@ -1676,26 +1666,37 @@ export class ObjetivosController extends BaseController {
         }
 
         if (!form.DomicilioProvinciaId) {
-            throw new ClientException(`Debe completar el campo Provincia.`)
+            throw new ClientException(`- Provincia.`)
         }
 
         if (!form.DomicilioLocalidadId) {
-            throw new ClientException(`Debe completar el campo Localidad.`)
+            throw new ClientException(`- Localidad.`)
         }
-
-
-
-
 
         // Coordinador de cuenta
 
         for (const obj of form.infoCoordinadorCuenta) {
             if (!obj.PersonalId && obj.ObjetivoPersonalJerarquicoComision && obj.ObjetivoPersonalJerarquicoDescuentos) {
-                throw new ClientException(`Debe completar el campo Persona en Coordinador de cuenta.`)
+                throw new ClientException(`- Persona en Coordinador de cuenta.`)
             }
 
         }
 
+        //Grupo Actividad
+        // for (const obj of form.infoActividad) {
+        //     if (!obj.GrupoActividadId) {
+        //         throw new ClientException(`- Actividad.`)
+        //     }
+        //     if (!obj.GrupoActividadObjetivoDesde) {
+        //         throw new ClientException(`- Fecha Desde de Grupo Actividad.`)
+        //     }
+        // }
+
+        if (msgError.length) {
+            msgError.unshift('Debe completar los siguientes campos: ')
+            throw new ClientException(msgError)
+        }
+    //Validaciones de datos minimos
         // Rubro
         if (!form.rubrosCliente || !form.rubrosCliente.length) {
             throw new ClientException(`Debe selecionar al menos un Rubro.`)
@@ -1706,19 +1707,20 @@ export class ObjetivosController extends BaseController {
             throw new ClientException('Debe de tener al menos un Documento requerido a presentar')
         }
 
-        //Grupo Actividad
-        // for (const obj of form.infoActividad) {
-        //     if (!obj.GrupoActividadId) {
-        //         throw new ClientException(`Debe completar el campo Actividad.`)
-        //     }
-        //     if (!obj.GrupoActividadObjetivoDesde) {
-        //         throw new ClientException(`Debe completar el campo Fecha Desde de Grupo Actividad.`)
-        //     }
-        // }
-
         //Habilitacion nesesaria
         if (!form.habilitacion || !form.habilitacion.length) {
             throw new ClientException(`Debe selecionar al menos un lugar de habilitación.`)
+        }
+
+        //Descuentos
+        if ( form.descuentoCoordinador.length !=0 || form.descuentoLince.length != 0 ){
+            if( form.descuentoCoordinador.length > 1 || form.descuentoLince.length > 1 ) 
+                throw new ClientException(`Solo se puede selecionar 1 descuento a Coordinador y Lince`)
+
+
+            if( form.descuentoCoordinador.length && form.descuentoLince.length && (form.descuentoCoordinador[0] == form.descuentoLince[0])){
+                throw new ClientException(`Los descuentos a Coordinador y Lince deben de ser diferentes`)
+            }
         }
 
 
@@ -1786,6 +1788,7 @@ export class ObjetivosController extends BaseController {
             await this.deletePersonalJerarquicoQuery(queryRunner, Number(ObjetivoId))
             await this.deleteGrupoActividadQuery(queryRunner, Number(ObjetivoId))
 
+            await this.deleteObjetivoDescuentoAplicaQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteClienteElementoDependienteDomicilioQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteClienteElementoDependienteContratoQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteClienteEleDepRubroQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
@@ -1806,29 +1809,29 @@ export class ObjetivosController extends BaseController {
 
     }
 
-    async deleteObjetivoQuery(queryRunner: any, ObjetivoId: number, ClienteId: number) {
+    private async deleteObjetivoQuery(queryRunner: any, ObjetivoId: number, ClienteId: number) {
 
         return await queryRunner.query(`DELETE FROM objetivo WHERE ObjetivoId = @0 AND ClienteId = @1;`,
             [ObjetivoId, ClienteId])
     }
 
-    async deleteClienteElementoDependienteQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
+    private async deleteClienteElementoDependienteQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
 
         return await queryRunner.query(`DELETE FROM ClienteElementoDependiente WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1;`,
             [ClienteId, ClienteElementoDependienteId])
     }
 
-    async deleteClienteElementoDependienteDomicilioQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
+    private async deleteClienteElementoDependienteDomicilioQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
         await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
         await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0 AND nex.ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
     }
 
-    async deleteClienteElementoDependienteContratoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
+    private async deleteClienteElementoDependienteContratoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
         return await queryRunner.query(`DELETE FROM ClienteElementoDependienteContrato  WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `,
             [ClienteId, ClienteElementoDependienteId])
     }
 
-    async deleteClienteEleDepRubroQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
+    private async deleteClienteEleDepRubroQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
 
         return await queryRunner.query(`DELETE FROM ClienteEleDepRubro  WHERE 
              ClienteId = @0
@@ -1836,7 +1839,7 @@ export class ObjetivosController extends BaseController {
             [ClienteId, ClienteElementoDependienteId])
     }
 
-    async deleteClienteElementoDependienteDocRequeridoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
+    private async deleteClienteElementoDependienteDocRequeridoQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
 
         return await queryRunner.query(`DELETE FROM ClienteElementoDependienteDocRequerido  WHERE 
              ClienteId = @0
@@ -1844,16 +1847,21 @@ export class ObjetivosController extends BaseController {
             [ClienteId, ClienteElementoDependienteId])
     }
 
-    async deletePersonalJerarquicoQuery(queryRunner: any, ObjetivoId: number) {
+    private async deletePersonalJerarquicoQuery(queryRunner: any, ObjetivoId: number) {
         return await queryRunner.query(`DELETE FROM ObjetivoPersonalJerarquico WHERE ObjetivoId = @0`, [ObjetivoId])
     }
 
-    async deleteGrupoActividadQuery(queryRunner: any, ObjetivoId: number) {
+    private async deleteGrupoActividadQuery(queryRunner: any, ObjetivoId: number) {
         return await queryRunner.query(`DELETE FROM GrupoActividadObjetivo WHERE GrupoActividadObjetivoObjetivoId = @0`, [ObjetivoId])
     }
 
-    async deleteHabilitacionNecesariaObjetivoQuery(queryRunner: any, ObjetivoId: number) {
+    private async deleteHabilitacionNecesariaObjetivoQuery(queryRunner: any, ObjetivoId: number) {
         return await queryRunner.query(`DELETE FROM ObjetivoHabilitacionNecesaria WHERE ObjetivoId = @0`, [ObjetivoId])
+    }
+
+    private async deleteObjetivoDescuentoAplicaQuery(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number) {
+        return await queryRunner.query(`DELETE FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`,
+            [ClienteId, ClienteElementoDependienteId])
     }
 
     async addObjetivo(req: any, res: Response, next: NextFunction) {
@@ -1915,7 +1923,8 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             await this.ObjetivoRubro(queryRunner, Obj.rubrosCliente, Obj.ClienteId, ClienteElementoDependienteUltNro)
             await this.ObjetivoDocRequerido(queryRunner, Obj.docsRequerido, Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
-            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoAplica, Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCoordinador, 'C', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoLince, 'L', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
 
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
