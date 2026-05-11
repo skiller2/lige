@@ -103,7 +103,7 @@ export class CategoriasController extends BaseController {
     options: any
   ) {
     const filtros = options.filtros;
-    const filterSql = filtrosToSql(filtros,columnasGrilla);
+    const filterSql = filtrosToSql(filtros, columnasGrilla);
     const fecha = options.extra?.fecProcesoCambio || new Date()
 
     return dataSource.query(
@@ -147,7 +147,7 @@ export class CategoriasController extends BaseController {
   async getCambiosPendCategoria(
     req: any,
     res: Response,
-    next:NextFunction
+    next: NextFunction
   ) {
     const options = getOptionsFromRequest(req);
     try {
@@ -167,6 +167,8 @@ export class CategoriasController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     const fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
+    const anio = fechaActual.getFullYear()
+    const mes = fechaActual.getMonth() + 1
 
     const fechaAyer = new Date()
     fechaAyer.setDate(fechaAyer.getDate() - 1);
@@ -191,7 +193,7 @@ export class CategoriasController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-//            throw new ClientException("Ups")
+      //            throw new ClientException("Ups")
 
       const pendientes = await CategoriasController.listCambiosPendCategoria(options)
 
@@ -210,13 +212,13 @@ export class CategoriasController extends BaseController {
         )
 
 
-        
+
 
         if (catactual.length == 0) continue
         const PersonalCategoriaUltNro = catactual[0].max + 1;
 
 
-        
+
         const TipoJornadaId = catactual[0].TipoJornadaId
         const SucursalId = catactual[0].SucursalId
         const SucursalAreaId = catactual[0].SucursalAreaId
@@ -259,23 +261,111 @@ export class CategoriasController extends BaseController {
 
       }
 
+      const actualizarAsistencia = await queryRunner.query(
+        `
+      SELECT obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
+      persona.PersonalId,
+      obj.ObjetivoId, 
+      CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
+      clidep.ClienteElementoDependienteDescripcion,
+
+      objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras,
+      
+      objd.ObjetivoAsistenciaTipoAsociadoId,
+      objd.ObjetivoAsistenciaCategoriaPersonalId,
+      cat.CategoriaPersonalDescripcion,
+      
+      percat.PersonalCategoriaCategoriaPersonalId,
+		  catdes.CategoriaPersonalDescripcion,
+      objd.ObjetivoAsistenciaAnoMesId,
+		  objd.ObjetivoAsistenciaAnoId,
+
+      1 as last
+      
+      
+      FROM ObjetivoAsistenciaAnoMesPersonalDias objd
+      JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoMesId = objd.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objd.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objd.ObjetivoId
+      JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objm.ObjetivoId
+      JOIN Objetivo obj ON obj.ObjetivoId = obja.ObjetivoId
+      JOIN Personal persona ON persona.PersonalId = objd.ObjetivoAsistenciaMesPersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = persona.PersonalId) 
+      JOIN CategoriaPersonal cat ON cat.CategoriaPersonalId = objd.ObjetivoAsistenciaCategoriaPersonalId AND cat.TipoAsociadoId=objd.ObjetivoAsistenciaTipoAsociadoId
+      
+      LEFT JOIN PersonalCategoria percat ON percat.PersonalCategoriaTipoAsociadoId=objd.ObjetivoAsistenciaTipoAsociadoId AND percat.PersonalCategoriaPersonalId = persona.PersonalId AND percat.PersonalCategoriaDesde < DATEFROMPARTS(@1,@2,15) AND ISNULL(percat.PersonalCategoriaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,15)
+      
+      LEFT JOIN CategoriaPersonal catdes ON catdes.CategoriaPersonalId = percat.PersonalCategoriaCategoriaPersonalId AND catdes.TipoAsociadoId=percat.PersonalCategoriaTipoAsociadoId
+      
+      
+      LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+      LEFT JOIN ClienteElementoDependiente clidep ON clidep.ClienteId = obj.ClienteId  AND clidep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+      WHERE obja.ObjetivoAsistenciaAnoAno = @1 
+      AND objm.ObjetivoAsistenciaAnoMesMes = @2
+AND objd.ObjetivoAsistenciaCategoriaPersonalId <> percat.PersonalCategoriaCategoriaPersonalId`,
+        [anio, mes]
+      )
+
+      for (const reg of actualizarAsistencia) {
+        const CategoriaPersonalId= reg.PersonalCategoriaCategoriaPersonalId
+        const PersonalId = reg.PersonalId
+        const ObjetivoAsistenciaAnoId = reg.ObjetivoAsistenciaAnoId
+        const ObjetivoAsistenciaAnoMesId = reg.ObjetivoAsistenciaAnoMesId
+        const ObjetivoAsistenciaTipoAsociadoId = reg.ObjetivoAsistenciaTipoAsociadoId
+        await queryRunner.query(`UPDATE ObjetivoAsistenciaAnoMesPersonalDias SET ObjetivoAsistenciaCategoriaPersonalId = @0 
+          WHERE ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesId = @2 AND ObjetivoAsistenciaMesPersonalId = @3 AND ObjetivoAsistenciaTipoAsociadoId=@4`,
+          [
+            CategoriaPersonalId,
+            ObjetivoAsistenciaAnoId,
+            ObjetivoAsistenciaAnoMesId,
+            PersonalId,
+            ObjetivoAsistenciaTipoAsociadoId,
+          ]
+        )
+
+        await queryRunner.query(`UPDATE ObjetivoAsistenciaAnoMesPersonalAsignado SET ObjetivoAsistenciaCategoriaPersonalId = @0 
+          WHERE ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesId = @2 AND ObjetivoAsistenciaMesPersonalId = @3 AND ObjetivoAsistenciaTipoAsociadoId=@4`,
+          [
+            CategoriaPersonalId,
+            ObjetivoAsistenciaAnoId,
+            ObjetivoAsistenciaAnoMesId,
+            PersonalId,
+            ObjetivoAsistenciaTipoAsociadoId,
+          ]
+        )
+
+        await queryRunner.query(`UPDATE ObjetivoAsistenciaMesDiasPersonal SET ObjetivoAsistenciaCategoriaPersonalId = @0 
+          WHERE ObjetivoAsistenciaAnoId = @1 AND ObjetivoAsistenciaAnoMesId = @2 AND ObjetivoAsistenciaMesPersonalId = @3 AND ObjetivoAsistenciaTipoAsociadoId=@4`,
+          [
+            CategoriaPersonalId,
+            ObjetivoAsistenciaAnoId,
+            ObjetivoAsistenciaAnoMesId,
+            PersonalId,
+            ObjetivoAsistenciaTipoAsociadoId,
+          ]
+        )
+
+
+
+      }
+
+
       await queryRunner.commitTransaction();
 
-      const resp =  `Se procesaron ${pendientes.length} ascensos`
+      const resp = `Se procesaron ${pendientes.length} ascensos`
       await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
         {
           res: resp,
-          pendientes
+          pendientes,
+          actualizarAsistencia
         },
         usuario,
         ip
       );
 
       if (res)
-        this.jsonRes({list:[] }, res, resp);
+        this.jsonRes({ list: [] }, res, resp);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       await this.eventoLogFin(queryRunner,
