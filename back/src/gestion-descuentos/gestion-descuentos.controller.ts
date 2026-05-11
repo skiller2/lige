@@ -1396,7 +1396,7 @@ FROM cte
         --MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100)/100 AS Anio, MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100) - MAX(cuo.PersonalOtroDescuentoCuotaAno*100)  AS Mes,
         des.PersonalOtroDescuentoCuotaUltNro,
         -- cuo.PersonalOtroDescuentoCuotaImporte,
-        COUNT(*) generadas ,
+        COUNT(cuo.PersonalOtroDescuentoCuotaId) generadas ,
         1
         FROM PersonalOtroDescuento des 
         LEFT JOIN PersonalOtroDescuentoCuota cuo  ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId 
