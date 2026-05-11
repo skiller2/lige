@@ -591,6 +591,17 @@ const listaColumnasEfectoGeneral: any[] = [
     searchHidden: false,
   },
   {
+    id: "DepositoId",
+    name: "Depósito",
+    field: "DepositoId",
+    fieldName: "dep.DepositoId",
+    type: "number",
+    searchComponent: "inputForDepositoSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
     id: "DepositoNombre",
     name: "Depósito",
     field: "DepositoNombre",
@@ -598,7 +609,7 @@ const listaColumnasEfectoGeneral: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false,
+    searchHidden: true,
   },
   {
     id: "StockStock",
