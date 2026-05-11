@@ -1384,26 +1384,30 @@ FROM cte
 
       await queryRunner.startTransaction()
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
-      if (per[0] && per[0].ind_recibos_generados == 1)
-        throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}.`)
+      // if (per[0] && per[0].ind_recibos_generados == 1)
+      //   throw new ClientException(`Ya se encuentran generados los recibos para el período ${mes}/${anio}.`)
 
 
       const coutaspend = await queryRunner.query(`
-      
-SELECT des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas, 
-        des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,  des.PorcentajeDescuento,PersonalOtroDescuentoCantidad,
-     
-       des.PersonalOtroDescuentoCuotaUltNro,
-        cuo.PersonalOtroDescuentoCuotaImporte,
-        0 AS generadas
-      
+      SELECT des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas, 
+        des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, 
+        -- ROUND(PersonalOtroDescuentoImporteVariable/PersonalOtroDescuentoCantidadCuotas, 2) AS cuotavalor, 
+        -- cuo.PersonalOtroDescuentoCuotaImporte  ImporteReal,  
+        --MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100)/100 AS Anio, MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100) - MAX(cuo.PersonalOtroDescuentoCuotaAno*100)  AS Mes,
+        des.PersonalOtroDescuentoCuotaUltNro,
+        -- cuo.PersonalOtroDescuentoCuotaImporte,
+        COUNT(*) generadas ,
+        1
         FROM PersonalOtroDescuento des 
         LEFT JOIN PersonalOtroDescuentoCuota cuo  ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId 
-        WHERE des.PersonalOtroDescuentoFechaAnulacion IS NULL
-		  AND des.PersonalOtroDescuentoAnoAplica=@1 AND des.PersonalOtroDescuentoMesesAplica=@2
-       
-			AND cuo.PersonalOtroDescuentoCuotaImporte IS NULL
-`, [, anio, mes])
+        WHERE
+        1 = 1 
+        
+        AND des.PersonalOtroDescuentoFechaAnulacion IS NULL  
+		  GROUP BY des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas,des.PersonalOtroDescuentoCantidadCuotas, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoCuotaUltNro
+        HAVING COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
+
+        order by des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalId, des.PersonalOtroDescuentoId`)
 
         console.log('coutaspend', coutaspend)
 
