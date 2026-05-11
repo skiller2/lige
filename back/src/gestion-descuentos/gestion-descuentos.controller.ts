@@ -1377,6 +1377,8 @@ FROM cte
     const usuario = res?.locals.userName || 'server'
     const ip = this.getRemoteAddress(req)
 
+    let CuotasGeneradas= 0
+
     try {
       // throw new ClientException(`Proceso OtroDescuento Cuotas desactivado, no es necesario`)
 
@@ -1430,6 +1432,7 @@ SELECT des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoIm
             cuotaAnio, cuotaMes, cuota,
             importeCuota, 0, 0, 'FA', ip, usuario, fechaActual, ip, usuario, fechaActual])
 
+            CuotasGeneradas++
           const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
           cuotaAnio = per.cuotaAnio
           cuotaMes = per.cuotaMes
@@ -1441,7 +1444,7 @@ SELECT des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoIm
 
       // throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
-      return this.jsonRes({}, res, 'Carga Exitosa');
+      return this.jsonRes({}, res, 'Carga Exitosa. Cuotas Generadas: ' + CuotasGeneradas);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
