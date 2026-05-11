@@ -495,6 +495,152 @@ const listaColumnasDeposito: any[] = [
   },
 ]
 
+const listaColumnasEfectoGeneral: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "EfectoId",
+    name: "Efecto",
+    field: "EfectoId",
+    fieldName: "stk.EfectoId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+    searchComponent: "inputForEfectoSearch",
+  },
+  {
+    id: "EfectoDescripcionCompleto",
+    name: "Efecto",
+    field: "EfectoDescripcionCompleto",
+    fieldName: "stk.EfectoDescripcionCompleto",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "PersonalId",
+    name: "Personal",
+    field: "PersonalId",
+    fieldName: "per.PersonalId",
+    type: "number",
+    searchComponent: "inputForPersonalSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "ApellidoNombre",
+    name: "Personal",
+    field: "ApellidoNombre",
+    fieldName: "ApellidoNombre",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    name: "Cliente",
+    type: "number",
+    id: "ClienteId",
+    field: "ClienteId",
+    fieldName: "obj.ClienteId",
+    searchComponent: "inputForClientSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    name: "Objetivo",
+    type: "number",
+    id: "ObjetivoId",
+    field: "ObjetivoId",
+    fieldName: "obj.ObjetivoId",
+    searchComponent: "inputForObjetivoSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    name: "Obj. Descripción",
+    type: "string",
+    id: "ClienteElementoDependienteDescripcion",
+    field: "ClienteElementoDependienteDescripcion",
+    fieldName: "ClienteElementoDependienteDescripcion",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "ProveedorRazonSocial",
+    name: "Proveedor",
+    field: "ProveedorRazonSocial",
+    fieldName: "pro.ProveedorRazonSocial",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: "DepositoNombre",
+    name: "Depósito",
+    field: "DepositoNombre",
+    fieldName: "dep.DepositoNombre",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: "StockStock",
+    name: "Stock",
+    field: "StockStock",
+    fieldName: "stk.StockStock",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
+  },
+  {
+    id: "StockReservado",
+    name: "Stock Reservado",
+    field: "StockReservado",
+    fieldName: "stk.StockReservado",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
+  },
+  {
+    id: "Importe",
+    name: "Importe",
+    field: "Importe",
+    fieldName: "ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio)",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 100,
+  },
+]
+
 const listaColumnasProveedores: any[] = [
   {
     id: "id",
@@ -686,6 +832,10 @@ export class EfectoController extends BaseController {
 
   async getGridColsProveedores(req, res) {
     this.jsonRes(listaColumnasProveedores, res);
+  }
+
+  async getGridColsEfectoGeneral(req, res) {
+    this.jsonRes(listaColumnasEfectoGeneral, res);
   }
 
   private efectobyPersonalIdQuery(queryRunner: any, personalId: number) {
@@ -904,6 +1054,58 @@ export class EfectoController extends BaseController {
     } catch (error) {
       return next(error)
     }
+  }
+
+  async getEfectoGeneral(req: any, res: Response, next: NextFunction) {
+    const listOptions = req.body.listOptions
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const list = await this.getEfectoGeneralQuery(queryRunner, listOptions);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  private getEfectoGeneralQuery(queryRunner: any, listOptions: any) {
+    const filterSql = filtrosToSql(listOptions.filtros, listaColumnasEfectoGeneral)
+    const now = new Date();
+    return queryRunner.query(`
+      SELECT ROW_NUMBER() OVER (ORDER BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockId) as id,
+          stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcion, stk.EfectoAtrDescripcion, stk.EfectoEfectoIndividualDescripcion, stk.EfectoIndividualAtrDescripcion,
+          stk.EfectoDescripcionCompleto,
+          stk.StockId,
+          stk.StockStock, stk.StockReservado,
+
+          pro.ProveedorRazonSocial, sucpro.SucursalDescripcion AS ProveedorSucursalDescripcion,
+          dep.DepositoNombre, sucdep.SucursalDescripcion AS DepositoSucursalDescripcion,
+          per.PersonalId, cuit.PersonalCUITCUILCUIT, IIF(per.PersonalId IS NULL,NULL,CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre))) ApellidoNombre,
+          obj.ObjetivoId, cli.ClienteId, ele.ClienteElementoDependienteId, IIF(ele.ClienteElementoDependienteId IS NULL,NULL,CONCAT(cli.ClienteId,'/', ele.ClienteElementoDependienteId, ' ',ele.ClienteElementoDependienteDescripcion)) as ClienteElementoDependienteDescripcion,
+
+          ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
+
+          1
+      FROM StockReal stk
+
+      LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId AND stk.EfectoEfectoIndividualId IS NULL and lp.ListaPrecioDesde<= @0 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
+      LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
+
+      LEFT JOIN Proveedor pro ON pro.ProveedorId = stk.ProveedorId
+      LEFT JOIN Sucursal sucpro ON sucpro.SucursalId = pro.ProveedorSucursalId
+
+      LEFT JOIN Deposito dep ON dep.DepositoId = stk.DepositoId
+      LEFT JOIN Sucursal sucdep ON sucdep.SucursalId = dep.DepositoSucursalId
+
+      LEFT JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
+      LEFT JOIN ClienteElementoDependiente ele on ele.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and ele.ClienteId=obj.ClienteId
+      LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+      LEFT JOIN Sucursal sucobj ON sucobj.SucursalId = ele.ClienteElementoDependienteSucursalId
+
+      LEFT JOIN Personal per ON per.PersonalId = stk.PersonalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+      LEFT JOIN PersonalSucursalPrincipal sucrper ON sucrper.PersonalId = per.PersonalId AND sucrper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+      LEFT JOIN Sucursal sucper ON sucper.SucursalId=sucrper.PersonalSucursalPrincipalSucursalId
+      WHERE ${filterSql} `, [now])
   }
 
   private getEfectoProveedoresQuery(queryRunner: any, listOptions: any) {

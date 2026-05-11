@@ -2294,6 +2294,17 @@ export class SearchService {
     );
   }
 
+  getEfectoGeneral(listOptions: any) {
+   
+    return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoGeneral`, { listOptions }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getEfectoByPersonalId(personalId: number) {
     if (!personalId) {
       return of([]);
