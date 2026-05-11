@@ -49,7 +49,7 @@
     </div>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Contrato Desde</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Contrato Desde</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-date-picker nzFormat="dd/MM/yyyy" [formField]="formObjetivo.ContratoFechaDesde"
         (ngModelChange)="onChangePeriodo($event)"></nz-date-picker>
@@ -57,7 +57,7 @@
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Contrato Hasta</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Contrato Hasta</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-date-picker nzFormat="dd/MM/yyyy" [formField]="formObjetivo.ContratoFechaHasta"
         (ngModelChange)="onChangePeriodo($event)"></nz-date-picker>
@@ -69,13 +69,13 @@
     </div>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Dirección Calle</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Dirección Calle</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
         <input nz-input placeholder="" [formField]="formObjetivo.DomicilioDomCalle" type="text"
           (ngModelChange)="onChangeDireccion($event)" />
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Nro</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="1">Nro</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
         <input nz-input placeholder="" [formField]="formObjetivo.DomicilioDomNro" type="number"
           (ngModelChange)="onChangeDireccion($event)" />
@@ -83,8 +83,8 @@
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Complemento</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="17">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Complemento</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="18" [nzLg]="17">
         <textarea nz-input placeholder="" [formField]="formObjetivo.DomicilioDomLugar" type="text"
          (ngModelChange)="onChangeDireccion($event)"></textarea>
       </nz-form-control>
@@ -94,13 +94,13 @@
 
     <nz-form-item class="marginElement">
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cod Postal </nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Cod Postal </nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <input nz-input placeholder="" [formField]="formObjetivo.DomicilioCodigoPostal" type="number"
           (ngModelChange)="onChangeDireccion($event)" />
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Provincia</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="5">Provincia</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-select nzShowSearch [formField]="formObjetivo.DomicilioProvinciaId" nzPlaceHolder="Provincia" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%"
@@ -113,7 +113,7 @@
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Localidad</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Localidad</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-select nzShowSearch [formField]="formObjetivo.DomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%"
@@ -126,7 +126,7 @@
         </nz-select>
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Barrio</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="5">Barrio</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-select nzShowSearch [formField]="formObjetivo.DomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%"
@@ -224,22 +224,22 @@
     @for (ip of formObjetivo.infoCoordinadorCuenta; let i = $index; track i) {
       <nz-form-item class="marginElement"  [ngClass]="{'even-background': i % 2 === 0}">
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2"> Persona </nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2"> Persona </nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="7">
           <nz-input-group style="width: 100%" nzSearch>
             <app-personal-search [formField]="ip.PersonalId" [anio]="periodo().year" [mes]="periodo().month" />
           </nz-input-group>
         </nz-form-control>
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2"> Comision </nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="4">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="2"> Comision </nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="2">
           <nz-input-group style="width: 100%" nzSearch>
             <input nz-input placeholder="" [formField]="ip.ObjetivoPersonalJerarquicoComision" type="text" nzInputNumber appDotToComma mask ="separator.1" />
           </nz-input-group>
         </nz-form-control>
 
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Consumos del Objetivo</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="6">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="4">Consumos del Objetivo</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="23" [nzLg]="6">
           <div nz-row>
             <div nz-col [nzSpan]="8">
               <label nz-checkbox [formField]="ip.ObjetivoPersonalJerarquicoDescuentos">
@@ -282,9 +282,19 @@
     </div>
     <nz-form-item class="marginElement">
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3"> Tipo de Descuento </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="5">
-        <nz-select [formField]="formObjetivo.habilitacion" nzMode="multiple" nzAllowClear [nzDropdownMatchSelectWidth]="false"
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="4"> A Coordinador </nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="6">
+        <nz-select [formField]="formObjetivo.descuentoCoordinador" nzMode="multiple" nzAllowClear [nzDropdownMatchSelectWidth]="false"
+          nzShowSearch>
+          @for (option of optionsDecuentosTipo(); track option.value) {
+            <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4"> A Lince </nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="6">
+        <nz-select [formField]="formObjetivo.descuentoLince" nzMode="multiple" nzAllowClear [nzDropdownMatchSelectWidth]="false"
           nzShowSearch>
           @for (option of optionsDecuentosTipo(); track option.value) {
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>

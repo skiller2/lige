@@ -10,6 +10,7 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
 import { SettingsService } from '@delon/theme';
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 
 @Component({
   selector: 'app-habilitaciones-listado',
@@ -42,9 +43,10 @@ export class HabilitacionesListadoComponent {
       this.hiddenColumnIds = cols
         .filter((col: any) => col.showGridColumn === false)
         .map((col: Column) => col.id as string);
-      return cols;
-    })
-  );
+      return cols.map(col =>
+        col.id === 'ApellidoNombre' ? { ...col, asyncPostRender: this.renderApellidoNombreComponent.bind(this) } : col
+      )
+    }));
 
   ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions(
@@ -90,5 +92,16 @@ export class HabilitacionesListadoComponent {
   listOptionsChange(options: any) {
     this.listOptions = options;
     this.listListado$.next('');
+  }
+
+  renderApellidoNombreComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+
+    let PersonalId = dataContext.PersonalId
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/personal/listado', params: { PersonalId: PersonalId }, detail: cellNode.innerText })
+    componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
+
+    cellNode.replaceChildren(componentOutput.domElement)
+
   }
 }

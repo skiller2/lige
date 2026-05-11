@@ -258,6 +258,9 @@ export class CategoriasController extends BaseController {
         );
 
       }
+
+      await queryRunner.commitTransaction();
+
       const resp =  `Se procesaron ${pendientes.length} ascensos`
       await this.eventoLogFin(
         queryRunner,
@@ -271,7 +274,6 @@ export class CategoriasController extends BaseController {
         ip
       );
 
-      await queryRunner.commitTransaction();
       if (res)
         this.jsonRes({list:[] }, res, resp);
     } catch (error) {
