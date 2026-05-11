@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, resource, signal, viewChild, ViewChild } from '@angular/core';
+import { Component, computed, effect, inject, resource, signal, viewChild, untracked } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -163,7 +163,7 @@ export class TelefoniaComponent {
         this.loadingSrv.open({ type: 'spin', text: '' })
         this.lastErrorsTels = []  
         this.gridDataImport.set([])
-        const totaldeclarado = Number(this.importacionTelefono().totaldeclarado) || 0
+        const totaldeclarado = Number(untracked(() => this.importacionTelefono().totaldeclarado)) || 0
 
         try {
           await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio(), this.mes(), this.fecha(), totaldeclarado))

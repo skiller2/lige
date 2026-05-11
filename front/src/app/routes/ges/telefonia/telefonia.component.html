@@ -121,13 +121,13 @@
 
             <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
               <nz-form-label [nzXs]="24" [nzSm]="5" [nzMd]="4" [nzLg]="3">Archivo Telefonía</nz-form-label>
-              <nz-form-control [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="3">
+              <nz-form-control [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="4">
                 <app-file-upload [formField]="formImportacionTelefono.files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
                   [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'"
                   [showTipoDocs]="false"></app-file-upload>
               </nz-form-control>
 
-              <nz-form-label [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="4">Importe total</nz-form-label>
+              <nz-form-label [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="3">Importe total</nz-form-label>
               <nz-form-control [nzXs]="24" [nzSm]="7" [nzMd]="5" [nzLg]="4">
                 <input nz-input [formField]="formImportacionTelefono.totaldeclarado" type="text" placeholder="Importe total" appDotToComma
                   mask="separator.2" />
