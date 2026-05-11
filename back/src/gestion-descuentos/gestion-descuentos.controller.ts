@@ -1377,10 +1377,19 @@ FROM cte
     const usuario = res?.locals.userName || 'server'
     const ip = this.getRemoteAddress(req)
 
-    let CuotasGeneradas= 0
+    let CuotasGeneradas = 0
+    let EventoLogCodigo = 0
 
     try {
       // throw new ClientException(`Proceso OtroDescuento Cuotas desactivado, no es necesario`)
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Reproceso cuotas faltantes`,
+        { usuario, ip },
+        usuario,
+        ip,
+        "JOB"
+      ));
 
       await queryRunner.startTransaction()
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
@@ -1405,24 +1414,44 @@ FROM cte
         
         AND des.PersonalOtroDescuentoFechaAnulacion IS NULL  
 		  GROUP BY des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas,des.PersonalOtroDescuentoCantidadCuotas, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoCuotaUltNro
-        HAVING COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
+        HAVING COUNT (cuo.PersonalOtroDescuentoCuotaId) <> des.PersonalOtroDescuentoCantidadCuotas
 
         order by des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalId, des.PersonalOtroDescuentoId`)
-
-        console.log('coutaspend', coutaspend)
 
       for (const descuento of coutaspend) {
         let PersonalOtroDescuentoCuotaId = descuento.PersonalOtroDescuentoCuotaUltNro ? descuento.PersonalOtroDescuentoCuotaUltNro : 0
         let cuotaAnio = descuento.PersonalOtroDescuentoAnoAplica
         let cuotaMes = descuento.PersonalOtroDescuentoMesesAplica
         const fechaActual = new Date()
-        const importeTotal= Math.round(descuento.PersonalOtroDescuentoImporteVariable * descuento.PersonalOtroDescuentoCantidad) * (descuento.PorcentajeDescuento ?? 100) / 100
+        const PersonalOtroDescuentoCantidad= descuento.PersonalOtroDescuentoCantidad ?? 1
+        const PorcentajeDescuento= descuento.PorcentajeDescuento ?? 100
+
+
+        const importeTotal = Math.round(descuento.PersonalOtroDescuentoImporteVariable * PersonalOtroDescuentoCantidad * PorcentajeDescuento / 100)
 
         const importeCuota = Math.round((importeTotal / Number(descuento.PersonalOtroDescuentoCantidadCuotas)) * 100) / 100
 
+
         console.log(`[DESCUENTO] PersonalId=${descuento.PersonalId} | DescuentoId=${descuento.PersonalOtroDescuentoId} | ImporteVar=${descuento.PersonalOtroDescuentoImporteVariable} x Cant=${descuento.PersonalOtroDescuentoCantidad} | Porc=${descuento.PorcentajeDescuento ?? 100}% | Total=${importeTotal} | Cuotas=${descuento.PersonalOtroDescuentoCantidadCuotas} | ImporteCuota=${importeCuota} | YaGeneradas=${descuento.generadas}`)
 
-        for (let cuota = 1; cuota <= descuento.PersonalOtroDescuentoCantidadCuotas - descuento.generadas; cuota++) {
+
+        if (!importeCuota)
+          throw new ClientException(`No se pudo calcular el importe de la cuota para el descuento ${descuento.PersonalOtroDescuentoId} del personal ${descuento.PersonalId}, cantidad elementos ${descuento.PersonalOtroDescuentoCantidad} y porcentaje ${descuento.PorcentajeDescuento}%.`)
+
+
+        const lastcuota = await queryRunner.query(`SELECT TOP 1 cuo.PersonalOtroDescuentoCuotaId, cuo.PersonalOtroDescuentoCuotaAno, cuo.PersonalOtroDescuentoCuotaMes , cuo.PersonalOtroDescuentoCuotaCuota
+          FROM PersonalOtroDescuentoCuota cuo
+          WHERE cuo.PersonalId = @0 AND cuo.PersonalOtroDescuentoId = @1 ORDER BY cuo.PersonalOtroDescuentoCuotaCuota desc`, [descuento.PersonalId, descuento.PersonalOtroDescuentoId])
+
+        if (lastcuota && lastcuota.length > 0) {
+          const per = this.getNextMonthYear(lastcuota[0].PersonalOtroDescuentoCuotaMes, lastcuota[0].PersonalOtroDescuentoCuotaAno)
+          cuotaAnio = per.cuotaAnio
+          cuotaMes = per.cuotaMes
+        }
+
+
+
+        for (let cuota = descuento.generadas + 1; cuota <= descuento.PersonalOtroDescuentoCantidadCuotas - descuento.generadas; cuota++) {
           PersonalOtroDescuentoCuotaId++
           console.log(`  -> Insertando cuota ${cuota} | CuotaId=${PersonalOtroDescuentoCuotaId} | Ano=${cuotaAnio} | Mes=${cuotaMes} | Importe=${importeCuota}`)
           await queryRunner.query(`
@@ -1436,7 +1465,7 @@ FROM cte
             cuotaAnio, cuotaMes, cuota,
             importeCuota, 0, 0, 'FA', ip, usuario, fechaActual, ip, usuario, fechaActual])
 
-            CuotasGeneradas++
+          CuotasGeneradas++
           const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
           cuotaAnio = per.cuotaAnio
           cuotaMes = per.cuotaMes
@@ -1446,11 +1475,36 @@ FROM cte
       }
 
 
-      // throw new ClientException(`DEBUG.`)
+      throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
-      return this.jsonRes({}, res, 'Carga Exitosa. Cuotas Generadas: ' + CuotasGeneradas);
+
+
+      const resp = `Total cuotas generadas: ${CuotasGeneradas}`
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: resp,
+          coutaspend,
+        },
+        usuario,
+        ip
+      );
+
+
+      return this.jsonRes({}, res, resp);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+
       return next(error)
     } finally {
       await queryRunner.release()
@@ -2940,8 +2994,8 @@ FROM cte
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      let consult:any = null
-      let deletedDesc:number = 0
+      let consult: any = null
+      let deletedDesc: number = 0
       switch (tableForSearch) {
         case 'PersonalOtroDescuento':
           consult = await queryRunner.query(`
