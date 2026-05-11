@@ -1374,9 +1374,11 @@ FROM cte
     const queryRunner = dataSource.createQueryRunner();
     const anio: number = req.body.year
     const mes: number = req.body.month
+    const usuario = res?.locals.userName || 'server'
+    const ip = this.getRemoteAddress(req)
 
     try {
-      throw new ClientException(`Proceso OtroDescuento Cuotas desactivado, no es necesario`)
+      // throw new ClientException(`Proceso OtroDescuento Cuotas desactivado, no es necesario`)
 
       await queryRunner.startTransaction()
       const per = await this.getPeriodoQuery(queryRunner, anio, mes)
@@ -1385,49 +1387,48 @@ FROM cte
 
 
       const coutaspend = await queryRunner.query(`
-        SELECT des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas, 
-        des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, 
-        ROUND(PersonalOtroDescuentoImporteVariable/PersonalOtroDescuentoCantidadCuotas, 2) AS cuotavalor, 
-        -- cuo.PersonalOtroDescuentoCuotaImporte  ImporteReal,  
-        --MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100)/100 AS Anio, MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100) - MAX(cuo.PersonalOtroDescuentoCuotaAno*100)  AS Mes,
-        des.PersonalOtroDescuentoCuotaUltNro,
+      
+SELECT des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas, 
+        des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,  des.PorcentajeDescuento,PersonalOtroDescuentoCantidad,
+     
+       des.PersonalOtroDescuentoCuotaUltNro,
         cuo.PersonalOtroDescuentoCuotaImporte,
-        0 generadas ,
-        1
+        0 AS generadas
+      
         FROM PersonalOtroDescuento des 
         LEFT JOIN PersonalOtroDescuentoCuota cuo  ON cuo.PersonalOtroDescuentoId = des.PersonalOtroDescuentoId AND cuo.PersonalId = des.PersonalId 
-        WHERE
-        1 = 1 
-        -- des.PersonalOtroDescuentoDescuentoId =31 
-		  -- des.PersonalOtroDescuentoCantidadCuotas = 1 AND 
-		  AND des.PersonalOtroDescuentoFechaAnulacion IS NULL  -- AND COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
+        WHERE des.PersonalOtroDescuentoFechaAnulacion IS NULL
 		  AND des.PersonalOtroDescuentoAnoAplica=@1 AND des.PersonalOtroDescuentoMesesAplica=@2
-        --GROUP BY des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas,des.PersonalOtroDescuentoCantidadCuotas, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoCuotaUltNro
-        -- HAVING COUNT (*) <> des.PersonalOtroDescuentoCantidadCuotas
+       
 			AND cuo.PersonalOtroDescuentoCuotaImporte IS NULL
 `, [, anio, mes])
+
+        console.log('coutaspend', coutaspend)
+
       for (const descuento of coutaspend) {
-        let PersonalOtroDescuentoCuotaId = descuento.PersonalOtroDescuentoCuotaUltNro
+        let PersonalOtroDescuentoCuotaId = descuento.PersonalOtroDescuentoCuotaUltNro ? descuento.PersonalOtroDescuentoCuotaUltNro : 0
         let cuotaAnio = descuento.PersonalOtroDescuentoAnoAplica
         let cuotaMes = descuento.PersonalOtroDescuentoMesesAplica
+        const fechaActual = new Date()
+        const importeTotal= Math.round(descuento.PersonalOtroDescuentoImporteVariable * descuento.PersonalOtroDescuentoCantidad) * (descuento.PorcentajeDescuento ?? 100) / 100
 
-        //        const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
-        //        cuotaAnio = per.cuotaAnio
-        //        cuotaMes = per.cuotaMes
+        const importeCuota = Math.round((importeTotal / Number(descuento.PersonalOtroDescuentoCantidadCuotas)) * 100) / 100
 
-        const importeCuota = descuento.PersonalOtroDescuentoImporteVariable / descuento.PersonalOtroDescuentoCantidadCuotas
+        console.log(`[DESCUENTO] PersonalId=${descuento.PersonalId} | DescuentoId=${descuento.PersonalOtroDescuentoId} | ImporteVar=${descuento.PersonalOtroDescuentoImporteVariable} x Cant=${descuento.PersonalOtroDescuentoCantidad} | Porc=${descuento.PorcentajeDescuento ?? 100}% | Total=${importeTotal} | Cuotas=${descuento.PersonalOtroDescuentoCantidadCuotas} | ImporteCuota=${importeCuota} | YaGeneradas=${descuento.generadas}`)
+
         for (let cuota = 1; cuota <= descuento.PersonalOtroDescuentoCantidadCuotas - descuento.generadas; cuota++) {
           PersonalOtroDescuentoCuotaId++
+          console.log(`  -> Insertando cuota ${cuota} | CuotaId=${PersonalOtroDescuentoCuotaId} | Ano=${cuotaAnio} | Mes=${cuotaMes} | Importe=${importeCuota}`)
           await queryRunner.query(`
           INSERT INTO PersonalOtroDescuentoCuota (
         PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
         PersonalOtroDescuentoCuotaAno, PersonalOtroDescuentoCuotaMes, PersonalOtroDescuentoCuotaCuota,
         PersonalOtroDescuentoCuotaImporte, PersonalOtroDescuentoCuotaMantiene, PersonalOtroDescuentoCuotaFinalizado,
-        PersonalOtroDescuentoCuotaProceso)
-        VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9)
+        PersonalOtroDescuentoCuotaProceso, AudIpIng, AudUsuarioIng, AudFechaIng, AudIpMod, AudUsuarioMod, AudFechaMod)
+        VALUES (@0,@1,@2, @3,@4,@5, @6,@7,@8, @9, @10, @11, @12,@10, @11, @12)
       `, [PersonalOtroDescuentoCuotaId, descuento.PersonalOtroDescuentoId, descuento.PersonalId,
             cuotaAnio, cuotaMes, cuota,
-            importeCuota, 0, 0, 'FA'])
+            importeCuota, 0, 0, 'FA', ip, usuario, fechaActual, ip, usuario, fechaActual])
 
           const per = this.getNextMonthYear(cuotaMes, cuotaAnio)
           cuotaAnio = per.cuotaAnio
