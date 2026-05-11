@@ -492,11 +492,11 @@ export class ImpuestosAfipController extends BaseController {
         PersonalOtroDescuentoUltNro++
         await queryRunner.query(
           `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica
-          , PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas
+          , PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PorcentajeDescuento,
           , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas
           , PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle, CuentaTipoCodigo
           , PersonalOtroDescuentoAudFechaIng, PersonalOtroDescuentoAudUsuarioIng, PersonalOtroDescuentoAudIpIng, PersonalOtroDescuentoAudFechaMod, PersonalOtroDescuentoAudUsuarioMod, PersonalOtroDescuentoAudIpMod)
-           VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18,@16, @17, @18)`,
+           VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16,  @17, @18, @19, @17, @18, @19)`,
           [
             PersonalOtroDescuentoUltNro,
             personalID,
@@ -506,6 +506,7 @@ export class ImpuestosAfipController extends BaseController {
             mesRequest,
             1,
             1,
+            100, //PorcentajeDescuento
             importeMonto,
             now,
             0,
