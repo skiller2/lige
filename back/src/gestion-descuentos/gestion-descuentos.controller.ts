@@ -912,11 +912,11 @@ export class GestionDescuentosController extends BaseController {
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
     const DocumentoId: number = otroDescuento.DocumentoId
-    let importe = Number((Number(otroDescuento.Importe)).toFixed(2))
+    const importeVariable = Number((Number(otroDescuento.Importe)).toFixed(2))
     const CuentaTipoCodigo: string = otroDescuento?.CuentaTipoCodigo ? otroDescuento.CuentaTipoCodigo : 'G'
     let EfectoId = otroDescuento.EfectoId
     let EfectoIndividualId = otroDescuento.EfectoIndividualId
-    let Cantidad = otroDescuento.Cantidad || 1
+    let Cantidad = otroDescuento.Cantidad
     let PorcentajeDescuento = otroDescuento.PorcentajeDescuento
 
 
@@ -926,15 +926,13 @@ export class GestionDescuentosController extends BaseController {
 
     let mensaje = ''
     if (Cantidad < 1) mensaje += 'La cantidad debe ser mayor a 0. '
-    if (DescuentoId != 49 && importe < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
+    if (DescuentoId != 49 && importeVariable < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
 
     switch (DescuentoId) {
       case 50: // descuento de efecto
         if (!EfectoId) mensaje += 'Debe seleccionar un efecto asociado a la persona. '
         if (PorcentajeDescuento != 50 && PorcentajeDescuento != 100) mensaje += 'El porcentaje de descuento debe ser 50% o 100%. '
         // calcular importe total en base al importe unitario y porcentaje de descuento
-        importe = Number(((importe * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
-
         // BUSCAR SI EL EFECTO ESTA ASOCIADO A LA PERSONA ?
 
         break
@@ -942,10 +940,13 @@ export class GestionDescuentosController extends BaseController {
         EfectoId = null
         EfectoIndividualId = null
         PorcentajeDescuento = 100
+        Cantidad = 1
         break
     }
 
-    const importeCuota = Number((Number(importe) / Number(Cuotas)).toFixed(2))
+
+    const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
+    const importeCuota = Number((Number(importeCalculado) / Number(Cuotas)).toFixed(2))
 
     if (mensaje.length > 0) {
       throw new ClientException(mensaje)
@@ -962,7 +963,7 @@ export class GestionDescuentosController extends BaseController {
       VALUES (@0,@1,@2,@3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @20, @21, @22, @17, @18, @19, @17, @18, @19)
       `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio,
       mes, mes, Cantidad, Cuotas,
-      importe, AplicaEl, 0, 0,
+      importeVariable, AplicaEl, 0, 0,
       1, '', Detalle, DocumentoId, CuentaTipoCodigo,
       ip, usuario, now, EfectoId, EfectoIndividualId, PorcentajeDescuento])
 
@@ -1000,35 +1001,39 @@ export class GestionDescuentosController extends BaseController {
     const AplicaEl: Date = objDescuento.AplicaEl ? new Date(objDescuento.AplicaEl) : null
     AplicaEl.setHours(0, 0, 0, 0)
     const Cuotas: number = objDescuento.Cuotas
-    let importeTotal = Number((Number(objDescuento.Importe)).toFixed(2))
     const Detalle: number = objDescuento.Detalle
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
     const DocumentoId: number = objDescuento.DocumentoId
     let EfectoId = objDescuento.EfectoId
     let EfectoIndividualId = objDescuento.EfectoIndividualId
-    let Cantidad = objDescuento.Cantidad || 1
-    let PorcentajeDescuento = objDescuento.PorcentajeDescuento ?? '100'
+    let Cantidad = objDescuento.Cantidad
+    let PorcentajeDescuento = Number(objDescuento.PorcentajeDescuento) ?? 100
+
+    const importeVariable = Number((Number(objDescuento.Importe)).toFixed(2))
 
     let mensaje = ''
+
+    if (importeVariable < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
+
     switch (ObjetivoDescuentoDescuentoId) {
       case 50: // descuento de efecto
         if (!EfectoId) mensaje += 'Debe seleccionar un efecto asociado al objetivo. '
-        const porc = Number(PorcentajeDescuento)
-        if (porc != 50 && porc != 100) mensaje += 'El porcentaje de descuento debe ser 50% o 100%. '
-        importeTotal = Number((importeTotal * (porc / 100)).toFixed(2))
+        if (PorcentajeDescuento != 50 && PorcentajeDescuento != 100) mensaje += 'El porcentaje de descuento debe ser 50% o 100%. '
+        if (Cantidad < 1) mensaje += 'La cantidad debe ser mayor a 0. '
         break
       default:
         EfectoId = null
         EfectoIndividualId = null
         Cantidad = 1
-        PorcentajeDescuento = '100'
+        PorcentajeDescuento = 100
         break
     }
 
     if (mensaje.length > 0) throw new ClientException(mensaje)
 
-    const importeCuota = Number((importeTotal / Number(Cuotas)).toFixed(2))
+    const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
+    const importeCuota = Number((importeCalculado / Number(Cuotas)).toFixed(2))
 
     const Objetivo = await queryRunner.query(`SELECT ISNULL(ObjetivoDescuentoUltNro, 0) AS ObjetivoDescuentoUltNro FROM Objetivo WHERE ObjetivoId IN (@0)`, [ObjetivoId])
     const ObjetivoDescuentoId = Objetivo[0].ObjetivoDescuentoUltNro + 1
@@ -1048,7 +1053,7 @@ export class GestionDescuentosController extends BaseController {
 
 
     `, [ObjetivoDescuentoId, ObjetivoId, ObjetivoDescuentoDescuentoId, anio,
-      mes, Cuotas, importeTotal, AplicaEl, Detalle, hoy, usuario, ip, AplicaA, DocumentoId,
+      mes, Cuotas, importeVariable, AplicaEl, Detalle, hoy, usuario, ip, AplicaA, DocumentoId,
       EfectoId, EfectoIndividualId, Cantidad, PorcentajeDescuento])
 
     let ObjetivoDescuentoCuotaId = 0
@@ -1424,8 +1429,8 @@ FROM cte
         let cuotaAnio = descuento.PersonalOtroDescuentoAnoAplica
         let cuotaMes = descuento.PersonalOtroDescuentoMesesAplica
         const fechaActual = new Date()
-        const PersonalOtroDescuentoCantidad= descuento.PersonalOtroDescuentoCantidad ?? 1
-        const PorcentajeDescuento= descuento.PorcentajeDescuento ?? 100
+        const PersonalOtroDescuentoCantidad = descuento.PersonalOtroDescuentoCantidad ?? 1
+        const PorcentajeDescuento = descuento.PorcentajeDescuento ?? 100
 
         const importeTotal = PersonalOtroDescuentoCantidad * descuento.PersonalOtroDescuentoImporteVariable *  PorcentajeDescuento / 100
 
@@ -1475,7 +1480,7 @@ FROM cte
       }
 
 
-//      throw new ClientException(`DEBUG.`)
+      //      throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
 
 
@@ -1689,37 +1694,38 @@ FROM cte
     const mes: number = AplicaEl.getMonth() + 1
     AplicaEl.setHours(0, 0, 0, 0)
 
-    let importe = Number((Number(otroDescuento.Importe)).toFixed(2))
+    const importeVariable = Number((Number(otroDescuento.Importe)).toFixed(2))
 
     let EfectoId = otroDescuento.EfectoId
     let EfectoIndividualId = otroDescuento.EfectoIndividualId
-    let Cantidad = otroDescuento.Cantidad || 1
+    let Cantidad = otroDescuento.Cantidad
     let PorcentajeDescuento = otroDescuento.PorcentajeDescuento
 
     if (oldPersonalId != PersonalId) throw new ClientException(`No se puede modificar a la persona.`)
 
     let mensaje = ''
     if (Cantidad < 1) mensaje += 'La cantidad debe ser mayor a 0. '
-    if (DescuentoId != 49 && importe < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
+    if (DescuentoId != 49 && importeVariable < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
+
 
     switch (DescuentoId) {
       case 50: // descuento de efecto
         if (!EfectoId) mensaje += 'Debe seleccionar un efecto asociado a la persona. '
         if (PorcentajeDescuento != 50 && PorcentajeDescuento != 100) mensaje += 'El porcentaje de descuento debe ser 50% o 100%. '
+
         // calcular importe total en base al importe unitario y porcentaje de descuento
-        importe = Number(((importe * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
-
         // BUSCAR SI EL EFECTO ESTA ASOCIADO A LA PERSONA ?
-
         break
       default:
         EfectoId = null
         EfectoIndividualId = null
         PorcentajeDescuento = 100
+        Cantidad = 1
         break
     }
 
-    const importeCuota = Number((Number(importe) / Number(Cuotas)).toFixed(2))
+    const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
+    const importeCuota = Number((Number(importeCalculado) / Number(Cuotas)).toFixed(2))
 
 
     if (mensaje.length > 0) {
@@ -1759,7 +1765,6 @@ FROM cte
 
 
     const hoy: Date = new Date()
-
     await queryRunner.query(`
       UPDATE PersonalOtroDescuento SET
       PersonalOtroDescuentoDescuentoId = @2, PersonalOtroDescuentoAnoAplica = @3
@@ -1770,12 +1775,11 @@ FROM cte
       , EfectoId = @13, EfectoIndividualId = @14, PorcentajeDescuento = @15
       , PersonalOtroDescuentoAudFechaMod = @11, PersonalOtroDescuentoAudUsuarioMod = @10, PersonalOtroDescuentoAudIpMod = @9
       WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importe, AplicaEl, Detalle, ip, usuario, hoy, Cantidad, EfectoId, EfectoIndividualId, PorcentajeDescuento])
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeVariable, AplicaEl, Detalle, ip, usuario, hoy, Cantidad, EfectoId, EfectoIndividualId, PorcentajeDescuento])
 
     await queryRunner.query(`
       DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
     `, [PersonalOtroDescuentoId, PersonalId])
-
     let PersonalOtroDescuentoCuotaId = 1
     let cuotaAnio = anio
     let cuotaMes = mes
@@ -1814,34 +1818,39 @@ FROM cte
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
     AplicaEl.setHours(0, 0, 0, 0)
-    let importe = Number((Number(otroDescuento.Importe)).toFixed(2))
     let EfectoId = otroDescuento.EfectoId
     let EfectoIndividualId = otroDescuento.EfectoIndividualId
     let Cantidad = otroDescuento.Cantidad || 1
-    let PorcentajeDescuento = otroDescuento.PorcentajeDescuento ?? '100'
+    let PorcentajeDescuento = Number(otroDescuento.PorcentajeDescuento) ?? 100
+    const importeVariable = Number((Number(otroDescuento.Importe)).toFixed(2))
+
 
     if (oldObjetivoId != ObjetivoId) throw new ClientException(`No se puede modificar el objetivo.`)
 
     let mensaje = ''
+    if (importeVariable < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
+
+
     switch (DescuentoId) {
       case 50: // descuento de efecto
         if (!EfectoId) mensaje += 'Debe seleccionar un efecto asociado al objetivo. '
-        const porc = Number(PorcentajeDescuento)
-        if (porc != 50 && porc != 100) mensaje += 'El porcentaje de descuento debe ser 50% o 100%. '
-        importe = Number((importe * (porc / 100)).toFixed(2))
+        if (PorcentajeDescuento != 50 && PorcentajeDescuento != 100) mensaje += 'El porcentaje de descuento debe ser 50% o 100%. '
+        if (Cantidad < 1) mensaje += 'La cantidad debe ser mayor a 0. '
+
         break
       default:
         EfectoId = null
         EfectoIndividualId = null
         Cantidad = 1
-        PorcentajeDescuento = '100'
+        PorcentajeDescuento = 100
         break
     }
 
     if (mensaje.length > 0) throw new ClientException(mensaje)
 
-    const importeCuota = Number((importe / Number(Cuotas)).toFixed(2))
-    const importeTotal: number = importe
+    const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
+    const importeCuota = Number((importeCalculado / Number(Cuotas)).toFixed(2))
+
 
     let res = await queryRunner.query(`
       SELECT ObjetivoDescuentoDescuentoId DescuentoId, ObjetivoDescuentoFechaAplica AplicaEl
@@ -1892,7 +1901,7 @@ FROM cte
       , ObjetivoDescuentoDescontar = @12
       , EfectoId = @13, EfectoIndividualId = @14, Cantidad = @15, PorcentajeDescuento = @16
       WHERE ObjetivoDescuentoId IN (@0) AND ObjetivoId IN (@1)
-    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, importeTotal, AplicaEl, Detalle, hoy, usuario, ip, AplicaA,
+    `, [ObjetivoDescuentoId, ObjetivoId, DescuentoId, anio, mes, Cuotas, importeVariable, AplicaEl, Detalle, hoy, usuario, ip, AplicaA,
       EfectoId, EfectoIndividualId, Cantidad, PorcentajeDescuento])
 
     await queryRunner.query(`
