@@ -1424,10 +1424,10 @@ FROM cte
         let cuotaAnio = descuento.PersonalOtroDescuentoAnoAplica
         let cuotaMes = descuento.PersonalOtroDescuentoMesesAplica
         const fechaActual = new Date()
-        const PersonalOtroDescuentoCantidad= descuento.PersonalOtroDescuentoCantidad ?? 1
-        const PorcentajeDescuento= descuento.PorcentajeDescuento ?? 100
+        const PersonalOtroDescuentoCantidad = descuento.PersonalOtroDescuentoCantidad ?? 1
+        const PorcentajeDescuento = descuento.PorcentajeDescuento ?? 100
 
-        const importeTotal = descuento.PersonalOtroDescuentoImporteVariable *  PorcentajeDescuento / 100
+        const importeTotal = descuento.PersonalOtroDescuentoImporteVariable * PorcentajeDescuento / 100
 
         const importeCuota = Math.round((importeTotal / Number(descuento.PersonalOtroDescuentoCantidadCuotas)) * 100) / 100
 
@@ -1475,7 +1475,7 @@ FROM cte
       }
 
 
-//      throw new ClientException(`DEBUG.`)
+      //      throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
 
 
@@ -1689,7 +1689,7 @@ FROM cte
     const mes: number = AplicaEl.getMonth() + 1
     AplicaEl.setHours(0, 0, 0, 0)
 
-    let importe = Number((Number(otroDescuento.Importe)).toFixed(2))
+    const importeVariable = Number((Number(otroDescuento.Importe)).toFixed(2))
 
     let EfectoId = otroDescuento.EfectoId
     let EfectoIndividualId = otroDescuento.EfectoIndividualId
@@ -1699,27 +1699,28 @@ FROM cte
     if (oldPersonalId != PersonalId) throw new ClientException(`No se puede modificar a la persona.`)
 
     let mensaje = ''
-    if (Cantidad < 1) mensaje += 'La cantidad debe ser mayor a 0. '
-    if (DescuentoId != 49 && importe < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
+    if (DescuentoId != 49 && importeVariable < 0) mensaje += 'El importe debe ser mayor o igual a 0. ' // ??
+
 
     switch (DescuentoId) {
       case 50: // descuento de efecto
         if (!EfectoId) mensaje += 'Debe seleccionar un efecto asociado a la persona. '
         if (PorcentajeDescuento != 50 && PorcentajeDescuento != 100) mensaje += 'El porcentaje de descuento debe ser 50% o 100%. '
+        if (Cantidad < 1) mensaje += 'La cantidad debe ser mayor a 0. '
+
         // calcular importe total en base al importe unitario y porcentaje de descuento
-        importe = Number(((importe * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
-
         // BUSCAR SI EL EFECTO ESTA ASOCIADO A LA PERSONA ?
-
         break
       default:
         EfectoId = null
         EfectoIndividualId = null
         PorcentajeDescuento = 100
+        Cantidad = 1
         break
     }
 
-    const importeCuota = Number((Number(importe) / Number(Cuotas)).toFixed(2))
+    const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
+    const importeCuota = Number((Number(importeCalculado) / Number(Cuotas)).toFixed(2))
 
 
     if (mensaje.length > 0) {
@@ -1759,7 +1760,6 @@ FROM cte
 
 
     const hoy: Date = new Date()
-
     await queryRunner.query(`
       UPDATE PersonalOtroDescuento SET
       PersonalOtroDescuentoDescuentoId = @2, PersonalOtroDescuentoAnoAplica = @3
@@ -1770,12 +1770,11 @@ FROM cte
       , EfectoId = @13, EfectoIndividualId = @14, PorcentajeDescuento = @15
       , PersonalOtroDescuentoAudFechaMod = @11, PersonalOtroDescuentoAudUsuarioMod = @10, PersonalOtroDescuentoAudIpMod = @9
       WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importe, AplicaEl, Detalle, ip, usuario, hoy, Cantidad, EfectoId, EfectoIndividualId, PorcentajeDescuento])
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeVariable, AplicaEl, Detalle, ip, usuario, hoy, Cantidad, EfectoId, EfectoIndividualId, PorcentajeDescuento])
 
     await queryRunner.query(`
       DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
     `, [PersonalOtroDescuentoId, PersonalId])
-
     let PersonalOtroDescuentoCuotaId = 1
     let cuotaAnio = anio
     let cuotaMes = mes
