@@ -1399,7 +1399,8 @@ FROM cte
 
       const coutaspend = await queryRunner.query(`
       SELECT des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas, 
-        des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, 
+        des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,
+		  des.PersonalOtroDescuentoCantidad, des.PorcentajeDescuento,
         -- ROUND(PersonalOtroDescuentoImporteVariable/PersonalOtroDescuentoCantidadCuotas, 2) AS cuotavalor, 
         -- cuo.PersonalOtroDescuentoCuotaImporte  ImporteReal,  
         --MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100)/100 AS Anio, MAX(cuo.PersonalOtroDescuentoCuotaMes+cuo.PersonalOtroDescuentoCuotaAno*100) - MAX(cuo.PersonalOtroDescuentoCuotaAno*100)  AS Mes,
@@ -1412,8 +1413,8 @@ FROM cte
         WHERE
         1 = 1 
         
-        AND des.PersonalOtroDescuentoFechaAnulacion IS NULL  
-		  GROUP BY des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas,des.PersonalOtroDescuentoCantidadCuotas, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoCuotaUltNro
+        AND des.PersonalOtroDescuentoFechaAnulacion IS NULL  AND des.PersonalOtroDescuentoImporteVariable > 0  
+		  GROUP BY des.PersonalId, des.PersonalOtroDescuentoId , des.PersonalOtroDescuentoImporteVariable, des.PersonalOtroDescuentoCantidadCuotas,des.PersonalOtroDescuentoCantidadCuotas, des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica,des.PersonalOtroDescuentoCuotaUltNro, des.PersonalOtroDescuentoCantidad, des.PorcentajeDescuento
         HAVING COUNT (cuo.PersonalOtroDescuentoCuotaId) <> des.PersonalOtroDescuentoCantidadCuotas
 
         order by des.PersonalOtroDescuentoAnoAplica, des.PersonalOtroDescuentoMesesAplica, des.PersonalId, des.PersonalOtroDescuentoId`)
@@ -1426,8 +1427,7 @@ FROM cte
         const PersonalOtroDescuentoCantidad= descuento.PersonalOtroDescuentoCantidad ?? 1
         const PorcentajeDescuento= descuento.PorcentajeDescuento ?? 100
 
-
-        const importeTotal = Math.round(descuento.PersonalOtroDescuentoImporteVariable * PersonalOtroDescuentoCantidad * PorcentajeDescuento / 100)
+        const importeTotal = descuento.PersonalOtroDescuentoImporteVariable *  PorcentajeDescuento / 100
 
         const importeCuota = Math.round((importeTotal / Number(descuento.PersonalOtroDescuentoCantidadCuotas)) * 100) / 100
 
@@ -1475,7 +1475,7 @@ FROM cte
       }
 
 
-      throw new ClientException(`DEBUG.`)
+//      throw new ClientException(`DEBUG.`)
       await queryRunner.commitTransaction()
 
 
