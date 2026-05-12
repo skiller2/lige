@@ -11,6 +11,7 @@ import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
+import { ActasPersonalListadoComponent } from '../actas-personal-listado/actas-personal-listado';
 
 @Component({
     selector: 'app-actas',
@@ -19,7 +20,8 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
     imports: [SHARED_IMPORTS, CommonModule,
-        FiltroBuilderComponent,
+        FiltroBuilderComponent, 
+        ActasPersonalListadoComponent
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
