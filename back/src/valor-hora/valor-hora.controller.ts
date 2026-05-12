@@ -58,13 +58,13 @@ export class ValorHoraController extends BaseController {
     {
       name: "Categoría",
       type: "string",
-      id: "PersonalCategoriaCom",
-      field: "PersonalCategoriaCom",
-      fieldName: "percat.PersonalCategoriaCom",
+      id: "CategoriaPersonalId",
+      field: "ValorLiquidacionCategoriaPersonalId",
+      fieldName: "vl.ValorLiquidacionCategoriaPersonalId",
+      formatter: 'collectionFormatter',
       sortable: true,
       hidden: false,
       searchHidden: true,
-      showGridColumn: false
     },
     {
       name: "Importe",

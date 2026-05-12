@@ -14,6 +14,7 @@ import { Component, signal, inject } from '@angular/core';
 import { Selections } from '../../../shared/schemas/filtro';
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
+import { EditorImporteComponent } from '../../../shared/editor-importe/editor-importe.component';
 
 
 @Component({
@@ -167,10 +168,11 @@ export class ValorHoraComponent {
 
           case 'ValorLiquidacionHoraNormal':
             col.editor = {
-              model: CustomFloatEditor,
-              decimal: 2,
-              minValue: 0,
-              maxValue: 10000000,
+              model: CustomInputEditor,
+              collection: [],
+              params: {
+                component: EditorImporteComponent,
+              },
               alwaysSaveOnEnterKey: true,
               required: true
             }
