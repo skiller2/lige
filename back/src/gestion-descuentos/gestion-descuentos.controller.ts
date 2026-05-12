@@ -1427,7 +1427,7 @@ FROM cte
         const PersonalOtroDescuentoCantidad= descuento.PersonalOtroDescuentoCantidad ?? 1
         const PorcentajeDescuento= descuento.PorcentajeDescuento ?? 100
 
-        const importeTotal = descuento.PersonalOtroDescuentoImporteVariable *  PorcentajeDescuento / 100
+        const importeTotal = PersonalOtroDescuentoCantidad * descuento.PersonalOtroDescuentoImporteVariable *  PorcentajeDescuento / 100
 
         const importeCuota = Math.round((importeTotal / Number(descuento.PersonalOtroDescuentoCantidadCuotas)) * 100) / 100
 
