@@ -118,6 +118,18 @@ const columnsActasPersonal: any[] = [
     minWidth: 80,
   },
   {
+    id: "PersonalActaDescripcion",
+    name: "Descripción",
+    field: "PersonalActaDescripcion",
+    type: "string",
+    fieldName: "pa.PersonalActaDescripcion",
+    sortable: true,
+    searchType: "string",
+    hidden: false,
+    searchHidden: false
+
+  },
+  {
     id: 'TipoPersonalActaCodigo', name: 'Tipo Acta', field: 'TipoPersonalActaCodigo',
     fieldName: 'pa.TipoPersonalActaCodigo',
     type: 'string',
