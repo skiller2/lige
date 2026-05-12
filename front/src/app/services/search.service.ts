@@ -2525,5 +2525,15 @@ export class SearchService {
       })
     );
   }
+   getActasPersonalListado(options: any) {
+    return this.http.post<ResponseJSON<any>>(`api/actas/list-personal`, { options }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+  
 
 }
