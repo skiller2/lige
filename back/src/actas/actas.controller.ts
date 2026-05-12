@@ -53,6 +53,86 @@ const columnsActas:any[] = [
   },
 ]
 
+const columnsPersonalActas:any[] = [
+  {
+    id:'id', name:'id', field:'id',
+    type:'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+   {
+    id: "PersonalId",
+    name: "PersonalId",
+    field: "per.PersonalId",
+    type: "number",
+    fieldName: "per.PersonalId",
+    sortable: true,
+    searchHidden: true,
+    hidden: true,
+  },
+  {
+    id: "PersonalCUITCUILCUIT",
+    name: "CUIT",
+    field: "cuit.PersonalCUITCUILCUIT",
+    type: "string",
+    fieldName: "cuit.PersonalCUITCUILCUIT",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: "ApellidoNombre",
+    name: "Apellido Nombre",
+    field: "ApellidoNombre",
+    type: "string",
+    fieldName: "per.PersonalId",
+    searchComponent: "inputForPersonalSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id:'ActaId', name:'ActaId', field:'ActaId',
+    fieldName: 'a.ActaId',
+    type:'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id:'ActaNroActa', name:'Número Acta', field:'ActaNroActa',
+    fieldName: 'a.ActaNroActa',
+    type:'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 120,
+    minWidth: 80
+  },
+  {
+    id:'TipoPersonalActaCodigo', name:'TipoPersonalActaCodigo', field:'TipoPersonalActaCodigo',
+    fieldName: 'pa.TipoPersonalActaCodigo',
+    type:'string',
+    searchType: 'string',
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id:'ActaFechaActa', name:'Fecha Acta', field:'ActaFechaActa',
+    fieldName: 'a.ActaFechaActa',
+    type:'date',
+    searchType: 'date',
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+]
 export class ActasController extends BaseController {
 
   async getActasGridColumns(req: any, res: Response, next: NextFunction) {
@@ -240,5 +320,44 @@ export class ActasController extends BaseController {
       }
 
   }
+
+    async getGridPersonalActaList(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      await queryRunner.startTransaction()
+
+      const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+      const filterSql = filtrosToSql(options.filtros, columnsActas);
+      const orderBy = orderToSQL(options.sort)
+
+      const lista: any[] = await this.personalActasListQuery(queryRunner, filterSql, orderBy)
+
+      await queryRunner.commitTransaction()
+      this.jsonRes(lista, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+
+   private async personalActasListQuery(queryRunner: any, filterSql: any, orderBy: any) {
+    return await queryRunner.query(`
+      select  ROW_NUMBER() OVER (ORDER BY per.PersonalId, a.ActaFechaActa) AS id, per.PersonalId, 
+        CONCAT(trim(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT,
+        a.ActaId,pa.PersonalActaDescripcion, a.ActaNroActa, a.ActaFechaActa,pa.TipoPersonalActaCodigo
+      from Personal per
+      left join PersonalActa pa on pa.PersonalId = per.PersonalId
+      left join Acta a on a.ActaId = pa.ActaId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+
+      WHERE (1=1) 
+      AND (${filterSql})
+      ${orderBy}
+    `)
+  }
+  
 
 }
