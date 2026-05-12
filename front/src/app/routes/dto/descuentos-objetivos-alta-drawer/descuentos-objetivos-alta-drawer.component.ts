@@ -172,7 +172,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
         infoDesc.oldObjetivoId = infoDesc.ObjetivoId
         infoDesc.AplicaEl = infoDesc.AplicaEl ? new Date(infoDesc.AplicaEl) : null
         infoDesc.FechaAnulacion = infoDesc.FechaAnulacion ? new Date(infoDesc.FechaAnulacion) : null
-        infoDesc.EfectoKey = { EfectoId: infoDesc.EfectoId ?? null, EfectoIndividualId: infoDesc.EfectoIndividualId ?? null }
+        infoDesc.EfectoKey = { EfectoId: infoDesc.EfectoId ?? null, EfectoIndividualId: infoDesc.EfectoIndividualId ?? null, StockId: infoDesc.StockId ?? null, Importe: infoDesc.Importe ?? '' }
 
         this.descuentoObjetivo.set(infoDesc)
 
