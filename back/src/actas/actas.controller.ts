@@ -97,6 +97,19 @@ const columnsActasPersonal: any[] = [
     searchHidden: false,
     hidden: false,
   },
+   {
+    id: "PersonalNroLegajo",
+    name: "Número de Asociado",
+    field: "PersonalNroLegajo",
+    type: "string",
+    fieldName: "per.PersonalNroLegajo",
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+    maxWidth: 300,
+
+  },
   {
     id: 'ActaId', name: 'ActaId', field: 'ActaId',
     fieldName: 'a.ActaId',
@@ -377,7 +390,7 @@ export class ActasController extends BaseController {
 
   private async actasPersonalListQuery(queryRunner: any, filterSql: any, orderBy: any) {
     return await queryRunner.query(`
-         select  ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id, per.PersonalId, 
+         select  ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id, per.PersonalId, per.PersonalNroLegajo,
         CONCAT(trim(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT,
         a.ActaId,pa.PersonalActaDescripcion, a.ActaNroActa, a.ActaFechaActa,pa.TipoPersonalActaCodigo, ta.TipoPersonalActaDescripcion
       from Personal per
