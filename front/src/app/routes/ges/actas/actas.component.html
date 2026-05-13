@@ -3,11 +3,11 @@
     <ul nz-menu nzMode="horizontal">
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'actas','listado']">Listado</a>
+        <a [routerLink]="['/', 'ges', 'actas','listado']">Actas</a>
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'actas','listado-personal']">Listado Personal</a>
+        <a [routerLink]="['/', 'ges', 'actas','listado-personal']">Personal</a>
       </li>
     </ul>
     <nz-button-group nz-button nzButtonGroup>
@@ -29,7 +29,7 @@
 
   <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/actas/listado">Listado</a>
+      <a nz-tab-link routerLink="/ges/actas/listado">Actas</a>
       @if ((columns$|async); as columnas) {
       <ng-template nz-tab>
         <shared-filtro-builder [fieldsToSelect]="columnas" [startFilters]="startFilters"
@@ -44,9 +44,9 @@
       }
     </nz-tab>
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/actas/listado-personal">Listado Personal</a>
+      <a nz-tab-link routerLink="/ges/actas/listado-personal">Personal</a>
       <ng-template nz-tab>
-        <!-- <app-personal-acta></app-personal-acta> -->
+        <app-actas-personal-listado></app-actas-personal-listado>
       </ng-template>
 
     </nz-tab>

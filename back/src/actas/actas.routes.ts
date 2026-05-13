@@ -8,12 +8,21 @@ actasRouter.get("/cols", [authMiddleware.verifyToken,authMiddleware.hasGroup(['g
     actasController.getActasGridColumns(req, res, next);
 });
 
+actasRouter.get("/cols-personal", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'gPersonal', 'gPersonalCon'])], (req, res, next) => {
+    actasController.getActasPersonalGridColumns(req, res, next);
+});
+
 actasRouter.get(`/nro-acta-options`, [authMiddleware.verifyToken], (req, res, next) => {
   actasController.getNrosActas(req, res, next);
 });
 
 actasRouter.post(`/list`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'gPersonal', 'gPersonalCon'])], (req, res, next) => {
   actasController.getGridList(req, res, next)
+});
+
+
+actasRouter.post(`/list-personal`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'gPersonal', 'gPersonalCon'])], (req, res, next) => {
+  actasController.getGridActasPersonalList(req, res, next)
 });
 
 actasRouter.post(`/add`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gConsejo`])], (req, res, next) => {
