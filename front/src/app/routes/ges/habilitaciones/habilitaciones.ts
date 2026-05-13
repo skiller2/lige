@@ -168,9 +168,11 @@ export class HabilitacionesComponent {
     this.listOptions.set(options)
   }
 
-  onTabsetChange(_event: any) {
+  onTabsetChange(event: any) {
     window.dispatchEvent(new Event('resize'));
-    this.personalId.set(0)
+    if (event.index !== 1) {
+      this.personalId.set(0)
+    }
   }
 
   async refreshGrid(_e: any) {
