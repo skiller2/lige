@@ -136,16 +136,16 @@ const columnsActasPersonal: any[] = [
     searchType: 'string',
     sortable: true,
     hidden: true,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: 'TipoPersonalActaDescripcion', name: 'Tipo Acta', field: 'TipoPersonalActaDescripcion',
-    fieldName: 'pa.TipoPersonalActaDescripcion',
+    fieldName: 'ta.TipoPersonalActaDescripcion',
     type: 'string',
     searchType: 'string',
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     maxWidth: 120,
     minWidth: 80,
   },
@@ -157,8 +157,8 @@ const columnsActasPersonal: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: false,
-    searchComponent: "inputForFechaSearch",
-    maxWidth: 120,
+    searchComponent: "inputForFechaSearch", 
+    maxWidth: 200,
   },
 ]
 export class ActasController extends BaseController {

@@ -60,7 +60,7 @@ export class ActasPersonalListadoComponent {
     this.gridOptions.createFooterRow = true;
     this.gridOptions.forceFitColumns = true;
 
-    this.settingsService.setLayout('collapsed', true);
+    // this.settingsService.setLayout('collapsed', true);
     
     // Trigger inicial: dispara la carga de datos al entrar al módulo
     this.listListado$.next('');
