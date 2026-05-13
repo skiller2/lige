@@ -1,13 +1,14 @@
-@if ((columns$ | async); as columnas) {
+@if (columns().length) {
   <div class="fila">
     <div class="izquierda">
-      <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+      <shared-filtro-builder [fieldsToSelect]="columns()" (optionsChange)="listOptionsChange($event)" />
     </div>
   </div>
 
   <div class="gridListadoContainer container-fluid">
-    <angular-slickgrid gridId="gridListado" [columns]="columnas | colsFilter" [options]="gridOptions"
-      [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
+    <angular-slickgrid gridId="gridListado" [columns]="columns() | colsFilter" [options]="gridOptions"
+      [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event)"
+      (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
     </angular-slickgrid>
   </div>
 }

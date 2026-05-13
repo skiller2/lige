@@ -1,38 +1,53 @@
 <nz-card class="small-margin">
 
-  <div nz-row class="contentStyle">
-    <div nz-col nzSpan="13" class="listStyle">
-      <ul nz-menu nzMode="horizontal" style="display: flex;">
-        <li nz-menu-item nzMatchRouter>
-          <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'habilitaciones', 'listado']" (click)="refreshListado()">{{
-            'app.habilitaciones.gestiones' | i18n }} </a>
-        </li>
-        <li nz-menu-item nzMatchRouter>
-          <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']">{{ 'app.detail' | i18n }} </a>
-        </li>
-        <li nz-menu-item nzMatchRouter>
-          <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'habilitaciones', 'personas-listado']">{{ 'app.habilitaciones' | i18n }} </a>
-        </li>
-        <!-- <li nz-menu-item nzMatchRouter>
+  <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+    <div></div>
+
+    <ul nz-menu nzMode="horizontal">
+      <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'habilitaciones', 'credenciales']">{{ 'app.credenciales' | i18n }} </a>
-      </li> -->
-      </ul>
-    </div>
+        <a [routerLink]="['/', 'ges', 'habilitaciones', 'listado']">{{ 'app.habilitaciones.gestiones' | i18n }} </a>
+      </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'habilitaciones', 'detalle']">{{ 'app.detail' | i18n }} </a>
+      </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'habilitaciones', 'personas-listado']">{{ 'app.habilitaciones' | i18n }} </a>
+      </li>
+      <!-- <li nz-menu-item nzMatchRouter>
+      <span nz-icon nzType=""></span>
+      <a [routerLink]="['/', 'ges', 'habilitaciones', 'credenciales']">{{ 'app.credenciales' | i18n }} </a>
+    </li> -->
+    </ul>
+
+    <nz-button-group nz-button nzButtonGroup>
+      @if (tabIndex() != 1){
+      <!-- btn  detalle -->
+      <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" [disabled]="consultPersonalIdByTabIndex()"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}">
+        <span nz-icon nzType="user" nzTheme="outline"></span>
+      </button>
+
+      <!-- btn  recarga -->
+      <button nz-button nzType="default" (click)="refreshGrid($event)"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}" [disabled]="disabledRefresh()">
+        <span nz-icon nzType="reload" nzTheme="outline"></span>
+      </button>
+      }
+    </nz-button-group>
 
   </div>
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)"
-    [nzLinkExact]="false">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex"
+    (nzSelectChange)="onTabsetChange($event)" [nzLinkExact]="false">
     <nz-tab>
       <a nz-tab-link routerLink="/ges/habilitaciones/listado">{{ 'app.icon.objectives' | i18n }} </a>
-      @if ((columns$|async); as columnas) {
+      @if (columns().length) {
       <ng-template nz-tab>
         <div class="fila">
           <div class="izquierda">
-            <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)"
+            <shared-filtro-builder [fieldsToSelect]="columns()" (optionsChange)="listOptionsChange($event)"
               [startFilters]="startFilters()" />
           </div>
           <nz-button-group nz-button nzButtonGroup class="derecha">
@@ -47,20 +62,16 @@
             <span nz-icon nzType="edit" nzTheme="outline"></span>
           </button> -->
             <button nz-button nzType="default" nz-popconfirm nzPopconfirmTitle="Actualizar habilitación necesaria?"
-              (nzOnConfirm)="updHabilitacionNecesaria()" nz-tooltip
-              nzTooltipTitle="{{'app.habilitacion.necesaria' | i18n }}"><span nz-icon nzType="copy"
-                nzTheme="outline"></span></button>
-            <!-- btn  detalle -->
-            <button nz-button nzType="default" (click)="openDrawerforConsultDetalle()" [disabled]="personalId() == 0"
-              nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user"
-                nzTheme="outline"></span></button>
-
+              (nzOnConfirm)="updHabilitacionNecesaria()" nz-tooltip nzTooltipTitle="{{'app.habilitacion.necesaria' | i18n }}">
+              <span nz-icon nzType="copy" nzTheme="outline"></span>
+            </button>
+            
           </nz-button-group>
         </div>
 
         <div class="gridListContainer container-fluid">
-          <angular-slickgrid gridId="grid" [columns]="columnas | colsFilter" [options]="gridOptions"
-            [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+          <angular-slickgrid gridId="grid" [columns]="columns() | colsFilter" [options]="gridOptions"
+            [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
           </angular-slickgrid>
         </div>
@@ -79,7 +90,7 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/habilitaciones/personas-listado">{{ 'app.listado' | i18n }}</a>
       <ng-template nz-tab>
-        <app-habilitaciones-listado></app-habilitaciones-listado>
+        <app-habilitaciones-listado [refresh]="refreshPerList()" [(personalId)]="personalId2"></app-habilitaciones-listado>
       </ng-template>
     </nz-tab>
 
@@ -95,5 +106,5 @@
   [tituloDrawer]="'Alta de Habilitación'"></app-habilitaciones-form-drawer>
 <app-habilitacion-necesaria-form-modal [(visible)]="visibleFormEdit" [apellidoNombre]="apellidoNombreSelected()"
   [personalId]="personalId()" (onAddorUpdate)="refreshGrid($event)"></app-habilitacion-necesaria-form-modal>
-<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
+<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalIdForDetalle()" [visible]="visibleDetalle()"
   (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>

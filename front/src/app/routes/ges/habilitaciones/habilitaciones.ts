@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, model, viewChild, computed, Injector, effect } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, model, viewChild, computed, Injector, effect, resource } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { firstValueFrom, map, timeInterval} from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { columnTotal, totalRecords } from "../../..//shared/custom-search/custom-search"
@@ -19,6 +19,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HabilitacionNecesariaFormModalComponent } from '../../../routes/ges/habilitacion-necesaria-form-modal/habilitacion-necesaria-form-modal';
 import { DetallePersonaComponent } from "../../../routes/ges/detalle-persona/detalle-persona.component";
 import { Selections } from '../../../shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-habilitaciones',
@@ -40,11 +41,7 @@ export class HabilitacionesComponent {
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
   excelExportService = new ExcelExportService()
-  listHabilitaciones$ = new BehaviorSubject('')
-  listOptions: listOptionsT = {
-    filtros: [],
-    sort: null,
-  };
+  listOptions =  signal<listOptionsT>({ filtros: [], sort: null })
   hiddenColumnIds: string[] = [];
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
@@ -52,21 +49,26 @@ export class HabilitacionesComponent {
   isLoading = signal<boolean>(false)
   apellidoNombreSelected = signal<string>('')
   detalleSelected = signal<string>('')
+  personalIdForDetalle = signal<number>(0)
   personalId = signal<number>(0)
+  personalId2 = signal<number>(0)
   personalHabilitacionId = model<number>(0)
   lugarHabilitacionId = signal<number>(0)
   visibleForm = signal<boolean>(false)
   visibleFormEdit = signal<boolean>(false)
   visibleDetalle = signal<boolean>(false)
+  tabIndex = signal(0)
+  refreshPerList = signal<number>(0)
+  disabledRefresh = signal<boolean>(false)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
   private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
-  private injector = inject(Injector)
+  // private injector = inject(Injector)
   startFilters = signal<Selections[]>([])
 
-  columns$ = this.apiService.getCols('/api/habilitaciones/cols').pipe(
+  columns = toSignal(this.apiService.getCols('/api/habilitaciones/cols').pipe(
     map((cols: Column<any>[]) => {
       this.hiddenColumnIds = cols
         .filter((col: any) => col.showGridColumn === false)
@@ -74,7 +76,7 @@ export class HabilitacionesComponent {
       return cols.map(col =>
         col.id === 'ApellidoNombre' ? { ...col, asyncPostRender: this.renderApellidoNombreComponent.bind(this) } : col
       )
-    }))
+    })), { initialValue: [] as Column[] })
 
   async ngOnInit() {
 
@@ -105,15 +107,24 @@ export class HabilitacionesComponent {
     })
   }
 
-  gridData$ = this.listHabilitaciones$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getHabilitacionesList(this.listOptions,)
-        .pipe(map((data: any) => {
-          return data.list
-        }))
-    })
-  )
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      let response = []
+      
+      try {
+        
+        response = await firstValueFrom(this.searchService.getHabilitacionesList(params.options).pipe(
+          map((data: any) => {
+            return data.list
+          })
+        ))
+      } catch (_e) { }
+
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   // Evento cuando la grilla está lista
   async angularGridReady(angularGrid: any) {
@@ -144,25 +155,41 @@ export class HabilitacionesComponent {
       this.personalId.set(row.PersonalId)
       this.personalHabilitacionId.set(row.PersonalHabilitacionId)
       this.lugarHabilitacionId.set(row.LugarHabilitacionId)
+    } else {
+      this.apellidoNombreSelected.set('')
+      this.personalId.set(0)
+      this.personalHabilitacionId.set(0)
+      this.lugarHabilitacionId.set(0)
     }
 
   }
 
   listOptionsChange(options: any) {
-    this.listOptions = options
-    this.listHabilitaciones$.next('')
-  }
-
-  refreshListado() {
-    this.listHabilitaciones$.next('')
+    this.listOptions.set(options)
   }
 
   onTabsetChange(_event: any) {
     window.dispatchEvent(new Event('resize'));
+    this.personalId.set(0)
   }
 
-  refreshGrid(_e: any) {
-    this.listHabilitaciones$.next('');
+  async refreshGrid(_e: any) {
+    this.disabledRefresh.set(true)
+    
+    switch (this.tabIndex()) {
+      case 0:
+        this.gridData.reload()
+        break;
+      case 2:
+        this.refreshPerList.update(n => n + 1)
+        break;
+    
+      default:
+        break;
+    }
+    setTimeout(() => {
+      this.disabledRefresh.set(false)
+    }, 500);
   }
 
   openDrawerforForm(): void {
@@ -199,11 +226,37 @@ export class HabilitacionesComponent {
   }
 
   openDrawerforConsultDetalle(): void {
+    switch (this.tabIndex()) {
+      case 0:
+        this.personalIdForDetalle.set(this.personalId())
+        break;
+      case 2:
+        this.personalIdForDetalle.set(this.personalId2())
+        break;
+    
+      default:
+        break;
+    }
     this.visibleDetalle.set(true)
   }
 
   closeDrawerforConsultDetalle(): void {
     this.visibleDetalle.set(false)
+  }
+
+  consultPersonalIdByTabIndex(): boolean {
+    switch (this.tabIndex()) {
+      case 0:
+        if(this.personalId()){ return false } else { return true }
+        break;
+      case 2:
+        if(this.personalId2()){ return false } else { return true }
+        break;
+    
+      default:
+        return true
+        break;
+    }
   }
 
   
