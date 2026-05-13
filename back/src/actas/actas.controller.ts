@@ -97,7 +97,7 @@ const columnsActasPersonal: any[] = [
     searchHidden: false,
     hidden: false,
   },
-   {
+  {
     id: "PersonalNroLegajo",
     name: "Número de Asociado",
     field: "PersonalNroLegajo",
@@ -109,6 +109,72 @@ const columnsActasPersonal: any[] = [
     hidden: false,
     maxWidth: 300,
 
+  },
+  {
+    name: "Sucursal Persona",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    name: "Grupo Actividad",
+    type: "string",
+    id: "GrupoActividadDetalle",
+    field: "GrupoActividadDetalle",
+    fieldName: "ga.GrupoActividadDetalle",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    name: "Grupo Actividad",
+    type: "number",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: "ga.GrupoActividadId",
+    searchComponent: 'inputForGrupoActividadSearch',
+    sortable: false,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    id: "SituacionRevistaId",
+    name: "Situacion Revista",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+    searchComponent: "inputForSituacionRevistaSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
+    id: "SituacionRevistaDescripcion",
+    name: "Situación Revista",
+    field: "SituacionRevistaDescripcion",
+    type: "string",
+    fieldName: "sitrev.SituacionRevistaDescripcion",
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: "PersonalSituacionRevistaDesde",
+    name: "Fecha desde Situación",
+    field: "PersonalSituacionRevistaDesde",
+    type: "date",
+    fieldName: "sitrev.PersonalSituacionRevistaDesde",
+    searchType: "date",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
   },
   {
     id: 'ActaId', name: 'ActaId', field: 'ActaId',
@@ -170,7 +236,7 @@ const columnsActasPersonal: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: false,
-    searchComponent: "inputForFechaSearch", 
+    searchComponent: "inputForFechaSearch",
     maxWidth: 200,
   },
 ]
@@ -389,19 +455,64 @@ export class ActasController extends BaseController {
 
 
   private async actasPersonalListQuery(queryRunner: any, filterSql: any, orderBy: any) {
+    const now = new Date()
     return await queryRunner.query(`
          select  ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id, per.PersonalId, per.PersonalNroLegajo,
         CONCAT(trim(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT,
-        a.ActaId,pa.PersonalActaDescripcion, a.ActaNroActa, a.ActaFechaActa,pa.TipoPersonalActaCodigo, ta.TipoPersonalActaDescripcion
+        a.ActaId,pa.PersonalActaDescripcion, a.ActaNroActa, a.ActaFechaActa,pa.TipoPersonalActaCodigo, ta.TipoPersonalActaDescripcion,
+        sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.sitRevCom,
+        ga.GrupoActividadNumero, ga.GrupoActividadId, ga.GrupoActividadDetalle,
+        suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
+
+        1
+
       from Personal per
       join PersonalActa pa on pa.PersonalId = per.PersonalId
       LEFT JOIN TipoPersonalActa ta on ta.TipoPersonalActaCodigo= pa.TipoPersonalActaCodigo
       left join Acta a on a.ActaId = pa.ActaId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+      LEFT JOIN (
+        SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
+		  CASE 
+				WHEN p.PersonalSituacionRevistaId IS NOT NULL THEN  
+					CONCAT(TRIM(s.SituacionRevistaDescripcion), ' (Desde: ', 
+							FORMAT(p.PersonalSituacionRevistaDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+							CASE WHEN p.PersonalSituacionRevistaHasta IS NULL THEN '' 
+								ELSE FORMAT(p.PersonalSituacionRevistaHasta, 'dd/MM/yyyy') 
+							END, ')'
+					)
+				ELSE '' 
+			END AS sitRevCom
+          FROM PersonalSituacionRevista p
+          JOIN SituacionRevista s
+          ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= @0 AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(@0 AS DATE)
+			 ) sitrev ON sitrev.PersonalId = per.PersonalId
+      LEFT JOIN (
+					SELECT 
+						gap.GrupoActividadPersonalPersonalId,
+						ga.GrupoActividadNumero, ga.GrupoActividadId,gap.GrupoActividadPersonalDesde,gap.GrupoActividadPersonalHasta,
+
+						CASE 
+							WHEN ga.GrupoActividadId IS NOT NULL THEN  
+								CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
+									   FORMAT(gap.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+									   CASE WHEN gap.GrupoActividadPersonalHasta IS NULL THEN 'Actualidad' 
+											ELSE FORMAT(gap.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
+									   END, ')'
+								)
+							ELSE '' 
+						END AS GrupoActividadDetalle
+					FROM GrupoActividadPersonal gap
+					LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+					WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= CAST(@0 AS DATE)
+					  AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= CAST(@0 AS DATE)
+				) ga ON ga.GrupoActividadPersonalPersonalId= per.PersonalId
+         LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+        LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
 
       WHERE (${filterSql})
       ${orderBy}
-    `)
+    `, [now])
   }
 
 
