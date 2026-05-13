@@ -421,6 +421,15 @@
       }
     </nz-select>
     }
+    @if (selections.field.searchComponent=='inputForEventoLogClaseSearch') {
+    <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
+      nzPlaceHolder="Habilitacion Estado" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
+      [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsEventoLogClase | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+      }
+    </nz-select>
+    }
   </div>
   }
   <button nz-button (click)="handleInputConfirm()">+</button>

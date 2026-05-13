@@ -107,6 +107,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
   $optionsHabilitacionClase = this.searchService.getHabilitacionClaseOptions();
   $optionsHabilitacionEstado = this.searchService.getEstadosHabilitaciones();
+  $optionsEventoLogClase = this.searchService.getEventoLogClaseOptions();
 
   private _options: Options = {
     filtros: [],

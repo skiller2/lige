@@ -27,3 +27,7 @@ eventoLogRouter.get("/:logCodigo", [authMiddleware.verifyToken, authMiddleware.h
 eventoLogRouter.get(`/estado/options`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   eventoLogController.getEventoLogEstado(req, res, next);
 });
+
+eventoLogRouter.get("/clase/options", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  eventoLogController.getClases(req, res, next);
+});

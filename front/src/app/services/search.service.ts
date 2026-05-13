@@ -2525,7 +2525,8 @@ export class SearchService {
       })
     );
   }
-   getActasPersonalListado(options: any) {
+
+  getActasPersonalListado(options: any) {
     return this.http.post<ResponseJSON<any>>(`api/actas/list-personal`, { options }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -2535,5 +2536,14 @@ export class SearchService {
     );
   }
   
+  getEventoLogClaseOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/evento-log/clase/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
 
 }

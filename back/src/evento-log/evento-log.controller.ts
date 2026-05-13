@@ -28,7 +28,7 @@ const listaColumnas: any[] = [
   {
     id: 'EventoLogClaseCodigo', name: 'Clase', field: 'EventoLogClaseCodigo',
     fieldName: 'c.EventoLogClaseCodigo',
-    // searchComponent: '',
+    searchComponent: 'inputForEventoLogClaseSearch',
     type: 'string',
     searchType: 'string',
     sortable: true,
@@ -486,6 +486,19 @@ export class EventoLogController extends BaseController {
       const options = await queryRunner.query(`
         SELECT EventoLogEstadoCodigo value, Descripcion label
         FROM EventoLogEstado
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  async getClases(req: any, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+    try {
+      const options = await queryRunner.query(`
+        SELECT EventoLogClaseCodigo AS value, Descripcion AS label
+        FROM EventoLogClase
       `)
       this.jsonRes(options, res);
     } catch (error) {
