@@ -168,11 +168,9 @@ export class HabilitacionesComponent {
     this.listOptions.set(options)
   }
 
-  onTabsetChange(event: any) {
+  onTabsetChange(_event: any) {
     window.dispatchEvent(new Event('resize'));
-    if (event.index !== 1) {
-      this.personalId.set(0)
-    }
+
   }
 
   async refreshGrid(_e: any) {
@@ -181,6 +179,12 @@ export class HabilitacionesComponent {
     switch (this.tabIndex()) {
       case 0:
         this.gridData.reload()
+        this.angularGrid?.slickGrid?.setSelectedRows([])
+        this.personalId.set(0)
+        this.personalHabilitacionId.set(0)
+        this.lugarHabilitacionId.set(0)
+        this.detalleSelected.set('')
+        this.apellidoNombreSelected.set('')
         break;
       case 2:
         this.refreshPerList.update(n => n + 1)
