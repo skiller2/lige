@@ -139,6 +139,8 @@ export class LiquidacionesBancoController extends BaseController {
       id: "tipocuenta_id",
       field: "tipocuenta_id",
       fieldName: "movpos.tipocuenta_id",
+      searchComponent: "inputForTipoCuentaSearch",
+      searchType: "string",
       sortable: true,
       hidden: false,
       searchHidden: false

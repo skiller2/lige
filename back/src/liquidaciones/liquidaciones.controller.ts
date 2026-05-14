@@ -387,6 +387,7 @@ export class LiquidacionesController extends BaseController {
       id: "tipocuenta_id",
       field: "tipocuenta_id",
       fieldName: "li.tipocuenta_id",
+      searchComponent: "inputForTipoCuentaSearch",
       searchType: "string",
       sortable: true,
       searchHidden: false,
