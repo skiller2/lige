@@ -232,7 +232,7 @@ personalRouter.get(`${base}/sitrevistaaso/options/:personalId`, [authMiddleware.
   personalController.getSitRevistaAsoByPersonalId(req, res, next);
 });
 
-personalRouter.get(`${base}/datos-bot/nro-recibo/:personalId`, [authMiddleware.verifyToken], (req, res, next) => {
+personalRouter.get(`${base}/datos-bot/nro-recibo/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasAuthResp(), authMiddleware.hasGroup([`Liquidaciones Consultas`, `Liquidaciones`])], (req, res, next) => {
   personalController.getUltimoNroReciboByPersonalId(req, res, next);
 });
 

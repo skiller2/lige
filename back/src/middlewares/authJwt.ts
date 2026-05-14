@@ -118,7 +118,7 @@ export class AuthMiddleware {
     return next()
   }
 
-  hasAuthResp = () =>{
+  hasAuthResp = () => {
     return async (req, res, next) => {
       const stmActual = new Date();
       const PersonalId = res.locals.PersonalId
@@ -135,40 +135,32 @@ export class AuthMiddleware {
           res.locals.authResp = true
           return next()
         }
-        if (PersonalId < 1) {
-          return next()
-        }
+        if (PersonalId < 1) return next()
 
         const grupos = res.locals.GrupoActividad //|| await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
-        let listGrupos = []
-        console.log('grupos', grupos);
 
         if (grupos.length < 0) return next()
+        const GrupoActividadIdList = grupos.map((grupo: any) => grupo.GrupoActividadId)
 
-
-        listGrupos = grupos.map(row => row.GrupoActividadId)
-        for (const data of listGrupos) {
-
-          let resPers = await queryRunner.query(`
+        let resPers = await queryRunner.query(`
         SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
         WHERE gap.GrupoActividadPersonalPersonalId = @0  AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
-        ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
+        ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${GrupoActividadIdList.join(',')})
         UNION
         SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
         WHERE gap.GrupoActividadJerarquicoPersonalId = @0  AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
-        ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
+        ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${GrupoActividadIdList.join(',')})
         AND gap.GrupoActividadJerarquicoComo = 'J'
         `,
-            [PersonalId_auth, anio, mes])
-          if (resPers.length > 0) {
-            res.locals.authResp = true
-            return next()
-          }
+          [PersonalId_auth, anio, mes])
+        if (resPers.length > 0) {
+          res.locals.authResp = true
         }
+
         return next()
       } catch (error) {
-        console.error('Error en hasAuthResp:', error);
-
+        console.error(error);
+        return res.status(500).json({ msg: "Error al verificar autorización", error: error.message });
       } finally {
         await queryRunner.release();
       }
