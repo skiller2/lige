@@ -40,19 +40,29 @@
 
   @switch (activeTab()) {
     @case ('personal') {
+       @defer (on immediate){
       <app-table-personal-efecto [refreshGrid]="refreshTick()" />
+        }
     }
     @case ('objetivos') {
+        @defer (on immediate){
       <app-table-objetivos-efecto [refreshGrid]="refreshTick()" />
+       }
     }
     @case ('deposito') {
+        @defer (on immediate){
       <app-table-deposito-efecto [refreshGrid]="refreshTick()" />
+      }
     }
     @case ('proveedores') {
+        @defer (on immediate){
       <app-table-proveedores-efecto [refreshGrid]="refreshTick()" />
+      }
     }
     @case ('general') {
+        @defer (on immediate){
       <app-table-efecto-general [refreshGrid]="refreshTick()" />
+      }
     }
   }
 
