@@ -146,6 +146,7 @@ export class RecibosController extends BaseController {
           throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
       } else {
+          throw new ClientException(`El código proporcionado falla al generar el recibo único. Por favor, contacte al administrador del sistema.`)
 
         // codigo para cuando es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
         const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo.year, periodo.month, personalId);
