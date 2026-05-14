@@ -8,6 +8,10 @@
     <ul nz-menu nzMode="horizontal" style="display: flex;">
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'efecto', 'general']">General</a>
+      </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'efecto', 'personal']">Personal</a>
       </li>
       <li nz-menu-item nzMatchRouter>
@@ -22,10 +26,7 @@
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'efecto', 'proveedores']">Proveedores</a>
       </li>
-      <li nz-menu-item nzMatchRouter>
-        <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'efecto', 'general']">General</a>
-      </li>
+
     </ul>
 
     <nz-button-group nz-button nz-buttonGroup>
@@ -35,6 +36,7 @@
         <span nz-icon nzType="reload" nzTheme="outline"></span>
       </button>
     </nz-button-group>
+    {{ activeTab()}}
 
   </div>
 
