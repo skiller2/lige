@@ -184,7 +184,7 @@ export const GesRoutes: Routes = [
     path: 'excepciones-asistencia/:tab',
     loadComponent: () => import('./excepciones-asistencia/excepciones-asistencia').then(c => c.ExcepcionesAsistenciaComponent),
   },
-  { path: 'efecto', redirectTo: 'efecto/personal' },
+  { path: 'efecto', redirectTo: 'efecto/general' },
   {
     path: 'efecto/:tab',
     loadComponent: () => import('./efecto/efecto.component').then(c => c.EfectoComponent),
