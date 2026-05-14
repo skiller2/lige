@@ -12,12 +12,12 @@ import { getDocument, OPS,  } from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { TextItem } from "pdfjs-dist/types/src/display/api.d.ts";
 import type { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
+import { unlink } from "fs/promises";
 
 
 
 
 const stat = promisify(fs.stat);
-const unlink = promisify(fs.unlink);
 
 export class FileUploadController extends BaseController {
   static pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige
@@ -182,7 +182,7 @@ export class FileUploadController extends BaseController {
           return next(error)
         }
         if (deleteFile) {
-          await unlink(finalurl);
+          try {  await unlink(finalurl) }catch(error){}
         }
       });
     } catch (error) {
@@ -570,7 +570,7 @@ export class FileUploadController extends BaseController {
             try {
               // Borra el archivo si existe
               if (existsSync(filePath)) {
-                await unlink(filePath);
+                try {  await unlink(filePath) }catch(error){}
               }
               // 
               this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
@@ -694,7 +694,7 @@ export class FileUploadController extends BaseController {
 
             // Borra el archivo si existe
             if (existsSync(filePath)) {
-              await unlink(filePath);
+              try {  await unlink(filePath) }catch(error){}
             }
 
             // Copia el nuevo archivo
@@ -899,7 +899,7 @@ export class FileUploadController extends BaseController {
             try {
               // Borra el archivo si existe
               if (existsSync(filePath)) {
-                await unlink(filePath);
+                try {  await unlink(filePath) }catch(error){}
               }
               // 
               this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
@@ -1004,7 +1004,7 @@ export class FileUploadController extends BaseController {
 
             // Borra el archivo si existe
             if (existsSync(filePath)) {
-              await unlink(filePath);
+              try {  await unlink(filePath) }catch(error){}
             }
 
             // Copia el nuevo archivo
@@ -1099,7 +1099,7 @@ export class FileUploadController extends BaseController {
         const fechaCreacion = stats.birthtime.getTime();
 
         if (fechaCreacion < limiteFecha) {
-          await unlink(filePath);
+          try {  await unlink(filePath) }catch(error){}
           // console.log(`Archivo ${file} borrado.`);
         }
       });
@@ -1155,7 +1155,7 @@ export class FileUploadController extends BaseController {
           if (!existsSync(finalurl)) {
             console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
           } else {
-            await unlink(finalurl)
+            try {  await unlink(finalurl) }catch(error){}
           }
 
           await queryRunner.query(`DELETE FROM DocumentoRelaciones WHERE DocumentoId = @0`, [deleteId])
@@ -1175,7 +1175,7 @@ export class FileUploadController extends BaseController {
           if (!existsSync(finalurl)) {
             console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
           } else {
-            await unlink(finalurl)
+            try {  await unlink(finalurl) }catch(error){}
           }
 
           await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [deleteId])
@@ -1198,7 +1198,7 @@ export class FileUploadController extends BaseController {
             if (!existsSync(finalurl)) {
               console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
             } else {
-              await unlink(finalurl);
+              try {  await unlink(finalurl) }catch(error){}
             }
 
             await queryRunner.query(`
@@ -1285,7 +1285,7 @@ export class FileUploadController extends BaseController {
             if (!existsSync(finalurl)) {
               console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
             } else {
-              await unlink(finalurl);
+              try {  await unlink(finalurl) }catch(error){}
             }
             await queryRunner.query(`
               DELETE FROM ${tableForSearch}
@@ -1518,7 +1518,7 @@ export class FileUploadController extends BaseController {
       const fullPath = `${process.env.PATH_DOCUMENTS}/${filePath}`;
 
       if (existsSync(fullPath)) {
-        await unlink(fullPath);
+        try {  await unlink(fullPath) }catch(error){}
       } else {
         console.log(`Archivo no encontrado para eliminar: ${fullPath}`);
       }

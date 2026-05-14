@@ -8,10 +8,6 @@ import {
 } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
-import * as fs from 'fs';
-import { promisify } from 'util';
-
-const unlink = promisify(fs.unlink);
 
 export class DocumentoController extends BaseController {
 

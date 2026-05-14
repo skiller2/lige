@@ -16,6 +16,9 @@ import path from 'path';
 import { promises as fsPromises } from 'fs';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { PDFDocument } from 'pdf-lib';
+import { unlink } from "node:fs/promises"
+
+
 
 const listaColumnas: any[] = [
     {
@@ -1036,9 +1039,7 @@ export class NovedadesController extends BaseController {
                 console.error(`Error al descargar el PDF: ${filesPath}`, err);
                 return next(err);
             } else {
-                //console.log('PDF descargado con éxito');
-                fs.unlinkSync(filesPath);
-                // console.log('PDF eliminado del servidor');
+                await unlink(filesPath)
             }
         });
     }

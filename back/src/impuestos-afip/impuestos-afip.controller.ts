@@ -3,12 +3,12 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api.d.ts";
+import { unlink } from "node:fs/promises"
 
 
 import {
   existsSync,
   readFileSync,
-  unlinkSync,
   writeFileSync,
 } from "node:fs";
 
@@ -116,8 +116,8 @@ export class ImpuestosAfipController extends BaseController {
 
       writeFileSync(tmpfilename, responsePDFBuffer);
 
-      res.download(tmpfilename, filename, (msg) => {
-        unlinkSync(tmpfilename);
+      res.download(tmpfilename, filename, async (msg) => {
+        await unlink(tmpfilename);
       });
 
 
@@ -578,17 +578,7 @@ export class ImpuestosAfipController extends BaseController {
         fielname: '',
         mimetype: file.mimetype
       }
-      /*
-            mkdirSync(`${this.directory}/${anioRequest}`, { recursive: true });
-            const newFilePath = `${this.directory
-              }/${anioRequest}/${anioRequest}-${mesRequest
-                .toString()
-                .padStart(2, "0")}-${CUIT}-${personalID}.pdf`;
       
-            if (existsSync(newFilePath)) {
-              unlinkSync(newFilePath)
-            }
-      */
 
       if (pagenum == null) {
 
@@ -791,7 +781,7 @@ export class ImpuestosAfipController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release();
-      unlinkSync(file.path);
+      await unlink(file.path);
     }
   }
 
@@ -867,8 +857,8 @@ export class ImpuestosAfipController extends BaseController {
 
       writeFileSync(tmpfilename, responsePDFBuffer);
 
-      res.download(tmpfilename, filename, (msg) => {
-        unlinkSync(tmpfilename);
+      res.download(tmpfilename, filename, async (msg) => {
+        await unlink(tmpfilename);
       });
     } catch (error) {
       console.log(error)
@@ -1169,8 +1159,8 @@ export class ImpuestosAfipController extends BaseController {
         GrupoActividadDetalle
       );
       writeFileSync(tmpfilename, buffer);
-      res.download(tmpfilename, nombre_archivo, (msg) => {
-        unlinkSync(tmpfilename);
+      res.download(tmpfilename, nombre_archivo, async (msg) => {
+        await unlink(tmpfilename);
       });
     } catch (error) {
       console.log(error)

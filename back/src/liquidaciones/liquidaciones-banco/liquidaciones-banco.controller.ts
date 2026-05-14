@@ -20,16 +20,12 @@ import {
 import type { PDFPageDrawPageOptions } from "pdf-lib";
 
 import {
-  copyFileSync,
   createWriteStream,
   existsSync,
   mkdirSync,
   readFileSync,
-  unlinkSync,
-  write,
   writeFileSync,
-  writeSync,
-} from "node:fs";
+  } from "node:fs";
 import {
   SendFileToDownload,
   getPeriodoFromRequest,

@@ -3,7 +3,7 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { dataSource } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
-import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import xlsx from 'node-xlsx';
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { recibosController } from "../controller/controller.module.ts";
@@ -1001,7 +1001,6 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       return next(error)
     } finally {
       await queryRunner.release();
-      // unlinkSync(file.path);
     }
   }
 

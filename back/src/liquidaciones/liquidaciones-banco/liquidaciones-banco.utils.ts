@@ -1,5 +1,7 @@
 import type { Request, Response } from "express";
-import { unlinkSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
+import { unlink } from "node:fs/promises"
+
 import { tmpName } from "../../server.ts";
 import { ClientException } from "../../controller/base.controller.ts";
 
@@ -30,8 +32,8 @@ const SendFileToDownload = (
 
   writeFileSync(tmpfilename, buffer);
 
-  res.download(tmpfilename, fileName, (msg) => {
-    unlinkSync(tmpfilename);
+  res.download(tmpfilename, fileName, async (msg) => {
+    await unlink(tmpfilename);
   });
 };
 

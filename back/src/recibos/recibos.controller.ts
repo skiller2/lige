@@ -46,14 +46,17 @@ export class RecibosController extends BaseController {
     try {
 
       if (isUnique) {
-        fs.unlinkSync(directorPathUnique);
+        try {  await unlink(directorPathUnique) }catch(error){}
+
       } else {
         console.log("limpiando directorio")
         if (fs.existsSync(directorPath)) {
           const archivos = fs.readdirSync(directorPath);
-          archivos.forEach(archivo => {
+          archivos.forEach(async archivo => {
             const rutaArchivo = path.join(directorPath, archivo);
-            fs.unlinkSync(rutaArchivo);
+            try {  await unlink(rutaArchivo) }catch(error){}
+
+            
           });
         }
       }
@@ -972,7 +975,8 @@ export class RecibosController extends BaseController {
         return next(err);
       } else {
         //console.log('PDF descargado con éxito');
-        fs.unlinkSync(filesPath);
+        try {  await unlink(filesPath) }catch(error){}
+
         // console.log('PDF eliminado del servidor');
       }
     });

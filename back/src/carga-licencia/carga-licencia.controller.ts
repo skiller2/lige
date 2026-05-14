@@ -9,9 +9,9 @@ import * as path from 'path';
 import { promisify } from 'util';
 import { FileUploadController } from "../controller/file-upload.controller.ts"
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
+import { unlink } from "fs/promises";
 
 const stat = promisify(fs.stat);
-const unlink = promisify(fs.unlink);
 
 const getOptions: any[] = [
   { label: 'Si', value: 'S' },
@@ -1265,7 +1265,7 @@ export class CargaLicenciaController extends BaseController {
         const fechaCreacion = stats.birthtime.getTime();
 
         if (fechaCreacion < limiteFecha) {
-          await unlink(filePath);
+          try {  await unlink(filePath) }catch(error){}
           console.log(`Archivo ${file} borrado.`);
         }
       });

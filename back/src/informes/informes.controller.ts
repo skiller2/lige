@@ -1,8 +1,9 @@
 import type { NextFunction, Request, Response } from "express"
 import { BaseController, ClientException } from "../controller/base.controller.ts"
 import { dataSource } from "../data-source.ts"
-import { mkdirSync, existsSync, readFileSync, unlinkSync, mkdir, createWriteStream, writeFile, writeFileSync } from "node:fs"
+import { mkdirSync, existsSync, writeFileSync } from "node:fs"
 import { tmpName } from "../server.ts"
+import { unlink } from "node:fs/promises"
 
 export class InformesController extends BaseController {
   directory = process.env.PATH_INFORMES || "tmp"
@@ -93,8 +94,8 @@ export class InformesController extends BaseController {
 
       writeFileSync(tmpfilename, new Uint8Array(buffer));
 
-      res.download(tmpfilename, `${Reporte}.${extension}`, (msg) => {
-        unlinkSync(tmpfilename);
+      res.download(tmpfilename, `${Reporte}.${extension}`, async (msg) => {
+        await unlink(tmpfilename);
       });
 
     } catch (error) {

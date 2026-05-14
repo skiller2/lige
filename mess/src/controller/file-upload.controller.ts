@@ -14,7 +14,7 @@ import * as CryptoJS from 'crypto-js';
 
 
 const stat = promisify(fs.stat);
-const unlink = promisify(fs.unlink);
+import { unlink } from "fs/promises";
 
 export class FileUploadController extends BaseController {
   static pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige

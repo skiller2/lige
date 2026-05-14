@@ -1,5 +1,6 @@
-import { readdirSync, unlinkSync } from "node:fs";
+import { readdirSync } from "node:fs";
 import path from "path";
+import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
 
 export class Utils {
@@ -45,7 +46,7 @@ export class Utils {
   }
 
 
-  static removeBotFileSessions() {
+  static async removeBotFileSessions() {
 
     const directoryPath = path.join(process.cwd(), './bot_sessions')
 
@@ -56,14 +57,14 @@ export class Utils {
 
     try {
       const archivos = readdirSync(directoryPath);
-      archivos.forEach(archivo => {
+      archivos.forEach(async archivo => {
         if (pattern.test(archivo)) {
           const rutaArchivo = path.join(directoryPath, archivo);
-          unlinkSync(rutaArchivo);
+          await unlink(rutaArchivo);
         }
       });
       const rutaArchivo = path.join(directoryPath, 'baileys_store.json');
-      unlinkSync(rutaArchivo);
+      await unlink(rutaArchivo);
 
     } catch (error) {
       const errMsg = `Error al eliminar archivos de sesión: ${error}`
