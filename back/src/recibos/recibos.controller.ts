@@ -118,7 +118,7 @@ export class RecibosController extends BaseController {
     let EventoLogCodigo = 0
 
     try {
-      ({ EventoLogCodigo } = await this.eventoLogInicio(queryRunner, "Recibos", req.body, usuario, ip, 'REC'))
+      ({ EventoLogCodigo } = await this.eventoLogInicio(queryRunner, "Generación Recibos", req.body, usuario, ip, 'REC'))
 
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
@@ -161,7 +161,7 @@ export class RecibosController extends BaseController {
         mkdirSync(this.directoryRecibo + '/' + directorPath, { recursive: true });
       }
 
-      await this.cleanDirectories(queryRunner, this.directoryRecibo + '/' + directorPath, periodo.year, periodo.month, isUnique, directorPathUnique, den_documento)
+      // await this.cleanDirectories(queryRunner, this.directoryRecibo + '/' + directorPath, periodo.year, periodo.month, isUnique, directorPathUnique, den_documento)
 
       const htmlContentGeneral = await this.getReciboHtmlContentGeneral(fechaRecibo, '', periodo.year, periodo.month)
       const htmlContentCoordinador = await this.getReciboHtmlContentGeneral(fechaRecibo, 'Coordinador', periodo.year, periodo.month)
@@ -459,7 +459,14 @@ export class RecibosController extends BaseController {
     if (personalId != 0 && personalId != undefined)
       createSelect += ` AND per.PersonalId = @3`
 
-    createSelect += `)ORDER BY per.PersonalId ASC`
+    createSelect += `)  and per.PersonalId not in (
+        select distinct doc.PersonalId
+        from Documento doc 
+        left join lige.dbo.liqmaperiodo peri on peri.mes=doc.DocumentoMes and peri.anio=doc.DocumentoAnio
+        where doc.DocumentoTipoCodigo='REC' and peri.periodo_id=@0 and doc.DocumentoNombreArchivo LIKE '%-C-%'
+      )  ORDER BY per.PersonalId ASC`
+
+    
 
     return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId, fecha])
   }
@@ -505,13 +512,19 @@ export class RecibosController extends BaseController {
   
       SELECT DISTINCT liq.persona_id
       FROM lige.dbo.liqmamovimientos liq
-
       WHERE liq.tipocuenta_id = 'G' AND liq.periodo_id = @0`
 
     if (personalId != 0 && personalId != undefined)
       createSelect += ` AND per.PersonalId = @3`
 
-    createSelect += `)ORDER BY per.PersonalId ASC`
+    createSelect += `)  and
+      per.PersonalId not in (
+        select distinct doc.PersonalId
+        from Documento doc 
+        left join lige.dbo.liqmaperiodo peri on peri.mes=doc.DocumentoMes and peri.anio=doc.DocumentoAnio
+        where doc.DocumentoTipoCodigo='REC' and peri.periodo_id=@0 and doc.DocumentoNombreArchivo LIKE '%-G-%'
+      )
+      ORDER BY per.PersonalId ASC`
 
     return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId, fecha])
   }
