@@ -18,6 +18,7 @@ import type { QueryRunner } from "typeorm";
 import { CustodiaController } from "../controller/custodia.controller.ts";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
+import { unlink } from "fs/promises";
 
 export class RecibosController extends BaseController {
   directoryRecibo = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/recibos'
@@ -29,6 +30,8 @@ export class RecibosController extends BaseController {
     bodyDef: './assets/recibo/recibo-body.def.html',
     footerDef: './assets/recibo/recibo-footer.def.html'
   }
+
+
 
 
   constructor() {
@@ -233,25 +236,6 @@ export class RecibosController extends BaseController {
           movimiento.GrupoActividadDetalle, periodo_id, page, htmlContentCoordinador.body, htmlContentCoordinador.header, htmlContentCoordinador.footer, 'C')
       }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       if (!isUnique)
         await this.updateTablePeriodo(queryRunner, periodo_id, usuario, ip, fechaActual)
 
@@ -259,10 +243,10 @@ export class RecibosController extends BaseController {
       await browser.close()
       //      await queryRunner.commitTransaction()
 
+      const result = `Se generaron ${movimientosPendientes.length} recibos General y ${movimientosPendientesC.length} recibos de Coordinador correctamente para el periodo ${periodo.month}/${periodo.year}`
+      await this.eventoLogFin(queryRunner, EventoLogCodigo, 'COM', { res: result, 'CantRecibosGeneral': movimientosPendientes, 'CantRecibosCoordinador': movimientosPendientesC }, usuario, ip)
 
-      await this.eventoLogFin(queryRunner, EventoLogCodigo, 'COM', { res: `Procesado correctamente`, 'CantRecibos': movimientosPendientes.length }, usuario, ip)
-
-      this.jsonRes([], res, `Se generaron ${movimientosPendientes.length} recibos correctamente para el periodo ${periodo.month}/${periodo.year}`);
+      this.jsonRes([], res, result);
 
     } catch (error) {
 
@@ -353,7 +337,7 @@ export class RecibosController extends BaseController {
 
 
     for (const liquidacionElement of liquidacionInfo) {
-      const detalleCliente = (liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + ((liquidacionElement.ClienteElementoDependienteId) ? '/' + liquidacionElement.ClienteElementoDependienteId : '')  : '' 
+      const detalleCliente = (liquidacionElement.ClienteId) ? liquidacionElement.ClienteId + ((liquidacionElement.ClienteElementoDependienteId) ? '/' + liquidacionElement.ClienteElementoDependienteId : '') : ''
 
       switch (liquidacionElement.indicador) {
         case "A":
@@ -361,7 +345,7 @@ export class RecibosController extends BaseController {
           adelanto += liquidacionElement.SumaImporte
           break;
         case "R":
-          htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} ${(liquidacionElement.detalle)? '- ' + liquidacionElement.detalle : ''} ${detalleCliente}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte * -1)}</td></tr>`
+          htmlEgreso += `<tr><td>${liquidacionElement.des_movimiento} ${(liquidacionElement.detalle) ? '- ' + liquidacionElement.detalle : ''} ${detalleCliente}</td><td>${this.currencyPipe.format(liquidacionElement.SumaImporte * -1)}</td></tr>`
           retenciones += liquidacionElement.SumaImporte
           break;
         case "D":
@@ -379,11 +363,11 @@ export class RecibosController extends BaseController {
     if (adelanto > 0)
       htmlAdelanto += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(adelanto)}</td></tr>`
     if (retribucion > 0)
-      htmlIngreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retribucion )}</td></tr>`
+      htmlIngreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retribucion)}</td></tr>`
     if (retenciones > 0)
-      htmlEgreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retenciones* -1)}</td></tr>`
+      htmlEgreso += `<tr class="subtotal"><td>Subtotal:</td><td>${this.currencyPipe.format(retenciones * -1)}</td></tr>`
 
-    neto = adelanto + retribucion - retenciones 
+    neto = adelanto + retribucion - retenciones
 
     htmlContent = htmlContent.replace(/\${retribucion}/g, this.currencyPipe.format(retenciones));
     htmlContent = htmlContent.replace(/\${retenciones}/g, this.currencyPipe.format(retribucion));
@@ -402,6 +386,10 @@ export class RecibosController extends BaseController {
     await page.setContent(htmlContent);
 
     //fs.writeFileSync("./full.html",htmlContent)
+    try { 
+    await unlink(filesPath)
+    }catch(error){}
+    
     await page.pdf({
       path: filesPath,
       margin: { top: '80px', right: '0px', bottom: '50px', left: '0px' },
@@ -466,7 +454,7 @@ export class RecibosController extends BaseController {
         where doc.DocumentoTipoCodigo='REC' and peri.periodo_id=@0 and doc.DocumentoNombreArchivo LIKE '%-C-%'
       )  ORDER BY per.PersonalId ASC`
 
-    
+
 
     return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId, fecha])
   }
@@ -942,7 +930,7 @@ export class RecibosController extends BaseController {
                         opacity: 0.6;">PRUEBA</div>`
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       const recibosPersonal = (tipocuenta_id == 'G') ?
-        await this.getLiquidacionCuentaGeneral(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual):
+        await this.getLiquidacionCuentaGeneral(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual) :
         await this.getLiquidacionCuentaCoordinador(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual)
 
 
