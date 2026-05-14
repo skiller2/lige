@@ -3,14 +3,10 @@
   <div nz-row style="display: flex; justify-content: space-between; align-items: center;">
 
     <div nz-row nzSpan="12">
-      <!-- <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
-      <nz-form-control [nzSpan]="14">
-        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="onChange($event)" />
-      </nz-form-control> -->
     </div>
 
     <ul nz-menu nzMode="horizontal" style="display: flex;">
-      <li nz-menu-item  nzMatchRouter>
+      <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'efecto', 'personal']">Personal</a>
       </li>
@@ -42,41 +38,22 @@
 
   </div>
 
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/efecto/personal">Personal</a>
-      <ng-template nz-tab>
-        <app-table-personal-efecto [refreshGrid]="refreshTick()"></app-table-personal-efecto>
-      </ng-template>
-    </nz-tab>
-
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/efecto/objetivos">Objetivos</a>
-      <ng-template nz-tab>
-        <app-table-objetivos-efecto [refreshGrid]="refreshTick()"></app-table-objetivos-efecto>
-      </ng-template>
-    </nz-tab>
-
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/efecto/deposito">Depósito</a>
-      <ng-template nz-tab>
-        <app-table-deposito-efecto [refreshGrid]="refreshTick()"></app-table-deposito-efecto>
-      </ng-template>
-    </nz-tab>
-
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/efecto/proveedores">Proveedores</a>
-      <ng-template nz-tab>
-        <app-table-proveedores-efecto [refreshGrid]="refreshTick()"></app-table-proveedores-efecto>
-      </ng-template>
-    </nz-tab>
-
-    <nz-tab>
-      <a nz-tab-link routerLink="/ges/efecto/general">General</a>
-      <ng-template nz-tab>
-        <app-table-efecto-general [refreshGrid]="refreshTick()"></app-table-efecto-general>
-      </ng-template>
-    </nz-tab>
-  </nz-tabs>
+  @switch (activeTab()) {
+    @case ('personal') {
+      <app-table-personal-efecto [refreshGrid]="refreshTick()" />
+    }
+    @case ('objetivos') {
+      <app-table-objetivos-efecto [refreshGrid]="refreshTick()" />
+    }
+    @case ('deposito') {
+      <app-table-deposito-efecto [refreshGrid]="refreshTick()" />
+    }
+    @case ('proveedores') {
+      <app-table-proveedores-efecto [refreshGrid]="refreshTick()" />
+    }
+    @case ('general') {
+      <app-table-efecto-general [refreshGrid]="refreshTick()" />
+    }
+  }
 
 </nz-card>

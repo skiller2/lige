@@ -8,6 +8,9 @@ import { TableDepositoEfectoComponent } from '../table-deposito-efecto/table-dep
 import { TableProveedoresEfectoComponent } from '../table-proveedores-efecto/table-proveedores-efecto';
 import { TableEfectoGeneralComponent } from '../table-efecto-general/table-efecto-general';
 import { SettingsService } from '@delon/theme';
+import { ActivatedRoute } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 @Component({
   selector: 'app-efecto',
   imports: [
@@ -24,6 +27,12 @@ import { SettingsService } from '@delon/theme';
 })
 export class EfectoComponent {
   private settingsService = inject(SettingsService)
+  private route = inject(ActivatedRoute)
+
+  activeTab = toSignal(
+    this.route.params.pipe(map(p => (p['tab'] as string) || 'personal')),
+    { initialValue: 'personal' }
+  )
   refreshTick = signal(0)
 
   ngOnInit() {
