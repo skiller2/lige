@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { BaseController } from "../controller/base.controller.ts";
+import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { dataSource } from "../data-source.ts";
 //import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {
@@ -118,30 +118,38 @@ export class AuthMiddleware {
     return next()
   }
 
-  hasAuthResp = (skipNextonPass: boolean) => {
+  hasAuthResp = () =>{
     return async (req, res, next) => {
       const stmActual = new Date();
       const PersonalId = res.locals.PersonalId
-      const PersonalId_auth = req.params.personalIdRel
+      const PersonalId_auth = req.params.personalId
 
       const anio = stmActual.getFullYear()
       const mes = stmActual.getMonth() + 1
-      if (PersonalId == PersonalId_auth) {
-        res.locals.skipMiddleware = skipNextonPass
-        res.locals.authResp = true
-        return next()
-      }
-      if (PersonalId < 1) {
-        return next()
-      }
       const queryRunner = dataSource.createQueryRunner()
 
-      const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
-      let listGrupos = []
-      for (const row of grupos)
-        listGrupos.push(row.GrupoActividadId)
-      if (listGrupos.length > 0) {
-        let resPers = await queryRunner.query(`
+      try {
+
+
+        if (PersonalId == PersonalId_auth) {
+          res.locals.authResp = true
+          return next()
+        }
+        if (PersonalId < 1) {
+          return next()
+        }
+
+        const grupos = res.locals.GrupoActividad //|| await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
+        let listGrupos = []
+        console.log('grupos', grupos);
+
+        if (grupos.length < 0) return next()
+
+
+        listGrupos = grupos.map(row => row.GrupoActividadId)
+        for (const data of listGrupos) {
+
+          let resPers = await queryRunner.query(`
         SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
         WHERE gap.GrupoActividadPersonalPersonalId = @0  AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
         ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
@@ -151,14 +159,21 @@ export class AuthMiddleware {
         ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${listGrupos.join(',')})
         AND gap.GrupoActividadJerarquicoComo = 'J'
         `,
-          [PersonalId_auth, anio, mes])
-        if (resPers.length > 0) {
-          res.locals.skipMiddleware = skipNextonPass
-          res.locals.authResp = true
-          return next()
+            [PersonalId_auth, anio, mes])
+          if (resPers.length > 0) {
+            res.locals.authResp = true
+            return next()
+          }
         }
+        return next()
+      } catch (error) {
+        console.error('Error en hasAuthResp:', error);
+
+      } finally {
+        await queryRunner.release();
       }
-      return next()
+
+
 
     }
   }
