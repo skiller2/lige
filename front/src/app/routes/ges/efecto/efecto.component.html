@@ -8,6 +8,10 @@
     <ul nz-menu nzMode="horizontal" style="display: flex;">
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'efecto', 'general']">General</a>
+      </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'efecto', 'personal']">Personal</a>
       </li>
       <li nz-menu-item nzMatchRouter>
@@ -22,10 +26,7 @@
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'efecto', 'proveedores']">Proveedores</a>
       </li>
-      <li nz-menu-item nzMatchRouter>
-        <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'efecto', 'general']">General</a>
-      </li>
+
     </ul>
 
     <nz-button-group nz-button nz-buttonGroup>
@@ -35,25 +36,26 @@
         <span nz-icon nzType="reload" nzTheme="outline"></span>
       </button>
     </nz-button-group>
+    {{ activeTab()}}
 
   </div>
 
   @switch (activeTab()) {
-    @case ('personal') {
-      <app-table-personal-efecto [refreshGrid]="refreshTick()" />
-    }
-    @case ('objetivos') {
-      <app-table-objetivos-efecto [refreshGrid]="refreshTick()" />
-    }
-    @case ('deposito') {
-      <app-table-deposito-efecto [refreshGrid]="refreshTick()" />
-    }
-    @case ('proveedores') {
-      <app-table-proveedores-efecto [refreshGrid]="refreshTick()" />
-    }
-    @case ('general') {
-      <app-table-efecto-general [refreshGrid]="refreshTick()" />
-    }
+  @case ('general') {
+  <app-table-efecto-general [refreshGrid]="refreshTick()" />
+  }
+  @case ('personal') {
+  <app-table-personal-efecto [refreshGrid]="refreshTick()" />
+  }
+  @case ('objetivos') {
+  <app-table-objetivos-efecto [refreshGrid]="refreshTick()" />
+  }
+  @case ('deposito') {
+  <app-table-deposito-efecto [refreshGrid]="refreshTick()" />
+  }
+  @case ('proveedores') {
+  <app-table-proveedores-efecto [refreshGrid]="refreshTick()" />
+  }
   }
 
 </nz-card>

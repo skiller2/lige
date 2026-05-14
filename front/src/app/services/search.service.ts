@@ -691,7 +691,7 @@ export class SearchService {
         return of([]);
       })
     );
-  } 
+  }
 
   getTipoImporteSearch(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`/api/parametros-venta/tipoImporte_getOptions`).pipe(
@@ -1272,14 +1272,14 @@ export class SearchService {
   }
 
   getProductos(): Observable<any> {
-      return this.http.get<ResponseJSON<any>>(`api/productos/options`).pipe(
-        map(res => res.data.list),
-        catchError((err, caught) => {
-          console.log('Something went wrong!');
-          return of([]);
-        })
-      );
-    }
+    return this.http.get<ResponseJSON<any>>(`api/productos/options`).pipe(
+      map(res => res.data.list),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
 
   getListGrupoActividadGrupos(filters: any) {
     const parameter = filters
@@ -2273,6 +2273,10 @@ export class SearchService {
   }
 
   getEfectoDeposito(listOptions: any) {
+    if (!listOptions.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+      return of([]);
+    }
 
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoDeposito`, { listOptions }).pipe(
       map(res => res.data),
@@ -2284,6 +2288,10 @@ export class SearchService {
   }
 
   getEfectoProveedores(listOptions: any) {
+    if (!listOptions.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+      return of([]);
+    }
 
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoProveedores`, { listOptions }).pipe(
       map(res => res.data),
@@ -2295,7 +2303,11 @@ export class SearchService {
   }
 
   getEfectoGeneral(listOptions: any) {
-   
+    if (!listOptions.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+      return of([]);
+    }
+
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoGeneral`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
@@ -2535,7 +2547,7 @@ export class SearchService {
       })
     );
   }
-  
+
   getEventoLogClaseOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/evento-log/clase/options`).pipe(
       map(res => res.data),

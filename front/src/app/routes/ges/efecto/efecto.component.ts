@@ -30,8 +30,8 @@ export class EfectoComponent {
   private route = inject(ActivatedRoute)
 
   activeTab = toSignal(
-    this.route.params.pipe(map(p => (p['tab'] as string) || 'personal')),
-    { initialValue: 'personal' }
+    this.route.params.pipe(map(p => (p['tab'] as string) || 'general')),
+    { initialValue: 'general' }
   )
   refreshTick = signal(0)
 
