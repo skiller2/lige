@@ -56,12 +56,9 @@ export class TableObjetivosEfectoComponent {
   })
 
   private readonly loadingSrv = inject(LoadingService)
-
-  constructor(
-    private apiService: ApiService,
-    private angularUtilService: AngularUtilService,
-    public searchService: SearchService
-  ) { }
+  private apiService = inject(ApiService)
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
 
   columns = toSignal(this.apiService.getCols('/api/efecto/colsObjetivos'), { initialValue: [] as Column[] })
 
