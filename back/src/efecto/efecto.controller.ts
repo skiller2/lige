@@ -571,7 +571,7 @@ const listaColumnasEfectoGeneral: any[] = [
     searchHidden: false,
   },
   {
-    name: "Obj. Descripción",
+    name: "Objetivo",
     type: "string",
     id: "ClienteElementoDependienteDescripcion",
     field: "ClienteElementoDependienteDescripcion",

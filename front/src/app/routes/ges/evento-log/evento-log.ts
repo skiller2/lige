@@ -99,9 +99,9 @@ export class EventoLogComponent {
         meta = { columns: {}, ...previousItemMetadata(rowNumber) }
 
       if (item?.Descripcion === 'Error')
-        meta.columns = { ...meta.columns, Descripcion: { cssClass: 'cell-error' } }
+        meta.cssClasses = (meta.cssClasses ? meta.cssClasses + ' ' : '') + 'row-error'
       else if (item?.Descripcion === 'Completado')
-        meta.columns = { ...meta.columns, Descripcion: { cssClass: 'cell-completado' } }
+        meta.cssClasses = (meta.cssClasses ? meta.cssClasses + ' ' : '') + 'row-completado'
 
       return meta
     }
