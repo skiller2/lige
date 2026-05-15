@@ -1,5 +1,5 @@
 
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { TablePersonalEfectoComponent } from '../table-personal-efecto/table-personal-efecto.component';
@@ -33,13 +33,35 @@ export class EfectoComponent {
     this.route.params.pipe(map(({ tab }) => tab || 'general')),
     { initialValue: 'general' }
   )
-  refreshTick = signal(0)
+
+  refreshTickGeneral = signal(0)
+  refreshTickPersonal = signal(0)
+  refreshTickObjetivos = signal(0)
+  refreshTickDeposito = signal(0)
+  refreshTickProveedores = signal(0)
+
+  visitedTabs = signal<Set<string>>(new Set())
+
+  private trackVisited = effect(() => {
+    const tab = this.activeTab()
+    if (!tab) return
+    const visited = this.visitedTabs()
+    if (!visited.has(tab)) {
+      this.visitedTabs.set(new Set(visited).add(tab))
+    }
+  })
 
   ngOnInit() {
     this.settingsService.setLayout('collapsed', true)
   }
 
   reloadGrid() {
-    this.refreshTick.update(n => n + 1)
+    switch (this.activeTab()) {
+      case 'general':     this.refreshTickGeneral.update(n => n + 1); break
+      case 'personal':    this.refreshTickPersonal.update(n => n + 1); break
+      case 'objetivos':   this.refreshTickObjetivos.update(n => n + 1); break
+      case 'deposito':    this.refreshTickDeposito.update(n => n + 1); break
+      case 'proveedores': this.refreshTickProveedores.update(n => n + 1); break
+    }
   }
 }

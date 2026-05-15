@@ -39,32 +39,30 @@
   </div>
 
 
-  @switch (activeTab()) {
-    @case ('personal') {
-       @defer (on immediate){
-      <app-table-personal-efecto [refreshGrid]="refreshTick()" />
-        }
-    }
-    @case ('objetivos') {
-        @defer (on immediate){
-      <app-table-objetivos-efecto [refreshGrid]="refreshTick()" />
-       }
-    }
-    @case ('deposito') {
-        @defer (on immediate){
-      <app-table-deposito-efecto [refreshGrid]="refreshTick()" />
-      }
-    }
-    @case ('proveedores') {
-        @defer (on immediate){
-      <app-table-proveedores-efecto [refreshGrid]="refreshTick()" />
-      }
-    }
-    @case ('general') {
-        @defer (on immediate){
-      <app-table-efecto-general [refreshGrid]="refreshTick()" />
-      }
-    }
+  @if (visitedTabs().has('general')) {
+    <div [hidden]="activeTab() !== 'general'">
+      <app-table-efecto-general [refreshGrid]="refreshTickGeneral()" />
+    </div>
+  }
+  @if (visitedTabs().has('personal')) {
+    <div [hidden]="activeTab() !== 'personal'">
+      <app-table-personal-efecto [refreshGrid]="refreshTickPersonal()" />
+    </div>
+  }
+  @if (visitedTabs().has('objetivos')) {
+    <div [hidden]="activeTab() !== 'objetivos'">
+      <app-table-objetivos-efecto [refreshGrid]="refreshTickObjetivos()" />
+    </div>
+  }
+  @if (visitedTabs().has('deposito')) {
+    <div [hidden]="activeTab() !== 'deposito'">
+      <app-table-deposito-efecto [refreshGrid]="refreshTickDeposito()" />
+    </div>
+  }
+  @if (visitedTabs().has('proveedores')) {
+    <div [hidden]="activeTab() !== 'proveedores'">
+      <app-table-proveedores-efecto [refreshGrid]="refreshTickProveedores()" />
+    </div>
   }
 
 </nz-card>

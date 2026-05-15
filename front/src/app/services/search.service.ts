@@ -2319,6 +2319,8 @@ export class SearchService {
 
   getEfectoByPersonalId(personalId: number) {
     if (!personalId) {
+            this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+
       return of([]);
     }
     return this.http.get<ResponseJSON<any>>(`api/efecto/personal/${personalId}`).pipe(
@@ -2332,6 +2334,8 @@ export class SearchService {
 
   getEfectoByObjetivoId(objetivoId: number) {
     if (!objetivoId) {
+            this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+
       return of([]);
     }
     return this.http.get<ResponseJSON<any>>(`api/efecto/objetivo/${objetivoId}`).pipe(

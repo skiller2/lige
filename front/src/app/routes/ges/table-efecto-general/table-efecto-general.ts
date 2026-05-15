@@ -38,6 +38,7 @@ export class TableEfectoGeneralComponent {
     filtros: [],
     sort: null,
   })
+  filtersReady = signal(false)
   startFilters = signal<Selections[]>([
     { index: 'StockStock', condition: 'AND', operator: '>', value: '0', closeable: true },
   ])
@@ -50,15 +51,20 @@ export class TableEfectoGeneralComponent {
   columns = toSignal(this.apiService.getCols('/api/efecto/colsEfectoGeneral'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
+    params: () => this.filtersReady()
+      ? { options: this.listOptions(), refresh: this.refreshGrid() }
+      : undefined,
     loader: async ({ params }) => {
-      let response: any = []
+      if (!params.options?.filtros?.length) return []
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
-        response = await firstValueFrom(this.searchService.getEfectoGeneral(params.options))
-      } catch (_e) { }
-      this.loadingSrv.close()
-      return response || []
+        const response = await firstValueFrom(this.searchService.getEfectoGeneral(params.options))
+        return response || []
+      } catch (_e) {
+        return []
+      } finally {
+        this.loadingSrv.close()
+      }
     },
     defaultValue: []
   })
@@ -84,6 +90,7 @@ export class TableEfectoGeneralComponent {
 
   listOptionsChange(options: any): void {
     this.listOptions.set(options);
+    if (!this.filtersReady()) this.filtersReady.set(true);
   }
 
   angularGridReady(angularGrid: any): void {
