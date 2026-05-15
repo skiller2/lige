@@ -1044,7 +1044,7 @@ export class ObjetivosController extends BaseController {
     }
 
     async validateDateAndCreateContrato(queryRunner: any, ContratoFechaDesde: Date, ContratoFechaDesdeOLD: Date, ContratoFechaHasta: Date, ContratoFechaHastaOLD: Date, FechaModificada: boolean, ClienteId: number, ClienteElementoDependienteId: number, ObjetivoId: number, ContratoId: number, ip: string, usuarioId: number, usuario: string) {
-
+        
         let createNewContrato = false
         ContratoFechaDesde = ContratoFechaDesde ? new Date(ContratoFechaDesde) : null
         ContratoFechaDesdeOLD = ContratoFechaDesdeOLD ? new Date(ContratoFechaDesdeOLD) : null
@@ -1071,11 +1071,11 @@ export class ObjetivosController extends BaseController {
             return true
         }
         if (!ContratoFechaDesde) {
-            throw new ClientException(`Debe completar el campo Contrato Desde.`)
+            throw new ClientException(`Debe completar el campo 'Contrato Desde'.`)
         }
 
         if (ContratoFechaHasta && ContratoFechaDesde > ContratoFechaHasta) {
-            throw new ClientException(`La fecha desde no puede ser mayor a la fecha hasta`)
+            throw new ClientException(`La fecha Desde del contrato no puede ser mayor a la fecha hasta`)
         }
         const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
         const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
@@ -1099,13 +1099,13 @@ export class ObjetivosController extends BaseController {
         if (!ContratoFechaDesdeOLD && !ContratoFechaHastaOLD) {
 
             if (ContratoFechaDesde.getTime() <= FechaCierre.getTime()) {
-                throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                throw new ClientException(`La fecha Desde del contrato debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
             }
             if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                throw new ClientException(`La fecha Desde del contrato no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
             }
             if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
-                throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limit. ${this.dateOutputFormat(FechaCierre)}`)
+                throw new ClientException(`La fecha Hasta del contrato debe ser igual o mayor a la fecha límite. ${this.dateOutputFormat(FechaCierre)}`)
             }
             createNewContrato = true
         }
@@ -1113,7 +1113,7 @@ export class ObjetivosController extends BaseController {
         // validacion para no ingresar fecha desde en un periodo ya cerrado
         if (!createNewContrato && ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre) {
             if (ContratoFechaDesdeOLD.getTime() !== ContratoFechaDesde.getTime()) {
-                throw new ClientException(`No se puede modificar la fecha desde ya que pertenece a un periodo ya cerrado`);
+                throw new ClientException(`No se puede modificar la fecha Desde del contrato ya que pertenece a un periodo ya cerrado`);
             }
         }
 
@@ -1122,7 +1122,7 @@ export class ObjetivosController extends BaseController {
         if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
 
             if (ContratoFechaHasta && ContratoFechaHasta.getTime() < FechaCierre.getTime()) {
-                throw new ClientException(`La fecha de cierre debe ser igual o mayor a la fecha limite. ${this.dateOutputFormat(FechaCierre)}`)
+                throw new ClientException(`La fecha Hasta del contrato debe ser igual o mayor a la fecha límite. ${this.dateOutputFormat(FechaCierre)}`)
             }
 
         }
@@ -1130,10 +1130,10 @@ export class ObjetivosController extends BaseController {
         // Desde > FecUltPer, se puede modificar si el nuevo Desde > FecUltPer y no puede quedar vacío
         if (ContratoFechaDesdeOLD > FechaCierre) {
             if (ContratoFechaDesde < FechaCierre) {
-                throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                throw new ClientException(`La fecha Desde del contrato debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
             }
             if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha Desde no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                throw new ClientException(`La fecha Desde del contrato no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
             }
         }
 
@@ -1141,8 +1141,7 @@ export class ObjetivosController extends BaseController {
         if (ClienteElementoDependienteId != null) {
 
             //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
-
-            if (ContratoId && !createNewContrato) {
+                if (ContratoId && !createNewContrato) {
                 await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteElementoDependienteContratoFechaDesde = @3, ClienteElementoDependienteContratoFechaHasta = @4
                     WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND ClienteElementoDependienteContratoId = @2`,
                     [ClienteId, ClienteElementoDependienteId, ContratoId, ContratoFechaDesde, ContratoFechaHasta])
@@ -1226,10 +1225,10 @@ export class ObjetivosController extends BaseController {
         )
 
         if (gao.length && infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal && gao[0].GrupoActividadObjetivoDesde > GrupoActividadObjetivoDesde) {
-            throw new ClientException(`La fecha Desde no puede ser menor a ${this.dateOutputFormat(gao[0].GrupoActividadObjetivoDesde)}`)
+            throw new ClientException(`La fecha Desde del Grupo Actividad no puede ser menor a ${this.dateOutputFormat(gao[0].GrupoActividadObjetivoDesde)}`)
         }
         if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal && GrupoActividadObjetivoDesde <= FechaCierre) {
-            throw new ClientException(`La  fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+            throw new ClientException(`La fecha Desde del Grupo Actividad debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
         }
         // Restar un día a la fecha
 
