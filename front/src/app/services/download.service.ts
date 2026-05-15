@@ -17,9 +17,6 @@ export class DownloadService {
     this.fileName = ''
   }
 
-
-//  constructor() { }
-
   private downloadURL(data: string, fileName: string) {
     const a = document.createElement('a')
     //    a.textContent = "Descarga"

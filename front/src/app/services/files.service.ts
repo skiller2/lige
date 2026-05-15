@@ -5,7 +5,6 @@ import { Injectable } from '@angular/core';
 })
 export class FilesService {
 
-  constructor() { }
   getArrayBufferFromFile(file: File) {
     return new Promise<any>((res, rej) => {
       const reader = new FileReader()

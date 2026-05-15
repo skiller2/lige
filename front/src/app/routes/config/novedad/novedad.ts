@@ -22,8 +22,6 @@ export class NovedadComponent {
   private apiService = inject(ApiService)
   NovedaCodigo = signal('')
 
-  constructor() {}
-
   ngOnInit() {
     setTimeout(async () => {
       this.load(false)

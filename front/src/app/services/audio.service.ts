@@ -7,12 +7,12 @@ type SoundKey = 'success' | 'error';
 export class AudioService {
 
     private sounds = new Map<SoundKey, HTMLAudioElement>();
-
-    constructor() {
+    private init() {
         this.register('success', 'assets/sounds/success_beep.wav');
         this.register('error', 'assets/sounds/error_beep.wav');
     }
 
+    private _init = this.init();
     // ✅ Register sounds (library-like behavior)
     register(key: SoundKey, url: string) {
         if (!this.sounds.has(key)) {
