@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Injector, ViewEncapsulation, inject, viewChild, ChangeDetectionStrategy, signal, model, input, output, Signal, } from '@angular/core';
+import { Component, ViewEncapsulation, inject, viewChild, ChangeDetectionStrategy, signal, model, input, output, Signal, } from '@angular/core';
 import { AngularUtilService } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
@@ -65,9 +65,7 @@ export class ClientesFormComponent {
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
-  private injector = inject(Injector)
-  //  visibleDrawer: boolean = false
-
+  
   objClienteContacto = {
     ContactoId: 0,
     nombre: "",

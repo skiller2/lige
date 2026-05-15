@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, model, viewChild, computed, Injector, effect, resource } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, model, viewChild, computed, resource } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
@@ -65,7 +65,6 @@ export class HabilitacionesComponent {
   private searchService = inject(SearchService)
   private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
-  // private injector = inject(Injector)
   startFilters = signal<Selections[]>([])
 
   columns = toSignal(this.apiService.getCols('/api/habilitaciones/cols').pipe(

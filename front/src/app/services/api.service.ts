@@ -1,4 +1,4 @@
-import { inject, Injectable, Injector, LOCALE_ID } from '@angular/core';
+import { inject, Injectable, LOCALE_ID } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
 import { Observable, catchError, defer, filter, map, of, tap, throwError } from 'rxjs';
@@ -19,10 +19,10 @@ import { FieldTree, ValidationError } from '@angular/forms/signals';
 })
 export class ApiService {
   private http = inject(_HttpClient)
-  private injector = inject(Injector)
   private locale = inject(LOCALE_ID)
   private decimal_mark = inject(DEFAULT_DECIMAL_MARKER)
   private thousand_sep = inject(DEFAULT_THOUSAND_SEPARATOR)
+  private notification = inject(NzNotificationService);
 
   processCBUFile(files: never[], fechaDesde: Date, banco_id: number): Observable<unknown> {
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/procesacbu', { files, fechaDesde, banco_id }).pipe(
@@ -165,10 +165,6 @@ export class ApiService {
 
   isMobile(): boolean {
     return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
-  }
-
-  private get notification(): NzNotificationService {
-    return this.injector.get(NzNotificationService);
   }
 
   getDefaultGridOptions(container: string, detailViewRowCount: number, xlsService: ExcelExportService | ExternalResource, utilService: AngularUtilService, parent: any, viewComponent: any): GridOption {

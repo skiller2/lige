@@ -3,8 +3,7 @@ import { firstValueFrom, Subject } from 'rxjs';
 
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
-import { Injector, inject } from '@angular/core';
-import { SearchService } from '../../services/search.service';
+import { inject } from '@angular/core';
 
 @Component({
     selector: 'app-select-search',

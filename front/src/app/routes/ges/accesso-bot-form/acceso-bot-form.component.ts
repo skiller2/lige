@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, effect, Injector, SimpleChanges, output, } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, output, } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -37,7 +37,6 @@ export class AccesoBotFormComponent {
   addNew = model()
   isLoading = signal(false)
   PersonalId = model(0)
-  private injector = inject(Injector)
   private apiService = inject(ApiService)
   codigo = signal(0)
   dniDisabled = signal(true)

@@ -86,10 +86,7 @@ function handleDataError(injector: Injector, err: HttpErrorResponse, req: HttpRe
           if (e.target?.readyState === 2) {
             const res = JSON.parse(String(e.target.result))
             injector.get(NzNotificationService).error(`Error`, res.msg)
-            
-
             injector.get(AudioService).playError();
-
           }
         }
         reader.readAsText(err.error);

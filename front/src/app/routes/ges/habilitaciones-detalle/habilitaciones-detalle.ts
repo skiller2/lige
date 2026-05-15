@@ -58,7 +58,6 @@ export class HabilitacionesDetalleComponent {
   private searchService = inject(SearchService)
   private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
-  // private injector = inject(Injector)
 
   columnsDetalle$ = this.apiService.getCols('/api/habilitaciones/detalle-cols')
   columnsDoc$ = this.apiService.getCols('/api/habilitaciones/doc-cols')
