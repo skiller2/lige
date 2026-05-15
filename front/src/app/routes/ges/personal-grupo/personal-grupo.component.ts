@@ -9,18 +9,17 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { CommonModule } from '@angular/common';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
-import { Injector } from '@angular/core';
-import { runInInjectionContext } from '@angular/core';
+
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { LoadingService } from '@delon/abc/loading';
 
 @Component({
-    selector: 'app-personal-grupo',
-    imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent],
-    templateUrl: './personal-grupo.component.html',
-    providers: [AngularUtilService, ExcelExportService],
-    styleUrl: './personal-grupo.component.less',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-personal-grupo',
+  imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent],
+  templateUrl: './personal-grupo.component.html',
+  providers: [AngularUtilService, ExcelExportService],
+  styleUrl: './personal-grupo.component.less',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class PersonalGrupoComponent {
@@ -29,7 +28,7 @@ export class PersonalGrupoComponent {
   gridOptionsPersonal!: GridOption
   $selectedResponsablePersonalIdChange = new BehaviorSubject(0);
   $isResponsableDataLoading = new BehaviorSubject(false);
-  
+
 
   //  private searchService = inject(SearchService)
   private apiService = inject(ApiService)
@@ -37,10 +36,15 @@ export class PersonalGrupoComponent {
   private angularUtilService = inject(AngularUtilService)
   private readonly loadingSrv = inject(LoadingService);
 
-  periodo = input({year:0,month:0});
+  periodo = input({ year: 0, month: 0 });
   responsable = model(0)
-  #injector = inject(Injector);
   personalIdlist = model<number[]>([])
+
+  effect = effect(() => {
+    this.periodo()
+    this.selectedValueChange(this.responsable())
+  });
+
 
   columnsPersonal$ = this.apiService.getCols('/api/asistencia/personalxresp/cols').pipe(map((cols: Column[]) => {
     let mapped = cols.map((col: Column) => {
@@ -84,11 +88,11 @@ export class PersonalGrupoComponent {
     this.gridObjPersonal = angularGrid.detail.slickGrid;
 
     if (this.apiService.isMobile())
-      this.angularGridPersonal.gridService.hideColumnByIds(['CUIT','ingresosG_importe','ingresos_horas','egresosG_importe'])
+      this.angularGridPersonal.gridService.hideColumnByIds(['CUIT', 'ingresosG_importe', 'ingresos_horas', 'egresosG_importe'])
 
     this.angularGridPersonal.dataView.onRowsChanged.subscribe((_e: any, _arg: any) => {
       totalRecords(this.angularGridPersonal)
-//      columnTotal('', this.angularGridPersonal)
+      //      columnTotal('', this.angularGridPersonal)
     })
 
   }
@@ -120,10 +124,10 @@ export class PersonalGrupoComponent {
         .pipe(
           map(data => {
             const lista = []
-            
+
             for (const row of data.persxresp)
               lista.push(row.PersonalId)
-            
+
             this.personalIdlist.set(lista)
             return data.persxresp
 
@@ -137,20 +141,12 @@ export class PersonalGrupoComponent {
     this.$selectedResponsablePersonalIdChange.next(event);
     this.$isResponsableDataLoading.next(true);
   }
-  
+
   ngOnInit(): void {
     this.gridOptionsPersonal = this.apiService.getDefaultGridOptions('.gridContainer', 9, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsPersonal.enableRowDetailView = this.apiService.isMobile()
     this.gridOptionsPersonal.showFooterRow = true
     this.gridOptionsPersonal.createFooterRow = true
-
-    runInInjectionContext(this.#injector, () => {
-      effect(() => {
-        this.periodo()
-        this.selectedValueChange(this.responsable())
-      });
-    })
-
 
   }
 

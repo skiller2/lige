@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect, input, model } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, effect, input, model } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';

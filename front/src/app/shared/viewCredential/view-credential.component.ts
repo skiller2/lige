@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, ElementRef, forwardRef, inject, Inject, Injector, Input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation, DOCUMENT } from '@angular/core';
+import { Component, computed, effect, ElementRef, forwardRef, inject, Input, Renderer2, signal, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation, DOCUMENT } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { PersonaObj } from '../schemas/personal.schemas';
 import { SHARED_IMPORTS } from '@shared';
@@ -35,7 +35,6 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     loadedImagesCount = 0
     iframe: any;
     images: any;
-    injector = inject(Injector)
 
     ngOnInit() {
 
