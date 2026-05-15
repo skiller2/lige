@@ -12,6 +12,7 @@ import { ALLOW_ANONYMOUS } from '@delon/auth';
 import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from '../app.config.defaults';
 import { I18NService } from '@core';
 import { FieldTree, ValidationError } from '@angular/forms/signals';
+import { SILENT_NOTIFICATION_ERROR } from '../../context-tokens';
 
 
 @Injectable({
@@ -2142,10 +2143,19 @@ export class ApiService {
   }
 
   getAvisos(): Observable<any[]> {
-    return this.http.get<ResponseJSON<any>>('api/aviso').pipe(
+    return this.http.get(`/api/aviso`,
+      {}, { context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
+      map((res: ResponseJSON<any>) => res.data),
+      catchError(() => of([]))
+    )
+
+
+    /*
+    return this.http.get<ResponseJSON<any>>('api/aviso',{},{ context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
       map((res: ResponseJSON<any>) => res.data),
       catchError(() => of([]))
     );
+    */
   }
 
   marcarAvisoVisto(AvisoId: number): Observable<any> {
