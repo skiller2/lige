@@ -39,18 +39,17 @@ export class PersonalDocumentosDrawerComponent {
     public src = signal<Blob>(new Blob())
     public srcImg = signal<string>('')
 
-    constructor(
-        private searchService: SearchService,
-        private apiService: ApiService,
-    ) {
-        effect(async () => {
-            const newId: number = this.PersonalId()
-            if (newId > 0) {
-                this.formDocumento.reset()
-                this.formDocumento.get('PersonalId')?.setValue(newId)
-            }
-        });
-    }
+    private searchService= inject(SearchService)
+    private apiService= inject(ApiService)
+
+    effect = effect(async () => {
+        const newId: number = this.PersonalId()
+        if (newId > 0) {
+            this.formDocumento.reset()
+            this.formDocumento.get('PersonalId')?.setValue(newId)
+        }
+    });
+
     private destroy$ = new Subject();
     private readonly tokenService = inject(DA_SERVICE_TOKEN);
 

@@ -1,4 +1,4 @@
-import { Component, HostListener, Injector, OnInit, ViewChild, inject, signal } from '@angular/core';
+import { Component, ViewChild, inject, signal } from '@angular/core';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { BehaviorSubject, Subject, catchError, debounceTime, of, switchMap, takeUntil, tap } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
@@ -34,12 +34,10 @@ export class ExcepcionAsistenciaComponent {
   }
 
   public router = inject(Router)
-
+  private notification = inject(NzNotificationService)
 
   constructor(
     private searchService: SearchService,
-    private injector: Injector,
-    private settingService: SettingsService,
     private _route: ActivatedRoute,
     private apiService: ApiService
   ) { }
@@ -221,10 +219,6 @@ export class ExcepcionAsistenciaComponent {
     if (!event) return;
     this.$isPersonalOptionsLoading.next(true);
     this.$searchPersonalChange.next(event);
-  }
-
-  private get notification(): NzNotificationService {
-    return this.injector.get(NzNotificationService);
   }
 
   saveexception() {

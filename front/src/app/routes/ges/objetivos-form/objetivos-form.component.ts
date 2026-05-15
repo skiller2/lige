@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, output, } from '@angular/core';
+import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, output, } from '@angular/core';
 import { AngularUtilService } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
@@ -115,7 +115,6 @@ export class ObjetivosFormComponent {
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
-  private injector = inject(Injector)
   private router = inject(Router);
   private readonly coordinadorCuentaDefault: CoordinadorCuenta = { 
     ObjetivoId:0,

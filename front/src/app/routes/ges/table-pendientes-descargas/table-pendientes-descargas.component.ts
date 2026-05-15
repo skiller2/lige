@@ -1,9 +1,8 @@
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, ViewChild, signal, TemplateRef, Injector, effect } from '@angular/core';
+import { Component, input, inject, ViewChild} from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
-import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { CommonModule } from '@angular/common';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, FileType} from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -42,7 +41,6 @@ export class TablePendientesDescargasComponent {
     private angularUtilServicePersonal = inject(AngularUtilService)
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
-    private injector = inject(Injector)
 
     columns$ = this.apiService.getCols(`/api/documento/cols-no-download`)
 

@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { Component, viewChild, inject, signal, model, computed, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';

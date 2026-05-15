@@ -1,4 +1,4 @@
-import { Injectable, Injector, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import {
   BehaviorSubject,
@@ -33,10 +33,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
   providedIn: 'root',
 })
 export class SearchService {
-  private injector = inject(Injector)
-  private get notification(): NzNotificationService {
-    return this.injector.get(NzNotificationService);
-  }
+  private notification = inject(NzNotificationService);
 
   getListaAsistenciaPersonalAsignado(ObjetivoId: number, anio: number, mes: number) {
     if (!ObjetivoId)

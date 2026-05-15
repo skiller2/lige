@@ -124,11 +124,13 @@ export class LiquidacionesBancoController extends BaseController {
       hidden: false,
     },
     {
-      name: "importe",
+      name: "Importe",
       type: "currency",
       id: "importe",
       field: "importe",
       fieldName: "movpos.importe",
+      searchComponent: "inputForNumberAdvancedSearch",
+      searchType: "numberAdvanced",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -139,6 +141,8 @@ export class LiquidacionesBancoController extends BaseController {
       id: "tipocuenta_id",
       field: "tipocuenta_id",
       fieldName: "movpos.tipocuenta_id",
+      searchComponent: "inputForTipoCuentaSearch",
+      searchType: "string",
       sortable: true,
       hidden: false,
       searchHidden: false

@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, signal, output, effect, viewChild  } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, signal, output, effect, viewChild } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
@@ -13,16 +13,16 @@ import { FileUploadComponent } from "../../../shared/file-upload/file-upload.com
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 
 @Component({
-    selector: 'app-estudios-drawer',
-    imports: [SHARED_IMPORTS, 
-      NzUploadModule, 
-      NzAutocompleteModule,
-      PersonalSearchComponent,
-      CommonModule, 
-      FileUploadComponent],
-    templateUrl: './estudios-drawer.component.html',
-    styleUrl: './estudios-drawer.component.less',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-estudios-drawer',
+  imports: [SHARED_IMPORTS,
+    NzUploadModule,
+    NzAutocompleteModule,
+    PersonalSearchComponent,
+    CommonModule,
+    FileUploadComponent],
+  templateUrl: './estudios-drawer.component.html',
+  styleUrl: './estudios-drawer.component.less',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class EstudiosDrawerComponent {
@@ -32,8 +32,9 @@ export class EstudiosDrawerComponent {
   RefreshEstudio = model<boolean>(false)
   private apiService = inject(ApiService)
   private notification = inject(NzNotificationService)
+  private searchService = inject(SearchService)
   PersonalId = input.required<number>()
-  PersonalEstudioId = input.required<number>() 
+  PersonalEstudioId = input.required<number>()
   PersonalIdForEdit = signal(0)
   ArchivoIdForDelete = 0;
   files = signal<any[]>([])
@@ -44,12 +45,12 @@ export class EstudiosDrawerComponent {
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
   onRefreshEstudio = output<void>();
-  uploading$ = new BehaviorSubject({loading:false,event:null});
-  
+  uploading$ = new BehaviorSubject({ loading: false, event: null });
+
   fileUploadComponent = viewChild.required(FileUploadComponent);
   PersonalEstudioPagina1Id = signal(0)
-  $optionsNivelEstudio = this.searchService.getEstudioSearch() 
-  $optionsCurso = this.searchService.getCursoSearch() 
+  $optionsNivelEstudio = this.searchService.getEstudioSearch()
+  $optionsCurso = this.searchService.getCursoSearch()
 
   fb = inject(FormBuilder)
   formCli = this.fb.group({
@@ -64,42 +65,40 @@ export class EstudiosDrawerComponent {
     PersonalEstudioPagina1Id: 0
   })
 
-  constructor(private searchService: SearchService) { 
-    effect(async() => { 
-      const visible = this.visible()
-      this.ArchivosEstudioAdd = []
-      if (visible) {
-        if (this.PersonalEstudioId() > 0) {
-          let vals = await firstValueFrom(this.apiService.getEstudio(this.PersonalId(), this.PersonalEstudioId()));
-          this.PersonalIdForEdit.set(vals.PersonalId)
-          vals.personalEstudioId = vals.PersonalEstudioId
-          vals.PersonalId = vals.PersonalId
-          vals.TipoEstudioId = vals.TipoEstudioId
-          vals.PersonalEstudioTitulo = vals.PersonalEstudioTitulo
-          vals.CursoHabilitacionId = vals.PersonalEstudioCursoId
-          vals.PersonalEstudioOtorgado = vals.PersonalEstudioOtorgado
-          vals.PersonalEstudioPagina1Id = vals.PersonalEstudioPagina1Id
+  effect = effect(async () => {
+    const visible = this.visible()
+    this.ArchivosEstudioAdd = []
+    if (visible) {
+      if (this.PersonalEstudioId() > 0) {
+        let vals = await firstValueFrom(this.apiService.getEstudio(this.PersonalId(), this.PersonalEstudioId()));
+        this.PersonalIdForEdit.set(vals.PersonalId)
+        vals.personalEstudioId = vals.PersonalEstudioId
+        vals.PersonalId = vals.PersonalId
+        vals.TipoEstudioId = vals.TipoEstudioId
+        vals.PersonalEstudioTitulo = vals.PersonalEstudioTitulo
+        vals.CursoHabilitacionId = vals.PersonalEstudioCursoId
+        vals.PersonalEstudioOtorgado = vals.PersonalEstudioOtorgado
+        vals.PersonalEstudioPagina1Id = vals.PersonalEstudioPagina1Id
 
-          this.formCli.patchValue(vals)
-          this.formCli.markAsUntouched()
-          this.formCli.markAsPristine()
-  
-          if (this.disabled()) {
-            this.tituloDrawer.set(' Consultar Estudio ')
-            this.formCli.disable()
-          } else {
-            this.tituloDrawer.set('Editar Estudio')
-            this.formCli.enable()
-          }
+        this.formCli.patchValue(vals)
+        this.formCli.markAsUntouched()
+        this.formCli.markAsPristine()
+
+        if (this.disabled()) {
+          this.tituloDrawer.set(' Consultar Estudio ')
+          this.formCli.disable()
+        } else {
+          this.tituloDrawer.set('Editar Estudio')
+          this.formCli.enable()
         }
-      } else {
-        this.formCli.reset()
-        this.formCli.enable()
-        this.PersonalIdForEdit.set(0)
-        this.tituloDrawer.set(' Nuevo Estudio ')
       }
-    })
-  }
+    } else {
+      this.formCli.reset()
+      this.formCli.enable()
+      this.PersonalIdForEdit.set(0)
+      this.tituloDrawer.set(' Nuevo Estudio ')
+    }
+  })
 
   async save() {
     this.isSaving.set(true)
@@ -107,17 +106,17 @@ export class EstudiosDrawerComponent {
     try {
       vals.PersonalIdForEdit = this.PersonalIdForEdit()
       const res = await firstValueFrom(this.apiService.setEstudio(vals))
-      if(res.data?.list?.PersonalId > 0) {
+      if (res.data?.list?.PersonalId > 0) {
         this.PersonalIdForEdit.set(res.data?.list?.PersonalId)
         this.PersonalEstudioPagina1Id.set(res.data?.list?.PersonalEstudioPagina1Id)
         this.formCli.patchValue({
-         
+
           PersonalEstudioId: res.data?.list?.PersonalEstudioId,
           PersonalEstudioPagina1Id: res.data?.list?.PersonalEstudioPagina1Id,
         })
-       
+
         this.tituloDrawer.set('Editar Estudio')
-      }  
+      }
       this.fileUploadComponent().LoadArchivosAnteriores(this.PersonalEstudioPagina1Id())
       this.onRefreshEstudio.emit()
       this.formCli.markAsUntouched()
@@ -132,7 +131,7 @@ export class EstudiosDrawerComponent {
     let vals = this.formCli.value
     //borra el estudio
     await firstValueFrom(this.apiService.deleteEstudio(vals))
-    
+
     this.visible.set(false)
     this.onRefreshEstudio.emit()
   }

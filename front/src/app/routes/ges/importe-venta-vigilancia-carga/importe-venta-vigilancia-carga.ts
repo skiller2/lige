@@ -60,16 +60,13 @@ export class ImporteVentaVigilanciaCarga {
     return cols
   }));
 
-
-  constructor() {
-    effect(() => {
-      const year = this.anio();
-      const month = this.mes();
-      if (year && month) {
-        this.formChange$.next('changed');
-      }
-    });
-  }
+  effect = effect(() => {
+    const year = this.anio();
+    const month = this.mes();
+    if (year && month) {
+      this.formChange$.next('changed');
+    }
+  });
 
   $importacionesAnteriores = this.formChange$.pipe(
     debounceTime(500),
@@ -100,8 +97,8 @@ export class ImporteVentaVigilanciaCarga {
 
         try {
           await firstValueFrom(this.apiService.importXLSImporteVenta(filesValue, this.anio(), this.mes()))
-        this.formChange$.next('changed');
-        this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+          this.formChange$.next('changed');
+          this.fileUploadComponent().DeleteFileByExporterror(filesValue)
         } catch (e: any) {
           this.fileUploadComponent().DeleteFileByExporterror(filesValue)
           if (e.error?.data?.list) {

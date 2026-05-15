@@ -36,7 +36,6 @@ export class SeguroComponent {
 
   public apiService = inject(ApiService)
   private readonly loadingSrv = inject(LoadingService)
-  constructor() { }
 
   async processInsurrance() {
     this.calendarView.set(true)

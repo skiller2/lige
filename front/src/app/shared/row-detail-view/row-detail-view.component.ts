@@ -16,7 +16,6 @@ export class RowDetailViewComponent implements OnInit {
   model: any
   parent: any
   columnsDefinition: Column[] =[]
-  constructor() { }
   
   ngOnInit(): void { 
     this.columnsDefinition = this.parent.angularGrid.gridService.getAllColumnDefinitions().filter((data: Column) => data.name != '')

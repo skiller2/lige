@@ -1,4 +1,4 @@
-import { Component, Injector, inject, signal, model, effect, computed, ChangeDetectionStrategy, input, resource  } from '@angular/core';
+import { Component, inject, signal, model, effect, computed, ChangeDetectionStrategy, input, resource  } from '@angular/core';
 import { BehaviorSubject, debounceTime, switchMap, firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -95,7 +95,6 @@ export class PersonalFormComponent {
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
-  // private injector = inject(Injector)
   isLoading = signal(false);
   panelAbiertos = signal<boolean[]>([false, false, false])
   periodo= signal({anio:0, mes:0})

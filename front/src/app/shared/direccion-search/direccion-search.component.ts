@@ -16,7 +16,6 @@ import { doOnSubscribe } from '../../../app/services/api.service'
 import { NzSelectComponent } from 'ng-zorro-antd/select'
 import { SHARED_IMPORTS } from '@shared'
 import { CommonModule } from '@angular/common'
-import { Injector, inject } from '@angular/core';
 import { toSignal} from '@angular/core/rxjs-interop';
 @Component({
     selector: 'app-direccion-search',

@@ -1,5 +1,5 @@
 
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
+import { Component, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ActivatedRoute, Router } from '@angular/router';

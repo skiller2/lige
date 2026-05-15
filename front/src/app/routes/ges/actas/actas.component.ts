@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Injector, ChangeDetectorRef, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
+import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column, Editors, EditCommand, SlickGlobalEditorLock } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
@@ -50,7 +50,6 @@ export class ActasComponent {
         private searchService: SearchService,
         private apiService: ApiService,
         private angularUtilService: AngularUtilService,
-        private injector: Injector,
     ) { }
 
     columns$ = this.apiService.getCols('/api/actas/cols').pipe(map((cols: Column<any>[]) => {

@@ -40,10 +40,7 @@ export class FileUploadComponent implements ControlValueAccessor {
   public src = signal<Blob>(new Blob())
   private readonly http = inject(HttpClient);
 
-  constructor() {
-    pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge'
-
-    effect(async () => {
+  effect = effect(async () => {
       const desde = this.desdeSelected()
       const hasta = this.hastaSelected()
       if (!this.showDesdeHasta()) return this.disabledByDesdeHasta.set(false)
@@ -54,6 +51,9 @@ export class FileUploadComponent implements ControlValueAccessor {
       return this.disabledByDesdeHasta.set(false)
     });
 
+
+  constructor() {
+    pdfDefaultOptions.assetsFolder = 'assets/bleeding-edge'
   }
 
   private apiService = inject(ApiService)

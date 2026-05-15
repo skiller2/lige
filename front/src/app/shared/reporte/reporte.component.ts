@@ -26,13 +26,13 @@ interface Parameter {
   styleUrl: './reporte.component.less',
   host: {
     "(click)": "onClick($event)"
- }
+  }
 })
 
 export class ReporteComponent {
 
   isVisible = signal(false)
-  reportTitle = input('',{alias: 'app-reporte'})
+  reportTitle = input('', { alias: 'app-reporte' })
   isfilterLoad = signal(false)
   filtrosReporte = signal<Parameter[]>([])
   private searchService = inject(SearchService)
@@ -52,22 +52,20 @@ export class ReporteComponent {
     }, {});
   }
 
-  constructor() {
-    effect(() => {
-      const btn = this.btnDescargar();
-      
-      if (btn && this.filtrosReporte().length == 0) {
-        setTimeout(() => {
-          btn.nativeElement.click();
-        }, 50);
-      }
-    });
-  }
+  effect = effect(() => {
+    const btn = this.btnDescargar();
+
+    if (btn && this.filtrosReporte().length == 0) {
+      setTimeout(() => {
+        btn.nativeElement.click();
+      }, 50);
+    }
+  });
 
   async searchReportParameters(title: string) {
     this.isLoading.set(true)
     try {
-      const res:any = await firstValueFrom(this.searchService.getInfoFilterReport(title).pipe(map((res: any) => res.value)))
+      const res: any = await firstValueFrom(this.searchService.getInfoFilterReport(title).pipe(map((res: any) => res.value)))
 
       //TODO: Tomar valores por omision dentro del forEach
       res.forEach((obj: any): void => {
@@ -79,10 +77,10 @@ export class ReporteComponent {
       this.filtrosReporte.set(res)
       this.isfilterLoad.set(true)
 
-    } catch (error){
+    } catch (error) {
 
       this.isVisible.set(false)
-     
+
     }
     this.isLoading.set(false)
 
@@ -90,7 +88,7 @@ export class ReporteComponent {
 
   onClick(evt: any) {
 
-    if (!this.isfilterLoad()) 
+    if (!this.isfilterLoad())
       this.searchReportParameters(this.reportTitle())
     this.isVisible.set(true)
   }

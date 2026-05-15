@@ -69,12 +69,8 @@ export class TableAyudaAsistencialCuotasComponent {
   };
   personalId = model<number>(0);
   rowsSelectedCount = model<number>(0);
-  constructor(
-    private apiService: ApiService,
-    private angularUtilService: AngularUtilService,
-    public searchService: SearchService
-  ) {
-    effect(() => {
+
+  effect =     effect(() => {
       const periodoValue = this.periodo();
       if (periodoValue) {
         this.anio.set(periodoValue.getFullYear());
@@ -86,6 +82,12 @@ export class TableAyudaAsistencialCuotasComponent {
       }
       this.formChange$.next('');
     });
+
+  constructor(
+    private apiService: ApiService,
+    private angularUtilService: AngularUtilService,
+    public searchService: SearchService
+  ) {
   }
 
 

@@ -194,16 +194,6 @@ export class ImpuestoAfipComponent {
   }
 
   handleChange({ file, fileList }: NzUploadChangeParam): void {
-    // const status = file.status;
-    // if (status !== 'uploading') {
-    //   console.log(file, fileList);
-    // }
-    // if (status === 'done') {
-    //   this.formChange$.next('');
-    //   //       this.msg.success(`${file.name} file uploaded successfully.`);
-    // } else if (status === 'error') {
-    //   //   this.msg.error(`${file.name} file upload failed.`);
-    // }
 
     if (file.status === 'done') {
       this.listaDescuentos.reload();

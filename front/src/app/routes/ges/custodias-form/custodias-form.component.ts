@@ -1,5 +1,5 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Component, ViewChild, Injector, ChangeDetectorRef, ViewEncapsulation, inject, effect, ChangeDetectionStrategy, signal, model, Input, input, computed, } from '@angular/core';
+import { Component, ViewEncapsulation, inject, effect, ChangeDetectionStrategy, signal, model, Input, input, computed, } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 // import { Observable } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
@@ -52,7 +52,7 @@ export class CustodiaFormComponent {
 
     private apiService = inject(ApiService)
     private searchService = inject(SearchService)
-    private injector = inject(Injector)
+
 
     private destroy$ = new Subject<void>();
 

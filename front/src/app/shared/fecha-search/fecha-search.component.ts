@@ -38,13 +38,12 @@ export class FechaSearchComponent implements ControlValueAccessor {
   operador = model('=')
   private datePipe = inject(DatePipe)
 
-  constructor() {
-    effect(() => {
+  effect =     effect(() => {
       if (!this.operador()) {
         this.operador.set('=');
       }
     });
-  }
+
 
 
   // $searchChange = new BehaviorSubject('');

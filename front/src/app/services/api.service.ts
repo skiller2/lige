@@ -1,4 +1,4 @@
-import { inject, Injectable, Injector, LOCALE_ID } from '@angular/core';
+import { inject, Injectable, LOCALE_ID } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
 import { Observable, catchError, defer, filter, map, of, tap, throwError } from 'rxjs';
@@ -12,6 +12,7 @@ import { ALLOW_ANONYMOUS } from '@delon/auth';
 import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from '../app.config.defaults';
 import { I18NService } from '@core';
 import { FieldTree, ValidationError } from '@angular/forms/signals';
+import { SILENT_NOTIFICATION_ERROR } from '../../context-tokens';
 
 
 @Injectable({
@@ -19,10 +20,10 @@ import { FieldTree, ValidationError } from '@angular/forms/signals';
 })
 export class ApiService {
   private http = inject(_HttpClient)
-  private injector = inject(Injector)
   private locale = inject(LOCALE_ID)
   private decimal_mark = inject(DEFAULT_DECIMAL_MARKER)
   private thousand_sep = inject(DEFAULT_THOUSAND_SEPARATOR)
+  private notification = inject(NzNotificationService);
 
   processCBUFile(files: never[], fechaDesde: Date, banco_id: number): Observable<unknown> {
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/procesacbu', { files, fechaDesde, banco_id }).pipe(
@@ -165,10 +166,6 @@ export class ApiService {
 
   isMobile(): boolean {
     return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
-  }
-
-  private get notification(): NzNotificationService {
-    return this.injector.get(NzNotificationService);
   }
 
   getDefaultGridOptions(container: string, detailViewRowCount: number, xlsService: ExcelExportService | ExternalResource, utilService: AngularUtilService, parent: any, viewComponent: any): GridOption {
@@ -2146,10 +2143,19 @@ export class ApiService {
   }
 
   getAvisos(): Observable<any[]> {
-    return this.http.get<ResponseJSON<any>>('api/aviso').pipe(
+    return this.http.get(`/api/aviso`,
+      {}, { context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
+      map((res: ResponseJSON<any>) => res.data),
+      catchError(() => of([]))
+    )
+
+
+    /*
+    return this.http.get<ResponseJSON<any>>('api/aviso',{},{ context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
       map((res: ResponseJSON<any>) => res.data),
       catchError(() => of([]))
     );
+    */
   }
 
   marcarAvisoVisto(AvisoId: number): Observable<any> {

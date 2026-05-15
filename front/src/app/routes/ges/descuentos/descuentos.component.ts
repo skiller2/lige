@@ -1,4 +1,4 @@
-import { Component, inject, input, effect, ChangeDetectionStrategy,  model } from '@angular/core';
+import { Component, inject, input, effect, ChangeDetectionStrategy, model } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
@@ -6,20 +6,18 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { CommonModule } from '@angular/common';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { Injector } from '@angular/core';
-import { runInInjectionContext } from '@angular/core';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 
 @Component({
-    selector: 'app-descuentos',
-    imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent],
-    templateUrl: './descuentos.component.html',
-    providers: [AngularUtilService, ExcelExportService],
-    styleUrl: './descuentos.component.less',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-descuentos',
+  imports: [...SHARED_IMPORTS, CommonModule, PersonalSearchComponent],
+  templateUrl: './descuentos.component.html',
+  providers: [AngularUtilService, ExcelExportService],
+  styleUrl: './descuentos.component.less',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 export class DescuentosComponent {
@@ -36,7 +34,7 @@ export class DescuentosComponent {
   private excelExportService = inject(ExcelExportService)
   private angularUtilService = inject(AngularUtilService)
 
-  periodo = input({year:0,month:0});
+  periodo = input({ year: 0, month: 0 });
   responsable = model(0)
   #injector = inject(Injector);
 
@@ -105,6 +103,10 @@ export class DescuentosComponent {
     this.selectedValueChange(this.responsable())
   }
 
+  effect = effect(() => {
+    this.periodo()
+    this.selectedValueChange(this.responsable())
+  })
 
 
 
@@ -118,10 +120,10 @@ export class DescuentosComponent {
         .pipe(
           map(data => {
             const lista = []
-            
+
             for (const row of data.descuentos)
               lista.push(row.PersonalId)
-            
+
             this.personalIdlist.set(lista)
             return data.descuentos
 
@@ -137,18 +139,13 @@ export class DescuentosComponent {
     this.$selectedResponsablePersonalIdChange.next(event);
     this.$isResponsableDataLoading.next(true);
   }
-  
+
   ngOnInit(): void {
     this.gridOptionsPersonal = this.apiService.getDefaultGridOptions('.gridContainer', 9, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsPersonal.enableRowDetailView = this.apiService.isMobile()
     this.gridOptionsPersonal.showFooterRow = true
     this.gridOptionsPersonal.createFooterRow = true
 
-    runInInjectionContext(this.#injector, () => {
-      effect(() => {
-        this.periodo()
-        this.selectedValueChange(this.responsable())
-      })
-    })
+
   }
 }

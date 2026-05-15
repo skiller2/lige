@@ -1,4 +1,4 @@
-import { Component, Injector, viewChild, inject, signal, model, computed, effect } from '@angular/core';
+import { Component, viewChild, inject, signal, model, computed, effect } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';

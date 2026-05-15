@@ -22,14 +22,13 @@ export class ImageLoaderComponent implements OnInit {
   fallback = input('')
 
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
+  private http = inject(HttpClient)
 
-  constructor(private http: HttpClient) {
-    effect(() => {
-      if (this.src()) {
-        this.ngOnInit();
-      }
-    })
-  }
+  effect = effect(() => {
+    if (this.src()) {
+      this.ngOnInit();
+    }
+  })
 
   ngOnInit(): void {
     const headers = new HttpHeaders({

@@ -4,7 +4,7 @@ import { Subject } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { ApiService } from '../../services/api.service';
-import { Injector, inject } from '@angular/core';
+import { inject } from '@angular/core';
 
 
 @Component({

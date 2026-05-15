@@ -1,7 +1,7 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
 import { Component, ViewEncapsulation, model, input, computed, inject, signal, output, effect, viewChild } from '@angular/core';
-import { FormBuilder, FormArray,  } from '@angular/forms';
+import { FormBuilder, FormArray, } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
@@ -12,12 +12,12 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
-    selector: 'app-habilitaciones-detalle-form-drawer',
-    imports: [SHARED_IMPORTS, CommonModule, FileUploadComponent, PersonalSearchComponent],
-    templateUrl: './habilitaciones-detalle-form-drawer.html',
-    styleUrl: './habilitaciones-detalle-form-drawer.less',
-    encapsulation: ViewEncapsulation.None
-    // changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-habilitaciones-detalle-form-drawer',
+  imports: [SHARED_IMPORTS, CommonModule, FileUploadComponent, PersonalSearchComponent],
+  templateUrl: './habilitaciones-detalle-form-drawer.html',
+  styleUrl: './habilitaciones-detalle-form-drawer.less',
+  encapsulation: ViewEncapsulation.None
+  // changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HabilitacionesFormDrawerComponent {
   tituloDrawer = signal<string>("Nueva Habilitación Detalle")
@@ -26,55 +26,59 @@ export class HabilitacionesFormDrawerComponent {
   RefreshDetalle = model<boolean>(false)
   visible = model<boolean>(false)
   onAddorUpdate = output()
-  
+
+  private apiService = inject(ApiService)
+  private searchService = inject(SearchService)
+
+
   personalId = input<number>(0)
   lugarHabilitacionId = input<number>(0)
   personalHabilitacionId = model<number>(0)
   codigo = model<number>(0)
   periodo = signal<Date>(new Date())
-  anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
-  mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
+  anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
+  mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
 
   isLoading = signal(false);
-  
-  onRefreshInstituciones = output<void>();
-  uploading$ = new BehaviorSubject({loading:false,event:null});
 
-  objDoc = {file:[]}
+  onRefreshInstituciones = output<void>();
+  uploading$ = new BehaviorSubject({ loading: false, event: null });
+
+  objDoc = { file: [] }
 
   fb = inject(FormBuilder)
   formHabilitacion = this.fb.group({
-    PersonalHabilitacionId:0,
-    PersonalId:0,
-    LugarHabilitacionId:0,
-    HabilitacionCategoriaCodigos:[],
-    GestionHabilitacionCodigo:0,
-    GestionHabilitacionEstadoCodigo:'',
-    Detalle:'',
-    NroTramite:'',
-    PersonalHabilitacionDesde:'',
-    PersonalHabilitacionHasta:'',
-    PersonalHabilitacionClase:'',
-    AudFechaIng:'',
+    PersonalHabilitacionId: 0,
+    PersonalId: 0,
+    LugarHabilitacionId: 0,
+    HabilitacionCategoriaCodigos: [],
+    GestionHabilitacionCodigo: 0,
+    GestionHabilitacionEstadoCodigo: '',
+    Detalle: '',
+    NroTramite: '',
+    PersonalHabilitacionDesde: '',
+    PersonalHabilitacionHasta: '',
+    PersonalHabilitacionClase: '',
+    AudFechaIng: '',
     // DocumentoId: 0,
-    documentos: this.fb.array([this.fb.group({...this.objDoc})]),
+    documentos: this.fb.array([this.fb.group({ ...this.objDoc })]),
   })
 
-  GestionHabilitacionEstadoCodigo():string {
-    const value = this.formHabilitacion.get("GestionHabilitacionEstadoCodigo")?.value 
+  GestionHabilitacionEstadoCodigo(): string {
+    const value = this.formHabilitacion.get("GestionHabilitacionEstadoCodigo")?.value
     if (value)
       return value
     return ''
   }
 
-  GestionHabilitacionCodigo():number {
-    const value = this.formHabilitacion.get("GestionHabilitacionCodigo")?.value 
+  GestionHabilitacionCodigo(): number {
+    const value = this.formHabilitacion.get("GestionHabilitacionCodigo")?.value
     if (value)
       return value
     return 0
   }
 
-  documentos():FormArray {
+  documentos(): FormArray {
     return this.formHabilitacion.get("documentos") as FormArray
   }
 
@@ -87,65 +91,62 @@ export class HabilitacionesFormDrawerComponent {
   $optionsEstadoCodigo = this.searchService.getEstadosHabilitaciones()
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions().pipe(
     map((data: any) => {
-      const result = data.filter((hab:any) => { return hab.value != 9 })
+      const result = data.filter((hab: any) => { return hab.value != 9 })
       return result
     }))
   $sitrevista = this.formHabilitacion.get('PersonalId')!.valueChanges.pipe(
-      debounceTime(500),
-      switchMap(() =>
-          this.apiService.getPersonaSitRevista(Number(this.formHabilitacion.get('PersonalId')?.value), this.anio(), this.mes())
-      )
+    debounceTime(500),
+    switchMap(() =>
+      this.apiService.getPersonaSitRevista(Number(this.formHabilitacion.get('PersonalId')?.value), this.anio(), this.mes())
+    )
   )
   optionsHabilitacionCategoria = signal<any[]>([])
-  // $optionsHabilitacionCategoria = this.formHabilitacion.get('LugarHabilitacionId')!.valueChanges.pipe(
-  //     debounceTime(500),
-  //     switchMap(() =>
-  //         this.searchService.getHabilitacionCategoriaOptions(Number(this.formHabilitacion.get('LugarHabilitacionId')?.value))
-  //     )
-  // )
 
   fileUploadComponent = viewChild.required(FileUploadComponent);
 
-  private apiService = inject(ApiService)
+
+
+  effect1 = effect(async () => {
+    const visible = this.visible()
+    const codigo = this.codigo()
+    if (codigo) this.tituloDrawer.set('Editar Habilitación Detalle')
+    else this.tituloDrawer.set('Nueva Habilitación Detalle')
+
+    if (visible) {
+      this.formHabilitacion.get('AudFechaIng')?.disable()
+      this.formHabilitacion.get('PersonalId')?.disable();
+      this.formHabilitacion.get('LugarHabilitacionId')?.disable();
+
+      const categorias = await firstValueFrom(this.searchService.getHabilitacionCategoriaOptions(this.lugarHabilitacionId()))
+      this.optionsHabilitacionCategoria.set(categorias)
+
+      await this.loadForm()
+
+    } else {
+      this.formHabilitacion.reset()
+      this.formHabilitacion.enable()
+    }
+  })
+
+  effect2 = effect(async () => {
+    const documentos = this.signalDocumento()
+    const docs = this.documentos().value
+
+    for (let index = 0; index < (docs.length - 1); index++)
+      if (!docs[index].file?.length) this.removeDoc(index)
+
+    if (documentos[documentos.length - 1].file?.length) this.addDoc()
+
+  })
+
+
+
   constructor(
     // private notification = NzNotificationService,
-    private searchService: SearchService
   ) {
-    effect(async() => {
-      const visible = this.visible()
-      const codigo = this.codigo()
-      if (codigo) this.tituloDrawer.set('Editar Habilitación Detalle')
-      else  this.tituloDrawer.set('Nueva Habilitación Detalle')
-
-      if (visible) {
-        this.formHabilitacion.get('AudFechaIng')?.disable()
-        this.formHabilitacion.get('PersonalId')?.disable();
-        this.formHabilitacion.get('LugarHabilitacionId')?.disable();
-
-        const categorias = await firstValueFrom(this.searchService.getHabilitacionCategoriaOptions(this.lugarHabilitacionId()))
-        this.optionsHabilitacionCategoria.set(categorias)
-
-        await this.loadForm()
-
-      } else {
-        this.formHabilitacion.reset()
-        this.formHabilitacion.enable()
-      }
-    })
-
-    effect(async() => {
-      const documentos = this.signalDocumento()
-      const docs = this.documentos().value
-      
-      for (let index = 0; index < (docs.length-1); index++)
-        if(!docs[index].file?.length) this.removeDoc(index)
-      
-      if (documentos[documentos.length-1].file?.length) this.addDoc()
-      
-    })
   }
 
-  async ngOnInit() {}
+  async ngOnInit() { }
 
   async loadForm() {
     let lastConfig = {}
@@ -161,40 +162,40 @@ export class HabilitacionesFormDrawerComponent {
 
     if (this.codigo()) {
       let gestionHabi = await firstValueFrom(this.searchService.getGestionHabilitacionById(this.codigo(), this.personalId(), this.lugarHabilitacionId(), this.personalHabilitacionId()))
-      
+
       gestionHabi.AudFechaIng = this.formatDate(gestionHabi.AudFechaIng);
-      lastConfig = {...lastConfig, ...gestionHabi}
+      lastConfig = { ...lastConfig, ...gestionHabi }
     }
-    
+
     this.formHabilitacion.reset(lastConfig)
 
     this.formHabilitacion.markAsUntouched()
     this.formHabilitacion.markAsPristine()
   }
 
-  async selectedLugarHabilitacionChange(event: any){
+  async selectedLugarHabilitacionChange(event: any) {
     const categorias = await firstValueFrom(this.searchService.getHabilitacionCategoriaOptions(event))
     this.optionsHabilitacionCategoria.set(categorias)
   }
 
   async save() {
     this.isLoading.set(true)
-    let vals:any = this.formHabilitacion.getRawValue()
+    let vals: any = this.formHabilitacion.getRawValue()
     try {
 
       if (this.GestionHabilitacionCodigo()) {
         await firstValueFrom(this.apiService.updateGestionHabilitacion(vals))
       } else {
-        let res:any = await firstValueFrom(this.apiService.addGestionHabilitacion(vals))
-        
+        let res: any = await firstValueFrom(this.apiService.addGestionHabilitacion(vals))
+
         let data = res.data
         data.AudFechaIng = this.formatDate(data.AudFechaIng);
 
-        if(data.PersonalHabilitacionId) this.personalHabilitacionId.set(data.PersonalHabilitacionId)
+        if (data.PersonalHabilitacionId) this.personalHabilitacionId.set(data.PersonalHabilitacionId)
         this.tituloDrawer.set('Editar Habilitación Detalle')
         this.formHabilitacion.patchValue(data)
-        
-      } 
+
+      }
 
       this.documentos().reset()
       this.formHabilitacion.markAsUntouched()
@@ -218,12 +219,12 @@ export class HabilitacionesFormDrawerComponent {
 
   addDoc(e?: MouseEvent): void {
     e?.preventDefault();
-    this.documentos().push(this.fb.group({...this.objDoc}))
+    this.documentos().push(this.fb.group({ ...this.objDoc }))
   }
 
   removeDoc(index: number, e?: MouseEvent): void {
     e?.preventDefault();
-    if (this.documentos().controls.length > 1 ) {
+    if (this.documentos().controls.length > 1) {
       this.documentos().removeAt(index)
       this.formHabilitacion.markAsDirty()
     }

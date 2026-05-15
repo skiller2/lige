@@ -40,18 +40,18 @@ export class PolizaSeguroDrawerComponent {
   CompaniaSeguroId = input<number>(0)
   TipoSeguroCodigo = input<string>("")
   isSaving = signal<boolean>(false)
+  private searchService= inject( SearchService)
+  private apiService = inject(ApiService)
+
   $optionsCompaniaSeguro = this.searchService.getCompaniaSeguroSearch();
   $optionsTipoSeguro = this.searchService.getTipoSeguroSearch();
-  private apiService = inject(ApiService)
   disabled = input<boolean>(false)
   PolizaSeguroResultado = signal<any>(null)
   openDrawerConsult = input<boolean>(false)
   onRefreshPolizaSeguro = output<void>()
   fileUploadComponent = viewChild.required(FileUploadComponent);
 
-  constructor(private searchService: SearchService) { 
-    
-    effect(async() => { 
+  effect =     effect(async() => { 
       const visible = this.visible()
       
       if (visible) {
@@ -81,7 +81,6 @@ export class PolizaSeguroDrawerComponent {
         this.PolizaSeguroResultado.set(null)
       }
     })
-  }
 
   async save() {
     this.isSaving.set(true)

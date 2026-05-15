@@ -7,6 +7,8 @@ import { Observable, of, throwError, mergeMap, catchError } from 'rxjs';
 import { CODEMESSAGE, ReThrowHttpError, checkStatus, getAdditionalHeaders, toLogin } from './helper';
 import { tryRefreshToken } from './refresh-token';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { AudioService } from '../../services/audio.service';
+import { SILENT_NOTIFICATION_ERROR } from '../../../context-tokens';
 
 function handleData(injector: Injector, ev: HttpResponseBase, req: HttpRequest<any>, next: HttpHandlerFn): Observable<any> {
   checkStatus(injector, ev);
@@ -85,6 +87,7 @@ function handleDataError(injector: Injector, err: HttpErrorResponse, req: HttpRe
           if (e.target?.readyState === 2) {
             const res = JSON.parse(String(e.target.result))
             injector.get(NzNotificationService).error(`Error`, res.msg)
+            injector.get(AudioService).playError();
           }
         }
         reader.readAsText(err.error);
@@ -99,7 +102,11 @@ function handleDataError(injector: Injector, err: HttpErrorResponse, req: HttpRe
         errortext = errortext.join('<br />')
       }
 
-      injector.get(NzNotificationService).error(`Error`, errortext)
+      if (!req.context.get(SILENT_NOTIFICATION_ERROR)) {
+        injector.get(NzNotificationService).error(`Error`, errortext)
+        injector.get(AudioService).playError();
+      }
+
       break;
   }
 

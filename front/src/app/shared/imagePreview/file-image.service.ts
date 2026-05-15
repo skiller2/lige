@@ -6,7 +6,6 @@ import { BehaviorSubject } from 'rxjs'
 export class FileImageService {
   $currentFile: BehaviorSubject<File> = new BehaviorSubject<File>(new File([], ""))
   $currentImageData: BehaviorSubject< HTMLImageElement | undefined> = new BehaviorSubject< HTMLImageElement | undefined>(undefined)
-  constructor() { }
 
   updateFile(newFile: File) {
     this.$currentFile.next(newFile)

@@ -19,9 +19,6 @@ export class ImageContentComponent {
     @Input() imageCroppedY:number = 91
     @Input() nombreDescarga: string = ''
     personalImageUrl = input('')
-    constructor() {
-
-    }
 
     imageChangedEvent: any = '';
     croppedImage: any = '';

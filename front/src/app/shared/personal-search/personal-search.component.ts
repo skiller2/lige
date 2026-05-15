@@ -51,18 +51,6 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   mes = input(0)
   sucursalId = input(0)
   controlDisabled = signal(true)
-  /*
-ngControl = inject(NgControl, { self: true, optional: true });
-
-  controlDisabled = linkedSignal(() => !!this.ngControl?.disabled);
-
-  effDisabled = effect(() => {
-    if (this.controlDisabled()) {
-      console.log('disabled', this.controlDisabled())
-      this.setDisabledState(this.controlDisabled())
-    }
-  })
-*/
 
   registerOnChange(fn: any) {
 

@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, effect,  } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, effect, } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm, FormBuilder } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -18,7 +18,7 @@ export interface Option {
     label: string;
     value: string;
 }
-  
+
 @Component({
     selector: 'app-ayuda-asistencial-drawer',
     imports: [SHARED_IMPORTS, NzUploadModule, NzDescriptionsModule, ReactiveFormsModule, PersonalSearchComponent, CommonModule],
@@ -38,37 +38,32 @@ export class AyudaAsistencialDrawerComponent {
     isSaving = signal(false)
     tipoChange = signal(0)
     private apiService = inject(ApiService)
-    constructor(private searchService: SearchService) { 
-        effect(() => {
-            if(this.periodo()) {
-                this.formAyudaAsi.patchValue({ aplicaEl: this.periodo() })
-            }
-            if (!this.visible()) {
-                this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl:new Date(), cantCuotas:1, importe:'', motivo:'', personalPrestamoId:0 })
-            }
-        })
-    }
+    private searchService= inject(SearchService)
+
+    effect = effect(() => {
+        if (this.periodo()) {
+            this.formAyudaAsi.patchValue({ aplicaEl: this.periodo() })
+        }
+        if (!this.visible()) {
+            this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl: new Date(), cantCuotas: 1, importe: '', motivo: '', personalPrestamoId: 0 })
+        }
+    })
 
     fb = inject(FormBuilder)
-    formAyudaAsi = this.fb.group({ personalId: 0, formaId: null, aplicaEl:new Date(), cantCuotas:1, importe:'', motivo:'', personalPrestamoId:0 })
+    formAyudaAsi = this.fb.group({ personalId: 0, formaId: null, aplicaEl: new Date(), cantCuotas: 1, importe: '', motivo: '', personalPrestamoId: 0 })
 
-    /*conditional = computed(async () => {
-        if (!this.visible()) {
-            this.formAyudaAsi.patchValue({ personalId: 0, formaId: null, aplicaEl:new Date(), cantCuotas:1, importe:1, motivo:'1' })
-        }
-    });*/
 
     formChange$ = new BehaviorSubject('');
     tableLoading$ = new BehaviorSubject(false);
     listaAdelantos$ = this.formChange$.pipe(
         debounceTime(500),
         switchMap(() =>
-          this.apiService
-            .getAyudaAsitencialByPersonalId(this.formAyudaAsi.get('aplicaEl')?.value, this.formAyudaAsi.get('personalId')?.value, this.formAyudaAsi.get('formaId')?.value)
-            .pipe(
-              doOnSubscribe(() => this.tableLoading$.next(true)),
-              tap({ complete: () => this.tableLoading$.next(false) })
-            )
+            this.apiService
+                .getAyudaAsitencialByPersonalId(this.formAyudaAsi.get('aplicaEl')?.value, this.formAyudaAsi.get('personalId')?.value, this.formAyudaAsi.get('formaId')?.value)
+                .pipe(
+                    doOnSubscribe(() => this.tableLoading$.next(true)),
+                    tap({ complete: () => this.tableLoading$.next(false) })
+                )
         )
     );
 
@@ -79,7 +74,7 @@ export class AyudaAsistencialDrawerComponent {
                 .getPersonaSitRevista(
                     Number(this.formAyudaAsi.get('personalId')?.value),
                     this.periodo().getFullYear(),
-                    this.periodo().getMonth()+1
+                    this.periodo().getMonth() + 1
                 )
         )
     )
@@ -96,14 +91,14 @@ export class AyudaAsistencialDrawerComponent {
         }, 1000);
     }
 
-    async save(){
+    async save() {
         this.isSaving.set(true)
         try {
             let values = this.formAyudaAsi.getRawValue()
-            if(values.personalPrestamoId == 0) {
-            const res = await firstValueFrom(this.apiService.addAyudaAsistencial(values))
-            console.log('res: ', res.data);
-                if(res.data?.personalPrestamoId > 0) {
+            if (values.personalPrestamoId == 0) {
+                const res = await firstValueFrom(this.apiService.addAyudaAsistencial(values))
+                console.log('res: ', res.data);
+                if (res.data?.personalPrestamoId > 0) {
                     this.formAyudaAsi.patchValue({ personalPrestamoId: res.data?.personalPrestamoId })
                     this.tituloDrawer.set('Actualizar Ayuda Asistencial')
                     this.formAyudaAsi.get('personalId')?.disable()
@@ -117,27 +112,27 @@ export class AyudaAsistencialDrawerComponent {
             let ref = this.refresh()
             this.refresh.set(++ref)
         } catch (error) {
-            
+
         }
         this.isSaving.set(false)
         this.formAyudaAsi.markAsDirty()
         this.formAyudaAsi.markAsPristine()
     }
 
-    async onChangeTipo(result: number){
+    async onChangeTipo(result: number) {
         let values = this.formAyudaAsi.value
         if (values.personalId && !values.aplicaEl) {
             try {
-                const res = await firstValueFrom(this.searchService.getProxAplicaEl({personalId:values.personalId, tipo:result}))
-                if(res.aplicaEl) this.formAyudaAsi.controls['aplicaEl'].patchValue(res.aplicaEl)
+                const res = await firstValueFrom(this.searchService.getProxAplicaEl({ personalId: values.personalId, tipo: result }))
+                if (res.aplicaEl) this.formAyudaAsi.controls['aplicaEl'].patchValue(res.aplicaEl)
             } catch (error) {
-                
-            } 
+
+            }
         }
     }
 
     resetForm() {
-        this.formAyudaAsi.reset( {personalId: 0, formaId: null, aplicaEl:this.periodo(), cantCuotas:1, importe:'', motivo:'', personalPrestamoId:0} )
+        this.formAyudaAsi.reset({ personalId: 0, formaId: null, aplicaEl: this.periodo(), cantCuotas: 1, importe: '', motivo: '', personalPrestamoId: 0 })
         this.tituloDrawer.set('Alta de Ayuda Asistencial')
         this.formAyudaAsi.get('personalId')?.enable()
         this.formAyudaAsi.markAsDirty()
