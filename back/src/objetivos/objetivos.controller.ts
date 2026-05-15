@@ -931,8 +931,8 @@ export class ObjetivosController extends BaseController {
             [ObjetivoId, new Date()])
     }
 
-    async getDescuentoAplicaQuery(queryRunner: any, aplicaA:string, ClienteId: any, ClienteElementoDependienteId: any) {
-        let des:number[] = []
+    async getDescuentoAplicaQuery(queryRunner: any, aplicaA: string, ClienteId: any, ClienteElementoDependienteId: any) {
+        let des: number[] = []
         const ObjetivoDescuentoAplica = await queryRunner.query(`
             SELECT DescuentoId
             FROM ObjetivoDescuentoAplica 
@@ -1044,13 +1044,17 @@ export class ObjetivosController extends BaseController {
     }
 
     async validateDateAndCreateContrato(queryRunner: any, ContratoFechaDesde: Date, ContratoFechaDesdeOLD: Date, ContratoFechaHasta: Date, ContratoFechaHastaOLD: Date, FechaModificada: boolean, ClienteId: number, ClienteElementoDependienteId: number, ObjetivoId: number, ContratoId: number, ip: string, usuarioId: number, usuario: string) {
-        
+        console.log("ContratoFechaDesde",ContratoFechaDesde, "ContratoFechaDesdeOLD", ContratoFechaDesdeOLD, "ContratoFechaHasta", ContratoFechaHasta, "ContratoFechaHastaOLD", ContratoFechaHastaOLD, "FechaModificada", FechaModificada)
         let createNewContrato = false
         ContratoFechaDesde = ContratoFechaDesde ? new Date(ContratoFechaDesde) : null
         ContratoFechaDesdeOLD = ContratoFechaDesdeOLD ? new Date(ContratoFechaDesdeOLD) : null
         ContratoFechaHastaOLD = ContratoFechaHastaOLD ? new Date(ContratoFechaHastaOLD) : null
         ContratoFechaHasta = ContratoFechaHasta ? new Date(ContratoFechaHasta) : null
         const now = new Date()
+
+        if (!ContratoFechaDesde) {
+            throw new ClientException(`Debe completar el campo 'Contrato Desde'.`)
+        }
         if (ContratoFechaDesde)
             ContratoFechaDesde.setHours(0, 0, 0, 0)
 
@@ -1064,14 +1068,13 @@ export class ObjetivosController extends BaseController {
         if (ContratoFechaHastaOLD)
             ContratoFechaHastaOLD.setHours(0, 0, 0, 0)
 
-        if (!FechaModificada && !ContratoFechaDesdeOLD && !ContratoFechaHastaOLD)
+        // Nuevo registro sin fecha provista
+        if (!FechaModificada && !ContratoFechaDesdeOLD && !ContratoFechaHastaOLD && !ContratoFechaDesde)
             throw new ClientException(`Debe completar el campo Contrato Desde.`)
 
-        if (!FechaModificada) {
+        // Registro existente sin modificacion de fechas → no tocar nada
+        if (!FechaModificada && (ContratoFechaDesdeOLD || ContratoFechaHastaOLD)) {
             return true
-        }
-        if (!ContratoFechaDesde) {
-            throw new ClientException(`Debe completar el campo 'Contrato Desde'.`)
         }
 
         if (ContratoFechaHasta && ContratoFechaDesde > ContratoFechaHasta) {
@@ -1141,7 +1144,7 @@ export class ObjetivosController extends BaseController {
         if (ClienteElementoDependienteId != null) {
 
             //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
-                if (ContratoId && !createNewContrato) {
+            if (ContratoId && !createNewContrato) {
                 await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteElementoDependienteContratoFechaDesde = @3, ClienteElementoDependienteContratoFechaHasta = @4
                     WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND ClienteElementoDependienteContratoId = @2`,
                     [ClienteId, ClienteElementoDependienteId, ContratoId, ContratoFechaDesde, ContratoFechaHasta])
@@ -1319,7 +1322,7 @@ export class ObjetivosController extends BaseController {
                 await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuarioId, usuario)
             }
 
-
+            console.log('obj', Obj)
             await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId, usuario)
             //update
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
@@ -1565,8 +1568,8 @@ export class ObjetivosController extends BaseController {
         }
     }
 
-    async setObjetivoDescuentoAplica(queryRunner: QueryRunner, descuentos: number[], aplicaA:string, ClienteId: number, ClienteElementoDependienteId: number, usuario: string, ip: string){
-        
+    async setObjetivoDescuentoAplica(queryRunner: QueryRunner, descuentos: number[], aplicaA: string, ClienteId: number, ClienteElementoDependienteId: number, usuario: string, ip: string) {
+
         //Verifica si hay un nuevo descuento
         const descuentoOld = await this.getDescuentoAplicaQuery(queryRunner, aplicaA, ClienteId, ClienteElementoDependienteId)
         let cambios = false
@@ -1625,7 +1628,7 @@ export class ObjetivosController extends BaseController {
     async FormValidations(form: any) {
         let msgError: string[] = []
 
-    //Validaciones de campos incompletos
+        //Validaciones de campos incompletos
         if (!form.ClienteId) {
             throw new ClientException(`- Cliente.`)
         }
@@ -1695,7 +1698,7 @@ export class ObjetivosController extends BaseController {
             msgError.unshift('Debe completar los siguientes campos: ')
             throw new ClientException(msgError)
         }
-    //Validaciones de datos minimos
+        //Validaciones de datos minimos
         // Rubro
         if (!form.rubrosCliente || !form.rubrosCliente.length) {
             throw new ClientException(`Debe selecionar al menos un Rubro.`)
@@ -1712,12 +1715,12 @@ export class ObjetivosController extends BaseController {
         }
 
         //Descuentos
-        if ( form.descuentoCoordinador.length !=0 || form.descuentoLince.length != 0 ){
-            if( form.descuentoCoordinador.length > 1 || form.descuentoLince.length > 1 ) 
+        if (form.descuentoCoordinador.length != 0 || form.descuentoLince.length != 0) {
+            if (form.descuentoCoordinador.length > 1 || form.descuentoLince.length > 1)
                 throw new ClientException(`Solo se puede selecionar 1 descuento a Coordinador y Lince`)
 
 
-            if( form.descuentoCoordinador.length && form.descuentoLince.length && (form.descuentoCoordinador[0] == form.descuentoLince[0])){
+            if (form.descuentoCoordinador.length && form.descuentoLince.length && (form.descuentoCoordinador[0] == form.descuentoLince[0])) {
                 throw new ClientException(`Los descuentos a Coordinador y Lince deben de ser diferentes`)
             }
         }
@@ -1914,6 +1917,8 @@ export class ObjetivosController extends BaseController {
             let infoMaxObjetivo = await queryRunner.query(`SELECT IDENT_CURRENT('Objetivo')`)
             const ObjetivoId = infoMaxObjetivo[0]['']
 
+            console.log('obj', Obj)
+
             await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId, usuario)
 
             ObjObjetivoNew.id = ObjetivoId
@@ -1987,14 +1992,14 @@ export class ObjetivosController extends BaseController {
         DomicilioDomNro: any, DomicilioCodigoPostal: any, DomicilioProvinciaId: any, DomicilioLocalidadId: any, DomicilioBarrioId: any) {
         await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual=0  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId])
 
-
+        const domicilioBarrioIdValue = DomicilioBarrioId ? DomicilioBarrioId : null
         await queryRunner.query(`INSERT INTO Domicilio (
                     DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
                     DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId) 
                     VALUES ( @0,@1,@2,@3,@4,@5,@6,@7)`, [
             DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro,
             DomicilioCodigoPostal, 1, DomicilioProvinciaId, DomicilioLocalidadId,
-            DomicilioBarrioId
+            domicilioBarrioIdValue
         ])
         const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
         const DomicilioId = resDomicilio[0]['']
