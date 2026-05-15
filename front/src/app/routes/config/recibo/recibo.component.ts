@@ -24,9 +24,7 @@ export class ReciboComponent {
   PersonalId = model.required()
   anio = signal(0)
   mes = signal(0)
-  constructor() {
-    effect(() => { this.ngForm().controls['PersonalId']?.setValue(Number(this.PersonalId())) });
-  }
+  effect = effect(() => { this.ngForm().controls['PersonalId']?.setValue(Number(this.PersonalId())) })
 
   tiposCuenta = signal<any[]>([])
 

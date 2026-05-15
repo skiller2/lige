@@ -26,8 +26,10 @@ export class EventoLogDetalleComponent {
   Resultado = signal<any>(null)
   auditHistory = signal<any[]>([])
   objectKeys = Object.keys;
-  
+
   private apiService = inject(ApiService)
+  private searchService= inject(SearchService)
+
   disabled = input<boolean>(false)
 
   fb = inject(FormBuilder)
@@ -38,31 +40,28 @@ export class EventoLogDetalleComponent {
     FechaFin: "",
     Descripcion: "",
   })
-  
 
-  constructor(private searchService: SearchService) { 
-    
-    effect(async() => {
-      if (this.logCod()) {
-        let res = await firstValueFrom(this.searchService.getEventoLog(this.logCod()))
 
-        this.ParametroEntrada.set(JSON.parse(res[0].ParametroEntrada))
-        this.Resultado.set(JSON.parse(res[0].Resultado))
-        this.auditHistory.set([
-          { usuario: res[0].AudUsuarioIng, fecha: this.formatDate(res[0].AudFechaIng), accion: 'Creación' },
-          { usuario: res[0].AudUsuarioMod, fecha: this.formatDate(res[0].AudFechaMod), accion: 'Modificación' }
-        ])
-        this.formProcAuto.reset(res[0])
-      }else{
-        this.ParametroEntrada.set(null)
-        this.Resultado.set(null)
-        this.auditHistory.set([])
-      }
+  effect = effect(async () => {
+    if (this.logCod()) {
+      let res = await firstValueFrom(this.searchService.getEventoLog(this.logCod()))
 
-    })
-  }
+      this.ParametroEntrada.set(JSON.parse(res[0].ParametroEntrada))
+      this.Resultado.set(JSON.parse(res[0].Resultado))
+      this.auditHistory.set([
+        { usuario: res[0].AudUsuarioIng, fecha: this.formatDate(res[0].AudFechaIng), accion: 'Creación' },
+        { usuario: res[0].AudUsuarioMod, fecha: this.formatDate(res[0].AudFechaMod), accion: 'Modificación' }
+      ])
+      this.formProcAuto.reset(res[0])
+    } else {
+      this.ParametroEntrada.set(null)
+      this.Resultado.set(null)
+      this.auditHistory.set([])
+    }
 
-  ngOnInit(){}
+  })
+
+  ngOnInit() { }
 
   private formatDate(dateString: string): string {
     if (!dateString) return '';

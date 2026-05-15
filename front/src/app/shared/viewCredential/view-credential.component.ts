@@ -38,11 +38,7 @@ export class ViewCredentialComponent implements ControlValueAccessor {
     injector = inject(Injector)
 
     ngOnInit() {
-        /*
-        effect(async () => {
-            console.log('personal',this.personal())
-        }, { injector: this.injector });
-        */
+
     }
 
     writeValue(value: PersonaObj[]) {

@@ -31,8 +31,7 @@ export class HabilitacionNecesariaFormModalComponent {
     LugarHabilitacionIds: []
   })
 
-  constructor() {
-    effect(async() => {
+  effect =    effect(async() => {
       const visible = this.visible()
       if (visible) {
         let res = await firstValueFrom(this.searchService.getHabilitacionNecesariaByPersonalId(this.personalId()))
@@ -47,8 +46,7 @@ export class HabilitacionNecesariaFormModalComponent {
         this.formHabilitacionNecesaria.enable()
       }
     })
-  }
-
+ 
   $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
 
    async save() {

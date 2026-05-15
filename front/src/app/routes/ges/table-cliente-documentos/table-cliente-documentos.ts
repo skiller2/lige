@@ -72,18 +72,20 @@ export class TableClienteDocumentoComponent {
 
   private destroy$ = new Subject();
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
-  
-  constructor(
-    private apiService: ApiService,
-    private angularUtilService: AngularUtilService,
-    public searchService: SearchService
-  ) {
-    effect(() => {
+
+  effect = effect(() => {
       const ClienteId = this.ClienteId()
       if (ClienteId) {
         this.listDocsCliente$.next('');
       }
     });
+
+
+  constructor(
+    private apiService: ApiService,
+    private angularUtilService: AngularUtilService,
+    public searchService: SearchService
+  ) {
   }
 
   columns$ = this.apiService.getCols('/api/clientes/docs-cols');

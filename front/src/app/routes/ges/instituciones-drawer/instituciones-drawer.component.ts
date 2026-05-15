@@ -22,11 +22,11 @@ export interface Option {
 }
 
 @Component({
-    selector: 'app-instituciones-drawer',
-    imports: [SHARED_IMPORTS, NzUploadModule, NzAutocompleteModule],
-    templateUrl: './instituciones-drawer.component.html',
-    styleUrl: './instituciones-drawer.component.less',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-instituciones-drawer',
+  imports: [SHARED_IMPORTS, NzUploadModule, NzAutocompleteModule],
+  templateUrl: './instituciones-drawer.component.html',
+  styleUrl: './instituciones-drawer.component.less',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InstitucionesDrawerComponent {
   tituloDrawer = signal<string>("Nueva Institución")
@@ -41,7 +41,7 @@ export class InstitucionesDrawerComponent {
   placement: NzDrawerPlacement = 'left';
   visible = model<boolean>(false)
   onRefreshInstituciones = output<void>();
-  uploading$ = new BehaviorSubject({loading:false,event:null});
+  uploading$ = new BehaviorSubject({ loading: false, event: null });
 
   fb = inject(FormBuilder)
   formCli = this.fb.group({
@@ -51,33 +51,31 @@ export class InstitucionesDrawerComponent {
     CentroCapacitacionInactivo: false
   })
 
-  constructor(private searchService: SearchService) {
-    effect(async() => {
-      const visible = this.visible()
-      if (visible) {
-        if (this.CentroCapacitacionId() > 0) {
-          let vals = await firstValueFrom(this.apiService.getListInstitucionesHistory({ options: { filtros: [], sort: null, extra: null } }, this.CentroCapacitacionId()))
-          this.CentroCapacitacionIdForEdit.set(vals.list[0].CursoHabilitacionId)
-          vals.CentroCapacitacionId = vals.list[0].CentroCapacitacionId
-          vals.CentroCapacitacionCuit = vals.list[0].CentroCapacitacionCuit
-          vals.CentroCapacitacionRazonSocial = vals.list[0].CentroCapacitacionRazonSocial
-          vals.CentroCapacitacionInactivo = vals.list[0].CentroCapacitacionInactivo
-          
-          this.formCli.patchValue(vals)
-          this.formCli.markAsUntouched()
-          this.formCli.markAsPristine()
+  effect = effect(async () => {
+    const visible = this.visible()
+    if (visible) {
+      if (this.CentroCapacitacionId() > 0) {
+        let vals = await firstValueFrom(this.apiService.getListInstitucionesHistory({ options: { filtros: [], sort: null, extra: null } }, this.CentroCapacitacionId()))
+        this.CentroCapacitacionIdForEdit.set(vals.list[0].CursoHabilitacionId)
+        vals.CentroCapacitacionId = vals.list[0].CentroCapacitacionId
+        vals.CentroCapacitacionCuit = vals.list[0].CentroCapacitacionCuit
+        vals.CentroCapacitacionRazonSocial = vals.list[0].CentroCapacitacionRazonSocial
+        vals.CentroCapacitacionInactivo = vals.list[0].CentroCapacitacionInactivo
 
-          if (this.disabled()) {
-            this.tituloDrawer.set('Consultar Institución')
-            this.formCli.disable()
-          } else {
-            this.tituloDrawer.set('Editar Institución')
-            this.formCli.enable()
-          }
+        this.formCli.patchValue(vals)
+        this.formCli.markAsUntouched()
+        this.formCli.markAsPristine()
+
+        if (this.disabled()) {
+          this.tituloDrawer.set('Consultar Institución')
+          this.formCli.disable()
+        } else {
+          this.tituloDrawer.set('Editar Institución')
+          this.formCli.enable()
         }
       }
-    })
-  }
+    }
+  })
 
   async save() {
     this.isSaving.set(true)
@@ -85,14 +83,14 @@ export class InstitucionesDrawerComponent {
     try {
       vals.CentroCapacitacionId = this.CentroCapacitacionId()
       const res = await firstValueFrom(this.apiService.setInstituciones(vals))
-      if(res.data?.list[0]?.CentroCapacitacionId > 0) {
+      if (res.data?.list[0]?.CentroCapacitacionId > 0) {
         this.CentroCapacitacionIdForEdit.set(res.data?.list[0]?.CentroCapacitacionId)
         this.formCli.patchValue({
           CentroCapacitacionId: res.data?.list[0]?.CentroCapacitacionId,
         })
         this.tituloDrawer.set('Editar Institución')
-      }  
-      
+      }
+
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
       this.onRefreshInstituciones.emit()

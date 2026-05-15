@@ -37,6 +37,9 @@ export class CursosDrawerComponent {
   RefreshCurso = model<boolean>(false)
   private apiService = inject(ApiService)
   private notification = inject(NzNotificationService)
+  private searchService= inject(SearchService)
+
+
   CursoHabilitacionSelectedId = input.required<number>()
   CursoHabilitacionIdForEdit = signal(0)
   CentroCapacitacionIdSelected = signal(0)
@@ -70,10 +73,7 @@ export class CursosDrawerComponent {
     CursoHabilitacionIdForEdit: 0
   })
 
-  constructor(
-    private searchService: SearchService
-  ) { 
-    effect(async() => {
+  effect =     effect(async() => {
       const visible = this.visible()
  
       if (visible) {
@@ -110,7 +110,8 @@ export class CursosDrawerComponent {
         }
       }
     })
-  }
+
+
 
   updateValues() {
     setTimeout(() => {

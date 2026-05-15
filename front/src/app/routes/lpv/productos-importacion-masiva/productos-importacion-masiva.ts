@@ -57,10 +57,6 @@ export class ProductosImportacionMasivaComponent {
     private searchService: SearchService,
     private angularUtilService : AngularUtilService,
   ) {
-  //   effect(async() => { 
-  //     const tableName = this.tableName()
-  //     this.formAltaProd.get('DescuentoId')?.reset()
-  //   })
   }
 
   $optionsProducto = this.searchService.getProductos();
