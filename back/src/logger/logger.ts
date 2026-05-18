@@ -9,8 +9,9 @@ class Logger {
 
   constructor() {
     // ✅ Worker (always active)
+    const workerPath = (this.isDev ? './worker/logger.worker.ts' : './logger/worker/logger.worker.js');
     this.worker = new Worker(
-      new URL('./worker/logger.worker.ts', import.meta.url)
+      new URL(workerPath, import.meta.url)
     );
 
     // ✅ Dev console logger (ONLY in development)
