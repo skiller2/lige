@@ -11,7 +11,7 @@ export class VehiculoController extends BaseController {
   }
 
   async getTipoVehiculo(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const options = await this.getTipoVehiculoQuery(queryRunner)
 
@@ -31,7 +31,7 @@ export class VehiculoController extends BaseController {
 
   async getMarcaVehiculo(req: Request, res: Response, next: NextFunction) {
     const TipoVehiculoId = req.body.TipoVehiculoId
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const options = await this.getMarcaVehiculoQuery(queryRunner, TipoVehiculoId)
 
@@ -52,7 +52,7 @@ export class VehiculoController extends BaseController {
   async getModeloVehiculo(req: Request, res: Response, next: NextFunction) {
     const TipoVehiculoId = req.body.TipoVehiculoId
     const VehiculoMarcaId = req.body.VehiculoMarcaId
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const options = await this.getModeloVehiculoQuery(queryRunner, TipoVehiculoId, VehiculoMarcaId)
 

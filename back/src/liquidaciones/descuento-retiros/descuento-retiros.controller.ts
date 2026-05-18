@@ -266,7 +266,7 @@ export class DescuentoRetirosController extends BaseController {
   async procesaCambios(req: any, res: Response, next: NextFunction) {
     const options = {}
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
     const ip = this.getRemoteAddress(req)

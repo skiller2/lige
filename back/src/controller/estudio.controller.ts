@@ -157,7 +157,7 @@ export class EstudioController extends BaseController {
   }
 
   async geEstadosEstudio(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const options = await this.geEstadosEstudioQuery(queryRunner)
 
@@ -174,7 +174,7 @@ export class EstudioController extends BaseController {
   }
 
   async getTiposEstudio(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const options = await this.getTiposEstudioQuery(queryRunner)
 
@@ -196,7 +196,7 @@ export class EstudioController extends BaseController {
     const filterSql = filtrosToSql(options.filtros, listaColumnas);
     const orderBy = orderToSQL(options.sort);
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       const objetivos = await queryRunner.query(
@@ -274,7 +274,7 @@ export class EstudioController extends BaseController {
 
   async search(req: any, res: Response, next: NextFunction) {
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const TipoEstudio = await queryRunner.query(`SELECT TipoEstudioId, TipoEstudioDescripcion FROM TipoEstudio `)
 
@@ -291,7 +291,7 @@ export class EstudioController extends BaseController {
   async searchId(req: any, res: Response, next: NextFunction) {
 
     const { id } = req.params
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const CursoHabilitacion = await queryRunner.query(`SELECT TipoEstudioId, TipoEstudioDescripcion FROM TipoEstudio Where TipoEstudioId = ${id}`)
 
@@ -327,7 +327,7 @@ export class EstudioController extends BaseController {
     const ip = this.getRemoteAddress(req)
 
     //throw new ClientException(`test.`)
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     await queryRunner.connect();
     await queryRunner.startTransaction();
     
@@ -500,7 +500,7 @@ export class EstudioController extends BaseController {
   async getEstudio(req: any, res: Response, next: NextFunction) {
 
     const { PersonalId, PersonalEstudioId } = req.params
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
 
     try {
 
@@ -517,7 +517,7 @@ export class EstudioController extends BaseController {
 
   async deleteEstudio(req: any, res: Response, next: NextFunction) {
     const { PersonalId, PersonalEstudioId } = req.body
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
 
     try {
       await queryRunner.connect();

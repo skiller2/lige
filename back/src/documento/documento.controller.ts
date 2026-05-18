@@ -394,7 +394,7 @@ export class DocumentoController extends BaseController {
   }
 
   async getTipos(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const options = await this.getTiposDocumentoQuery(queryRunner)
 
@@ -413,7 +413,7 @@ export class DocumentoController extends BaseController {
     const fec_doc_ven: Date = req.body.DocumentoFechaDocumentoVencimiento ? new Date(req.body.DocumentoFechaDocumentoVencimiento) : null
     const ind_descarga_bot: boolean = req.body.DocumentoIndividuoDescargaBot
     const archivos: any[] = req.body.archivo
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const now = new Date()
@@ -564,7 +564,7 @@ export class DocumentoController extends BaseController {
     const fecha: Date = req.body.Documentofecha ? new Date(req.body.Documentofecha) : req.body.Documentofecha
     const fec_doc_ven: Date = req.body.DocumentoFechaDocumentoVencimiento ? new Date(req.body.DocumentoFechaDocumentoVencimiento) : req.body.DocumentoFechaDocumentoVencimiento
     const ind_descarga_bot: boolean = req.body.DocumentoIndividuoDescargaBot
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
 
@@ -669,7 +669,7 @@ export class DocumentoController extends BaseController {
 
   async getDocumentoById(req: any, res: Response, next: NextFunction) {
     const doc_id: number = req.params.id;
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.startTransaction()
       const doc = await queryRunner.query(`

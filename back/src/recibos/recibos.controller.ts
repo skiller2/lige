@@ -112,7 +112,7 @@ export class RecibosController extends BaseController {
     const ip = this.getRemoteAddress(req)
     let isUnique = req.body.isUnique
     const personalId = req.body?.personalId
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     let persona_id = 0
     //estas  variables se usan solo si el recibo previamente ya existe 
     let fechaRecibo = new Date(req.body.fechaRecibo)
@@ -629,7 +629,7 @@ export class RecibosController extends BaseController {
   ) {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
 
     try {
@@ -672,7 +672,7 @@ export class RecibosController extends BaseController {
 
   async bindPdf(req: Request, res: Response, next: NextFunction) {
 
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const {
       Usuario,
       Anio,
@@ -900,10 +900,10 @@ export class RecibosController extends BaseController {
     const tipocuenta_id = req.body.tipocuenta_id || 'G'
     const PersonalId = Number(req.body.PersonalId)
     const periodo = new Date(req.body.periodo)
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const fechaActual = new Date();
     let persona_id = 0
-    let usuario = res.locals.userName
+    const usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     let filesPath = ""
 

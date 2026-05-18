@@ -16,7 +16,7 @@ export class IngresoPorAsistenciaController extends BaseController {
     let ip = this.getRemoteAddress(req)
     let usuario = res.locals.userName
     const tipo_movimiento_id = Number(process.env.MOV_ASISTENCIA_VIGILANCIA)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
 

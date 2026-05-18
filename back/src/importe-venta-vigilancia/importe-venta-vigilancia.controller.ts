@@ -409,7 +409,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
     const orderBy = orderToSQL(options.sort)
     const anio = req.body.anio
     const mes = req.body.mes
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
 
       const listCargaLicenciaHistory = await queryRunner.query(`
@@ -638,7 +638,7 @@ LEFT JOIN (
     const anioRequest = Number(req.body.anio)
     const mesRequest = Number(req.body.mes)
     const file = req.body.files
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
 
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
@@ -840,7 +840,7 @@ LEFT JOIN (
 
       if (!anio || !mes) throw new ClientException("Faltan indicar el anio y el mes")
 
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
 
       const importacionesAnteriores = await queryRunner.query(
 
@@ -871,7 +871,7 @@ LEFT JOIN (
     next: NextFunction
   ) {
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const data = await queryRunner.query(`SELECT DocumentoPath,DocumentoNombreArchivo FROM Documento WHERE DocumentoId = @0`,
         [impoexpoId]
@@ -902,7 +902,7 @@ LEFT JOIN (
       ComprobanteNumero
     } = req.body
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const fechaActual = new Date()

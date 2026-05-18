@@ -7,7 +7,7 @@ export class SucursalController extends BaseController {
 
   async getAllSucursales(res: Response, req: Request, next:NextFunction) {
     try {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         'SELECT SucursalId, SucursalDescripcion, SucursalId as value, SucursalDescripcion as label FROM Sucursal '
       )

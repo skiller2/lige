@@ -107,7 +107,7 @@ export class InitController extends BaseController {
 
 
   async getObjetivosSinGrupo(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const stmactual = new Date()
     queryRunner
       .query(
@@ -164,7 +164,7 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 
   async getRecibosPendDescarga(req: Request, res: Response, next: NextFunction) {
     try {
-      const queryRunner = await getConnection()
+      const queryRunner = await getConnection(res.locals.userName)
       const rec = await queryRunner.query(
         `SELECT TOP 1 COUNT(DISTINCT dc.DocumentoId) total, COUNT(DISTINCT lg.DocumentoId) descargados, dc.DocumentoAnio, dc.DocumentoMes 
           FROM Documento dc
@@ -184,7 +184,7 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 
 
   async getAdelantosPendientes(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const stmactual = new Date()
     try {
       const records = await queryRunner
@@ -214,7 +214,7 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
   }
 
   async getExcepcionesPendientes(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const stmactual = new Date()
     queryRunner
       .query(
@@ -255,7 +255,7 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 
 
   async getObjetivosActivos(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const stmactual = new Date()
     queryRunner
       .query(
@@ -308,7 +308,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
 
 
   async getClientesActivos(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const stmactual = new Date()
     queryRunner.query(
       `with cte as (
@@ -346,7 +346,7 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
   async getLicenciasInconsistentes(req: Request, res: Response, next: NextFunction) {
     const anio = Number(req.params.anio)
     const mes = Number(req.params.mes)
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
 
 
     const licencias = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], null, false, false)
@@ -356,7 +356,7 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
 
 
   async getHorasTrabajadas(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
 
     const anio = Number(req.params.anio)
 
@@ -500,7 +500,7 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
         break;
     }
 
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
 
     queryRunner
       .query((query += " 1=1"))
@@ -525,7 +525,7 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
 
   async getHabilitacionesProximaVencer(req: Request, res: Response, next: NextFunction) {
     const fecha = new Date()
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
 
     try {
       const rec = await queryRunner.query(`
@@ -607,7 +607,7 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
     // const anio = Number(req.params.anio)
     // const mes = Number(req.params.mes)
     const fecha = new Date()
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
 
     try {
       const rec = await queryRunner.query(`
@@ -723,7 +723,7 @@ e.PersonalHabilitacionId = b.PersonalHabilitacionId
     // const anio = Number(req.params.anio)
     // const mes = Number(req.params.mes)
     const fecha = new Date()
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
 
     try {
       const rec = await queryRunner.query(`

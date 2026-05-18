@@ -14,7 +14,7 @@ export class IngresoCoordinadorCuentaController extends BaseController {
     let ip = this.getRemoteAddress(req)
     let usuario = res.locals.userName
     const tipo_movimiento_id = Number(process.env.MOV_COORDINADOR_CUENTA)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       if (tipo_movimiento_id == 0 || Number.isNaN(tipo_movimiento_id))

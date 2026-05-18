@@ -9,7 +9,8 @@ export class TypeOrmLogger implements Logger {
   logQuery(query: string, parameters?: any[], queryRunner?: QueryRunner) {
     logger.debug('SQL Query', {
       query,
-      parameters
+      parameters,
+      user: queryRunner?.connection.options.extra.user || 'unknown'
     });
   }
 
@@ -17,7 +18,8 @@ export class TypeOrmLogger implements Logger {
     logger.error('SQL Query Error', {
       error: error instanceof Error ? error.message : error,
       query,
-      parameters
+      parameters,
+      user: queryRunner?.connection.options.extra.user || 'unknown'
     });
   }
 
@@ -25,7 +27,8 @@ export class TypeOrmLogger implements Logger {
     logger.warn('Slow Query', {
       time,
       query,
-      parameters
+      parameters,
+      user: queryRunner?.connection.options.extra.user || 'unknown'
     });
   }
 

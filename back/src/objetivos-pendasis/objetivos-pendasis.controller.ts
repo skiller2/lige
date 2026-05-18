@@ -151,7 +151,7 @@ export class ObjetivosPendasisController extends BaseController {
     const anio: number = filtros.filter((x: { index: string; }) => x.index === "anio")[0]?.valor;
     const mes: number = filtros.filter((x: { index: string; }) => x.index === "mes")[0]?.valor;
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     await queryRunner.connect();
 
     const objetivos = await ObjetivoController.getObjetivoContratos(0, anio, mes, queryRunner)

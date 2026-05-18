@@ -381,7 +381,7 @@ export class GrupoActividadController extends BaseController {
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaGrupos);
 
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const fechaActual = new Date()
 
         try {
@@ -418,7 +418,7 @@ export class GrupoActividadController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaResponsables);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const fechaActual = new Date()
 
         try {
@@ -486,7 +486,7 @@ export class GrupoActividadController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaObjetivos);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const fechaActual = new Date()
 
         try {
@@ -556,7 +556,7 @@ export class GrupoActividadController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaPersonal);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const fechaActual = new Date()
 
         try {
@@ -619,7 +619,7 @@ export class GrupoActividadController extends BaseController {
 
     async changecellgrupo(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const ip = this.getRemoteAddress(req)
         const usuario = res.locals.userName
         const fechaActual = new Date()
@@ -722,7 +722,7 @@ export class GrupoActividadController extends BaseController {
     async changecellResponsable(req: any, res: Response, next: NextFunction) {
 
         const ip = this.getRemoteAddress(req)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const usuario = res.locals.userName
 
         const fechaActual = new Date()
@@ -920,7 +920,7 @@ export class GrupoActividadController extends BaseController {
     async changecellObjetivos(req: any, res: Response, next: NextFunction) {
 
         const ip = this.getRemoteAddress(req)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const usuario = res.locals.userName
         const fechaActual = new Date()
         let message = ""
@@ -1081,7 +1081,7 @@ export class GrupoActividadController extends BaseController {
     async changecellPersonal(req: any, res: Response, next: NextFunction) {
 
         const ip = this.getRemoteAddress(req)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const usuario = res.locals.userName
         const fechaActual = new Date()
         let message = ""
@@ -1253,7 +1253,7 @@ export class GrupoActividadController extends BaseController {
 
         let cod_grupo_actividad = req.query[0]
         //throw new ClientException(`test`)
-        const queryRunner = await getConnection()
+        const queryRunner = await getConnection(res.locals.userName)
 
         try {
             await queryRunner.connect()
@@ -1274,7 +1274,7 @@ export class GrupoActividadController extends BaseController {
         let cod_grupo_jerarquico_id = req.query[0]
         let cod_grupo_actividad = req.query[1]
         let fecha_hasta = req.query[2]
-        const queryRunner = await getConnection()
+        const queryRunner = await getConnection(res.locals.userName)
         
         try {
             await queryRunner.connect()
@@ -1420,7 +1420,7 @@ export class GrupoActividadController extends BaseController {
 
     async gruposPersonas(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
 
         const today = new Date();
         const fechaMonth = new Date(today.getFullYear(), today.getMonth(), 0);
@@ -1466,7 +1466,7 @@ export class GrupoActividadController extends BaseController {
 
     async objetivosGrupos(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         let fechaActual = new Date()
 
         try {

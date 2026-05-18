@@ -196,7 +196,7 @@ export class CursoController extends BaseController {
 
   async search(req: any, res: Response, next: NextFunction) {
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const Curso = await queryRunner.query(
         `SELECT CursoHabilitacionId
@@ -213,7 +213,7 @@ export class CursoController extends BaseController {
 
   async searchId(req: any, res: Response, next: NextFunction) {
     const { id } = req.params
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const Curso = await queryRunner.query(`SELECT CursoHabilitacionId,CursoHabilitacionDescripcion FROM CursoHabilitacion WHERE CursoHabilitacionId = ${id}`)
       return this.jsonRes(Curso, res);
@@ -242,7 +242,7 @@ export class CursoController extends BaseController {
     const orderBy = orderToSQL(req.body.options.sort)
 
     //const orderBy = orderToSQL(req.body.options.sort)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const fechaActual = new Date()
     const anio = fechaActual.getFullYear()
     const mes = fechaActual.getMonth() + 1
@@ -296,7 +296,7 @@ export class CursoController extends BaseController {
 
     const { CursoHabilitacionId, CentroCapacitacionSedeId } = req.body
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       const cursos = await queryRunner.query(
@@ -350,7 +350,7 @@ export class CursoController extends BaseController {
 
   async searchModalidadCurso(req: any, res: Response, next: NextFunction) {
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const Curso = await queryRunner.query(`SELECT ModalidadCursoCodigo, ModalidadCursoModalidad FROM ModalidadCurso`)
       return this.jsonRes(Curso, res);
@@ -364,7 +364,7 @@ export class CursoController extends BaseController {
 
   async searchModalidadCursoId(req: any, res: Response, next: NextFunction) {
     const { id } = req.params
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const Curso = await queryRunner.query(`SELECT ModalidadCursoCodigo, ModalidadCursoModalidad FROM ModalidadCurso WHERE ModalidadCursoCodigo = @0`, [id])
       return this.jsonRes(Curso, res);
@@ -389,7 +389,7 @@ export class CursoController extends BaseController {
     const ip = this.getRemoteAddress(req);
 
     //throw new ClientException(`test.`)
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -512,7 +512,7 @@ export class CursoController extends BaseController {
 
   async deleteCurso(req: any, res: Response, next: NextFunction) {
     const { CursoHabilitacionId } = req.query
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     // throw new ClientException(`test`)
 
     try {

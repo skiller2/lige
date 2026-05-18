@@ -19,7 +19,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
     const tipo_movimiento_id_normadmi = Number(process.env.MOV_ASISTENCIA_ADMINISTRA)
     const tipo_movimiento_id_art42vigi = Number(process.env.MOV_ART42VIGI)
     const tipo_movimiento_id_art42admi = Number(process.env.MOV_ART42ADMI)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
 

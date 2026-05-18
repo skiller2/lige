@@ -15,7 +15,7 @@ export class ReportesController extends BaseController {
   async filterReport(req: Request, res: Response, next: NextFunction){
 
     const titleReport = req.params.title
-    let Usuario = res.locals.userName
+    const Usuario = res.locals.userName
     try {
       const user = (res.locals.userName)? res.locals.userName : Usuario
       if (!user)
@@ -44,7 +44,7 @@ export class ReportesController extends BaseController {
   }
 
   async Report(req: Request, res: Response, next: NextFunction) {
-      const queryRunner = await getConnection()
+      const queryRunner = await getConnection(res.locals.userName)
 
       const {
         Usuario,

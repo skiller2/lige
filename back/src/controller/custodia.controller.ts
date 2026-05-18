@@ -494,7 +494,7 @@ const estados: any[] = [
 export class CustodiaController extends BaseController {
     /*
         static async listCustodiasPendientes(anio: number, mes: number) {
-            const queryRunner = await getConnection();
+            const queryRunner = await getConnection(res.locals.userName);
             return queryRunner.query(`SELECT c.fecha_inicio, c.responsable_id, p.PersonalId, CONCAT (TRIM(p.PersonalApellido),', ',TRIM(p.PersonalNombre)) ResponsableDetalle
                 FROM lige.dbo.objetivocustodia c 
                 JOIN Personal p ON p.PersonalId = c.responsable_id 
@@ -504,7 +504,7 @@ export class CustodiaController extends BaseController {
     */
     static async listCustodiasPendientesLiqui(anio: number, mes: number, diascorrimiento: number = 3) {
         diascorrimiento = diascorrimiento * -1
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         //New Table
         return queryRunner.query(`SELECT obj.CustodiaCodigo, obj.ResponsableId, obj.ClienteId, obj.FechaInicio,
             obj.Origen, obj.FechaFin, obj.Destino, obj.EstadoCodigo, TRIM(cli.ClienteDenominacion) ClienteDenominacion,
@@ -942,7 +942,7 @@ export class CustodiaController extends BaseController {
 
 
     async addObjetivoCustodia(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         let errores = []
 
         try {
@@ -1084,7 +1084,7 @@ export class CustodiaController extends BaseController {
     }
 
     async listObjetivoCustodiaByResponsable(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             // const ResponsableId = 699
@@ -1124,7 +1124,7 @@ export class CustodiaController extends BaseController {
     }
 
     async infoObjCustodia(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             const CustodiaCodigo = req.params.id
@@ -1151,7 +1151,7 @@ export class CustodiaController extends BaseController {
     }
 
     async updateObjetivoCustodia(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         let errores = []
 
         try {
@@ -1355,7 +1355,7 @@ export class CustodiaController extends BaseController {
     }
 
     async searhPatente(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             const patente = req.body.Patente
@@ -1375,7 +1375,7 @@ export class CustodiaController extends BaseController {
     }
 
     async getPersonalByPatente(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             const patente = req.body.patente
@@ -1399,7 +1399,7 @@ export class CustodiaController extends BaseController {
     }
 
     async getRequirenteByCliente(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             const ClienteId = req.body.ClienteId
@@ -1422,7 +1422,7 @@ export class CustodiaController extends BaseController {
     }
 
     async searchRequirente(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             const { value } = req.body;
@@ -1444,7 +1444,7 @@ export class CustodiaController extends BaseController {
     }
 
     async setEstados(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
@@ -1679,7 +1679,7 @@ export class CustodiaController extends BaseController {
     }
 
     async listPersonalCustodia(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const responsableId = res.locals.PersonalId
             const periodo: Date = new Date(req.body.periodo)

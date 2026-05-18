@@ -281,7 +281,7 @@ export class ParametrosVentaController extends BaseController {
         const fechaActual = new Date()
         const filterSql = filtrosToSql(req.body.filters.filtros, this.listaColumnas);
         const orderBy = orderToSQL(req.body.filters.sort)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const periodoDate = new Date(req.body.periodo)
         const anio = periodoDate.getFullYear()
         const mes = periodoDate.getMonth() + 1
@@ -370,7 +370,7 @@ export class ParametrosVentaController extends BaseController {
     async getObjetivo(req: any, res: any, next: any) {
         const ClienteId = req.params.ClienteId
         const ClienteElementoDependienteId = req.params.ClienteElementoDependienteId
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
@@ -386,7 +386,7 @@ export class ParametrosVentaController extends BaseController {
     }
     async addParametroVenta(req: any, res: any, next: any) {
 
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const ParametroVenta = { ...req.body };
 
         try {
@@ -592,7 +592,7 @@ export class ParametrosVentaController extends BaseController {
     }
 
     async getTipoProductoSearchOptions(req: any, res: any, next: any) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const result = await queryRunner.query(`
         SELECT ProductoCodigo,Nombre FROM Producto `)
         this.jsonRes(result, res);
@@ -628,7 +628,7 @@ export class ParametrosVentaController extends BaseController {
     }
 
     async infParametroVenta(req: any, res: Response, next: any) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             const ClienteId = Number(req.params.ClienteId);
@@ -695,7 +695,7 @@ export class ParametrosVentaController extends BaseController {
 
 
     async getAutorizarParametroVenta(req: any, res: any, next: any) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             const codobj = req.params.codobj;
@@ -754,7 +754,7 @@ export class ParametrosVentaController extends BaseController {
     }
 
     async rechazarParametroVenta(req: any, res: any, next: any) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             const codobj = req.params.codobj;
@@ -785,7 +785,7 @@ export class ParametrosVentaController extends BaseController {
     }
 
     async updateParametroVenta(req: any, res: any, next: any) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             const ClienteId = Number(req.body.ClienteId);
@@ -849,7 +849,7 @@ export class ParametrosVentaController extends BaseController {
 
     // Nuevos métodos para autorizar/rechazar múltiples condiciones de venta
     async autorizarParametroVentaMultiple(req: any, res: any, next: any) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction();
             const condiciones = req.body.condiciones;
@@ -923,7 +923,7 @@ export class ParametrosVentaController extends BaseController {
     }
 
     async rechazarParametroVentaMultiple(req: any, res: any, next: any) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction();
             const condiciones = req.body.condiciones;
@@ -1033,7 +1033,7 @@ export class ParametrosVentaController extends BaseController {
     }
 
     async getMensajeHoras(req: any, res: any, next: any) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const tipoHoras = req.params.tipoHoras;
             const ClienteId = Number(req.params.ClienteId);
@@ -1076,7 +1076,7 @@ export class ParametrosVentaController extends BaseController {
 
 
     async getPrecioListaPrecios(req: any, res: any, next: any) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const ClienteId = Number(req.params.ClienteId);
             const anio = Number(req.params.anio);

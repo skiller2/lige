@@ -12,7 +12,7 @@ export class InformesController extends BaseController {
   ssrsURLAPI = "https://gestion.linceseguridad.com.ar/reports/api/v2.0"
   ssrsURLAccess = "https://gestion.linceseguridad.com.ar/ReportServer?"
   async Report(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const {
       Usuario,
       Reporte,

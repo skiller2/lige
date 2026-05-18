@@ -8,7 +8,7 @@ export class PendienteController extends BaseController {
 
   async search(req: any, res: Response, next:NextFunction) {
     const { fieldName, value } = req.body;
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     let buscar = false;
     

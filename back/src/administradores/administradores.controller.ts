@@ -148,7 +148,7 @@ export class AdministradoresController extends BaseController {
 
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const fechaActual = new Date()
 
     try {
@@ -178,7 +178,7 @@ export class AdministradoresController extends BaseController {
 async listAdministradoresClientes(req: any, res: Response, next: NextFunction) {
   const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnasClientes);
   const orderBy = orderToSQL(req.body.options.sort)
-  const queryRunner = await getConnection();
+  const queryRunner = await getConnection(res.locals.userName);
   const fechaActual = new Date()
 
   try {

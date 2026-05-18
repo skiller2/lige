@@ -7,7 +7,7 @@ export class DescripcionProductoController extends BaseController {
 
   async getAllProductos(res: Response, req: Request, next:NextFunction) {
     try {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         'SELECT ProductoTipoCodigo as TipoProductoId ,Descripcion as TipoProductoDescripcion, ProductoTipoCodigo as value, Descripcion as label  FROM  ProductoTipo'
       )

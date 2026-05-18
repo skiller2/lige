@@ -35,7 +35,7 @@ export class LiquidacionesController extends BaseController {
     const banco_id = Number(req.body.banco_id)
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -113,7 +113,7 @@ export class LiquidacionesController extends BaseController {
   async getPeriodoStatus(req: Request, res: Response, next: NextFunction) {
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       let status = null
       if (anio && mes) {
@@ -149,7 +149,7 @@ export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
 
   async getTipoMovimientoById(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     const TipoMovimientoFilter = req.params.TipoMovimiento;
     try {
@@ -179,7 +179,7 @@ export class LiquidacionesController extends BaseController {
 
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
     const TipoMovimientoFilter = req.params.TipoMovimiento;
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
 
       const tipoMovimiento = await queryRunner.query(
@@ -223,7 +223,7 @@ export class LiquidacionesController extends BaseController {
   }
 
   async getTipoCuenta(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
 
       const tipoCuenta = await queryRunner.query(
@@ -252,7 +252,7 @@ export class LiquidacionesController extends BaseController {
   ) {
 
     try {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       const importacionesAnteriores = await queryRunner.query(
 
         `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS nombre, path, aud_fecha_ins AS fecha FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1 AND ind_eliminado = 0`,
@@ -440,7 +440,7 @@ export class LiquidacionesController extends BaseController {
 
 
     try {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       const liqudacion = await queryRunner.query(
         `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,eledep.ClienteElementoDependienteDescripcion,CONCAT(cus.CustodiaCodigo, ' ', cli.ClienteDenominacion,' ',FORMAT (cus.FechaInicio,'dd/MM/yyyy') ) AS CustodiaDescripcion,  CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
         li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.horas, cuit.PersonalCUITCUILCUIT,
@@ -485,7 +485,7 @@ export class LiquidacionesController extends BaseController {
     const mes = Number(req.body.mes)
     let fechaActual = new Date()
     const deleteId = Number(req.body.deleteId)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       if (!deleteId)
         throw new ClientException(`No se pudo identificar el grupo de importación ${anio} ${mes} ${deleteId}`)
@@ -527,7 +527,7 @@ export class LiquidacionesController extends BaseController {
 
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     let fechaActual = new Date()
     const periodo = req.body[0].split('/');
 
@@ -599,7 +599,7 @@ export class LiquidacionesController extends BaseController {
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
     const fechaActual = new Date();
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const tipocuenta_id = req.body.tipocuenta
     const tipo_movimiento_id = req.body.movimiento
     let usuario = res.locals.userName

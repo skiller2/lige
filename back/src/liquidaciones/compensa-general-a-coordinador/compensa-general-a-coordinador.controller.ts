@@ -14,7 +14,7 @@ export class CompensaGeneralACordinadorController extends BaseController {
     const mes = Number(req.body.mes)
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     let cantRegistros = 0
     let movimientos = []
     try {

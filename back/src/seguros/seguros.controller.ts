@@ -508,7 +508,7 @@ UNION
     const ip = this.getRemoteAddress(req)
 
     let segAltas = 0, segBajas = 0
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     let EventoLogCodigo = 0
 
 
@@ -780,7 +780,7 @@ UNION
     const anio: number = req.body.anio
     const mes: number = req.body.mes
     try {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(`
        SELECT
             ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
@@ -832,7 +832,7 @@ UNION
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPoliza);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       let result = await queryRunner.query(`
       SELECT 
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
@@ -875,7 +875,7 @@ UNION
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPersonalSeguro);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       let result = await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroNroPoliza,
       perpoliz.PolizaSeguroNroEndoso,perpoliz.CompaniaSeguroId,perpoliz.TipoSeguroCodigo,per.PersonalId,CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS PersonalApellidoNombre,
@@ -910,7 +910,7 @@ UNION
   async getPolizaSeguro(req: any, res: Response, next: NextFunction) {
 
     try {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       //acomodar select para que sea el correcto
       const result = await queryRunner.query(`
       SELECT
@@ -959,7 +959,7 @@ UNION
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     // throw new ClientException(`test.`)
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -1308,7 +1308,7 @@ UNION
   }
 
   async search(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const { fieldName, value } = req.body;
     let buscar = false;
     let query: string = `SELECT TipoSeguroCodigo, TipoSeguroNombre from TipoSeguro WHERE 1=1 AND `;
@@ -1347,28 +1347,28 @@ UNION
 
 
   async getCompaniaSeguroSearch(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const result = await queryRunner.query(`
         SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro  WHERE CompaniaSeguroInactivo IS NULL OR CompaniaSeguroInactivo = 0`)
     this.jsonRes(result, res);
   }
 
   async getCompaniaSeguroId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const result = await queryRunner.query(`
         SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro WHERE CompaniaSeguroId = @0`, [req.params.id])
     this.jsonRes(result, res);
   }
 
   async getTipoSeguroSearch(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const result = await queryRunner.query(`
         SELECT TipoSeguroCodigo, TipoSeguroNombre FROM TipoSeguro `)
     this.jsonRes(result, res);
   }
 
   async getTipoSeguroId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const result = await queryRunner.query(`
         SELECT TipoSeguroCodigo, TipoSeguroNombre FROM TipoSeguro WHERE TipoSeguroCodigo = @0`, [req.params.id])
     this.jsonRes(result, res);

@@ -620,7 +620,7 @@ export class ImpuestosAfipController extends BaseController {
     const file = req.file;
     const anioRequest: number = req.body.anio;
     const mesRequest: number = req.body.mes;
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
@@ -1066,7 +1066,7 @@ export class ImpuestosAfipController extends BaseController {
 
 
   async downloadPersonaF184(PersonalId: number, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     try {
       const fechaActual = new Date();
@@ -1105,7 +1105,7 @@ export class ImpuestosAfipController extends BaseController {
     res: Response,
     next: NextFunction
   ) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     const fileUploadController = new FileUploadController();
     const tmpfilename = fileUploadController.getRandomTempFileName('.pdf');
@@ -1310,7 +1310,7 @@ export class ImpuestosAfipController extends BaseController {
   }
 
   async downloadImpuestoAFIP(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const DocumentoImagenImpuestoAFIPId = req.params.id
     try {

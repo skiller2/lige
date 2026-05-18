@@ -6,7 +6,7 @@ export class RubroController extends BaseController {
   
   async search(req: any, res: Response, next:NextFunction) {
     const { fieldName, value } = req.body;
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     let buscar = false;
     let query: string = `SELECT RubroClienteId, RubroClienteDescripcion FROM RubroCliente WHERE 1=1 AND `;
     switch (fieldName) {
@@ -47,7 +47,7 @@ export class RubroController extends BaseController {
   }
 
   async getRubroCliente(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const options = await queryRunner.query(`
         SELECT RubroClienteId value, TRIM(RubroClienteDescripcion) label

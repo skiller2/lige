@@ -105,7 +105,7 @@ export class PreciosProductosController extends BaseController {
     async listCodigoHistory(codigoId: any, res: Response, next: NextFunction) {
 
 
-        const queryRunner = await getConnection()
+        const queryRunner = await getConnection(res.locals.userName)
 
         try {
 
@@ -150,7 +150,7 @@ export class PreciosProductosController extends BaseController {
         const options: Options = isOptions(req.body.options)? req.body.options : { filtros: [], sort: null };
         const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
         const orderBy = orderToSQL(options.sort)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
 
         const anio:number = Number(req.body.anio)
         const mes:number = Number(req.body.mes)
@@ -268,7 +268,7 @@ LEFT JOIN ClienteFacturacion fac
     async changecell(req: any, res: Response, next: NextFunction) {
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
 
         let dataResultado = {}
         let message = ""
@@ -445,7 +445,7 @@ LEFT JOIN ClienteFacturacion fac
     async deleteProductos(req: any, res: Response, next: NextFunction){
 
         const list = req.body.list
-        const queryRunner = await getConnection()
+        const queryRunner = await getConnection(res.locals.userName)
         let messageError:string[] = []
         try {
             
@@ -516,7 +516,7 @@ LEFT JOIN ClienteFacturacion fac
 
     async getProductos(req: any, res: Response, next: NextFunction) {
  
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const productos = await queryRunner.query(`
                 SELECT ProductoCodigo value, Nombre label
@@ -566,7 +566,7 @@ LEFT JOIN ClienteFacturacion fac
         let docId: number | null = null
         let EventoLogCodigo = 0
 
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             let campos_vacios: any[] = [];
 
@@ -742,7 +742,7 @@ LEFT JOIN ClienteFacturacion fac
     async getImportacionesPreciosAnteriores(req: any, res: Response, next: NextFunction) {
         const anio = req.params.anio
         const mes = req.params.mes
-        const queryRunner = await getConnection()
+        const queryRunner = await getConnection(res.locals.userName)
 
         try {
         await queryRunner.connect()

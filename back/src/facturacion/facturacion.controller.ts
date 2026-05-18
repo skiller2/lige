@@ -277,7 +277,7 @@ export class FacturacionController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
@@ -328,7 +328,7 @@ export class FacturacionController extends BaseController {
     }
 
     async getComprobanteTipoOptions(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const result = await queryRunner.query(`
           SELECT ComprobanteTipoCodigo, Descripcion FROM ComprobanteTipo`)
         this.jsonRes(result, res);
@@ -339,7 +339,7 @@ export class FacturacionController extends BaseController {
 
         // const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         // const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
 
         const ComprobanteNro = req.params.ComprobanteNro
         const FacturacionCodigo = req.params.FacturacionCodigo
@@ -391,7 +391,7 @@ export class FacturacionController extends BaseController {
 
     async saveFacturacion(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = await getConnection()
+        const queryRunner = await getConnection(res.locals.userName)
         await queryRunner.connect();
         
 

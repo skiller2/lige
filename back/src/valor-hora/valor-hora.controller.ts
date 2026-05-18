@@ -95,7 +95,7 @@ export class ValorHoraController extends BaseController {
   }
 
   async getCategoriasPersonal(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const options = await queryRunner.query(`
         SELECT catper.CategoriaPersonalId value, TRIM(catper.CategoriaPersonalDescripcion) label, catper.TipoAsociadoId
@@ -118,7 +118,7 @@ export class ValorHoraController extends BaseController {
     const filterSql = filtrosToSql(req.body?.options?.filtros ?? [], this.listaColumnas);
     const orderBy = orderToSQL(req.body?.options?.sort);
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const data = await queryRunner.query(`
         SELECT vl.ValorLiquidacionId AS id, vl.ValorLiquidacionId, vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId,
@@ -170,7 +170,7 @@ export class ValorHoraController extends BaseController {
 
   async changecellvalorHora(req: Request, res: Response, next: NextFunction) {
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     let message = ""
     const params = req.body
     console.log('params', params)
@@ -315,7 +315,7 @@ export class ValorHoraController extends BaseController {
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -352,7 +352,7 @@ export class ValorHoraController extends BaseController {
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.startTransaction();
 

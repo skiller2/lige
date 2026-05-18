@@ -28,13 +28,13 @@ export const dataSource = new DataSource({
 
 });
 
-export async function getConnection(): Promise<QueryRunner> {
+export async function getConnection(user: string="local"): Promise<QueryRunner> {
   const ds = dataSource
+  ds.options.extra.user=user
   while (!ds.isInitialized) {
     logger.info('esparando inicialización')
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
-  logger.info('creo queryRunner')
   return ds.createQueryRunner();
   //return null
   }

@@ -381,7 +381,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
   ) {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const data = await queryRunner.query(`SELECT DocumentoPath, DocumentoNombreArchivo FROM Documento WHERE DocumentoId = @0`,
         [impoexpoId]
@@ -433,7 +433,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     const totaldeclarado = Number(req.body.totaldeclarado)
     const file = req.body?.files?.[0] ?? req.body?.files;
     const fechaRequest: Date = new Date(req.body.fecha);
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
 
     const usuario = res.locals.userName
@@ -1016,7 +1016,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       let usuario = res.locals.userName
       let ip = this.getRemoteAddress(req)
       let fechaActual = new Date()
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       //const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Number(Anio), Number(Mes), usuario, ip)
 
 
@@ -1049,7 +1049,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
   }
 
   async getLugarTelefono(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const options = await this.getLugarTelefonoQuery(queryRunner)
 
@@ -1066,7 +1066,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
   }
 
   async getTipoTelefono(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const options = await this.getTipoTelefonoQuery(queryRunner)
 
@@ -1084,7 +1084,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const fechaActual: Date = new Date()
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();

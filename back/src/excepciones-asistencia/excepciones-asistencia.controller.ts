@@ -280,7 +280,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
     const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null }
     const filterSql = filtrosToSql(options.filtros, columnsExcepcionesAsistencia);
     const orderBy = orderToSQL(options.sort)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const periodo = req.body.periodo ? new Date(req.body.periodo) : null
     const year = periodo ? periodo.getFullYear() : 0
     const month = periodo ? periodo.getMonth() + 1 : 0
@@ -423,7 +423,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
   }
 
   async personalArt14AprovarLista(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const ids: Array<{ PersonalArt14Id: number, PersonalId: number, ObjetivoId: number, PersonalArt14ConceptoId: number, PersonalArt14FormaArt14: string }> = req.body.ids
     const numRows: number[] = req.body.rows
     let errors: string[] = []
@@ -531,7 +531,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
   }
 
   async personalArt14RechazarLista(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const ids: string[] = req.body.ids
     const numRows: number[] = req.body.rows
     let errors: string[] = []
@@ -612,7 +612,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
   }
 
   async personalArt14PendienteLista(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const ids: string[] = req.body.ids
     const numRows: number[] = req.body.rows
     let errors: string[] = []

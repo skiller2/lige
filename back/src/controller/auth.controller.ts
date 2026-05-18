@@ -168,7 +168,7 @@ export class AuthController extends BaseController {
 
   async signin(req: Request, res: any, next: NextFunction) {
     const { userName, password } = req.body;
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       let user: any = await this.authUser(userName, password)

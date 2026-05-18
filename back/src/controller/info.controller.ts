@@ -6,7 +6,7 @@ import { QueryResult } from "typeorm";
 export class InfoController extends BaseController {
 
   async dbstatus(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const data = {
       connected: false,
       database: process.env.DB_DATABASE,

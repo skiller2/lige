@@ -48,7 +48,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
   async getGridList(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.startTransaction()
       const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas)
@@ -73,7 +73,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
   async addSMVM(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const SalarioMinimoVitalMovilDesde: Date = req.body.SalarioMinimoVitalMovilDesde ? new Date(req.body.SalarioMinimoVitalMovilDesde) : null;
     const SalarioMinimoVitalMovilSMVM: number = req.body.SalarioMinimoVitalMovilSMVM;
     
@@ -121,7 +121,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
   async updateSMVM(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const SalarioMinimoVitalMovilId = req.body.SalarioMinimoVitalMovilId;
     const SalarioMinimoVitalMovilDesde: Date = req.body.SalarioMinimoVitalMovilDesde ? new Date(req.body.SalarioMinimoVitalMovilDesde) : null;
     const SalarioMinimoVitalMovilSMVM: number = req.body.SalarioMinimoVitalMovilSMVM;
@@ -150,7 +150,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
   async onchangecellSMVM(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.startTransaction();
 
@@ -298,7 +298,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
   async getUltimoPeriodo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const ultimoPeriodo = await queryRunner.query(`
         SELECT TOP 1 SalarioMinimoVitalMovilDesde
@@ -334,7 +334,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
 //throw new ClientException('test');
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.startTransaction();
       await queryRunner.query(`DELETE FROM SalarioMinimoVitalMovil WHERE SalarioMinimoVitalMovilId = @0`, [req.params.SalarioMinimoVitalMovilId]);

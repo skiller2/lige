@@ -252,7 +252,7 @@ export class ClientesController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const fechaActual = new Date()
 
         try {
@@ -357,7 +357,7 @@ ${orderBy}`, [fechaActual])
         const filterSql = filtrosToSql(req.body.options.filtros, this.listDocsColumns);
         const orderBy = orderToSQL(req.body.options.sort);
         const ClienteId = req.body.ClienteId;
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
 
         try {
             const documentos = await queryRunner.query(
@@ -386,7 +386,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async infoCliente(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.startTransaction()
             const clienteId = req.params.id
@@ -504,7 +504,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getCondicionQuery(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const CondicionAnteIva = await queryRunner.query(`SELECT CondicionAnteIVAId,CondicionAnteIVADescripcion from CondicionAnteIVA`)
             return this.jsonRes(CondicionAnteIva, res);
@@ -517,7 +517,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getTipoTelefono(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const tipoTelefono = await queryRunner.query(`SELECT TipoTelefonoId, TipoTelefonoDescripcion FROM TipoTelefono`)
             return this.jsonRes(tipoTelefono, res);
@@ -530,7 +530,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getProvinciasQuery(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const provincias = await queryRunner.query(`SELECT ProvinciaId,ProvinciaDescripcion FROM Provincia WHERE PaisId  = 1`)
             return this.jsonRes(provincias, res);
@@ -543,7 +543,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getLocalidadQuery(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const localidad = await queryRunner.query(`SELECT LocalidadId, ProvinciaId, localidadDescripcion FROM Localidad  WHERE PaisId = 1`)
             return this.jsonRes(localidad, res);
@@ -556,7 +556,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getBarrioQuery(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const barrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 `)
             return this.jsonRes(barrio, res);
@@ -569,7 +569,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getTipoContacto(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const optionsContactoTipo = await queryRunner.query(`
                 SELECT ContactoTipoCod value, Descripcion label FROM ContactoTipo`
@@ -582,7 +582,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getJurImpositiva(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             return this.jsonRes(this.optionsJurImpositiva, res);
         } catch (error) {
@@ -611,7 +611,7 @@ ${orderBy}`, [fechaActual])
 
 
     async updateCliente(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
 
         try {
             await queryRunner.startTransaction()
@@ -835,7 +835,7 @@ ${orderBy}`, [fechaActual])
 
         let { id } = req.query
         const ClienteId = Number(id)
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -861,7 +861,7 @@ ${orderBy}`, [fechaActual])
 
 
     async addCliente(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const ObjCliente = { ...req.body };
         let ObjClienteNew = { ClienteId: 0, infoDomicilio: {}, infoClienteContacto: {}, ClienteFacturacionId: 0 }
         try {
@@ -1133,7 +1133,7 @@ ${orderBy}`, [fechaActual])
     }
 
     static async AddContactosMigrados() {
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         const contactos = await queryRunner.query(`SELECT DISTINCT fac.ClienteId, 'Entrega Comprobante' ContactoApellido, mig.jurisdiccion_Impositiva ContactoNombre,  REPLACE(mig.correo,';',',') correo, mig.jurisdiccion_Impositiva ContactoJurImpositiva
             FROM migrarcontactos mig 
             JOIN ClienteFacturacion fac  ON fac.ClienteFacturacionCUIT= mig.numero_identificacion

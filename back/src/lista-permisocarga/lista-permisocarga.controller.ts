@@ -87,7 +87,7 @@ export class ListaPermisoCargaController extends BaseController {
 
 
     try {
-const queryRunner = await getConnection();
+const queryRunner = await getConnection(res.locals.userName);
       const listPermisoCarga = await queryRunner.query(
         `SELECT 
         ROW_NUMBER() OVER (ORDER BY carg.objetivo_id) AS id,

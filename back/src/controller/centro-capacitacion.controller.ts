@@ -11,7 +11,7 @@ export class CentroCapacitacionController extends BaseController {
 
       async search(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const Curso = await queryRunner.query(`SELECT CentroCapacitacionId, CentroCapacitacionRazonSocial FROM CentroCapacitacion`)
             return this.jsonRes(Curso, res);
@@ -25,7 +25,7 @@ export class CentroCapacitacionController extends BaseController {
     
       async searchId(req: any, res: Response, next: NextFunction) {
         const { id } = req.params
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const Curso = await queryRunner.query(`SELECT CentroCapacitacionId, CentroCapacitacionRazonSocial FROM CentroCapacitacion WHERE CentroCapacitacionId = ${id}`)
             return this.jsonRes(Curso, res);
@@ -39,7 +39,7 @@ export class CentroCapacitacionController extends BaseController {
      
       async searchSede(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = await getConnection();
+        const queryRunner = await getConnection(res.locals.userName);
         try {
             const Curso = await queryRunner.query(` SELECT CentroCapacitacionSedeId, CentroCapacitacionId,CentroCapacitacionSedeDescripcion FROM CentroCapacitacionSede`)
             return this.jsonRes(Curso, res);

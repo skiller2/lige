@@ -172,7 +172,7 @@ export class AdelantosController extends BaseController {
   ) {
 
     try {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
 
       const grupos = await queryRunner.query(
         `SELECT DISTINCT ga.GrupoActividadId, ga.GrupoActividadJerarquicoComo, 1
@@ -204,7 +204,7 @@ export class AdelantosController extends BaseController {
   }
 
   async delAdelanto(personalId: number, anio: number, mes: number, monto: number, ip, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const now = new Date();
     const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 31, 23, 59, 0); // 23:59 del día 31
     try {
@@ -248,7 +248,7 @@ export class AdelantosController extends BaseController {
   async setAdelanto(anio: number, mes: number, personalId: number, monto: number, req: any, res: Response, next: NextFunction) {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const FormaPrestamoId = 7 //Adelanto
     const now = new Date();
     const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 20, 12, 0, 0); // 12:00 del día 20
@@ -394,7 +394,7 @@ export class AdelantosController extends BaseController {
     const mesPrev = (mes - 1 == 0) ? 12 : mes - 1
     const anioPrev = (mes - 1 == 0) ? anio - 1 : anio
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     const options: Options = isOptions(req.body.options)
       ? req.body.options

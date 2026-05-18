@@ -620,7 +620,7 @@ const queryRunner = await getConnection();
 
 
   async eliminaMovimientosBanco(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const fechaActual = new Date()
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
@@ -648,7 +648,7 @@ const queryRunner = await getConnection();
 
 
   async confirmaMovimientosBanco(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     const fechaActual = new Date()
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
@@ -767,7 +767,7 @@ const queryRunner = await getConnection();
     if (!existsSync(directory)) {
       mkdirSync(directory, { recursive: true });
     }
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       const periodo = getPeriodoFromRequest(req);
@@ -1174,7 +1174,7 @@ const queryRunner = await getConnection();
     const envio_nro = req.body.envio_nro
     const tipocuenta_id = req.body.tipocuenta_id
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       if (persona_id == null)
@@ -1213,7 +1213,7 @@ const queryRunner = await getConnection();
     const anio = fechaActual.getFullYear()
     const mes = fechaActual.getMonth() + 1
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       ({ EventoLogCodigo } = await this.eventoLogInicio(

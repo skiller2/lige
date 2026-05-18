@@ -7,7 +7,7 @@ export class ClienteController extends BaseController {
   async search(req: any, res: Response, next:NextFunction) {
     const { fieldName, value } = req.body;
     let buscar = false;
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     let query: string = `SELECT ClienteId,ClienteDenominacion  FROM cliente WHERE`;
     switch (fieldName) {
@@ -56,7 +56,7 @@ export class ClienteController extends BaseController {
 
   async getClientesBillingData(req: any, res: Response, next:NextFunction) {
     const clientesIds: number[] = req.body
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     let infoCliente: any[] = []
     const now = new Date()
     try {

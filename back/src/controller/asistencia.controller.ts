@@ -210,7 +210,7 @@ export class AsistenciaController extends BaseController {
       Observaciones
     } = req.body
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const fechaActual = new Date()
@@ -270,7 +270,7 @@ export class AsistenciaController extends BaseController {
       ObjetivoId,
     } = req.body
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
@@ -404,7 +404,7 @@ export class AsistenciaController extends BaseController {
     const anio = req.params.anio;
     const mes = req.params.mes;
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const periodo = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
       this.jsonRes(periodo, res)
@@ -425,7 +425,7 @@ export class AsistenciaController extends BaseController {
       ObjetivoId
     } = req.body;
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     let fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
     const usuario = res.locals.userName
@@ -663,7 +663,7 @@ export class AsistenciaController extends BaseController {
   }
   async getCategoria(req: any, res: Response, next: NextFunction) {
     try {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         `SELECT val.ValorLiquidacionSucursalId, tip.TipoAsociadoId, tip.TipoAsociadoDescripcion, cat.CategoriaPersonalId, cat.CategoriaPersonalDescripcion, val.ValorLiquidacionHoraNormal
                 FROM CategoriaPersonal cat
@@ -731,7 +731,7 @@ export class AsistenciaController extends BaseController {
 
   async setExcepcion(req: any, res: Response, next: NextFunction) {
     let ConceptoId: number | null = null
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const usuario = res.locals.userName
       const now = new Date()
@@ -1146,7 +1146,7 @@ export class AsistenciaController extends BaseController {
       ConceptoId = 3
 
 
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
 
       const fechaDesde = new Date(anio, mes - 1, 1);
@@ -1262,7 +1262,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getExcepAsistenciaPorObjetivo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     try {
       const objetivoId = req.params.objetivoId;
       const anio = req.params.anio;
@@ -1523,7 +1523,7 @@ export class AsistenciaController extends BaseController {
 
 
   async getHabilitacionesPorPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -1560,7 +1560,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getCategoriasPorPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -1585,7 +1585,7 @@ export class AsistenciaController extends BaseController {
 
 
   async getDescuentosPorPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -1609,7 +1609,7 @@ export class AsistenciaController extends BaseController {
     }
   }
   async getDescuentosPorObjetivo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const ObjetivoId = req.params.objetivoId;
       const anio = req.params.anio;
@@ -1631,7 +1631,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getDescuentosPorPersonaCoord(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -1699,7 +1699,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getPersonalxResponsable(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = Number(req.body.PersonalId);
       const anio = Number(req.body.anio);
@@ -1719,7 +1719,7 @@ export class AsistenciaController extends BaseController {
       if (!anio || !mes)
         return this.jsonRes({ persxresp: [], total: 0 }, res);
 
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && res.locals.PersonalId != personalId)
         throw new ClientException(`No tiene permisos para listar la información`)
 
@@ -1861,7 +1861,7 @@ export class AsistenciaController extends BaseController {
   }
   async getPersonalxResponsableDesc(req: any, res: Response, next: NextFunction) {
     //ACA
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = Number(req.body.PersonalId);
       const anio = Number(req.body.anio);
@@ -1871,7 +1871,7 @@ export class AsistenciaController extends BaseController {
       if (!anio || !mes)
         return this.jsonRes({ descuentos: [], total: 0 }, res);
 
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && res.locals.PersonalId != personalId)
         throw new ClientException(`No tiene permisos para listar la información`)
 
@@ -1923,7 +1923,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getIngresosPorPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -1953,7 +1953,7 @@ export class AsistenciaController extends BaseController {
     }
   }
   async getIngresosExtraPorPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -1985,7 +1985,7 @@ export class AsistenciaController extends BaseController {
 
 
   async getExcepAsistenciaPorPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       const personalId = req.params.personalId;
@@ -2237,7 +2237,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getAsistenciaPorPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -2262,7 +2262,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getPersonalAsistencia(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -2284,7 +2284,7 @@ export class AsistenciaController extends BaseController {
     }
   }
   async getCustodiasPorPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -2314,7 +2314,7 @@ export class AsistenciaController extends BaseController {
       const anio = req.params.anio;
       const mes = req.params.mes;
       let personalId: number[] = []
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas')
         && !await this.hasGroup(req, 'gLogistica') && !await this.hasGroup(req, 'gLogisticaCon')
         && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
@@ -2382,7 +2382,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getAsistenciaPorObjetivo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       const objetivoId = req.params.objetivoId;
@@ -2662,7 +2662,7 @@ export class AsistenciaController extends BaseController {
 
 
   async addAsistencia(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
 
@@ -3028,7 +3028,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getListaAsistenciaPersonalAsignado(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       //      await queryRunner.startTransaction()
       const objetivoId = req.params.ObjetivoId;
@@ -3142,7 +3142,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getLicenciasPorPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = req.params.personalId;
       const anio = req.params.anio;
@@ -3157,7 +3157,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getListaAsistenciaPersonalAsignadoAnterior(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       //      await queryRunner.startTransaction()
       const objetivoId = req.params.ObjetivoId;
@@ -3199,7 +3199,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async getListaAsistenciaControAcceso(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     const usuario = res?.locals.userName || 'server'
     const ip = this.getRemoteAddress(req)
@@ -3567,7 +3567,7 @@ export class AsistenciaController extends BaseController {
 
 
   async eliminaCargaGrilla(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const {
         anio,
@@ -3623,7 +3623,7 @@ export class AsistenciaController extends BaseController {
     }
   }
   async eliminaCargaGrillaPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const {
         anio,
@@ -3699,7 +3699,7 @@ export class AsistenciaController extends BaseController {
 
 
   async validaGrilla(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const {
         anio,

@@ -5,7 +5,7 @@ import type { Response,NextFunction } from "express";
 export class AdministradorController extends BaseController {
   
   async search(req: any, res: Response, next:NextFunction) {
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const { fieldName, value } = req.body;
     let buscar = false;
     let query: string = `SELECT AdministradorId, AdministradorApellidoNombre FROM Administrador WHERE`;

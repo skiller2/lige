@@ -234,7 +234,7 @@ export class OrdenesDeVentaController extends BaseController {
     const orderBy = orderToSQL(options.sort)
     const anio = req.body.anio
     const mes = req.body.mes
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
 
       const listCargaLicenciaHistory = await queryRunner.query(`

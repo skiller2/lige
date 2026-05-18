@@ -120,7 +120,7 @@ export class InstitucionesController extends BaseController {
 
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     const fechaActual = new Date()
     const anio = fechaActual.getFullYear()
     const mes = fechaActual.getMonth() + 1
@@ -158,7 +158,7 @@ export class InstitucionesController extends BaseController {
 
   
     const {CentroCapacitacionId} = req.body
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       const instituciones = await queryRunner.query(
@@ -184,7 +184,7 @@ export class InstitucionesController extends BaseController {
 
 
     const {CentroCapacitacionId} = req.body
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
  
 
     try {
@@ -226,7 +226,7 @@ export class InstitucionesController extends BaseController {
     let result = []
     let isNewOrEdit = true
     let maxSedeId = []
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -300,7 +300,7 @@ export class InstitucionesController extends BaseController {
 
     let CentroCapacitacionId = req.query[0]
     let CentroCapacitacionSedeId = req.query[1]
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     await queryRunner.connect()
     await queryRunner.startTransaction()
     try {
@@ -336,7 +336,7 @@ export class InstitucionesController extends BaseController {
 
 
     await this.validateFormInstituciones(CentroCapacitacionCuit, CentroCapacitacionRazonSocial, CentroCapacitacionInactivo)
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
     await queryRunner.connect();
     await queryRunner.startTransaction();
 

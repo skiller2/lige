@@ -46,7 +46,7 @@ export class AuthMiddleware {
 
       if (!res.locals.lastDbQueryTime || ((now.getTime() - new Date(res.locals.lastDbQueryTime).getTime()) > 20 * 60 * 1000)) {
         // si la consulta es mayor a 20 minutos, recarga
-        const queryRunner = await getConnection()
+        const queryRunner = await getConnection(res.locals.userName)
         try {
           res.locals.GrupoActividad = []
           const listGrupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
@@ -126,7 +126,7 @@ export class AuthMiddleware {
 
       const anio = stmActual.getFullYear()
       const mes = stmActual.getMonth() + 1
-      const queryRunner = await getConnection()
+      const queryRunner = await getConnection(res.locals.userName)
 
       try {
 
@@ -186,7 +186,7 @@ export class AuthMiddleware {
       if (!anio || !mes) return res.status(403).json({ msg: `No se especifico anio o mes` })
       // if (!GrupoActividadId) return res.status(403).json({ msg: `No se especifico GrupoActividadId` })
 
-      const queryRunner = await getConnection()
+      const queryRunner = await getConnection(res.locals.userName)
 
       const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
        
@@ -206,7 +206,7 @@ export class AuthMiddleware {
 
   hasAuthByDocId = () => {
     return async (req, res, next) => {
-      const queryRunner = await getConnection();
+      const queryRunner = await getConnection(res.locals.userName);
       await queryRunner.connect();
       await queryRunner.startTransaction();
        
@@ -488,7 +488,7 @@ export class AuthMiddleware {
 
     if (grupos.length === 0) return next()
 
-    const queryRunner = await getConnection()
+    const queryRunner = await getConnection(res.locals.userName)
 
     try {
       // Verificar que el objetivo pertenezca a alguno de los grupos de actividad del usuario
