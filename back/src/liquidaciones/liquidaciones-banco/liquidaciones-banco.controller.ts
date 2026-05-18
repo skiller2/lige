@@ -928,7 +928,6 @@ LEFT JOIN banco banc
         fileName = `${CUITEmpresa.toString().substring(0, 11)}500000001${FechaEnvio.substring(0, 8)}${nro_envio.toString().padStart(5, '0')}${fileTest}.txt`
 
         let total = 0
-        //        console.log("registros ", banco)
         for (const row of banco) {
           //const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
           const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64).trim();

@@ -163,7 +163,7 @@ export class FileUploadController extends BaseController {
       if (!existsSync(finalurl))
         throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
       if (tableForSearch == 'DocumentoImagenFoto' && finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'image') {
-        console.log('lo convierto');
+
         finalurl = await this.pdf2img(finalurl)
         deleteFile = true
         docname = docname.replace('.pdf', '.png')
@@ -486,23 +486,15 @@ export class FileUploadController extends BaseController {
           if (type == 'vnd.ms-excel') type = 'xls'
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-          //console.log("newFilePath", newFilePath)
-          //console.log("file.tempfilename", file.tempfilename)
+
           try {
             this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           } catch (error) {
-            console.log("error", error)
             throw new ClientException(`Error al copiar el archivo "${file.tempfilename}"`);
           }
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
-          console.log("doc_id", doc_id)
-          console.log("doctipo_id", doctipo_id)
-          console.log("den_documento", den_documento)
-          console.log("type", type)
-
-          console.log("file", file)
 
           await queryRunner.query(`INSERT INTO Documento (
           DocumentoId,

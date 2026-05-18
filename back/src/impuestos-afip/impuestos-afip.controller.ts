@@ -396,7 +396,6 @@ export class ImpuestosAfipController extends BaseController {
         res
       );
     } catch (error) {
-      console.log(error)
       return next(error)
     }
   }
@@ -616,7 +615,6 @@ export class ImpuestosAfipController extends BaseController {
 
 
   async handlePDFUpload(req: Request, res: Response, next: NextFunction, forzado: boolean) {
-    //console.log("pase por el handlePDFUpload", req.body)
     const file = req.file;
     const anioRequest: number = req.body.anio;
     const mesRequest: number = req.body.mes;
@@ -776,7 +774,6 @@ export class ImpuestosAfipController extends BaseController {
 
       this.jsonRes([], res, "PDF Recibido!");
     } catch (error) {
-      console.log(error)
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
@@ -861,7 +858,6 @@ export class ImpuestosAfipController extends BaseController {
         await unlink(tmpfilename);
       });
     } catch (error) {
-      console.log(error)
       return next(error)
     }
   }
@@ -1093,7 +1089,6 @@ export class ImpuestosAfipController extends BaseController {
       res.download(downloadPath, ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo, (msg) => { });
 
     } catch (error) {
-      console.log(error)
       return next(error)
     }
   }
@@ -1163,7 +1158,6 @@ export class ImpuestosAfipController extends BaseController {
         await unlink(tmpfilename);
       });
     } catch (error) {
-      console.log(error)
       return next(error)
     }
   }
@@ -1340,7 +1334,6 @@ export class ImpuestosAfipController extends BaseController {
       res.download(downloadPath, ds[0].DocumentoImagenImpuestoAFIPBlobNombreArchivo, (msg) => { });
 
     } catch (error) {
-      console.log(error)
       return next(error)
     }
   }

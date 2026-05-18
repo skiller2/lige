@@ -902,8 +902,6 @@ LEFT JOIN (
       Observaciones,
       ComprobanteNumero
     } = req.body
-    //    console.log('todo', req.body)
-    //        throw new ClientException(`Debug`)
 
     const queryRunner = dataSource.createQueryRunner();
     const usuario = res.locals.userName
