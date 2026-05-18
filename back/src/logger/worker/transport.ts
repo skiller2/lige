@@ -29,6 +29,7 @@ function format(payload: LogPayload): string {
   return JSON.stringify({
     level: payload.level,
     time: new Date(payload.time).toISOString(),
+    user: payload.user,
     message: payload.message,
     ...payload.context
   });

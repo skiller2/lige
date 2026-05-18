@@ -60,19 +60,15 @@ const errorResponder = (
   let data = {}
   let message: string[] = ["Error interno, avise al administrador del sistema"]
   let status = 500
-
-  if (process.env.DEBUG) {
-    logger.error(error.message, { stack: error.stack, cause: error.cause });
-  }
+  
+  logger.error(error.message, { stack: error.stack, cause: error.cause,user:res?.locals.userName||'server' });
 
   if (error instanceof ClientWarning) { 
     message = error.messageArr
     status = 400
     data = error.extended
 
-    if (process.env.DEBUG) {
-      logger.warn('Client Warning:', error); 
-    }
+    logger.warn(error.message, { stack: error.stack, cause: error.cause,user:res?.locals.userName||'server' });
 
   } else if (error instanceof ClientException) {
     message = error.messageArr
