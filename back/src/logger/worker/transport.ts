@@ -6,7 +6,7 @@ import {
 import * as path from 'path';
 import { type LogPayload } from '../logger.types.ts';
 
-const isDev = process.env.NODE_ENV === 'production' ? false : true;
+const isDev = process.env.NODE_ENV === 'dev' ? true : false;
 let stream = process.stdout;
 
 // Ensure directory exists

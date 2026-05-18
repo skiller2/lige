@@ -18,7 +18,8 @@ export const dataSource = new DataSource({
     encrypt: false,
 
   },
-  pool:{max:1000}
+  pool:{max:1000},
+  
 });
 
 export async function getConnection(): Promise<QueryRunner> {

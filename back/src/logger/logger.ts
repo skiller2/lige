@@ -5,7 +5,7 @@ import { type LogPayload, type LogLevel } from './logger.types.ts';
 class Logger {
   private worker: Worker;
   private devLogger?: pino.Logger;
-  private isDev = process.env.NODE_ENV === 'production' ? false : true;
+  private isDev = process.env.NODE_ENV === 'dev' ? true : false;
 
   constructor() {
     // ✅ Worker (always active)
