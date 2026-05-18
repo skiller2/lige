@@ -298,13 +298,13 @@ export class AyudaAsistencialComponent {
         this.loadingRec.set(true)
         this.rowsError.set([])
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
-        // console.log(ids,this.rows);
+         
         try {
             await firstValueFrom(this.apiService.ayudaAsistencialRechazar({ ids: ids, rows: this.rows }))
             this.formChange('')
         } catch (error: any) {
             let rows: any[] = error.error.data
-            // console.log('ERROR:',rows)
+             
             this.rowsError.set(rows)
         }
         this.changeBackgroundColor()
@@ -315,13 +315,13 @@ export class AyudaAsistencialComponent {
         this.loadingApr.set(true)
         this.rowsError.set([])
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
-        // console.log(ids,this.rows);
+         
         try {
             const res: any = await firstValueFrom(this.apiService.ayudaAsistencialAprobar({ ids: ids, rows: this.rows }))
             this.formChange('')
         } catch (error: any) {
             let rows: any[] = error.error.data
-            // console.log('ERROR:',rows)
+             
             this.rowsError.set(rows)
         }
         this.changeBackgroundColor()
@@ -331,7 +331,7 @@ export class AyudaAsistencialComponent {
     async addCuotaReg() {
         this.loadingCuo.set(true)
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
-        // console.log(ids,this.rows);
+         
         try {
             const res: any = await firstValueFrom(this.apiService.ayudaAsistencialAddCuota({ year: this.selectedPeriod.year, month: this.selectedPeriod.month }))
             this.formChange('')

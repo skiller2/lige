@@ -621,7 +621,6 @@ ${orderBy}`, [fechaActual])
             const ObjCliente = { ...req.body }
             let ObjClienteNew = { infoDomicilio: {}, infoClienteContacto: {} }
 
-            console.log("ObjCliente ", ObjCliente)
             //throw new ClientException(`test`)
 
             //validaciones
@@ -1143,7 +1142,6 @@ ${orderBy}`, [fechaActual])
         await queryRunner.startTransaction()
 
         for (const contacto of contactos) {
-            console.log('update contacto', contacto)
             await ClientesController.CreateContactosMigrados(contacto.ClienteId, 'Entrega', contacto.ContactoApellido, contacto.ContactoNombre, contacto.ContactoJurImpositiva, contacto.correo, queryRunner)
         }
 

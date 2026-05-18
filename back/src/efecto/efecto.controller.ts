@@ -968,8 +968,6 @@ export class EfectoController extends BaseController {
 
   private getEfectoObjetivosQuery(queryRunner: any, listOptions: any) {
 
-    console.log("listOptions", listOptions)
-
     const filterSql = filtrosToSql(listOptions.filtros, listaColumnasObjetivos)
     const now = new Date();
     return queryRunner.query(`

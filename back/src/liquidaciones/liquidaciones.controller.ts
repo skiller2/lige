@@ -669,9 +669,6 @@ export class LiquidacionesController extends BaseController {
           anio
         ]
       );
-
-console.log('row',sheet1.data)
-
       for (const row of sheet1.data) {
         if (row.length == 0)
           continue

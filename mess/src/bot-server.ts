@@ -315,7 +315,7 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
       }, 3000); // Reducido a 3 segundos
 
       const handler = (noticeData: any) => {
-        // console.log('Notice recibido en handler:', JSON.stringify(noticeData, null, 2));
+         
 
         const errorMessage = noticeData?.instructions?.[0] || JSON.stringify(noticeData);
         const is24HourError = errorMessage?.includes('24 hours') ||
@@ -518,7 +518,7 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
 
       // Listener global para ver todos los webhooks de status
       this.adapterProvider.on('notice', (noticeData) => {
-        // console.log('NOTICE RECIBIDO:', JSON.stringify(noticeData, null, 2));
+         
       });
     }
 

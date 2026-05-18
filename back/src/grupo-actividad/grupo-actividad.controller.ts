@@ -378,7 +378,6 @@ export class GrupoActividadController extends BaseController {
 
     async listGrupoActividadGrupos(req: any, res: Response, next: NextFunction) {
 
-        // console.log("req.body.options.filtros ", req.body.options.filtros)
         const filterSql = filtrosToSql(req.body.options.filtros, this.columnasGrillaGrupos);
 
         const orderBy = orderToSQL(req.body.options.sort)
@@ -637,7 +636,6 @@ export class GrupoActividadController extends BaseController {
 
             if (codigoExist.length > 0) { //Entro en update
                 //Validar si cambio el código
-                // console.log(" voy a hacer update")
 
                 await this.validateFormGrupo(params, queryRunner)
 
@@ -660,7 +658,6 @@ export class GrupoActividadController extends BaseController {
             } else {  //Es un nuevo registro
 
 
-                // console.log('El código no existe - es nuevo')
                 await this.validateFormGrupo(params, queryRunner)
 
                 let validateGrupoActividadNumero = await queryRunner.query(`SELECT * FROM GrupoActividad WHERE GrupoActividadNumero = @0`, [params.GrupoActividadNumero])
@@ -793,7 +790,6 @@ export class GrupoActividadController extends BaseController {
                 message = "Actualización exitosa"
 
             } else {  //Es un nuevo registro
-                // console.log('nuevo registro')
                 let GrupoActividadJerarquicoHastaAnt = null
                 GrupoActividadJerarquicoDesde.setHours(0, 0, 0, 0)
 
@@ -1434,7 +1430,6 @@ export class GrupoActividadController extends BaseController {
 
 
 
-        //console.log('grupoPersonas',fechaMonth,anio,mes)
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();

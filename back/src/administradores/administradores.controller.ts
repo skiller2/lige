@@ -176,7 +176,6 @@ export class AdministradoresController extends BaseController {
 }
 
 async listAdministradoresClientes(req: any, res: Response, next: NextFunction) {
-console.log("filtros",req.body.options.filtros)
   const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnasClientes);
   const orderBy = orderToSQL(req.body.options.sort)
   const queryRunner = dataSource.createQueryRunner();

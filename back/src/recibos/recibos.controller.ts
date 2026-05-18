@@ -49,7 +49,6 @@ export class RecibosController extends BaseController {
         try {  await unlink(directorPathUnique) }catch(error){}
 
       } else {
-        console.log("limpiando directorio")
         if (fs.existsSync(directorPath)) {
           const archivos = fs.readdirSync(directorPath);
           archivos.forEach(async archivo => {
@@ -891,7 +890,6 @@ export class RecibosController extends BaseController {
       this.jsonRes([], res, `Se guardo el nuevo formato de recibo`);
 
     } catch (error) {
-      console.log('error:', error)
       return next(error)
     }
   }
@@ -961,7 +959,6 @@ export class RecibosController extends BaseController {
       await browser.close();
 
       let nameFile = `ReciboTest-${anio}-${mes}.pdf`
-      console.log('filesPath', filesPath)
       await this.dowloadPdfBrowser(res, next, filesPath, anio, mes, nameFile)
 
     } catch (error) {
@@ -975,10 +972,10 @@ export class RecibosController extends BaseController {
         console.error(`Error al descargar el PDF: ${filesPath}`, err);
         return next(err);
       } else {
-        //console.log('PDF descargado con éxito');
+         
         try {  await unlink(filesPath) }catch(error){}
 
-        // console.log('PDF eliminado del servidor');
+         
       }
     });
   }

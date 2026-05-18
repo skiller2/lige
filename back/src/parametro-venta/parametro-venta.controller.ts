@@ -389,8 +389,6 @@ export class ParametrosVentaController extends BaseController {
         const queryRunner = dataSource.createQueryRunner();
         const ParametroVenta = { ...req.body };
 
-        console.log('ParametroVenta', ParametroVenta)
-
         try {
 
             //validaciones

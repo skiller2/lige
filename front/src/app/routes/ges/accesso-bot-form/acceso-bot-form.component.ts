@@ -84,7 +84,7 @@ export class AccesoBotFormComponent {
       const img = await this.loadImage(url);
       const result = await reader.decodeFromImageElement(img);
       this.qrCodeResult.set(result.getText())
-      //console.log('Contenido del QR:', this.qrCodeResult);
+       
       this.dniFresteDorso.set(12)
     } catch (error) {
       this.dniFresteDorso.set(0)

@@ -81,8 +81,8 @@ export class TestComponent {
 
   ngOnInit(): void {
     this.responsable.set(699)
-    //console.log('I18NService.getDateFormat()',this.i18n.getDateFormat())
-    //console.log('I18NService.getDateFormat()',this.i18n)
+     
+     
 
     const autocomplete = new GeocoderAutocomplete(
       this.el.nativeElement ,
@@ -129,7 +129,7 @@ export class TestComponent {
 
 
   clickTest(): void {
-//    console.log('curr this.confirmation', this.confirmation)
+ 
   }
 
 

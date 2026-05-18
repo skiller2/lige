@@ -35,7 +35,7 @@ export class HabilitacionNecesariaFormModalComponent {
       const visible = this.visible()
       if (visible) {
         let res = await firstValueFrom(this.searchService.getHabilitacionNecesariaByPersonalId(this.personalId()))
-        // console.log('habsNecesaria: ', res);
+         
         
         this.formHabilitacionNecesaria.reset(res)
         this.formHabilitacionNecesaria.markAsUntouched()
@@ -53,7 +53,7 @@ export class HabilitacionNecesariaFormModalComponent {
     this.isLoading.set(true)
     let vals:any = this.formHabilitacionNecesaria.value
     try {
-      // console.log('vals: ', vals);
+       
       await firstValueFrom(this.apiService.updateHabilitacionNecesaria(vals))
 
       this.formHabilitacionNecesaria.markAsUntouched()

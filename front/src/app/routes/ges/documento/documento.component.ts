@@ -133,7 +133,7 @@ export class DocumentoComponent {
         maxWidth: 30,
         // use onCellClick OR grid.onClick.subscribe which you can see down below
         // onCellClick: (e: Event, args: OnEventArgs) => {
-        //   console.log(args);
+         
         //   if (confirm('Are you sure?')) {
         //     this.angularGrid.gridService.deleteItemById(args.dataContext.id);
         //   }

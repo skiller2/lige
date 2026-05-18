@@ -119,7 +119,6 @@ export class CompensaGeneralACordinadorController extends BaseController {
         }
       }
 
-      console.log('movimientos', movimientos)
 
 
      // throw new ClientException("DEBUG")

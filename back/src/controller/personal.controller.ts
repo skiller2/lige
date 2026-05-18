@@ -1019,7 +1019,6 @@ export class PersonalController extends BaseController {
       WHERE PersonalId =@0 ORDER BY PersonalSucursalPrincipalUltimaActualizacion DESC, PersonalSucursalPrincipalId  DESC `,
       [personaId]
     )
-    console.log('original, nueva', res[0]?.PersonalSucursalPrincipalSucursalId, PersonalSucursalPrincipalSucursalId)
     if (res.length == 0 || res[0]?.PersonalSucursalPrincipalSucursalId != PersonalSucursalPrincipalSucursalId) {
       await queryRunner.query(`
       INSERT INTO PersonalSucursalPrincipal (PersonalId, PersonalSucursalPrincipalUltimaActualizacion, PersonalSucursalPrincipalSucursalId)
@@ -2093,7 +2092,6 @@ export class PersonalController extends BaseController {
 
       if (document.length > 0) {
         if (!existsSync(url)) {
-          console.log(`Archivo ${document[0]["archivo"]} no localizado`, { path: url })
         } else {
           await unlink(url);
         }

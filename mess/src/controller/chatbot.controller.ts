@@ -288,7 +288,7 @@ export class ChatBotController extends BaseController {
 
             //            const output = await functionToCall(tool.function.arguments);
 
-            //console.log('tool_calls', tool.function.name, output)
+             
 
             botServer.chatmess[chatId].push({
               id: botServer.chatmess[chatId].length, role: "tool", content: JSON.stringify(output), tool_name: tool.function.name,

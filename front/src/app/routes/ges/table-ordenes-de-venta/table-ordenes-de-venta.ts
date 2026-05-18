@@ -156,7 +156,7 @@ export class TableOrdenesDeVentaComponent {
 
         this.rowLocked.set(false)
       } catch (e: any) {
-        // console.log('Error :' , e);
+         
 
         if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit())
           editCommand.undo();
