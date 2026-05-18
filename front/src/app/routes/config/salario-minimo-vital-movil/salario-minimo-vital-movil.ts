@@ -155,7 +155,7 @@ export class SalarioMinimoVitalMovil {
       const editedImporte = column?.id === 'SalarioMinimoVitalMovilSMVM'
       if (isNewComplete && editedImporte) {
         try {
-          console.log("...........row", row);
+           
           const response = await firstValueFrom(this.apiService.onchangecellSMVM(row))
           const id = response?.data?.SalarioMinimoVitalMovilId
           if (id) {

@@ -20,7 +20,7 @@ export class PeriodoSelectComponent {
   public element = inject(ElementRef);
 
   onChange(value: any) {
-    console.log('value: ',value);
+     
     
     if (value) {
       // Asegura que siempre sea el primer dia del mes seleccionado

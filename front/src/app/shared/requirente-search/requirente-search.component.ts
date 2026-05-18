@@ -159,7 +159,7 @@ export class RequirenteSearchComponent implements ControlValueAccessor {
   }
 
   focus() { 
-    console.log('focus')
+     
 
   }
 

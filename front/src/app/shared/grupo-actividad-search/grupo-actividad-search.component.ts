@@ -167,7 +167,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   focus() {
-    console.log('focus')
+     
 
   }
 

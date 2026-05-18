@@ -174,7 +174,7 @@ console.log('this.extendedOption()',this.extendedOption())
   }
 
   focus() {
-    console.log('focus')
+     
 
   }
 

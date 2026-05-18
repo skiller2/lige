@@ -97,7 +97,7 @@ export class AyudaAsistencialDrawerComponent {
             let values = this.formAyudaAsi.getRawValue()
             if (values.personalPrestamoId == 0) {
                 const res = await firstValueFrom(this.apiService.addAyudaAsistencial(values))
-                console.log('res: ', res.data);
+                 
                 if (res.data?.personalPrestamoId > 0) {
                     this.formAyudaAsi.patchValue({ personalPrestamoId: res.data?.personalPrestamoId })
                     this.tituloDrawer.set('Actualizar Ayuda Asistencial')
@@ -106,7 +106,7 @@ export class AyudaAsistencialDrawerComponent {
                 }
             } else {
                 const res = await firstValueFrom(this.apiService.updateAyudaAsistencial(values))
-                console.log('res: ', res);
+                 
             }
             //this.formChange('')
             let ref = this.refresh()

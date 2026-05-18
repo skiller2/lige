@@ -165,7 +165,7 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
   }
 
   focus() { 
-    console.log('focus')
+     
 
   }
 

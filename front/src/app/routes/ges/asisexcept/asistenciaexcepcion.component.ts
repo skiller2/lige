@@ -171,7 +171,7 @@ export class ExcepcionAsistenciaComponent {
         this.selectedSucursalId.set(sucursalId);
       }
 
-      console.log('ngAfterViewInit');
+       
     }, 1);
   }
 
@@ -230,12 +230,12 @@ export class ExcepcionAsistenciaComponent {
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (data: any) => console.log('data', data),
+        next: (data: any) => {},
         error: (err: any) => {
-          console.log('error', err);
+           
         },
         complete: () => {
-          console.log('complete');
+           
           /*
           onlySelf?: boolean;
           emitEvent?: boolean;
@@ -260,9 +260,9 @@ export class ExcepcionAsistenciaComponent {
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: (data: any) => console.log('data', data),
+        next: (data: any) => {},
         error: (err: any) => {
-          console.log('error', err);
+           
         },
         complete: () => {
 

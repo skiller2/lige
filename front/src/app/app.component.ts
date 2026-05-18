@@ -99,14 +99,14 @@ export class AppComponent implements OnInit {
       const fun: any = navigator['getInstalledRelatedApps'];
 
       const listOfInstalledApps = await fun.call(navigator).then((relatedApps: any) => {
-        console.log('relatedApps', relatedApps)
+        console.info('relatedApps', relatedApps)
 
         relatedApps.forEach((app: any) => {
-          console.log('platform:', app.platform);
-          console.log('url:', app.url);
-          console.log('id:', app.id);
+          console.info('platform:', app.platform);
+          console.info('url:', app.url);
+          console.info('id:', app.id);
           // This field is provided by the UA.
-          console.log('version:', app.version);
+          console.info('version:', app.version);
         });
       })
 

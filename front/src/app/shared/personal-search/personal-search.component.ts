@@ -169,7 +169,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   focus() {
-    console.log('focus')
+     
 
   }
 

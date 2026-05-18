@@ -87,7 +87,6 @@ export class I18NService extends AlainI18nBaseService {
     super();
     //TODO:Fix double call
      
-    //console.trace('i18n constructor trace')
     const defaultLang = this.getDefaultLang();
     this._defaultLang = this._langs.findIndex(w => w.code === defaultLang) === -1 ? DEFAULT : defaultLang;
   }

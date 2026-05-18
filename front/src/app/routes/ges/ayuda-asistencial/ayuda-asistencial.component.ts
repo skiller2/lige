@@ -336,7 +336,7 @@ export class AyudaAsistencialComponent {
             const res: any = await firstValueFrom(this.apiService.ayudaAsistencialAddCuota({ year: this.selectedPeriod.year, month: this.selectedPeriod.month }))
             this.formChange('')
         } catch (error) {
-            console.log(error);
+             
         }
         this.loadingCuo.set(false)
     }

@@ -30,7 +30,7 @@ export class EditorObjetivoComponent {
 
   focus() {
     // do a focus
-    console.log('focus')
+     
   }
 
   onKeydown(event: KeyboardEvent) {
