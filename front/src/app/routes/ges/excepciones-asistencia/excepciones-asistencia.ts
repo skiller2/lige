@@ -184,7 +184,7 @@ export class ExcepcionesAsistenciaComponent {
       this.listExcepcionesAsistencia$.next('')
     } catch (error: any) {
       let rows: any[] = error.error.data
-      // console.log('ERROR:',rows)
+       
       this.rowsError.set(rows)
     }
     this.changeBackgroundColor()
@@ -205,7 +205,7 @@ export class ExcepcionesAsistenciaComponent {
       this.listExcepcionesAsistencia$.next('')
     } catch (error: any) {
       let rows: any[] = error.error.data
-      // console.log('ERROR:',rows)
+       
       this.rowsError.set(rows)
     }
     this.changeBackgroundColor()
@@ -226,7 +226,7 @@ export class ExcepcionesAsistenciaComponent {
       this.listExcepcionesAsistencia$.next('')
     } catch (error: any) {
       let rows: any[] = error.error.data
-      // console.log('ERROR:',rows)
+       
       this.rowsError.set(rows)
     }
     this.changeBackgroundColor()

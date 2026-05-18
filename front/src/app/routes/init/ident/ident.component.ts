@@ -258,7 +258,7 @@ export class IdentComponent {
 
   //       for (const cam of this.cams) {
   //         if (cam.label.match(/camera2 0.*back/)) {
-  //           console.log('seteo', cam.label)
+   
   //           this.camdevice.set(cam)
   //           return
   //         }
@@ -280,7 +280,7 @@ export class IdentComponent {
   //   if (this.curcam >= this.cams.length)
   //     this.curcam = 0
   //   this.camdevice.set(this.cams[this.curcam])
-  //   console.log('cambio a ', this.cams[this.curcam])
+   
   // }
 
 

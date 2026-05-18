@@ -129,7 +129,7 @@ export class TestComponent {
 
 
   clickTest(): void {
-//    console.log('curr this.confirmation', this.confirmation)
+ 
   }
 
 

@@ -743,7 +743,7 @@ export class LiquidacionesComponent {
         break;
       case 'error':
         const Error = event.file.error
-        // console.log("di error...." + Error.error.data.list)
+         
         if (Error.error.data?.list) {
           this.gridDataImport$.next(Error.error.data?.list)
           this.gridDataImportLen = Error.error.data?.list?.length

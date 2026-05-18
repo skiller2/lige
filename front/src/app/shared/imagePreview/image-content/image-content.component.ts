@@ -34,20 +34,20 @@ export class ImageContentComponent {
     imageCropped(event: ImageCroppedEvent) {
         this.croppedImage = changeDpiDataUrl(event.base64, this.imageCroppedDpi);
         this.$croppedImageFile.next(base64ToFile(event.base64!))
-//        console.log(event, this.$croppedImageFile.value);
+ 
     }
 
     imageLoaded() {
         this.showCropper = true;
-//        console.log('Image loaded');
+ 
     }
 
     cropperReady(sourceImageDimensions: Dimensions) {
-//        console.log('Cropper ready', sourceImageDimensions);
+ 
     }
 
     loadImageFailed() {
-//        console.log('Load failed');
+ 
     }
 
 

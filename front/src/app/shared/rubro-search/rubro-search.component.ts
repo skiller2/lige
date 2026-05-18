@@ -65,7 +65,7 @@ export class RubroSearchComponent implements ControlValueAccessor {
   }
 
   onRemove() {
-    //  console.log('onRemove')
+     
   }
 
   registerOnTouched(fn: any) {

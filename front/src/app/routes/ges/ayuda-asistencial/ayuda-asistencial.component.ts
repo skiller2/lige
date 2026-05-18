@@ -304,7 +304,7 @@ export class AyudaAsistencialComponent {
             this.formChange('')
         } catch (error: any) {
             let rows: any[] = error.error.data
-            // console.log('ERROR:',rows)
+             
             this.rowsError.set(rows)
         }
         this.changeBackgroundColor()
@@ -321,7 +321,7 @@ export class AyudaAsistencialComponent {
             this.formChange('')
         } catch (error: any) {
             let rows: any[] = error.error.data
-            // console.log('ERROR:',rows)
+             
             this.rowsError.set(rows)
         }
         this.changeBackgroundColor()

@@ -111,8 +111,6 @@ export class AppComponent implements OnInit {
       })
 
 
-      //      console.log("getInstalledRelatedApps", listOfInstalledApps)
-      //      const relatedApps = await navigator.
     }
 
 
