@@ -96,7 +96,7 @@ export class FileUploadComponent implements ControlValueAccessor {
 
   onTipoSelectedChange(newValue: string) {
     this.tipoSelected.set(newValue)
-    console.log("this.idForSearh()", this.idForSearh())
+     
     this.LoadArchivosAnteriores(this.idForSearh())
   }
 
@@ -229,7 +229,7 @@ export class FileUploadComponent implements ControlValueAccessor {
 
       if (file.id) {
         this.files.set(this.files().map(item => {
-          console.log("item", item)
+           
           if (item.id === file.id)
             return { ...item, update: true };
 

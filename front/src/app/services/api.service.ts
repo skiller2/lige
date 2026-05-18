@@ -499,7 +499,7 @@ export class ApiService {
   }
 
   sendMessage(dst: string, msg: string) {
-    console.log('envio', dst, msg)
+     
     return this.http.post<ResponseJSON<any>>(`mess/api/personal/sendmsg`, { dst, msg }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -583,7 +583,7 @@ export class ApiService {
   }
 
   getMovimientosBanco(filters: any) {
-    console.log("pase por aca")
+     
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/listMovimientos', parameter).pipe(
       map((res: any) => res.data),
@@ -701,7 +701,7 @@ export class ApiService {
 
 
   getListCargaLicenciaHistory(filters: any, anio: any, mes: any, personalId: any) {
-    console.log("personalId ", personalId)
+     
     const parameter = { filters, anio, mes, personalId }
     return this.http.post<ResponseJSON<any>>('/api/carga-licencia/listHistory', parameter).pipe(
       map((res: { data: any; }) => res.data),
@@ -994,7 +994,7 @@ export class ApiService {
   generaRecibos(anio: number, mes: number, fechaRecibo: Date) {
     const isUnique = false
     const parameter = { anio, mes, isUnique, fechaRecibo }
-    console.log('parameter', parameter)
+     
     this.notification.success('Respuesta', `Inicio generación de recibos`);
 
     return this.http.post<ResponseJSON<any>>('/api/recibos/generar', parameter).pipe(
@@ -1225,7 +1225,7 @@ export class ApiService {
   }
 
   setRecibo(parameter: any) {
-    console.log('parameters', parameter)
+     
     return this.http.post<ResponseJSON<any>>('/api/recibos/config', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -1243,7 +1243,7 @@ export class ApiService {
   }
 
   setNovedad(parameter: any) {
-    console.log('parameters', parameter)
+     
     return this.http.post<ResponseJSON<any>>('/api/novedades/config', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -1463,7 +1463,7 @@ export class ApiService {
   }
 
   downloadReciboPrueba(parameter: any) {
-    console.log('parameters', parameter)
+     
     return this.http.post<ResponseJSON<any>>('/api/recibos/prueba', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -2113,7 +2113,6 @@ export class ApiService {
     return this.http.get<ResponseJSON<any>>(`api/parametros-venta/mensaje-horas/${tipoHoras}/${ClienteId}/${ClienteElementoDependienteId}/${anio}/${mes}`).pipe(
       map((res: ResponseJSON<any>) => res.data.mensaje),
       catchError((err) => {
-        console.error('Error al obtener mensaje de horas:', err);
         return of('Error al cargar el mensaje');
       })
     );
@@ -2135,7 +2134,6 @@ export class ApiService {
     return this.http.get<ResponseJSON<any>>(`api/parametros-venta/precio-lista/${ClienteId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
       map((res: ResponseJSON<any>) => res.data),
       catchError((err) => {
-        console.error('Error al obtener precio lista de precios:', err);
         return of(null);
       })
     );

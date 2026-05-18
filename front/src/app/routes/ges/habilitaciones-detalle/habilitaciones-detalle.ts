@@ -206,8 +206,6 @@ export class HabilitacionesDetalleComponent {
         this.refreshGrid('')
       }
     } catch (error) {
-      // Aquí puedes mostrar un mensaje de error con tu toast/snackbar
-      console.error('Error borrando documento', error);
     } finally {
       this.loadingDeleteDoc.set(false);
     }

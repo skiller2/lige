@@ -115,7 +115,7 @@ export class TableAbmLicenciaComponent {
     // this.listOptions.filtros.push({ index: 'mes', operador: '=', condition: 'AND', valor: localStorage.getItem('mes') })
 
     this.formChange$.next('')
-    console.log(this.listOptions)
+     
   }
 
   gridData$ = this.formChange$.pipe(

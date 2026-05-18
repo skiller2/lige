@@ -115,7 +115,7 @@ export class ValorHoraComponent {
     }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
-        console.log(col)
+         
         switch (col.id) {
 
           case 'SucursalId':
@@ -220,7 +220,7 @@ export class ValorHoraComponent {
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
-console.log('row a guardar', row)
+ 
           const rowComplete = !!row?.ValorLiquidacionSucursalId && !!row?.ValorLiquidacionTipoAsociadoId && !!row?.ValorLiquidacionCategoriaPersonalId && row?.ValorLiquidacionHoraNormal > 0
 
         if (!rowComplete)

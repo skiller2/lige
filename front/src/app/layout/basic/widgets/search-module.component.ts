@@ -258,7 +258,6 @@ export class HeaderSearchModuleComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (error) => {
-        console.error('Error loading app-data.json:', error);
       }
     });
   }

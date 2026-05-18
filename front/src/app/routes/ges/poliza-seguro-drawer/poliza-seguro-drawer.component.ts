@@ -116,7 +116,7 @@ export class PolizaSeguroDrawerComponent {
   }
 
   deletePoliza() {
-    console.log("deletePoliza")
+     
   }
 
   ngOnInit(){

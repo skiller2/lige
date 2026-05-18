@@ -490,9 +490,9 @@ export class SearchService {
       apiKey: 'f5cdd3892a38432fbcd0edc786268446',
       limit: '5'
     });
-    console.log('getDireccion', direccion)
+     
     return new Observable<any[]>(observer => {
-      console.log('fetch', 'https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
+       
       fetch('https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
         .then(res => res.json())
         .then(data => {
@@ -500,7 +500,6 @@ export class SearchService {
           observer.complete();
         })
         .catch(error => {
-          console.error('Error fetching geocoding data:', error);
           observer.next([]);
           observer.complete();
         });

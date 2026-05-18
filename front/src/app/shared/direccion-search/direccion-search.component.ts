@@ -104,7 +104,7 @@ export class DireccionSearchComponent implements ControlValueAccessor {
   }
 
   set selectedId(val: string) {
-    console.log('set selectedId', val)
+     
     this.dsc?.focus()
     val = (val === null || val === undefined) ? '' : val
 
@@ -123,12 +123,12 @@ export class DireccionSearchComponent implements ControlValueAccessor {
       }
 
       const res = this.optionsArray2()?.find((x: any) => x.properties.place_id == this._selectedId)
-      console.log('Encontre', res)
+       
 
       this.extendedOption.set({ id: res.properties.place_id, fullName: res.properties.formatted,  fullObj: res })
       this.selectedItem = this.extendedOption()
 
-console.log('this.extendedOption()',this.extendedOption())
+ 
 
       this._selected.set(this._selectedId)
       this.valueExtendedEmitter.emit(this.extendedOption())
@@ -163,7 +163,7 @@ console.log('this.extendedOption()',this.extendedOption())
 
 
   modelChange(val: string) {
-    console.log('modelChange',val)
+     
     if (val == '') val = '0'
     this.selectedId = val
 }

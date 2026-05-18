@@ -45,7 +45,6 @@ export class SalarioMinimoVitalMovil {
   startFilters: any[] = []
 
   listOptionsChange(options: any) {
-    console.log("...........options", options)
     this.listOptions = options
     this.refreshSMVM.update(v => v + 1)
   }
@@ -145,7 +144,6 @@ export class SalarioMinimoVitalMovil {
           this.refreshSMVM.update(v => v + 1)
         } catch (error) {
           editCommand.undo()
-          console.error('Error al actualizar:', error)
           return
         }
       }
@@ -165,7 +163,6 @@ export class SalarioMinimoVitalMovil {
           this.refreshSMVM.update(v => v + 1)
         } catch (error) {
           editCommand.undo()
-          console.error('Error al guardar nuevo registro:', error)
           return
         }
       }
@@ -343,7 +340,6 @@ export class SalarioMinimoVitalMovil {
             this.angularGridEdit.gridService.updateItem(item);
           }
         } catch (error) {
-          console.error('Error al guardar registro:', error);
         }
       });
 
@@ -359,9 +355,7 @@ export class SalarioMinimoVitalMovil {
     try {
       await firstValueFrom(this.apiService.deleteSMVM(this.editSalarioMinimoVitalMovilId()))
       this.refreshSMVM.update(v => v + 1);
-    } catch (error) {
-      console.error('Error al eliminar registro:', error);
-    }
+    } catch (error) {}
   }
 
 }

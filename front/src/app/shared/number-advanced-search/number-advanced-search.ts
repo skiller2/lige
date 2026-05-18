@@ -103,7 +103,7 @@ export class NumberAdvancedSearchComponent implements ControlValueAccessor {
         return
       }
       
-      console.log("el valor seleccionado es: ", this._selectedId)
+       
       const fullName = String(this._selectedId)
       this.valueExtendedEmitter.emit({ fullName })
       this.propagateChange({ operator: this._operador || '=', value: this._selectedId })

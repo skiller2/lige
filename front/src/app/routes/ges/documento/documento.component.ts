@@ -240,8 +240,6 @@ export class DocumentoComponent {
         this.formChange$.next('');
       }
     } catch (error) {
-      // Aquí puedes mostrar un mensaje de error con tu toast/snackbar
-      console.error('Error borrando documento', error);
     } finally {
       this.loadingDelete.set(false);
     }

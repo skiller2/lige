@@ -382,7 +382,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
                 extractedLabel = person[0].fullName;
               }
             } catch (e) {
-              console.error('Error loading person data:', e);
             }
             break;
           case 'inputForClientSearch':
@@ -394,7 +393,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
                 extractedLabel = cliente[0].ClienteDenominacion;
               }
             } catch (e) {
-              console.error('Error loading client data:', e);
             }
             break;
           case 'inputForEfectoSearch':

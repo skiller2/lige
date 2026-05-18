@@ -46,7 +46,6 @@ export class DescuentosCargaManualComponent implements OnInit {
   }
 
   onSelectChangeDescuentoId(selectedValue: any): void {
-    console.log('selectedValue',this.formDescuentosCargaManual.get('DescuentoId')?.value)
     this.pDescuentoId.set(this.formDescuentosCargaManual.get('DescuentoId')?.value ?? 0);
   }
 }

@@ -84,7 +84,7 @@ export class LicenciaDrawerComponent {
       const per = this.selectedPeriod()
       if (this.PersonalLicenciaId() > 0) {
         let vals = await firstValueFrom(this.apiService.getLicencia(per.year, per.month, this.PersonalId(), this.PersonalLicenciaId()));
-        console.log("vals ", vals)
+         
         vals.categoria = { id: `${vals.PersonalLicenciaTipoAsociadoId}-${vals.PersonalLicenciaCategoriaPersonalId}`, categoriaId: vals.PersonalLicenciaCategoriaPersonalId, tipoId: vals.PersonalLicenciaTipoAsociadoId }
         vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
         vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId

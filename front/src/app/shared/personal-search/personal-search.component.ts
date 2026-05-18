@@ -62,7 +62,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
-    console.log('onChange', this.psc)
+     
     //    this.psc?.focus()
 
   }

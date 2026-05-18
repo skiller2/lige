@@ -106,7 +106,7 @@ export class FacturacionFormComponent {
     }
   
     if(!this.isDetail() ){
-      console.log("isDetail ",this.isDetail(),"entro")
+       
         this.formCli.get('ComprobanteNro')?.enable()
 
         if (!this.rowSelected()[0]?.ComprobanteNro) {

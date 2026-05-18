@@ -77,7 +77,7 @@ export class FacturacionComponent {
 
 
   columns$ = this.apiService.getCols('/api/facturacion/cols').pipe(map((cols) => {
-    console.log("cols ", cols)
+     
     return cols
   }));
   gridData$ = this.formChange$.pipe(

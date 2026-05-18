@@ -151,7 +151,7 @@ export class UserLoginComponent implements OnDestroy {
     .pipe(
         take(1),
         catchError(err => {
-          console.log('error',err)
+           
           this.error = err.error?.msg;
           return of();
         }),
@@ -189,7 +189,7 @@ export class UserLoginComponent implements OnDestroy {
           if (url.includes('/passport')) {
             url = '/';
           }
-          console.log('this.router.navigateByUrl',url)
+           
           this.router.navigateByUrl(url).catch();
         });
       });

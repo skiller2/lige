@@ -234,7 +234,7 @@ export class IdentComponent {
       try {
         const res = await firstValueFrom(this.apiService.getValidateEncoded(this.encTelNro()))
       } catch (error: any) {
-        console.log('error',error)
+         
         this.error.set(error.error.msg)
       }
     }

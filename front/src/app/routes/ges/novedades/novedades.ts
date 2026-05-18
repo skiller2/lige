@@ -103,7 +103,7 @@ export class NovedadesComponent {
   }
 
   handleSelectedRowsChanged(e: any): void {
-    console.log("handleSelectedRowsChanged", e)
+     
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     if (row?.id) {

@@ -57,7 +57,7 @@ export class RequirenteSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
-    console.log('onChange',this.rsc)
+     
 //    this.rsc?.focus()
 
   }

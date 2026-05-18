@@ -418,7 +418,7 @@ export class LiquidacionesBancoComponent {
   }
   */
   async importCBU(banco_id: number) {
-    console.log('files', this.filesCBU())
+     
     try {
       await firstValueFrom(this.apiService.processCBUFile(this.filesCBU(),this.fechaDesdeCBU(),banco_id))
     } catch (e) {

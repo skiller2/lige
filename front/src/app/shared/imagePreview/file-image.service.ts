@@ -14,7 +14,7 @@ export class FileImageService {
 
   readFile(file: File) {
     if (file.type && !file.type.startsWith('image/')){
-      console.log('File is not an image', file.type, file)
+       
       return;
     }
 
