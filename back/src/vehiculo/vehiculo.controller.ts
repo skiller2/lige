@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 
 export class VehiculoController extends BaseController {
   
@@ -11,7 +11,7 @@ export class VehiculoController extends BaseController {
   }
 
   async getTipoVehiculo(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getTipoVehiculoQuery(queryRunner)
 
@@ -31,7 +31,7 @@ export class VehiculoController extends BaseController {
 
   async getMarcaVehiculo(req: Request, res: Response, next: NextFunction) {
     const TipoVehiculoId = req.body.TipoVehiculoId
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getMarcaVehiculoQuery(queryRunner, TipoVehiculoId)
 
@@ -52,7 +52,7 @@ export class VehiculoController extends BaseController {
   async getModeloVehiculo(req: Request, res: Response, next: NextFunction) {
     const TipoVehiculoId = req.body.TipoVehiculoId
     const VehiculoMarcaId = req.body.VehiculoMarcaId
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getModeloVehiculoQuery(queryRunner, TipoVehiculoId, VehiculoMarcaId)
 

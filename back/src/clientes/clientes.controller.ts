@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL,getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { QueryRunner } from "typeorm";
@@ -252,7 +252,7 @@ export class ClientesController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const fechaActual = new Date()
 
         try {
@@ -357,7 +357,7 @@ ${orderBy}`, [fechaActual])
         const filterSql = filtrosToSql(req.body.options.filtros, this.listDocsColumns);
         const orderBy = orderToSQL(req.body.options.sort);
         const ClienteId = req.body.ClienteId;
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
             const documentos = await queryRunner.query(
@@ -386,7 +386,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async infoCliente(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             await queryRunner.startTransaction()
             const clienteId = req.params.id
@@ -504,7 +504,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getCondicionQuery(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const CondicionAnteIva = await queryRunner.query(`SELECT CondicionAnteIVAId,CondicionAnteIVADescripcion from CondicionAnteIVA`)
             return this.jsonRes(CondicionAnteIva, res);
@@ -517,7 +517,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getTipoTelefono(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const tipoTelefono = await queryRunner.query(`SELECT TipoTelefonoId, TipoTelefonoDescripcion FROM TipoTelefono`)
             return this.jsonRes(tipoTelefono, res);
@@ -530,7 +530,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getProvinciasQuery(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const provincias = await queryRunner.query(`SELECT ProvinciaId,ProvinciaDescripcion FROM Provincia WHERE PaisId  = 1`)
             return this.jsonRes(provincias, res);
@@ -543,7 +543,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getLocalidadQuery(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const localidad = await queryRunner.query(`SELECT LocalidadId, ProvinciaId, localidadDescripcion FROM Localidad  WHERE PaisId = 1`)
             return this.jsonRes(localidad, res);
@@ -556,7 +556,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getBarrioQuery(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const barrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 `)
             return this.jsonRes(barrio, res);
@@ -569,7 +569,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getTipoContacto(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const optionsContactoTipo = await queryRunner.query(`
                 SELECT ContactoTipoCod value, Descripcion label FROM ContactoTipo`
@@ -582,7 +582,7 @@ ${orderBy}`, [fechaActual])
     }
 
     async getJurImpositiva(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             return this.jsonRes(this.optionsJurImpositiva, res);
         } catch (error) {
@@ -611,7 +611,7 @@ ${orderBy}`, [fechaActual])
 
 
     async updateCliente(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
             await queryRunner.startTransaction()
@@ -835,7 +835,7 @@ ${orderBy}`, [fechaActual])
 
         let { id } = req.query
         const ClienteId = Number(id)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -861,7 +861,7 @@ ${orderBy}`, [fechaActual])
 
 
     async addCliente(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const ObjCliente = { ...req.body };
         let ObjClienteNew = { ClienteId: 0, infoDomicilio: {}, infoClienteContacto: {}, ClienteFacturacionId: 0 }
         try {
@@ -1133,7 +1133,7 @@ ${orderBy}`, [fechaActual])
     }
 
     static async AddContactosMigrados() {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const contactos = await queryRunner.query(`SELECT DISTINCT fac.ClienteId, 'Entrega Comprobante' ContactoApellido, mig.jurisdiccion_Impositiva ContactoNombre,  REPLACE(mig.correo,';',',') correo, mig.jurisdiccion_Impositiva ContactoJurImpositiva
             FROM migrarcontactos mig 
             JOIN ClienteFacturacion fac  ON fac.ClienteFacturacionCUIT= mig.numero_identificacion

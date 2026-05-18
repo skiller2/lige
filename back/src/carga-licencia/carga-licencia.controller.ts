@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { NextFunction, Request, Response } from "express";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
@@ -476,7 +476,7 @@ export class CargaLicenciaController extends BaseController {
 
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
 
@@ -506,7 +506,7 @@ export class CargaLicenciaController extends BaseController {
     const anio = Number(fechaActual.getFullYear())
     const mes = Number(fechaActual.getMonth() + 1)
     const personalId = isNaN(Number(req.body.personalId)) ? 0 : Number(req.body.personalId)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const perosnalIdarray = [personalId];
     try {
 
@@ -543,7 +543,7 @@ export class CargaLicenciaController extends BaseController {
 
     try {
 
-      let queryRunner = dataSource.createQueryRunner();
+      let queryRunner = await getConnection();
       const listHorasLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], filterSql, true, false)
       this.jsonRes(
         {
@@ -584,7 +584,7 @@ export class CargaLicenciaController extends BaseController {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
     let PersonalSituacionRevistaHastaNuevo: Date = null
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
 
       await queryRunner.connect();
@@ -980,7 +980,7 @@ export class CargaLicenciaController extends BaseController {
       DocumentoId
     } = req.query
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -1039,7 +1039,7 @@ export class CargaLicenciaController extends BaseController {
     const PersonalLicenciaId = Number(req.params.PersonalLicenciaId)
     const anio = Number(req.params.anio)
     const mes = Number(req.params.mes)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
 
@@ -1161,7 +1161,7 @@ export class CargaLicenciaController extends BaseController {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
 
       await queryRunner.connect();

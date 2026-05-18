@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { QueryRunner } from "typeorm";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
@@ -508,7 +508,7 @@ UNION
     const ip = this.getRemoteAddress(req)
 
     let segAltas = 0, segBajas = 0
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     let EventoLogCodigo = 0
 
 
@@ -780,7 +780,7 @@ UNION
     const anio: number = req.body.anio
     const mes: number = req.body.mes
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const result = await queryRunner.query(`
        SELECT
             ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
@@ -832,7 +832,7 @@ UNION
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPoliza);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       let result = await queryRunner.query(`
       SELECT 
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
@@ -875,7 +875,7 @@ UNION
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPersonalSeguro);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       let result = await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroNroPoliza,
       perpoliz.PolizaSeguroNroEndoso,perpoliz.CompaniaSeguroId,perpoliz.TipoSeguroCodigo,per.PersonalId,CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS PersonalApellidoNombre,
@@ -910,7 +910,7 @@ UNION
   async getPolizaSeguro(req: any, res: Response, next: NextFunction) {
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       //acomodar select para que sea el correcto
       const result = await queryRunner.query(`
       SELECT
@@ -959,7 +959,7 @@ UNION
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     // throw new ClientException(`test.`)
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -1307,8 +1307,8 @@ UNION
     }
   }
 
-  search(req: any, res: Response, next: NextFunction) {
-
+  async search(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection();
     const { fieldName, value } = req.body;
     let buscar = false;
     let query: string = `SELECT TipoSeguroCodigo, TipoSeguroNombre from TipoSeguro WHERE 1=1 AND `;
@@ -1334,7 +1334,7 @@ UNION
 
 
 
-    dataSource
+    queryRunner
       .query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
@@ -1347,28 +1347,28 @@ UNION
 
 
   async getCompaniaSeguroSearch(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const result = await queryRunner.query(`
         SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro  WHERE CompaniaSeguroInactivo IS NULL OR CompaniaSeguroInactivo = 0`)
     this.jsonRes(result, res);
   }
 
   async getCompaniaSeguroId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const result = await queryRunner.query(`
         SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro WHERE CompaniaSeguroId = @0`, [req.params.id])
     this.jsonRes(result, res);
   }
 
   async getTipoSeguroSearch(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const result = await queryRunner.query(`
         SELECT TipoSeguroCodigo, TipoSeguroNombre FROM TipoSeguro `)
     this.jsonRes(result, res);
   }
 
   async getTipoSeguroId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const result = await queryRunner.query(`
         SELECT TipoSeguroCodigo, TipoSeguroNombre FROM TipoSeguro WHERE TipoSeguroCodigo = @0`, [req.params.id])
     this.jsonRes(result, res);

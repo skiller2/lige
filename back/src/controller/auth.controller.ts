@@ -4,7 +4,7 @@ import { Attribute, Change, Client, InvalidCredentialsError } from 'ldapts';
 import type { SearchOptions } from 'ldapts';
 
 import jsonwebtoken, { } from "jsonwebtoken";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request } from "express";
 
 import { BaseController, ClientException } from "./base.controller.ts";
@@ -168,7 +168,7 @@ export class AuthController extends BaseController {
 
   async signin(req: Request, res: any, next: NextFunction) {
     const { userName, password } = req.body;
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
       let user: any = await this.authUser(userName, password)

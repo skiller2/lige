@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./base.controller.ts";
-import { dataSource, getConnection } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 
@@ -722,7 +722,7 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async updateRowPersonalPrestamo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     const ids = req.body.id.split('-')
     const personalPrestamoId = Number.parseInt(ids[0])
     const personalId = Number.parseInt(ids[1])
@@ -804,7 +804,7 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async personalPrestamoAprobarList(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const ids: string[] = req.body.ids
     const numRows: number[] = req.body.rows
     let errors: string[] = []
@@ -878,7 +878,7 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async personalPrestamoRechazarList(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const ids: string[] = req.body.ids
     const numRows: number[] = req.body.rows
     let errors: string[] = []
@@ -944,7 +944,7 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async personalPrestamoListAddCuota(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const anio: number = req.body.year
     const mes: number = req.body.month
     let errors: string[] = []
@@ -1009,7 +1009,7 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async addPersonalPrestamo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const personalId = req.body.personalId
     const formaId = req.body.formaId
     const anio = new Date(req.body.aplicaEl).getFullYear()
@@ -1125,7 +1125,7 @@ export class AyudaAsistencialController extends BaseController {
   }
 
   async updatePersonalPrestamo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const personalId = req.body.personalId
     const formaId = req.body.formaId
     const personalPrestamoId = req.body.personalPrestamoId
@@ -1197,7 +1197,7 @@ export class AyudaAsistencialController extends BaseController {
 
 
   async getPersonalPrestamoByPersonalId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const personalId: number = Number(req.body.personalId)
     const periodo: any = req.body.Periodo
     const anio = new Date(periodo).getFullYear()
@@ -1248,7 +1248,7 @@ export class AyudaAsistencialController extends BaseController {
     const date = new Date()
     const mes = date.getMonth() + 1
     const anio = date.getFullYear()
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction()
 
@@ -1302,7 +1302,7 @@ export class AyudaAsistencialController extends BaseController {
     const orderBy = orderToSQL(options.sort);
     const anio = req.body.anio
     const mes = req.body.mes
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     let condicion = `1=1`
     if (mes && anio) condicion = ` perdes.anio = @0 AND perdes.mes = @1 `

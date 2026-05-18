@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { recibosController } from "../controller/controller.module.ts";
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
@@ -95,7 +95,7 @@ export class ValorHoraController extends BaseController {
   }
 
   async getCategoriasPersonal(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT catper.CategoriaPersonalId value, TRIM(catper.CategoriaPersonalDescripcion) label, catper.TipoAsociadoId
@@ -118,7 +118,7 @@ export class ValorHoraController extends BaseController {
     const filterSql = filtrosToSql(req.body?.options?.filtros ?? [], this.listaColumnas);
     const orderBy = orderToSQL(req.body?.options?.sort);
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const data = await queryRunner.query(`
         SELECT vl.ValorLiquidacionId AS id, vl.ValorLiquidacionId, vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId,
@@ -170,7 +170,7 @@ export class ValorHoraController extends BaseController {
 
   async changecellvalorHora(req: Request, res: Response, next: NextFunction) {
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     let message = ""
     const params = req.body
     console.log('params', params)
@@ -315,7 +315,7 @@ export class ValorHoraController extends BaseController {
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -352,7 +352,7 @@ export class ValorHoraController extends BaseController {
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction();
 

@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import type { QueryRunner } from "typeorm";
@@ -157,7 +157,7 @@ export class EstudioController extends BaseController {
   }
 
   async geEstadosEstudio(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.geEstadosEstudioQuery(queryRunner)
 
@@ -174,7 +174,7 @@ export class EstudioController extends BaseController {
   }
 
   async getTiposEstudio(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getTiposEstudioQuery(queryRunner)
 
@@ -196,7 +196,7 @@ export class EstudioController extends BaseController {
     const filterSql = filtrosToSql(options.filtros, listaColumnas);
     const orderBy = orderToSQL(options.sort);
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
       const objetivos = await queryRunner.query(
@@ -274,7 +274,7 @@ export class EstudioController extends BaseController {
 
   async search(req: any, res: Response, next: NextFunction) {
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const TipoEstudio = await queryRunner.query(`SELECT TipoEstudioId, TipoEstudioDescripcion FROM TipoEstudio `)
 
@@ -291,7 +291,7 @@ export class EstudioController extends BaseController {
   async searchId(req: any, res: Response, next: NextFunction) {
 
     const { id } = req.params
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const CursoHabilitacion = await queryRunner.query(`SELECT TipoEstudioId, TipoEstudioDescripcion FROM TipoEstudio Where TipoEstudioId = ${id}`)
 
@@ -327,7 +327,7 @@ export class EstudioController extends BaseController {
     const ip = this.getRemoteAddress(req)
 
     //throw new ClientException(`test.`)
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     await queryRunner.connect();
     await queryRunner.startTransaction();
     
@@ -500,7 +500,7 @@ export class EstudioController extends BaseController {
   async getEstudio(req: any, res: Response, next: NextFunction) {
 
     const { PersonalId, PersonalEstudioId } = req.params
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
 
     try {
 
@@ -517,7 +517,7 @@ export class EstudioController extends BaseController {
 
   async deleteEstudio(req: any, res: Response, next: NextFunction) {
     const { PersonalId, PersonalEstudioId } = req.body
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
 
     try {
       await queryRunner.connect();

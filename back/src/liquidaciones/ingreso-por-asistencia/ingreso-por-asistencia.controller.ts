@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../../controller/base.controller.ts";
-import { dataSource } from "../../data-source.ts";
+import { getConnection } from "../../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { Utils } from "../liquidaciones.utils.ts";
 import { AsistenciaController } from "../../controller/asistencia.controller.ts";
@@ -16,7 +16,7 @@ export class IngresoPorAsistenciaController extends BaseController {
     let ip = this.getRemoteAddress(req)
     let usuario = res.locals.userName
     const tipo_movimiento_id = Number(process.env.MOV_ASISTENCIA_VIGILANCIA)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
 

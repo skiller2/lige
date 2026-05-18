@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../../controller/base.controller.ts";
-import { dataSource } from "../../data-source.ts";
+import { getConnection } from "../../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { Utils } from "../liquidaciones.utils.ts";
 import { recibosController } from "../../controller/controller.module.ts";
@@ -14,7 +14,7 @@ export class CompensaGeneralACordinadorController extends BaseController {
     const mes = Number(req.body.mes)
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     let cantRegistros = 0
     let movimientos = []
     try {

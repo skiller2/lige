@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { NextFunction, Response } from "express";
 import { ObjetivoController } from "../controller/objetivo.controller.ts";
@@ -151,7 +151,7 @@ export class ObjetivosPendasisController extends BaseController {
     const anio: number = filtros.filter((x: { index: string; }) => x.index === "anio")[0]?.valor;
     const mes: number = filtros.filter((x: { index: string; }) => x.index === "mes")[0]?.valor;
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     await queryRunner.connect();
 
     const objetivos = await ObjetivoController.getObjetivoContratos(0, anio, mes, queryRunner)

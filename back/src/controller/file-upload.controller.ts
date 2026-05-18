@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { mkdirSync, existsSync, copyFileSync } from "node:fs";
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
@@ -56,7 +56,7 @@ export class FileUploadController extends BaseController {
 
   async getSelectTipoinFile(req: any, res: Response, next: NextFunction) {
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
       await queryRunner.startTransaction()
@@ -85,7 +85,7 @@ export class FileUploadController extends BaseController {
 
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const needsNumericId = tableForSearch !== 'temp'
       const validatedId = Number(documentId)
 
@@ -199,7 +199,7 @@ export class FileUploadController extends BaseController {
     const columnSearch = req.params.columnForSearch
     const TipoSearch = req.params.TipoSearch
     const tableSearch = req.params.tableForSearch
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       // let usuario = res.locals.userName
       // let ip = this.getRemoteAddress(req)
@@ -363,7 +363,7 @@ export class FileUploadController extends BaseController {
     next: NextFunction) {
 
     const id = req.params.id
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction()
 
@@ -1084,7 +1084,7 @@ export class FileUploadController extends BaseController {
   async deleteDocumento(req, res, next) {
     const deleteId = Number(req.query[0])
     const tableForSearch = req.query[1];
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
 
     let document: any

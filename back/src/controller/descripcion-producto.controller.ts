@@ -1,5 +1,5 @@
 import { BaseController } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { Request, NextFunction, Response } from "express";
 
 
@@ -7,7 +7,7 @@ export class DescripcionProductoController extends BaseController {
 
   async getAllProductos(res: Response, req: Request, next:NextFunction) {
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const result = await queryRunner.query(
         'SELECT ProductoTipoCodigo as TipoProductoId ,Descripcion as TipoProductoDescripcion, ProductoTipoCodigo as value, Descripcion as label  FROM  ProductoTipo'
       )

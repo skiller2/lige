@@ -12,7 +12,7 @@ import {
   writeFileSync,
 } from "node:fs";
 
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import {
   PDFDocument,
   PDFEmbeddedPage,
@@ -135,7 +135,7 @@ export class ImpuestosAfipController extends BaseController {
   }) {
 
     const filtros = params.options.filtros;
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
 
     const orderBy = orderToSQL(params.options.sort)
@@ -274,7 +274,7 @@ export class ImpuestosAfipController extends BaseController {
 
   }
 
-  getDescuentosByPeriodo(options: {
+  async getDescuentosByPeriodo(options: {
     anio: string;
     mes: string;
     GrupoActividadId: string;
@@ -284,7 +284,7 @@ export class ImpuestosAfipController extends BaseController {
         ? "AND gap.GrupoActividadId = @4"
         : "";
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     return queryRunner.query(
       `SELECT 
       per.PersonalId PersonalId,
@@ -620,7 +620,7 @@ export class ImpuestosAfipController extends BaseController {
     const file = req.file;
     const anioRequest: number = req.body.anio;
     const mesRequest: number = req.body.mes;
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
@@ -1066,7 +1066,7 @@ export class ImpuestosAfipController extends BaseController {
 
 
   async downloadPersonaF184(PersonalId: number, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     try {
       const fechaActual = new Date();
@@ -1105,7 +1105,7 @@ export class ImpuestosAfipController extends BaseController {
     res: Response,
     next: NextFunction
   ) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     const fileUploadController = new FileUploadController();
     const tmpfilename = fileUploadController.getRandomTempFileName('.pdf');
@@ -1310,7 +1310,7 @@ export class ImpuestosAfipController extends BaseController {
   }
 
   async downloadImpuestoAFIP(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
     const DocumentoImagenImpuestoAFIPId = req.params.id
     try {

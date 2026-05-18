@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { QueryRunner } from "typeorm";
 
 
@@ -11,7 +11,7 @@ export class PersonalObjetivosController extends BaseController {
 
     try {
       let user_id = Number(req.params.user)
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const result = await this.getPersonaAndGroup(queryRunner,user_id,true)
       this.jsonRes({ recordsArray:[result] }, res);
     } catch (error) {
@@ -25,7 +25,7 @@ export class PersonalObjetivosController extends BaseController {
 
     try {
       let objetivo = Number(req.params.objetivo)
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const result = await this.getPersonaAndGroup(queryRunner,objetivo,false)
       this.jsonRes({ recordsArray:[result] }, res);
     } catch (error) {
@@ -41,7 +41,7 @@ export class PersonalObjetivosController extends BaseController {
       let usuario = res.locals.userName
       let ip = this.getRemoteAddress(req)
       let fechaActual = new Date();
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para realizar la carga, no se encuentra en el grupo liquidaciones o administrativo`)
@@ -98,7 +98,7 @@ export class PersonalObjetivosController extends BaseController {
 
   
     const {userId, ObjetivoId} = req.body
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     //await this.deletePersonaAndGroup(queryRunner,userId,ObjetivoId)
 
     try {

@@ -1,13 +1,14 @@
 import { BaseController, ClientException } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { Response,NextFunction } from "express";
 
 
 export class PendienteController extends BaseController {
  
 
-  search(req: any, res: Response, next:NextFunction) {
+  async search(req: any, res: Response, next:NextFunction) {
     const { fieldName, value } = req.body;
+    const queryRunner = await getConnection();
 
     let buscar = false;
     
@@ -40,9 +41,7 @@ export class PendienteController extends BaseController {
       return;
     }
     
-    dataSource
-    
-      .query((query += " 1=1"))
+    queryRunner.query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
       })

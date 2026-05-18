@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
@@ -667,7 +667,7 @@ const aplicaAOptions: any[] = [
 
 export class GestionDescuentosController extends BaseController {
   async getProxPeriodo(req: any, res: any, next: any) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const perUltRecibo = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
     const { anio: proxAnio, mes: proxMes } = Utils.getNextPeriodo(perUltRecibo[0].anio, perUltRecibo[0].mes)
     return this.jsonRes({ anio: proxAnio, mes: proxMes }, res)
@@ -744,7 +744,7 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async getDescuentosPersonal(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const anio = req.body.anio
     const mes = req.body.mes
     try {
@@ -798,7 +798,7 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async getDescuentosObjetivos(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const anio = req.body.anio
     const mes = req.body.mes
     try {
@@ -835,7 +835,7 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async getTiposDescuentos(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getTiposDescuentosQuery(queryRunner)
 
@@ -846,7 +846,7 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async getDescuentosByPersonalId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonalId: number = req.body.PersonalId
     const anio: number = req.body.anio
     const mes: number = req.body.mes
@@ -1077,7 +1077,7 @@ export class GestionDescuentosController extends BaseController {
   }
 
   async addDescuento(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonalId = req.body.PersonalId
     const ObjetivoId = req.body.ObjetivoId
     const AplicaEl: Date = req.body.AplicaEl ? new Date(req.body.AplicaEl) : null
@@ -1160,7 +1160,7 @@ export class GestionDescuentosController extends BaseController {
     const ip = this.getRemoteAddress(req)
     let EventoLogCodigo = 0
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
       ({ EventoLogCodigo } = await this.eventoLogInicio(
@@ -1371,7 +1371,7 @@ FROM cte
 
 
   async jobOtroDescuentoCuotas(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const anio: number = req.body.year
     const mes: number = req.body.month
     const usuario = res?.locals.userName || 'server'
@@ -1643,7 +1643,7 @@ FROM cte
     }
   */
   async updateDescuento(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonalId = req.body.PersonalId
     const ObjetivoId = req.body.ObjetivoId
 
@@ -1927,7 +1927,7 @@ FROM cte
   }
 
   async cancellationPersonalOtroDescuento(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const id: number = Number(req.body.id)
     const PersonalId: number = Number(req.body.PersonalId)
     const DetalleAnulacion: string = req.body.DetalleAnulacion
@@ -2007,7 +2007,7 @@ FROM cte
 
 
   async cancellationObjetivoDescuento(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const id: number = Number(req.body.id)
     const ObjetivoId: number = Number(req.body.ObjetivoId)
     const DetalleAnulacion: string = req.body.DetalleAnulacion
@@ -2087,7 +2087,7 @@ FROM cte
   }
 
   async getDescuentoPersona(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonalId = req.body.PersonalId
     const DescuentoId = req.body.DescuentoId
     try {
@@ -2123,7 +2123,7 @@ FROM cte
   }
 
   async getDescuentoObjetivo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const ObjetivoId = req.body.ObjetivoId
     const DescuentoId = req.body.DescuentoId
     try {
@@ -2394,7 +2394,7 @@ FROM cte
     const descuentoIdRequest = Number(req.body.DescuentoId)
     const CuentaTipoCodigo = String(req.body.CuentaTipoCodigo)
     const tableNameRequest = req.body.tableName
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     let den_documento: string = ''
@@ -2646,7 +2646,7 @@ FROM cte
   async getImportacionesDescuentosAnteriores(req: any, res: Response, next: NextFunction) {
     const anio = req.params.anio
     const mes = req.params.mes
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
 
     try {
       await queryRunner.connect()
@@ -2728,7 +2728,7 @@ FROM cte
     const usuario = res.locals.userName
     const anio: number = req.body.anio
     const mes: number = req.body.mes
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const gridDataInsert = req.body.gridDataInsert
     const DescuentoId: number = req.body.descuentoId
     const CuentaTipoCodigo: string = req.body.CuentaTipoCodigo
@@ -2816,7 +2816,7 @@ FROM cte
     const usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const periodo = req.body[0]
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     let result = req.body[1].gridDataInsert
     let dataset = []
     const DescuentoId: number = req.body[2]
@@ -2924,7 +2924,7 @@ FROM cte
 
   async getImportacionDetail(req: any, res: Response, next: NextFunction) {
     const id: number = Number(req.params.id)
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
 
     try {
 
@@ -2984,7 +2984,7 @@ FROM cte
   async deleteImportDescuento(req: any, res: Response, next: NextFunction) {
     const id: number = Number(req.params.id)
     const tableForSearch: string = req.params.tableForSearch
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
 
     try {
       await queryRunner.connect();

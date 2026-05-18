@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, orderToSQL, isOptions } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import type { NextFunction, Request, Response } from "express";
@@ -234,7 +234,7 @@ export class OrdenesDeVentaController extends BaseController {
     const orderBy = orderToSQL(options.sort)
     const anio = req.body.anio
     const mes = req.body.mes
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
 
       const listCargaLicenciaHistory = await queryRunner.query(`

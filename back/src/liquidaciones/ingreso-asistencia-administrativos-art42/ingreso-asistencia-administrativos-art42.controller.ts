@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../../controller/base.controller.ts";
-import { dataSource } from "../../data-source.ts";
+import { getConnection } from "../../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { Utils } from "../liquidaciones.utils.ts";
 import { AsistenciaController } from "../../controller/asistencia.controller.ts";
@@ -19,7 +19,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
     const tipo_movimiento_id_normadmi = Number(process.env.MOV_ASISTENCIA_ADMINISTRA)
     const tipo_movimiento_id_art42vigi = Number(process.env.MOV_ART42VIGI)
     const tipo_movimiento_id_art42admi = Number(process.env.MOV_ART42ADMI)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
 

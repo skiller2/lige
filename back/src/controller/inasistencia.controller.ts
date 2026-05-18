@@ -1,11 +1,13 @@
 import { BaseController, ClientException } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { Response,NextFunction } from "express";
 
 export class InasistenciaController extends BaseController {
   
-  search(req: any, res: Response, next:NextFunction) {
+  async search(req: any, res: Response, next:NextFunction) {
     const { fieldName, value } = req.body;
+    const queryRunner = await getConnection();
+
     let buscar = false;
     let query: string = `SELECT TipoInasistenciaId, TipoInasistenciaDescripcion FROM TipoInasistencia WHERE 1=1 AND `;
     switch (fieldName) {
@@ -33,7 +35,7 @@ export class InasistenciaController extends BaseController {
       return;
     }
 
-    dataSource
+    queryRunner
       .query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);

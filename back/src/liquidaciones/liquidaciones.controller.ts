@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { Utils } from "./liquidaciones.utils.ts";
 import { mkdirSync, existsSync, readFileSync, copyFileSync } from "node:fs";
@@ -35,7 +35,7 @@ export class LiquidacionesController extends BaseController {
     const banco_id = Number(req.body.banco_id)
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -113,7 +113,7 @@ export class LiquidacionesController extends BaseController {
   async getPeriodoStatus(req: Request, res: Response, next: NextFunction) {
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       let status = null
       if (anio && mes) {
@@ -149,7 +149,7 @@ export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
 
   async getTipoMovimientoById(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     const TipoMovimientoFilter = req.params.TipoMovimiento;
     try {
@@ -179,7 +179,7 @@ export class LiquidacionesController extends BaseController {
 
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
     const TipoMovimientoFilter = req.params.TipoMovimiento;
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
 
       const tipoMovimiento = await queryRunner.query(
@@ -200,7 +200,7 @@ export class LiquidacionesController extends BaseController {
   }
 
   async getDocumentInfo(documentId: Number) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     return queryRunner.query(
       `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS name FROM lige.dbo.convalorimpoexpo WHERE impoexpo_id = @0`, [documentId])
   }
@@ -223,7 +223,7 @@ export class LiquidacionesController extends BaseController {
   }
 
   async getTipoCuenta(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
 
       const tipoCuenta = await queryRunner.query(
@@ -252,7 +252,7 @@ export class LiquidacionesController extends BaseController {
   ) {
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const importacionesAnteriores = await queryRunner.query(
 
         `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS nombre, path, aud_fecha_ins AS fecha FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1 AND ind_eliminado = 0`,
@@ -440,7 +440,7 @@ export class LiquidacionesController extends BaseController {
 
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const liqudacion = await queryRunner.query(
         `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,eledep.ClienteElementoDependienteDescripcion,CONCAT(cus.CustodiaCodigo, ' ', cli.ClienteDenominacion,' ',FORMAT (cus.FechaInicio,'dd/MM/yyyy') ) AS CustodiaDescripcion,  CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
         li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.horas, cuit.PersonalCUITCUILCUIT,
@@ -485,7 +485,7 @@ export class LiquidacionesController extends BaseController {
     const mes = Number(req.body.mes)
     let fechaActual = new Date()
     const deleteId = Number(req.body.deleteId)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       if (!deleteId)
         throw new ClientException(`No se pudo identificar el grupo de importación ${anio} ${mes} ${deleteId}`)
@@ -527,7 +527,7 @@ export class LiquidacionesController extends BaseController {
 
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     let fechaActual = new Date()
     const periodo = req.body[0].split('/');
 
@@ -599,7 +599,7 @@ export class LiquidacionesController extends BaseController {
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
     const fechaActual = new Date();
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     const tipocuenta_id = req.body.tipocuenta
     const tipo_movimiento_id = req.body.movimiento
     let usuario = res.locals.userName

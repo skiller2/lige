@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { promises as fsPromises } from 'fs';
@@ -112,7 +112,7 @@ export class RecibosController extends BaseController {
     const ip = this.getRemoteAddress(req)
     let isUnique = req.body.isUnique
     const personalId = req.body?.personalId
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     let persona_id = 0
     //estas  variables se usan solo si el recibo previamente ya existe 
     let fechaRecibo = new Date(req.body.fechaRecibo)
@@ -629,7 +629,7 @@ export class RecibosController extends BaseController {
   ) {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
 
     try {
@@ -672,7 +672,7 @@ export class RecibosController extends BaseController {
 
   async bindPdf(req: Request, res: Response, next: NextFunction) {
 
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     const {
       Usuario,
       Anio,
@@ -900,7 +900,7 @@ export class RecibosController extends BaseController {
     const tipocuenta_id = req.body.tipocuenta_id || 'G'
     const PersonalId = Number(req.body.PersonalId)
     const periodo = new Date(req.body.periodo)
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     const fechaActual = new Date();
     let persona_id = 0
     let usuario = res.locals.userName

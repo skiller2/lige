@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 
@@ -277,7 +277,7 @@ export class FacturacionController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const fechaActual = new Date()
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
@@ -328,7 +328,7 @@ export class FacturacionController extends BaseController {
     }
 
     async getComprobanteTipoOptions(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const result = await queryRunner.query(`
           SELECT ComprobanteTipoCodigo, Descripcion FROM ComprobanteTipo`)
         this.jsonRes(result, res);
@@ -339,7 +339,7 @@ export class FacturacionController extends BaseController {
 
         // const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         // const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         const ComprobanteNro = req.params.ComprobanteNro
         const FacturacionCodigo = req.params.FacturacionCodigo
@@ -391,7 +391,7 @@ export class FacturacionController extends BaseController {
 
     async saveFacturacion(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = dataSource.createQueryRunner()
+        const queryRunner = await getConnection()
         await queryRunner.connect();
         
 

@@ -1,5 +1,5 @@
 import { BaseController, ClientException, ClientWarning } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, getOptionsFromRequest, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
@@ -48,7 +48,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
   async getGridList(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction()
       const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas)
@@ -73,7 +73,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
   async addSMVM(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const SalarioMinimoVitalMovilDesde: Date = req.body.SalarioMinimoVitalMovilDesde ? new Date(req.body.SalarioMinimoVitalMovilDesde) : null;
     const SalarioMinimoVitalMovilSMVM: number = req.body.SalarioMinimoVitalMovilSMVM;
     
@@ -121,7 +121,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
   async updateSMVM(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const SalarioMinimoVitalMovilId = req.body.SalarioMinimoVitalMovilId;
     const SalarioMinimoVitalMovilDesde: Date = req.body.SalarioMinimoVitalMovilDesde ? new Date(req.body.SalarioMinimoVitalMovilDesde) : null;
     const SalarioMinimoVitalMovilSMVM: number = req.body.SalarioMinimoVitalMovilSMVM;
@@ -150,7 +150,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
   async onchangecellSMVM(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction();
 
@@ -298,7 +298,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
   async getUltimoPeriodo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const ultimoPeriodo = await queryRunner.query(`
         SELECT TOP 1 SalarioMinimoVitalMovilDesde
@@ -334,7 +334,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   }
 
 //throw new ClientException('test');
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction();
       await queryRunner.query(`DELETE FROM SalarioMinimoVitalMovil WHERE SalarioMinimoVitalMovilId = @0`, [req.params.SalarioMinimoVitalMovilId]);

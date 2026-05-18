@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import type { QueryRunner } from "typeorm";
@@ -120,7 +120,7 @@ export class InstitucionesController extends BaseController {
 
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const fechaActual = new Date()
     const anio = fechaActual.getFullYear()
     const mes = fechaActual.getMonth() + 1
@@ -158,7 +158,7 @@ export class InstitucionesController extends BaseController {
 
   
     const {CentroCapacitacionId} = req.body
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
       const instituciones = await queryRunner.query(
@@ -184,7 +184,7 @@ export class InstitucionesController extends BaseController {
 
 
     const {CentroCapacitacionId} = req.body
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
  
 
     try {
@@ -226,7 +226,7 @@ export class InstitucionesController extends BaseController {
     let result = []
     let isNewOrEdit = true
     let maxSedeId = []
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
@@ -300,7 +300,7 @@ export class InstitucionesController extends BaseController {
 
     let CentroCapacitacionId = req.query[0]
     let CentroCapacitacionSedeId = req.query[1]
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     await queryRunner.connect()
     await queryRunner.startTransaction()
     try {
@@ -336,7 +336,7 @@ export class InstitucionesController extends BaseController {
 
 
     await this.validateFormInstituciones(CentroCapacitacionCuit, CentroCapacitacionRazonSocial, CentroCapacitacionInactivo)
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     await queryRunner.connect();
     await queryRunner.startTransaction();
 

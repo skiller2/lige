@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { logger } from "../logger/logger.ts";
 //import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {
@@ -46,7 +46,7 @@ export class AuthMiddleware {
 
       if (!res.locals.lastDbQueryTime || ((now.getTime() - new Date(res.locals.lastDbQueryTime).getTime()) > 20 * 60 * 1000)) {
         // si la consulta es mayor a 20 minutos, recarga
-        const queryRunner = dataSource.createQueryRunner()
+        const queryRunner = await getConnection()
         try {
           res.locals.GrupoActividad = []
           const listGrupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
@@ -126,7 +126,7 @@ export class AuthMiddleware {
 
       const anio = stmActual.getFullYear()
       const mes = stmActual.getMonth() + 1
-      const queryRunner = dataSource.createQueryRunner()
+      const queryRunner = await getConnection()
 
       try {
 
@@ -186,7 +186,7 @@ export class AuthMiddleware {
       if (!anio || !mes) return res.status(403).json({ msg: `No se especifico anio o mes` })
       // if (!GrupoActividadId) return res.status(403).json({ msg: `No se especifico GrupoActividadId` })
 
-      const queryRunner = dataSource.createQueryRunner()
+      const queryRunner = await getConnection()
 
       const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
        
@@ -206,7 +206,7 @@ export class AuthMiddleware {
 
   hasAuthByDocId = () => {
     return async (req, res, next) => {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       await queryRunner.connect();
       await queryRunner.startTransaction();
        
@@ -488,7 +488,7 @@ export class AuthMiddleware {
 
     if (grupos.length === 0) return next()
 
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
 
     try {
       // Verificar que el objetivo pertenezca a alguno de los grupos de actividad del usuario

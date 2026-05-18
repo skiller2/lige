@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../../controller/base.controller.ts";
-import { dataSource } from "../../data-source.ts";
+import { getConnection } from "../../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 
 
@@ -9,7 +9,7 @@ export class DescuentoPorDeudaAnteriorController extends BaseController {
   async procesaCambios(req: any, res: Response, next: NextFunction) {
     const options = {}
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     let fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
 

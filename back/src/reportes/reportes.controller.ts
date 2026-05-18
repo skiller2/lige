@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express"
 import { BaseController, ClientException } from "../controller/base.controller.ts"
-import { dataSource } from "../data-source.ts"
+import { getConnection } from "../data-source.ts"
 import { mkdirSync, existsSync, writeFileSync } from "node:fs"
 import { tmpName } from "../server.ts"
 import { unlink } from "node:fs/promises"
@@ -44,7 +44,7 @@ export class ReportesController extends BaseController {
   }
 
   async Report(req: Request, res: Response, next: NextFunction) {
-      const queryRunner = dataSource.createQueryRunner()
+      const queryRunner = await getConnection()
 
       const {
         Usuario,

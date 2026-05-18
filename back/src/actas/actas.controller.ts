@@ -1,5 +1,5 @@
 import { BaseController, ClientException, ClientWarning } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL, } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
@@ -263,7 +263,7 @@ export class ActasController extends BaseController {
   }
 
   async getGridList(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction()
 
@@ -284,7 +284,7 @@ export class ActasController extends BaseController {
   }
 
   async addActa(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const ActaNroActa: number = req.body.ActaNroActa;
     const ActaDescripcion: string = req.body.ActaDescripcion;
     const ActaFechaActa: Date = req.body.ActaFechaActa ? new Date(req.body.ActaFechaActa) : null;
@@ -319,7 +319,7 @@ export class ActasController extends BaseController {
   }
 
   async updateActa(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const ActaId = req.body.ActaId;
     const ActaNroActa = req.body.ActaNroActa;
     const ActaDescripcion = req.body.ActaDescripcion;
@@ -348,7 +348,7 @@ export class ActasController extends BaseController {
   }
 
   async deleteActa(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const ActaId = req.query[0]
     try {
       await queryRunner.startTransaction()
@@ -374,7 +374,7 @@ export class ActasController extends BaseController {
   }
 
   async getNrosActas(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT TOP 100 ActaId value
@@ -433,7 +433,7 @@ export class ActasController extends BaseController {
   }
 
   async getGridActasPersonalList(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction()
 

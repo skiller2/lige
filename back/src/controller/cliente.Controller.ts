@@ -1,12 +1,14 @@
 import { BaseController, ClientException } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { Response,NextFunction } from "express";
 
 export class ClienteController extends BaseController {
   
-  search(req: any, res: Response, next:NextFunction) {
+  async search(req: any, res: Response, next:NextFunction) {
     const { fieldName, value } = req.body;
     let buscar = false;
+    const queryRunner = await getConnection();
+
     let query: string = `SELECT ClienteId,ClienteDenominacion  FROM cliente WHERE`;
     switch (fieldName) {
       case "ClienteDenominacion":
@@ -34,7 +36,7 @@ export class ClienteController extends BaseController {
       return;
     }
 
-    dataSource
+    queryRunner
       .query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
@@ -54,7 +56,7 @@ export class ClienteController extends BaseController {
 
   async getClientesBillingData(req: any, res: Response, next:NextFunction) {
     const clientesIds: number[] = req.body
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     let infoCliente: any[] = []
     const now = new Date()
     try {

@@ -1,5 +1,5 @@
 import { BaseController, ClientException, ClientWarning } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
@@ -280,7 +280,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
     const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null }
     const filterSql = filtrosToSql(options.filtros, columnsExcepcionesAsistencia);
     const orderBy = orderToSQL(options.sort)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const periodo = req.body.periodo ? new Date(req.body.periodo) : null
     const year = periodo ? periodo.getFullYear() : 0
     const month = periodo ? periodo.getMonth() + 1 : 0
@@ -423,7 +423,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
   }
 
   async personalArt14AprovarLista(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const ids: Array<{ PersonalArt14Id: number, PersonalId: number, ObjetivoId: number, PersonalArt14ConceptoId: number, PersonalArt14FormaArt14: string }> = req.body.ids
     const numRows: number[] = req.body.rows
     let errors: string[] = []
@@ -531,7 +531,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
   }
 
   async personalArt14RechazarLista(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const ids: string[] = req.body.ids
     const numRows: number[] = req.body.rows
     let errors: string[] = []
@@ -612,7 +612,7 @@ export class ExcepcionesAsistenciaController extends BaseController {
   }
 
   async personalArt14PendienteLista(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const ids: string[] = req.body.ids
     const numRows: number[] = req.body.rows
     let errors: string[] = []

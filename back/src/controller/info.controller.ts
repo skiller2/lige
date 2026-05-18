@@ -1,10 +1,12 @@
 import { BaseController } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { Request, Response, NextFunction } from "express";
+import { QueryResult } from "typeorm";
 
 export class InfoController extends BaseController {
 
-  dbstatus(req: Request, res: Response, next: NextFunction) {
+  async dbstatus(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection();
     const data = {
       connected: false,
       database: process.env.DB_DATABASE,
@@ -12,7 +14,7 @@ export class InfoController extends BaseController {
       random: Math.floor(Math.random() * (100000000000 + 1)),
     };
 
-    dataSource
+    queryRunner
       .query("SELECT 1 + @0", [2])
       .then((records) => {
         data.sqltest = records;

@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
@@ -534,7 +534,7 @@ export class ObjetivosController extends BaseController {
         req.body.options.filtros = this.filtroExtraHabilitaciones(req.body.options.filtros,)
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         const anio = fechaActual.getFullYear()
         const mes = fechaActual.getMonth() + 1
@@ -652,7 +652,7 @@ export class ObjetivosController extends BaseController {
         const orderBy = orderToSQL(req.body.options.sort);
         const ClienteId = req.body.ClienteId;
         const ObjetivoId = req.body.ObjetivoId;
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
             const documentos = await queryRunner.query(
@@ -713,7 +713,7 @@ export class ObjetivosController extends BaseController {
     }
 
     async infObjetivo(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             await queryRunner.startTransaction()
             const ObjetivoId = req.params.ObjetivoId
@@ -1285,7 +1285,7 @@ export class ObjetivosController extends BaseController {
 
 
     async updateObjetivo(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
             const usuario = res.locals.userName
@@ -1729,7 +1729,7 @@ export class ObjetivosController extends BaseController {
     async deleteObjetivo(req: Request, res: Response, next: NextFunction) {
 
         const { ClienteId, ObjetivoId, ClienteElementoDependienteId, DomicilioId, ContratoId } = req.query
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
             if (!ClienteElementoDependienteId || !ClienteId || !ObjetivoId)
@@ -1865,7 +1865,7 @@ export class ObjetivosController extends BaseController {
     }
 
     async addObjetivo(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const Obj = { ...req.body };
         const infoActividad = { ...Obj.infoActividad }
         let ObjObjetivoNew = { ClienteId: 0, id: 0, ClienteElementoDependienteId: 0, infoCoordinadorCuenta: {}, infoActividad: [] }
@@ -2068,7 +2068,7 @@ export class ObjetivosController extends BaseController {
         const anio = Number(fechaActual.getFullYear())
         const mes = Number(fechaActual.getMonth())
         const ObjetivoId = req.body.ObjetivoId
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const ClienteElementoDependienteId = req.body.ClienteElementoDependienteId
         const ClienteId = req.body.ClienteId
 
@@ -2112,7 +2112,7 @@ export class ObjetivosController extends BaseController {
         const anio = Number(fechaActual.getFullYear())
         const mes = Number(fechaActual.getMonth())
         const ObjetivoId = req.body.ObjetivoId
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const ClienteElementoDependienteId = req.body.ClienteElementoDependienteId
         const ClienteId = req.body.ClienteId
 
@@ -2165,7 +2165,7 @@ export class ObjetivosController extends BaseController {
         const anio = Number(fechaActual.getFullYear())
         const mes = Number(fechaActual.getMonth())
         const ObjetivoId = req.body.ObjetivoId
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const ClienteElementoDependienteId = req.body.ClienteElementoDependienteId
         const ClienteId = req.body.ClienteId
 

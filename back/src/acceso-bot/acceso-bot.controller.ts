@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
@@ -102,7 +102,7 @@ export class AccesoBotController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const fechaActual = new Date()
 
         try {
@@ -144,7 +144,7 @@ export class AccesoBotController extends BaseController {
 
     async getAccess(req: Request, res: Response, next: NextFunction) {
         const PersonalId = Number(req.params.PersonalId)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
 
@@ -179,7 +179,7 @@ export class AccesoBotController extends BaseController {
     async deleteAccess(req: Request, res: Response, next: NextFunction) {
 
         const PersonalId = Number(req.params.PersonalId)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -201,7 +201,7 @@ export class AccesoBotController extends BaseController {
 
     async getAccessDni(req: Request, res: Response, next: NextFunction) {
         const PersonalId = Number(req.params.PersonalId)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
             let result
@@ -239,7 +239,7 @@ export class AccesoBotController extends BaseController {
 
 
     async updateAcess(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
             await queryRunner.startTransaction()
@@ -293,7 +293,7 @@ export class AccesoBotController extends BaseController {
     }
 
     async addAccess(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
             const usuario = res.locals.userName
@@ -337,7 +337,7 @@ export class AccesoBotController extends BaseController {
     async validateCuit(req: any, res: Response, next: NextFunction) {
 
         const cuit = Number(req.params.cuit)
-        const queryRunner = dataSource.createQueryRunner()
+        const queryRunner = await getConnection()
         let existCuit
 
         try {
@@ -361,7 +361,7 @@ export class AccesoBotController extends BaseController {
         const cuit = Number(req.params.cuit)
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
 
@@ -395,7 +395,7 @@ export class AccesoBotController extends BaseController {
         const fecha = new Date()
 
         let newValue
-        const queryRunner = dataSource.createQueryRunner()
+        const queryRunner = await getConnection()
 
         try {
 
@@ -461,7 +461,7 @@ export class AccesoBotController extends BaseController {
         const ip = this.getRemoteAddress(req)
         const fecha = new Date()
         let newValue
-        const queryRunner = dataSource.createQueryRunner()
+        const queryRunner = await getConnection()
 
         try {
             let base_url = process.env.URL_MESS_API || "http://localhost:3010"
@@ -688,7 +688,7 @@ export class AccesoBotController extends BaseController {
         const PersonalId = Number(req.body.PersonalId);
         const DocumentoImagenParametroId = String(req.body.id);
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const pathArchivos = (process.env.PATH_DNI) ? process.env.PATH_DNI : '.'
         try {
 
@@ -720,7 +720,7 @@ export class AccesoBotController extends BaseController {
     }
 
     static async enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string) {
-        const queryRunner = dataSource.createQueryRunner()
+        const queryRunner = await getConnection()
         const fechaActual = new Date()
         try {
             const existsTel = await queryRunner.query(`SELECT PersonalId FROM BotRegTelefonoPersonal WHERE PersonalId = @0`, [personal_id])

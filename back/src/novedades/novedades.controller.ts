@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
@@ -330,7 +330,7 @@ export class NovedadesController extends BaseController {
     async list(req: any, res: Response, next: NextFunction) {
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const periodo = req.body.periodo ? new Date(req.body.periodo) : null
         const year = periodo ? periodo.getFullYear() : 0
         const month = periodo ? periodo.getMonth() + 1 : 0
@@ -358,7 +358,7 @@ export class NovedadesController extends BaseController {
 
     async getTipoNovedad(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const provincias = await queryRunner.query(`SELECT NovedadTipoCod value, Descripcion label FROM NovedadTipo`)
             return this.jsonRes(provincias, res);
@@ -372,7 +372,7 @@ export class NovedadesController extends BaseController {
 
 
     async infNovedad(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const usuarioName = res.locals.userName
         const NovedadId = req.params.NovedadId
 
@@ -453,7 +453,7 @@ export class NovedadesController extends BaseController {
 
     async updateNovedad(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
 
             const usuarioName = res.locals.userName
@@ -533,7 +533,7 @@ export class NovedadesController extends BaseController {
     async addNovedad(req: any, res: Response, next: NextFunction) {
 
         const usuarioName = res.locals.userName
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const Obj = { ...req.body }
         let NovedadIdNew = {}
         const ip = this.getRemoteAddress(req)
@@ -718,7 +718,7 @@ export class NovedadesController extends BaseController {
 
     async deleteNovedad(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = dataSource.createQueryRunner()
+        const queryRunner = await getConnection()
         try {
             const NovedadId = req.params.id
             await queryRunner.startTransaction()
@@ -871,7 +871,7 @@ export class NovedadesController extends BaseController {
         const body = req.body.body
         const footer = req.body.footer
         const NovedadCodigo = Number(req.body.NovedadCodigo)
-        const queryRunner = dataSource.createQueryRunner()
+        const queryRunner = await getConnection()
         const fechaActual = new Date();
 
         let filePath = ""
@@ -1052,7 +1052,7 @@ export class NovedadesController extends BaseController {
     async generaInformesNovedades(req: any, res: Response, next: NextFunction) {
         const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
         const orderBy = ` ORDER BY nov.Fecha ASC `;
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const periodo = req.body.periodo ? new Date(req.body.periodo) : null
         const year = periodo ? periodo.getFullYear() : 0
         const month = periodo ? periodo.getMonth() + 1 : 0

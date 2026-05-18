@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../../controller/base.controller.ts";
-import { dataSource } from "../../data-source.ts";
+import { getConnection } from "../../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { Utils } from "../liquidaciones.utils.ts";
 import { recibosController } from "../../controller/controller.module.ts";
@@ -266,7 +266,7 @@ export class DescuentoRetirosController extends BaseController {
   async procesaCambios(req: any, res: Response, next: NextFunction) {
     const options = {}
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
     const ip = this.getRemoteAddress(req)

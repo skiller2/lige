@@ -1,11 +1,11 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Response } from "express";
 
 export class AvisoController extends BaseController {
 
   async getAvisos(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const userName = res.locals.userName;
       const grupos: string[] = req.groups || [];
@@ -30,7 +30,7 @@ export class AvisoController extends BaseController {
   }
 
   async marcarVisto(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const userName = res.locals.userName;
       const ip = this.getRemoteAddress(req)
@@ -52,7 +52,7 @@ export class AvisoController extends BaseController {
   }
 
   async ocultarAviso(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const userName = res.locals.userName;
       const ip = this.getRemoteAddress(req)
@@ -74,7 +74,7 @@ export class AvisoController extends BaseController {
   }
 
   async marcarTodosVistos(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const userName = res.locals.userName;
       const now = new Date()
@@ -93,7 +93,7 @@ export class AvisoController extends BaseController {
   }
 
   async purgarAvisos(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.query(
         `DELETE FROM Aviso WHERE AudFechaIng < DATEADD(DAY, -30, GETDATE())`

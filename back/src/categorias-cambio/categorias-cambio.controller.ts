@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { NextFunction, Request, Response } from "express";
 
@@ -105,7 +105,7 @@ export class CategoriasController extends BaseController {
     const filtros = options.filtros;
     const filterSql = filtrosToSql(filtros, columnasGrilla);
     const fecha = options.extra?.fecProcesoCambio || new Date()
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     return queryRunner.query(
       `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ApellidoNombre, ing.PersonalFechaIngreso, 
         cat.CategoriaPersonalDescripcion, cat.TipoAsociadoId, cat.CategoriaPersonalId,
@@ -164,7 +164,7 @@ export class CategoriasController extends BaseController {
   async jobCambioCategoria(req: any, res: Response, next: NextFunction) {
     const options = {}
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
     const anio = fechaActual.getFullYear()

@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Response } from "express";
 import { filtrosToSql, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
@@ -662,7 +662,7 @@ export class HabilitacionesController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, GridListadoColums);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         try {
             const habilitaciones = await this.habilitacionesListQuery(queryRunner, periodo, filterSql, orderBy);
@@ -875,7 +875,7 @@ export class HabilitacionesController extends BaseController {
     async list(req: any, res: Response, next: NextFunction) {
         const filterSql = filtrosToSql(req.body.options.filtros, GridColums);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const periodo = new Date()
         try {
             const habilitaciones = await this.habilitacionesListQuery(queryRunner, periodo, filterSql, orderBy);
@@ -911,7 +911,7 @@ export class HabilitacionesController extends BaseController {
         const PersonalId = req.body.PersonalId
         const PersonalHabilitacionId = req.body.PersonalHabilitacionId
         const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const habilitaciones = await this.listDetalleGestionesQuery(queryRunner, PersonalId, PersonalHabilitacionId, PersonalHabilitacionLugarHabilitacionId);
 
@@ -946,7 +946,7 @@ export class HabilitacionesController extends BaseController {
         const PersonalId = req.body.PersonalId
         const PersonalHabilitacionId = req.body.PersonalHabilitacionId
         const PersonalHabilitacionLugarHabilitacionId = req.body.LugarHabilitacionId
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         const fechaActual = new Date()
         fechaActual.setHours(0, 0, 0, 0)
@@ -1093,7 +1093,7 @@ SELECT doc.DocumentoId id,
     }
 
     async getEstadosHabilitaciones(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const tipos = await queryRunner.query(`
             SELECT est.GestionHabilitacionEstadoCodigo value, est.Detalle label
@@ -1120,7 +1120,7 @@ SELECT doc.DocumentoId id,
         const PersonalId = req.body.personalId
         const PersonalHabilitacionId = req.body.personalHabilitacionId
         // const PersonalHabilitacionLugarHabilitacionId = req.body.lugarHabilitacionId
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const PersonalHabilitacion = await queryRunner.query(`
             SELECT 
@@ -1164,7 +1164,7 @@ SELECT doc.DocumentoId id,
         const PersonalId = req.body.personalId
         const PersonalHabilitacionId = req.body.personalHabilitacionId
         const PersonalHabilitacionLugarHabilitacionId = req.body.lugarHabilitacionId
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const PersonalHabilitacion = await queryRunner.query(`
             SELECT geshab.GestionHabilitacionCodigo,
@@ -1206,7 +1206,7 @@ SELECT doc.DocumentoId id,
         if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0, 0, 0, 0)
         if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0, 0, 0, 0)
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -1319,7 +1319,7 @@ SELECT doc.DocumentoId id,
         if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0, 0, 0, 0)
         if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0, 0, 0, 0)
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -1412,7 +1412,7 @@ SELECT doc.DocumentoId id,
     }
 
     async getLugarHabilitacion(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const options = await this.getLugarHabilitacionQuery(queryRunner)
             this.jsonRes(options, res);
@@ -1425,7 +1425,7 @@ SELECT doc.DocumentoId id,
 
     async getLugarHabilitacionByPersonalId(req: any, res: Response, next: NextFunction) {
         const PersonalId = req.params.PersonalId;
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const options = await queryRunner.query(`
                 SELECT lughab.LugarHabilitacionId value, TRIM(lughab.LugarHabilitacionDescripcion) label
@@ -1451,7 +1451,7 @@ SELECT doc.DocumentoId id,
     }
 
     async getHabilitacionCategoria(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         const LugarHabilitacionId = req.params.LugarHabilitacionId
         try {
             const options = await this.getHabilitacionCategoriaQuery(queryRunner, LugarHabilitacionId)
@@ -1484,7 +1484,7 @@ SELECT doc.DocumentoId id,
         if (PersonalHabilitacionDesde) PersonalHabilitacionDesde.setHours(0, 0, 0, 0)
         if (PersonalHabilitacionHasta) PersonalHabilitacionHasta.setHours(0, 0, 0, 0)
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -1599,7 +1599,7 @@ SELECT doc.DocumentoId id,
         const PersonalId = req.body.PersonalId
         const LugarHabilitacionIds: number[] = req.body.LugarHabilitacionIds ? req.body.LugarHabilitacionIds : []
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();
@@ -1714,7 +1714,7 @@ SELECT doc.DocumentoId id,
 
         const PersonalId = req.params.PersonalId
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const habs = []
             const habilitaciones = await this.queryHabilitacionNecesariaByPersonalId(queryRunner, PersonalId)
@@ -1743,7 +1743,7 @@ SELECT doc.DocumentoId id,
     }
 
     async jobHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
 
         const usuario = res?.locals.userName || 'server'
         const ip = this.getRemoteAddress(req)
@@ -1952,7 +1952,7 @@ SELECT doc.DocumentoId id,
         // const usuario = res.locals.userName
         // const fechaActual = new Date()
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             await queryRunner.connect();
             await queryRunner.startTransaction();

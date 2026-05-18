@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import type { QueryRunner } from "typeorm";
@@ -13,7 +13,7 @@ export class DomicilioController extends BaseController {
   }
   
   async getPaises(req: any, res: Response, next: NextFunction){
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getPaisesQuery(queryRunner)
 
@@ -32,7 +32,7 @@ export class DomicilioController extends BaseController {
   }
   
   async getProvinciasByPais(req: any, res: Response, next: NextFunction){
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const paisId:number = req.body.paisId
     try {
       const options = await this.getProvinciasByPaisQuery(queryRunner, paisId)
@@ -52,7 +52,7 @@ export class DomicilioController extends BaseController {
     }
   
   async getLocalidadByProvincia(req: any, res: Response, next: NextFunction){
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const provinciaId:number = req.body.provinciaId
     const paisId:number = req.body.paisId
     try {
@@ -73,7 +73,7 @@ export class DomicilioController extends BaseController {
   }
 
   async getBarrioByLocalidad(req: any, res: Response, next: NextFunction){
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const localidadId:number = req.body.localidadId
     const provinciaId:number = req.body.provinciaId
     const paisId:number = req.body.paisId
@@ -87,7 +87,7 @@ export class DomicilioController extends BaseController {
   }
   
   async getProvincias(req: any, res: Response, next: NextFunction){
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
       SELECT pro.ProvinciaId, pro.PaisId, TRIM(pro.ProvinciaDescripcion) label
@@ -105,7 +105,7 @@ export class DomicilioController extends BaseController {
   }
   
   async getLocalidad(req: any, res: Response, next: NextFunction){
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT loc.LocalidadId, loc.PaisId, loc.ProvinciaId, TRIM(loc.LocalidadDescripcion) label
@@ -124,7 +124,7 @@ export class DomicilioController extends BaseController {
   }
 
   async getBarrio(req: any, res: Response, next: NextFunction){
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await await queryRunner.query(`
       SELECT bar.BarrioId, bar.LocalidadId, bar.PaisId, bar.ProvinciaId, TRIM(bar.BarrioDescripcion) label

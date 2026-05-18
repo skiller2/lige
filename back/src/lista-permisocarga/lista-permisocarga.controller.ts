@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { NextFunction, Request, Response } from "express";
 import { ObjetivoController } from "../controller/objetivo.controller.ts";
@@ -87,7 +87,7 @@ export class ListaPermisoCargaController extends BaseController {
 
 
     try {
-const queryRunner = dataSource.createQueryRunner();
+const queryRunner = await getConnection();
       const listPermisoCarga = await queryRunner.query(
         `SELECT 
         ROW_NUMBER() OVER (ORDER BY carg.objetivo_id) AS id,

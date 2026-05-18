@@ -1,6 +1,6 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import type { PersonaObj } from "../schemas/personal.schemas.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { Response } from "express";
 import type { NextFunction } from "express";
 import { mkdirSync, renameSync, existsSync } from "node:fs";
@@ -313,7 +313,7 @@ export class PersonalController extends BaseController {
     const mes = req.params.mes;
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const result = await queryRunner.query(
         `SELECT
         per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -349,7 +349,7 @@ export class PersonalController extends BaseController {
   }
 
   async getNameFromId(PersonalId, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const result = await this.getNameFromIdQuery(queryRunner, PersonalId)
 
@@ -366,7 +366,7 @@ export class PersonalController extends BaseController {
     const mes = req.params.mes;
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const responsables = await queryRunner.query(
         `SELECT 1 AS ord, gap.GrupoActividadPersonalPersonalId as id, 'Grupo' tipo,
         ga.GrupoActividadId AS id, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadPersonalDesde AS desde , gap.GrupoActividadPersonalHasta hasta, '' as Telefonos,
@@ -418,7 +418,7 @@ export class PersonalController extends BaseController {
     const stmactual = new Date()
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const responsables = await queryRunner.query(
         `SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.*, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
         FROM Personal per
@@ -434,7 +434,7 @@ export class PersonalController extends BaseController {
   }
 
   static async infoPersonalQuery(PersonalId: any, anio: number, mes: number) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     return queryRunner.query(`
       SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 
@@ -472,7 +472,7 @@ export class PersonalController extends BaseController {
   }
 
   async getById(PersonalId: string, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     const fechaActual = new Date();
     //    const dia = fechaActual.getDate();
@@ -553,7 +553,7 @@ export class PersonalController extends BaseController {
 
   async getTelefonosPorPersona(PersonalId: string, res: Response, next: NextFunction) {
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const result = await queryRunner.query(
         `SELECT tel.PersonalId, tip.TipoTelefonoDescripcion, tel.PersonalTelefonoNro
         FROM PersonalTelefono tel 
@@ -571,7 +571,7 @@ export class PersonalController extends BaseController {
   async getCuentasBancoPorPersona(PersonalId: string, res: Response, next: NextFunction) {
     try {
       const stmactual = new Date();
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const result = await queryRunner.query(
         `SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta
         FROM PersonalBanco cue
@@ -587,7 +587,7 @@ export class PersonalController extends BaseController {
   }
 
 
-  search(req: any, res: Response, next: NextFunction) {
+  async search(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
 
     let buscar = false;
@@ -628,7 +628,7 @@ export class PersonalController extends BaseController {
       return;
     }
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     queryRunner
       .query((query += " 1=1"))
       .then((records) => {
@@ -765,7 +765,7 @@ export class PersonalController extends BaseController {
   }
 
   async getGridList(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction()
 
@@ -786,7 +786,7 @@ export class PersonalController extends BaseController {
   }
 
   async getListFull(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction()
 
@@ -809,7 +809,7 @@ export class PersonalController extends BaseController {
   }
 
   async getSituacionRevista(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getSituacionRevistaQuery(queryRunner)
 
@@ -820,7 +820,7 @@ export class PersonalController extends BaseController {
   }
 
   async getCategoriaPersonalOptions(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT CONCAT(cat.TipoAsociadoId,'/', cat.CategoriaPersonalId) value,
@@ -1038,7 +1038,7 @@ export class PersonalController extends BaseController {
   }
 
   async addPersonal(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const CUIT: number = req.body.CUIT
     const SucursalId: number = req.body.SucursalId
     const Email = req.body.Email
@@ -1265,7 +1265,7 @@ export class PersonalController extends BaseController {
   }
 
   async getNacionalidadList(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getNacionalidadListQuery(queryRunner)
 
@@ -1833,7 +1833,7 @@ export class PersonalController extends BaseController {
   }
 
   async updatePersonal(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonalId: number = Number(req.params.id)
     const CUIT: number = req.body.CUIT
     const Foto = req.body.Foto
@@ -2041,7 +2041,7 @@ export class PersonalController extends BaseController {
   }
 
   async getFormDataById(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     const personalId = req.params.id
     try {
       let data = await this.getFormPersonByIdQuery(queryRunner, personalId)
@@ -2070,7 +2070,7 @@ export class PersonalController extends BaseController {
     const personalId = req.body.id
     const tipo = req.body.tipo
     let document: any
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();
@@ -2138,7 +2138,7 @@ export class PersonalController extends BaseController {
   }
 
   async getDomicilioByPersonalId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonalId: number = Number(req.params.id)
     try {
       let domicilios = await queryRunner.query(`
@@ -2171,7 +2171,7 @@ export class PersonalController extends BaseController {
     const personalId = Number(req.params.personalId);
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const listSitRevista = await queryRunner.query(
         `SELECT sitrev.PersonalSituacionRevistaId,
         TRIM(sit.SituacionRevistaDescripcion) Descripcion, TRIM(sitrev.PersonalSituacionRevistaMotivo) Motivo,
@@ -2252,7 +2252,7 @@ export class PersonalController extends BaseController {
   }
 
   async setSituacionRevista(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const personalId: number = Number(req.params.id);
     const SituacionRevistaId = req.body.SituacionId
     const desde = req.body.Desde
@@ -2286,7 +2286,7 @@ export class PersonalController extends BaseController {
 
   async getResponsablesListByPersonal(req: any, res: Response, next: NextFunction) {
     const personalId = Number(req.params.personalId);
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const responsables = await queryRunner.query(`
         SELECT ga.GrupoActividadId, ga.GrupoActividadNumero Numero, ga.GrupoActividadDetalle Detalle,
@@ -2309,7 +2309,7 @@ export class PersonalController extends BaseController {
 
   async getGrupoActividad(req: any, res: Response, next: NextFunction) {
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const options = await queryRunner.query(`
         SELECT ga.GrupoActividadId value, ga.GrupoActividadDetalle label
         FROM GrupoActividad ga
@@ -2365,7 +2365,7 @@ export class PersonalController extends BaseController {
   }
 
   async getDocumentosByPersonalId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const personalId: number = Number(req.params.personalId);
     // const fechaActual = new Date();
     try {
@@ -2511,7 +2511,7 @@ UNION ALL
   }
 
   async getExencionesDocsByPersonalId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const personalId: number = Number(req.params.personalId);
     // const fechaActual = new Date();
     try {
@@ -2541,7 +2541,7 @@ UNION ALL
   }
 
   async downloadPersonaDocumentoImagen(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const id = Number(req.params.id)
     const table = req.params.table
     const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
@@ -2584,7 +2584,7 @@ UNION ALL
   }
 
   async getTipoAsociado(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT tipo.TipoAsociadoId value, TRIM(tipo.TipoAsociadoDescripcion) label
@@ -2598,7 +2598,7 @@ UNION ALL
   }
 
   async getCategoriasByTipoAsociado(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const tipoAsociado: number = req.body.tipoAsociadoId
     try {
       const options = await queryRunner.query(`
@@ -2618,7 +2618,7 @@ UNION ALL
     const personalId = Number(req.params.personalId);
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const listSitRevista = await queryRunner.query(`
         SELECT percat.PersonalCategoriaId, percat.PersonalCategoriaTipoAsociadoId, TRIM(tipo.TipoAsociadoDescripcion) TipoAsociado,
         percat.PersonalCategoriaCategoriaPersonalId, TRIM(catper.CategoriaPersonalDescripcion) Categoria,
@@ -2690,7 +2690,7 @@ UNION ALL
   }
 
   async setCategoria(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonalId: number = Number(req.params.id);
     const TipoAsociadoId = req.body.TipoAsociadoId
     const Desde = req.body.Desde
@@ -2794,7 +2794,7 @@ UNION ALL
   }
 
   async setGrupoActividadPersonal(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonaId = res.locals.PersonalId
     const ip = this.getRemoteAddress(req)
     const PersonalId: number = Number(req.params.id);
@@ -2831,7 +2831,7 @@ UNION ALL
   }
 
   async getTipoParentesco(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT TipoParentescoId value, TipoParentescoDescripcion label
@@ -2845,7 +2845,7 @@ UNION ALL
   }
 
   async getBancos(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT BancoId value, BancoDescripcion label
@@ -2862,7 +2862,7 @@ UNION ALL
     const personalId = Number(req.params.personalId);
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const listSitRevista = await queryRunner.query(`
         SELECT perb.PersonalBancoId,
         TRIM(ban.BancoDescripcion) Descripcion, TRIM(perb.PersonalBancoCBU) CBU,
@@ -2895,7 +2895,7 @@ UNION ALL
   }
 
   async setPersonalBanco(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonalId: number = Number(req.params.id);
     const BancoId: number = req.body.BancoId
     const CBU = req.body.CBU
@@ -3021,7 +3021,7 @@ UNION ALL
   // }
 
   async getEstadoCivil(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT EstadoCivilId AS value, EstadoCivilDescripcion AS label
@@ -3034,7 +3034,7 @@ UNION ALL
   }
 
   async getTipoDocumento(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT TipoDocumentoId value, TipoDocumentoDescripcion label
@@ -3193,7 +3193,7 @@ UNION ALL
   }
 
   async unsubscribeCBUs(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonalId: number = Number(req.body.PersonalId);
     const yesterday: Date = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
@@ -3232,7 +3232,7 @@ UNION ALL
 
   // PersonalActas
   async getPersonalActa(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const personalId = Number(req.params.personalId);
 
     try {
@@ -3269,7 +3269,7 @@ UNION ALL
   }
 
   async getTipoPersonalActa(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT TipoPersonalActaCodigo value, TipoPersonalActaDescripcion label
@@ -3283,7 +3283,7 @@ UNION ALL
   }
 
   async addPersonalActa(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const personalId = Number(req.params.personalId);
     const ActaId: number = req.body.ActaId;
     const TipoActa: string = req.body.TipoActa;
@@ -3428,7 +3428,7 @@ UNION ALL
   }
 
   async getSitRevistaAsoByPersonalId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const personalId = Number(req.params.personalId);
     try {
       const options = await this.getSitRevistaAsoByPersonalIdQuery(queryRunner, personalId)
@@ -3465,8 +3465,9 @@ UNION ALL
   }
 
 
-  searchTipoAsociadoCategoria(req: any, res: Response, next: NextFunction) {
+  async searchTipoAsociadoCategoria(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
+    const queryRunner = await getConnection();
     let buscar = false;
     let query: string = `SELECT cat.TipoAsociadoId, cat.CategoriaPersonalId,
         CONCAT(TRIM(tip.TipoAsociadoDescripcion), ' - ', TRIM(cat.CategoriaPersonalDescripcion)) Label,
@@ -3506,7 +3507,7 @@ UNION ALL
       return;
     }
 
-    dataSource
+    queryRunner
       .query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
@@ -3517,7 +3518,7 @@ UNION ALL
   }
 
   async getExencionesByPersonalId(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const PersonalId: number = Number(req.params.id);
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -3614,7 +3615,7 @@ UNION ALL
   }
 
   async addExenciones(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     const DocumentoId: number | null = req.body.DocumentoId === 0 ? null : req.body.DocumentoId;
     const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
@@ -3694,7 +3695,7 @@ UNION ALL
   }
 
   async updateExenciones(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     const DocumentoId: number | null = req.body.DocumentoId === 0 ? null : req.body.DocumentoId;
     const PersonalId: number | null = req.body.PersonalId === 0 ? null : req.body.PersonalId;
@@ -3766,7 +3767,7 @@ UNION ALL
   }
 
   async getLugarFisicoLegajo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT LugarFisicoLegajoId value, TRIM(LugarFisicoLegajoDescripcion) label
@@ -3782,7 +3783,7 @@ UNION ALL
   async getDatosBotByPersonalId(req: any, res: Response, next: NextFunction) {
     const PersonalId = Number(req.params.personalId)
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const result = await queryRunner.query(
         `SELECT 
               per.PersonalId id,
@@ -3814,7 +3815,7 @@ UNION ALL
 
   async getUltimoNroReciboByPersonalId(req: any, res: Response, next: NextFunction) {
     const PersonalId = Number(req.params.personalId)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const now = new Date()
     let usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)

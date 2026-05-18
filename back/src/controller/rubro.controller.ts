@@ -1,11 +1,12 @@
 import { BaseController, ClientException } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { Response,NextFunction } from "express";
 
 export class RubroController extends BaseController {
   
-  search(req: any, res: Response, next:NextFunction) {
+  async search(req: any, res: Response, next:NextFunction) {
     const { fieldName, value } = req.body;
+    const queryRunner = await getConnection();
     let buscar = false;
     let query: string = `SELECT RubroClienteId, RubroClienteDescripcion FROM RubroCliente WHERE 1=1 AND `;
     switch (fieldName) {
@@ -35,8 +36,8 @@ export class RubroController extends BaseController {
     }
     */
 
-    dataSource
-      .query((query += " 1=1"))
+
+      queryRunner.query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
       })
@@ -46,7 +47,7 @@ export class RubroController extends BaseController {
   }
 
   async getRubroCliente(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT RubroClienteId value, TRIM(RubroClienteDescripcion) label

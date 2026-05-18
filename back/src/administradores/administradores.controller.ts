@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { QueryFailedError } from "typeorm";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
@@ -148,7 +148,7 @@ export class AdministradoresController extends BaseController {
 
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const fechaActual = new Date()
 
     try {
@@ -178,7 +178,7 @@ export class AdministradoresController extends BaseController {
 async listAdministradoresClientes(req: any, res: Response, next: NextFunction) {
   const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnasClientes);
   const orderBy = orderToSQL(req.body.options.sort)
-  const queryRunner = dataSource.createQueryRunner();
+  const queryRunner = await getConnection();
   const fechaActual = new Date()
 
   try {

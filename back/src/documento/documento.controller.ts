@@ -1,5 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import {
   filtrosToSql,
@@ -322,7 +322,7 @@ export class DocumentoController extends BaseController {
 
 
   async getdocgenralListQuery(filterSql: any, orderBy: any) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const result = await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
       docg.DocumentoId,
@@ -394,7 +394,7 @@ export class DocumentoController extends BaseController {
   }
 
   async getTipos(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getTiposDocumentoQuery(queryRunner)
 
@@ -413,7 +413,7 @@ export class DocumentoController extends BaseController {
     const fec_doc_ven: Date = req.body.DocumentoFechaDocumentoVencimiento ? new Date(req.body.DocumentoFechaDocumentoVencimiento) : null
     const ind_descarga_bot: boolean = req.body.DocumentoIndividuoDescargaBot
     const archivos: any[] = req.body.archivo
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const now = new Date()
@@ -440,7 +440,7 @@ export class DocumentoController extends BaseController {
   }
 
   private async getPersonalDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     return queryRunner.query(`
       SELECT CONCAT(des.DocumentoId,'-',ROW_NUMBER() OVER (PARTITION BY des.DocumentoId ORDER BY des.FechaDescarga)) AS id
           , des.DocumentoId
@@ -487,7 +487,7 @@ export class DocumentoController extends BaseController {
   }
 
   private async getPersonalNoDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     return queryRunner.query(`
         SELECT per.PersonalId AS id, tel.Telefono,
           per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -564,7 +564,7 @@ export class DocumentoController extends BaseController {
     const fecha: Date = req.body.Documentofecha ? new Date(req.body.Documentofecha) : req.body.Documentofecha
     const fec_doc_ven: Date = req.body.DocumentoFechaDocumentoVencimiento ? new Date(req.body.DocumentoFechaDocumentoVencimiento) : req.body.DocumentoFechaDocumentoVencimiento
     const ind_descarga_bot: boolean = req.body.DocumentoIndividuoDescargaBot
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
 
@@ -669,7 +669,7 @@ export class DocumentoController extends BaseController {
 
   async getDocumentoById(req: any, res: Response, next: NextFunction) {
     const doc_id: number = req.params.id;
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.startTransaction()
       const doc = await queryRunner.query(`

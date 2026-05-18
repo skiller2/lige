@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../../controller/base.controller.ts";
-import { dataSource } from "../../data-source.ts";
+import { getConnection } from "../../data-source.ts";
 import type { LiqBanco } from "../../schemas/ResponseJSON.ts";
 import type { Options } from "../../schemas/filtro.ts";
 import xlsx from 'node-xlsx';
@@ -385,7 +385,7 @@ export class LiquidacionesBancoController extends BaseController {
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
     stmactual.setHours(0, 0, 0, 0)
-const queryRunner = dataSource.createQueryRunner();
+const queryRunner = await getConnection();
     return queryRunner.query(
       `
 WITH Movimientos AS (
@@ -488,7 +488,7 @@ LEFT JOIN banco banc
     const filterSql = filtrosToSql(filtros, this.listaColumnas);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
-const queryRunner = dataSource.createQueryRunner();
+const queryRunner = await getConnection();
     return queryRunner.query(
       `SELECT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId ) as id,per.PersonalId, pre.PersonalPrestamoId as clave_id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
       pre.PersonalPrestamoMonto AS importe, pre.PersonalPrestamoAplicaEl,
@@ -518,7 +518,7 @@ const queryRunner = dataSource.createQueryRunner();
     const filterSql = filtrosToSql(filtros, this.listaColumnasMovimientos);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
-const queryRunner = dataSource.createQueryRunner();
+const queryRunner = await getConnection();
     return queryRunner.query(
       `
       SELECT CONCAT(liq.banco_id,'-',liq.envio_nro,'-',liq.persona_id,'-',liq.tipocuenta_id) id, liq.persona_id,liq.cbu,liq.importe,liq.banco_id,liq.envio_nro,liq.fecha,liq.tipocuenta_id,banc.bancodescripcion, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
@@ -620,7 +620,7 @@ const queryRunner = dataSource.createQueryRunner();
 
 
   async eliminaMovimientosBanco(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     const fechaActual = new Date()
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
@@ -648,7 +648,7 @@ const queryRunner = dataSource.createQueryRunner();
 
 
   async confirmaMovimientosBanco(req: Request, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection()
     const fechaActual = new Date()
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
@@ -767,7 +767,7 @@ const queryRunner = dataSource.createQueryRunner();
     if (!existsSync(directory)) {
       mkdirSync(directory, { recursive: true });
     }
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
       const periodo = getPeriodoFromRequest(req);
@@ -1023,7 +1023,7 @@ const queryRunner = dataSource.createQueryRunner();
     mes: string;
     options: Options;
   }) {
-const queryRunner = dataSource.createQueryRunner();
+const queryRunner = await getConnection();
     return queryRunner.query(`SELECT per.PersonalId as id,per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.importe
       FROM Personal per
       JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
@@ -1174,7 +1174,7 @@ const queryRunner = dataSource.createQueryRunner();
     const envio_nro = req.body.envio_nro
     const tipocuenta_id = req.body.tipocuenta_id
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
       if (persona_id == null)
@@ -1213,7 +1213,7 @@ const queryRunner = dataSource.createQueryRunner();
     const anio = fechaActual.getFullYear()
     const mes = fechaActual.getMonth() + 1
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     try {
       ({ EventoLogCodigo } = await this.eventoLogInicio(

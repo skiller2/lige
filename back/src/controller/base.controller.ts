@@ -1,7 +1,6 @@
 import type { Response } from "express";
 import { Client } from 'ldapts';
 import type { SearchOptions } from 'ldapts';
-import { DataSource } from "typeorm";
 import type { QueryRunner } from "typeorm";
 
 export class ClientException extends Error {
@@ -234,7 +233,7 @@ export class BaseController {
     return (stm) ? `${stm.getHours().toString().padStart(2, '0')}:${stm.getMinutes().toString().padStart(2, '0')}:${stm.getSeconds().toString().padStart(2, '0')}` : null
   }
 
-  async hasAuthObjetivo(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
+  async hasAuthObjetivo(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: QueryRunner) {
     let fechaHastaAuth = new Date(anio, mes, 1);
     fechaHastaAuth.setDate(fechaHastaAuth.getDate() - 1);
     let authSucursal = false
@@ -313,7 +312,7 @@ export class BaseController {
 
     return false
   }
-  async hasAuthCargaDirecta(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: DataSource | QueryRunner) {
+  async hasAuthCargaDirecta(anio: number, mes: number, res: any, ObjetivoId: number, queryRunner: QueryRunner) {
 
     const PersonalId = res.locals.PersonalId
 

@@ -1,5 +1,5 @@
 import { BaseController, ClientException, ClientWarning } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 
@@ -748,8 +748,10 @@ const listaColumnasProveedores: any[] = [
 
 export class EfectoController extends BaseController {
 
-  searchEfecto(req: any, res: Response, next: NextFunction) {
+  async searchEfecto(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
+    const queryRunner = await getConnection();
+
     let buscar = false;
     let query: string = `SELECT EfectoId,EfectoDescripcion  FROM EfectoDescripcion WHERE`;
     switch (fieldName) {
@@ -778,7 +780,7 @@ export class EfectoController extends BaseController {
       return;
     }
 
-    dataSource
+    queryRunner
       .query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
@@ -789,8 +791,10 @@ export class EfectoController extends BaseController {
   }
 
   // TODO: READAPTAR PARA QUE SE BUSQUE POR EFECTOID + EFECTOEFFECTOINDIVIDUALID (VER API Y FRONT TAMBIEN)
-  searchEfectoIndividual(req: any, res: Response, next: NextFunction) {
+  async searchEfectoIndividual(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
+    const queryRunner = await getConnection();
+
     let buscar = false;
     let query: string = `SELECT EfectoId,EfectoEfectoIndividualId, EfectoEfectoIndividualDescripcion  FROM EfectoIndividualDescripcion WHERE`;
     switch (fieldName) {
@@ -818,7 +822,7 @@ export class EfectoController extends BaseController {
       return;
     }
 
-    dataSource
+    queryRunner
       .query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
@@ -901,7 +905,7 @@ export class EfectoController extends BaseController {
   async getEfectoPersonal(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.id
     const listOptions = req.body.listOptions
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const list = await this.getEfectoQuery(queryRunner, listOptions);
       this.jsonRes(list, res);
@@ -913,7 +917,7 @@ export class EfectoController extends BaseController {
   // usada para detalle asistencia, apartado de efectos por personal
   async getEfectoByPersonalId(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.id
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const list = await this.efectobyPersonalIdQuery(queryRunner, personalId);
       this.jsonRes(list, res);
@@ -925,7 +929,7 @@ export class EfectoController extends BaseController {
   // usada para detalle asistencia, apartado de efectos por objetivo
   async getEfectoByObjetivoId(req: any, res: Response, next: NextFunction) {
     const objetivoId = req.params.id
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const list = await this.efectobyObjetivoIdQuery(queryRunner, objetivoId);
       this.jsonRes(list, res);
@@ -957,7 +961,7 @@ export class EfectoController extends BaseController {
   // usada para la grilla de efectos por objetivos
   async getEfectoObjetivos(req: any, res: Response, next: NextFunction) {
     const listOptions = req.body.listOptions
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const list = await this.getEfectoObjetivosQuery(queryRunner, listOptions);
       this.jsonRes(list, res);
@@ -1024,7 +1028,7 @@ export class EfectoController extends BaseController {
 
   async getEfectoDeposito(req: any, res: Response, next: NextFunction) {
     const listOptions = req.body.listOptions
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const list = await this.getEfectoDepositoQuery(queryRunner, listOptions);
       this.jsonRes(list, res);
@@ -1056,7 +1060,7 @@ export class EfectoController extends BaseController {
 
   async getEfectoProveedores(req: any, res: Response, next: NextFunction) {
     const listOptions = req.body.listOptions
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const list = await this.getEfectoProveedoresQuery(queryRunner, listOptions);
       this.jsonRes(list, res);
@@ -1067,7 +1071,7 @@ export class EfectoController extends BaseController {
 
   async getEfectoGeneral(req: any, res: Response, next: NextFunction) {
     const listOptions = req.body.listOptions
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const list = await this.getEfectoGeneralQuery(queryRunner, listOptions);
       this.jsonRes(list, res);

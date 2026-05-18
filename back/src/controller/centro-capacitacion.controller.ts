@@ -1,6 +1,6 @@
 import type { NextFunction, Response } from "express";
 import { BaseController, ClientException } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import type { QueryRunner } from "typeorm";
@@ -11,7 +11,7 @@ export class CentroCapacitacionController extends BaseController {
 
       async search(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const Curso = await queryRunner.query(`SELECT CentroCapacitacionId, CentroCapacitacionRazonSocial FROM CentroCapacitacion`)
             return this.jsonRes(Curso, res);
@@ -25,7 +25,7 @@ export class CentroCapacitacionController extends BaseController {
     
       async searchId(req: any, res: Response, next: NextFunction) {
         const { id } = req.params
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const Curso = await queryRunner.query(`SELECT CentroCapacitacionId, CentroCapacitacionRazonSocial FROM CentroCapacitacion WHERE CentroCapacitacionId = ${id}`)
             return this.jsonRes(Curso, res);
@@ -39,7 +39,7 @@ export class CentroCapacitacionController extends BaseController {
      
       async searchSede(req: any, res: Response, next: NextFunction) {
 
-        const queryRunner = dataSource.createQueryRunner();
+        const queryRunner = await getConnection();
         try {
             const Curso = await queryRunner.query(` SELECT CentroCapacitacionSedeId, CentroCapacitacionId,CentroCapacitacionSedeDescripcion FROM CentroCapacitacionSede`)
             return this.jsonRes(Curso, res);

@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
@@ -262,10 +262,10 @@ export class TelefoniaController extends BaseController {
   }
 
 
-  getTelefonos(fecha: Date, anio: number, mes: number, options: any) {
+  async getTelefonos(fecha: Date, anio: number, mes: number, options: any) {
     const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(options.sort)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     fecha.setHours(0, 0, 0, 0)
 
     return queryRunner.query(
@@ -381,7 +381,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
   ) {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const data = await queryRunner.query(`SELECT DocumentoPath, DocumentoNombreArchivo FROM Documento WHERE DocumentoId = @0`,
         [impoexpoId]
@@ -420,7 +420,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
   }
 
   async getImpuestoInterno(anio: number, mes: number) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const data = await queryRunner.query(`SELECT imp.ImpuestoInternoTelefoniaImpuesto FROM ImpuestoInternoTelefonia imp WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.ImpuestoInternoTelefoniaDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.ImpuestoInternoTelefoniaHasta ,'9999-12-31')`, [null, anio, mes])
     return data[0]?.ImpuestoInternoTelefoniaImpuesto || 0;
   }
@@ -433,7 +433,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     const totaldeclarado = Number(req.body.totaldeclarado)
     const file = req.body?.files?.[0] ?? req.body?.files;
     const fechaRequest: Date = new Date(req.body.fecha);
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
 
     const usuario = res.locals.userName
@@ -1016,7 +1016,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       let usuario = res.locals.userName
       let ip = this.getRemoteAddress(req)
       let fechaActual = new Date()
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       //const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Number(Anio), Number(Mes), usuario, ip)
 
 
@@ -1049,7 +1049,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
   }
 
   async getLugarTelefono(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getLugarTelefonoQuery(queryRunner)
 
@@ -1066,7 +1066,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
   }
 
   async getTipoTelefono(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await this.getTipoTelefonoQuery(queryRunner)
 
@@ -1084,7 +1084,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const fechaActual: Date = new Date()
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       await queryRunner.connect();
       await queryRunner.startTransaction();

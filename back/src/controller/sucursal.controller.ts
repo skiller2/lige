@@ -1,5 +1,5 @@
 import { BaseController } from "./base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Response } from "express";
 import type { Request } from "express";
 
@@ -7,7 +7,7 @@ export class SucursalController extends BaseController {
 
   async getAllSucursales(res: Response, req: Request, next:NextFunction) {
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
       const result = await queryRunner.query(
         'SELECT SucursalId, SucursalDescripcion, SucursalId as value, SucursalDescripcion as label FROM Sucursal '
       )

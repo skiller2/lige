@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { QueryFailedError } from "typeorm";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
@@ -172,7 +172,7 @@ export class AdelantosController extends BaseController {
   ) {
 
     try {
-      const queryRunner = dataSource.createQueryRunner();
+      const queryRunner = await getConnection();
 
       const grupos = await queryRunner.query(
         `SELECT DISTINCT ga.GrupoActividadId, ga.GrupoActividadJerarquicoComo, 1
@@ -204,7 +204,7 @@ export class AdelantosController extends BaseController {
   }
 
   async delAdelanto(personalId: number, anio: number, mes: number, monto: number, ip, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const now = new Date();
     const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 31, 23, 59, 0); // 23:59 del día 31
     try {
@@ -248,7 +248,7 @@ export class AdelantosController extends BaseController {
   async setAdelanto(anio: number, mes: number, personalId: number, monto: number, req: any, res: Response, next: NextFunction) {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     const FormaPrestamoId = 7 //Adelanto
     const now = new Date();
     const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 20, 12, 0, 0); // 12:00 del día 20
@@ -394,7 +394,7 @@ export class AdelantosController extends BaseController {
     const mesPrev = (mes - 1 == 0) ? 12 : mes - 1
     const anioPrev = (mes - 1 == 0) ? anio - 1 : anio
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
 
     const options: Options = isOptions(req.body.options)
       ? req.body.options

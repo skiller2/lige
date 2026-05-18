@@ -1,5 +1,5 @@
 import { BaseController, ClientException, ClientWarning } from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import type { NextFunction, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
@@ -382,7 +382,7 @@ export class EventoLogController extends BaseController {
     const filterSql = filtrosToSql(options.filtros, listaColumnas);
     const orderBy = orderToSQL(options.sort);
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       let list = await queryRunner.query(`
         SELECT
@@ -409,7 +409,7 @@ export class EventoLogController extends BaseController {
 
   async listtablasbloqueadas(req: any, res: Response, next: NextFunction) {
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       let list = await queryRunner.query(` SELECT 
         ROW_NUMBER() OVER(ORDER BY s.session_id) AS id,
@@ -462,7 +462,7 @@ export class EventoLogController extends BaseController {
   async getEventoLog(req: any, res: Response, next: NextFunction) {
     const logCodigo = req.params.logCodigo
 
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       let result = await queryRunner.query(` 
         SELECT 
@@ -481,7 +481,7 @@ export class EventoLogController extends BaseController {
   }
 
   async getEventoLogEstado(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT EventoLogEstadoCodigo value, Descripcion label
@@ -494,7 +494,7 @@ export class EventoLogController extends BaseController {
   }
 
   async getClases(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection();
     try {
       const options = await queryRunner.query(`
         SELECT EventoLogClaseCodigo AS value, Descripcion AS label
