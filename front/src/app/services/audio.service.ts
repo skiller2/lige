@@ -38,7 +38,6 @@ export class AudioService {
             await audio.play();    // ✅ modern async API
         } catch (e) {
             // Browser blocked autoplay → ignore silently or log
-            console.warn('Audio blocked until user interaction');
         }
     }
 

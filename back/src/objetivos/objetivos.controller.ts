@@ -1044,7 +1044,6 @@ export class ObjetivosController extends BaseController {
     }
 
     async validateDateAndCreateContrato(queryRunner: any, ContratoFechaDesde: Date, ContratoFechaDesdeOLD: Date, ContratoFechaHasta: Date, ContratoFechaHastaOLD: Date, FechaModificada: boolean, ClienteId: number, ClienteElementoDependienteId: number, ObjetivoId: number, ContratoId: number, ip: string, usuarioId: number, usuario: string) {
-        console.log("ContratoFechaDesde",ContratoFechaDesde, "ContratoFechaDesdeOLD", ContratoFechaDesdeOLD, "ContratoFechaHasta", ContratoFechaHasta, "ContratoFechaHastaOLD", ContratoFechaHastaOLD, "FechaModificada", FechaModificada)
         let createNewContrato = false
         ContratoFechaDesde = ContratoFechaDesde ? new Date(ContratoFechaDesde) : null
         ContratoFechaDesdeOLD = ContratoFechaDesdeOLD ? new Date(ContratoFechaDesdeOLD) : null
@@ -1322,7 +1321,6 @@ export class ObjetivosController extends BaseController {
                 await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuarioId, usuario)
             }
 
-            console.log('obj', Obj)
             await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId, usuario)
             //update
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
@@ -1917,7 +1915,6 @@ export class ObjetivosController extends BaseController {
             let infoMaxObjetivo = await queryRunner.query(`SELECT IDENT_CURRENT('Objetivo')`)
             const ObjetivoId = infoMaxObjetivo[0]['']
 
-            console.log('obj', Obj)
 
             await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId, usuario)
 

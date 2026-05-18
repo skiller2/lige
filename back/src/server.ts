@@ -7,13 +7,11 @@ import { randomBytes } from "node:crypto";
 import { createServer } from "http";
 import { ClientException, ClientWarning } from "./controller/base.controller.ts";
 
-import dotenv from "dotenv"
+import { logger } from "./logger/logger.ts";
 
 
 const { version, author, name, description } = versionMetadata;
 
-
-dotenv.config()
 export const tmpName = (dir: string) => {
   while (true) {
     const name = randomBytes(8).toString("hex") + ".tmp";
@@ -43,7 +41,7 @@ export class DBServer {
             });
           })
           .catch((error) => {
-            console.error(
+            logger.error(
               `${error.message}, retry ${this.retriesCount} in ${this.timeOutDelay} ms.`
             );
             this.retriesCount++;
@@ -64,7 +62,7 @@ const errorResponder = (
   let status = 500
 
   if (process.env.DEBUG) {
-    console.error(error);
+    logger.error(error.message, { stack: error.stack, cause: error.cause });
   }
 
   if (error instanceof ClientWarning) { 
@@ -73,7 +71,7 @@ const errorResponder = (
     data = error.extended
 
     if (process.env.DEBUG) {
-      console.warn('Client Warning:', error); 
+      logger.warn('Client Warning:', error); 
     }
 
   } else if (error instanceof ClientException) {
@@ -138,14 +136,6 @@ export class WebServer {
   }
 
   public lateInit() {
-    /*
-        this.app.use("*",function (req:Request, res:Response, next:NextFunction) {
-          console.log('pasa por aca')
-          res.locals.stopTime = performance.now()
-          res.json({ hola: 'hola' })
-          res.end()
-        });
-    */
     this.app.use(errorResponder)
     this.app.set("pkg", { version, author, name, description });
 

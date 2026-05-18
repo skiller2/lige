@@ -24,7 +24,8 @@ export class FormComponent {
   fileChange($event: Event) {
     this.fileChangeEvent.emit($event)
     const file = ($event.target as HTMLInputElement).files?.item(0)
-    if (file && file.type.startsWith("image/")) this.fileService.updateFile(file); else console.log("Error: File is not an image.")
+    if (file && file.type.startsWith("image/")) 
+      this.fileService.updateFile(file) 
 
   }
 }

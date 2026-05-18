@@ -64,7 +64,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   onRemove() {
-    //  console.log('onRemove')
+     
   }
 
   registerOnTouched(fn: any) {
@@ -167,7 +167,7 @@ export class GrupoActividadSearchComponent implements ControlValueAccessor {
   }
 
   focus() {
-    console.log('focus')
+     
 
   }
 

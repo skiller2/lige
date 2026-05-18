@@ -77,7 +77,6 @@ function buildAuthRefresh(injector: Injector) {
     .pipe(
       filter(() => !refreshToking),
       switchMap(res => {
-        console.log(res);
         refreshToking = true;
         return refreshTokenRequest(injector);
       })

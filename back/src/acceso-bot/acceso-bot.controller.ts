@@ -10,6 +10,7 @@ import path from "path";
 import qrCode from 'qrcode-reader';
 import fs from "node:fs";
 import { Jimp } from "jimp"
+import { logger } from "../logger/logger.ts";
 
 
 
@@ -361,7 +362,7 @@ export class AccesoBotController extends BaseController {
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-        console.log('validateRecibo', cuit, recibo)
+
         try {
 
             let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
@@ -421,7 +422,6 @@ export class AccesoBotController extends BaseController {
 
                 const lastRegisteredCbuLastSix = String(lastCBU[0]?.PersonalBancoCBU ?? '').slice(-6)
 
-                console.log('activeCbuLastSix', activeCbuLastSix, 'lastRegisteredCbuLastSix', lastRegisteredCbuLastSix)
                 if (!lastRegisteredCbuLastSix || lastRegisteredCbuLastSix !== cbu)
                     throw new ClientException(`El número proporcionado es incorrecto para el CUIT ${cuit}`);
             }
@@ -604,7 +604,6 @@ export class AccesoBotController extends BaseController {
 
                 const readQRCode = async (fileName) => {
                     const filePath = normalizedPath
-                    console.log("filePath ", filePath)
                     try {
                         if (fs.existsSync(filePath)) {
                             const img = await Jimp.read(fs.readFileSync(filePath));
@@ -620,13 +619,13 @@ export class AccesoBotController extends BaseController {
                     }
                 }
 
-                readQRCode(normalizedPath).then(console.log).catch(console.log)
+                readQRCode(normalizedPath)
             } catch (error) {
                 if (error instanceof NotFoundException) {
-                    console.error(`No se encontró un código QR en la imagen ${file.filename}.`);
+                    logger.error(`No se encontró un código QR en la imagen ${file.filename}.`);
                     results.push({ error: "No se encontró un código QR en la imagen." });
                 } else {
-                    console.error(`Error en la imagen ${file.filename}:`, error.message);
+                    logger.error(`Error en la imagen ${file.filename}:`, error.message);
                     results.push({ error: error.message });
                 }
             }

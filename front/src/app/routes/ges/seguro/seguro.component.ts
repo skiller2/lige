@@ -52,7 +52,6 @@ export class SeguroComponent {
     try {
       const res = await firstValueFrom(this.apiService.processInsurance(this.selectedPeriod.year, this.selectedPeriod.month))
     } catch (error) {
-      console.error('Error al procesar seguro', error)
     }finally{
       this.loadingSrv.close()
     }

@@ -149,7 +149,7 @@ export class ActasComponent {
                 this.angularGrid.slickGrid.setSelectedRows([])
                 this.rowLocked.set(false)
             } catch (e: any) {
-                console.log('Error :', e);
+                 
 
                 if (row.ActaId) {
                     const item = this.angularGrid.dataView.getItemById(row.id)

@@ -8,11 +8,12 @@ import * as path from 'path';
 import { promisify } from 'util';
 import { PNG } from 'pngjs';
 import { randomBytes } from "crypto";
-import { getDocument, OPS,  } from "pdfjs-dist/legacy/build/pdf.mjs";
+import { getDocument, OPS, } from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { TextItem } from "pdfjs-dist/types/src/display/api.d.ts";
 import type { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
 import { unlink } from "fs/promises";
+import { logger } from "../logger/logger.ts";
 
 
 
@@ -49,7 +50,6 @@ export class FileUploadController extends BaseController {
       const finalHash = hash.finalize().toString(CryptoJS.enc.Hex);
       return finalHash;
     } catch (error) {
-      console.error('Error reading or hashing the file:', error);
       throw error;
     }
   }
@@ -163,7 +163,7 @@ export class FileUploadController extends BaseController {
       if (!existsSync(finalurl))
         throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
       if (tableForSearch == 'DocumentoImagenFoto' && finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'image') {
-        console.log('lo convierto');
+
         finalurl = await this.pdf2img(finalurl)
         deleteFile = true
         docname = docname.replace('.pdf', '.png')
@@ -178,11 +178,10 @@ export class FileUploadController extends BaseController {
 
       res.download(finalurl, docname, async (error) => {
         if (error) {
-          console.error('Error al descargar el archivo:', error);
           return next(error)
         }
         if (deleteFile) {
-          try {  await unlink(finalurl) }catch(error){}
+          try { await unlink(finalurl) } catch (error) { }
         }
       });
     } catch (error) {
@@ -486,23 +485,15 @@ export class FileUploadController extends BaseController {
           if (type == 'vnd.ms-excel') type = 'xls'
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-          //console.log("newFilePath", newFilePath)
-          //console.log("file.tempfilename", file.tempfilename)
+
           try {
             this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           } catch (error) {
-            console.log("error", error)
             throw new ClientException(`Error al copiar el archivo "${file.tempfilename}"`);
           }
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
-          console.log("doc_id", doc_id)
-          console.log("doctipo_id", doctipo_id)
-          console.log("den_documento", den_documento)
-          console.log("type", type)
-
-          console.log("file", file)
 
           await queryRunner.query(`INSERT INTO Documento (
           DocumentoId,
@@ -553,7 +544,6 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-          console.log("file update", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
             const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
@@ -570,13 +560,12 @@ export class FileUploadController extends BaseController {
             try {
               // Borra el archivo si existe
               if (existsSync(filePath)) {
-                try {  await unlink(filePath) }catch(error){}
+                try { await unlink(filePath) } catch (error) { }
               }
               // 
               this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
             } catch (error) {
-              console.log("error", error)
               throw new ClientException(`Error al copiar el archivo "${file.tempfilename}"`);
             }
 
@@ -596,7 +585,6 @@ export class FileUploadController extends BaseController {
 
 
           } else {
-            console.log("no hay archivo para actualizar")
             await queryRunner.query(`
             UPDATE Documento
             SET DocumentoFecha = @2, DocumentoAnio= @17, DocumentoMes = @16, 
@@ -652,14 +640,11 @@ export class FileUploadController extends BaseController {
 
           // Warning: UnknownErrorException: Ensure that the `standardFontDataUrl` API parameter is provided.
           if (type == 'pdf') {
-            console.log("leo", file.tempfilename)
 
             detalle_documento = await FileUploadController.FileData(file.tempfilename)
           }
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-          console.log("newFilePath", newFilePath)
-          console.log("file.tempfilename", file.tempfilename)
           this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
@@ -683,7 +668,6 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-          console.log("file update", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
 
@@ -694,7 +678,7 @@ export class FileUploadController extends BaseController {
 
             // Borra el archivo si existe
             if (existsSync(filePath)) {
-              try {  await unlink(filePath) }catch(error){}
+              try { await unlink(filePath) } catch (error) { }
             }
 
             // Copia el nuevo archivo
@@ -805,23 +789,14 @@ export class FileUploadController extends BaseController {
           if (type == 'vnd.ms-excel') type = 'xls'
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-          //console.log("newFilePath", newFilePath)
-          //console.log("file.tempfilename", file.tempfilename)
           try {
             this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           } catch (error) {
-            console.log("error", error)
             throw new ClientException(`Error al copiar el archivo "${file.tempfilename}"`);
           }
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
-          console.log("doc_id", doc_id)
-          console.log("doctipo_id", doctipo_id)
-          console.log("den_documento", den_documento)
-          console.log("type", type)
-
-          console.log("file", file)
 
           await queryRunner.query(`INSERT INTO Documento (
           DocumentoId,
@@ -882,7 +857,6 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-          console.log("file update", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
             const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
@@ -899,14 +873,13 @@ export class FileUploadController extends BaseController {
             try {
               // Borra el archivo si existe
               if (existsSync(filePath)) {
-                try {  await unlink(filePath) }catch(error){}
+                try { await unlink(filePath) } catch (error) { }
               }
               // 
               this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
             } catch (error) {
-              console.log("error", error)
-              throw new ClientException(`Error al copiar el archivo "${file.tempfilename}"`);
+              throw new ClientException(`Error al copiar el archivo "${file.tempfilename}"`, error);
             }
 
             const NewNamefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
@@ -927,7 +900,6 @@ export class FileUploadController extends BaseController {
 
 
           } else {
-            console.log("no hay archivo para actualizar")
             await queryRunner.query(`
             UPDATE Documento
             SET DocumentoFecha = @2, DocumentoAnio= @17, DocumentoMes = @16, 
@@ -958,14 +930,13 @@ export class FileUploadController extends BaseController {
 
           // Warning: UnknownErrorException: Ensure that the `standardFontDataUrl` API parameter is provided.
           if (type == 'pdf') {
-            console.log("leo", file.tempfilename)
+
 
             detalle_documento = await FileUploadController.FileData(file.tempfilename)
           }
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-          console.log("newFilePath", newFilePath)
-          console.log("file.tempfilename", file.tempfilename)
+
           this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
@@ -993,7 +964,6 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-          console.log("file update", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
 
@@ -1004,7 +974,7 @@ export class FileUploadController extends BaseController {
 
             // Borra el archivo si existe
             if (existsSync(filePath)) {
-              try {  await unlink(filePath) }catch(error){}
+              try { await unlink(filePath) } catch (error) { }
             }
 
             // Copia el nuevo archivo
@@ -1053,7 +1023,6 @@ export class FileUploadController extends BaseController {
     try {
       copyFileSync(originalFilePath, newFilePath);
     } catch (error) {
-      console.error('Error moviendo el archivo:', error);
       throw error;
     }
 
@@ -1099,8 +1068,8 @@ export class FileUploadController extends BaseController {
         const fechaCreacion = stats.birthtime.getTime();
 
         if (fechaCreacion < limiteFecha) {
-          try {  await unlink(filePath) }catch(error){}
-          // console.log(`Archivo ${file} borrado.`);
+          try { await unlink(filePath) } catch (error) { }
+
         }
       });
 
@@ -1119,9 +1088,6 @@ export class FileUploadController extends BaseController {
 
     let document: any
     let finalurl: any
-
-    // console.log('deleteId', deleteId, 'req.query', req.query)
-    // console.log('tableForSearch', tableForSearch)
 
     if (!deleteId || !tableForSearch) throw new ClientException(`No se ha proporcionado un id o tabla para eliminar el archivo.`);
 
@@ -1152,11 +1118,12 @@ export class FileUploadController extends BaseController {
 
           if (document.length === 0 && !finalurl) throw new ClientException(`No se ha encontrado el archivo para eliminar.`)
 
-          if (!existsSync(finalurl)) {
-            console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
-          } else {
-            try {  await unlink(finalurl) }catch(error){}
+          try { await unlink(finalurl) } catch (error) {
+            logger.error(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
           }
+
+
+
 
           await queryRunner.query(`DELETE FROM DocumentoRelaciones WHERE DocumentoId = @0`, [deleteId])
           await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [deleteId])
@@ -1172,10 +1139,8 @@ export class FileUploadController extends BaseController {
 
           if (document.length === 0 && !finalurl) throw new ClientException(`No se ha encontrado el archivo para eliminar.`)
 
-          if (!existsSync(finalurl)) {
-            console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
-          } else {
-            try {  await unlink(finalurl) }catch(error){}
+          try {await unlink(finalurl) } catch (error) { 
+            logger.error(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
           }
 
           await queryRunner.query(`DELETE FROM lige.dbo.docgeneral WHERE doc_id = @0`, [deleteId])
@@ -1195,10 +1160,8 @@ export class FileUploadController extends BaseController {
           const DocumentoImagenParametroId = document[0]["DocumentoImagenParametroId"]
 
           if (document.length > 0) {
-            if (!existsSync(finalurl)) {
-              console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
-            } else {
-              try {  await unlink(finalurl) }catch(error){}
+            try { await unlink(finalurl) } catch (error) {
+              logger.error(`Error al eliminar el archivo ${document[0]["name"]}`, { path: finalurl })
             }
 
             await queryRunner.query(`
@@ -1282,11 +1245,8 @@ export class FileUploadController extends BaseController {
           const DocumentoImagenParametroId = document[0]["DocumentoImagenParametroId"]
 
           if (document.length > 0) {
-            if (!existsSync(finalurl)) {
-              console.log(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
-            } else {
-              try {  await unlink(finalurl) }catch(error){}
-            }
+            try { await unlink(finalurl) } catch (error) { }
+
             await queryRunner.query(`
               DELETE FROM ${tableForSearch}
               WHERE ${tableForSearch}Id = @0 AND PersonalId = @1
@@ -1366,10 +1326,6 @@ export class FileUploadController extends BaseController {
     const pdfPage = await pdfDoc.getPage(1);
     const operatorList = await pdfPage.getOperatorList();
 
-    //    console.log('operatorList',operatorList)
-
-    //    operatorList.fnArray.
-
 
     const imgIndexArr = operatorList.fnArray.reduce((acc: number[], curr: any, index: number) => {
       if (curr === OPS.paintImageXObject) {
@@ -1430,7 +1386,7 @@ export class FileUploadController extends BaseController {
     //    viewport.height=viewport.height*2
 
 
-    //console.log('viewport',viewport)
+
 
     const canvasAndContext = canvasFactory.create(
       viewport.width,
@@ -1448,7 +1404,6 @@ export class FileUploadController extends BaseController {
 
     await renderTask.promise;
 
-    //  console.log('canvasAndContext',canvasAndContext)
     let imageBuffer = await canvasAndContext.canvas.encode("png");
 
 
@@ -1457,11 +1412,6 @@ export class FileUploadController extends BaseController {
     const image = canvasAndContext.canvas.toBuffer("image/png");
     fs.writeFileSync('C:/temp/test1.png', imageBuffer);
     fs.writeFileSync('C:/temp/test.png', imageBuffer);
-
-    console.log('grabe')
-
-
-
 
     /*
         const operatorList = await pdfPage.getOperatorList();
@@ -1516,14 +1466,9 @@ export class FileUploadController extends BaseController {
   static async deletePhysicalFile(filePath: string): Promise<void> {
     try {
       const fullPath = `${process.env.PATH_DOCUMENTS}/${filePath}`;
-
-      if (existsSync(fullPath)) {
-        try {  await unlink(fullPath) }catch(error){}
-      } else {
-        console.log(`Archivo no encontrado para eliminar: ${fullPath}`);
-      }
+      await unlink(fullPath)
     } catch (error) {
-      console.error(error);
+      logger.error(error);
     }
   }
 

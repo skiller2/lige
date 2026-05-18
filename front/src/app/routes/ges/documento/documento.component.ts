@@ -133,7 +133,7 @@ export class DocumentoComponent {
         maxWidth: 30,
         // use onCellClick OR grid.onClick.subscribe which you can see down below
         // onCellClick: (e: Event, args: OnEventArgs) => {
-        //   console.log(args);
+         
         //   if (confirm('Are you sure?')) {
         //     this.angularGrid.gridService.deleteItemById(args.dataContext.id);
         //   }
@@ -240,8 +240,6 @@ export class DocumentoComponent {
         this.formChange$.next('');
       }
     } catch (error) {
-      // Aquí puedes mostrar un mensaje de error con tu toast/snackbar
-      console.error('Error borrando documento', error);
     } finally {
       this.loadingDelete.set(false);
     }

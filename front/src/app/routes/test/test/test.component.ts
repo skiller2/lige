@@ -54,35 +54,35 @@ export class TestComponent {
 
    periodo1 = { year: 2024, month: 3 }
   onChange(evt: any) {
-    console.log('onChange', evt)
+     
   }
   //form = viewChild.required(NgForm);
   personaf = viewChild.required(NgForm);
 
 
   onClick(evt: any) {
-    console.log('onChange', evt)
+     
     this.personalId = 699
   }
 
   onModelChange(evt: any) {
-    console.log('onModelChangePersona', evt, this.valueExtended)
+     
   }
 
   onClickObjetivo(evt: any) {
-    console.log('onChange', evt)
+     
     this.objetivoId = 780
   }
 
   onModelChangeObjetivo(evt: any) {
-    console.log('onModelChangeObjetivo', evt, this.valueExtendedObjetivo)
+     
   }
 
 
   ngOnInit(): void {
     this.responsable.set(699)
-    //console.log('I18NService.getDateFormat()',this.i18n.getDateFormat())
-    //console.log('I18NService.getDateFormat()',this.i18n)
+     
+     
 
     const autocomplete = new GeocoderAutocomplete(
       this.el.nativeElement ,
@@ -129,7 +129,7 @@ export class TestComponent {
 
 
   clickTest(): void {
-//    console.log('curr this.confirmation', this.confirmation)
+ 
   }
 
 

@@ -222,14 +222,10 @@
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
-          <div class="h2 mt0">{{ clientesActivos.data.clientesActivosTotal }}</div>
+          <div class="h2 mt0">{{ clientesActivos.data.clientesActivos }}</div>
           <a class="link-reset" [routerLink]="['/ges/clientes/listado']">
             <p class="text-nowrap mb0">Clientes Activos</p>
           </a>
-        </div>
-        <div nz-col nzSpan="12">
-          <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
-            [data]="clientesActivos.data.clientesActivos" yTooltipSuffix="" (ready)="fixDark($event)"></g2-mini-bar>
         </div>
       </div>
     </div>
@@ -330,7 +326,7 @@
     </nz-card>
   </div>
   }
-  @if (clientesActivos$ | async; as clientesActivos) {
+  <!-- @if (clientesActivos$ | async; as clientesActivos) {
   <div nz-col nzXs="24" nzMd="12">
     <nz-card [nzBordered]="false" [nzTitle]="clientesTitle">
       <ng-template #clientesTitle>
@@ -340,5 +336,5 @@
       <g2-bar height="275" [data]="clientesActivos.data.clientesActivos"></g2-bar>
     </nz-card>
   </div>
-  }
+  } -->
 </div>

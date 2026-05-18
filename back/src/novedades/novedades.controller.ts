@@ -463,8 +463,6 @@ export class NovedadesController extends BaseController {
             let ObjObjetivoNew = {}
             const AudFechaMod = new Date()
 
-            // console.log("res.local.PersonalId", res.locals.PersonalId)
-            // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
             const usuarioId = res.locals.PersonalId
 
             //throw new ClientException(`test.`)
@@ -721,8 +719,6 @@ export class NovedadesController extends BaseController {
     async deleteNovedad(req: any, res: Response, next: NextFunction) {
 
         const queryRunner = dataSource.createQueryRunner()
-        // console.log("req.params", req.params)
-        //throw new ClientException(`test`)
         try {
             const NovedadId = req.params.id
             await queryRunner.startTransaction()
@@ -828,7 +824,6 @@ export class NovedadesController extends BaseController {
             this.jsonRes([], res, `Se guardo el nuevo formato de novedad`);
 
         } catch (error) {
-            console.log('capturo', error)
             return next(error)
         }
     }
@@ -1036,7 +1031,6 @@ export class NovedadesController extends BaseController {
     async dowloadPdfBrowser(res: Response, next: NextFunction, filesPath: any, nameFile: any) {
         res.download(filesPath, nameFile, async (err) => {
             if (err) {
-                console.error(`Error al descargar el PDF: ${filesPath}`, err);
                 return next(err);
             } else {
                 await unlink(filesPath)

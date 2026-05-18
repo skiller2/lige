@@ -23,7 +23,7 @@ export class CredencialListaComponent {
   ) {}
   ngOnInit(): void {
     const credList = JSON.parse(String(localStorage.getItem('credList')))
-    console.log('credList',credList)
+     
     if (credList)
       this.credentials.set(credList)
   }

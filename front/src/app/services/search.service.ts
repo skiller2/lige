@@ -107,7 +107,7 @@ export class SearchService {
       .pipe(
         map(res => res.data.objetivos),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -122,7 +122,7 @@ export class SearchService {
       .pipe(
         map(res => res.data),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -137,7 +137,7 @@ export class SearchService {
       .pipe(
         map(res => res.data),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -152,7 +152,7 @@ export class SearchService {
       .pipe(
         map(res => res.data),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -173,7 +173,7 @@ export class SearchService {
           else return [];
         }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -194,7 +194,7 @@ export class SearchService {
           else return [];
         }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -232,7 +232,7 @@ export class SearchService {
           else return [];
         }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -245,7 +245,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/aplicaa/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -257,7 +257,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/estudio/search`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -269,7 +269,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/estudio/searchId/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -282,7 +282,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/curso/search`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -294,7 +294,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/curso/searchId/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -307,7 +307,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/seguros/searchCompaniaSeguro`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -319,7 +319,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/seguros/searchCompaniaSeguroId/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -333,7 +333,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/seguros/searchTipoSeguro`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -345,7 +345,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/seguros/searchTipoSeguroId/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -359,7 +359,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/curso/searchModalidadCurso`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -371,7 +371,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/curso/searchModalidadCursoId/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -397,7 +397,7 @@ export class SearchService {
           else return [];
         }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -422,7 +422,7 @@ export class SearchService {
           else return [];
         }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -448,7 +448,7 @@ export class SearchService {
           else return [];
         }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -474,7 +474,7 @@ export class SearchService {
           else return [];
         }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -490,9 +490,9 @@ export class SearchService {
       apiKey: 'f5cdd3892a38432fbcd0edc786268446',
       limit: '5'
     });
-    console.log('getDireccion', direccion)
+     
     return new Observable<any[]>(observer => {
-      console.log('fetch', 'https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
+       
       fetch('https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
         .then(res => res.json())
         .then(data => {
@@ -500,7 +500,6 @@ export class SearchService {
           observer.complete();
         })
         .catch(error => {
-          console.error('Error fetching geocoding data:', error);
           observer.next([]);
           observer.complete();
         });
@@ -523,7 +522,7 @@ export class SearchService {
           else return [];
         }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -544,7 +543,7 @@ export class SearchService {
           else return [];
         }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -554,7 +553,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/sucursales`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -564,7 +563,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/depositos`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -574,7 +573,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/sucursales`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -584,7 +583,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/descripcion-productos`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -594,7 +593,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/carga-licencia/sepaga_getOptions`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -604,7 +603,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/grupo-actividad/inactivo_getOptions`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -614,7 +613,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/grupo-actividad/inactivoboolean_getOptions`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -624,7 +623,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/clientes/get_options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -634,7 +633,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/impuestos_afip/get_options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -644,7 +643,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/grupo-actividad/tipo_getOptions`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -654,7 +653,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/facturacion/comprobanteTipo_getOptions`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -664,7 +663,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/parametros-venta/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -674,7 +673,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/asistencia/categorias`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -684,7 +683,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/parametros-venta/tipoCantidad_getOptions`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -694,7 +693,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/parametros-venta/tipoImporte_getOptions`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -703,7 +702,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/evento-log/estado/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -734,7 +733,7 @@ export class SearchService {
           return res.data
         }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of(dummy);
         })
       );
@@ -754,7 +753,7 @@ export class SearchService {
       .pipe(
         map(res => res.data),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -774,7 +773,7 @@ export class SearchService {
       .pipe(
         map(res => res.data),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -794,7 +793,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -814,7 +813,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -835,7 +834,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -859,7 +858,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -879,7 +878,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -900,7 +899,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -920,7 +919,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -940,7 +939,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -962,7 +961,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -982,7 +981,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -1002,7 +1001,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -1020,7 +1019,7 @@ export class SearchService {
       .pipe(
         map((res: ResponseJSON<any>) => res),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -1041,7 +1040,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -1051,7 +1050,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/asistencia/metodologia`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1079,7 +1078,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/exenciones/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1090,7 +1089,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1101,7 +1100,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1112,7 +1111,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/telefonos/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1123,7 +1122,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/contactooperativo/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1134,7 +1133,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/domicilio/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1145,7 +1144,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/objetivos/coberturaservicio/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1157,7 +1156,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/banco/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1177,7 +1176,7 @@ export class SearchService {
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -1253,7 +1252,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/productos/${codigoHistory}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1272,7 +1271,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/productos/options`).pipe(
       map(res => res.data.list),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1441,7 +1440,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/custodia/estados`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1451,7 +1450,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/ayuda-asistencial/estados`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1461,7 +1460,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/excepciones-asistencia/estados`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1471,7 +1470,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getCondicion`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1481,7 +1480,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/objetivos/getDescuento`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1491,7 +1490,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getProvincia`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1501,7 +1500,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/novedades/tipo_novedad`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1511,7 +1510,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getTipoTelefono`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1521,7 +1520,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getLocalidad`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1531,7 +1530,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getBarrio`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1541,7 +1540,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getTipoContacto`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1551,7 +1550,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/clientes/getJurImpositiva`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1566,7 +1565,7 @@ export class SearchService {
         return (res && res.data) ? res.data[0] : null
       }),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1581,7 +1580,7 @@ export class SearchService {
         return res.data
       }),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1596,7 +1595,7 @@ export class SearchService {
         return res.data;
       }),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1617,7 +1616,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/ayuda-asistencial/tipos`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1654,7 +1653,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/sitrevista/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1664,7 +1663,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/categoria-personal/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1682,7 +1681,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/nacionalidad/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1692,7 +1691,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/info/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1702,7 +1701,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/domicilio/paises`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1715,7 +1714,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/domicilio/provincias`, { paisId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1728,7 +1727,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/domicilio/localidades`, { paisId, provinciaId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1741,7 +1740,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/domicilio/barrios`, { paisId, provinciaId, localidadId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1752,7 +1751,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/domicilio/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1762,7 +1761,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/telefonia/lugar/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1772,7 +1771,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/telefonia/tipo/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1782,7 +1781,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/estudio/estado/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1792,7 +1791,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/estudio/tipo/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1803,7 +1802,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/historial/sitrevista/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1813,7 +1812,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/sitrevista/no-options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1823,7 +1822,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/grupoactividad/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1834,7 +1833,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/documentos/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1845,7 +1844,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<PersonaObj>>(`api/personal/exenciones-docs/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1856,7 +1855,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/historial/categoria/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1869,7 +1868,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/personal/categorias`, { tipoAsociadoId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1879,7 +1878,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/tipo-asociado/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1889,7 +1888,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/valor-hora/categorias-personal`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1899,7 +1898,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/tipo-parentesco/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1909,7 +1908,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/bancos/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1920,7 +1919,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/historial/banco/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1930,7 +1929,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/habilitaciones/lugar/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1940,7 +1939,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/habilitaciones/clase/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1951,7 +1950,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/habilitaciones/lugar/options/personal/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1962,7 +1961,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/habilitaciones/categoria/options/${LugarHabilitacionId}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -1972,7 +1971,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/documento/tipos/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2002,7 +2001,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/tipo/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2012,7 +2011,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/aplicaa/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2026,7 +2025,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/centro-capacitacion/search`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2038,7 +2037,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/centro-capacitacion/search/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2055,7 +2054,7 @@ export class SearchService {
         return res.data;
       }),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2067,7 +2066,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/documento/get/${docId}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2078,7 +2077,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/datos-bot/${personalId}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of({ id: personalId, TelefonoBot: '', ultimoReciboPeriodo: '' });
       })
     );
@@ -2089,7 +2088,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/datos-bot/nro-recibo/${personalId}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of(null);
       })
     );
@@ -2100,7 +2099,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`/api/gestion-descuentos/personal`, { PersonalId, anio, mes }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2110,7 +2109,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/estado-civil/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2120,7 +2119,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/tipo-documento/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2133,7 +2132,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/persona`, { PersonalId, DescuentoId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2146,7 +2145,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/gestion-descuentos/objetivo`, { ObjetivoId, DescuentoId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2156,7 +2155,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/tables`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2169,7 +2168,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/historial/acta/${id}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2179,7 +2178,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/acta/tipo-acta-options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2189,7 +2188,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/actas/nro-acta-options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2200,7 +2199,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/sitrevistaaso/options/${PersonalId}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2213,7 +2212,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/evento-log/${logCod}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2248,7 +2247,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoPersonal`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2263,7 +2262,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoObjetivos`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2278,7 +2277,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoDeposito`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2293,7 +2292,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoProveedores`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2308,7 +2307,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoGeneral`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2333,7 +2332,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/efecto/personal/${personalId}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2348,7 +2347,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/efecto/objetivo/${objetivoId}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2358,7 +2357,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/habilitaciones/list`, { options }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2368,7 +2367,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/habilitaciones/listado`, { options }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2381,7 +2380,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/habilitaciones/detalle-list`, { PersonalId, PersonalHabilitacionId, LugarHabilitacionId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2394,7 +2393,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/habilitaciones/doc-list`, { PersonalId, PersonalHabilitacionId, LugarHabilitacionId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2404,7 +2403,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/habilitaciones/estados/options`).pipe(
       map(res => res.data.list),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2414,7 +2413,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/habilitaciones/personal`, { personalHabilitacionId, personalId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2424,7 +2423,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/habilitaciones/gestion`, { codigo, personalId, lugarHabilitacionId, personalHabilitacionId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2437,7 +2436,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/habilitaciones/necesarias/${personalId}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2447,7 +2446,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/rubro/rublo-cliente/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2464,7 +2463,7 @@ export class SearchService {
         else return [];
       }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -2480,7 +2479,7 @@ export class SearchService {
         else return [];
       }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -2496,7 +2495,7 @@ export class SearchService {
         else return [];
       }),
         catchError((err, caught) => {
-          console.log('Something went wrong!');
+           
           return of([]);
         })
       );
@@ -2506,7 +2505,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/personal/ubicacion-legajo/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2517,7 +2516,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/vehiculo/tipo/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2530,7 +2529,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/vehiculo/marca/options`, { TipoVehiculoId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2543,7 +2542,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/vehiculo/modelo/options`, { TipoVehiculoId, VehiculoMarcaId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2553,7 +2552,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<any>>(`api/actas/list-personal`, { options }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );
@@ -2563,7 +2562,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/evento-log/clase/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        console.log('Something went wrong!');
+         
         return of([]);
       })
     );

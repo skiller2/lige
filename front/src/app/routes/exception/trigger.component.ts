@@ -31,7 +31,7 @@ export class ExceptionTriggerComponent {
     this.http.post(`https://localhost:5001/auth`).subscribe({
       next: res => console.warn('成功', res),
       error: err => {
-        console.log('最后结果失败', err);
+         
       }
     });
   }

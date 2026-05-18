@@ -929,8 +929,6 @@ export class CargaLicenciaController extends BaseController {
           }
         }
       }
-      //throw new ClientException(`test`)
-      console.log("array_id", array_id)
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [{ DocumentoId: array_id }] }, res, (PersonalLicenciaId) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
 
@@ -1266,7 +1264,7 @@ export class CargaLicenciaController extends BaseController {
 
         if (fechaCreacion < limiteFecha) {
           try {  await unlink(filePath) }catch(error){}
-          console.log(`Archivo ${file} borrado.`);
+
         }
       });
 

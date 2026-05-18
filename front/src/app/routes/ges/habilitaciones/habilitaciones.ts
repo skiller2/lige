@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, model, viewChild, computed, resource } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, model, viewChild, computed, resource, effect } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
@@ -95,12 +95,17 @@ export class HabilitacionesComponent {
 
   ngAfterViewInit(): void {
 
-    this.route.queryParams.subscribe(params => {
+    this.route.params.subscribe(params => {
       if (params['DiasFaltantesVencimiento'] && params['GestionHabilitacionEstadoCodigo']) {
         this.startFilters.set([
           { index: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', closeable: true },
           { index: 'DiasFaltantesVencimiento', condition: 'AND', operator: '=', value: params['DiasFaltantesVencimiento'], closeable: true },
           { index: 'GestionHabilitacionEstadoCodigo', condition: 'AND', operator: 'LIKE', value: params['GestionHabilitacionEstadoCodigo'], closeable: true },
+        ])
+      }
+      if (params['PersonalId']) {
+        this.startFilters.set([
+          { index:'PersonalId', condition:'AND', operator:'=', value: params['PersonalId'], closeable: true }
         ])
       }
     })
@@ -146,7 +151,7 @@ export class HabilitacionesComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
-    // console.log('row: ', row);
+     
 
     if (row?.id) {
       this.detalleSelected.set(`${row.ApellidoNombre} | <b>Lugar:</b> ${row.LugarHabilitacionDescripcion} | <b>Desde:</b> ${this.formatDate(row.PersonalHabilitacionDesde)} | <b>Hasta:</b> ${this.formatDate(row.PersonalHabilitacionHasta)} | <b>Estado:</b> ${row.Estado? row.Estado : ''} | <b>NroTramite:</b> ${row.NroTramite? row.NroTramite: ''}`)

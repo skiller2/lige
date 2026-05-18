@@ -156,7 +156,7 @@ export class TableOrdenesDeVentaComponent {
 
         this.rowLocked.set(false)
       } catch (e: any) {
-        // console.log('Error :' , e);
+         
 
         if (editCommand && SlickGlobalEditorLock.cancelCurrentEdit())
           editCommand.undo();
@@ -257,7 +257,7 @@ export class TableOrdenesDeVentaComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    console.log("row", row)
+     
     if (row?.id)
       this.objetivoIdSelected.set(row.ObjetivoId)
   }

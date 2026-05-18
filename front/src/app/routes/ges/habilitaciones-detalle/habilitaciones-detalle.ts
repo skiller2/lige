@@ -132,7 +132,7 @@ export class HabilitacionesDetalleComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridDetalle.slickGrid.getDataItem(selrow)
-    // console.log('row: ', row);
+     
 
     if (row?.id) {
       this.codigo.set(row.GestionHabilitacionCodigo)
@@ -206,8 +206,6 @@ export class HabilitacionesDetalleComponent {
         this.refreshGrid('')
       }
     } catch (error) {
-      // Aquí puedes mostrar un mensaje de error con tu toast/snackbar
-      console.error('Error borrando documento', error);
     } finally {
       this.loadingDeleteDoc.set(false);
     }

@@ -242,7 +242,7 @@ export class LiquidacionesComponent {
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-    //console.log('this.angularGrid', this.angularGrid);
+     
     this.angularGrid.gridService.hideColumnByIds(['PersonalCUITCUILCUIT', 'horas', 'periodo', 'CategoriaPersonalDescripcion'])
 
     if (this.apiService.isMobile())
@@ -743,7 +743,7 @@ export class LiquidacionesComponent {
         break;
       case 'error':
         const Error = event.file.error
-        // console.log("di error...." + Error.error.data.list)
+         
         if (Error.error.data?.list) {
           this.gridDataImport$.next(Error.error.data?.list)
           this.gridDataImportLen = Error.error.data?.list?.length

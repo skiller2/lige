@@ -112,12 +112,12 @@ export class NovedadesFormComponent {
 
     try {
       if (this.NovedadCodigo()) {
-        console.log("voy a actualizar novedades")
+         
         let result = await firstValueFrom(this.apiService.updateNovedad(form, this.NovedadCodigo()))
         await this.load()
 
       } else {
-        console.log("voy a insertar novedades")
+         
         let result = await firstValueFrom(this.apiService.addNovedad(form))
         this.NovedadCodigo.set(result.data.novedadId)
         await this.load()
@@ -128,7 +128,6 @@ export class NovedadesFormComponent {
 
 
     } catch (e) {
-      console.error('Error al guardar novedad:', e)
     }
     this.formChange$.next("save")
     this.loadingSrv.close()

@@ -64,7 +64,7 @@ export class SituacionRevistaSearchComponent  implements ControlValueAccessor {
   }
 
   onRemove() {
-    //  console.log('onRemove')
+     
   }
 
   registerOnTouched(fn: any) {
@@ -158,7 +158,6 @@ export class SituacionRevistaSearchComponent  implements ControlValueAccessor {
   }
 
   focus() { 
-    console.log('focus')
 
   }
 

@@ -57,7 +57,7 @@ export class EfectoIndividualSearchComponent {
   }
 
   onRemove() {
-    //  console.log('onRemove')
+     
   }
 
   registerOnTouched(fn: any) {

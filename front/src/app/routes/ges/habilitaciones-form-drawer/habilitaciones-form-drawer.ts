@@ -155,7 +155,7 @@ export class HabilitacionesFormDrawerComponent {
     let vals: any = this.formHabilitacion.getRawValue()
 
     try {
-      // console.log('vals: ', vals);
+       
       await firstValueFrom(this.apiService.addPersonalHabiltacion(vals))
 
       this.formHabilitacion.markAsUntouched()

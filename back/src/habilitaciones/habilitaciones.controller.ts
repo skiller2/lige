@@ -1775,7 +1775,6 @@ SELECT doc.DocumentoId id,
 
             for (const asisObj of resAsisObjetiv) {
                 if (asisObj.ObjetivoAsistenciaTipoAsociadoId != 3) continue;
-                //                if (asisObj.LugarHabilitacionIdList== null || asisObj.LugarHabilitacionIdList.trim() === '') console.log(asisObj);
                 const PersonalId = asisObj.PersonalId
                 const LugarHabilitacionIdList = asisObj.LugarHabilitacionIdList ? asisObj.LugarHabilitacionIdList.split(',') : []
                 for (const LugarHabilitacionId of LugarHabilitacionIdList) {
@@ -1797,8 +1796,6 @@ SELECT doc.DocumentoId id,
                 PersonalId,
                 LugarHabilitacionId: list,
             }));
-            //console.log('PersonalLugar1', PersonalLugar);
-            //console.log('PersonalLugar2', PersonalLugar.length);
             //TODO:  Buscar las diferencias entre lo que esta en la base y lo que deberia estar segun las asistencias
             for (const perlug of PersonalLugar) {
                 const PersonalId = perlug.PersonalId

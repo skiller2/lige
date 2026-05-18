@@ -426,7 +426,6 @@ export class CursoController extends BaseController {
 
       } else {
         // is new
-        console.log("estoy agregando")
 
         const existCursoHabilitacion = await queryRunner.query(`SELECT CursoHabilitacionId FROM CursoHabilitacion WHERE CursoHabilitacionCodigo = @0`, [CursoHabilitacionCodigo])
 
@@ -513,7 +512,6 @@ export class CursoController extends BaseController {
 
   async deleteCurso(req: any, res: Response, next: NextFunction) {
     const { CursoHabilitacionId } = req.query
-    console.log("req.params", req.query)
     const queryRunner = dataSource.createQueryRunner()
     // throw new ClientException(`test`)
 

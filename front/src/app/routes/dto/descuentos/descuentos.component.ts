@@ -79,8 +79,8 @@ export class DescuentosComponent {
             return
         this.selectedPeriod.year = result.getFullYear();
         this.selectedPeriod.month = result.getMonth() + 1;
-        console.log('this.selectedPeriod: ', this.selectedPeriod);
-        console.log('this.periodo: ', this.periodo());
+         
+         
     
         localStorage.setItem('anio', String(this.selectedPeriod.year));
         localStorage.setItem('mes', String(this.selectedPeriod.month));

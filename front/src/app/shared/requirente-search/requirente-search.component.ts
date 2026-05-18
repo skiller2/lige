@@ -57,13 +57,13 @@ export class RequirenteSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
-    console.log('onChange',this.rsc)
+     
 //    this.rsc?.focus()
 
   }
 
   onRemove() {
-    //  console.log('onRemove')
+     
   }
 
   registerOnTouched(fn: any) {
@@ -159,7 +159,7 @@ export class RequirenteSearchComponent implements ControlValueAccessor {
   }
 
   focus() { 
-    console.log('focus')
+     
 
   }
 

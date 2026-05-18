@@ -172,7 +172,7 @@ export class MovimientosPendientes {
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-    //console.log('this.angularGrid', this.angularGrid);
+     
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])

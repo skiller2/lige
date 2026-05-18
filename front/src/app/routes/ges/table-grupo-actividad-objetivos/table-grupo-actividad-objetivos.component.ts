@@ -262,7 +262,7 @@ export class TableGrupoActividadObjetivosComponent {
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';
       const item = this.angularGridEditObjetivos.dataView.getItem(rowNumber);
-      // console.log('item',item)
+       
       let meta = {
         cssClasses: ''
       };

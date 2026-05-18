@@ -183,14 +183,14 @@ export class  TableHorasLicenciaComponent {
           this.rowLocked = true
 
         const res = await firstValueFrom(this.apiService.setchangehours(row))
-        console.log(res)
+         
         row.total = res.data?.total
         row.PersonalLicenciaAplicaPeriodoHorasMensuales = res.data?.PersonalLicenciaAplicaPeriodoHorasMensuales
         this.formChange$.next('')
         this.rowLocked = false
       } catch (e: any) {
 
-        console.log('cancelar y volver al anterior',row)
+         
         //marcar el row en rojo
 //        if (row.GrupoActividadNumeroOld) {
           const item = this.angularGridEdit.dataView.getItemById(row.id)

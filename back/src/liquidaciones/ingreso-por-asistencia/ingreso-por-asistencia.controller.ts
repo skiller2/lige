@@ -102,7 +102,6 @@ export class IngresoPorAsistenciaController extends BaseController {
 
 
         if (row.ValorHoraArt14Categoria > 0) {
-          //console.log('Dif categoria',row.art14CategoriaDescripcion,row.ValorHoraArt14Categoria)
           const detalle = `Art.17 Equivalencia ${row.art14CategoriaDescripcion.trim()}, horas:${row.totalhorascalc+row.PersonalArt14Horas}`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,

@@ -9,6 +9,7 @@ import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { ObjetivoController } from "../controller/objetivo.controller.ts";
 import { PersonalController } from "../controller/personal.controller.ts"
+import { logger } from "../logger/logger.ts";
 
 const columnsPersonalDescuentos: any[] = [
   {
@@ -760,8 +761,6 @@ export class GestionDescuentosController extends BaseController {
         delete descuento.PersonalId;
         delete descuento.ApellidoNombre;
       }
-      // console.log('-----------------------------');
-      // console.log('lista:', lista.length);
 
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
@@ -818,8 +817,6 @@ export class GestionDescuentosController extends BaseController {
         delete descuento.ObjetivoId;
         delete descuento.ClienteElementoDependienteDescripcion;
       }
-      // console.log('-----------------------------');
-      // console.log('lista:', lista.length);
 
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);
@@ -877,8 +874,6 @@ export class GestionDescuentosController extends BaseController {
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
       WHERE per.PersonalId IN (@0) AND perdes.anio IN (@1) AND perdes.mes IN (@2)
       `, [PersonalId, anio, mes])
-      // console.log('--------------------------------');
-      // console.log('descuentos: ', descuentos.length);
 
       this.jsonRes(descuentos, res);
     } catch (error) {
@@ -1437,7 +1432,6 @@ FROM cte
         const importeCuota = Math.round((importeTotal / Number(descuento.PersonalOtroDescuentoCantidadCuotas)) * 100) / 100
 
 
-        console.log(`[DESCUENTO] PersonalId=${descuento.PersonalId} | DescuentoId=${descuento.PersonalOtroDescuentoId} | ImporteVar=${descuento.PersonalOtroDescuentoImporteVariable} x Cant=${descuento.PersonalOtroDescuentoCantidad} | Porc=${descuento.PorcentajeDescuento ?? 100}% | Total=${importeTotal} | Cuotas=${descuento.PersonalOtroDescuentoCantidadCuotas} | ImporteCuota=${importeCuota} | YaGeneradas=${descuento.generadas}`)
 
 
         if (!importeCuota)
@@ -1458,7 +1452,6 @@ FROM cte
 
         for (let cuota = descuento.generadas + 1; cuota <= descuento.PersonalOtroDescuentoCantidadCuotas - descuento.generadas; cuota++) {
           PersonalOtroDescuentoCuotaId++
-          console.log(`  -> Insertando cuota ${cuota} | CuotaId=${PersonalOtroDescuentoCuotaId} | Ano=${cuotaAnio} | Mes=${cuotaMes} | Importe=${importeCuota}`)
           await queryRunner.query(`
           INSERT INTO PersonalOtroDescuentoCuota (
         PersonalOtroDescuentoCuotaId, PersonalOtroDescuentoId, PersonalId,
@@ -1956,7 +1949,7 @@ FROM cte
       await queryRunner.commitTransaction()
       return this.jsonRes({}, res, 'Descuento anulado con exito.');
     } catch (error) {
-      console.log(error)
+      logger.error(error)
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
@@ -2209,7 +2202,6 @@ FROM cte
       //Verifica que exista el CUIT
       const cuit = String(row[columnsXLS['cuit']]).replace(/\D/g, "")
       if (cuit.length != 11) {
-        // console.log('CUIT con formato incorrecto', row[columnsXLS['cuit']])
         dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: 'CUIT con formato incorrecto' })
         continue
       }
@@ -2221,7 +2213,6 @@ FROM cte
               WHERE cuit.PersonalCUITCUILCUIT IN (@0)
             `, [cuit])
       if (!PersonalCUITCUIL.length) {
-        // console.log('CUIT no encontrado', row[columnsXLS['cuit']], PersonalCUITCUIL)
         dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: 'CUIT no encontrado' })
         continue
       }
@@ -2301,7 +2292,6 @@ FROM cte
       //Verifica que exista el CUIT
       const CUIT = String(row[columnsXLS['cuil']]).replace(/\D/g, "")
       if (CUIT.length != 11) {
-        // console.log('CUIT con formato incorrecto', row[columnsXLS['CUIT']])
         dataset.push({ id: idError++, CUIT: row[columnsXLS['cuil']], Detalle: 'CUIT con formato incorrecto' })
         continue
       }
@@ -2352,7 +2342,6 @@ FROM cte
       }
 
       if (!PersonalCUIT.length) {
-        // console.log('CUIT no encontrado', row[columnsXLS['CUIT']], PersonalCUITCUIL)
         dataset.push({ id: idError++, CUIT: row[columnsXLS['cuil']], Detalle: 'CUIT no encontrado' })
         continue
       }
@@ -2373,8 +2362,6 @@ FROM cte
         continue
       }
 
-      //console.log('row', row)
-      //throw new ClientException('stop')
       const ImporteExcento = (row[columnsXLS['importe exento']] || row[columnsXLS['importe exento']]) * ((row[columnsXLS['tipo concepto']] == "10100") ? 1 : -1) //Reemplaza el punto por nada y la coma por punto para que lo tome como numero
       const ImporteGravado = (row[columnsXLS['importe gravado']] || row[columnsXLS['importe gravado']]) * ((row[columnsXLS['tipo concepto']] == "10100") ? 1 : -1)
 

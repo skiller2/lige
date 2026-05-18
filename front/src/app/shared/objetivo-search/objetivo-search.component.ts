@@ -147,7 +147,7 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   }
 
   focus() {
-    console.log('focus')
+     
   }
 
   setDisabledState(isDisabled: boolean): void {

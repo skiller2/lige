@@ -202,12 +202,17 @@ const nativeNodeModulesPlugin = {
 };
 
 const buildOptions = {
-  entryPoints: ["src/index.ts"],
+  entryPoints: ["src/index.ts",
+    "src/logger/worker/logger.worker.ts" // ✅ ADD THIS
+],
   bundle: true,
   outdir: "dist",
   format: "esm",
+  
+  outbase: "src", // ✅ IMPORTANT
+
   platform: "node",
-  target: "node20",       // mejor objetivo concreto que "esnext" para Node
+  target: "esnext",       // mejor objetivo concreto que "esnext" para Node
   sourcemap: true,
   splitting: false,       // si es CLI única; habilita true si usarás code-splitting
   treeShaking: true,

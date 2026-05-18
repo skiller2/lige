@@ -64,7 +64,6 @@ export class CargaLicenciasComponent {
   }
 
   actualizarValorDrawer(event: any) {
-    console.log(`event`, event)
     this.PersonalId.set(event[0].PersonalId)
     this.PersonalLicenciaId.set(event[0].PersonalLicenciaId)
   }

@@ -162,20 +162,20 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
   }
 
 
-  async getRecibosPendDescarga(req: Request, res: Response, next: NextFunction){
+  async getRecibosPendDescarga(req: Request, res: Response, next: NextFunction) {
     try {
       const con = await getConnection()
       const rec = await con.query(
-          `SELECT TOP 1 COUNT(DISTINCT dc.DocumentoId) total, COUNT(DISTINCT lg.DocumentoId) descargados, dc.DocumentoAnio, dc.DocumentoMes 
+        `SELECT TOP 1 COUNT(DISTINCT dc.DocumentoId) total, COUNT(DISTINCT lg.DocumentoId) descargados, dc.DocumentoAnio, dc.DocumentoMes 
           FROM Documento dc
           LEFT JOIN DocumentoDescargaLog lg ON lg.DocumentoId = dc.DocumentoId
           WHERE dc.DocumentoTipoCodigo='REC' -- AND pe.anio = @1 AND pe.mes = @2
           GROUP BY dc.DocumentoAnio, dc.DocumentoMes
           ORDER BY dc.DocumentoAnio desc, dc.DocumentoMes desc
           `)
-      this.jsonRes({ total: rec[0].total, descargados: rec[0].descargados, anio:rec[0].DocumentoAnio, mes:rec[0].DocumentoMes }, res);
+      this.jsonRes({ total: rec[0].total, descargados: rec[0].descargados, anio: rec[0].DocumentoAnio, mes: rec[0].DocumentoMes }, res);
 
-    } catch (error){ 
+    } catch (error) {
       return next(error);
 
     }
@@ -310,53 +310,36 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
   async getClientesActivos(req: Request, res: Response, next: NextFunction) {
     const con = await getConnection()
     const stmactual = new Date()
-    con
-      .query(
-        `SELECT DISTINCT  
-        suc.SucursalId, TRIM(suc.SucursalDescripcion) SucursalDescripcion,  
-        COUNT (DISTINCT obj.ObjetivoId) CantidadObjetivos, COUNT(DISTINCT obj.ClienteId) CantidadClientes,
-        
---        obj.ObjetivoId,  obj.ClienteId, obj.ClienteElementoDependienteId, eledep.ClienteElementoDependienteDescripcion,
-        
---	CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo,
+    con.query(
+      `with cte as (
+SELECT cli.ClienteId AS id, cli.ClienteId,fac.ClienteFacturacionCUIT,con.CondicionAnteIVADescripcion,cli.ClienteDenominacion,cli.ClienteNombreFantasia,cli.ClienteFechaAlta,
+	CONCAT_WS(' ',TRIM(domcli.DomicilioDomCalle),TRIM(domcli.DomicilioDomNro)) AS Domicilio,cant.CantidadObjetivos,        custodias.CantidadCustodias,        correonoti.ContactoEmailEmail,        calc.activo    
+	FROM Cliente cli        
+	LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId AND fac.ClienteFacturacionDesde <= @0 AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @0        
+	LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId        
+	LEFT JOIN (SELECT ct.ClienteId, STRING_AGG(mail.ContactoEmailEmail, ', ') ContactoEmailEmail  FROM Contacto ct             JOIN ContactoEmail mail ON mail.ContactoId = ct.ContactoId AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo =0)            WHERE ct.ClienteElementoDependienteId IS NULL AND  mail.ContactoEmailEmail IS NOT NULL AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo=0) AND (ct.ContactoInactivo IS NULL OR ct.ContactoInactivo=0)  AND ct.ContactoTipoCod = 'NOTI'            GROUP BY ct.ClienteId        ) correonoti ON correonoti.ClienteId = cli.ClienteId
+	LEFT JOIN (SELECT cus.ClienteId , COUNT(*) CantidadCustodias FROM Custodia cus          WHERE DATEDIFF(day, cus.FechaInicio, @0)< 30          GROUP BY cus.ClienteId        ) custodias ON custodias.ClienteId = cli.ClienteId        
+	LEFT JOIN (SELECT                 domcli.ClienteId,                  dom.DomicilioDomCalle,                  dom.DomicilioDomNro            FROM                 NexoDomicilio domcli                JOIN Domicilio dom ON dom.DomicilioId = domcli.DomicilioId            WHERE                 domcli.NexoDomicilioActual = 1 AND domcli.ClienteId IS NOT NULL            AND domcli.DomicilioId = (                SELECT MAX(DomicilioId)                 FROM NexoDomicilio                 WHERE ClienteId = domcli.ClienteId AND ClienteElementoDependienteId IS NULL                AND NexoDomicilioActual = 1            )        ) AS domcli ON domcli.ClienteId = cli.ClienteId
+	LEFT JOIN (SELECT DISTINCT    obj.ClienteId, COUNT(DISTINCT obj.ObjetivoId) CantidadObjetivos            FROM Objetivo obj   
+	LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId    
+	LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId     AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0        
+	LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL GROUP BY obj.ClienteId) cant ON cant.ClienteId=cli.ClienteId        CROSS APPLY    (SELECT (IIF(cant.CantidadObjetivos>0 OR custodias.CantidadCustodias>0,'1','0')) AS activo) AS calc    
+	WHERE (calc.activo IN ('1'))
+)
 
---        eledepcon.ClienteElementoDependienteContratoFechaDesde, eledepcon.ClienteElementoDependienteContratoFechaHasta, eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,
-        
-        1
-        
-        
-        From Objetivo obj
-        
-        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
-        LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
-          AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0
-            
-        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
+SELECT COUNT(*) AS ClientesActivos FROM cte
 
-        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
-
-        WHERE 
-
-          eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
-        
-GROUP BY suc.SucursalId, suc.SucursalDescripcion
         `,
-        [stmactual]
-      )
+      [stmactual]
+    )
       .then((records: Array<any>) => {
-        let data: { x: string; y: any; }[] = []
-        //if (records.length ==0) throw new ClientException('Data not found')
-        let total = 0
-        records.forEach(rec => {
-          data.push({ x: rec.SucursalDescripcion, y: rec.CantidadClientes })
-          total += rec.CantidadClientes
-        })
-
-        this.jsonRes({ clientesActivos: data, clientesActivosTotal: total }, res);
-
+        const clientesActivos = records[0]?.ClientesActivos || 0;
+        this.jsonRes({ clientesActivos }, res);
       })
       .catch((error) => {
         return next(error);
+      }).finally(() => {
+        con.release()
       });
   }
 
@@ -485,7 +468,10 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       })
       .catch((error) => {
         return next(error);
-      });
+      }).finally(() => {
+        con.release()
+      })
+      ;
   }
 
   async search(
@@ -523,6 +509,8 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       })
       .catch((error) => {
         return next(error);
+      }).finally(() => {
+        queryRunner.release();
       });
   }
 
@@ -535,10 +523,11 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
     // ... do something with the result
   }
 
-  async getHabilitacionesProximaVencer(req: Request, res: Response, next: NextFunction){
+  async getHabilitacionesProximaVencer(req: Request, res: Response, next: NextFunction) {
     const fecha = new Date()
+    const con = await getConnection()
+
     try {
-      const con = await getConnection()
       const rec = await con.query(`
         WITH HabilitacionesProxVencimiento as (
           SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
@@ -606,19 +595,21 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       `, [fecha])
       this.jsonRes(rec[0], res);
 
-    } catch (error){ 
+    } catch (error) {
       return next(error);
 
+    } finally {
+      con.release()
     }
   }
 
-  async getPersonasActivasSinHabilitaciones(req: Request, res: Response, next: NextFunction){
+  async getPersonasActivasSinHabilitaciones(req: Request, res: Response, next: NextFunction) {
     // const anio = Number(req.params.anio)
     // const mes = Number(req.params.mes)
     const fecha = new Date()
-    
+    const con = await getConnection()
+
     try {
-      const con = await getConnection()
       const rec = await con.query(`
       WITH PersonalSinHabilitacion AS (
           SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
@@ -720,20 +711,21 @@ e.PersonalHabilitacionId = b.PersonalHabilitacionId
       `, [fecha])
       this.jsonRes(rec[0], res);
 
-    } catch (error){ 
+    } catch (error) {
       return next(error);
 
+    } finally {
+      con.release()
     }
-
   }
 
-  async getObjetivosActivosSinHabilitaciones(req: Request, res: Response, next: NextFunction){
+  async getObjetivosActivosSinHabilitaciones(req: Request, res: Response, next: NextFunction) {
     // const anio = Number(req.params.anio)
     // const mes = Number(req.params.mes)
     const fecha = new Date()
-    
+    const con = await getConnection()
+
     try {
-      const con = await getConnection()
       const rec = await con.query(`
         WITH ObjetivosSinHabilitacion AS (
           SELECT DISTINCT
@@ -769,11 +761,12 @@ e.PersonalHabilitacionId = b.PersonalHabilitacionId
       `, [fecha])
       this.jsonRes(rec[0], res);
 
-    } catch (error){ 
+    } catch (error) {
       return next(error);
 
+    } finally {
+      con.release()
     }
-
   }
 
 }

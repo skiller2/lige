@@ -175,7 +175,6 @@ export class ClientesComponent {
   }
 
   onTabsetChange(_event: any) {
-    console.log("_event.index ", _event.index)
     switch (_event.index) {
       case 4: //INSERT
         this.childAlta().newRecord()

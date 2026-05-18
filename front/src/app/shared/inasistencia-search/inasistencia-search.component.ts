@@ -63,7 +63,7 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
   }
 
   onRemove() {
-    //  console.log('onRemove')
+     
   }
 
   registerOnTouched(fn: any) {
@@ -165,7 +165,7 @@ export class InasistenciaSearchComponent implements ControlValueAccessor {
   }
 
   focus() { 
-    console.log('focus')
+     
 
   }
 

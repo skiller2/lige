@@ -119,7 +119,7 @@ export class PolizaSeguroComponent {
    
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-    console.log(row)
+     
     if (row?.PolizaSeguroNroPoliza)
       this.PolizaSeguroNroPoliza.set(row.PolizaSeguroNroPoliza)
     if (row?.PolizaSeguroNroEndoso)

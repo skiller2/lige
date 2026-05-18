@@ -263,7 +263,7 @@ export class PreciosProductosComponent {
         this.rowLocked = false
       } catch (e: any) {
         //Si idTable != '' volver a colocar el valor anterior, si idTable == '' marcar en rojo el registro 
-        console.error('Error al guardar precio producto:', e)
+       
 
         if (row.idTable) {
           const item = this.angularGridEdit.dataView.getItemById(row.id)

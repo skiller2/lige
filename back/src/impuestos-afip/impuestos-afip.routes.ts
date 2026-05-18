@@ -95,7 +95,7 @@ impuestosAfipRouter.post("", [authMiddleware.verifyToken, authMiddleware.hasGrou
     }
   });
 });
-impuestosAfipRouter.post("/forzado", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+impuestosAfipRouter.post("/forzado", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'gLogistica', 'gPersonal'])], (req, res, next) => {
   upload(req, res, (err) => {
     // FILE SIZE ERROR
     if (err instanceof multer.MulterError) {

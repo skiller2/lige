@@ -342,8 +342,6 @@ export class FacturacionController extends BaseController {
 
         const ComprobanteNro = req.params.ComprobanteNro
         const FacturacionCodigo = req.params.FacturacionCodigo
-        console.log("ComprobanteNro ", req.params)
-        console.log("FacturacionCodigo ", FacturacionCodigo)
         let comprobanteCondicion = '';
 
         if (ComprobanteNro !== 'null') {
@@ -398,8 +396,6 @@ export class FacturacionController extends BaseController {
 
         try {
             await queryRunner.startTransaction();
-            console.log("req.body", req.body)
-            //throw new ClientException("test")
             const { ComprobanteNro, comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body[0]
 
             
@@ -427,9 +423,6 @@ export class FacturacionController extends BaseController {
             for (const registro of req.body[1]) {
                 const { id } = registro
 
-                console.log("id", id)
-                console.log("ComprobanteNro", ComprobanteNro)
-                console.log("ComprobanteTipoCodigo", ComprobanteTipoCodigo)
                 await dataSource.query(`UPDATE Facturacion SET ComprobanteNro = @0, ComprobanteTipoCodigo = @1  WHERE FacturacionCodigo = @2`, 
                   [ComprobanteNro, ComprobanteTipoCodigo, id])
 

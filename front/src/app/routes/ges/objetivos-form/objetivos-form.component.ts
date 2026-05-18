@@ -193,29 +193,33 @@ export class ObjetivosFormComponent {
     this.pristineChange.emit(pristine)
   })
 
-  onChangePeriodo(result: any) {
-    if (result) {
-      const date = new Date(result)
-      const year = date.getFullYear()
-      const month = date.getMonth() + 1
-      this.periodo.set({ year, month })
+  onChangePeriodo = effect(() => {
+    const dirtyContratoFechaDesde = this.formObjetivo.ContratoFechaDesde().dirty()
+    const dirtyContratoFechaHasta = this.formObjetivo.ContratoFechaHasta().dirty()
+    if (dirtyContratoFechaDesde || dirtyContratoFechaHasta) {
+      this.objetivo.update(m => ({
+        ...m,
+        FechaModificada: true
+      }));
     }
-    // console.log('FechaModificada');
-    
-    this.objetivo.update(m => ({
-      ...m,
-      FechaModificada: true
-    }));
-  }
+  })
 
-  onChangeDireccion(value: any) {
-    // console.log('onChangeDireccion');
-    
-    this.objetivo.update(m => ({
-      ...m,
-      DireccionModificada: true
-    }));
-  }
+  onChangeDireccion = effect(() => {
+    const dirtyDomicilioDomCalle = this.formObjetivo.DomicilioDomCalle().dirty()
+    const dirtyDomicilioDomNro = this.formObjetivo.DomicilioDomNro().dirty()
+    const dirtyDomicilioDomLugar = this.formObjetivo.DomicilioDomLugar().dirty()
+    const dirtyDomicilioCodigoPostal = this.formObjetivo.DomicilioCodigoPostal().dirty()
+    const dirtyDomicilioProvinciaId = this.formObjetivo.DomicilioProvinciaId().dirty()
+    const dirtyDomicilioLocalidadId = this.formObjetivo.DomicilioLocalidadId().dirty()
+    const dirtyDomicilioBarrioId = this.formObjetivo.DomicilioBarrioId().dirty()
+
+    if (dirtyDomicilioDomCalle || dirtyDomicilioDomNro || dirtyDomicilioDomLugar || dirtyDomicilioCodigoPostal || dirtyDomicilioProvinciaId || dirtyDomicilioLocalidadId || dirtyDomicilioBarrioId) {
+      this.objetivo.update(m => ({
+        ...m,
+        DireccionModificada: true
+      }));
+    }
+  })
 
   async ngOnInit() {
 
@@ -230,6 +234,9 @@ export class ObjetivosFormComponent {
   // }
 
   resetForm() {
+    this.objetivo.update(m => ({
+      ...this.objetivoDefault
+    }))
     this.formObjetivo().reset()
     // this.infoCoordinadorCuenta().clear()
     // this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
@@ -253,11 +260,14 @@ export class ObjetivosFormComponent {
   async load() {
 
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
-    // console.log('infoObjetivo: ', infoObjetivo);
+     
     
     // this.infoCoordinadorCuenta().clear()
     // this.infoActividad().clear()
-    
+     
+    if (!infoObjetivo.infoCoordinadorCuenta.length) {
+      infoObjetivo.infoCoordinadorCuenta = [{ ...this.coordinadorCuentaDefault }]
+    }
     // infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
     //   this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
     // });
@@ -320,79 +330,83 @@ export class ObjetivosFormComponent {
       this.isLoading.set(true)
       let value = form().value();
       try {
-          if (value.id) { //UPDATE
-            let CordinadorCuenta = value.infoCoordinadorCuenta
+        if (value.id) { //UPDATE
+          let CordinadorCuenta = value.infoCoordinadorCuenta
 
-            if( CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonalId) === '')
-              value.infoCoordinadorCuenta = []   
-            
-
-            let result = await firstValueFrom(this.apiService.updateObjetivo(value, this.objetivo().id))
-            //this.formObj.reset(result.data)
-            //console.log("result ", result)
-            this.objetivo.update(m => ({
-              ...m,
-              infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
-              infoActividad: result.data.infoActividad,
-              codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
-              clienteOld: result.data.ClienteId,
-              DomicilioId: result.data.DomicilioId
-            }));
-            // this.formObj.patchValue({
-            //   infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
-            //   infoActividad: result.data.infoActividad,
-            //   codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
-            //   clienteOld: result.data.ClienteId,
-            //   DomicilioId: result.data.DomicilioId
-            // });
+          if( CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonalId) === '')
+            value.infoCoordinadorCuenta = []   
           
-            //this.edit.set(false)
 
-          } else { //INSERT (nuevo registro)
+          let result = await firstValueFrom(this.apiService.updateObjetivo(value, this.objetivo().id))
+          //this.formObj.reset(result.data)
+           
+          this.objetivo.update(m => ({
+            ...m,
+            infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
+            infoActividad: result.data.infoActividad,
+            codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
+            clienteOld: result.data.ClienteId,
+            DomicilioId: result.data.DomicilioId
+          }));
+          // this.formObj.patchValue({
+          //   infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
+          //   infoActividad: result.data.infoActividad,
+          //   codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
+          //   clienteOld: result.data.ClienteId,
+          //   DomicilioId: result.data.DomicilioId
+          // });
+        
+          //this.edit.set(false)
 
-            let result = await firstValueFrom(this.apiService.addObjetivo(value))
-            const infoObjetivo = result.data
-            // this.formObj.get('ClienteId')?.disable();
+        } else { //INSERT (nuevo registro)
 
-            this.objetivo.update(m => ({
-              ...infoObjetivo,
-              DireccionModificada:false,
-              FechaModificada:false,
-              ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
-              ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
-              codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
-              GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
-              clienteOld: infoObjetivo.ClienteId,
-              GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
-            }));
-
-            // this.formObj.reset(infoObjetivo)
-            // this.formObj.patchValue({
-            //   DireccionModificada:false,
-            //   FechaModificada:false,
-            //   ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
-            //   ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
-            //   codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
-            //   GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
-            //   clienteOld: infoObjetivo.ClienteId,
-            //   GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
-            // });
-            
-            //this.addNew.set(true)
-            this.mostrarDocs.set(true)
+          let result = await firstValueFrom(this.apiService.addObjetivo(value))
+          const infoObjetivo = result.data
+          if (!infoObjetivo.infoCoordinadorCuenta.length) {
+            infoObjetivo.infoCoordinadorCuenta = [{ ...this.coordinadorCuentaDefault }]
           }
+          // this.formObj.get('ClienteId')?.disable();
 
-          if (this.mostrarDocs()) {
-            this.childDocsGrid().refreshGrid()
-          }
+          this.objetivo.update(m => ({
+            ...m,
+            ...infoObjetivo,
+            DireccionModificada:false,
+            FechaModificada:false,
+            ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
+            ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
+            codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
+            GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
+            clienteOld: infoObjetivo.ClienteId,
+            GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
+          }));
+          
+          // this.formObj.reset(infoObjetivo)
+          // this.formObj.patchValue({
+          //   DireccionModificada:false,
+          //   FechaModificada:false,
+          //   ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
+          //   ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
+          //   codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
+          //   GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
+          //   clienteOld: infoObjetivo.ClienteId,
+          //   GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
+          // });
+          
+          //this.addNew.set(true)
+          // this.mostrarDocs.set(true)
+        }
 
-          this.onAddorUpdate.emit()
+        if (this.mostrarDocs()) {
+          this.childDocsGrid().refreshGrid()
+        }
+        
+        this.onAddorUpdate.emit()
       } catch (e) {
           
       }
       this.isLoading.set(false)
-  })
-}
+    })
+  }
 
   addCoordinadorCuenta(e?: MouseEvent): void {
     e?.preventDefault();

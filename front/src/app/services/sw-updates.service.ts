@@ -87,6 +87,6 @@ export class SwUpdatesService implements OnDestroy {
 
   private log(message: string) {
     const timestamp = new Date().toISOString();
-    console.log(`[SwUpdates - ${timestamp}]: ${message}`);
+    console.info(`[SwUpdates - ${timestamp}]: ${message}`);
   }
 }

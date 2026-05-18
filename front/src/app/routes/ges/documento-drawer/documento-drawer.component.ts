@@ -156,7 +156,7 @@ export class DocumentoDrawerComponent {
   }
 
   // handlePrevFiles(event: any[]) {
-  //   console.log('handle',event)
+   
   //   const copia = event.map(item => ({ ...item }))
   //   this.prevFiles.set([...copia])
   //   this.randNum.set(Math.random())

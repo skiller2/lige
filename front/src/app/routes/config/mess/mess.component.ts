@@ -53,7 +53,6 @@ export class MessComponent {
     try {
       this.messInfo.set(await firstValueFrom(this.apiService.getMessInfo()))
     } catch (e) {
-      console.log(e)
       this.messInfo.set({ 'msg': 'error' })
     }
   }
@@ -66,7 +65,6 @@ export class MessComponent {
     try {
       await firstValueFrom(this.apiService.setChatBotDelay(this.ms()))
     } catch (e) {
-      console.log(e)
       this.ultimoDeposito.set({ 'msg': 'error' })
     }
   }
@@ -137,9 +135,7 @@ export class MessComponent {
       let imagenCount = 0
       this.getMessInfo()
       //setInterval(() => { this.imagenUrl.set(`./mess/api/chatbot/qr/${imagenCount++}`) }, 3000)
-    } catch (error) {
-      console.log(error)
-    }
+    } catch (error) {}
 
 
     const resIAPrompt: any = await firstValueFrom(this.apiService.getIaPrompt())

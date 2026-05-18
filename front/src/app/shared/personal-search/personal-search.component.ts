@@ -62,13 +62,13 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   onChange() {
-    console.log('onChange', this.psc)
+     
     //    this.psc?.focus()
 
   }
 
   onRemove() {
-    //  console.log('onRemove')
+     
   }
 
   registerOnTouched(fn: any) {
@@ -169,7 +169,7 @@ export class PersonalSearchComponent implements ControlValueAccessor {
   }
 
   focus() {
-    console.log('focus')
+     
 
   }
 
