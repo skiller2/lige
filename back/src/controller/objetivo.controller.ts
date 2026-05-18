@@ -7,8 +7,9 @@ import type { QueryRunner } from "typeorm";
 export class ObjetivoController extends BaseController {
   async ObjetivoInfoFromId(objetivoId: string, res, next: NextFunction) {
     try {
-      const result: ObjetivoInfo[] = await dataSource.query(
-        `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId,
+      const queryRunner = dataSource.createQueryRunner();
+      const result: ObjetivoInfo[] = await queryRunner.query(
+        `SELECT obj.ObjetivoId objetivoId, obj.Cliente|Id clienteId, obj.ClienteElementoDependienteId,
         CONCAT(TRIM(cli.ClienteDenominacion), TRIM(ele.ClienteElementoDependienteDescripcion)) descripcion, 
         ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
         FROM Objetivo obj 
@@ -26,7 +27,8 @@ export class ObjetivoController extends BaseController {
 
   async getContactoOperativo(objetivoId: string, res, next: NextFunction) {
     try {
-      const result: ObjetivoInfo[] = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const result: ObjetivoInfo[] = await queryRunner.query(
         `SELECT
             concat( TRIM(cc.ContactoApellido), ', ', TRIM(cc.ContactoNombre)) AS ApellidoNombre,
             TRIM(cc.ContactoArea) AS area,
@@ -52,7 +54,8 @@ export class ObjetivoController extends BaseController {
 
   async getDomicilio(objetivoId: string, res, next: NextFunction) {
     try {
-      const result: ObjetivoInfo[] = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const result: ObjetivoInfo[] = await queryRunner.query(
         `SELECT dom.DomicilioId 
 
                 ,TRIM(dom.DomicilioDomCalle) Calle,
@@ -86,7 +89,8 @@ export class ObjetivoController extends BaseController {
 
   async getCoberturaServicio(objetivoId: string, res, next: NextFunction) {
     try {
-      const result: ObjetivoInfo[] = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const result: ObjetivoInfo[] = await queryRunner.query(
         `Select ele.CoberturaServicio
           from ClienteElementoDependiente ele
           LEFT JOIN Objetivo Obj on Obj.ClienteElementoDependienteId=ele.ClienteElementoDependienteId and Obj.ClienteId=ele.ClienteId
@@ -235,7 +239,8 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
     let fechaHasta = new Date(anio, mes, 1);
     fechaHasta.setDate(fechaHasta.getDate() - 1);
 
-    dataSource
+    const queryRunner = dataSource.createQueryRunner();
+    queryRunner
       .query(
         `SELECT DISTINCT suc.SucursalId,
                  
@@ -285,6 +290,7 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
 
   async search(req: any, res: Response, next: NextFunction) {
     try {
+      const queryRunner = dataSource.createQueryRunner();
       const { sucursalId, fieldName, value } = req.body;
       if (sucursalId == "") {
         this.jsonRes({ objetivos: [] }, res);
@@ -345,7 +351,7 @@ WHERE  `;
       }
 
       if (buscar) {
-        const result = await dataSource.query(query, [new Date(), sucursalId]);
+        const result = await queryRunner.query(query, [new Date(), sucursalId]);
         this.jsonRes({ objetivos: result }, res);
       } else this.jsonRes({ objetivos: [] }, res);
     } catch (error) {

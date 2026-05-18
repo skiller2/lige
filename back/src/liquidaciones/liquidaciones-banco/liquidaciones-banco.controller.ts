@@ -385,8 +385,8 @@ export class LiquidacionesBancoController extends BaseController {
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
     stmactual.setHours(0, 0, 0, 0)
-
-    return dataSource.query(
+const queryRunner = dataSource.createQueryRunner();
+    return queryRunner.query(
       `
 WITH Movimientos AS (
 	SELECT 
@@ -488,8 +488,8 @@ LEFT JOIN banco banc
     const filterSql = filtrosToSql(filtros, this.listaColumnas);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
-
-    return dataSource.query(
+const queryRunner = dataSource.createQueryRunner();
+    return queryRunner.query(
       `SELECT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId ) as id,per.PersonalId, pre.PersonalPrestamoId as clave_id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
       pre.PersonalPrestamoMonto AS importe, pre.PersonalPrestamoAplicaEl,
       tipo.tipo_movimiento_id, tipo.des_movimiento,
@@ -518,8 +518,8 @@ LEFT JOIN banco banc
     const filterSql = filtrosToSql(filtros, this.listaColumnasMovimientos);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
-
-    return dataSource.query(
+const queryRunner = dataSource.createQueryRunner();
+    return queryRunner.query(
       `
       SELECT CONCAT(liq.banco_id,'-',liq.envio_nro,'-',liq.persona_id,'-',liq.tipocuenta_id) id, liq.persona_id,liq.cbu,liq.importe,liq.banco_id,liq.envio_nro,liq.fecha,liq.tipocuenta_id,banc.bancodescripcion, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
       FROM lige.dbo.liqmvbanco liq
@@ -1023,8 +1023,8 @@ LEFT JOIN banco banc
     mes: string;
     options: Options;
   }) {
-
-    return dataSource.query(`SELECT per.PersonalId as id,per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.importe
+const queryRunner = dataSource.createQueryRunner();
+    return queryRunner.query(`SELECT per.PersonalId as id,per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.importe
       FROM Personal per
       JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
       JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = per.PersonalId

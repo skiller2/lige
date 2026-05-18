@@ -87,8 +87,8 @@ export class ListaPermisoCargaController extends BaseController {
 
 
     try {
-
-      const listPermisoCarga = await dataSource.query(
+const queryRunner = dataSource.createQueryRunner();
+      const listPermisoCarga = await queryRunner.query(
         `SELECT 
         ROW_NUMBER() OVER (ORDER BY carg.objetivo_id) AS id,
         objetivo_id AS ObjetivoCodigo,

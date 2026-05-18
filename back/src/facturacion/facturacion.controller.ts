@@ -328,7 +328,8 @@ export class FacturacionController extends BaseController {
     }
 
     async getComprobanteTipoOptions(req: any, res: Response, next: NextFunction) {
-        const result = await dataSource.query(`
+        const queryRunner = dataSource.createQueryRunner();
+        const result = await queryRunner.query(`
           SELECT ComprobanteTipoCodigo, Descripcion FROM ComprobanteTipo`)
         this.jsonRes(result, res);
     }
@@ -408,7 +409,7 @@ export class FacturacionController extends BaseController {
                 throw new ClientException("El nro de comprobante es requerido")
             }
 
-            const validateFacturacion = await dataSource.query(` SELECT ComprobanteNro FROM Facturacion WHERE ComprobanteNro = @0`, [ComprobanteNro]);
+            const validateFacturacion = await queryRunner.query(` SELECT ComprobanteNro FROM Facturacion WHERE ComprobanteNro = @0`, [ComprobanteNro]);
 
             if (validateFacturacion.length > 0) {
                 throw new ClientException("El nro de comprobante ya existe")
@@ -423,7 +424,7 @@ export class FacturacionController extends BaseController {
             for (const registro of req.body[1]) {
                 const { id } = registro
 
-                await dataSource.query(`UPDATE Facturacion SET ComprobanteNro = @0, ComprobanteTipoCodigo = @1  WHERE FacturacionCodigo = @2`, 
+                await queryRunner.query(`UPDATE Facturacion SET ComprobanteNro = @0, ComprobanteTipoCodigo = @1  WHERE FacturacionCodigo = @2`, 
                   [ComprobanteNro, ComprobanteTipoCodigo, id])
 
                 

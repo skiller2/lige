@@ -172,7 +172,9 @@ export class AdelantosController extends BaseController {
   ) {
 
     try {
-      const grupos = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+
+      const grupos = await queryRunner.query(
         `SELECT DISTINCT ga.GrupoActividadId, ga.GrupoActividadJerarquicoComo, 1
         FroM GrupoActividadJerarquico ga 
         WHERE ga.GrupoActividadJerarquicoPersonalId = @0
@@ -185,8 +187,7 @@ export class AdelantosController extends BaseController {
       })
       if (GrupoActividadIdList.length == 0)
         GrupoActividadIdList.push(0)
-
-      const adelantos = await dataSource.query(
+      const adelantos = await queryRunner.query(
         `SELECT perrel.GrupoActividadId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, pre.* 
         FROM PersonalPrestamo pre 
         JOIN Personal per ON per.PersonalId = pre.PersonalId

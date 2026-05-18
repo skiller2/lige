@@ -6,7 +6,8 @@ export class DepositoController extends BaseController {
 
   async getAllDepositos(res: Response, req: Request, next: NextFunction) {
     try {
-      const result = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const result = await queryRunner.query(
         'SELECT DepositoId, DepositoNombre, DepositoId as value, DepositoNombre as label FROM Deposito'
       )
       this.jsonRes(result, res)

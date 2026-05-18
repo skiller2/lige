@@ -322,8 +322,8 @@ export class DocumentoController extends BaseController {
 
 
   async getdocgenralListQuery(filterSql: any, orderBy: any) {
-
-    const result = await dataSource.query(`
+    const queryRunner = dataSource.createQueryRunner();
+    const result = await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
       docg.DocumentoId,
       docg.DocumentoDenominadorDocumento,
@@ -440,7 +440,8 @@ export class DocumentoController extends BaseController {
   }
 
   private async getPersonalDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
-    return dataSource.query(`
+    const queryRunner = dataSource.createQueryRunner();
+    return queryRunner.query(`
       SELECT CONCAT(des.DocumentoId,'-',ROW_NUMBER() OVER (PARTITION BY des.DocumentoId ORDER BY des.FechaDescarga)) AS id
           , des.DocumentoId
           , des.FechaDescarga
@@ -486,7 +487,8 @@ export class DocumentoController extends BaseController {
   }
 
   private async getPersonalNoDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
-    return dataSource.query(`
+    const queryRunner = dataSource.createQueryRunner();
+    return queryRunner.query(`
         SELECT per.PersonalId AS id, tel.Telefono,
           per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,
           cuit.PersonalCUITCUILCUIT,
@@ -571,7 +573,7 @@ export class DocumentoController extends BaseController {
     try {
       await queryRunner.startTransaction()
       //Validaciones
-      const telefonos = await dataSource.query(`
+      const telefonos = await queryRunner.query(`
         SELECT Telefono
         FROM DocumentoDescargaLog
         WHERE DocumentoId IN (@0)

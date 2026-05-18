@@ -7,7 +7,8 @@ export class DescripcionProductoController extends BaseController {
 
   async getAllProductos(res: Response, req: Request, next:NextFunction) {
     try {
-      const result = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const result = await queryRunner.query(
         'SELECT ProductoTipoCodigo as TipoProductoId ,Descripcion as TipoProductoDescripcion, ProductoTipoCodigo as value, Descripcion as label  FROM  ProductoTipo'
       )
       this.jsonRes(result, res)

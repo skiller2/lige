@@ -780,7 +780,8 @@ UNION
     const anio: number = req.body.anio
     const mes: number = req.body.mes
     try {
-      const result = await dataSource.query(`
+      const queryRunner = dataSource.createQueryRunner();
+      const result = await queryRunner.query(`
        SELECT
             ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId,
@@ -831,7 +832,8 @@ UNION
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPoliza);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      let result = await dataSource.query(`
+      const queryRunner = dataSource.createQueryRunner();
+      let result = await queryRunner.query(`
       SELECT 
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
         seg.TipoSeguroNombre,
@@ -873,7 +875,8 @@ UNION
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPersonalSeguro);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      let result = await dataSource.query(`
+      const queryRunner = dataSource.createQueryRunner();
+      let result = await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroNroPoliza,
       perpoliz.PolizaSeguroNroEndoso,perpoliz.CompaniaSeguroId,perpoliz.TipoSeguroCodigo,per.PersonalId,CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS PersonalApellidoNombre,
       cuit.PersonalCUITCUILCUIT, poliz.polizaSeguroNroEndoso,tipseg.TipoSeguroNombre,cs.CompaniaSeguroDescripcion
@@ -907,8 +910,9 @@ UNION
   async getPolizaSeguro(req: any, res: Response, next: NextFunction) {
 
     try {
+      const queryRunner = dataSource.createQueryRunner();
       //acomodar select para que sea el correcto
-      const result = await dataSource.query(`
+      const result = await queryRunner.query(`
       SELECT
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
         ts.TipoSeguroNombre,
@@ -1343,25 +1347,29 @@ UNION
 
 
   async getCompaniaSeguroSearch(req: any, res: Response, next: NextFunction) {
-    const result = await dataSource.query(`
+    const queryRunner = dataSource.createQueryRunner();
+    const result = await queryRunner.query(`
         SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro  WHERE CompaniaSeguroInactivo IS NULL OR CompaniaSeguroInactivo = 0`)
     this.jsonRes(result, res);
   }
 
   async getCompaniaSeguroId(req: any, res: Response, next: NextFunction) {
-    const result = await dataSource.query(`
+    const queryRunner = dataSource.createQueryRunner();
+    const result = await queryRunner.query(`
         SELECT CompaniaSeguroId, CompaniaSeguroDescripcion FROM CompaniaSeguro WHERE CompaniaSeguroId = @0`, [req.params.id])
     this.jsonRes(result, res);
   }
 
   async getTipoSeguroSearch(req: any, res: Response, next: NextFunction) {
-    const result = await dataSource.query(`
+    const queryRunner = dataSource.createQueryRunner();
+    const result = await queryRunner.query(`
         SELECT TipoSeguroCodigo, TipoSeguroNombre FROM TipoSeguro `)
     this.jsonRes(result, res);
   }
 
   async getTipoSeguroId(req: any, res: Response, next: NextFunction) {
-    const result = await dataSource.query(`
+    const queryRunner = dataSource.createQueryRunner();
+    const result = await queryRunner.query(`
         SELECT TipoSeguroCodigo, TipoSeguroNombre FROM TipoSeguro WHERE TipoSeguroCodigo = @0`, [req.params.id])
     this.jsonRes(result, res);
   }

@@ -265,10 +265,10 @@ export class TelefoniaController extends BaseController {
   getTelefonos(fecha: Date, anio: number, mes: number, options: any) {
     const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(options.sort)
-
+    const queryRunner = dataSource.createQueryRunner();
     fecha.setHours(0, 0, 0, 0)
 
-    return dataSource.query(
+    return queryRunner.query(
       `
 SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, 
 		stk.EfectoDescripcionCompleto, 
@@ -1020,7 +1020,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       //const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Number(Anio), Number(Mes), usuario, ip)
 
 
-      const importacionesAnteriores = await dataSource.query(
+      const importacionesAnteriores = await queryRunner.query(
 
 
         `SELECT doc.DocumentoId,DocumentoTipoCodigo, doc.DocumentoAnio,doc.DocumentoMes, doc.DocumentoDenominadorDocumento, FORMAT(DocumentoAudFechaIng, 'dd/MM/yyyy HH:mm:ss') AS DocumentoAudFechaIng

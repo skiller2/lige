@@ -313,7 +313,8 @@ export class PersonalController extends BaseController {
     const mes = req.params.mes;
 
     try {
-      const result = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const result = await queryRunner.query(
         `SELECT
         per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
         com.PersonalComprobantePagoAFIPAno,com.PersonalComprobantePagoAFIPMes,com.PersonalComprobantePagoAFIPImporte,
@@ -365,7 +366,8 @@ export class PersonalController extends BaseController {
     const mes = req.params.mes;
 
     try {
-      const responsables = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const responsables = await queryRunner.query(
         `SELECT 1 AS ord, gap.GrupoActividadPersonalPersonalId as id, 'Grupo' tipo,
         ga.GrupoActividadId AS id, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadPersonalDesde AS desde , gap.GrupoActividadPersonalHasta hasta, '' as Telefonos,
         1  
@@ -416,7 +418,8 @@ export class PersonalController extends BaseController {
     const stmactual = new Date()
 
     try {
-      const responsables = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const responsables = await queryRunner.query(
         `SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.*, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
         FROM Personal per
         JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND ((DATEPART(YEAR,sitrev.PersonalSituacionRevistaDesde)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaDesde)=@2) OR (DATEPART(YEAR,sitrev.PersonalSituacionRevistaHasta)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaHasta)=@2) OR (sitrev.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)))
@@ -431,7 +434,8 @@ export class PersonalController extends BaseController {
   }
 
   static async infoPersonalQuery(PersonalId: any, anio: number, mes: number) {
-    return dataSource.query(`
+    const queryRunner = dataSource.createQueryRunner();
+    return queryRunner.query(`
       SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 
         TRIM(CONCAT(
@@ -468,16 +472,18 @@ export class PersonalController extends BaseController {
   }
 
   async getById(PersonalId: string, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
+
     const fechaActual = new Date();
     //    const dia = fechaActual.getDate();
     const mes = fechaActual.getMonth() + 1; // Agrega 1 porque los meses se indexan desde 0 (0 = enero)
     const anio = fechaActual.getFullYear();
-    const mails = await dataSource.query('SELECT ema.PersonalEmailEmail, ema.PersonalId FROM PersonalEmail ema WHERE ema.PersonalEmailInactivo <> 1 AND ema.PersonalId=@0', [PersonalId])
-    const estudios = await dataSource.query(`SELECT TOP 1 tip.TipoEstudioId, tip.TipoEstudioDescripcion, est.PersonalEstudioTitulo, est.PersonalEstudioOtorgado, est.PersonalEstudioHasta AS PersonalEstudioVencimiento FROM PersonalEstudio est 
+    const mails = await queryRunner.query('SELECT ema.PersonalEmailEmail, ema.PersonalId FROM PersonalEmail ema WHERE ema.PersonalEmailInactivo <> 1 AND ema.PersonalId=@0', [PersonalId])
+    const estudios = await queryRunner.query(`SELECT TOP 1 tip.TipoEstudioId, tip.TipoEstudioDescripcion, est.PersonalEstudioTitulo, est.PersonalEstudioOtorgado, est.PersonalEstudioHasta AS PersonalEstudioVencimiento FROM PersonalEstudio est 
       JOIN TipoEstudio tip ON tip.TipoEstudioId = est.TipoEstudioId
       WHERE est.PersonalId=@0 AND est.EstadoEstudioId = 2
       ORDER BY tip.TipoEstudioId DESC `, [PersonalId])
-    dataSource
+    queryRunner
       .query(
         `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 
@@ -547,7 +553,8 @@ export class PersonalController extends BaseController {
 
   async getTelefonosPorPersona(PersonalId: string, res: Response, next: NextFunction) {
     try {
-      const result = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const result = await queryRunner.query(
         `SELECT tel.PersonalId, tip.TipoTelefonoDescripcion, tel.PersonalTelefonoNro
         FROM PersonalTelefono tel 
         JOIN TipoTelefono tip ON tip.TipoTelefonoId = tel.TipoTelefonoId
@@ -564,7 +571,8 @@ export class PersonalController extends BaseController {
   async getCuentasBancoPorPersona(PersonalId: string, res: Response, next: NextFunction) {
     try {
       const stmactual = new Date();
-      const result = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const result = await queryRunner.query(
         `SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta
         FROM PersonalBanco cue
         JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId
@@ -620,7 +628,8 @@ export class PersonalController extends BaseController {
       return;
     }
 
-    dataSource
+    const queryRunner = dataSource.createQueryRunner();
+    queryRunner
       .query((query += " 1=1"))
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
@@ -2162,7 +2171,8 @@ export class PersonalController extends BaseController {
     const personalId = Number(req.params.personalId);
 
     try {
-      const listSitRevista = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const listSitRevista = await queryRunner.query(
         `SELECT sitrev.PersonalSituacionRevistaId,
         TRIM(sit.SituacionRevistaDescripcion) Descripcion, TRIM(sitrev.PersonalSituacionRevistaMotivo) Motivo,
         sitrev.PersonalSituacionRevistaDesde Desde, sitrev.PersonalSituacionRevistaHasta Hasta,
@@ -2276,8 +2286,9 @@ export class PersonalController extends BaseController {
 
   async getResponsablesListByPersonal(req: any, res: Response, next: NextFunction) {
     const personalId = Number(req.params.personalId);
+    const queryRunner = dataSource.createQueryRunner();
     try {
-      const responsables = await dataSource.query(`
+      const responsables = await queryRunner.query(`
         SELECT ga.GrupoActividadId, ga.GrupoActividadNumero Numero, ga.GrupoActividadDetalle Detalle,
         gap.GrupoActividadPersonalDesde Desde, gap.GrupoActividadPersonalHasta Hasta,
         CONCAT(TRIM(PersonalApellido),', ',TRIM(PersonalNombre)) Supervisor
@@ -2298,7 +2309,8 @@ export class PersonalController extends BaseController {
 
   async getGrupoActividad(req: any, res: Response, next: NextFunction) {
     try {
-      const options = await dataSource.query(`
+      const queryRunner = dataSource.createQueryRunner();
+      const options = await queryRunner.query(`
         SELECT ga.GrupoActividadId value, ga.GrupoActividadDetalle label
         FROM GrupoActividad ga
         WHERE ga.GrupoActividadInactivo != 1 OR ga.GrupoActividadInactivo IS NULL
@@ -2606,7 +2618,8 @@ UNION ALL
     const personalId = Number(req.params.personalId);
 
     try {
-      const listSitRevista = await dataSource.query(`
+      const queryRunner = dataSource.createQueryRunner();
+      const listSitRevista = await queryRunner.query(`
         SELECT percat.PersonalCategoriaId, percat.PersonalCategoriaTipoAsociadoId, TRIM(tipo.TipoAsociadoDescripcion) TipoAsociado,
         percat.PersonalCategoriaCategoriaPersonalId, TRIM(catper.CategoriaPersonalDescripcion) Categoria,
         percat.PersonalCategoriaDesde Desde, percat.PersonalCategoriaHasta Hasta
@@ -2849,7 +2862,8 @@ UNION ALL
     const personalId = Number(req.params.personalId);
 
     try {
-      const listSitRevista = await dataSource.query(`
+      const queryRunner = dataSource.createQueryRunner();
+      const listSitRevista = await queryRunner.query(`
         SELECT perb.PersonalBancoId,
         TRIM(ban.BancoDescripcion) Descripcion, TRIM(perb.PersonalBancoCBU) CBU,
         perb.PersonalBancoDesde Desde, perb.PersonalBancoHasta Hasta
@@ -3768,7 +3782,8 @@ UNION ALL
   async getDatosBotByPersonalId(req: any, res: Response, next: NextFunction) {
     const PersonalId = Number(req.params.personalId)
     try {
-      const result = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const result = await queryRunner.query(
         `SELECT 
               per.PersonalId id,
               rt.Telefono,
@@ -3815,7 +3830,7 @@ UNION ALL
         "REC"
       ));
 
-      const result = await dataSource.query(
+      const result = await queryRunner.query(
         `SELECT TOP 1 doc.DocumentoId, doc.DocumentoMes,doc.DocumentoAnio,doc.DocumentoFecha, doc.DocumentoDenominadorDocumento 
           FROM Documento doc
           WHERE doc.DocumentoTipoCodigo = 'REC' AND doc.PersonalId = @0

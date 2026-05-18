@@ -592,7 +592,8 @@ export class ParametrosVentaController extends BaseController {
     }
 
     async getTipoProductoSearchOptions(req: any, res: any, next: any) {
-        const result = await dataSource.query(`
+        const queryRunner = dataSource.createQueryRunner();
+        const result = await queryRunner.query(`
         SELECT ProductoCodigo,Nombre FROM Producto `)
         this.jsonRes(result, res);
     }
@@ -607,8 +608,9 @@ export class ParametrosVentaController extends BaseController {
 
 
     async ObjetivoInfoFromId(ClienteId: number, ClienteElementoDependienteId: number) {
+        const queryRunner = dataSource.createQueryRunner();
         try {
-            const result = await dataSource.query(
+            const result = await queryRunner.query(
                 `SELECT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
             CONCAT(TRIM(cli.ClienteDenominacion), TRIM(ele.ClienteElementoDependienteDescripcion)) descripcion, 
             ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId

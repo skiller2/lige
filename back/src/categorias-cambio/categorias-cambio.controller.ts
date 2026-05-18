@@ -105,8 +105,8 @@ export class CategoriasController extends BaseController {
     const filtros = options.filtros;
     const filterSql = filtrosToSql(filtros, columnasGrilla);
     const fecha = options.extra?.fecProcesoCambio || new Date()
-
-    return dataSource.query(
+    const queryRunner = dataSource.createQueryRunner();
+    return queryRunner.query(
       `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ApellidoNombre, ing.PersonalFechaIngreso, 
         cat.CategoriaPersonalDescripcion, cat.TipoAsociadoId, cat.CategoriaPersonalId,
         rel.PersonalCategoriaDesde, rel.PersonalCategoriaHasta, 

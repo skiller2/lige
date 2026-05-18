@@ -113,17 +113,18 @@ export class LiquidacionesController extends BaseController {
   async getPeriodoStatus(req: Request, res: Response, next: NextFunction) {
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
+    const queryRunner = dataSource.createQueryRunner();
     try {
       let status = null
       if (anio && mes) {
-        status = await dataSource.query(
+        status = await queryRunner.query(
           `SELECT peri.anio, peri.mes, peri.periodo_id, peri.ind_recibos_generados, peri.aud_fecha_mod FROM lige.dbo.liqmaperiodo peri WHERE peri.anio=@1 and peri.mes=@2`, [, anio, mes]
         )
         if (!status[0])
           throw new ClientException(`No se encontró el período ${mes}/${anio}`)
 
       } else {
-        status = await dataSource.query(
+        status = await queryRunner.query(
           `SELECT TOP 1 peri.anio, peri.mes, peri.periodo_id, peri.ind_recibos_generados, peri.aud_fecha_mod FROM lige.dbo.liqmaperiodo peri WHERE peri.ind_recibos_generados= 1 ORDER BY peri.anio DESC, peri.mes DESC`, [anio, mes]
         )
       }
@@ -148,17 +149,18 @@ export class LiquidacionesController extends BaseController {
   directory = process.env.PATH_LIQUIDACIONES || "tmp";
 
   async getTipoMovimientoById(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
 
     const TipoMovimientoFilter = req.params.TipoMovimiento;
     try {
       let tipoMovimiento
       if (TipoMovimientoFilter == 'all') {
 
-        tipoMovimiento = await dataSource.query(
+        tipoMovimiento = await queryRunner.query(
           `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo`
         )
       } else {
-        tipoMovimiento = await dataSource.query(
+        tipoMovimiento = await queryRunner.query(
           `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo WHERE tipo.tipo_movimiento_id = @0`
           , [TipoMovimientoFilter])
       }
@@ -176,11 +178,11 @@ export class LiquidacionesController extends BaseController {
   }
 
   async getTipoMovimiento(req: Request, res: Response, next: NextFunction) {
-
     const TipoMovimientoFilter = req.params.TipoMovimiento;
+    const queryRunner = dataSource.createQueryRunner();
     try {
 
-      const tipoMovimiento = await dataSource.query(
+      const tipoMovimiento = await queryRunner.query(
         `SELECT tipo.tipo_movimiento_id, tipo.des_movimiento, tipo.signo, tipo.tipo_movimiento FROM lige.dbo.liqcotipomovimiento AS tipo WHERE tipo.tipo_movimiento = @0`
         , [TipoMovimientoFilter])
 
@@ -198,13 +200,9 @@ export class LiquidacionesController extends BaseController {
   }
 
   async getDocumentInfo(documentId: Number) {
-
-
-    return dataSource.query(
+    const queryRunner = dataSource.createQueryRunner();
+    return queryRunner.query(
       `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS name FROM lige.dbo.convalorimpoexpo WHERE impoexpo_id = @0`, [documentId])
-
-
-
   }
 
   async getByDownloadDocument(req: any, res: Response, next: NextFunction) {
@@ -225,9 +223,10 @@ export class LiquidacionesController extends BaseController {
   }
 
   async getTipoCuenta(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = dataSource.createQueryRunner();
     try {
 
-      const tipoCuenta = await dataSource.query(
+      const tipoCuenta = await queryRunner.query(
         `SELECT tipo.tipocuenta_id,tipo.detalle FROM lige.dbo.liqcontipocuenta AS tipo`)
 
       this.jsonRes(
@@ -253,8 +252,8 @@ export class LiquidacionesController extends BaseController {
   ) {
 
     try {
-
-      const importacionesAnteriores = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const importacionesAnteriores = await queryRunner.query(
 
         `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS nombre, path, aud_fecha_ins AS fecha FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1 AND ind_eliminado = 0`,
         [Anio, Mes])
@@ -441,8 +440,8 @@ export class LiquidacionesController extends BaseController {
 
 
     try {
-
-      const liqudacion = await dataSource.query(
+      const queryRunner = dataSource.createQueryRunner();
+      const liqudacion = await queryRunner.query(
         `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,eledep.ClienteElementoDependienteDescripcion,CONCAT(cus.CustodiaCodigo, ' ', cli.ClienteDenominacion,' ',FORMAT (cus.FechaInicio,'dd/MM/yyyy') ) AS CustodiaDescripcion,  CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
         li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.horas, cuit.PersonalCUITCUILCUIT,
         cat.CategoriaPersonalDescripcion

@@ -135,6 +135,7 @@ export class ImpuestosAfipController extends BaseController {
   }) {
 
     const filtros = params.options.filtros;
+    const queryRunner = dataSource.createQueryRunner();
 
 
     const orderBy = orderToSQL(params.options.sort)
@@ -170,7 +171,7 @@ export class ImpuestosAfipController extends BaseController {
 
 
     if (filter1IsActive) {
-      const personalIdArr = await dataSource.query(`SELECT 
+      const personalIdArr = await queryRunner.query(`SELECT 
       suc.SucursalId, 
       obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, 
       persona.PersonalId, cuit.PersonalCUITCUILCUIT, persona.PersonalApellido, persona.PersonalNombre, 
@@ -213,7 +214,7 @@ export class ImpuestosAfipController extends BaseController {
       filterSql2 += `AND per.PersonalId IN (${listPersonalId})`
     }
 
-    return dataSource.query(`
+    return queryRunner.query(`
       SELECT DISTINCT 
         CONCAT(per.PersonalId,'-',com.PersonalComprobantePagoAFIPId,'-',des.PersonalOtroDescuentoId,'-',doc.DocumentoId) id,
         per.PersonalId PersonalId,
@@ -283,7 +284,8 @@ export class ImpuestosAfipController extends BaseController {
         ? "AND gap.GrupoActividadId = @4"
         : "";
 
-    return dataSource.query(
+    const queryRunner = dataSource.createQueryRunner();
+    return queryRunner.query(
       `SELECT 
       per.PersonalId PersonalId,
       
