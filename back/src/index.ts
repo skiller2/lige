@@ -1,10 +1,10 @@
+import 'dotenv/config';
 import { DBServer, WebServer } from "./server.ts";
 import { makeRoutes } from "./routes/routes.module.ts"
 import { dataSource } from "./data-source.ts";
 import { scheduleJob } from "node-schedule"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller.ts";
 import { CargaLicenciaController } from "./carga-licencia/carga-licencia.controller.ts";
-import dotenv from "dotenv"
 import { GrupoActividadController } from "./grupo-actividad/grupo-actividad.controller.ts";
 import { AsistenciaController } from "./controller/asistencia.controller.ts";
 import { SegurosController } from "./seguros/seguros.controller.ts";
@@ -19,8 +19,6 @@ import { logger } from "./logger/logger.ts";
 
 logger.info('pdfjs-dist', {version: version}); // Verificar la versión del core
 
-
-dotenv.config({})
 
 // Init App
 const dbServer = new DBServer(5, 2000, dataSource)

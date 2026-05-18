@@ -5,9 +5,10 @@ import { type LogPayload, type LogLevel } from './logger.types.ts';
 class Logger {
   private worker: Worker;
   private devLogger?: pino.Logger;
-  private isDev = process.env.NODE_ENV === 'dev' ? true : false;
-
+  isDev: boolean;
   constructor() {
+    this.isDev = process.env.NODE_ENV === 'dev' ? true : false;
+
     // ✅ Worker (always active)
     const workerPath = (this.isDev ? './worker/logger.worker.ts' : './logger/worker/logger.worker.js');
     this.worker = new Worker(
