@@ -1,0 +1,14 @@
+<nz-select
+  [ngModel]="selected"
+  (ngModelChange)="modelChange($event)"
+  (blur)="onBlur()"
+  [nzDisabled]="controlDisabled"
+  nzAllowClear
+  nzShowSearch
+  nzPlaceHolder="Seleccione un tipo"
+  [nzDropdownMatchSelectWidth]="false"
+  style="width: 100%;">
+  @for (tipo of tiposDestino(); track tipo.value) {
+    <nz-option [nzLabel]="tipo.label" [nzValue]="tipo.value"></nz-option>
+  }
+</nz-select>

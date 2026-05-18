@@ -1,0 +1,58 @@
+<form style="margin-top: 30px;">
+
+  <div nz-row [nzGutter]="16">
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="8">Fecha</nz-form-label>
+        <nz-form-control [nzSpan]="16">
+          <nz-date-picker [formField]="formEfectoStock.fecha" nzFormat="dd/MM/yyyy" style="width: 100%;"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+
+    <div nz-col [nzSpan]="10">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="8">Tipo destino</nz-form-label>
+        <nz-form-control [nzSpan]="16">
+          <app-tipo-destino-search [formField]="formEfectoStock.tipoDestino" />
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+  </div>
+
+  @if (tipoDestinoSeleccionado() === 'deposito') {
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="18">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="4">Depósito</nz-form-label>
+          <nz-form-control [nzSpan]="20">
+            <nz-select [formField]="formEfectoStock.depositoId" nzAllowClear nzPlaceHolder="Seleccione un depósito"
+              [nzDropdownMatchSelectWidth]="false" style="width: 100%;" nzShowSearch
+              [nzLoading]="depositos.isLoading()">
+              @for (dep of depositos.value() ?? []; track dep.DepositoId) {
+                <nz-option [nzLabel]="dep.DepositoNombre" [nzValue]="dep.DepositoId"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  }
+
+  @if (tipoDestinoSeleccionado() === 'personal') {
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="18">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="4">Persona</nz-form-label>
+          <nz-form-control [nzSpan]="20">
+            <app-personal-search [formField]="formEfectoStock.personalId" [anio]="anio()" [mes]="mes()" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  }
+
+  <nz-divider nzText="Detalle">
+  </nz-divider>
+
+</form>

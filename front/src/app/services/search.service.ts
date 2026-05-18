@@ -2314,6 +2314,16 @@ export class SearchService {
     );
   }
 
+  getStockEfectoTiposDestino() {
+     return this.http.get<ResponseJSON<any>>(`api/stock-efecto/tipos-destino`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        console.log('Something went wrong!');
+        return of([]);
+      })
+    );
+  }
+
   getEfectoByPersonalId(personalId: number) {
     if (!personalId) {
             this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);

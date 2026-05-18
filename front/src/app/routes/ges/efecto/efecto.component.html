@@ -35,6 +35,10 @@
         (click)="reloadGrid()">
         <span nz-icon nzType="reload" nzTheme="outline"></span>
       </button>
+        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.stock' | i18n }}"
+        [routerLink]="['/', 'ges', 'efecto', 'stock']">
+        <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
+      </button>
     </nz-button-group>
   </div>
 
@@ -64,5 +68,12 @@
       <app-table-proveedores-efecto [refreshGrid]="refreshTickProveedores()" />
     </div>
   }
+  @if (visitedTabs().has('stock')) {
+    
+      <app-efecto-stock />
+    
+  }
+  
+
 
 </nz-card>

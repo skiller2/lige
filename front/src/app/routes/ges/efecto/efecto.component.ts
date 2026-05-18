@@ -7,6 +7,7 @@ import { TableObjetivosEfectoComponent } from '../table-objetivos-efecto/table-o
 import { TableDepositoEfectoComponent } from '../table-deposito-efecto/table-deposito-efecto';
 import { TableProveedoresEfectoComponent } from '../table-proveedores-efecto/table-proveedores-efecto';
 import { TableEfectoGeneralComponent } from '../table-efecto-general/table-efecto-general';
+import { EfectoStockComponent } from '../efecto-stock/efecto-stock';
 import { SettingsService } from '@delon/theme';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -20,7 +21,8 @@ import { map } from 'rxjs';
     TableObjetivosEfectoComponent,
     TableDepositoEfectoComponent,
     TableProveedoresEfectoComponent,
-    TableEfectoGeneralComponent
+    TableEfectoGeneralComponent,
+    EfectoStockComponent,
   ],
   templateUrl: './efecto.component.html',
   styleUrl: './efecto.component.less',
