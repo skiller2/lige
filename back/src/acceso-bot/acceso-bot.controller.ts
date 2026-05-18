@@ -618,7 +618,7 @@ export class AccesoBotController extends BaseController {
                     }
                 }
 
-                readQRCode(normalizedPath).then(console.log).catch(console.log)
+                readQRCode(normalizedPath)
             } catch (error) {
                 if (error instanceof NotFoundException) {
                     console.error(`No se encontró un código QR en la imagen ${file.filename}.`);

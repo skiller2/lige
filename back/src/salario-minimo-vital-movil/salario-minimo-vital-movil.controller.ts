@@ -51,7 +51,6 @@ export class SalarioMinimoVitalMovilController extends BaseController {
     const queryRunner = dataSource.createQueryRunner();
     try {
       await queryRunner.startTransaction()
-      console.log("...........req.body.options", req.body.options);
       const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas)
       const orderBy = orderToSQL(req.body.options.sort)
      const lista: any[] = await queryRunner.query(`

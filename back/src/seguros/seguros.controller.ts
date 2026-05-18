@@ -775,7 +775,6 @@ UNION
     req: any,
     res: Response, next: NextFunction
   ) {
-    console.log("req.body.options.filtros ", req.body.options.filtros)
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
     const anio: number = req.body.anio
@@ -951,7 +950,6 @@ UNION
 
     let result = []
 
-    console.log("req.body", req.body)
 
     let resultFile = null
     const usuario = res.locals.userName
@@ -1019,7 +1017,7 @@ UNION
 
       if (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) {
         // is edit
-        console.log("is edit")
+
 
         resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0], endoso[1]);
 
@@ -1056,7 +1054,6 @@ UNION
       } else {
         // is new
 
-        console.log("is new")
         resultFile = await this.fileSeguroUpload(files, queryRunner, usuario, ip, polizaEndoso[0], endoso[1])
 
         const polizaExistente = await queryRunner.query(`SELECT COUNT(*) as count FROM PolizaSeguro WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`, [polizaEndoso[0], endoso[1], CompaniaSeguroId, TipoSeguroCodigo])

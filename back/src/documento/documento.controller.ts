@@ -374,7 +374,6 @@ export class DocumentoController extends BaseController {
     const orderBy = orderToSQL(req.body.options.sort)
     try {
       const TipoDocumentos = await this.getdocgenralListQuery(filterSql, orderBy)
-      // console.log("movimientosPendientes " +  TipoDocumentos.length)
       this.jsonRes(
         {
           total: TipoDocumentos.length,

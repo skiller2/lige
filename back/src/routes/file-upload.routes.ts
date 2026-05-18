@@ -47,7 +47,6 @@ const storage = multer.diskStorage({
     file.fieldname = originalname.toString()
 
     //const originalname = file.uid;
-    console.log(file)
     let type = file.mimetype.split("/")[1]
     if (type == "vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       type = "xlsx"
@@ -134,8 +133,7 @@ FileUploadRouter.post("/upload", authMiddleware.verifyToken, (req, res, next) =>
         size: req.file.size,
       }
 
-      console.log('fileData', fileData)
-
+      
       return res
         .status(200)
         .json({ msg: "archivo subido con exito!", data: [fileData], stamp: new Date() });

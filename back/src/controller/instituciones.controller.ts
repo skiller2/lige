@@ -327,7 +327,6 @@ export class InstitucionesController extends BaseController {
     let { CentroCapacitacionId, CentroCapacitacionCuit, CentroCapacitacionRazonSocial, CentroCapacitacionInactivo,CentroCapacitacionIdForEdit } 
     = req.body
 
-    console.log("req.body", req.body)
     let result = []
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
@@ -335,7 +334,6 @@ export class InstitucionesController extends BaseController {
     //throw new ClientException(`test.`)
     CentroCapacitacionInactivo = CentroCapacitacionInactivo ? CentroCapacitacionInactivo : false
 
-    console.log("CentroCapacitacionInactivo", CentroCapacitacionInactivo)
 
     await this.validateFormInstituciones(CentroCapacitacionCuit, CentroCapacitacionRazonSocial, CentroCapacitacionInactivo)
     const queryRunner = dataSource.createQueryRunner()
@@ -362,7 +360,6 @@ export class InstitucionesController extends BaseController {
 
       }else{
         // is new
-      console.log("estoy agregando")
 
 
       await queryRunner.query(`

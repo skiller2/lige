@@ -37,7 +37,6 @@ export class ReportesController extends BaseController {
 
       const dataparam:any = await para.json()
 
-      console.log(dataparam)
       return this.jsonRes(dataparam, res)
     } catch (error) {
       return next(error)

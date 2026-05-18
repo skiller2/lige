@@ -54,7 +54,6 @@ export class AuthMiddleware {
           }
           res.locals.lastDbQueryTime = new Date()
         } catch (err) {
-          console.log('error recargando grupos', err);
           return res.status(500).json({ msg: "Error recargando grupos de actividad", error: err, stamp: new Date() });
         } finally {
           await queryRunner.release();
@@ -323,7 +322,6 @@ export class AuthMiddleware {
               return this.validateJsonPermisosActDir(DocumentoTipo[0].DocumentoTipoJsonPermisosActDir)(req, res, next);
             }
 
-            console.log('no tiene documento ni tipo de documento');
             return res.status(403).json({ msg: `No tiene permiso para manipular al documento.` });
 
           case 'documento':
