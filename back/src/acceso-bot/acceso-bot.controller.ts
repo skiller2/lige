@@ -361,7 +361,7 @@ export class AccesoBotController extends BaseController {
         const usuario = res.locals.userName
         const ip = this.getRemoteAddress(req)
         const queryRunner = dataSource.createQueryRunner();
-        console.log('validateRecibo', cuit, recibo)
+
         try {
 
             let personaIdQuery = await queryRunner.query(`SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0`, [cuit])
@@ -421,7 +421,6 @@ export class AccesoBotController extends BaseController {
 
                 const lastRegisteredCbuLastSix = String(lastCBU[0]?.PersonalBancoCBU ?? '').slice(-6)
 
-                console.log('activeCbuLastSix', activeCbuLastSix, 'lastRegisteredCbuLastSix', lastRegisteredCbuLastSix)
                 if (!lastRegisteredCbuLastSix || lastRegisteredCbuLastSix !== cbu)
                     throw new ClientException(`El número proporcionado es incorrecto para el CUIT ${cuit}`);
             }
@@ -604,7 +603,6 @@ export class AccesoBotController extends BaseController {
 
                 const readQRCode = async (fileName) => {
                     const filePath = normalizedPath
-                    console.log("filePath ", filePath)
                     try {
                         if (fs.existsSync(filePath)) {
                             const img = await Jimp.read(fs.readFileSync(filePath));

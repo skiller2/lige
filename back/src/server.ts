@@ -138,14 +138,6 @@ export class WebServer {
   }
 
   public lateInit() {
-    /*
-        this.app.use("*",function (req:Request, res:Response, next:NextFunction) {
-          console.log('pasa por aca')
-          res.locals.stopTime = performance.now()
-          res.json({ hola: 'hola' })
-          res.end()
-        });
-    */
     this.app.use(errorResponder)
     this.app.set("pkg", { version, author, name, description });
 

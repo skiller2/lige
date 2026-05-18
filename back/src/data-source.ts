@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm";
 import type { QueryRunner } from "typeorm";
+import { logger } from "./logger/logger.ts";
 
 export const dataSource = new DataSource({
   type: "mssql",
@@ -23,10 +24,10 @@ export const dataSource = new DataSource({
 export async function getConnection(): Promise<QueryRunner> {
   const ds = dataSource
   while (!ds.isInitialized) {
-    console.log('esparando inicialización')
+    logger.info('esparando inicialización')
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
-  console.log('creo queryRunner')
+  logger.info('creo queryRunner')
   return ds.createQueryRunner();
   //return null
   }

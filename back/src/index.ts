@@ -14,9 +14,10 @@ import { HabilitacionesController } from "./habilitaciones/habilitaciones.contro
 import { GestionDescuentosController } from "./gestion-descuentos/gestion-descuentos.controller.ts";
 
 import { version } from "pdfjs-dist";
+import { logger } from "./logger/logger.ts";
 
 
-console.log('pdfjs-dist version:', version, ) // Verificar la versión del core
+logger.info('pdfjs-dist', {version: version}); // Verificar la versión del core
 
 
 dotenv.config({})
@@ -44,30 +45,30 @@ scheduleJob('5 0 * * *', async function (fireDate) { //At 12:02 AM
   //Procesa las CUOTAS de los descuentos de EFECTOS
   const gestionDescuentosController = new GestionDescuentosController()
   const ret  = await gestionDescuentosController.jobDescuentoCuotas(null, null, (ret: any) => ret) 
-  console.log(`job run at ${fireDate}, response: ${ret}`);
+  logger.info(`jobDescuentoCuotas run at ${fireDate}, response: ${ret}`)
 });
  
 scheduleJob('3 0 * * *', async function (fireDate) { //At 12:03 AM
   //TODO Se debería instanciar Response correctamente
 
   const ret = await grupoActividadController.objetivosGrupos(null, null, (ret: any) => ret)
-  console.log(`job run at ${fireDate}, response: ${ret}`);
+  logger.info(`objetivosGrupos run at ${fireDate}, response: ${ret}`)
 });
 
 scheduleJob('4 0 * * *', async function (fireDate) {//At 12:04 AM
   const ret = await cargaLicenciaController.deleleTemporalFiles(null, null, (ret: any) => ret)
-  console.log(`job run at ${fireDate}, response: ${ret}`);
+  logger.info(`deleleTemporalFiles run at ${fireDate}, response: ${ret}`);
 });
 
 scheduleJob('4 0 * * *', async function (fireDate) {//At 12:04 AM
   const ret = await cargaLicenciaController.deleleTemporalFiles(null, null, (ret: any) => ret)
-  console.log(`job run at ${fireDate}, response: ${ret}`);
+  logger.info(`deleleTemporalFiles run at ${fireDate}, response: ${ret}`);
 });
 
 scheduleJob('0 0 1 * *', async function (fireDate) { //At 12:00 AM, on day 1 of the month
 
   const ret = await grupoActividadController.gruposPersonas(null, null, (ret: any) => ret)
-  console.log(`job run at ${fireDate}, response: ${ret}`);
+  logger.info (`job grupoActividadController run at ${fireDate}, response: ${ret}`);
 });
 
 scheduleJob('5 0 * * *', async function (fireDate) {  //At 12:05 AM
@@ -119,13 +120,13 @@ fechaActual.setHours(0, 0, 0, 0)
 let fechaAyer = new Date()
 fechaAyer.setDate(fechaAyer.getDate() - 1);
 fechaAyer.setHours(0, 0, 0, 0)
-console.log('actual', fechaActual, 'ayer', fechaAyer)
+logger.info('Fecha', { actual:fechaActual, ayer: fechaAyer })
 
 
 const currentDateTime = Temporal.Now.zonedDateTimeISO()
 const newDateTime = currentDateTime.subtract({ months: 1 });
 
-console.log('newDateTime',newDateTime.toString())
+logger.info('New DateTime', { newDateTime: newDateTime.toString() });
 
 
 dbServer.init()
@@ -164,3 +165,7 @@ webServer.init()
     process.exit()
   })
 
+
+setInterval(() => {
+  logger.debug('Heartbeat', { uptime: process.uptime() });
+}, 5000);

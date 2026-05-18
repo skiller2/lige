@@ -1678,7 +1678,6 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       */
 
 
-      //console.log('retirosxobj', retirosxobj)
 
       this.jsonRes({ descuentos: resultC, totalC }, res);
     } catch (error) {
