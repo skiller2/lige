@@ -1,22 +1,30 @@
-import { parentPort } from 'worker_threads';
-import pino from 'pino';
-import { sendToTransport } from './transport.ts';
-import { type LogPayload } from '../logger.types.ts';
+import { parentPort, workerData } from "worker_threads";
+import { initTransport, sendToTransport } from "./transport.ts";
+import { createWriteStream } from "node:fs";
+import path from "node:path";
 
-const logger = pino({
-  level: 'trace'
-});
+/**
+ * Receive config from main thread
+ */
+const { logFile } = workerData;
 
-if (!parentPort) {
-  throw new Error('Worker must be started via worker_threads');
+/**
+ * Decide stream INSIDE worker ✅
+ */
+let stream: NodeJS.WritableStream;
+
+if (logFile === 'STDOUT') {
+  stream = process.stdout;
+} else {
+  const filePath = path.resolve(process.cwd(), logFile);
+  stream = createWriteStream(filePath, { flags: "a" });
 }
 
-parentPort.on('message', (payload: LogPayload) => {
-  
-  const { level, message, context } = payload;
+initTransport(stream);
 
-  //logger[level]?.(context || {}, message);
-
+/**
+ * Listen logs
+ */
+parentPort?.on("message", (payload) => {
   sendToTransport(payload);
-  
 });

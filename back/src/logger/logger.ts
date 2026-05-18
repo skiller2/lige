@@ -2,21 +2,25 @@ import { Worker } from 'worker_threads';
 import pino from 'pino';
 import { type LogPayload, type LogLevel } from './logger.types.ts';
 
+const isProd = process.env.NODE_ENV !== "dev";
+
 class Logger {
   private worker: Worker;
   private devLogger?: pino.Logger;
-  isDev: boolean;
-  constructor() {
-    this.isDev = process.env.NODE_ENV === 'dev' ? true : false;
 
-    // ✅ Worker (always active)
-    const workerPath = (this.isDev ? './worker/logger.worker.ts' : './logger/worker/logger.worker.js');
+  constructor() {
+    const workerPath = isProd ? "./logger/worker/logger.worker.js" : "./worker/logger.worker.ts";
     this.worker = new Worker(
-      new URL(workerPath, import.meta.url)
+      new URL(workerPath, import.meta.url),
+      {
+        workerData: {
+          logFile: process.env.LOG_FILE || 'STDOUT',
+        }
+      }
     );
 
     // ✅ Dev console logger (ONLY in development)
-    if (this.isDev) {
+    if (!isProd) {
       this.devLogger = pino({
         level: 'trace',
         transport: {
@@ -41,11 +45,9 @@ class Logger {
       time: Date.now()
     };
 
-    if (!this.isDev) {
+    if (isProd) {
       this.worker.postMessage(payload);
-    }
-    // ✅ DEV ONLY → console output
-    if (this.devLogger) {
+    } else {
       this.devLogger[level](context || {}, message);
     }
   }
