@@ -166,4 +166,4 @@ webServer.init()
 
 setInterval(() => {
   logger.debug('Heartbeat', { uptime: process.uptime() });
-}, 1 * 60 * 1000); // Cada 1 horas
+}, 1 * 60 * 60 * 1000); // Cada 1 horas

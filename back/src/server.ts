@@ -42,7 +42,7 @@ export class DBServer {
           })
           .catch((error) => {
             logger.error(
-              `${error.message}, retry ${this.retriesCount} in ${this.timeOutDelay} ms.`
+              `${error.message}, retry ${this.retriesCount} in ${this.timeOutDelay} ms.`,{user:'server'}
             );
             this.retriesCount++;
           });
@@ -62,7 +62,6 @@ const errorResponder = (
   let status = 500
   
   logger.error(error.message, { stack: error.stack, cause: error.cause,user:res?.locals.userName||'server' });
-
   if (error instanceof ClientWarning) { 
     message = error.messageArr
     status = 400
