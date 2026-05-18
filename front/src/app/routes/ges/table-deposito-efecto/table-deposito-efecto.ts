@@ -51,9 +51,7 @@ export class TableDepositoEfectoComponent {
   columns = toSignal(this.apiService.getCols('/api/efecto/colsDeposito'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => this.filtersReady()
-      ? { options: this.listOptions(), refresh: this.refreshGrid() }
-      : undefined,
+    params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
     loader: async ({ params }) => {
       if (!params.options?.filtros?.length) return []
       this.loadingSrv.open({ type: 'spin', text: '' })
