@@ -828,7 +828,7 @@ UNION
     req: any,
     res: Response, next: NextFunction
   ) {
-    //console.log("req.body.options.filtros ", req.body.options.filtros)
+     
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPoliza);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
@@ -870,7 +870,7 @@ UNION
     req: any,
     res: Response, next: NextFunction
   ) {
-    //console.log("req.body.options.filtros ", req.body.options.filtros)
+     
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPersonalSeguro);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
@@ -987,7 +987,7 @@ UNION
       //const endosoRegex = new RegExp(/\d{9} (\d{6})/m);
       //const fechaDesdeRegex = new RegExp(/^(\d{2}\.\d{2}\.\d{4})/m);
 
-      //console.log("detalle_documento", detalle_documento)
+       
       //const dni = detalle_documento.match(dniRegex).map(match => match.replace('DNI ', ''))
       const dnis = [...detalle_documento.matchAll(dniRegex)].map(m => m[1]);
 
@@ -1109,7 +1109,7 @@ UNION
       const fechaPersonalSeguro = new Date(anio, mes - 2, 1);
 
       const validationDniResults = await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo, usuario, ip, fechaPersonalSeguro, polizaEndoso[0], endoso[1], CompaniaSeguroId)
-      //console.log("validationDniResults", validationDniResults)
+       
       //throw new ClientException(`test.`)
       const version = await queryRunner.query(`
         SELECT PolizaSeguroVersion FROM PolizaSeguro 
@@ -1157,7 +1157,7 @@ UNION
     const notFoundInPersonalSeguro: number[] = [];
     const shouldNotBeInSeguro: number[] = [];
 
-    //console.log("dni", dni)
+     
     //throw new ClientException(`test.`)
     const dniNumeros = dni.map(d => parseInt(d.replace(/\./g, '')));
 

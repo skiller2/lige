@@ -14,7 +14,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
     //     const personalId = myState.personalId
     //     const cuit = myState.cuit
     //     const monotributoPdf : any = await impuestosAfipController.downloadComprobante(personalId).then((data:any) => {return data})
-    //     // console.log('monotributoPdf -->', monotributoPdf);
+    //      
     //     if (monotributoPdf instanceof ClientException)
     //         await flowDynamic([{body:`Error. Avisé al administrador`, delay:delay}])
     //     else
@@ -25,7 +25,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         const myState = state.getMyState()
         const personalId = myState.personalId
         const periodosArray: any[] = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, 3).then(array => { return array })
-        // console.log('periodos', periodosArray);
+         
         let resPeriodos = ''
         if (periodosArray && periodosArray?.length) {
             periodosArray.forEach((obj: any, index: number) => {

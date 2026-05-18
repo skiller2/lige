@@ -141,8 +141,8 @@ export class FacturacionFormComponent {
       this.formCli.get('ClienteFacturacionCUIT')?.disable()
       this.formCli.get('ClienteApellidoNombre')?.disable()
 
-      //console.log(this.formCli.disabled)
-      //console.log(this.formCli.getRawValue()); 
+       
+        
 
   if(this.rowSelected().length > 0){
 

@@ -975,10 +975,10 @@ export class RecibosController extends BaseController {
         console.error(`Error al descargar el PDF: ${filesPath}`, err);
         return next(err);
       } else {
-        //console.log('PDF descargado con éxito');
+         
         try {  await unlink(filesPath) }catch(error){}
 
-        // console.log('PDF eliminado del servidor');
+         
       }
     });
   }

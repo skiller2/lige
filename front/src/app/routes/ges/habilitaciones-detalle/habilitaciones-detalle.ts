@@ -132,7 +132,7 @@ export class HabilitacionesDetalleComponent {
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridDetalle.slickGrid.getDataItem(selrow)
-    // console.log('row: ', row);
+     
 
     if (row?.id) {
       this.codigo.set(row.GestionHabilitacionCodigo)

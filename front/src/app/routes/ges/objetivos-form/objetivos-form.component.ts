@@ -260,7 +260,7 @@ export class ObjetivosFormComponent {
   async load() {
 
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
-    // console.log('infoObjetivo: ', infoObjetivo);
+     
     
     // this.infoCoordinadorCuenta().clear()
     // this.infoActividad().clear()
@@ -339,7 +339,7 @@ export class ObjetivosFormComponent {
 
           let result = await firstValueFrom(this.apiService.updateObjetivo(value, this.objetivo().id))
           //this.formObj.reset(result.data)
-          //console.log("result ", result)
+           
           this.objetivo.update(m => ({
             ...m,
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,

@@ -156,124 +156,6 @@ export class AuthController extends BaseController {
     }
   }
 
-
-
-  /*
-    authUserjs(user: string, password: string) {
-      return new Promise((resolve, reject) => {
-        const url = process.env.LDAP_URL ? process.env.LDAP_URL : "";
-        const client = createClient({
-          url: [url],
-          reconnect: false,
-          connectTimeout: 5000,
-          timeout: 5000,
-          //
-          tlsOptions: { rejectUnauthorized: false }
-        },);
-        client.on("error", (err: any) => {
-          err.message = "Servicio de validación no disponible";
-          return reject(err);
-        });
-   
-        client.on("connect", (res: any) => { });
-   
-        const username = process.env.LDAP_USERNAME
-          ? process.env.LDAP_USERNAME
-          : "";
-        const passowrd = process.env.LDAP_PASSWORD
-          ? process.env.LDAP_PASSWORD
-          : "";
-   
-        client.bind(
-          username,
-          passowrd,
-   
-          (err: any) => {
-            //ifError(err);
-            if (err) return reject(err);
-          }
-        );
-   
-        const samname = user.split("@")[0];
-   
-        const opts: SearchOptions = {
-          filter: `(&(objectClass=user)(|(mail=${user})(sAMAccountName=${samname})))`,
-          scope: "sub",
-          //        attributes: ['dn', 'sn', 'cn', 'mail', 'name', 'sAMAccountName'],
-          paged: false,
-          sizeLimit: 0,
-        };
-        const ldapsearch = process.env.LDAP_SEARCH ? process.env.LDAP_SEARCH : "";
-        client.search(ldapsearch, opts, (err: any, res: any) => {
-          ifError(err);
-   
-   
-          let userEntry: SearchEntry | null = null;
-          res.on("searchEntry", (entry: SearchEntry) => {
-            userEntry = entry;
-          });
-   
-          res.on("error", (err: any) => {
-            err.message = "Servicio de validación no disponible";
-          });
-   
-          res.on("end", (result: any) => {
-            if (!userEntry)
-              return reject(new ClientException("Las credenciales ingresadas no son válidas"));
-      
-            const control = new Control({type: '1.3.6.1.4.1.42.2.27.8.5.1', criticality:false})
-  //          client.bind(userEntry.pojo.objectName, password, (err: any) => {
-            
-  client.on('connectTimeout', () => {console.log('Errorrrrrrrr')})
-        client.on('connectError', () => {console.log('Errorrrrrrrr')})
-        client.on('connectRefused', () => {console.log('Errorrrrrrrr')})          
-        client.on('error', (err) => {console.log('Errorrrrrrrr',err)})          
-            client.bind(samname + '@finanzas', password, control, (err: any, res: any) => {
-   
-   
-              console.log('loque', err,res)
-      
-  //            client.destroy();
-              if (err) {
-                if (err.code == 49) { //NT_STATUS_LOGON_FAILURE
-                  return reject(new ClientException(`Las credenciales ingresadas no son válidas para el usuario ${samname}.`));
-                }
-                return reject(new ClientException("Las credenciales ingresadas no son válidas.."));
-              }
-   
-              return resolve({
-                email: userEntry.pojo.attributes
-                  .filter((f: { type: string }) => f.type == "mail")
-                  .map((m: any[]) => m.values)[0],
-                name: userEntry.pojo.attributes
-                  .filter((f: { type: string }) => f.type == "name")
-                  .map((m: any[]) => m.values)[0],
-                username: userEntry.pojo.attributes
-                  .filter((f: { type: string }) => f.type == "sAMAccountName")
-                  .map((m: any[]) => m.values)[0],
-                description: userEntry.pojo.attributes
-                  .filter((f: { type: string }) => f.type == "description")
-                  .map((m: any[]) => m.values)[0],
-                groups: userEntry.pojo.attributes
-                  .filter((f: { type: string }) => f.type == "memberOf")
-                  .map((m: any[]) => m.values),
-              });
-            });
-   
-            
-            //if (result.status == 0) {
-            //  const err: any = {
-            //    message: "Las credenciales proporcionadas no son válidas"
-            //  }
-            //  return reject(err);
-            // }
-            
-          });
-        });
-      });
-    }
-  */
-
   encryptPassword(password: string) {
     const salt = bcryptjs.getSalt("10");
     //    const salt = "10";
@@ -329,7 +211,6 @@ export class AuthController extends BaseController {
       const token = jsonwebtoken.sign(user, jwtsecret, {
         expiresIn: Number(process.env.JWT_EXPIRE_SECS),
       });
-      //console.log("jwt", jwt);
       //const tokenDecoded: any = decode(token);
       this.jsonRes({ token: token }, res);
     } catch (error) {

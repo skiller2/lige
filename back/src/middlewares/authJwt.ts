@@ -4,7 +4,7 @@ import { dataSource } from "../data-source.ts";
 //import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {
   catchError = (err: any, res: any) => {
-    //console.log('error', err.message);
+     
 
     //if (err instanceof TokenExpiredError) {
     //  return res.status(401).send({ message: "Unauthorized! Access Token was expired!" });
@@ -179,8 +179,8 @@ export class AuthMiddleware {
       const mes = Number(req.body.mes);
       const opcionGrupoActividad = req.body.options.filtros
 
-      // console.log('hasAuthGrupoActividad', PersonalId, anio, mes, GrupoActividadId, opcionGrupoActividad, req.body, 'res.locals', res.locals);
-      // console.log(' req.params', req.params, 'req.query', req.query, 'req.body', req.body);
+       
+       
 
       if (PersonalId < 1) return res.status(403).json({ msg: `No se especifico PersonalId` })
       if (!anio || !mes) return res.status(403).json({ msg: `No se especifico anio o mes` })
@@ -189,7 +189,7 @@ export class AuthMiddleware {
       const queryRunner = dataSource.createQueryRunner()
 
       const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
-      // console.log('grupos', grupos);
+       
       if (grupos.length > 0) {
         for (const row of grupos) {
           if (row.GrupoActividadId == GrupoActividadId) {
@@ -198,7 +198,7 @@ export class AuthMiddleware {
           }
         }
       }
-      // console.log('res.locals', res.locals);
+       
       return res.status(403).json({ msg: `No tiene permiso para acceder al grupo de actividad ${GrupoActividadId}` })
     }
   }
@@ -209,7 +209,7 @@ export class AuthMiddleware {
       const queryRunner = dataSource.createQueryRunner();
       await queryRunner.connect();
       await queryRunner.startTransaction();
-      // console.log('params -----', req.params, 'body -----', req.body, 'query -----', req.query);
+       
 
 
       try {
@@ -224,18 +224,18 @@ export class AuthMiddleware {
 
         const path = req?.route?.path
 
-        // console.log('documentId', documentId, 'documentType', documentType, 'tableForSearch', tableForSearch, 'path', path);
+         
 
-        // console.log('tableforsearch', tableForSearch);
-        // console.log('query --------- ', req.query);
-        // console.log('documentType', documentType);
-        // console.log('req -------------------- ', req);
-        // console.log('req.url -------------------- ', req.url);
-        // console.log('req.params -------------------- ', req.params);
-        // console.log('req.body -------------------- ', req.body);
-        // console.log('res -------------------- ', res);
-        // console.log('res.locals -------------------- ', res.locals);
-        // console.log('req.royte.path', req.route.path);
+         
+         
+         
+         
+         
+         
+         
+         
+         
+         
 
         if (!documentId && !documentType && !tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
         if (!tableForSearch) return res.status(403).json({ msg: "Documento Requerido. No se ha adjuntado ningún documento." })

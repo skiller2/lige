@@ -199,7 +199,7 @@ export class ExcepcionesAsistenciaComponent {
       this.loadingRec.set(false)
       return
     }
-    // console.log(ids,this.rows());
+     
     try {
       await firstValueFrom(this.apiService.excepcionesAsistenciaRechazar({ ids: ids, rows: this.rows() }))
       this.listExcepcionesAsistencia$.next('')
@@ -220,7 +220,7 @@ export class ExcepcionesAsistenciaComponent {
       this.loadingPen.set(false)
       return
     }
-    // console.log(ids,this.rows());
+     
     try {
       const res: any = await firstValueFrom(this.apiService.excepcionesAsistenciaPendiente({ ids: ids, rows: this.rows() }))
       this.listExcepcionesAsistencia$.next('')

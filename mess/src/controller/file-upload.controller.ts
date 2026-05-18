@@ -412,8 +412,8 @@ export class FileUploadController extends BaseController {
           }
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-          //console.log("newFilePath", newFilePath)
-          //console.log("file.tempfilename", file.tempfilename)
+           
+           
           this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
@@ -675,7 +675,7 @@ export class FileUploadController extends BaseController {
 
         if (fechaCreacion < limiteFecha) {
           await unlink(filePath);
-          // console.log(`Archivo ${file} borrado.`);
+           
         }
       });
 

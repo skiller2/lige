@@ -236,7 +236,7 @@ export class TableHistorialContratoComponent {
 
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-    //console.log('this.angularGrid', this.angularGrid);
+     
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])

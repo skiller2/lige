@@ -88,9 +88,9 @@ export class ReportesController extends BaseController {
 
         //for (const param of dataparam.value) {
           //const filtro = Object.entries(Filtros).find(x => x[0].localeCompare(param.Name, 'es', { sensitivity: 'base' }) === 0)
-          //console.log("filtro", filtro)
+           
           //if (filtro)
-            //console.log("filtro 1", filtro[1])
+             
             //filtrosOk[param.Name] = filtro[1]
         //}
 

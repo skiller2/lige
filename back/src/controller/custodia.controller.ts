@@ -1025,9 +1025,7 @@ export class CustodiaController extends BaseController {
 
                     // if(this.valByEstado(objetivoCustodia.EstadoCodigo) && !obj.Importe)
                     //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
-                    // console.log('Validando Persona:', obj.PersonalId, new Date(objetivoCustodia.FechaInicio))
                     const erroresPersona = await this.validPersona(obj.PersonalId, new Date(objetivoCustodia.FechaInicio), queryRunner, usuario, ip);
-                    // console.log('Errores Persona:', erroresPersona)
                     errores = [...errores, ...erroresPersona]
 
                     await this.addRegistroPersonalCustodiaQuery(queryRunner, newCustodiaCodigo, obj, usuario, ip)
@@ -1204,8 +1202,6 @@ export class CustodiaController extends BaseController {
             await queryRunner.query(`DELETE FROM PersonalCustodia WHERE CustodiaCodigo = @0`, [CustodiaCodigo])
             let errorCantPersonal: boolean = true
             for (const obj of objetivoCustodia.personal) {
-                console.log('--------------------');
-                console.log('obj: ', obj);
                 if (obj.PersonalId) {
                     errorCantPersonal = false
                     //Validaciones para FechaLiquidacion
@@ -1276,7 +1272,6 @@ export class CustodiaController extends BaseController {
 
             if (errorCantPersonal)
                 errores.push(`Debe de haber por lo menos una persona por custodia.`)
-            // console.log('errores.length', errores)
             if (errores.length)
                 throw new ClientException(errores)
 

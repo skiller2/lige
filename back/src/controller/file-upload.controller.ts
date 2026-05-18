@@ -545,7 +545,6 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-          console.log("file update", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
             const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
@@ -568,7 +567,6 @@ export class FileUploadController extends BaseController {
               this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
             } catch (error) {
-              console.log("error", error)
               throw new ClientException(`Error al copiar el archivo "${file.tempfilename}"`);
             }
 
@@ -588,7 +586,6 @@ export class FileUploadController extends BaseController {
 
 
           } else {
-            console.log("no hay archivo para actualizar")
             await queryRunner.query(`
             UPDATE Documento
             SET DocumentoFecha = @2, DocumentoAnio= @17, DocumentoMes = @16, 
@@ -644,14 +641,11 @@ export class FileUploadController extends BaseController {
 
           // Warning: UnknownErrorException: Ensure that the `standardFontDataUrl` API parameter is provided.
           if (type == 'pdf') {
-            console.log("leo", file.tempfilename)
 
             detalle_documento = await FileUploadController.FileData(file.tempfilename)
           }
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-          console.log("newFilePath", newFilePath)
-          console.log("file.tempfilename", file.tempfilename)
           this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
@@ -675,7 +669,6 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-          console.log("file update", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
 
@@ -797,23 +790,14 @@ export class FileUploadController extends BaseController {
           if (type == 'vnd.ms-excel') type = 'xls'
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-          //console.log("newFilePath", newFilePath)
-          //console.log("file.tempfilename", file.tempfilename)
           try {
             this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           } catch (error) {
-            console.log("error", error)
             throw new ClientException(`Error al copiar el archivo "${file.tempfilename}"`);
           }
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
-          console.log("doc_id", doc_id)
-          console.log("doctipo_id", doctipo_id)
-          console.log("den_documento", den_documento)
-          console.log("type", type)
-
-          console.log("file", file)
 
           await queryRunner.query(`INSERT INTO Documento (
           DocumentoId,
@@ -874,7 +858,6 @@ export class FileUploadController extends BaseController {
 
         } else {
           // UPDATE DOCUMENTO
-          console.log("file update", file)
           // TODO: AGREGAR FUNCION DE ACTUALIZAR EL NOMBRE DEL ARCHIVO EN CASO DE QUE SE HAYA HECHO MODIFICACION DEL doctipo_id O den_documento
           if (file?.tempfilename != '' && file?.tempfilename != null) {
             const path = await queryRunner.query(`SELECT DocumentoPath FROM Documento WHERE DocumentoId = @0`, [doc_id])
@@ -1092,7 +1075,7 @@ export class FileUploadController extends BaseController {
 
         if (fechaCreacion < limiteFecha) {
           try {  await unlink(filePath) }catch(error){}
-          // console.log(`Archivo ${file} borrado.`);
+           
         }
       });
 
@@ -1422,7 +1405,7 @@ export class FileUploadController extends BaseController {
     //    viewport.height=viewport.height*2
 
 
-    //console.log('viewport',viewport)
+     
 
     const canvasAndContext = canvasFactory.create(
       viewport.width,

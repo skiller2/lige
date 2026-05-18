@@ -435,7 +435,6 @@ export class AyudaAsistencialController extends BaseController {
     )
 
     const periodo = this.valAplicaEl(PersonalPrestamoAplicaEl)
-    console.log('periodo', periodo, 'cuotas', PersonalPrestamoCantidadCuotas)
 
     let PersonalPrestamoCuotaId = 0
     let cuotaAnio = periodo.anio
@@ -445,7 +444,6 @@ export class AyudaAsistencialController extends BaseController {
     const valorCuota = Number((Number(PersonalPrestamoMonto) / Number(PersonalPrestamoCantidadCuotas)).toFixed(2))
     for (let cuota = 1; cuota <= PersonalPrestamoCantidadCuotas; cuota++) {
       PersonalPrestamoCuotaId++
-      console.log('cuota', cuota, ' - ', cuotaAnio, cuotaMes, 'id:', PersonalPrestamoCuotaId, ' valorCuota:', valorCuota)
 
       await this.personalPrestamoCuotaAddCuotaQuery(queryRunner, PersonalPrestamoCuotaId, personalPrestamoId, personalId, cuotaAnio, cuotaMes, valorCuota, usuario, ip)
 
@@ -1262,7 +1260,6 @@ export class AyudaAsistencialController extends BaseController {
         `, [personalId, tipo, anio, mes]
       );
       max = max[0].aplicaEl
-      // console.log('MAX',max);
       if (max) {
         max.setMonth(max.getMonth() + 1);
       } else {

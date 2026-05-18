@@ -443,7 +443,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     let totalsuma = 0
     let totalsumaxls = 0
     let EventoLogCodigo = 0
-    //console.log("req.body", req.body)
+     
     //throw new ClientException(`test...`)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
 
@@ -522,7 +522,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
 
 
-        //console.log('row',totalxls,totalsumaxls, rowCount)
+         
 
         const total = this.round2(fimpplanvoz + fserviciosvoz + fpacksms + fpackdatos + fgarantia + fotros + vvoz + vldnldi + vmensajes + vdatos + vroaming + votros + unicavez)
         if (Math.abs(totalxls - total) > 0.0001)
