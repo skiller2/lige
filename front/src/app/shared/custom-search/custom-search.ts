@@ -61,7 +61,6 @@ export const appIconFormatter: Formatter = (_row, _cell, _value, columnDef) => {
     const columnParams = columnDef?.params ?? {};
     const cssClasses = columnParams.iconCssClass || columnParams.icon || columnParams.formatterIcon;
     if (columnParams.icon || columnParams.formatterIcon) {
-      console.warn('[Slickgrid-Universal] deprecated params.icon or params.formatterIcon are deprecated when using `Formatters.icon` in favor of params.iconCssClass. (e.g.: `{ formatter: Formatters.icon, params: { iconCssClass: "fa fa-search" }}`');
     }
   
     if (!cssClasses) {

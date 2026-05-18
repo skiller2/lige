@@ -45,7 +45,6 @@ export class StartupService {
 //    return zip(this.i18n.loadLangData(defaultLang), this.httpClient.get('assets/app-data.json')).pipe(
       // 接收其他拦截器后产生的异常消息
       catchError(res => {
-        console.warn(`StartupService.load: Network request failed`, res);
         setTimeout(() => this.router.navigateByUrl(`/exception/500`));
         return [];
       }),
