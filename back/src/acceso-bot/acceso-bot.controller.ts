@@ -10,6 +10,7 @@ import path from "path";
 import qrCode from 'qrcode-reader';
 import fs from "node:fs";
 import { Jimp } from "jimp"
+import { logger } from "../logger/logger.ts";
 
 
 
@@ -621,10 +622,10 @@ export class AccesoBotController extends BaseController {
                 readQRCode(normalizedPath)
             } catch (error) {
                 if (error instanceof NotFoundException) {
-                    console.error(`No se encontró un código QR en la imagen ${file.filename}.`);
+                    logger.error(`No se encontró un código QR en la imagen ${file.filename}.`);
                     results.push({ error: "No se encontró un código QR en la imagen." });
                 } else {
-                    console.error(`Error en la imagen ${file.filename}:`, error.message);
+                    logger.error(`Error en la imagen ${file.filename}:`, error.message);
                     results.push({ error: error.message });
                 }
             }

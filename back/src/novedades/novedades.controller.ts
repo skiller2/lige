@@ -1031,7 +1031,6 @@ export class NovedadesController extends BaseController {
     async dowloadPdfBrowser(res: Response, next: NextFunction, filesPath: any, nameFile: any) {
         res.download(filesPath, nameFile, async (err) => {
             if (err) {
-                console.error(`Error al descargar el PDF: ${filesPath}`, err);
                 return next(err);
             } else {
                 await unlink(filesPath)

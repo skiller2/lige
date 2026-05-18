@@ -131,7 +131,7 @@ logger.info('New DateTime', { newDateTime: newDateTime.toString() });
 
 dbServer.init()
   .then((res) => {
-    console.info(`${res.res}`)
+    logger.info(`${res.res}`)
 
 
     const currentDate = new Date();
@@ -148,7 +148,7 @@ dbServer.init()
     
   })
   .catch((error) => {
-    console.error(error)
+    logger.error(error)
     //    process.exit()
   })
 
@@ -156,11 +156,11 @@ dbServer.init()
 
 webServer.init()
   .then((res) => {
-    console.info(res)
+    logger.info(res)
     makeRoutes(webServer)
     webServer.lateInit()
   }).catch((error) => {
-    console.error(error)
+    logger.error(error)
 
     process.exit()
   })

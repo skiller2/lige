@@ -8,6 +8,7 @@ import { createServer } from "http";
 import { ClientException, ClientWarning } from "./controller/base.controller.ts";
 
 import dotenv from "dotenv"
+import { logger } from "./logger/logger.ts";
 
 
 const { version, author, name, description } = versionMetadata;
@@ -43,7 +44,7 @@ export class DBServer {
             });
           })
           .catch((error) => {
-            console.error(
+            logger.error(
               `${error.message}, retry ${this.retriesCount} in ${this.timeOutDelay} ms.`
             );
             this.retriesCount++;
@@ -64,7 +65,7 @@ const errorResponder = (
   let status = 500
 
   if (process.env.DEBUG) {
-    console.error(error);
+    logger.error(error.message, { stack: error.stack, cause: error.cause });
   }
 
   if (error instanceof ClientWarning) { 
@@ -73,7 +74,7 @@ const errorResponder = (
     data = error.extended
 
     if (process.env.DEBUG) {
-      console.warn('Client Warning:', error); 
+      logger.warn('Client Warning:', error); 
     }
 
   } else if (error instanceof ClientException) {

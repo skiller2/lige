@@ -19,6 +19,7 @@ import { CustodiaController } from "../controller/custodia.controller.ts";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { unlink } from "fs/promises";
+import { logger } from "../logger/logger.ts";
 
 export class RecibosController extends BaseController {
   directoryRecibo = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/recibos'
@@ -61,7 +62,6 @@ export class RecibosController extends BaseController {
       }
       await this.deleteDirectories(queryRunner, anio, mes, isUnique, den_documento)
     } catch (error) {
-      console.error("Error al limpiar el directorio:", error);
     }
   }
 
@@ -664,18 +664,6 @@ export class RecibosController extends BaseController {
 
       const fileUploadController = new FileUploadController();
       await fileUploadController.getByDownloadFile(req, res, next);
-
-
-
-
-      /*
-            res.download(this.directoryRecibo + '/' + data[0].path, data[0].nombre_archivo, async (error) => {
-              if (error) {
-                console.error('Error al descargar el archivo:', error);
-                return next(error)
-              }
-            });
-      */
     } catch (error) {
       return next(error)
     }
@@ -764,7 +752,7 @@ export class RecibosController extends BaseController {
           }
 
         } catch (error) {
-          console.error(`Error al procesar el archivo ${origpath}:`, error.message);
+          logger.error(`Error al procesar el archivo ${origpath}:`, error.message);
         }
       }
 
@@ -969,7 +957,6 @@ export class RecibosController extends BaseController {
   async dowloadPdfBrowser(res: Response, next: NextFunction, filesPath: any, year: any, month: any, nameFile: any) {
     res.download(filesPath, nameFile, async (err) => {
       if (err) {
-        console.error(`Error al descargar el PDF: ${filesPath}`, err);
         return next(err);
       } else {
          

@@ -11,6 +11,7 @@ import { GestionDescuentosController } from "../gestion-descuentos/gestion-descu
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { DescuentoRetirosController } from "../liquidaciones/descuento-retiros/descuento-retiros.controller.ts";
+import { logger } from "../logger/logger.ts";
 
 interface DigestAuthOptions {
   username: string;
@@ -3907,7 +3908,7 @@ AND des.ObjetivoDescuentoDescontar = 'CO'
       authOptions.nc++
       const digestAuthHeader = this.generateDigestAuthHeader(authOptions)
 
-      console.info('digestAuthHeader authorization envia', digestAuthHeader);
+      logger.info('digestAuthHeader authorization envia', digestAuthHeader);
       const headers = { 'Content-Type': 'application/json', 'Authorization': digestAuthHeader }
       const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data), })
 

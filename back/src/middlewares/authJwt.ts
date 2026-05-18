@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { dataSource } from "../data-source.ts";
+import { logger } from "../logger/logger.ts";
 //import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {
   catchError = (err: any, res: any) => {
@@ -158,8 +159,8 @@ export class AuthMiddleware {
 
         return next()
       } catch (error) {
-        console.error(error);
-        return res.status(500).json({ msg: "Error al verificar autorización", error: error.message });
+        logger.error(error);
+        return res.status(409).json({ msg: "Error al verificar autorización", error: error.message });
       } finally {
         await queryRunner.release();
       }
@@ -415,10 +416,9 @@ export class AuthMiddleware {
 
 
       } catch (error) {
-        // console.error("Error en hasAuthByDocId:", error);
         await queryRunner.rollbackTransaction();
-        console.error('error', error);
-        return res.status(500).json({ msg: "Error al verificar autorización", error: error.message });
+        logger.error(error);
+        return res.status(409).json({ msg: "Error al verificar autorización", error: error.message });
       } finally {
         await queryRunner.release();
       }
@@ -504,8 +504,8 @@ export class AuthMiddleware {
 
       return next()
     } catch (error) {
-      console.error(error)
-      return res.status(500).json({ msg: "Error al verificar permisos del objetivo", error: error.message })
+      logger.error(error)
+      return res.status(409).json({ msg: "Error al verificar permisos del objetivo", error: error.message })
     } finally {
       await queryRunner.release()
     }

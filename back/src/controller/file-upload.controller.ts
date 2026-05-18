@@ -50,7 +50,6 @@ export class FileUploadController extends BaseController {
       const finalHash = hash.finalize().toString(CryptoJS.enc.Hex);
       return finalHash;
     } catch (error) {
-      console.error('Error reading or hashing the file:', error);
       throw error;
     }
   }
@@ -179,7 +178,6 @@ export class FileUploadController extends BaseController {
 
       res.download(finalurl, docname, async (error) => {
         if (error) {
-          console.error('Error al descargar el archivo:', error);
           return next(error)
         }
         if (deleteFile) {
@@ -1025,7 +1023,6 @@ export class FileUploadController extends BaseController {
     try {
       copyFileSync(originalFilePath, newFilePath);
     } catch (error) {
-      console.error('Error moviendo el archivo:', error);
       throw error;
     }
 

@@ -1,6 +1,7 @@
 import { DataSource } from "typeorm";
 import type { QueryRunner } from "typeorm";
 import { logger } from "./logger/logger.ts";
+import { TypeOrmLogger } from "./logger/typeorm.logger.ts";
 
 export const dataSource = new DataSource({
   type: "mssql",
@@ -20,6 +21,11 @@ export const dataSource = new DataSource({
   },
   pool:{max:1000},
   
+  logger: new TypeOrmLogger(),
+
+  // optional: control what gets logged
+  //logging: ['query', 'error', 'warn', 'migration']
+
 });
 
 export async function getConnection(): Promise<QueryRunner> {

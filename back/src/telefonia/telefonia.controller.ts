@@ -392,7 +392,6 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
       res.download(this.directory + '/' + data[0].DocumentoPath, data[0].DocumentoNombreArchivo, async (error) => {
         if (error) {
-          console.error('Error al descargar el archivo:', error);
           return next(error)
         }
       });
