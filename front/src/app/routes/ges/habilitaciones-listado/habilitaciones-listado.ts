@@ -124,7 +124,7 @@ export class HabilitacionesListadoComponent {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
 
     let PersonalId = dataContext.PersonalId
-    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/personal/listado', params: { PersonalId: PersonalId }, detail: cellNode.innerText })
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/habilitaciones/listado', params: { PersonalId: PersonalId }, detail: cellNode.innerText })
     componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
 
     cellNode.replaceChildren(componentOutput.domElement)
