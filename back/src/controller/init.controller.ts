@@ -107,9 +107,9 @@ export class InitController extends BaseController {
 
 
   async getObjetivosSinGrupo(req: Request, res: Response, next: NextFunction) {
-    const con = await getConnection()
+    const queryRunner = await getConnection()
     const stmactual = new Date()
-    con
+    queryRunner
       .query(
         `SELECT DISTINCT
                  
@@ -164,8 +164,8 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 
   async getRecibosPendDescarga(req: Request, res: Response, next: NextFunction) {
     try {
-      const con = await getConnection()
-      const rec = await con.query(
+      const queryRunner = await getConnection()
+      const rec = await queryRunner.query(
         `SELECT TOP 1 COUNT(DISTINCT dc.DocumentoId) total, COUNT(DISTINCT lg.DocumentoId) descargados, dc.DocumentoAnio, dc.DocumentoMes 
           FROM Documento dc
           LEFT JOIN DocumentoDescargaLog lg ON lg.DocumentoId = dc.DocumentoId
@@ -184,10 +184,10 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 
 
   async getAdelantosPendientes(req: Request, res: Response, next: NextFunction) {
-    const con = await getConnection()
+    const queryRunner = await getConnection()
     const stmactual = new Date()
     try {
-      const records = await con
+      const records = await queryRunner
         .query(
           `SELECT COUNT(pre.PersonalPrestamoId) as totalpersonas, SUM(pre.PersonalPrestamoMonto) as totalimporte 
         FROM PersonalPrestamo pre
@@ -214,9 +214,9 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
   }
 
   async getExcepcionesPendientes(req: Request, res: Response, next: NextFunction) {
-    const con = await getConnection()
+    const queryRunner = await getConnection()
     const stmactual = new Date()
-    con
+    queryRunner
       .query(
         `SELECT suc.SucursalId, suc.SucursalDescripcion, COUNT(art14.PersonalId) AS totalpersonas 
         FROM PersonalArt14 art14 
@@ -255,9 +255,9 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 
 
   async getObjetivosActivos(req: Request, res: Response, next: NextFunction) {
-    const con = await getConnection()
+    const queryRunner = await getConnection()
     const stmactual = new Date()
-    con
+    queryRunner
       .query(
         `SELECT DISTINCT
         suc.SucursalId, TRIM(suc.SucursalDescripcion) SucursalDescripcion,  
@@ -308,9 +308,9 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
 
 
   async getClientesActivos(req: Request, res: Response, next: NextFunction) {
-    const con = await getConnection()
+    const queryRunner = await getConnection()
     const stmactual = new Date()
-    con.query(
+    queryRunner.query(
       `with cte as (
 SELECT cli.ClienteId AS id, cli.ClienteId,fac.ClienteFacturacionCUIT,con.CondicionAnteIVADescripcion,cli.ClienteDenominacion,cli.ClienteNombreFantasia,cli.ClienteFechaAlta,
 	CONCAT_WS(' ',TRIM(domcli.DomicilioDomCalle),TRIM(domcli.DomicilioDomNro)) AS Domicilio,cant.CantidadObjetivos,        custodias.CantidadCustodias,        correonoti.ContactoEmailEmail,        calc.activo    
@@ -339,7 +339,7 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
       .catch((error) => {
         return next(error);
       }).finally(() => {
-        con.release()
+        queryRunner.release()
       });
   }
 
@@ -356,11 +356,11 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
 
 
   async getHorasTrabajadas(req: Request, res: Response, next: NextFunction) {
-    const con = await getConnection()
+    const queryRunner = await getConnection()
 
     const anio = Number(req.params.anio)
 
-    con
+    queryRunner
       .query(
         `SELECT 
 
@@ -469,7 +469,7 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
       .catch((error) => {
         return next(error);
       }).finally(() => {
-        con.release()
+          queryRunner.release()
       })
       ;
   }
@@ -525,10 +525,10 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
 
   async getHabilitacionesProximaVencer(req: Request, res: Response, next: NextFunction) {
     const fecha = new Date()
-    const con = await getConnection()
+    const queryRunner = await getConnection()
 
     try {
-      const rec = await con.query(`
+      const rec = await queryRunner.query(`
         WITH HabilitacionesProxVencimiento as (
           SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -599,7 +599,7 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
       return next(error);
 
     } finally {
-      con.release()
+      queryRunner.release()
     }
   }
 
@@ -607,10 +607,10 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
     // const anio = Number(req.params.anio)
     // const mes = Number(req.params.mes)
     const fecha = new Date()
-    const con = await getConnection()
+    const queryRunner = await getConnection()
 
     try {
-      const rec = await con.query(`
+      const rec = await queryRunner.query(`
       WITH PersonalSinHabilitacion AS (
           SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
@@ -715,7 +715,7 @@ e.PersonalHabilitacionId = b.PersonalHabilitacionId
       return next(error);
 
     } finally {
-      con.release()
+      queryRunner.release()
     }
   }
 
@@ -723,10 +723,10 @@ e.PersonalHabilitacionId = b.PersonalHabilitacionId
     // const anio = Number(req.params.anio)
     // const mes = Number(req.params.mes)
     const fecha = new Date()
-    const con = await getConnection()
+    const queryRunner = await getConnection()
 
     try {
-      const rec = await con.query(`
+      const rec = await queryRunner.query(`
         WITH ObjetivosSinHabilitacion AS (
           SELECT DISTINCT
               obj.ObjetivoId, 
@@ -765,7 +765,7 @@ e.PersonalHabilitacionId = b.PersonalHabilitacionId
       return next(error);
 
     } finally {
-      con.release()
+      queryRunner.release()
     }
   }
 
