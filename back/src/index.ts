@@ -17,12 +17,43 @@ import { version, GlobalWorkerOptions, getDocument } from "pdfjs-dist";
 import { logger } from "./logger/logger.ts";
 
 
+function createMinimalPDF(): ArrayBuffer {
+  const pdfString = `%PDF-1.1
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>
+endobj
+xref
+0 4
+0000000000 65535 f 
+0000000010 00000 n 
+0000000060 00000 n 
+0000000117 00000 n 
+trailer
+<< /Size 4 /Root 1 0 R >>
+startxref
+178
+%%EOF`;
+
+  const encoder = new TextEncoder();
+  return encoder.encode(pdfString).buffer;
+}
 
 async function main() {
   const workerPath = (process.env.NODE_ENV === "dev") ? "../node_modules/pdfjs-dist/build/pdf.worker.min.mjs" : "./pdf.worker.min.mjs";
 
   GlobalWorkerOptions.workerSrc = new URL(workerPath, import.meta.url).href;
-  await getDocument("./assets/pdf/inaes.pdf").promise
+
+  const data = createMinimalPDF();
+
+  const doc = await getDocument({data}).promise
+  if (doc.numPages!=1)
+    throw new Error("Prueba de Worker PDF no arrojó la cantidad de páginas correctas")
 
   logger.info('Worker test ok. pdfjs-dist', { version: version }); // Verificar la versión del core
 
