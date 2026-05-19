@@ -2323,6 +2323,22 @@ export class SearchService {
     );
   }
 
+  getStockEfectoPersonaInfo(personalId: number, anio: number, mes: number) {
+    if (!personalId || !anio || !mes) return of(null);
+    return this.http.get<ResponseJSON<any>>(`api/stock-efecto/persona-info/${personalId}/${anio}/${mes}`).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
+  getStockEfectoObjetivoInfo(objetivoId: number, anio: number, mes: number) {
+    if (!objetivoId || !anio || !mes) return of(null);
+    return this.http.get<ResponseJSON<any>>(`api/stock-efecto/objetivo-info/${objetivoId}/${anio}/${mes}`).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
   getEfectoByPersonalId(personalId: number) {
     if (!personalId) {
             this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);

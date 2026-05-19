@@ -9,7 +9,7 @@ export class ObjetivoController extends BaseController {
     try {
       const queryRunner = await getConnection(res.locals.userName);
       const result: ObjetivoInfo[] = await queryRunner.query(
-        `SELECT obj.ObjetivoId objetivoId, obj.Cliente|Id clienteId, obj.ClienteElementoDependienteId,
+        `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId,
         CONCAT(TRIM(cli.ClienteDenominacion), TRIM(ele.ClienteElementoDependienteDescripcion)) descripcion, 
         ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
         FROM Objetivo obj 

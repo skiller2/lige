@@ -39,6 +39,52 @@
     </div>
   }
 
+  @if (tipoDestinoSeleccionado() === 'objetivo') {
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="18">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="4">Objetivo</nz-form-label>
+          <nz-form-control [nzSpan]="20">
+            <app-objetivo-search [formField]="formEfectoStock.objetivoId" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+
+    @if (objetivoInfo.value(); as info) {
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="10">Grupo actividad</nz-form-label>
+            <nz-form-control [nzSpan]="14">
+              <span>{{ info.GrupoActividadDetalle || '—' }}</span>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="10">Contrato</nz-form-label>
+            <nz-form-control [nzSpan]="14">
+              @if (info.ContratoId) {
+                <span>{{ info.ContratoId }} ({{ info.ContratoFechaDesde | date:'dd/MM/yyyy' }} - {{ (info.ContratoFechaHasta | date:'dd/MM/yyyy') || 'vigente' }})</span>
+              } @else {
+                <span>—</span>
+              }
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8">Sucursal</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <span>{{ info.SucursalDescripcion || '—' }}</span>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    }
+  }
+
   @if (tipoDestinoSeleccionado() === 'personal') {
     <div nz-row [nzGutter]="16">
       <div nz-col [nzSpan]="18">
@@ -50,6 +96,35 @@
         </nz-form-item>
       </div>
     </div>
+
+    @if (personaInfo.value(); as info) {
+      <div nz-row [nzGutter]="16">
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="10">Situación revista</nz-form-label>
+            <nz-form-control [nzSpan]="14">
+              <span>{{ info.SituacionRevistaDescripcion || '—' }}</span>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="10">Grupo actividad</nz-form-label>
+            <nz-form-control [nzSpan]="14">
+              <span>{{ info.GrupoActividadDetalle || '—' }}</span>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+        <div nz-col [nzSpan]="8">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="8">Sucursal</nz-form-label>
+            <nz-form-control [nzSpan]="16">
+              <span>{{ info.SucursalDescripcion || '—' }}</span>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+    }
   }
 
   <nz-divider nzText="Detalle">

@@ -7,17 +7,19 @@ import { CommonModule } from '@angular/common';
 import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { TipoDestinoSearchComponent } from '../../../shared/tipo-destino-search/tipo-destino-search.component';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 
 export interface ParametroformEfectoStock {
   fecha: Date | null;
   tipoDestino: string;
   depositoId: number | null;
   personalId: number | null;
+  objetivoId: string | null;
 }
 
 @Component({
   selector: 'app-efecto-stock',
-  imports: [...SHARED_IMPORTS, CommonModule, FormField, PersonalSearchComponent, TipoDestinoSearchComponent],
+  imports: [...SHARED_IMPORTS, CommonModule, FormField, PersonalSearchComponent, TipoDestinoSearchComponent, ObjetivoSearchComponent],
   templateUrl: './efecto-stock.html',
   styleUrl: './efecto-stock.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,6 +32,7 @@ export class EfectoStockComponent {
     tipoDestino: '',
     depositoId: null,
     personalId: null,
+    objetivoId: null,
   };
 
   readonly parametroStock = signal<ParametroformEfectoStock>(this.defaultStockForm);
@@ -54,6 +57,35 @@ export class EfectoStockComponent {
     loader: async ({ params }) => {
       if (params.tipo !== 'deposito') return [];
       return await firstValueFrom(this.searchService.getDepositos());
+    },
+  });
+
+  personaInfo = resource({
+    params: () => ({
+      personalId: this.parametroStock().personalId,
+      anio: this.anio(),
+      mes: this.mes(),
+    }),
+    loader: async ({ params }) => {
+      if (!params.personalId) return null;
+      return await firstValueFrom(
+        this.searchService.getStockEfectoPersonaInfo(params.personalId, params.anio, params.mes)
+      );
+    },
+  });
+
+  objetivoInfo = resource({
+    params: () => ({
+      objetivoId: this.parametroStock().objetivoId,
+      anio: this.anio(),
+      mes: this.mes(),
+    }),
+    loader: async ({ params }) => {
+      const id = Number(params.objetivoId);
+      if (!id) return null;
+      return await firstValueFrom(
+        this.searchService.getStockEfectoObjetivoInfo(id, params.anio, params.mes)
+      );
     },
   });
 
