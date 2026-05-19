@@ -8,8 +8,10 @@ import { AsistenciaController } from "./asistencia.controller.ts";
 import { CustodiaController } from "./custodia.controller.ts";
 
 export class InitController extends BaseController {
-  getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
-    CategoriasController.listCambiosPendCategoria(res, {}).then((records: Array<any>) => {
+  async getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
+    CategoriasController.listCambiosPendCategoria(res, {},queryRunner).then((records: Array<any>) => {
       let data: { x: string; y: any; }[] = []
       let total = 0
 

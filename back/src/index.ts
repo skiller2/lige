@@ -13,16 +13,21 @@ import { ClientesController } from "./clientes/clientes.controller.ts";
 import { HabilitacionesController } from "./habilitaciones/habilitaciones.controller.ts";
 import { GestionDescuentosController } from "./gestion-descuentos/gestion-descuentos.controller.ts";
 
-import { version,GlobalWorkerOptions } from "pdfjs-dist";
+import { version,GlobalWorkerOptions,getDocument } from "pdfjs-dist";
 import { logger } from "./logger/logger.ts";
 
 
 
 async function main() {
+    const workerPath = "../node_modules/pdfjs-dist/build/pdf.worker.min.mjs";
 
-GlobalWorkerOptions.workerSrc = new URL("./pdf.worker.min.mjs", import.meta.url).href;
+GlobalWorkerOptions.workerSrc = new URL(workerPath, import.meta.url).href;
 
-
+try {
+  await getDocument("").promise
+} catch (err) {
+  logger.error(err.message,err.stack)
+}
 logger.info('pdfjs-dist', {version: version}); // Verificar la versión del core
 
 

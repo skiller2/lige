@@ -1,3 +1,4 @@
+import type { QueryRunner } from "typeorm";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros.ts";
@@ -101,12 +102,12 @@ export class CategoriasController extends BaseController {
 
   static async listCambiosPendCategoria(
     res: Response,
-    options: any
+    options: any,
+    queryRunner: QueryRunner
   ) {
     const filtros = options.filtros;
     const filterSql = filtrosToSql(filtros, columnasGrilla);
     const fecha = options.extra?.fecProcesoCambio || new Date()
-    const queryRunner = await getConnection(res.locals.userName);
     return queryRunner.query(
       `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ApellidoNombre, ing.PersonalFechaIngreso, 
         cat.CategoriaPersonalDescripcion, cat.TipoAsociadoId, cat.CategoriaPersonalId,
@@ -150,12 +151,13 @@ export class CategoriasController extends BaseController {
     res: Response,
     next: NextFunction
   ) {
+    const queryRunner = await getConnection(res.locals.userName);
     const options = getOptionsFromRequest(req);
     try {
 
 
 
-      const pendCambioCategoria = await CategoriasController.listCambiosPendCategoria(res,options)
+      const pendCambioCategoria = await CategoriasController.listCambiosPendCategoria(res,options,queryRunner)
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
       return next(error)
@@ -196,7 +198,7 @@ export class CategoriasController extends BaseController {
 
       //            throw new ClientException("Ups")
 
-      const pendientes = await CategoriasController.listCambiosPendCategoria(res,options)
+      const pendientes = await CategoriasController.listCambiosPendCategoria(res,options,queryRunner)
 
       for (const persona of pendientes) {
 
