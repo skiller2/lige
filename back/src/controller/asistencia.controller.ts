@@ -314,7 +314,7 @@ export class AsistenciaController extends BaseController {
       ],
       sort: null,
       extra: null
-    },queryRunner)
+    }, queryRunner)
 
 
     /*
@@ -1312,7 +1312,7 @@ export class AsistenciaController extends BaseController {
   }
 
 
-  static async getDescuentos(anio: number, mes: number, personalId: number[],queryRunner: QueryRunner) {
+  static async getDescuentos(anio: number, mes: number, personalId: number[], queryRunner: QueryRunner) {
     const filterSql = (personalId.length == 0) ? ' 1=1' : ' per.PersonalId IN (' + personalId.join(',') + ')'
     const orderBy = orderToSQL([{ fieldName: 'ApellidoNombre', direction: 'ASC' }, { fieldName: 'DescuentoDescripcion', direction: 'ASC' }, { fieldName: 'desmovimiento', direction: 'ASC' }])
     const descuentos = await GestionDescuentosController.getDescuentosPersonalQuery(queryRunner, filterSql, orderBy, anio, mes)
@@ -1590,7 +1590,7 @@ export class AsistenciaController extends BaseController {
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
 
-      const result = await AsistenciaController.getDescuentos(anio, mes, [personalId],queryRunner)
+      const result = await AsistenciaController.getDescuentos(anio, mes, [personalId], queryRunner)
 
       const resultG = result.filter(row => row.tipocuenta_id == 'G')
       let totalG: number = resultG.reduce((totalG, row) => totalG + row.importe, 0)
@@ -1635,7 +1635,7 @@ export class AsistenciaController extends BaseController {
         && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
-      const result = await AsistenciaController.getDescuentos(anio, mes, [personalId],queryRunner)
+      const result = await AsistenciaController.getDescuentos(anio, mes, [personalId], queryRunner)
       const retirosxobj = await DescuentoRetirosController.getDescuentosRetiros(queryRunner, anio, mes, personalId)
 
       const retirosxobjnromalizado = retirosxobj.map(item => ({
@@ -1713,7 +1713,6 @@ export class AsistenciaController extends BaseController {
       if (!anio || !mes)
         return this.jsonRes({ persxresp: [], total: 0 }, res);
 
-      const queryRunner = await getConnection(res.locals.userName);
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && res.locals.PersonalId != personalId)
         throw new ClientException(`No tiene permisos para listar la información`)
 
@@ -1770,7 +1769,7 @@ export class AsistenciaController extends BaseController {
 
       const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList, queryRunner)
 
-      const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList,queryRunner)
+      const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList, queryRunner)
 
       const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList, [], false, false)
 
@@ -2219,14 +2218,11 @@ export class AsistenciaController extends BaseController {
     return { asistencia, TotalHorasReal }
   }
 
-  static async getAsistenciaObjetivos(anio: number, mes: number, personalId: number[],queryRunner: QueryRunner) {
+  static async getAsistenciaObjetivos(anio: number, mes: number, personalId: number[], queryRunner: QueryRunner) {
     const listPersonaId = (personalId.length == 0) ? '' : 'objd.ObjetivoAsistenciaMesPersonalId IN (' + personalId.join(',') + ')'
-    try {
-      const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [listPersonaId], queryRunner)
-      return result.asistencia
-    } finally {
-      await queryRunner.release()
-    }
+    const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [listPersonaId], queryRunner)
+    return result.asistencia
+
   }
 
   async getAsistenciaPorPersona(req: any, res: Response, next: NextFunction) {
