@@ -58,11 +58,6 @@ scheduleJob('4 0 * * *', async function (fireDate) {//At 12:04 AM
   logger.info(`deleleTemporalFiles run at ${fireDate}, response: ${ret}`);
 });
 
-scheduleJob('4 0 * * *', async function (fireDate) {//At 12:04 AM
-  const ret = await cargaLicenciaController.deleleTemporalFiles(null, null, (ret: any) => ret)
-  logger.info(`deleleTemporalFiles run at ${fireDate}, response: ${ret}`);
-});
-
 scheduleJob('0 0 1 * *', async function (fireDate) { //At 12:00 AM, on day 1 of the month
 
   const ret = await grupoActividadController.gruposPersonas(null, null, (ret: any) => ret)

@@ -206,7 +206,7 @@ const columnasGrilla: any[] = [
     hidden: false,
     searchHidden: false,
     sortable: true,
-    },
+  },
   {
     name: "PersonalLicenciaDiagnosticoMedicoFechaDiagnostico",
     type: "date",
@@ -1263,7 +1263,7 @@ export class CargaLicenciaController extends BaseController {
         const fechaCreacion = stats.birthtime.getTime();
 
         if (fechaCreacion < limiteFecha) {
-          try {  await unlink(filePath) }catch(error){}
+          try { await unlink(filePath) } catch (error) { }
 
         }
       });
@@ -1285,7 +1285,7 @@ export class CargaLicenciaController extends BaseController {
     );
   }
 
-  async validateSituacionRevista(licenciaDesde: Date,licenciaHasta: Date,personalId: number, queryRunner: QueryRunner ) {
+  async validateSituacionRevista(licenciaDesde: Date, licenciaHasta: Date, personalId: number, queryRunner: QueryRunner) {
     const situaciones = await queryRunner.query(`
       SELECT 
         psr.PersonalSituacionRevistaId,
@@ -1294,17 +1294,17 @@ export class CargaLicenciaController extends BaseController {
       FROM PersonalSituacionRevista psr
       WHERE psr.PersonalId = @0
     `, [personalId]);
-  
+
     const situacionesInvalidas = situaciones.filter(sit => {
       const id = sit.PersonalSituacionRevistaId;
-  
+
       // Situaciones Resvista validas
       const situacionesValidas = [2, 11, 12, 20, 10];
       if (!situacionesValidas.includes(id)) return false;
-  
+
       const desde = new Date(sit.PersonalSituacionRevistaDesde);
       const hasta = new Date(sit.PersonalSituacionRevistaHasta);
-    
+
       // Validar si hay superposicion con el período de la licencia
       return !(hasta < licenciaDesde || desde > licenciaHasta);
     });

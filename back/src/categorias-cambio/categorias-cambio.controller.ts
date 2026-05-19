@@ -164,8 +164,10 @@ export class CategoriasController extends BaseController {
 
   async jobCambioCategoria(req: any, res: Response, next: NextFunction) {
     const options = {}
+    const usuario = res?.locals.userName || 'server'
+    const ip = this.getRemoteAddress(req)
 
-    const queryRunner = await getConnection(res.locals.userName);
+    const queryRunner = await getConnection(usuario);
     const fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
     const anio = fechaActual.getFullYear()
@@ -175,8 +177,6 @@ export class CategoriasController extends BaseController {
     fechaAyer.setDate(fechaAyer.getDate() - 1);
     fechaAyer.setHours(0, 0, 0, 0)
 
-    const usuario = res?.locals.userName || 'server'
-    const ip = this.getRemoteAddress(req)
     let EventoLogCodigo = 0
 
 

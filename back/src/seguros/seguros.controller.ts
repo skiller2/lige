@@ -508,7 +508,7 @@ UNION
     const ip = this.getRemoteAddress(req)
 
     let segAltas = 0, segBajas = 0
-    const queryRunner = await getConnection(res.locals.userName);
+    const queryRunner = await getConnection(usuario);
     let EventoLogCodigo = 0
 
 

@@ -1160,7 +1160,7 @@ export class GestionDescuentosController extends BaseController {
     const ip = this.getRemoteAddress(req)
     let EventoLogCodigo = 0
 
-    const queryRunner = await getConnection(res.locals.userName);
+    const queryRunner = await getConnection(usuario);
 
     try {
       ({ EventoLogCodigo } = await this.eventoLogInicio(

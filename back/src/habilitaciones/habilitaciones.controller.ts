@@ -1743,9 +1743,10 @@ SELECT doc.DocumentoId id,
     }
 
     async jobHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection(res.locals.userName);
-
         const usuario = res?.locals.userName || 'server'
+        
+        const queryRunner = await getConnection(usuario);
+
         const ip = this.getRemoteAddress(req)
         let registrosActualizados = 0
         let EventoLogCodigo = 0
