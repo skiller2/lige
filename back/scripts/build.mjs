@@ -201,15 +201,72 @@ const nativeNodeModulesPlugin = {
   },
 };
 
+const workersPlugin = {
+  name: "workers-handler",
+  setup(build) {
+    const outdir =
+      build.initialOptions.outdir || "dist";
+
+    const workersDir = join(resolve(outdir), "workers");
+    mkdirSync(workersDir, { recursive: true });
+
+    const handled = new Set();
+
+    // Detecta workers explícitos
+    const workerFilter = /(\.worker\.(js|mjs))$/;
+
+    build.onResolve({ filter: workerFilter }, (args) => {
+      const absPath = require.resolve(args.path, {
+        paths: [args.resolveDir],
+      });
+
+      return {
+        path: absPath,
+        namespace: "worker-file",
+      };
+    });
+
+    build.onLoad({ filter: /.*/, namespace: "worker-file" }, (args) => {
+      const fileName =
+        basename(args.path)
+          .replace(".min", "") // opcional (pdf.worker.min → pdf.worker)
+          .replace(/\.worker\.(js|mjs)/, ".worker.$1");
+
+      const dest = join(workersDir, fileName);
+
+      if (!handled.has(dest)) {
+        copyIfChanged(args.path, dest);
+        handled.add(dest);
+      }
+
+      // exporta URL lista para usar
+      const contents = `
+        import { pathToFileURL } from "node:url";
+        export default pathToFileURL(${JSON.stringify(dest)}).href;
+      `;
+
+      return {
+        contents,
+        loader: "js",
+      };
+    });
+  },
+};
+
+
 const buildOptions = {
-  entryPoints: ["src/index.ts",
-    "src/logger/worker/logger.worker.ts" // ✅ ADD THIS
-],
+  entryPoints: {
+    "index": "src/index.ts",
+    "logger.worker": "src/logger/worker/logger.worker.ts", // ✅ ADD THIS
+    "pdf.worker": "node_modules/pdfjs-dist/build/pdf.worker.min.mjs"
+  },
   bundle: true,
   outdir: "dist",
   format: "esm",
-  
-  outbase: "src", // ✅ IMPORTANT
+
+  external: ["expo-sqlite"],
+
+  //outbase: "src", // ✅ IMPORTANT
 
   platform: "node",
   target: "esnext",       // mejor objetivo concreto que "esnext" para Node
@@ -219,7 +276,13 @@ const buildOptions = {
   minify: true,          // súbelo a true para producción
   logLevel: "info",
   // Si en algún punto importas .node explícitamente, usa 'file'
-  loader: { ".node": "file" },
+  loader: {
+    ".node": "file",
+    //".mjs": "file",   // 👈 CLAVE
+
+    //".worker.js": "file",           // 👈 clave
+    //"node_modules/pdfjs-dist/build/pdf.worker.min.mjs":"file"
+  },
   plugins: [nativeNodeModulesPlugin],
   banner: {
     js: `
@@ -234,6 +297,11 @@ const buildOptions = {
   define: {
     "process.env.NODE_ENV": JSON.stringify(process.env.NODE_ENV || "development"),
   },
+
+  outExtension: {
+    ".js": ".mjs"
+  },
+
 };
 
 await build(buildOptions);

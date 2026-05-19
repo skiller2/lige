@@ -13,8 +13,14 @@ import { ClientesController } from "./clientes/clientes.controller.ts";
 import { HabilitacionesController } from "./habilitaciones/habilitaciones.controller.ts";
 import { GestionDescuentosController } from "./gestion-descuentos/gestion-descuentos.controller.ts";
 
-import { version } from "pdfjs-dist";
+import { version,GlobalWorkerOptions } from "pdfjs-dist";
 import { logger } from "./logger/logger.ts";
+
+
+
+async function main() {
+
+GlobalWorkerOptions.workerSrc = new URL("./pdf.worker.min.mjs", import.meta.url).href;
 
 
 logger.info('pdfjs-dist', {version: version}); // Verificar la versión del core
@@ -160,3 +166,6 @@ webServer.init()
 setInterval(() => {
   logger.debug('Heartbeat', { uptime: process.uptime() });
 }, 1 * 60 * 60 * 1000); // Cada 1 horas
+}
+
+main().catch(logger.error);

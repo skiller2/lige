@@ -9,7 +9,7 @@ class Logger {
   private devLogger?: pino.Logger;
 
   constructor() {
-    const workerPath = isProd ? "./logger/worker/logger.worker.js" : "./worker/logger.worker.ts";
+    const workerPath = isProd ? "./logger.worker.mjs" : "./worker/logger.worker.ts";
     this.worker = new Worker(
       new URL(workerPath, import.meta.url),
       {
