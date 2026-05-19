@@ -45,6 +45,7 @@ import {
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { basename, join } from "path";
+import type { QueryRunner } from "typeorm";
 
 
 const getOptionsSINO: any[] = [
@@ -80,7 +81,7 @@ export class ImpuestosAfipController extends BaseController {
   async handleDownloadComprobantesByFiltro(req: Request, res: Response, next: NextFunction) {
     try {
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
-
+      const queryRunner = await getConnection(res.locals.userName);
       req.body.options.sort = [{ fieldName: 'ApellidoNombre', direction: 'ASC' }]
 
       const periodo = getPeriodoFromRequest(req);
@@ -94,7 +95,7 @@ export class ImpuestosAfipController extends BaseController {
         mes: String(periodo.month),
         descuentoId: descuentoId,
         options,
-      });
+      },queryRunner);
       const files = descuentos
         .filter(
           (descuento) => descuento.PersonalComprobantePagoAFIPId !== null
@@ -132,10 +133,9 @@ export class ImpuestosAfipController extends BaseController {
     mes: string;
     descuentoId: string;
     options: Options;
-  }) {
+  },queryRunner: QueryRunner) {
 
     const filtros = params.options.filtros;
-    const queryRunner = await getConnection();
 
 
     const orderBy = orderToSQL(params.options.sort)
@@ -278,13 +278,12 @@ export class ImpuestosAfipController extends BaseController {
     anio: string;
     mes: string;
     GrupoActividadId: string;
-  }) {
+  },queryRunner: QueryRunner) {
     const extrafilter =
       options.GrupoActividadId && options.GrupoActividadId != "0"
         ? "AND gap.GrupoActividadId = @4"
         : "";
 
-    const queryRunner = await getConnection();
     return queryRunner.query(
       `SELECT 
       per.PersonalId PersonalId,
@@ -354,12 +353,13 @@ export class ImpuestosAfipController extends BaseController {
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
     try {
+      const queryRunner = await getConnection(res.locals.userName);
       const listaDescuentos = await this.DescuentosByPeriodo({
         anio,
         mes,
         descuentoId,
         options,
-      });
+      },queryRunner);
 
       this.jsonRes(
         {
@@ -379,11 +379,12 @@ export class ImpuestosAfipController extends BaseController {
     const GrupoActividadId = String(req.params.GrupoActividadId);
 
     try {
+      const queryRunner = await getConnection(res.locals.userName);
       const result: DescuentoJSON[] = await this.getDescuentosByPeriodo({
         anio,
         mes,
         GrupoActividadId,
-      });
+      },queryRunner);
       const sincomprobante = result.reduce(
         (total, item: any) =>
           item.PersonalComprobantePagoAFIPId == null ? total + 1 : total,
@@ -820,8 +821,9 @@ export class ImpuestosAfipController extends BaseController {
     next: NextFunction
   ) {
     try {
-      const formattedMonth = month.padStart(2, "0");
+      const queryRunner = await getConnection(res.locals.userName);
 
+      const formattedMonth = month.padStart(2, "0");
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
 
       let filtros: Filtro[] = []
@@ -834,7 +836,7 @@ export class ImpuestosAfipController extends BaseController {
         mes: month,
         descuentoId: descuentoId,
         options: { filtros: filtros, sort: [], extra: null }
-      });
+      },queryRunner);
 
       const files = descuentos
         .filter(

@@ -25,7 +25,7 @@ import {
   mkdirSync,
   readFileSync,
   writeFileSync,
-  } from "node:fs";
+} from "node:fs";
 import {
   SendFileToDownload,
   getPeriodoFromRequest,
@@ -40,6 +40,7 @@ import { tmpName } from "../../server.ts";
 import { format, promisify } from "node:util";
 import { once } from "events";
 import { Utils } from "../liquidaciones.utils.ts";
+import type { QueryRunner } from "typeorm";
 
 
 const getOptsSINO: any[] = [
@@ -380,12 +381,11 @@ export class LiquidacionesBancoController extends BaseController {
 
   ];
 
-  async getSaldoCuentas(anio: Number, mes: Number, filtros: any, sort: any) {
+  async getSaldoCuentas(anio: Number, mes: Number, filtros: any, sort: any,queryRunner: QueryRunner) {
     const filterSql = filtrosToSql(filtros, this.listaColumnas);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
     stmactual.setHours(0, 0, 0, 0)
-const queryRunner = await getConnection();
     return queryRunner.query(
       `
 WITH Movimientos AS (
@@ -484,11 +484,10 @@ LEFT JOIN banco banc
 
   }
 
-  async getBancoSaldoAyudaAsistencial(anio: Number, mes: Number, filtros: any, sort: any) {
+  async getBancoSaldoAyudaAsistencial(anio: Number, mes: Number, filtros: any, sort: any, queryRunner: QueryRunner) {
     const filterSql = filtrosToSql(filtros, this.listaColumnas);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
-const queryRunner = await getConnection();
     return queryRunner.query(
       `SELECT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId ) as id,per.PersonalId, pre.PersonalPrestamoId as clave_id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
       pre.PersonalPrestamoMonto AS importe, pre.PersonalPrestamoAplicaEl,
@@ -514,11 +513,11 @@ const queryRunner = await getConnection();
 
   }
 
-  async getMovimientosPendientes(filtros: any, sort: any) {
+  async getMovimientosPendientes(filtros: any, sort: any, queryRunner: QueryRunner) {
     const filterSql = filtrosToSql(filtros, this.listaColumnasMovimientos);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
-const queryRunner = await getConnection();
+
     return queryRunner.query(
       `
       SELECT CONCAT(liq.banco_id,'-',liq.envio_nro,'-',liq.persona_id,'-',liq.tipocuenta_id) id, liq.persona_id,liq.cbu,liq.importe,liq.banco_id,liq.envio_nro,liq.fecha,liq.tipocuenta_id,banc.bancodescripcion, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
@@ -539,7 +538,8 @@ const queryRunner = await getConnection();
     const mes = Number(req.body.mes)
 
     try {
-      const banco = await this.getSaldoCuentas(anio, mes, req.body.options?.filtros, req.body.options?.sort)
+      const queryRunner = await getConnection(res.locals.userName);
+      const banco = await this.getSaldoCuentas(anio, mes, req.body.options?.filtros, req.body.options?.sort, queryRunner)
 
       this.jsonRes(
         {
@@ -563,7 +563,8 @@ const queryRunner = await getConnection();
 
 
     try {
-      const movimientosPendientes = await this.getMovimientosPendientes(req.body.options.filtros, req.body.options.sort)
+      const queryRunner = await getConnection(res.locals.userName);
+      const movimientosPendientes = await this.getMovimientosPendientes(req.body.options.filtros, req.body.options.sort, queryRunner)
 
       this.jsonRes(
         {
@@ -588,8 +589,8 @@ const queryRunner = await getConnection();
     const mes = Number(req.body.mes)
 
     try {
-
-      const ayuda = await this.getBancoSaldoAyudaAsistencial(anio, mes, req.body.options.filtros, req.body.options.sort)
+      const queryRunner = await getConnection(res.locals.userName);
+      const ayuda = await this.getBancoSaldoAyudaAsistencial(anio, mes, req.body.options.filtros, req.body.options.sort, queryRunner)
 
       this.jsonRes(
         {
@@ -790,11 +791,11 @@ const queryRunner = await getConnection();
 
       switch (tabIndex) {
         case 1: //Banco
-          const recordSet = await this.getSaldoCuentas(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
+          const recordSet = await this.getSaldoCuentas(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort, queryRunner)
           banco = recordSet.filter((item: any) => item.importe > 0)
           break;
         case 2: //Adelanto
-          banco = await this.getBancoSaldoAyudaAsistencial(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort)
+          banco = await this.getBancoSaldoAyudaAsistencial(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort,queryRunner)
           break;
         default:
           throw new ClientException('Debe posicionarse en la sopapa Listado o Adelanto/Ayuda')
@@ -985,7 +986,7 @@ const queryRunner = await getConnection();
       const options = getOptionsFromRequest(req);
       const cantxpag = req.body.cantxpag;
       const listdowload = req.body.listdowload;
-
+      const queryRunner = await getConnection(res.locals.userName);
 
       const formattedMonth = String(periodo.month).padStart(2, "0");
       const filesPath = this.directory + '/' + String(periodo.year)
@@ -995,7 +996,7 @@ const queryRunner = await getConnection();
         mes: String(periodo.month),
         options,
 
-      });
+      }, queryRunner);
       const files = liquidaciones
         .filter(
           (liquidacion) => liquidacion.PersonalId !== null
@@ -1022,8 +1023,7 @@ const queryRunner = await getConnection();
     anio: string;
     mes: string;
     options: Options;
-  }) {
-const queryRunner = await getConnection();
+  }, queryRunner: QueryRunner) {
     return queryRunner.query(`SELECT per.PersonalId as id,per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.importe
       FROM Personal per
       JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId

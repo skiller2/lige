@@ -100,12 +100,13 @@ export class CategoriasController extends BaseController {
   }
 
   static async listCambiosPendCategoria(
+    res: Response,
     options: any
   ) {
     const filtros = options.filtros;
     const filterSql = filtrosToSql(filtros, columnasGrilla);
     const fecha = options.extra?.fecProcesoCambio || new Date()
-    const queryRunner = await getConnection();
+    const queryRunner = await getConnection(res.locals.userName);
     return queryRunner.query(
       `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) ApellidoNombre, ing.PersonalFechaIngreso, 
         cat.CategoriaPersonalDescripcion, cat.TipoAsociadoId, cat.CategoriaPersonalId,
@@ -154,7 +155,7 @@ export class CategoriasController extends BaseController {
 
 
 
-      const pendCambioCategoria = await CategoriasController.listCambiosPendCategoria(options)
+      const pendCambioCategoria = await CategoriasController.listCambiosPendCategoria(res,options)
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
       return next(error)
@@ -195,7 +196,7 @@ export class CategoriasController extends BaseController {
 
       //            throw new ClientException("Ups")
 
-      const pendientes = await CategoriasController.listCambiosPendCategoria(options)
+      const pendientes = await CategoriasController.listCambiosPendCategoria(res,options)
 
       for (const persona of pendientes) {
 

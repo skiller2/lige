@@ -1,9 +1,9 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
-import type { NextFunction, Request, Response } from "express";
+import type { Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
-
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
+import { type QueryRunner } from 'typeorm';
 
 const TipoCantidadOptions: any[] = [
     { label: 'Fija', value: 'F' },
@@ -374,7 +374,7 @@ export class ParametrosVentaController extends BaseController {
         try {
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const objetivo = await this.ObjetivoInfoFromId(ClienteId, ClienteElementoDependienteId)
+            const objetivo = await this.ObjetivoInfoFromId(ClienteId, ClienteElementoDependienteId,queryRunner)
             return this.jsonRes(objetivo, res);
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
@@ -397,7 +397,7 @@ export class ParametrosVentaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const objetivoInfo = await this.ObjetivoInfoFromId(ParametroVenta.ClienteId, ParametroVenta.ClienteElementoDependienteId)
+            const objetivoInfo = await this.ObjetivoInfoFromId(ParametroVenta.ClienteId, ParametroVenta.ClienteElementoDependienteId,queryRunner)
 
             const PeriodoDesdeAplica = new Date(ParametroVenta.PeriodoDesdeAplica)
             PeriodoDesdeAplica.setDate(1)
@@ -607,8 +607,7 @@ export class ParametrosVentaController extends BaseController {
     }
 
 
-    async ObjetivoInfoFromId(ClienteId: number, ClienteElementoDependienteId: number) {
-        const queryRunner = await getConnection();
+    async ObjetivoInfoFromId(ClienteId: number, ClienteElementoDependienteId: number, queryRunner:QueryRunner) {
         try {
             const result = await queryRunner.query(
                 `SELECT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,

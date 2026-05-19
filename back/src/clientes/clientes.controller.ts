@@ -1132,26 +1132,6 @@ ${orderBy}`, [fechaActual])
 
     }
 
-    static async AddContactosMigrados() {
-        const queryRunner = await getConnection(res.locals.userName);
-        const contactos = await queryRunner.query(`SELECT DISTINCT fac.ClienteId, 'Entrega Comprobante' ContactoApellido, mig.jurisdiccion_Impositiva ContactoNombre,  REPLACE(mig.correo,';',',') correo, mig.jurisdiccion_Impositiva ContactoJurImpositiva
-            FROM migrarcontactos mig 
-            JOIN ClienteFacturacion fac  ON fac.ClienteFacturacionCUIT= mig.numero_identificacion
-            WHERE mig.is_company != 'true'
-        `)
-        await queryRunner.startTransaction()
-
-        for (const contacto of contactos) {
-            await ClientesController.CreateContactosMigrados(contacto.ClienteId, 'Entrega', contacto.ContactoApellido, contacto.ContactoNombre, contacto.ContactoJurImpositiva, contacto.correo, queryRunner)
-        }
-
-        await queryRunner.rollbackTransaction()
-        //        await queryRunner.commitTransaction()
-
-
-    }
-
-
     static async CreateContactosMigrados(ClienteId: number, area: string, ContactoApellido: string, ContactoNombre: string, ContactoJurImpositiva: string, correo: string, queryRunner: QueryRunner) {
         let ContactoTelefonoUltNro = 0, ContactoEmailUltNro = 0
         const ContactoApellidoNombre = `${ContactoApellido} ${ContactoNombre}`

@@ -306,7 +306,7 @@ export class AsistenciaController extends BaseController {
 
   }
 
-  static async objetivosPendAsis(anio: number, mes: number) {
+  static async objetivosPendAsis(anio: number, mes: number, queryRunner: QueryRunner) {
     return await ObjetivosPendasisController.listObjetivosAsis({
       filtros: [
         { index: 'anio', operador: '=', condition: 'AND', valor: anio },
@@ -314,7 +314,7 @@ export class AsistenciaController extends BaseController {
       ],
       sort: null,
       extra: null
-    })
+    },queryRunner)
 
 
     /*
@@ -1312,15 +1312,9 @@ export class AsistenciaController extends BaseController {
   }
 
 
-  static async getDescuentos(anio: number, mes: number, personalId: number[]) {
+  static async getDescuentos(anio: number, mes: number, personalId: number[],queryRunner: QueryRunner) {
     const filterSql = (personalId.length == 0) ? ' 1=1' : ' per.PersonalId IN (' + personalId.join(',') + ')'
-
-    const queryRunner = await getConnection();
-
     const orderBy = orderToSQL([{ fieldName: 'ApellidoNombre', direction: 'ASC' }, { fieldName: 'DescuentoDescripcion', direction: 'ASC' }, { fieldName: 'desmovimiento', direction: 'ASC' }])
-
-
-
     const descuentos = await GestionDescuentosController.getDescuentosPersonalQuery(queryRunner, filterSql, orderBy, anio, mes)
 
 
@@ -1596,7 +1590,7 @@ export class AsistenciaController extends BaseController {
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
 
-      const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
+      const result = await AsistenciaController.getDescuentos(anio, mes, [personalId],queryRunner)
 
       const resultG = result.filter(row => row.tipocuenta_id == 'G')
       let totalG: number = resultG.reduce((totalG, row) => totalG + row.importe, 0)
@@ -1641,7 +1635,7 @@ export class AsistenciaController extends BaseController {
         && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de descuentos`)
 
-      const result = await AsistenciaController.getDescuentos(anio, mes, [personalId])
+      const result = await AsistenciaController.getDescuentos(anio, mes, [personalId],queryRunner)
       const retirosxobj = await DescuentoRetirosController.getDescuentosRetiros(queryRunner, anio, mes, personalId)
 
       const retirosxobjnromalizado = retirosxobj.map(item => ({
@@ -1774,9 +1768,9 @@ export class AsistenciaController extends BaseController {
       for (let ds of personal)
         personalIdList.push(ds.PersonalId)
 
-      const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList)
+      const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList, queryRunner)
 
-      const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList)
+      const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, personalIdList,queryRunner)
 
       const resAsisAdmArt42 = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, personalIdList, [], false, false)
 
@@ -1912,7 +1906,7 @@ export class AsistenciaController extends BaseController {
       const filterSql = filtrosToSql(options.filtros, columnasPersonalxResponsable);
       const orderBy = orderToSQL(options.sort)
 
-      const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList)
+      const resDescuentos = await AsistenciaController.getDescuentos(anio, mes, personalIdList, queryRunner)
 
       this.jsonRes({ descuentos: resDescuentos, total: 0 }, res);
     } catch (error) {
@@ -2225,9 +2219,8 @@ export class AsistenciaController extends BaseController {
     return { asistencia, TotalHorasReal }
   }
 
-  static async getAsistenciaObjetivos(anio: number, mes: number, personalId: number[]) {
+  static async getAsistenciaObjetivos(anio: number, mes: number, personalId: number[],queryRunner: QueryRunner) {
     const listPersonaId = (personalId.length == 0) ? '' : 'objd.ObjetivoAsistenciaMesPersonalId IN (' + personalId.join(',') + ')'
-    const queryRunner = await getConnection();
     try {
       const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [listPersonaId], queryRunner)
       return result.asistencia
@@ -2247,7 +2240,7 @@ export class AsistenciaController extends BaseController {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && await this.hasAuthPersona(res, anio, mes, personalId, queryRunner) == false)
         throw new ClientException(`No tiene permiso para obtener información de asistencia`)
 
-      const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId])
+      const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId], queryRunner)
 
       const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
@@ -2269,7 +2262,7 @@ export class AsistenciaController extends BaseController {
       const mes = req.params.mes;
       var desde = new Date(anio, mes - 1, 1);
 
-      const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId])
+      const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId], queryRunner)
 
       const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
       const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
@@ -2360,7 +2353,7 @@ export class AsistenciaController extends BaseController {
 
       if (personalId.length > 0) {
 
-        let result = await AsistenciaController.getDescuentos(anio, mes, personalId);
+        let result = await AsistenciaController.getDescuentos(anio, mes, personalId, queryRunner);
         const totalImporte = result && Array.isArray(result)
           ? result.reduce((sum, row) => sum + (Number(row.importe) || 0), 0)
           : 0;

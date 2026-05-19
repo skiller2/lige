@@ -502,9 +502,8 @@ export class CustodiaController extends BaseController {
             `, [anio, mes])
         }
     */
-    static async listCustodiasPendientesLiqui(anio: number, mes: number, diascorrimiento: number = 3) {
+    static async listCustodiasPendientesLiqui(anio: number, mes: number, diascorrimiento: number = 3, queryRunner: QueryRunner) {
         diascorrimiento = diascorrimiento * -1
-        const queryRunner = await getConnection(res.locals.userName);
         //New Table
         return queryRunner.query(`SELECT obj.CustodiaCodigo, obj.ResponsableId, obj.ClienteId, obj.FechaInicio,
             obj.Origen, obj.FechaFin, obj.Destino, obj.EstadoCodigo, TRIM(cli.ClienteDenominacion) ClienteDenominacion,

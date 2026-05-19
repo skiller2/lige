@@ -889,7 +889,7 @@ export class NovedadesController extends BaseController {
                 throw new ClientException(`Novedad no encontrada`)
             NovedadInfo = NovedadInfo[0]
 
-            let infoPersonal = await PersonalController.infoPersonalQuery(NovedadInfo.PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1)
+            let infoPersonal = await PersonalController.infoPersonalQuery(NovedadInfo.PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1,queryRunner)
             infoPersonal = infoPersonal[0]
 
             const personaNombre = infoPersonal.PersonalApellido + ' ' + infoPersonal.PersonalNombre;
@@ -1123,7 +1123,8 @@ export class NovedadesController extends BaseController {
                 let infoPersonal = await PersonalController.infoPersonalQuery(
                     novedad.PersonalId,
                     fechaActual.getFullYear(),
-                    fechaActual.getMonth() + 1
+                    fechaActual.getMonth() + 1,
+                    queryRunner
                 );
                 infoPersonal = infoPersonal[0];
 

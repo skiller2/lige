@@ -1254,7 +1254,7 @@ SELECT doc.DocumentoId id,
 
 
             //Datos para la denominacion del documento
-            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1)
+            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1,queryRunner)
             const cuit = infoPersonal[0].PersonalCUITCUILCUIT;
             result = await queryRunner.query(`
                 SELECT TRIM(LugarHabilitacionDescripcion) Descripcion
@@ -1360,7 +1360,7 @@ SELECT doc.DocumentoId id,
                 GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
             //Datos para la denominacion del documento
-            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1)
+            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1,queryRunner)
             const cuit = infoPersonal[0].PersonalCUITCUILCUIT;
             let result = await queryRunner.query(`
                 SELECT TRIM(LugarHabilitacionDescripcion) Descripcion
@@ -1549,7 +1549,7 @@ SELECT doc.DocumentoId id,
             `, [newCodigoUlt, PersonalId, LugarHabilitacionId, newPersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
             //Datos para la denominacion del documento
-            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1)
+            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1,queryRunner)
             const cuit = infoPersonal[0].PersonalCUITCUILCUIT;
             result = await queryRunner.query(`
                 SELECT TRIM(LugarHabilitacionDescripcion) Descripcion
@@ -1763,7 +1763,7 @@ SELECT doc.DocumentoId id,
             ));
 
             await queryRunner.startTransaction();
-            const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [])
+            const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [],queryRunner)
             const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [] }, queryRunner, anio, mes, 0)
             const now = new Date()
             const desde = new Date(anio, mes - 1, 1);

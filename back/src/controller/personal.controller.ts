@@ -9,6 +9,7 @@ import type { Options } from "../schemas/filtro.ts";
 import { habilitacionesController } from "../controller/controller.module.ts"
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { unlink } from "fs/promises";
+import type { QueryRunner } from "typeorm";
 
 const columns: any[] = [
   {
@@ -433,8 +434,7 @@ export class PersonalController extends BaseController {
     }
   }
 
-  static async infoPersonalQuery(PersonalId: any, anio: number, mes: number) {
-    const queryRunner = await getConnection();
+  static async infoPersonalQuery(PersonalId: any, anio: number, mes: number,queryRunner:QueryRunner) {
     return queryRunner.query(`
       SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 

@@ -37,7 +37,7 @@ export class IngresoPorAsistenciaController extends BaseController {
       if (mes > 12 || mes < 1)
         throw new ClientException(`Mes ${mes} no válido `)
 
-      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(anio,mes)
+      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(anio,mes,queryRunner)
       if (resPendAsisCierre.length > 0)
         throw new ClientException(`Existen ${resPendAsisCierre.length} objetivos pendientes de cierre o sin asistencia para el período ${mes}/${anio}`)
       

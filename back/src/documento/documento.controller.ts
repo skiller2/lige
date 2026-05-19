@@ -8,6 +8,7 @@ import {
 } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
+import type { QueryRunner } from "typeorm";
 
 export class DocumentoController extends BaseController {
 
@@ -321,8 +322,7 @@ export class DocumentoController extends BaseController {
   }
 
 
-  async getdocgenralListQuery(filterSql: any, orderBy: any) {
-    const queryRunner = await getConnection();
+  async getdocgenralListQuery(filterSql: any, orderBy: any, queryRunner: QueryRunner) {
     const result = await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
       docg.DocumentoId,
@@ -373,7 +373,8 @@ export class DocumentoController extends BaseController {
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaDocumento);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
-      const TipoDocumentos = await this.getdocgenralListQuery(filterSql, orderBy)
+      const queryRunner = await getConnection(res.locals.userName)
+      const TipoDocumentos = await this.getdocgenralListQuery(filterSql, orderBy, queryRunner)
       this.jsonRes(
         {
           total: TipoDocumentos.length,
@@ -439,8 +440,7 @@ export class DocumentoController extends BaseController {
     }
   }
 
-  private async getPersonalDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
-    const queryRunner = await getConnection();
+  private async getPersonalDescargaQuery(filterSql: any, orderBy: any, doc_id: number, queryRunner: QueryRunner) {
     return queryRunner.query(`
       SELECT CONCAT(des.DocumentoId,'-',ROW_NUMBER() OVER (PARTITION BY des.DocumentoId ORDER BY des.FechaDescarga)) AS id
           , des.DocumentoId
@@ -467,7 +467,8 @@ export class DocumentoController extends BaseController {
     const orderBy = orderToSQL(options.sort)
     const doc_id = req.body.doc_id
     try {
-      const PersonalDescarga = await this.getPersonalDescargaQuery(filterSql, orderBy, doc_id)
+      const queryRunner = await getConnection(res.locals.userName)
+      const PersonalDescarga = await this.getPersonalDescargaQuery(filterSql, orderBy, doc_id, queryRunner)
 
       this.jsonRes(
         {
@@ -486,8 +487,7 @@ export class DocumentoController extends BaseController {
     this.jsonRes(this.listaPersonalDescarga, res);
   }
 
-  private async getPersonalNoDescargaQuery(filterSql: any, orderBy: any, doc_id: number) {
-    const queryRunner = await getConnection();
+  private async getPersonalNoDescargaQuery(filterSql: any, orderBy: any, doc_id: number, queryRunner: QueryRunner) {
     return queryRunner.query(`
         SELECT per.PersonalId AS id, tel.Telefono,
           per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -536,7 +536,8 @@ export class DocumentoController extends BaseController {
     const orderBy = orderToSQL(options.sort)
     const doc_id = req.body.doc_id
     try {
-      const PersonalDescarga = await this.getPersonalNoDescargaQuery(filterSql, orderBy, doc_id)
+      const queryRunner = await getConnection(res.locals.userName)
+      const PersonalDescarga = await this.getPersonalNoDescargaQuery(filterSql, orderBy, doc_id, queryRunner)
       this.jsonRes(
         {
           length: PersonalDescarga.length,

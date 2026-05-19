@@ -36,16 +36,10 @@ export class DescuentosController extends BaseController {
       if (mes > 12 || mes < 1 || isNaN(mes))
         throw new ClientException(`Mes ${mes} no válido `)
 
-
-
-
-
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      const result = await AsistenciaController.getDescuentos(anio, mes, [])
-
-      
+      const result = await AsistenciaController.getDescuentos(anio, mes, [],queryRunner)
 
       await queryRunner.query(
         `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id IN (4,5,15,7,14,6,16,17) `, [periodo_id])

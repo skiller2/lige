@@ -9,7 +9,7 @@ import { CustodiaController } from "./custodia.controller.ts";
 
 export class InitController extends BaseController {
   getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
-    CategoriasController.listCambiosPendCategoria({}).then((records: Array<any>) => {
+    CategoriasController.listCambiosPendCategoria(res,{}).then((records: Array<any>) => {
       let data: { x: string; y: any; }[] = []
       let total = 0
 
@@ -32,7 +32,7 @@ export class InitController extends BaseController {
   async getObjetivosSinAsistencia(req: Request, res: Response, next: NextFunction) {
     const anio = req.params.anio
     const mes = req.params.mes
-
+    const queryRunner = await getConnection(res.locals.userName)
     try {
       const result = await ObjetivosPendasisController.listObjetivosAsis({
         filtros: [
@@ -41,7 +41,7 @@ export class InitController extends BaseController {
         ],
         sort: null,
         extra: null
-      })
+      },queryRunner)
 
       let porGrupo: { GrupoActividadDetalle: string; CantidadObjetivos: number; }[] = []
       let data: { x: string; y: any; }[] = []
@@ -75,7 +75,8 @@ export class InitController extends BaseController {
     const mes = Number(req.params.mes)
 
     try {
-      const result = await CustodiaController.listCustodiasPendientesLiqui(anio, mes, 3)
+      const queryRunner = await getConnection(res.locals.userName)      
+      const result = await CustodiaController.listCustodiasPendientesLiqui(anio, mes, 3, queryRunner)
 
       let porGrupo: { ResponsableDetalle: string; CantidadCustodias: number; }[] = []
       let data: { x: string; y: any; }[] = []

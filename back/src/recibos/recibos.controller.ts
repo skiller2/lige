@@ -128,13 +128,13 @@ export class RecibosController extends BaseController {
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
 
-      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(periodo.year, periodo.month, 3)
+      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(periodo.year, periodo.month, 3,queryRunner)
       if (resPendLiq.length > 0) {
         const FechaLimite = resPendLiq[0].FechaLimite
         throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(FechaLimite)}`)
       }
 
-      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(periodo.year, periodo.month)
+      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(periodo.year, periodo.month,queryRunner)
       if (resPendAsisCierre.length > 0)
         throw new ClientException(`Existen ${resPendAsisCierre.length} objetivos pendientes de cierre o sin asistencia para el período ${periodo.month}/${periodo.year}`)
 

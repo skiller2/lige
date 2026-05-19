@@ -3,6 +3,7 @@ import { getConnection } from "../data-source.ts";
 import { filtrosToSql, getOptionsFromRequest } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { NextFunction, Response } from "express";
 import { ObjetivoController } from "../controller/objetivo.controller.ts";
+import type { QueryRunner } from "typeorm";
 
 const columnasGrilla: any[] = [
   {
@@ -141,7 +142,8 @@ export class ObjetivosPendasisController extends BaseController {
   }
 
   static async listObjetivosAsis(
-    options: any
+    options: any,
+    queryRunner: QueryRunner
   ) {
     const filtros = options.filtros;
     const filterSql = filtrosToSql(filtros, columnasGrilla);
@@ -150,9 +152,6 @@ export class ObjetivosPendasisController extends BaseController {
 
     const anio: number = filtros.filter((x: { index: string; }) => x.index === "anio")[0]?.valor;
     const mes: number = filtros.filter((x: { index: string; }) => x.index === "mes")[0]?.valor;
-
-    const queryRunner = await getConnection(res.locals.userName);
-    await queryRunner.connect();
 
     const objetivos = await ObjetivoController.getObjetivoContratos(0, anio, mes, queryRunner)
     let arrObjetivos = []
@@ -292,7 +291,8 @@ export class ObjetivosPendasisController extends BaseController {
   ) {
     const options = getOptionsFromRequest(req);
     try {
-      const pendCambioCategoria = await ObjetivosPendasisController.listObjetivosAsis(options)
+      const queryRunner = await getConnection(res.locals.userName)
+      const pendCambioCategoria = await ObjetivosPendasisController.listObjetivosAsis(options,queryRunner)
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
       return next(error)

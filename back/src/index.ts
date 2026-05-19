@@ -142,8 +142,6 @@ dbServer.init()
   
 //  grupoActividadController.gruposPersonas(null, null, (ret: any) => ret)
 
-//ClientesController.AddContactosMigrados()
-    
   })
   .catch((error) => {
     logger.error(error)

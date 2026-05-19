@@ -7,6 +7,7 @@ import { mkdirSync, existsSync, readFileSync, copyFileSync } from "node:fs";
 import xlsx from 'node-xlsx';
 import { recibosController } from "../controller/controller.module.ts";
 import { unlink } from "fs/promises";
+import { QueryRunnerAlreadyReleasedError, type QueryRunner } from "typeorm";
 
 
 
@@ -199,8 +200,7 @@ export class LiquidacionesController extends BaseController {
     }
   }
 
-  async getDocumentInfo(documentId: Number) {
-    const queryRunner = await getConnection();
+  async getDocumentInfo(documentId: Number, queryRunner: QueryRunner) {
     return queryRunner.query(
       `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS name FROM lige.dbo.convalorimpoexpo WHERE impoexpo_id = @0`, [documentId])
   }
@@ -208,8 +208,8 @@ export class LiquidacionesController extends BaseController {
   async getByDownloadDocument(req: any, res: Response, next: NextFunction) {
     const documentId = Number(req.body.documentId);
     try {
-
-      const document = await this.getDocumentInfo(documentId);
+      const queryRunner = await getConnection(res.locals.userName);
+      const document = await this.getDocumentInfo(documentId,queryRunner);
 
       const finalurl = `${this.directory}/${document[0]["path"]}`
       if (!existsSync(finalurl))

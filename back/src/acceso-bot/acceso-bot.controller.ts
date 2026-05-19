@@ -720,7 +720,7 @@ export class AccesoBotController extends BaseController {
     }
 
     static async enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string) {
-        const queryRunner = await getConnection()
+        const queryRunner = await getConnection(usuario)
         const fechaActual = new Date()
         try {
             const existsTel = await queryRunner.query(`SELECT PersonalId FROM BotRegTelefonoPersonal WHERE PersonalId = @0`, [personal_id])

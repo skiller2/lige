@@ -8,6 +8,7 @@ import xlsx from 'node-xlsx';
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { recibosController } from "../controller/controller.module.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
+import type { QueryRunner } from "typeorm";
 
 export class TelefoniaController extends BaseController {
   directory = process.env.PATH_DOCUMENTS || "tmp";
@@ -262,10 +263,10 @@ export class TelefoniaController extends BaseController {
   }
 
 
-  async getTelefonos(fecha: Date, anio: number, mes: number, options: any) {
+  async getTelefonos(fecha: Date, anio: number, mes: number, options: any,queryRunner: QueryRunner) {
     const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(options.sort)
-    const queryRunner = await getConnection();
+
     fecha.setHours(0, 0, 0, 0)
 
     return queryRunner.query(
@@ -404,6 +405,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     const anio = Number(req.body.anio);
     const mes = Number(req.body.mes);
     const fecha = new Date(req.body.fecha)
+    const queryRunner= await getConnection(res.locals.userName);
     //const fecha= new Date(anio,mes-1,1)
 
     const options: Options = isOptions(req.body.options)
@@ -411,16 +413,15 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       : { filtros: [], sort: null };
 
     try {
-      const telefonos = await this.getTelefonos(fecha, anio, mes, req.body.options)
-      const ImpuestoInternoTelefoniaImpuesto = await this.getImpuestoInterno(anio, mes)
+      const telefonos = await this.getTelefonos(fecha, anio, mes, req.body.options,queryRunner)
+      const ImpuestoInternoTelefoniaImpuesto = await this.getImpuestoInterno(anio, mes,queryRunner)
       this.jsonRes({ list: telefonos, ImpuestoInternoTelefoniaImpuesto }, res);
     } catch (error) {
       return next(error)
     }
   }
 
-  async getImpuestoInterno(anio: number, mes: number) {
-    const queryRunner = await getConnection();
+  async getImpuestoInterno(anio: number, mes: number, queryRunner: QueryRunner) {
     const data = await queryRunner.query(`SELECT imp.ImpuestoInternoTelefoniaImpuesto FROM ImpuestoInternoTelefonia imp WHERE EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.ImpuestoInternoTelefoniaDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.ImpuestoInternoTelefoniaHasta ,'9999-12-31')`, [null, anio, mes])
     return data[0]?.ImpuestoInternoTelefoniaImpuesto || 0;
   }
@@ -479,7 +480,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
       const now = fechaRequest
 
-      let telefonos = await this.getTelefonos(fechaRequest, anioRequest, mesRequest, { filtros: [], sort: [] })
+      let telefonos = await this.getTelefonos(fechaRequest, anioRequest, mesRequest, { filtros: [], sort: [] }, queryRunner)
 
 
       telefonos = telefonos.map(tel => ({ ...tel, ...{ fimpplanvoz: 0, fserviciosvoz: 0, fpacksms: 0, fpackdatos: 0, fgarantia: 0, fotros: 0, vvoz: 0, vldnldi: 0, vmensajes: 0, vdatos: 0, vroaming: 0, votros: 0, unicavez: 0, total: 0 } }));
