@@ -10,7 +10,7 @@ initRouter.get(`${base}/stats/horastrabajadas/:anio`, authMiddleware.verifyToken
 })
 
 initRouter.get(`${base}/stats/adelantospendientes`, authMiddleware.verifyToken, (req, res, next) => {
-    initController.getAdelantosPendientes(req, res, next)
+	initController.getAdelantosPendientes(req, res, next)
 })
 
 initRouter.get(`${base}/stats/excepcionespendientes`, authMiddleware.verifyToken, (req, res, next) => {
@@ -33,8 +33,12 @@ initRouter.get(`${base}/stats/objetivossingrupo`, authMiddleware.verifyToken, (r
 	initController.getObjetivosSinGrupo(req, res, next)
 })
 
-initRouter.get(`${base}/stats/clientesactivos`, authMiddleware.verifyToken, (req, res, next) => {
-	initController.getClientesActivos(req, res, next)
+initRouter.get(`${base}/stats/clientesactivos`, authMiddleware.verifyToken, async (req, res, next) => {
+	try {
+		await initController.getClientesActivos(req, res, next)
+	} catch (error) {
+		next(error)
+	}
 })
 
 initRouter.get(`${base}/stats/cambioscategoria`, authMiddleware.verifyToken, (req, res, next) => {

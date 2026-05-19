@@ -9,7 +9,7 @@ import { CustodiaController } from "./custodia.controller.ts";
 
 export class InitController extends BaseController {
   getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
-    CategoriasController.listCambiosPendCategoria(res,{}).then((records: Array<any>) => {
+    CategoriasController.listCambiosPendCategoria(res, {}).then((records: Array<any>) => {
       let data: { x: string; y: any; }[] = []
       let total = 0
 
@@ -41,7 +41,7 @@ export class InitController extends BaseController {
         ],
         sort: null,
         extra: null
-      },queryRunner)
+      }, queryRunner)
 
       let porGrupo: { GrupoActividadDetalle: string; CantidadObjetivos: number; }[] = []
       let data: { x: string; y: any; }[] = []
@@ -75,7 +75,7 @@ export class InitController extends BaseController {
     const mes = Number(req.params.mes)
 
     try {
-      const queryRunner = await getConnection(res.locals.userName)      
+      const queryRunner = await getConnection(res.locals.userName)
       const result = await CustodiaController.listCustodiasPendientesLiqui(anio, mes, 3, queryRunner)
 
       let porGrupo: { ResponsableDetalle: string; CantidadCustodias: number; }[] = []
@@ -311,7 +311,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
   async getClientesActivos(req: Request, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName)
     const stmactual = new Date()
-    queryRunner.query(
+    const clientesActivos = await queryRunner.query(
       `with cte as (
 SELECT cli.ClienteId AS id, cli.ClienteId,fac.ClienteFacturacionCUIT,con.CondicionAnteIVADescripcion,cli.ClienteDenominacion,cli.ClienteNombreFantasia,cli.ClienteFechaAlta,
 	CONCAT_WS(' ',TRIM(domcli.DomicilioDomCalle),TRIM(domcli.DomicilioDomNro)) AS Domicilio,cant.CantidadObjetivos,        custodias.CantidadCustodias,        correonoti.ContactoEmailEmail,        calc.activo    
@@ -333,15 +333,8 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
         `,
       [stmactual]
     )
-      .then((records: Array<any>) => {
-        const clientesActivos = records[0]?.ClientesActivos || 0;
-        this.jsonRes({ clientesActivos }, res);
-      })
-      .catch((error) => {
-        return next(error);
-      }).finally(() => {
-        queryRunner.release()
-      });
+
+    this.jsonRes({ clientesActivos: clientesActivos[0]?.ClientesActivos || 0 }, res);
   }
 
   async getLicenciasInconsistentes(req: Request, res: Response, next: NextFunction) {
@@ -470,7 +463,7 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
       .catch((error) => {
         return next(error);
       }).finally(() => {
-          queryRunner.release()
+        queryRunner.release()
       })
       ;
   }
