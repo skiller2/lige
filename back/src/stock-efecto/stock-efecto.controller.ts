@@ -64,6 +64,20 @@ export class StockEfectoController extends BaseController {
     }
   }
 
+  async getProveedores(req: any, res: Response, next: NextFunction) {
+    try {
+      const queryRunner = await getConnection(res.locals.userName);
+      const rows = await queryRunner.query(`
+        SELECT pro.ProveedorId, TRIM(pro.ProveedorRazonSocial) AS ProveedorRazonSocial
+        FROM Proveedor pro
+        ORDER BY pro.ProveedorRazonSocial
+      `);
+      this.jsonRes(rows, res);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
   async getObjetivoInfo(req: any, res: Response, next: NextFunction) {
     try {
       const objetivoId = Number(req.params.objetivoId);

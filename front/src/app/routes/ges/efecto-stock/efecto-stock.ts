@@ -15,6 +15,7 @@ export interface ParametroformEfectoStock {
   depositoId: number | null;
   personalId: number | null;
   objetivoId: string | null;
+  proveedorId: number | null;
 }
 
 @Component({
@@ -33,6 +34,7 @@ export class EfectoStockComponent {
     depositoId: null,
     personalId: null,
     objetivoId: null,
+    proveedorId: null,
   };
 
   readonly parametroStock = signal<ParametroformEfectoStock>(this.defaultStockForm);
@@ -57,6 +59,14 @@ export class EfectoStockComponent {
     loader: async ({ params }) => {
       if (params.tipo !== 'deposito') return [];
       return await firstValueFrom(this.searchService.getDepositos());
+    },
+  });
+
+  proveedores = resource({
+    params: () => ({ tipo: this.tipoDestinoSeleccionado() }),
+    loader: async ({ params }) => {
+      if (params.tipo !== 'proveedor') return [];
+      return await firstValueFrom(this.searchService.getStockEfectoProveedores());
     },
   });
 

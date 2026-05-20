@@ -2339,6 +2339,13 @@ export class SearchService {
     );
   }
 
+  getStockEfectoProveedores() {
+    return this.http.get<ResponseJSON<any>>(`api/stock-efecto/proveedores`).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
   getEfectoByPersonalId(personalId: number) {
     if (!personalId) {
             this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
