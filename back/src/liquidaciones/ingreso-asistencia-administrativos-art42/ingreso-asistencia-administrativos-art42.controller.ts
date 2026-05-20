@@ -48,7 +48,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
 
 
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
 

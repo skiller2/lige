@@ -172,7 +172,7 @@ export class AuthController extends BaseController {
 
     try {
       let user: any = await this.authUser(userName, password)
-      await queryRunner.connect();
+      
 
       const persona_cuit = Number(user.description)
 

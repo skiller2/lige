@@ -627,7 +627,7 @@ export class GrupoActividadController extends BaseController {
         const params = req.body
 
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
 
@@ -736,7 +736,7 @@ export class GrupoActividadController extends BaseController {
         GrupoActividadJerarquicoDesde.setHours(0, 0, 0, 0)
 
         try {
-            await queryRunner.connect()
+            
             await queryRunner.startTransaction()
 
             const codigoExist = await queryRunner.query(`SELECT * FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0 AND GrupoActividadId = @1`, [params.GrupoActividadJerarquicoId, params.GrupoActividadId])
@@ -935,7 +935,7 @@ export class GrupoActividadController extends BaseController {
 
 
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             let dataResultado = {}
@@ -1093,7 +1093,7 @@ export class GrupoActividadController extends BaseController {
 
 
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             let dataResultado = {}
@@ -1256,7 +1256,7 @@ export class GrupoActividadController extends BaseController {
         const queryRunner = await getConnection(res.locals.userName)
 
         try {
-            await queryRunner.connect()
+            
             await queryRunner.startTransaction()
 
             await queryRunner.query(`DELETE FROM GrupoActividad WHERE GrupoActividadId = @0`, [cod_grupo_actividad])
@@ -1277,7 +1277,7 @@ export class GrupoActividadController extends BaseController {
         const queryRunner = await getConnection(res.locals.userName)
         
         try {
-            await queryRunner.connect()
+            
             await queryRunner.startTransaction()
 
             if (fecha_hasta && fecha_hasta !== 'null') {
@@ -1431,7 +1431,7 @@ export class GrupoActividadController extends BaseController {
 
 
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             const personal = await queryRunner.query(`SELECT DISTINCT sit.PersonalId,sit.PersonalSituacionRevistaSituacionId, sit.PersonalSituacionRevistaDesde, sit.PersonalSituacionRevistaHasta, sitdes.SituacionRevistaDescripcion
@@ -1470,7 +1470,7 @@ export class GrupoActividadController extends BaseController {
         let fechaActual = new Date()
 
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             const catactual = await queryRunner.query(

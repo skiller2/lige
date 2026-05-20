@@ -658,7 +658,7 @@ LEFT JOIN (
       if (checkrecibos[0]?.ind_recibos_generados == 1)
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction()
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))

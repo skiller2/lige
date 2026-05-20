@@ -627,7 +627,7 @@ export class ImpuestosAfipController extends BaseController {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
       if (!anioRequest) throw new ClientException("Faltó indicar el mes.");
 
-      await queryRunner.connect();
+      
       //await queryRunner.startTransaction();
 
       let CUIT: string;

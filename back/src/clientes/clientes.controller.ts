@@ -835,7 +835,7 @@ ${orderBy}`, [fechaActual])
         const ClienteId = Number(id)
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
             throw new ClientException(`Función en desarrollo.`)
             const contactosIds = await queryRunner.query(`SELECT ContactoId, ClienteId FROM Contacto WHERE ClienteId = @0 `, [ClienteId])

@@ -587,7 +587,7 @@ export class CargaLicenciaController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     try {
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
 
@@ -982,7 +982,7 @@ export class CargaLicenciaController extends BaseController {
 
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
 
@@ -1164,7 +1164,7 @@ export class CargaLicenciaController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     try {
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
       const horas = req.body.PersonalLicenciaAplicaPeriodoHorasMensuales
       const PersonalId = req.body.PersonalId;

@@ -193,7 +193,7 @@ export class CategoriasController extends BaseController {
         "JOB"
       ));
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       //            throw new ClientException("Ups")

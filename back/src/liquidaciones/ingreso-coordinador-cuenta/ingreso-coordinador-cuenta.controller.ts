@@ -31,7 +31,7 @@ export class IngresoCoordinadorCuentaController extends BaseController {
 
 
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const result = []

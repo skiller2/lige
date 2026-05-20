@@ -389,7 +389,7 @@ export class CursoController extends BaseController {
     const ip = this.getRemoteAddress(req);
 
     const queryRunner = await getConnection(res.locals.userName)
-    await queryRunner.connect();
+    
     await queryRunner.startTransaction();
 
     try {
@@ -514,7 +514,7 @@ export class CursoController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       await queryRunner.query(`DELETE FROM CursoHabilitacion WHERE CursoHabilitacionId = @0 `, [CursoHabilitacionId])

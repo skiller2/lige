@@ -1086,7 +1086,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     const fechaActual: Date = new Date()
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
       //VALIDACIONES
       let campos_vacios: any[] = []

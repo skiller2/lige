@@ -292,7 +292,7 @@ LEFT JOIN ClienteFacturacion fac
         fechaActual.setHours(0,0,0,0)
 
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             const anio = PeriodoDesdeAplica.getFullYear()
@@ -449,7 +449,7 @@ LEFT JOIN ClienteFacturacion fac
         let messageError:string[] = []
         try {
             
-            await queryRunner.connect()
+            
             await queryRunner.startTransaction()
 
             for (const producto of list) {
@@ -589,7 +589,7 @@ LEFT JOIN ClienteFacturacion fac
                 throw new ClientException(campos_vacios)
             }
 
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             //Valida que el período no tenga el indicador de recibos generado
@@ -745,7 +745,7 @@ LEFT JOIN ClienteFacturacion fac
         const queryRunner = await getConnection(res.locals.userName)
 
         try {
-        await queryRunner.connect()
+        
         await queryRunner.startTransaction()
 
         const importacionesDescuentosAnteriores = await queryRunner.query(

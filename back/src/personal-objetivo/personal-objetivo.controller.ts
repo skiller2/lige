@@ -112,7 +112,7 @@ export class PersonalObjetivosController extends BaseController {
       if(ObjetivoId == 0)
         throw new ClientException(`Debe seleccionar un objetivo`) 
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
       await  queryRunner.query(`DELETE FROM lige.dbo.percargadirecta
       WHERE persona_id=@0 AND objetivo_id=@1;`, [userId,ObjetivoId])

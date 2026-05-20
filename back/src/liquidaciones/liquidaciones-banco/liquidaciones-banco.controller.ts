@@ -626,7 +626,7 @@ LEFT JOIN banco banc
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
 
-    await queryRunner.connect();
+    
     await queryRunner.startTransaction();
 
     try {
@@ -656,7 +656,7 @@ LEFT JOIN banco banc
     let anio = Number(req.body.selectedPeriod.year)
     let mes = Number(req.body.selectedPeriod.month)
 
-    await queryRunner.connect();
+    
     await queryRunner.startTransaction();
     try {
 
@@ -827,7 +827,7 @@ LEFT JOIN banco banc
       if (banco.length == 0)
         throw new ClientException('No hay registros para generar archivo')
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
       const periodods = await queryRunner.query('SELECT periodo_id FROM lige.dbo.liqmaperiodo WHERE anio=@0 AND mes=@1', [periodo.year, periodo.month])
       const periodo_id = periodods[0]['periodo_id']
@@ -1180,7 +1180,7 @@ LEFT JOIN banco banc
       if (persona_id == null)
         throw new ClientException(`Debe seleccionar una persona`)
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
 

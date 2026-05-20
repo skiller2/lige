@@ -188,7 +188,7 @@ export class ValorHoraController extends BaseController {
     const fechaActual = new Date();
 
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const { dataResultado, message } = await this.setValorHora(queryRunner, params, usuario, ip, fechaActual);
@@ -214,7 +214,7 @@ export class ValorHoraController extends BaseController {
 
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       for (const id of ids) {

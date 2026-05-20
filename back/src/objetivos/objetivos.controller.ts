@@ -1735,7 +1735,7 @@ export class ObjetivosController extends BaseController {
                 throw new ClientException("Debe seleccionar un Objetivo")
 
 
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             const horasAsistencia = await queryRunner.query(`SELECT SUM(

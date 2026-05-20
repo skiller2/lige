@@ -1208,7 +1208,7 @@ SELECT doc.DocumentoId id,
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             //Validacion
@@ -1321,7 +1321,7 @@ SELECT doc.DocumentoId id,
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             //Validacion
@@ -1486,7 +1486,7 @@ SELECT doc.DocumentoId id,
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             //Validación
@@ -1601,7 +1601,7 @@ SELECT doc.DocumentoId id,
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, LugarHabilitacionIds, usuario, ip)
@@ -1955,7 +1955,7 @@ SELECT doc.DocumentoId id,
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             await queryRunner.query(`

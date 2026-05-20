@@ -959,7 +959,7 @@ UNION
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const queryRunner = await getConnection(res.locals.userName)
-    await queryRunner.connect();
+    
     await queryRunner.startTransaction();
 
     //const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip);

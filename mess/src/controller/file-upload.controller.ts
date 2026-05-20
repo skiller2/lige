@@ -703,7 +703,7 @@ export class FileUploadController extends BaseController {
 
     try {
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       // Verificar si el documento tiene descargas asociadas

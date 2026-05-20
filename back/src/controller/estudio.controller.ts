@@ -327,7 +327,7 @@ export class EstudioController extends BaseController {
     const ip = this.getRemoteAddress(req)
 
     const queryRunner = await getConnection(res.locals.userName)
-    await queryRunner.connect();
+    
     await queryRunner.startTransaction();
     
 
@@ -519,7 +519,7 @@ export class EstudioController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const PersonalEstudioPagina1Id = await queryRunner.query(`SELECT PersonalEstudioPagina1Id FROM PersonalEstudio WHERE PersonalEstudioId = @0 AND PersonalId = @1`, [PersonalEstudioId, PersonalId])

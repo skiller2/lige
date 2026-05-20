@@ -392,7 +392,7 @@ export class FacturacionController extends BaseController {
     async saveFacturacion(req: any, res: Response, next: NextFunction) {
 
         const queryRunner = await getConnection(res.locals.userName)
-        await queryRunner.connect();
+        
         
 
         try {

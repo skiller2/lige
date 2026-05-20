@@ -814,7 +814,7 @@ export class AsistenciaController extends BaseController {
 
       if (!Motivo || Motivo.replace(/\s/g, '').length <= 5) throw new ClientException("Debe ingresar un motivo válido.");
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'gOperaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
@@ -1156,7 +1156,7 @@ export class AsistenciaController extends BaseController {
 
 
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
@@ -1272,7 +1272,7 @@ export class AsistenciaController extends BaseController {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para listar asistencia del objetivo`)
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const result = await this.getExcepAsistenciaPorObjetivoQuery(objetivoId, desde, queryRunner)

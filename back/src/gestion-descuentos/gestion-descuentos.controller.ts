@@ -2436,7 +2436,7 @@ FROM cte
         throw new ClientException(campos_vacios)
       }
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       //Valida que el período no tenga el indicador de recibos generado
@@ -2653,7 +2653,7 @@ FROM cte
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      await queryRunner.connect()
+      
       await queryRunner.startTransaction()
 
       const importacionesDescuentosAnteriores = await queryRunner.query(
@@ -2739,7 +2739,7 @@ FROM cte
     let dataset = []
     try {
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
 
@@ -2826,7 +2826,7 @@ FROM cte
     const DescuentoId: number = req.body[2]
 
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
       let AplicaEl: Date
       if (periodo && typeof periodo === 'string' && /^(0?[1-9]|1[0-2])\/\d{4}$/.test(periodo)) {
@@ -2991,7 +2991,7 @@ FROM cte
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       let consult: any = null

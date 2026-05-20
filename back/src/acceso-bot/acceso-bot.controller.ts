@@ -181,7 +181,7 @@ export class AccesoBotController extends BaseController {
         const PersonalId = Number(req.params.PersonalId)
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+            
             await queryRunner.startTransaction();
 
             await queryRunner.query(`DELETE FROM BotRegTelefonoPersonal WHERE PersonalId = @0`, [PersonalId])

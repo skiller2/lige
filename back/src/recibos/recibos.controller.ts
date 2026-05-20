@@ -633,7 +633,7 @@ export class RecibosController extends BaseController {
 
 
     try {
-      await queryRunner.connect();
+      
 
       // // validar la sucursal del usuario que desea descargar el recibo
       // if (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) {
