@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import { logger } from "./logger/logger.ts";
+console.log('test')
 import { DBServer, WebServer } from "./server.ts";
 import { makeRoutes } from "./routes/routes.module.ts"
 import { dataSource, getConnection } from "./data-source.ts";
@@ -14,7 +16,7 @@ import { HabilitacionesController } from "./habilitaciones/habilitaciones.contro
 import { GestionDescuentosController } from "./gestion-descuentos/gestion-descuentos.controller.ts";
 
 import { version, GlobalWorkerOptions, getDocument } from "pdfjs-dist";
-import { logger } from "./logger/logger.ts";
+import { ClientException } from './controller/base.controller.ts';
 
 
 function createMinimalPDF(): ArrayBuffer {
@@ -199,7 +201,7 @@ async function main() {
     logger.debug('Heartbeat', { uptime: process.uptime() });
   }, 1 * 60 * 60 * 1000); // Cada 1 horas
 
-
+  //throw new ClientException(["aaa","bbb"],{user:1,name:"alfredo"}) 
   //const queryRunner=await getConnection('elserver')
   //await queryRunner.startTransaction()
   //await queryRunner.commitTransaction()
