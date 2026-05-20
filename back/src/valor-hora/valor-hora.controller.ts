@@ -77,6 +77,18 @@ export class ValorHoraController extends BaseController {
       searchHidden: true,
     },
     {
+      name: "Fecha Desde",
+      type: "date",
+      id: "ValorLiquidacionDesde",
+      field: "ValorLiquidacionDesde",
+      fieldName: "vl.ValorLiquidacionDesde",
+      searchType: "date",
+      searchComponent: "inputForFechaSearch",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
+    },
+    {
       name: "Importe",
       type: "currency",
       id: "ValorLiquidacionHoraNormal",
@@ -205,15 +217,6 @@ export class ValorHoraController extends BaseController {
       await queryRunner.connect();
       await queryRunner.startTransaction();
 
-      // Validar que no existan recibos generados para el período
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
-
-      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
-
-      if (getRecibosGenerados[0].ind_recibos_generados == 1)
-        throw new ClientException(`No se puede eliminar el Importe, debido a que el periodo ${mes}/${anio} cuenta con los recibos generados.`)
-
-
       for (const id of ids) {
         // Obtener los datos del registro a eliminar
         const registros = await queryRunner.query(`
@@ -230,12 +233,12 @@ export class ValorHoraController extends BaseController {
             ValorLiquidacionDesde
           } = registros[0];
 
-          const periodoValorExistente = await Utils.getPeriodoId(queryRunner, fechaActual, ValorLiquidacionDesde.getFullYear(), ValorLiquidacionDesde.getMonth() + 1, usuario, ip)
-          const getRecibosGeneradosValorExistente = await recibosController.getRecibosGenerados(queryRunner, periodoValorExistente)
+          // Validar que no existan recibos generados para el período del registro a eliminar
+          const periodoId = await Utils.getPeriodoId(queryRunner, fechaActual, ValorLiquidacionDesde.getFullYear(), ValorLiquidacionDesde.getMonth() + 1, usuario, ip)
+          const recibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodoId)
 
-          if (getRecibosGeneradosValorExistente[0].ind_recibos_generados == 1)
-            throw new ClientException(`No se puede eliminar el Importe, debido a que dicho importe cuenta con fecha desde ${ValorLiquidacionDesde.getMonth() + 1}/${ValorLiquidacionDesde.getFullYear()} y ya se encuentran generados los recibos.`)
-
+          if (recibosGenerados[0].ind_recibos_generados == 1)
+            throw new ClientException(`No se puede eliminar el registro debido a que dicho importe cuenta con fecha desde ${ValorLiquidacionDesde.getDate()}/${ValorLiquidacionDesde.getMonth() + 1}/${ValorLiquidacionDesde.getFullYear()}. Se encuentran generados los recibos para el período ${ValorLiquidacionDesde.getMonth() + 1}/${ValorLiquidacionDesde.getFullYear()}.`)
 
           // Traer todos los registros de la misma combinación ordenados, excluyendo el que se va a borrar
           const registrosRestantes = await queryRunner.query(`
@@ -275,7 +278,7 @@ export class ValorHoraController extends BaseController {
             );
           }
         } else {
-          throw new ClientException(`Error al eliminar el siguiente registro: Id= ${id}, SucursalId= ${registros[0].ValorLiquidacionSucursalId}, TipoAsociadoId= ${registros[0].ValorLiquidacionTipoAsociadoId}, CategoriaPersonalId= ${registros[0].ValorLiquidacionCategoriaPersonalId}, Desde= ${registros[0].ValorLiquidacionDesde}`)
+          throw new ClientException(`Error al eliminar el siguiente registro: Id= ${id}, SucursalId= ${registros[0].ValorLiquidacionSucursalId}, TipoAsociadoId= ${registros[0].ValorLiquidacionTipoAsociadoId}, CategoriaPersonalId= ${registros[0].ValorLiquidacionCategoriaPersonalId}, Desde= ${registros[0].ValorLiquidacionDesde.getDate()}/${registros[0].ValorLiquidacionDesde.getMonth() + 1}/${registros[0].ValorLiquidacionDesde.getFullYear()}`)
         }
 
       }
