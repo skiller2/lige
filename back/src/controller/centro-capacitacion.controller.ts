@@ -9,7 +9,7 @@ import type { QueryRunner } from "typeorm";
 export class CentroCapacitacionController extends BaseController {
 
 
-      async search(req: any, res: Response, next: NextFunction) {
+    async search(req: any, res: Response, next: NextFunction) {
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
@@ -18,12 +18,12 @@ export class CentroCapacitacionController extends BaseController {
         } catch (error) {
             return next(error)
         } finally {
-    
+            await queryRunner.release();
         }
-      
-      }
-    
-      async searchId(req: any, res: Response, next: NextFunction) {
+
+    }
+
+    async searchId(req: any, res: Response, next: NextFunction) {
         const { id } = req.params
         const queryRunner = await getConnection(res.locals.userName);
         try {
@@ -32,12 +32,12 @@ export class CentroCapacitacionController extends BaseController {
         } catch (error) {
             return next(error)
         } finally {
-    
+            await queryRunner.release();
         }
-      }
+    }
 
-     
-      async searchSede(req: any, res: Response, next: NextFunction) {
+
+    async searchSede(req: any, res: Response, next: NextFunction) {
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
@@ -46,10 +46,10 @@ export class CentroCapacitacionController extends BaseController {
         } catch (error) {
             return next(error)
         } finally {
-    
+            await queryRunner.release();
         }
-      
-      }
+
+    }
 
 
 }

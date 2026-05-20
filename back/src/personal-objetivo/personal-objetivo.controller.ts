@@ -12,32 +12,32 @@ export class PersonalObjetivosController extends BaseController {
     try {
       let user_id = Number(req.params.user)
       const queryRunner = await getConnection(res.locals.userName);
-      const result = await this.getPersonaAndGroup(queryRunner,user_id,true)
-      this.jsonRes({ recordsArray:[result] }, res);
+      const result = await this.getPersonaAndGroup(queryRunner, user_id, true)
+      this.jsonRes({ recordsArray: [result] }, res);
     } catch (error) {
       return next(error)
     }
-    
+
 
   }
-  
-  async getpersonal (req: Request, res: Response, next: NextFunction) {
+
+  async getpersonal(req: Request, res: Response, next: NextFunction) {
 
     try {
       let objetivo = Number(req.params.objetivo)
       const queryRunner = await getConnection(res.locals.userName);
-      const result = await this.getPersonaAndGroup(queryRunner,objetivo,false)
-      this.jsonRes({ recordsArray:[result] }, res);
+      const result = await this.getPersonaAndGroup(queryRunner, objetivo, false)
+      this.jsonRes({ recordsArray: [result] }, res);
     } catch (error) {
       return next(error)
     }
-    
-  } 
-  
-  async setPersonaAndGroup (req: Request, res: Response, next: NextFunction) {
+
+  }
+
+  async setPersonaAndGroup(req: Request, res: Response, next: NextFunction) {
 
     try {
-      const {userId, ObjetivoId} = req.body
+      const { userId, ObjetivoId } = req.body
       let usuario = res.locals.userName
       let ip = this.getRemoteAddress(req)
       let fechaActual = new Date();
@@ -46,31 +46,31 @@ export class PersonalObjetivosController extends BaseController {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para realizar la carga, no se encuentra en el grupo liquidaciones o administrativo`)
 
-      if(userId == 0)
+      if (userId == 0)
         throw new ClientException(`Debe seleccionar un cliente`)
 
-      if(ObjetivoId == 0)
+      if (ObjetivoId == 0)
         throw new ClientException(`Debe seleccionar un objetivo`)
 
 
-      await this.AddPersonaAndGroup(queryRunner,userId,ObjetivoId,usuario,ip,fechaActual)
+      await this.AddPersonaAndGroup(queryRunner, userId, ObjetivoId, usuario, ip, fechaActual)
       return this.jsonRes([], res, `Se realizo la tarea con exito`);
     } catch (error) {
       return next(error)
     }
-    
-  }  
 
-  
-  async getPersonaAndGroup(queryRunner:QueryRunner,parameter:number,isValue:boolean ){
-    
-    if(isValue){
+  }
+
+
+  async getPersonaAndGroup(queryRunner: QueryRunner, parameter: number, isValue: boolean) {
+
+    if (isValue) {
       return queryRunner.query(`SELECT obj.ObjetivoId as id,eledep.ClienteElementoDependienteDescripcion  AS Descripcion 
       FROM lige.dbo.percargadirecta per
       JOIN Objetivo AS obj ON obj.ObjetivoId = per.objetivo_id
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
       WHERE per.persona_id = @0;`, [parameter])
-    }else{
+    } else {
       return queryRunner.query(`SELECT percarga.persona_id as id ,CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS Descripcion 
       FROM lige.dbo.percargadirecta percarga
       JOIN Personal AS per ON per.PersonalId = percarga.persona_id
@@ -80,24 +80,24 @@ export class PersonalObjetivosController extends BaseController {
   }
 
   async AddPersonaAndGroup(
-    queryRunner:QueryRunner,
-    userId:any,
-    ObjetivoId:any,
-    usuario:any,
-    ip:any,
-    fechaActual:any ){
-   
-      return queryRunner.query(`INSERT INTO lige.dbo.percargadirecta
+    queryRunner: QueryRunner,
+    userId: any,
+    ObjetivoId: any,
+    usuario: any,
+    ip: any,
+    fechaActual: any) {
+
+    return queryRunner.query(`INSERT INTO lige.dbo.percargadirecta
       (persona_id, objetivo_id,aud_usuario_ins,aud_ip_ins,aud_fecha_ins,aud_usuario_mod,aud_ip_mod,aud_fecha_mod)
-      VALUES (@0, @1, @2, @3, @4, @2, @3, @4);`, [ userId,ObjetivoId,usuario,ip,fechaActual])
+      VALUES (@0, @1, @2, @3, @4, @2, @3, @4);`, [userId, ObjetivoId, usuario, ip, fechaActual])
 
   }
 
 
-  async setPersonalAndGroupDelete(req: Request, res: Response, next: NextFunction){
+  async setPersonalAndGroupDelete(req: Request, res: Response, next: NextFunction) {
 
-  
-    const {userId, ObjetivoId} = req.body
+
+    const { userId, ObjetivoId } = req.body
     const queryRunner = await getConnection(res.locals.userName);
     //await this.deletePersonaAndGroup(queryRunner,userId,ObjetivoId)
 
@@ -106,26 +106,26 @@ export class PersonalObjetivosController extends BaseController {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para realizar la carga, no se encuentra en el grupo liquidaciones o administrativo`)
 
-      if(userId == 0)
+      if (userId == 0)
         throw new ClientException(`Debe seleccionar un cliente`)
 
-      if(ObjetivoId == 0)
-        throw new ClientException(`Debe seleccionar un objetivo`) 
+      if (ObjetivoId == 0)
+        throw new ClientException(`Debe seleccionar un objetivo`)
 
-      
+
       await queryRunner.startTransaction();
-      await  queryRunner.query(`DELETE FROM lige.dbo.percargadirecta
-      WHERE persona_id=@0 AND objetivo_id=@1;`, [userId,ObjetivoId])
-    
+      await queryRunner.query(`DELETE FROM lige.dbo.percargadirecta
+      WHERE persona_id=@0 AND objetivo_id=@1;`, [userId, ObjetivoId])
+
       await queryRunner.commitTransaction();
-          return this.jsonRes([], res, `Se realizo la  eliminacion`);
+      return this.jsonRes([], res, `Se realizo la  eliminacion`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
-   
   }
-
 }
 
 

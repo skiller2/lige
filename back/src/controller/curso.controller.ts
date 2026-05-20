@@ -206,7 +206,7 @@ export class CursoController extends BaseController {
     } catch (error) {
       return next(error)
     } finally {
-
+      await queryRunner.release();
     }
 
   }
@@ -220,7 +220,7 @@ export class CursoController extends BaseController {
     } catch (error) {
       return next(error)
     } finally {
-
+      await queryRunner.release();
     }
   }
 
@@ -288,7 +288,9 @@ export class CursoController extends BaseController {
 
     } catch (error) {
       return next(error)
-    }
+    }finally {
+            await queryRunner.release();
+        }
 
   }
 
@@ -343,7 +345,9 @@ export class CursoController extends BaseController {
 
     } catch (error) {
       return next(error)
-    }
+    }finally {
+            await queryRunner.release();
+        }
 
   }
 
@@ -357,8 +361,8 @@ export class CursoController extends BaseController {
     } catch (error) {
       return next(error)
     } finally {
-
-    }
+            await queryRunner.release();
+        }
 
   }
 
@@ -371,8 +375,8 @@ export class CursoController extends BaseController {
     } catch (error) {
       return next(error)
     } finally {
-
-    }
+            await queryRunner.release();
+        }
   }
 
 
@@ -389,7 +393,7 @@ export class CursoController extends BaseController {
     const ip = this.getRemoteAddress(req);
 
     const queryRunner = await getConnection(res.locals.userName)
-    
+
     await queryRunner.startTransaction();
 
     try {
@@ -514,7 +518,7 @@ export class CursoController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      
+
       await queryRunner.startTransaction();
 
       await queryRunner.query(`DELETE FROM CursoHabilitacion WHERE CursoHabilitacionId = @0 `, [CursoHabilitacionId])
@@ -524,10 +528,8 @@ export class CursoController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
-
-
   }
-
-
 }

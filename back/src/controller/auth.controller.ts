@@ -220,10 +220,6 @@ export class AuthController extends BaseController {
       // you need to release query runner which is manually created:
       await queryRunner.release();
     }
-    //  })
-    //      .catch((error) => {
-    //  return next(error);
-    //});
   }
 
   refreshToken(req: any, res: any, next: NextFunction) {

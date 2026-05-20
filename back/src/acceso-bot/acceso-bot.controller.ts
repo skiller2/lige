@@ -138,6 +138,8 @@ export class AccesoBotController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
 
     }
@@ -153,6 +155,8 @@ export class AccesoBotController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
     }
 
@@ -181,7 +185,7 @@ export class AccesoBotController extends BaseController {
         const PersonalId = Number(req.params.PersonalId)
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            
+
             await queryRunner.startTransaction();
 
             await queryRunner.query(`DELETE FROM BotRegTelefonoPersonal WHERE PersonalId = @0`, [PersonalId])
@@ -219,6 +223,8 @@ export class AccesoBotController extends BaseController {
             this.jsonRes(result[0], res);
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
     }
 
@@ -677,6 +683,7 @@ export class AccesoBotController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
         }
     }
 

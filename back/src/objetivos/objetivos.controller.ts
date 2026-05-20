@@ -1735,7 +1735,7 @@ export class ObjetivosController extends BaseController {
                 throw new ClientException("Debe seleccionar un Objetivo")
 
 
-            
+
             await queryRunner.startTransaction();
 
             const horasAsistencia = await queryRunner.query(`SELECT SUM(
@@ -1804,6 +1804,8 @@ export class ObjetivosController extends BaseController {
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
 
     }
@@ -1891,7 +1893,7 @@ export class ObjetivosController extends BaseController {
 
             // }
 
-            
+
 
 
             let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`, [Number(Obj.ClienteId)])

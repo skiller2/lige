@@ -75,7 +75,7 @@ export class BaseController {
   }
 
 
-  static getUser(res:any){
+  static getUser(res: any) {
     return res?.locals?.userName || 'bot'
   }
 
@@ -409,6 +409,8 @@ export class BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 }

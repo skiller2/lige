@@ -662,8 +662,9 @@ export class AsistenciaController extends BaseController {
         */
   }
   async getCategoria(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         `SELECT val.ValorLiquidacionSucursalId, tip.TipoAsociadoId, tip.TipoAsociadoDescripcion, cat.CategoriaPersonalId, cat.CategoriaPersonalDescripcion, val.ValorLiquidacionHoraNormal
                 FROM CategoriaPersonal cat
@@ -678,6 +679,8 @@ export class AsistenciaController extends BaseController {
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -814,7 +817,7 @@ export class AsistenciaController extends BaseController {
 
       if (!Motivo || Motivo.replace(/\s/g, '').length <= 5) throw new ClientException("Debe ingresar un motivo válido.");
 
-      
+
       await queryRunner.startTransaction();
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'gOperaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
@@ -1156,7 +1159,7 @@ export class AsistenciaController extends BaseController {
 
 
 
-      
+
       await queryRunner.startTransaction();
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
@@ -1272,7 +1275,7 @@ export class AsistenciaController extends BaseController {
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas') && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para listar asistencia del objetivo`)
 
-      
+
       await queryRunner.startTransaction();
 
       const result = await this.getExcepAsistenciaPorObjetivoQuery(objetivoId, desde, queryRunner)
@@ -2298,12 +2301,12 @@ export class AsistenciaController extends BaseController {
   }
 
   async getDescuentosPerPorObjetivo(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const objetivoId = req.params.objetivoId;
       const anio = req.params.anio;
       const mes = req.params.mes;
       let personalId: number[] = []
-      const queryRunner = await getConnection(res.locals.userName);
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'Liquidaciones Consultas')
         && !await this.hasGroup(req, 'gLogistica') && !await this.hasGroup(req, 'gLogisticaCon')
         && !await this.hasAuthObjetivo(anio, mes, res, Number(objetivoId), queryRunner))
@@ -2365,8 +2368,10 @@ export class AsistenciaController extends BaseController {
 
 
     } catch (error) {
-      //      await this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 

@@ -23,8 +23,8 @@ export class DescuentoPorDeudaAnteriorController extends BaseController {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
+        await queryRunner.release();      
         return next(`Se procesaron cambios `)
-    //   await queryRunner.release();
     }
   }
 }

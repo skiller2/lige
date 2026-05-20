@@ -1,7 +1,7 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
-import { filtrosToSql, isOptions, orderToSQL,getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { QueryRunner } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
 
@@ -132,7 +132,7 @@ export class ClientesController extends BaseController {
             searchHidden: false,
             minWidth: 50,
             maxWidth: 50,
-            cssClass:'text-center'
+            cssClass: 'text-center'
         },
     ];
 
@@ -348,6 +348,8 @@ ${orderBy}`, [fechaActual])
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
 
     }
@@ -361,7 +363,7 @@ ${orderBy}`, [fechaActual])
 
         try {
             const documentos = await queryRunner.query(
-            `SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento, doc.DocumentoFecha Desde, doc.DocumentoFechaDocumentoVencimiento Hasta,CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio) periodo,
+                `SELECT doc.DocumentoId AS id, doc.DocumentoDenominadorDocumento, doc.DocumentoFecha Desde, doc.DocumentoFechaDocumentoVencimiento Hasta,CONCAT(doc.DocumentoMes, '/', doc.DocumentoAnio) periodo,
                 param.DocumentoTipoCodigo Parametro, param.DocumentoTipoDetalle Descripcion,
                 CONCAT('api/file-upload/downloadFile/', doc.DocumentoId, '/Documento/0') url,
                 RIGHT(doc.DocumentoNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoNombreArchivo)) - 1) TipoArchivo,
@@ -381,6 +383,8 @@ ${orderBy}`, [fechaActual])
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
 
     }
@@ -511,9 +515,8 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-
+            await queryRunner.release();
         }
-
     }
 
     async getTipoTelefono(req: any, res: Response, next: NextFunction) {
@@ -524,7 +527,7 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-
+            await queryRunner.release();
         }
 
     }
@@ -537,7 +540,7 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-
+            await queryRunner.release();
         }
 
     }
@@ -550,8 +553,8 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-
-        }
+      await queryRunner.release();
+    }
 
     }
 
@@ -563,8 +566,8 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-
-        }
+      await queryRunner.release();
+    }
 
     }
 
@@ -578,7 +581,8 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-        }
+      await queryRunner.release();
+    }
     }
 
     async getJurImpositiva(req: any, res: Response, next: NextFunction) {
@@ -588,7 +592,8 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-        }
+      await queryRunner.release();
+    }
     }
 
     async infoClienteQuerys(queryRunner: any, clienteId: any) {
@@ -835,7 +840,7 @@ ${orderBy}`, [fechaActual])
         const ClienteId = Number(id)
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            
+
             await queryRunner.startTransaction();
             throw new ClientException(`Función en desarrollo.`)
             const contactosIds = await queryRunner.query(`SELECT ContactoId, ClienteId FROM Contacto WHERE ClienteId = @0 `, [ClienteId])

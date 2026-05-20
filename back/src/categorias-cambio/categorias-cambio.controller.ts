@@ -161,6 +161,8 @@ export class CategoriasController extends BaseController {
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 

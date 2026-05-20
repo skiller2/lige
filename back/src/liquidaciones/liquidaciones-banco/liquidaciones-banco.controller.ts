@@ -643,6 +643,8 @@ LEFT JOIN banco banc
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
 
   }
@@ -758,6 +760,8 @@ LEFT JOIN banco banc
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
 
   }
@@ -971,6 +975,8 @@ LEFT JOIN banco banc
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -1196,7 +1202,7 @@ LEFT JOIN banco banc
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      //   await queryRunner.release();
+      await queryRunner.release();
     }
 
 

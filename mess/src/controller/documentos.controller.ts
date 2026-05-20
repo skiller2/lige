@@ -15,7 +15,7 @@ export class DocumentosController extends BaseController {
   //   return result
   // }
 
-  async getLastPeriodoOfComprobantes( personalId: number, cant: number, queryRunner:QueryRunner ) {
+  async getLastPeriodoOfComprobantes(personalId: number, cant: number, queryRunner: QueryRunner) {
     try {
       // await queryRunner.startTransaction()
       const respuesta = queryRunner.query(`
@@ -23,17 +23,19 @@ export class DocumentosController extends BaseController {
         FROM lige.dbo.liqmaperiodo per
         JOIN documento doc ON per.anio = doc.Documentoanio AND per.mes = doc.Documentomes
         WHERE doc.personalid = @0 AND doc.DocumentoTipoCodigo = 'REC'      
-        ORDER BY per.anio DESC,per.mes DESC`, 
+        ORDER BY per.anio DESC,per.mes DESC`,
         [personalId])
       // await queryRunner.commitTransaction()
       return respuesta
     } catch (error) {
-      // await this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return error
+    } finally {
+      await queryRunner.release();
     }
   }
- 
-  async getLastPeriodosOfComprobantesAFIP(personalId: number, cant: number,queryRunner:QueryRunner) {
+
+  async getLastPeriodosOfComprobantesAFIP(personalId: number, cant: number, queryRunner: QueryRunner) {
     try {
       // await queryRunner.startTransaction()
       const respuesta = await queryRunner.query(`
@@ -48,9 +50,11 @@ export class DocumentosController extends BaseController {
 
       return respuesta
     } catch (error) {
-      // await this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return error
+    } finally {
+      await queryRunner.release();
     }
   }
-  
+
 }

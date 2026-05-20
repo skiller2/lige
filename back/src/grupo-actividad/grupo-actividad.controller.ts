@@ -627,7 +627,7 @@ export class GrupoActividadController extends BaseController {
         const params = req.body
 
         try {
-            
+
             await queryRunner.startTransaction();
 
 
@@ -715,8 +715,9 @@ export class GrupoActividadController extends BaseController {
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
-
     }
 
     async changecellResponsable(req: any, res: Response, next: NextFunction) {
@@ -736,7 +737,7 @@ export class GrupoActividadController extends BaseController {
         GrupoActividadJerarquicoDesde.setHours(0, 0, 0, 0)
 
         try {
-            
+
             await queryRunner.startTransaction()
 
             const codigoExist = await queryRunner.query(`SELECT * FROM GrupoActividadJerarquico WHERE GrupoActividadJerarquicoId = @0 AND GrupoActividadId = @1`, [params.GrupoActividadJerarquicoId, params.GrupoActividadId])
@@ -886,8 +887,9 @@ export class GrupoActividadController extends BaseController {
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
-
     }
 
     async checkDateDesde(desdeOrig: Date, desdeNew: Date, queryRunner: QueryRunner) {
@@ -935,7 +937,7 @@ export class GrupoActividadController extends BaseController {
 
 
         try {
-            
+
             await queryRunner.startTransaction();
 
             let dataResultado = {}
@@ -998,13 +1000,13 @@ export class GrupoActividadController extends BaseController {
                         throw new ClientException(`La fecha desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadObjetivoDesde))}`)
 
                     if (resultQuery[0].GrupoActividadObjetivoHasta) {
-                        
+
                         if (GrupoActividadObjetivoDesde <= new Date(resultQuery[0].GrupoActividadObjetivoHasta))
-                           throw new ClientException(`Ya existe un grupo de actividad asignado al objetivo vigente hasta ${this.dateOutputFormat(resultQuery[0].GrupoActividadObjetivoHasta)}`)
-                    
+                            throw new ClientException(`Ya existe un grupo de actividad asignado al objetivo vigente hasta ${this.dateOutputFormat(resultQuery[0].GrupoActividadObjetivoHasta)}`)
+
                     } else { // Acciones adicionales para cerrar periodos
-                        
-                        if (new Date(resultQuery[0].GrupoActividadObjetivoDesde).getTime() == GrupoActividadObjetivoDesde.getTime()){
+
+                        if (new Date(resultQuery[0].GrupoActividadObjetivoDesde).getTime() == GrupoActividadObjetivoDesde.getTime()) {
                             GrupoActividadObjetivoHastaAnt = new Date(GrupoActividadObjetivoDesde)
                             await queryRunner.query(`
                                 DELETE GrupoActividadObjetivo
@@ -1013,7 +1015,7 @@ export class GrupoActividadController extends BaseController {
                                 AND GrupoActividadObjetivoObjetivoId = @2 
                                 AND GrupoActividadObjetivoHasta IS NULL
                             `, [resultQuery[0].GrupoActividadObjetivoId, resultQuery[0].GrupoActividadId, resultQuery[0].GrupoActividadObjetivoObjetivoId])
-                        } else if (new Date(resultQuery[0].GrupoActividadObjetivoDesde).getTime() < GrupoActividadObjetivoDesde.getTime()){
+                        } else if (new Date(resultQuery[0].GrupoActividadObjetivoDesde).getTime() < GrupoActividadObjetivoDesde.getTime()) {
                             GrupoActividadObjetivoHastaAnt = new Date(GrupoActividadObjetivoDesde)
                             GrupoActividadObjetivoHastaAnt.setDate(GrupoActividadObjetivoHastaAnt.getDate() - 1)
                             await queryRunner.query(
@@ -1026,7 +1028,7 @@ export class GrupoActividadController extends BaseController {
                     }
                     //TODO:  BOT Notificar Informar el cambio de 
                     //const sendit = await AccesoBotController.enqueBotMsg(personalId, `Se ha asignado el objetivo a su grupo`, `RECIBO${bot[0].doc_id}`, usuario, ip)
-                
+
                 }
 
                 let GrupoActividadObjetivoId = await queryRunner.query(` SELECT GrupoActividadObjetivoUltNro FROM GrupoActividad WHERE GrupoActividadId =  @0`, [params.GrupoActividadDetalle.id])
@@ -1073,8 +1075,9 @@ export class GrupoActividadController extends BaseController {
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
-
     }
 
 
@@ -1093,7 +1096,7 @@ export class GrupoActividadController extends BaseController {
 
 
         try {
-            
+
             await queryRunner.startTransaction();
 
             let dataResultado = {}
@@ -1155,20 +1158,20 @@ export class GrupoActividadController extends BaseController {
                   WHERE GrupoActividadPersonalPersonalId = @0
                   ORDER BY GrupoActividadPersonalDesde DESC, GrupoActividadPersonalHasta DESC
                 `, [params.ApellidoNombrePersona.id])
-                
+
                 if (resultQuery.length > 0) { //Validaciones para no pisar el ultimo periodo registrado
-                    
+
                     if (new Date(resultQuery[0].GrupoActividadPersonalDesde) > GrupoActividadPersonalDesde) {
                         throw new ClientException(`La fecha Desde debe ser mayor a ${this.dateOutputFormat(new Date(resultQuery[0].GrupoActividadPersonalDesde))}`)
                     }
-                    
+
                     if (resultQuery[0].GrupoActividadPersonalHasta) {
-                        
+
                         if (GrupoActividadPersonalDesde <= new Date(resultQuery[0].GrupoActividadPersonalHasta))
-                           throw new ClientException(`Ya existe un grupo de actividad asignado a la persona vigente hasta ${this.dateOutputFormat(resultQuery[0].GrupoActividadPersonalHasta)}`)
-                    
+                            throw new ClientException(`Ya existe un grupo de actividad asignado a la persona vigente hasta ${this.dateOutputFormat(resultQuery[0].GrupoActividadPersonalHasta)}`)
+
                     } else { // Acciones adicionales para cerrar periodos
-                        
+
                         if (new Date(resultQuery[0].GrupoActividadPersonalDesde).getTime() == GrupoActividadPersonalDesde.getTime()) {
                             GrupoActividadPersonalHastaAnt = new Date(GrupoActividadPersonalDesde)
                             await queryRunner.query(`
@@ -1226,12 +1229,12 @@ export class GrupoActividadController extends BaseController {
                     SET GrupoActividadPersonalUltNro = @0, GrupoActividadAudFechaMod = @2, GrupoActividadAudUsuarioMod = @3, GrupoActividadAudIpMod = @4
                     WHERE GrupoActividadId =  @1`, [GrupoActividadPersonalId, params.GrupoActividadDetalle.id, fechaActual, usuario, ip])
 
-                dataResultado = { 
-                    action: 'I', 
-                    GrupoActividadPersonalId, 
-                    GrupoActividadId: params.GrupoActividadDetalle.id, 
-                    GrupoActividadPersonalPersonalId: params.ApellidoNombrePersona.id, 
-                    PreviousDate: GrupoActividadPersonalHastaAnt 
+                dataResultado = {
+                    action: 'I',
+                    GrupoActividadPersonalId,
+                    GrupoActividadId: params.GrupoActividadDetalle.id,
+                    GrupoActividadPersonalPersonalId: params.ApellidoNombrePersona.id,
+                    PreviousDate: GrupoActividadPersonalHastaAnt
                 }
                 message = "Carga exitosa del nuevo registro."
             }
@@ -1243,6 +1246,8 @@ export class GrupoActividadController extends BaseController {
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -1252,11 +1257,11 @@ export class GrupoActividadController extends BaseController {
     async deleteGrupo(req: any, res: Response, next: NextFunction) {
 
         let cod_grupo_actividad = req.query[0]
-        
+
         const queryRunner = await getConnection(res.locals.userName)
 
         try {
-            
+
             await queryRunner.startTransaction()
 
             await queryRunner.query(`DELETE FROM GrupoActividad WHERE GrupoActividadId = @0`, [cod_grupo_actividad])
@@ -1266,7 +1271,9 @@ export class GrupoActividadController extends BaseController {
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
-        }
+        } finally {
+      await queryRunner.release()
+    }
     }
 
     async deleteResponsables(req: any, res: Response, next: NextFunction) {
@@ -1275,9 +1282,9 @@ export class GrupoActividadController extends BaseController {
         let cod_grupo_actividad = req.query[1]
         let fecha_hasta = req.query[2]
         const queryRunner = await getConnection(res.locals.userName)
-        
+
         try {
-            
+
             await queryRunner.startTransaction()
 
             if (fecha_hasta && fecha_hasta !== 'null') {
@@ -1291,7 +1298,9 @@ export class GrupoActividadController extends BaseController {
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
-        }
+        } finally {
+      await queryRunner.release()
+    }
     }
 
     async validateFormGrupo(params: any, queryRunner: any) {
@@ -1431,7 +1440,7 @@ export class GrupoActividadController extends BaseController {
 
 
         try {
-            
+
             await queryRunner.startTransaction();
 
             const personal = await queryRunner.query(`SELECT DISTINCT sit.PersonalId,sit.PersonalSituacionRevistaSituacionId, sit.PersonalSituacionRevistaDesde, sit.PersonalSituacionRevistaHasta, sitdes.SituacionRevistaDescripcion
@@ -1470,7 +1479,7 @@ export class GrupoActividadController extends BaseController {
         let fechaActual = new Date()
 
         try {
-            
+
             await queryRunner.startTransaction();
 
             const catactual = await queryRunner.query(

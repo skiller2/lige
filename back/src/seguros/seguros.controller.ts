@@ -733,6 +733,8 @@ UNION
       );
 
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
 
     return (res) ? this.jsonRes(true, res, `Procesado correctamente altas:${segAltas}, bajas:${segBajas}`) : true
@@ -828,7 +830,7 @@ UNION
     req: any,
     res: Response, next: NextFunction
   ) {
-     
+
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPoliza);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
@@ -871,7 +873,7 @@ UNION
     req: any,
     res: Response, next: NextFunction
   ) {
-     
+
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPersonalSeguro);
     const orderBy = orderToSQL(req.body.options.sort)
     try {
@@ -959,7 +961,7 @@ UNION
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const queryRunner = await getConnection(res.locals.userName)
-    
+
     await queryRunner.startTransaction();
 
     //const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip);
@@ -988,7 +990,7 @@ UNION
       //const endosoRegex = new RegExp(/\d{9} (\d{6})/m);
       //const fechaDesdeRegex = new RegExp(/^(\d{2}\.\d{2}\.\d{4})/m);
 
-       
+
       //const dni = detalle_documento.match(dniRegex).map(match => match.replace('DNI ', ''))
       const dnis = [...detalle_documento.matchAll(dniRegex)].map(m => m[1]);
 
@@ -1063,7 +1065,7 @@ UNION
         if (polizaExistente[0].count > 0) {
           throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} - ${CompaniaSeguroId} - ${polizaEndoso[0]} - ${endoso[1]}`)
         }
-        
+
 
         await queryRunner.query(`
             INSERT INTO PolizaSeguro (
@@ -1109,7 +1111,7 @@ UNION
       const fechaPersonalSeguro = new Date(anio, mes - 2, 1);
 
       const validationDniResults = await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo, usuario, ip, fechaPersonalSeguro, polizaEndoso[0], endoso[1], CompaniaSeguroId)
-       
+
       const version = await queryRunner.query(`
         SELECT PolizaSeguroVersion FROM PolizaSeguro 
         WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`,

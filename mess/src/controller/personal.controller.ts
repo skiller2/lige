@@ -327,6 +327,8 @@ export class PersonalController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -364,6 +366,8 @@ export class PersonalController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -420,7 +424,7 @@ export class PersonalController extends BaseController {
     const minImporte = 10000
     const maxCantAdelantos = 1  //Antes 1
     const fechaLimite = new Date(fecha.getFullYear(), fecha.getMonth(), 18, 23, 59, 59); // 23:59 del día 18 del mes actual
-    return { maxImporte, minImporte, fechaLimite,maxCantAdelantos }
+    return { maxImporte, minImporte, fechaLimite, maxCantAdelantos }
   }
 
   static async getPersonalAdelanto(personalId: number, anio: number, mes: number) {
