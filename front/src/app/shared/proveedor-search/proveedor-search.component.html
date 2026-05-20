@@ -1,0 +1,14 @@
+<nz-select
+  [ngModel]="selected"
+  (ngModelChange)="modelChange($event)"
+  (blur)="onBlur()"
+  [nzDisabled]="controlDisabled"
+  nzAllowClear
+  nzShowSearch
+  nzPlaceHolder="Seleccione un proveedor"
+  [nzDropdownMatchSelectWidth]="false"
+  style="width: 100%;">
+  @for (pro of proveedores(); track pro.ProveedorId) {
+    <nz-option [nzLabel]="pro.ProveedorRazonSocial" [nzValue]="pro.ProveedorId"></nz-option>
+  }
+</nz-select>

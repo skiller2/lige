@@ -35,7 +35,9 @@ export async function getConnection(user: string="local"): Promise<QueryRunner> 
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
   ds.options.extra.user=user
-  return ds.createQueryRunner();
+  const queryRunner = ds.createQueryRunner();
+  queryRunner.data.user=user
+  return queryRunner
   //return null
   }
 

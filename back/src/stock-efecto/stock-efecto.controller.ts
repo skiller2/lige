@@ -21,16 +21,16 @@ export class StockEfectoController extends BaseController {
   }
 
   async getPersonaInfo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = Number(req.params.personalId);
       const anio = Number(req.params.anio);
       const mes = Number(req.params.mes);
 
-      const queryRunner = await getConnection(res.locals.userName);
 
       const rows = await queryRunner.query(`
         SELECT
+          suc.SucursalId AS SucursalId,
           TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
           TRIM(ga.GrupoActividadDetalle) AS GrupoActividadDetalle,
           TRIM(sit.SituacionRevistaDescripcion) AS SituacionRevistaDescripcion
@@ -121,7 +121,7 @@ export class StockEfectoController extends BaseController {
       `, [objetivo.ClienteId, objetivo.ClienteElementoDependienteId, anio, mes]);
 
       const sucursalRows = await queryRunner.query(`
-        SELECT TOP 1 TRIM(suc.SucursalDescripcion) AS SucursalDescripcion
+        SELECT TOP 1 suc.SucursalId AS SucursalId, TRIM(suc.SucursalDescripcion) AS SucursalDescripcion
         FROM Sucursal suc
         WHERE suc.SucursalId = ISNULL(
           (SELECT eledep.ClienteElementoDependienteSucursalId
@@ -136,6 +136,7 @@ export class StockEfectoController extends BaseController {
         ContratoId: contratoRows[0]?.ContratoId ?? null,
         ContratoFechaDesde: contratoRows[0]?.ContratoFechaDesde ?? null,
         ContratoFechaHasta: contratoRows[0]?.ContratoFechaHasta ?? null,
+        SucursalId: sucursalRows[0]?.SucursalId ?? null,
         SucursalDescripcion: sucursalRows[0]?.SucursalDescripcion ?? null,
       }, res);
     } catch (error) {

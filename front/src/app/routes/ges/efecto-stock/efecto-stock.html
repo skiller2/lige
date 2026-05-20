@@ -1,7 +1,7 @@
 <form style="margin-top: 30px;">
 
-  <div nz-row [nzGutter]="16">
-    <div nz-col [nzSpan]="8">
+  <div nz-row [nzGutter]="15">
+    <div nz-col [nzSpan]="6">
       <nz-form-item>
         <nz-form-label [nzSpan]="8">Fecha</nz-form-label>
         <nz-form-control [nzSpan]="16">
@@ -10,7 +10,7 @@
       </nz-form-item>
     </div>
 
-    <div nz-col [nzSpan]="10">
+    <div nz-col [nzSpan]="8">
       <nz-form-item>
         <nz-form-label [nzSpan]="8">Tipo destino</nz-form-label>
         <nz-form-control [nzSpan]="16">
@@ -18,14 +18,23 @@
         </nz-form-control>
       </nz-form-item>
     </div>
+
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="8">Sucursal</nz-form-label>
+        <nz-form-control [nzSpan]="16">
+          <app-sucursal-search [ngModel]="sucursalIdDisplay()" [disabled]="true" [ngModelOptions]="{ standalone: true }"></app-sucursal-search>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
   </div>
 
   @if (tipoDestinoSeleccionado() === 'deposito') {
     <div nz-row [nzGutter]="16">
-      <div nz-col [nzSpan]="18">
+      <div nz-col [nzSpan]="12">
         <nz-form-item>
           <nz-form-label [nzSpan]="4">Depósito</nz-form-label>
-          <nz-form-control [nzSpan]="20">
+          <nz-form-control [nzSpan]="8">
             <nz-select [formField]="formEfectoStock.depositoId" nzAllowClear nzPlaceHolder="Seleccione un depósito"
               [nzDropdownMatchSelectWidth]="false" style="width: 100%;" nzShowSearch
               [nzLoading]="depositos.isLoading()">
@@ -40,18 +49,12 @@
   }
 
   @if (tipoDestinoSeleccionado() === 'proveedor') {
-    <div nz-row [nzGutter]="16">
-      <div nz-col [nzSpan]="18">
+    <div nz-row [nzGutter]="15">
+      <div nz-col [nzSpan]="12">
         <nz-form-item>
           <nz-form-label [nzSpan]="4">Proveedor</nz-form-label>
-          <nz-form-control [nzSpan]="20">
-            <nz-select [formField]="formEfectoStock.proveedorId" nzAllowClear nzPlaceHolder="Seleccione un proveedor"
-              [nzDropdownMatchSelectWidth]="false" style="width: 100%;" nzShowSearch
-              [nzLoading]="proveedores.isLoading()">
-              @for (pro of proveedores.value() ?? []; track pro.ProveedorId) {
-                <nz-option [nzLabel]="pro.ProveedorRazonSocial" [nzValue]="pro.ProveedorId"></nz-option>
-              }
-            </nz-select>
+          <nz-form-control [nzSpan]="8">
+            <app-proveedor-search [formField]="formEfectoStock.proveedorId" />
           </nz-form-control>
         </nz-form-item>
       </div>
@@ -59,19 +62,17 @@
   }
 
   @if (tipoDestinoSeleccionado() === 'objetivo') {
-    <div nz-row [nzGutter]="16">
-      <div nz-col [nzSpan]="18">
+    <div nz-row [nzGutter]="15">
+      <div nz-col [nzSpan]="8">
         <nz-form-item>
-          <nz-form-label [nzSpan]="4">Objetivo</nz-form-label>
-          <nz-form-control [nzSpan]="20">
+          <nz-form-label [nzSpan]="6">Objetivo</nz-form-label>
+          <nz-form-control [nzSpan]="18">
             <app-objetivo-search [formField]="formEfectoStock.objetivoId" />
           </nz-form-control>
         </nz-form-item>
       </div>
-    </div>
 
-    @if (objetivoInfo.value(); as info) {
-      <div nz-row [nzGutter]="16">
+      @if (objetivoInfo.value(); as info) {
         <div nz-col [nzSpan]="8">
           <nz-form-item>
             <nz-form-label [nzSpan]="10">Grupo actividad</nz-form-label>
@@ -80,52 +81,65 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div nz-col [nzSpan]="8">
-          <nz-form-item>
-            <nz-form-label [nzSpan]="10">Contrato</nz-form-label>
-            <nz-form-control [nzSpan]="14">
-              @if (info.ContratoId) {
-                <span>{{ info.ContratoId }} ({{ info.ContratoFechaDesde | date:'dd/MM/yyyy' }} - {{ (info.ContratoFechaHasta | date:'dd/MM/yyyy') || 'vigente' }})</span>
-              } @else {
-                <span>—</span>
-              }
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-        <div nz-col [nzSpan]="8">
-          <nz-form-item>
-            <nz-form-label [nzSpan]="8">Sucursal</nz-form-label>
-            <nz-form-control [nzSpan]="16">
-              <span>{{ info.SucursalDescripcion || '—' }}</span>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      </div>
-    }
-  }
-
-  @if (tipoDestinoSeleccionado() === 'personal') {
-    <div nz-row [nzGutter]="16">
-      <div nz-col [nzSpan]="18">
+      }
+      <div nz-col [nzSpan]="8">
         <nz-form-item>
-          <nz-form-label [nzSpan]="4">Persona</nz-form-label>
-          <nz-form-control [nzSpan]="20">
-            <app-personal-search [formField]="formEfectoStock.personalId" [anio]="anio()" [mes]="mes()" />
+          <nz-form-label [nzSpan]="10">Contrato</nz-form-label>
+          <nz-form-control [nzSpan]="13  ">
+            @if (objetivoContratos.value(); as contratos) {
+              @if (contratos.length === 0 && parametroStock().objetivoId) {
+                <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
+              }
+              <ul style="margin: 0; padding-left: 16px;">
+                @for (contrato of contratos; track contrato.ContratoFechaHasta) {
+                  <li>
+                    @if (!contrato.ContratoFechaHasta) { <span>Desde</span> }
+                    {{ contrato.ContratoFechaDesde | date }}
+                    @if (contrato.ContratoFechaHasta) { <span>-</span> }
+                    {{ contrato.ContratoFechaHasta | date }}
+                  </li>
+                }
+              </ul>
+            }
           </nz-form-control>
         </nz-form-item>
       </div>
     </div>
+  }
 
-    @if (personaInfo.value(); as info) {
-      <div nz-row [nzGutter]="16">
-        <div nz-col [nzSpan]="8">
-          <nz-form-item>
-            <nz-form-label [nzSpan]="10">Situación revista</nz-form-label>
-            <nz-form-control [nzSpan]="14">
-              <span>{{ info.SituacionRevistaDescripcion || '—' }}</span>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
+  @if (tipoDestinoSeleccionado() === 'personal') {
+    <div nz-row [nzGutter]="15">
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">Persona</nz-form-label>
+          <nz-form-control [nzSpan]="18">
+            <app-personal-search [formField]="formEfectoStock.personalId" [anio]="anio()" [mes]="mes()" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="10">Situación revista</nz-form-label>
+          <nz-form-control [nzSpan]="14">
+            @if (personaSitRevista.value(); as situacion) {
+              @if (!situacion.length) { <span>—</span> }
+              <ul style="margin: 0; padding-left: 16px;">
+                @for (sit of situacion; track sit.PersonalSituacionRevistaDesde) {
+                  <li>
+                    {{ sit.SituacionRevistaDescripcion }}
+                    {{ sit.PersonalSituacionRevistaDesde | date:'dd/MM/yyyy' }}
+                    {{ sit.PersonalSituacionRevistaHasta | date:'dd/MM/yyyy' }}
+                  </li>
+                }
+              </ul>
+            } @else {
+              <span>—</span>
+            }
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+      @if (personaInfo.value(); as info) {
         <div nz-col [nzSpan]="8">
           <nz-form-item>
             <nz-form-label [nzSpan]="10">Grupo actividad</nz-form-label>
@@ -134,16 +148,8 @@
             </nz-form-control>
           </nz-form-item>
         </div>
-        <div nz-col [nzSpan]="8">
-          <nz-form-item>
-            <nz-form-label [nzSpan]="8">Sucursal</nz-form-label>
-            <nz-form-control [nzSpan]="16">
-              <span>{{ info.SucursalDescripcion || '—' }}</span>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      </div>
-    }
+      }
+    </div>
   }
 
   <nz-divider nzText="Detalle">

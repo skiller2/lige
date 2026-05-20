@@ -1,4 +1,4 @@
-import { DataSource } from "typeorm";
+import { DataSource, type QueryRunner } from "typeorm";
 
 export const dataSource = new DataSource({
   type: "mssql",
@@ -15,3 +15,16 @@ export const dataSource = new DataSource({
     trustServerCertificate: true,
   },
 });
+
+export async function getConnection(user: string="local"): Promise<QueryRunner> {
+  const ds = dataSource
+  while (!ds.isInitialized) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+  ds.options.extra.user=user
+  const queryRunner = ds.createQueryRunner();
+  queryRunner.data.user=user
+  return queryRunner
+  //return null
+  }
+

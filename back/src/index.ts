@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { DBServer, WebServer } from "./server.ts";
 import { makeRoutes } from "./routes/routes.module.ts"
-import { dataSource } from "./data-source.ts";
+import { dataSource, getConnection } from "./data-source.ts";
 import { scheduleJob } from "node-schedule"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller.ts";
 import { CargaLicenciaController } from "./carga-licencia/carga-licencia.controller.ts";
@@ -198,6 +198,12 @@ async function main() {
   setInterval(() => {
     logger.debug('Heartbeat', { uptime: process.uptime() });
   }, 1 * 60 * 60 * 1000); // Cada 1 horas
+
+
+  const queryRunner=await getConnection('elserver')
+  await queryRunner.startTransaction()
+  await queryRunner.commitTransaction()
+
 }
 
 main().catch((res) => logger.error(res.message, { stack: res.stack }));
