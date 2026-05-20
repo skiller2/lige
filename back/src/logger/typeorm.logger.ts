@@ -11,7 +11,7 @@ export class TypeOrmLogger implements Logger {
     logger.debug('SQL Query', {
       query,
       parameters,
-      user: queryRunner?.dataSource.options.extra.user || 'unknown'
+      user: queryRunner?.dataSource.options.extra?.user || 'unknown'
     });
   }
 
@@ -20,7 +20,7 @@ export class TypeOrmLogger implements Logger {
       error: error instanceof Error ? error.message : error,
       query,
       parameters,
-      user: queryRunner?.dataSource.options.extra.user || 'unknown'
+      user: queryRunner?.dataSource.options.extra?.user || 'unknown'
     });
   }
 
@@ -29,7 +29,7 @@ export class TypeOrmLogger implements Logger {
       time,
       query,
       parameters,
-      user: queryRunner?.dataSource.options.extra.user || 'unknown'
+      user: queryRunner?.dataSource.options.extra?.user || 'unknown'
     });
   }
 

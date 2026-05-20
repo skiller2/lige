@@ -461,7 +461,7 @@ export class AccesoBotController extends BaseController {
         const ip = this.getRemoteAddress(req)
         const fecha = new Date()
         let newValue
-        const queryRunner = await getConnection(res.locals.extra.user)
+        const queryRunner = await getConnection(usuario)
 
         try {
             let base_url = process.env.URL_MESS_API || "http://localhost:3010"
