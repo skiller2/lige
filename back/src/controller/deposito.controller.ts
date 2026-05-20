@@ -8,7 +8,7 @@ export class DepositoController extends BaseController {
     try {
       const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
-        'SELECT DepositoId, DepositoNombre, DepositoId as value, DepositoNombre as label FROM Deposito'
+        'SELECT DepositoId, DepositoNombre, DepositoSucursalId, DepositoId as value, DepositoNombre as label FROM Deposito'
       )
       this.jsonRes(result, res)
     }

@@ -1,0 +1,14 @@
+<nz-select
+  [ngModel]="selected"
+  (ngModelChange)="modelChange($event)"
+  (blur)="onBlur()"
+  [nzDisabled]="controlDisabled || disabled()"
+  nzAllowClear
+  nzShowSearch
+  nzPlaceHolder="Sucursal"
+  [nzDropdownMatchSelectWidth]="false"
+  style="width: 100%;">
+  @for (suc of sucursales(); track suc.SucursalId) {
+    <nz-option [nzLabel]="suc.SucursalDescripcion" [nzValue]="suc.SucursalId"></nz-option>
+  }
+</nz-select>
