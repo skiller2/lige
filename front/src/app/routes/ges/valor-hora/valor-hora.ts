@@ -62,6 +62,20 @@ export class ValorHoraComponent {
   aumentoPeriodo = signal<Date>(new Date())
   recibosGenerados = signal<boolean>(false)
 
+  getCalculatedPeriodDay(): string {
+    const periodo = this.aumentoPeriodo();
+    if (!periodo) return '';
+    
+    const primerDia = new Date(periodo.getFullYear(), periodo.getMonth(), 1);
+    const opciones: Intl.DateTimeFormatOptions = { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    };
+    
+    return primerDia.toLocaleDateString('es-ES', opciones);
+  }
+
   async abrirAumentoModal() {
     this.aumentoTipo.set('porcentaje');
     this.aumentoValor = 0;

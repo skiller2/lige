@@ -448,7 +448,7 @@ export class ValorHoraController extends BaseController {
 
 
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
-        throw new ClientException(`No es posible modificar valores de periodos con recibos generados.`)
+        throw new ClientException(`No se puede modificar los Importes del período ${mes}/${anio}, los recibos se encuentran generados para ese período.`)
 
 
       if (tipo === 'porcentaje') {
