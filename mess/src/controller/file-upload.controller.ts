@@ -15,6 +15,7 @@ import * as CryptoJS from 'crypto-js';
 
 const stat = promisify(fs.stat);
 import { unlink } from "fs/promises";
+import { getConnection } from "../data-source.ts";
 
 export class FileUploadController extends BaseController {
   static pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige
@@ -45,12 +46,11 @@ export class FileUploadController extends BaseController {
 
   async getSelectTipoinFile(req: any, res: Response, next: NextFunction) {
 
-    const queryRunner = dbServer.dataSource.createQueryRunner();
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       await queryRunner.startTransaction()
-
-      let info = await queryRunner.query(`SELECT tipo.DocumentoTipoCodigo doctipo_id, tipo.DocumentoTipoDetalle detalle FROM DocumentoTipo tipo`)
+      const info = await queryRunner.query(`SELECT tipo.DocumentoTipoCodigo doctipo_id, tipo.DocumentoTipoDetalle detalle FROM DocumentoTipo tipo`)
       await queryRunner.commitTransaction()
       return this.jsonRes(info, res);
     } catch (error) {
@@ -170,8 +170,10 @@ export class FileUploadController extends BaseController {
     const columnSearch = req.params.columnForSearch
     const TipoSearch = req.params.TipoSearch
     const tableSearch = req.params.tableForSearch
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = dbServer.dataSource.createQueryRunner();
+
       // let usuario = res.locals.userName
       // let ip = this.getRemoteAddress(req)
       // let fechaActual = new Date()
@@ -341,7 +343,7 @@ export class FileUploadController extends BaseController {
     ip: any,
     DocumentoCliente?: any
   ) {
-    const queryRunner = dbServer.dataSource.createQueryRunner();
+    const queryRunner = await getConnection(usuario);
     let periodo_id = 0
     let fechaActual = new Date();
     if (anio && mes) {
@@ -689,8 +691,7 @@ export class FileUploadController extends BaseController {
   async deleteDocumento(req, res, next) {
     const deleteId = Number(req.query[0])
     const tableForSearch = req.query[1];
-    const queryRunner = dbServer.dataSource.createQueryRunner();
-
+    const queryRunner = await getConnection(res.locals.userName);
     
     let document: any
     let finalurl: any

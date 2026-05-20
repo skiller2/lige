@@ -217,7 +217,6 @@ export class PersonalController extends BaseController {
     const stmgen = new Date();
     //const usuario = 'anon'
     //const ip = 'localhost'
-    //const queryRunner = dataSource.createQueryRunner();
     const dataStr = JSON.stringify({ stmgen, data });
 
     try {

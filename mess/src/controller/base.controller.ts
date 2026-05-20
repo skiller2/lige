@@ -364,7 +364,6 @@ export class BaseController {
     tipoDoc: string,
     queryRunner: QueryRunner
   ) {
-    //    const queryRunner = dataSource.createQueryRunner()
     const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month, tipoDoc)
     let tmpURL = ''
     if (gettmpfilename[0] && gettmpfilename[0].DocumentoId && existsSync(this.pathDocuments + '/' + gettmpfilename[0].DocumentoPath)) {
