@@ -3,6 +3,7 @@ import { botServer, dbServer } from "../index.ts";
 import { ObjetivoController } from "./objetivo.controller.ts";
 import { PersonalController } from "./personal.controller.ts";
 import { ChatBotController } from "./chatbot.controller.ts";
+import type { QueryRunner } from "typeorm";
 
 const personalController = new PersonalController()
 
@@ -32,11 +33,8 @@ export class NovedadController extends BaseController {
     }
   }
 
-  async saveNovedad(personalId: number, novedad: any) {
+  async saveNovedad(personalId: number, novedad: any, queryRunner:QueryRunner) {
     const jsonNovedad = Object.keys(novedad).length === 0 ? null : JSON.stringify(novedad)
-    const queryRunner = dbServer.dataSource.createQueryRunner();
-
-
     const res = await queryRunner.query(`
       UPDATE BotRegTelefonoPersonal
       SET JsonNovedad = @1
@@ -82,7 +80,7 @@ export class NovedadController extends BaseController {
   }
 
 
-  async addNovedad(novedad: any, Telefono: string, PersonalId: number) {
+  async addNovedad(novedad: any, Telefono: string, PersonalId: number, queryRunner:QueryRunner) {
     console.log("novedad",novedad)
     const ClienteId = novedad.ClienteId
     const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
@@ -95,14 +93,14 @@ export class NovedadController extends BaseController {
     const now: Date = new Date()
     const jsonNovedad = JSON.stringify(novedad)
     const NovedadCodigo = await BaseController.getProxNumero(dbServer.dataSource, `Novedad`, 'bot', '::1')
-    await dbServer.dataSource.query(`
+    await queryRunner.query(`
       INSERT INTO Novedad (
         NovedadCodigo, ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod,
         Json, AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod
       ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@10,@11,@11,@12,@12)`, 
        [NovedadCodigo, ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod, jsonNovedad, now, '::1', 'bot'])
 
-        await this.saveNovedad(PersonalId, {})
+        await this.saveNovedad(PersonalId, {},queryRunner)
     
     return NovedadCodigo
   }

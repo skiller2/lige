@@ -82,10 +82,10 @@ export class FileUploadController extends BaseController {
     let finalurl = '', docname = ''
     let document: any = ''
     let deleteFile = false
+    const queryRunner = await getConnection(res.locals.userName);
 
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const needsNumericId = tableForSearch !== 'temp'
       const validatedId = Number(documentId)
 
@@ -187,6 +187,8 @@ export class FileUploadController extends BaseController {
       });
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -1140,7 +1142,7 @@ export class FileUploadController extends BaseController {
 
           if (document.length === 0 && !finalurl) throw new ClientException(`No se ha encontrado el archivo para eliminar.`)
 
-          try {await unlink(finalurl) } catch (error) { 
+          try { await unlink(finalurl) } catch (error) {
             logger.error(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
           }
 

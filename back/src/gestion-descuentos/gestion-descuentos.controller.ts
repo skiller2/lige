@@ -1683,6 +1683,7 @@ FROM cte
     const Cuotas: number = otroDescuento.Cuotas
     const oldPersonalId: number = otroDescuento.oldPersonalId
     const Detalle: string = otroDescuento.Detalle
+    const CuentaTipoCodigo: string = otroDescuento.CuentaTipoCodigo
     const anio: number = AplicaEl.getFullYear()
     const mes: number = AplicaEl.getMonth() + 1
     AplicaEl.setHours(0, 0, 0, 0)
@@ -1767,8 +1768,10 @@ FROM cte
       , PersonalOtroDescuentoCuotasPagas = 1, PersonalOtroDescuentoCuotaUltNro = 1
       , EfectoId = @13, EfectoIndividualId = @14, PorcentajeDescuento = @15
       , PersonalOtroDescuentoAudFechaMod = @11, PersonalOtroDescuentoAudUsuarioMod = @10, PersonalOtroDescuentoAudIpMod = @9
+      , CuentaTipoCodigo = @16
       WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
-      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeVariable, AplicaEl, Detalle, ip, usuario, hoy, Cantidad, EfectoId, EfectoIndividualId, PorcentajeDescuento])
+      `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeVariable, AplicaEl, Detalle, ip, usuario, hoy
+        , Cantidad, EfectoId, EfectoIndividualId, PorcentajeDescuento, CuentaTipoCodigo])
 
     await queryRunner.query(`
       DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
@@ -2105,7 +2108,8 @@ FROM cte
       , pod.EfectoIndividualId
       , pod.PersonalOtroDescuentoCantidad Cantidad
       , pod.PorcentajeDescuento
-      ,CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto
+      , CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto
+      , pod.CuentaTipoCodigo 
       FROM PersonalOtroDescuento pod
       LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = pod.EfectoId
       LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = pod.EfectoId AND efeind.EfectoEfectoIndividualId = pod.EfectoIndividualId

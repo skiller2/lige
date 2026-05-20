@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { table } from "node:console";
 import path from "node:path";
 import { BaseController} from "../controller/base.controller.ts";
-import { dataSource } from "../data-source.ts";
+import { dataSource, getConnection } from "../data-source.ts";
 import { performance } from "node:perf_hooks";
 
 //import { TokenExpiredError } from "jsonwebtoken";
@@ -49,7 +49,7 @@ export class AuthMiddleware {
 
       if (!res.locals.lastDbQueryTime || ((now.getTime() - new Date(res.locals.lastDbQueryTime).getTime()) > 20 * 60 * 1000)) {
         // si la consulta es mayor a 20 minutos, recarga
-        const queryRunner = dataSource.createQueryRunner()
+        const queryRunner = await getConnection(res.locals.userName);
         try {
           res.locals.GrupoActividad = []
           const listGrupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
@@ -139,7 +139,8 @@ export class AuthMiddleware {
       if (PersonalId < 1) {
         return next()
       }
-      const queryRunner = dataSource.createQueryRunner()
+      
+      const queryRunner = await getConnection(res.locals.userName);
 
       const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
       let listGrupos = []
@@ -184,7 +185,7 @@ export class AuthMiddleware {
       if (!anio || !mes) return res.status(403).json({ msg: `No se especifico anio o mes` })
       // if (!GrupoActividadId) return res.status(403).json({ msg: `No se especifico GrupoActividadId` })
 
-      const queryRunner = dataSource.createQueryRunner()
+      const queryRunner = await getConnection(res.locals.userName);
 
       const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
        
@@ -204,13 +205,10 @@ export class AuthMiddleware {
 
   hasAuthByDocId = () => {
     return async (req, res, next) => {
-      const queryRunner = dataSource.createQueryRunner();
-      await queryRunner.connect();
-      await queryRunner.startTransaction();
-       
-
+      const queryRunner = await getConnection(res.locals.userName);
 
       try {
+        //await queryRunner.startTransaction();
 
         const stmActual = new Date();
         const ResponsablePersonalId = res.locals.PersonalId;
@@ -413,8 +411,6 @@ export class AuthMiddleware {
             return next();
 
         }
-
-
       } catch (error) {
         // console.error("Error en hasAuthByDocId:", error);
         await queryRunner.rollbackTransaction();
@@ -488,7 +484,8 @@ export class AuthMiddleware {
 
     if (grupos.length === 0) return next()
 
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner = await getConnection(res.locals.userName);
+
 
     try {
       // Verificar que el objetivo pertenezca a alguno de los grupos de actividad del usuario

@@ -242,7 +242,7 @@ export class BaseController {
 
     if (PersonalId == "") return false
 
-    const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
+    const grupos = await BaseController.getGruposActividad(queryRunner, PersonalId, anio, mes)
     let listGrupos = []
     for (const row of grupos)
       listGrupos.push(row.GrupoActividadId)

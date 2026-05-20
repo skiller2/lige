@@ -4,6 +4,7 @@ import flowMenu from './flowMenu.ts'
 import { chatBotController } from "../controller/controller.module.ts";
 import { botServer } from "../index.ts";
 import { reset, stop } from "./flowIdle.ts";
+import { getConnection } from "../data-source.ts";
 
 const delay = chatBotController.getDelay()
 
@@ -23,8 +24,9 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
     .addAction(async (_, { flowDynamic, state, gotoFlow }) => {
         await flowDynamic([{ body: `⏱️ Buscando comprobantes`, delay }])
         const myState = state.getMyState()
+        const queryRunner = await getConnection('bot')
         const personalId = myState.personalId
-        const periodosArray: any[] = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, 3).then(array => { return array })
+        const periodosArray: any[] = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, 3,queryRunner).then(array => { return array })
          
         let resPeriodos = ''
         if (periodosArray && periodosArray?.length) {
@@ -53,6 +55,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
                 return fallBack()
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            const queryRunner= await getConnection('bot')
 
             const myState = state.getMyState()
             const periodosArray: any[] = myState.recibo.periodosArray
@@ -66,7 +69,7 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
 
 
             try {
-                const urlDoc = await documentosController.getURLDocumento(PersonalId, anio, mes, 'MONOT')
+                const urlDoc = await documentosController.getURLDocumento(PersonalId, anio, mes, 'MONOT',queryRunner)
                 await flowDynamic([{ body: `Monotributo`, media: urlDoc.URL, delay }])
                 await chatBotController.addToDocLog(urlDoc.doc_id, ctx.from,PersonalId)
             } catch (error) {

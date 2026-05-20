@@ -21,13 +21,12 @@ export class StockEfectoController extends BaseController {
   }
 
   async getPersonaInfo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const personalId = Number(req.params.personalId);
       const anio = Number(req.params.anio);
       const mes = Number(req.params.mes);
 
-      const queryRunner = await getConnection(res.locals.userName);
 
       const rows = await queryRunner.query(`
         SELECT

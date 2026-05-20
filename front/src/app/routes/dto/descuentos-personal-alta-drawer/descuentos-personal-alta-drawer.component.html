@@ -116,6 +116,18 @@
           </nz-form-control>
         </nz-form-item>
 
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Tipo de Cuenta</nz-form-label>
+          <nz-form-control>
+            <nz-select [formField]="formDescuentoPersonal.CuentaTipoCodigo" nzAllowClear nzPlaceHolder="Cuenta"
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+              @for (option of optionsCuenta(); track option) {
+              <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
         @if (descuentoPersonal().DetalleAnulacion || crudAccion() === 'D') {
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Motivo de anulación</nz-form-label>

@@ -1,9 +1,9 @@
 import type { NextFunction, Request, Response } from 'express';
 import { existsSync } from "node:fs";
 import { performance } from "node:perf_hooks";
-import type { DataSource, QueryRunner } from "typeorm";
+import { type DataSource, type QueryRunner } from "typeorm";
 import { dbServer } from "../index.ts";
-
+import { getConnection } from '../data-source.ts';
 export class ClientException extends Error {
   messageArr: string[]
   extended: any
@@ -339,8 +339,7 @@ export class BaseController {
   pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige
   apiPath = (process.env.URL_API) ? process.env.URL_API : "http://localhost:4000/mess/api"
 
-  async getURLDocumentoNew(DocumentoId: number) {
-    const queryRunner = dbServer.dataSource.createQueryRunner();
+  async getURLDocumentoNew(DocumentoId: number, queryRunner: QueryRunner) {
     const doc = await queryRunner.query(`
         SELECT * from Documento doc
         WHERE doc.DocumentoId=@0`,
@@ -348,13 +347,13 @@ export class BaseController {
     )
     if (!doc[0])
       throw new ClientException(`Documento no localizado en el sistema (${DocumentoId})`)
-    
+
     if (existsSync(this.pathDocuments + '/' + doc[0].DocumentoPath)) {
       const url = `${this.apiPath}/documentos/download/${DocumentoId}/${doc[0].DocumentoTipoCodigo}-${doc[0].DocumentoNombreArchivo}`;
-      return {url}
+      return { url }
     } else {
       throw new ClientException(`Documento no localizado`, this.pathDocuments + '/' + doc[0].DocumentoPath)
-    }      
+    }
   }
 
 
@@ -362,10 +361,9 @@ export class BaseController {
     personalId: number,
     year: number,
     month: number,
-    tipoDoc: string
+    tipoDoc: string,
+    queryRunner: QueryRunner
   ) {
-    const queryRunner = dbServer.dataSource.createQueryRunner();
-    //    const queryRunner = dataSource.createQueryRunner()
     const gettmpfilename = await this.getRutaFile(queryRunner, personalId, year, month, tipoDoc)
     let tmpURL = ''
     if (gettmpfilename[0] && gettmpfilename[0].DocumentoId && existsSync(this.pathDocuments + '/' + gettmpfilename[0].DocumentoPath)) {
@@ -385,8 +383,7 @@ export class BaseController {
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     const DocumentoId = req.params.doc_id
-    const queryRunner = dbServer.dataSource.createQueryRunner();
-    //    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner = await getConnection(usuario)
     try {
       const data = await queryRunner.query(`SELECT doc.DocumentoPath, doc.DocumentoNombreArchivo from Documento doc
       WHERE doc.DocumentoId=@0`,
