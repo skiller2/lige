@@ -31,6 +31,7 @@ export interface FormDesc {
     EfectoIndividualId: number | null;
     Cantidad: number | any;
     PorcentajeDescuento: number | any;
+    CuentaTipoCodigo: string
 }
 
 
@@ -73,6 +74,7 @@ export class DescuentosPersonalAltaDrawerComponent {
         EfectoIndividualId: null,
         Cantidad: 1,
         PorcentajeDescuento: 100,
+        CuentaTipoCodigo: ''
     }
 
     readonly descuentoPersonal = signal<FormDesc>(this.descuentoPersonalDefault);
@@ -200,6 +202,7 @@ export class DescuentosPersonalAltaDrawerComponent {
     }
 
     optionsTipoDescuento = toSignal(this.searchService.getDecuentosTipoOptions(), { initialValue: [] });
+    optionsCuenta = toSignal(this.apiService.getTipoCuenta(), { initialValue: [] });
 
     isEfecto = computed(() => {
         return (this.descuentoPersonal().DescuentoId == 50) ? true : false
