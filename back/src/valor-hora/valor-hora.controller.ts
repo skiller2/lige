@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { BaseController, ClientException } from "../controller/base.controller.ts";
+import { BaseController, ClientException, ClientWarning } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import { recibosController } from "../controller/controller.module.ts";
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
@@ -426,6 +426,9 @@ export class ValorHoraController extends BaseController {
           const ultimoRegistro = pasados[pasados.length - 1]; // El más reciente del pasado
           const newHastaAnterior = new Date(anio, mes - 1, 0); // Último día del mes anterior
 
+          // valido que el registro pasado no tenga un valor igual al nuevo para evitar cerrar e insertar un registro idéntico
+          if (ultimoRegistro.ValorLiquidacionHoraNormal === ValorLiquidacionHoraNormal) throw new ClientWarning("El valor ingresado es igual al valor vigente para ese período, no se realizaron cambios.");
+            
           // Update del registro anterior para cerrarlo
           await queryRunner.query(`
             UPDATE ValorLiquidacion
@@ -469,6 +472,8 @@ export class ValorHoraController extends BaseController {
           const refDesdeSig = new Date(registroSiguiente.ValorLiquidacionDesde);
           const newHastaNuevo = new Date(refDesdeSig.getFullYear(), refDesdeSig.getMonth(), 0); // Cerrar el nuevo
 
+          // valido que el registro anterior no tenga un valor igual al nuevo para evitar cerrar e insertar un registro idéntico
+          if (registroAnterior.ValorLiquidacionHoraNormal === ValorLiquidacionHoraNormal) throw new ClientWarning("El valor ingresado es igual al valor vigente para ese período, no se realizaron cambios.");
           // Cerrar el anterior
           await queryRunner.query(`
             UPDATE ValorLiquidacion
