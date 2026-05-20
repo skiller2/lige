@@ -234,8 +234,8 @@ export class ValorHoraController extends BaseController {
         // Existen registros
         // Se Evalua si existe uno con Desde igual a newDesde (UPDATE)
         const registroMismoMes = registrosExistentes.find((r: any) => {
-            const d = new Date(r.ValorLiquidacionDesde);
-            return d.getFullYear() === anio && d.getMonth() === (mes - 1);
+          const d = new Date(r.ValorLiquidacionDesde);
+          return d.getFullYear() === anio && d.getMonth() === (mes - 1);
         });
 
         if (registroMismoMes) {
@@ -299,11 +299,11 @@ export class ValorHoraController extends BaseController {
             // Hay registros antes y después
             const registroAnterior = pasados[pasados.length - 1];
             const registroSiguiente = futuros[0];
-            
+
             const newHastaAnterior = new Date(anio, mes - 1, 0); // Cerrar el anterior
             const refDesdeSig = new Date(registroSiguiente.ValorLiquidacionDesde);
             const newHastaNuevo = new Date(refDesdeSig.getFullYear(), refDesdeSig.getMonth(), 0); // Cerrar el nuevo
-            
+
             // Cerrar el anterior
             await queryRunner.query(`
               UPDATE ValorLiquidacion
@@ -361,7 +361,7 @@ export class ValorHoraController extends BaseController {
 
 
       for (const id of ids) {
-        // 1. Obtener los datos del registro a eliminar
+        // Obtener los datos del registro a eliminar
         const registros = await queryRunner.query(`
           SELECT ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionDesde
           FROM ValorLiquidacion
@@ -369,14 +369,14 @@ export class ValorHoraController extends BaseController {
         `, [id]);
 
         if (registros.length > 0) {
-          const { 
-            ValorLiquidacionSucursalId, 
-            ValorLiquidacionTipoAsociadoId, 
-            ValorLiquidacionCategoriaPersonalId, 
-            ValorLiquidacionDesde 
+          const {
+            ValorLiquidacionSucursalId,
+            ValorLiquidacionTipoAsociadoId,
+            ValorLiquidacionCategoriaPersonalId,
+            ValorLiquidacionDesde
           } = registros[0];
 
-          // 2. Traer todos los registros de la misma combinación ordenados, excluyendo el que se va a borrar
+          // Traer todos los registros de la misma combinación ordenados, excluyendo el que se va a borrar
           const registrosRestantes = await queryRunner.query(`
             SELECT ValorLiquidacionId, ValorLiquidacionDesde
             FROM ValorLiquidacion
@@ -387,24 +387,24 @@ export class ValorHoraController extends BaseController {
             ORDER BY ValorLiquidacionDesde ASC
           `, [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, id]);
 
-          // 3. Borrar el registro
+          // Borrar el registro
           await queryRunner.query(`DELETE FROM ValorLiquidacion WHERE ValorLiquidacionId = @0`, [id]);
 
-          // 4. Encontrar el registro anterior y siguiente
+          // Encontrar el registro anterior y siguiente
           const pasados = registrosRestantes.filter((r: any) => new Date(r.ValorLiquidacionDesde) < new Date(ValorLiquidacionDesde));
           const futuros = registrosRestantes.filter((r: any) => new Date(r.ValorLiquidacionDesde) > new Date(ValorLiquidacionDesde));
 
-          // 5. Si existe un registro anterior, debemos actualizar su "Hasta" para tapar el hueco
+          // Si existe un registro anterior, debemos actualizar su "Hasta" para tapar el hueco
           if (pasados.length > 0) {
             const registroAnterior = pasados[pasados.length - 1]; // El más reciente del pasado
-            
+
             let nuevoHasta = null;
             if (futuros.length > 0) {
               const registroSiguiente = futuros[0];
               const refDesdeSig = new Date(registroSiguiente.ValorLiquidacionDesde);
               nuevoHasta = new Date(refDesdeSig.getFullYear(), refDesdeSig.getMonth(), 0); // Último día del mes anterior al siguiente
             }
-            
+
             await queryRunner.query(`
               UPDATE ValorLiquidacion
               SET ValorLiquidacionHasta = @0,
@@ -414,9 +414,9 @@ export class ValorHoraController extends BaseController {
             );
           }
         } else {
-          // Fallback por si el registro ya no existe pero igual vino en el array
-          await queryRunner.query(`DELETE FROM ValorLiquidacion WHERE ValorLiquidacionId = @0`, [id]);
+          throw new ClientException(`Error al eliminar el siguiente registro: Id= ${id}, SucursalId= ${registros[0].ValorLiquidacionSucursalId}, TipoAsociadoId= ${registros[0].ValorLiquidacionTipoAsociadoId}, CategoriaPersonalId= ${registros[0].ValorLiquidacionCategoriaPersonalId}, Desde= ${registros[0].ValorLiquidacionDesde}`)
         }
+
       }
 
       await queryRunner.commitTransaction();
