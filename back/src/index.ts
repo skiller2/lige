@@ -3,7 +3,7 @@ import { logger } from "./logger/logger.ts";
 
 import { DBServer, WebServer } from "./server.ts";
 import { makeRoutes } from "./routes/routes.module.ts"
-import { dataSource } from "./data-source.ts";
+
 import { scheduleJob } from "node-schedule"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller.ts";
 import { CargaLicenciaController } from "./carga-licencia/carga-licencia.controller.ts";
@@ -61,7 +61,7 @@ async function main() {
 
 
   // Init App
-  const dbServer = new DBServer(5, 2000, dataSource)
+  const dbServer = new DBServer(5, 2000)
   const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
   const categoriasController = new CategoriasController()
   const grupoActividadController = new GrupoActividadController()
