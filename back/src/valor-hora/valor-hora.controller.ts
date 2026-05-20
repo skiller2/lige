@@ -323,6 +323,8 @@ export class ValorHoraController extends BaseController {
         [anio, mes]
       );
 
+      if (registros.length === 0) throw new ClientException(`No se encontraron registros para el período ${mes}/${anio}.`)
+        
       for (const reg of registros) {
         let nuevoValor = Number(reg.ValorLiquidacionHoraNormal);
         switch (tipo) {
