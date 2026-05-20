@@ -297,7 +297,7 @@ export class ValorHoraController extends BaseController {
     const { anio, mes, tipo, valor } = req.body;
     if (!anio || !mes || !tipo || valor == null) return next(new ClientException("Datos incompletos"));
     if (!['porcentaje', 'fijo'].includes(tipo)) return next(new ClientException("Tipo debe ser 'porcentaje' o 'fijo'"));
-
+    if (!valor || Number(valor) == 0) return next(new ClientException("El valor debe ser distinto de 0"));
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
@@ -315,26 +315,48 @@ export class ValorHoraController extends BaseController {
         throw new ClientException(`No se puede modificar los Importes del período ${mes}/${anio}, los recibos se encuentran generados para ese período.`)
 
 
-      if (tipo === 'porcentaje') {
-        await queryRunner.query(`
-          UPDATE vl SET vl.ValorLiquidacionHoraNormal = ROUND(vl.ValorLiquidacionHoraNormal * (1 + @2 / 100.0), 2)
-          FROM ValorLiquidacion vl
-          WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
-            AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
-          [anio, mes, valor]
-        );
-      } else {
-        await queryRunner.query(`
-          UPDATE vl SET vl.ValorLiquidacionHoraNormal = vl.ValorLiquidacionHoraNormal + @2
-          FROM ValorLiquidacion vl
-          WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
-            AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
-          [anio, mes, valor]
-        );
+      const registros = await queryRunner.query(`
+        SELECT vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId, vl.ValorLiquidacionCategoriaPersonalId, vl.ValorLiquidacionHoraNormal
+        FROM ValorLiquidacion vl
+        WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
+          AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
+        [anio, mes]
+      );
+
+      for (const reg of registros) {
+        let nuevoValor = Number(reg.ValorLiquidacionHoraNormal);
+        switch (tipo) {
+          case 'porcentaje':
+            nuevoValor = Math.round((nuevoValor * (1 + Number(valor) / 100.0)) * 100) / 100;
+            break;
+          case 'fijo':
+            nuevoValor = nuevoValor + Number(valor);
+            break;
+          default:
+            throw new ClientException(`No se especifico un tipo.`);
+        }
+
+        const paramsSet = {
+          ValorLiquidacionSucursalId: reg.ValorLiquidacionSucursalId,
+          ValorLiquidacionTipoAsociadoId: reg.ValorLiquidacionTipoAsociadoId,
+          ValorLiquidacionCategoriaPersonalId: reg.ValorLiquidacionCategoriaPersonalId,
+          ValorLiquidacionHoraNormal: nuevoValor,
+          anio,
+          mes
+        };
+
+        try {
+          await this.setValorHora(queryRunner, paramsSet, usuario, ip, fechaActual);
+        } catch (e: any) {
+          if (e instanceof ClientWarning) {
+            continue; // Si el valor es idéntico, simplemente saltamos la actualización de este registro
+          }
+          throw e; // Abortar la transacción para cualquier otro error (ej. ClientException)
+        }
       }
-      //throw new Error("Error de prueba para rollback") // TODO: eliminar esta línea una vez probado el rollback
+
       await queryRunner.commitTransaction();
-      this.jsonRes({ success: true }, res);
+      this.jsonRes({ success: true }, res, "Modificación de valores aplicada exitosamente");
     } catch (error) {
       await queryRunner.rollbackTransaction();
       return next(error);
@@ -351,6 +373,9 @@ export class ValorHoraController extends BaseController {
 
     if (!anio || !mes)
       throw new ClientException("Debe indicar año y mes.");
+
+    if (!ValorLiquidacionHoraNormal || Number(ValorLiquidacionHoraNormal) == 0)
+      throw new ClientException("Ingrese un importe válido distinto de 0.");
 
     let dataResultado = {};
     let message = "";
@@ -428,7 +453,7 @@ export class ValorHoraController extends BaseController {
 
           // valido que el registro pasado no tenga un valor igual al nuevo para evitar cerrar e insertar un registro idéntico
           if (ultimoRegistro.ValorLiquidacionHoraNormal === ValorLiquidacionHoraNormal) throw new ClientWarning("El valor ingresado es igual al valor vigente para ese período, no se realizaron cambios.");
-            
+
           // Update del registro anterior para cerrarlo
           await queryRunner.query(`
             UPDATE ValorLiquidacion
