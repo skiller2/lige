@@ -394,7 +394,7 @@ export class ChatBotController extends BaseController {
   }
 
   async addToDocLog(doc_id: number, telefono: string, PersonalId: number) {
-    const queryRunner= await getConnection('server')
+    const queryRunner= await getConnection('bot')
     const fechaActual = new Date()
     await queryRunner.query(`INSERT INTO DocumentoDescargaLog (DocumentoId, FechaDescarga, Telefono, PersonalId, AudUsuarioIng, AudIpIng, AudFechaIng)
       VALUES (@0,@1,@2,@3,@4,@5,@6)`,
@@ -421,7 +421,7 @@ export class ChatBotController extends BaseController {
 
 
   static async getColaMsg() {
-    const queryRunner= await getConnection('server')
+    const queryRunner= await getConnection('bot')
     const fechaActual = new Date()
     return queryRunner.query(`
       SELECT col.FechaIngreso, col.PersonalId, tel.Telefono, col.TextoMensaje,
@@ -432,7 +432,7 @@ export class ChatBotController extends BaseController {
   }
 
   static async updColaMsg(fecha_ingreso: Date, personal_id: number, method: string, provider: string) {
-    const queryRunner= await getConnection('server')
+    const queryRunner= await getConnection('bot')
     const fechaActual = new Date()
 
     if (!method && !provider) throw new Error('Se debe especificar al menos method o provider para actualizar el mensaje en cola.');
