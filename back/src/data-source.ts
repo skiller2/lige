@@ -34,10 +34,10 @@ export async function getConnection(user: string="local"): Promise<QueryRunner> 
     logger.info('esparando inicialización')
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
-  ds.options.extra.user=user
   const queryRunner = ds.createQueryRunner();
   queryRunner.data.user=user
   return queryRunner
   //return null
+
   }
 
