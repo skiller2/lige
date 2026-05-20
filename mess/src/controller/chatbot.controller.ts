@@ -5,7 +5,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import CryptoJS from 'crypto-js';
 
 //import { botServer } from "../bot-server.ts";
-import { dataSource } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { botServer } from "../index.ts";
 import { documentosController, personalController, novedadController, objetivoController } from "./controller.module.ts";
 import { PersonalController } from "./personal.controller.ts";
@@ -125,7 +125,7 @@ export class ChatBotController extends BaseController {
 
 
   async chat(req: Request, res: Response, next: NextFunction) {
-
+    const queryRunner= await getConnection(res.locals.userName)
     if (req.body.message.trim() == '')
       return this.jsonRes({ 'response': [] }, res, 'ok');
     const chatId: string = req.body.chatId
@@ -223,10 +223,10 @@ export class ChatBotController extends BaseController {
                 output = await personalController.getInfoEmpresa()
                 break;
               case 'getLastPeriodosOfComprobantesAFIP':
-                output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, tool.function.arguments.cant).then(array => { return array })
+                output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, tool.function.arguments.cant,queryRunner).then(array => { return array })
                 break;
               case 'getLastPeriodoOfComprobantes':
-                output = await documentosController.getLastPeriodoOfComprobantes(pId, tool.function.arguments.cant).then(array => { return array })
+                output = await documentosController.getLastPeriodoOfComprobantes(pId, tool.function.arguments.cant,queryRunner).then(array => { return array })
                 break;
               case 'getDocsPendDescarga':
                 output = await personalController.getDocsPendDescarga(pId)
@@ -254,7 +254,7 @@ export class ChatBotController extends BaseController {
                 break;
               case 'getURLDocumentoNew':
                 try {
-                  output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId)
+                  output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId,queryRunner)
                 } catch (e) {
                   output = { Error: e }
                 }
@@ -263,7 +263,7 @@ export class ChatBotController extends BaseController {
                 output = await novedadController.getBackupNovedad(pId)
                 break;
               case 'saveNovedad':
-                output = await novedadController.saveNovedad(pId, tool.function.arguments.novedad)
+                output = await novedadController.saveNovedad(pId, tool.function.arguments.novedad,queryRunner)
                 break;
               case 'getObjetivoByCodObjetivo':
                 output = await objetivoController.getObjetivoByCodObjetivo(tool.function.arguments.CodObjetivo)
@@ -272,7 +272,7 @@ export class ChatBotController extends BaseController {
                 output = await novedadController.getNovedadTipo()
                 break;
               case 'addNovedad':
-                output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, pId)
+                output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, pId,queryRunner)
                 break;
               case 'getNovedadesPendientesByResponsable':
                 output = await novedadController.getNovedadesPendientesByResponsable(pId)
@@ -394,7 +394,7 @@ export class ChatBotController extends BaseController {
   }
 
   async addToDocLog(doc_id: number, telefono: string, PersonalId: number) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner= await getConnection('server')
     const fechaActual = new Date()
     await queryRunner.query(`INSERT INTO DocumentoDescargaLog (DocumentoId, FechaDescarga, Telefono, PersonalId, AudUsuarioIng, AudIpIng, AudFechaIng)
       VALUES (@0,@1,@2,@3,@4,@5,@6)`,
@@ -402,7 +402,8 @@ export class ChatBotController extends BaseController {
   }
 
   static async enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string) {
-    const queryRunner = dataSource.createQueryRunner()
+    const queryRunner= await getConnection(usuario)
+
     const fechaActual = new Date()
     try {
       const existsTel = await queryRunner.query(`SELECT PersonalId FROM BotRegTelefonoPersonal WHERE PersonalId = @0`, [personal_id])
@@ -420,7 +421,7 @@ export class ChatBotController extends BaseController {
 
 
   static async getColaMsg() {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner= await getConnection('server')
     const fechaActual = new Date()
     return queryRunner.query(`
       SELECT col.FechaIngreso, col.PersonalId, tel.Telefono, col.TextoMensaje,
@@ -431,7 +432,7 @@ export class ChatBotController extends BaseController {
   }
 
   static async updColaMsg(fecha_ingreso: Date, personal_id: number, method: string, provider: string) {
-    const queryRunner = dataSource.createQueryRunner();
+    const queryRunner= await getConnection('server')
     const fechaActual = new Date()
 
     if (!method && !provider) throw new Error('Se debe especificar al menos method o provider para actualizar el mensaje en cola.');

@@ -7,11 +7,12 @@ import { logger } from './logger.ts';
 export class TypeOrmLogger implements Logger {
 
   logQuery(query: string, parameters?: any[], queryRunner?: QueryRunner) {
+    console.log('-------',queryRunner?.data)
     //TODO: Cuando proviene de .begintransaction or .commit queryRunner está vacio
     logger.debug('SQL Query', {
       query,
       parameters,
-      user: queryRunner?.dataSource.options.extra?.user || 'unknown'
+      user: queryRunner?.data.user || 'unknown'
     });
   }
 
@@ -20,7 +21,7 @@ export class TypeOrmLogger implements Logger {
       error: error instanceof Error ? error.message : error,
       query,
       parameters,
-      user: queryRunner?.dataSource.options.extra?.user || 'unknown'
+      user: queryRunner?.data.user || 'unknown'
     });
   }
 
@@ -29,7 +30,7 @@ export class TypeOrmLogger implements Logger {
       time,
       query,
       parameters,
-      user: queryRunner?.dataSource.options.extra?.user || 'unknown'
+      user: queryRunner?.data.user || 'unknown'
     });
   }
 

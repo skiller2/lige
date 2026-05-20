@@ -2,6 +2,7 @@ import { BaseController, ClientException } from "./base.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import * as CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
+import { getConnection } from "../data-source.ts";
 
 export class PersonalController extends BaseController {
   async setPersonalAdelanto(personalId: any, anio: any, mes: any, monto: number) {
@@ -251,10 +252,7 @@ export class PersonalController extends BaseController {
     const ip = this.getRemoteAddress(req)
     let dni = ''
     const des_doc_ident_parts = des_doc_ident.split('@')
-
-
-
-    const queryRunner = dbServer.dataSource.createQueryRunner();
+    const queryRunner = await getConnection(usuario)
 
     try {
       if (des_doc_ident_parts.length > 4) {
@@ -339,10 +337,7 @@ export class PersonalController extends BaseController {
     const stmactual = new Date();
     const usuario = 'anon'
     const ip = this.getRemoteAddress(req)
-
-
-
-    const queryRunner = dbServer.dataSource.createQueryRunner();
+    const queryRunner = await getConnection(usuario)
 
     try {
 

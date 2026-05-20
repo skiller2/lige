@@ -1,6 +1,7 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import * as fs from 'fs';
 import { dbServer } from "../index.ts";
+import type { QueryRunner } from "typeorm";
 
 export class DocumentosController extends BaseController {
 
@@ -14,9 +15,7 @@ export class DocumentosController extends BaseController {
   //   return result
   // }
 
-  async getLastPeriodoOfComprobantes( personalId: number, cant: number ) {
-    const queryRunner = dbServer.dataSource.createQueryRunner();
-
+  async getLastPeriodoOfComprobantes( personalId: number, cant: number, queryRunner:QueryRunner ) {
     try {
       // await queryRunner.startTransaction()
       const respuesta = queryRunner.query(`
@@ -34,8 +33,7 @@ export class DocumentosController extends BaseController {
     }
   }
  
-  async getLastPeriodosOfComprobantesAFIP(personalId: number, cant: number) {
-    const queryRunner = dbServer.dataSource.createQueryRunner();
+  async getLastPeriodosOfComprobantesAFIP(personalId: number, cant: number,queryRunner:QueryRunner) {
     try {
       // await queryRunner.startTransaction()
       const respuesta = await queryRunner.query(`
