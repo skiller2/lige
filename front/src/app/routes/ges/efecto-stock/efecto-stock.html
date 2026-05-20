@@ -39,6 +39,25 @@
     </div>
   }
 
+  @if (tipoDestinoSeleccionado() === 'proveedor') {
+    <div nz-row [nzGutter]="16">
+      <div nz-col [nzSpan]="18">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="4">Proveedor</nz-form-label>
+          <nz-form-control [nzSpan]="20">
+            <nz-select [formField]="formEfectoStock.proveedorId" nzAllowClear nzPlaceHolder="Seleccione un proveedor"
+              [nzDropdownMatchSelectWidth]="false" style="width: 100%;" nzShowSearch
+              [nzLoading]="proveedores.isLoading()">
+              @for (pro of proveedores.value() ?? []; track pro.ProveedorId) {
+                <nz-option [nzLabel]="pro.ProveedorRazonSocial" [nzValue]="pro.ProveedorId"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
+  }
+
   @if (tipoDestinoSeleccionado() === 'objetivo') {
     <div nz-row [nzGutter]="16">
       <div nz-col [nzSpan]="18">

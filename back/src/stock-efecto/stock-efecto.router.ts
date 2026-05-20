@@ -8,10 +8,14 @@ stockEfectoRouter.get("/tipos-destino",[authMiddleware.verifyToken, authMiddlewa
   stockEfectoController.getTiposDestino(req, res, next);
 });
 
-stockEfectoRouter.get("/persona-info/:personalId/:anio/:mes", [authMiddleware.verifyToken], (req, res, next) => {
+stockEfectoRouter.get("/persona-info/:personalId/:anio/:mes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   stockEfectoController.getPersonaInfo(req, res, next);
 });
 
-stockEfectoRouter.get("/objetivo-info/:objetivoId/:anio/:mes", [authMiddleware.verifyToken], (req, res, next) => {
+stockEfectoRouter.get("/objetivo-info/:objetivoId/:anio/:mes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   stockEfectoController.getObjetivoInfo(req, res, next);
+});
+
+stockEfectoRouter.get("/proveedores", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  stockEfectoController.getProveedores(req, res, next);
 });
