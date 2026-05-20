@@ -394,11 +394,12 @@ export class ChatBotController extends BaseController {
   }
 
   async addToDocLog(doc_id: number, telefono: string, PersonalId: number) {
-    const queryRunner= await getConnection('bot')
+    const usuario = ChatBotController.getUser(null)
+    const queryRunner= await getConnection(usuario)
     const fechaActual = new Date()
     await queryRunner.query(`INSERT INTO DocumentoDescargaLog (DocumentoId, FechaDescarga, Telefono, PersonalId, AudUsuarioIng, AudIpIng, AudFechaIng)
       VALUES (@0,@1,@2,@3,@4,@5,@6)`,
-      [doc_id, fechaActual, telefono, PersonalId, 'bot', '127.0.0.1', fechaActual])
+      [doc_id, fechaActual, telefono, PersonalId, usuario, '127.0.0.1', fechaActual])
   }
 
   static async enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string) {
@@ -421,7 +422,8 @@ export class ChatBotController extends BaseController {
 
 
   static async getColaMsg() {
-    const queryRunner= await getConnection('bot')
+    const usuario = ChatBotController.getUser(null)
+    const queryRunner= await getConnection(usuario)
     const fechaActual = new Date()
     return queryRunner.query(`
       SELECT col.FechaIngreso, col.PersonalId, tel.Telefono, col.TextoMensaje,
@@ -432,13 +434,14 @@ export class ChatBotController extends BaseController {
   }
 
   static async updColaMsg(fecha_ingreso: Date, personal_id: number, method: string, provider: string) {
-    const queryRunner= await getConnection('bot')
+    const usuario = ChatBotController.getUser(null)
+    const queryRunner= await getConnection(usuario)
     const fechaActual = new Date()
 
     if (!method && !provider) throw new Error('Se debe especificar al menos method o provider para actualizar el mensaje en cola.');
 
     return queryRunner.query(`UPDATE BotColaMensajes SET FechaProceso = @0, AudUsuarioMod=@3, AudFechaMod=@0, AudIpMod=@4 , SentMethod=@5, SentProvider=@6
-      WHERE FechaIngreso = @1 AND PersonalId = @2`, [fechaActual, fecha_ingreso, personal_id, 'bot', '127.0.0.1', method, provider]);
+      WHERE FechaIngreso = @1 AND PersonalId = @2`, [fechaActual, fecha_ingreso, personal_id, usuario, '127.0.0.1', method, provider]);
   }
 
 }

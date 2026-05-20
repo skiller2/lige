@@ -227,7 +227,7 @@ export class InstitucionesController extends BaseController {
     let isNewOrEdit = true
     let maxSedeId = []
     const queryRunner = await getConnection(res.locals.userName)
-    await queryRunner.connect();
+    
     await queryRunner.startTransaction();
 
     try {
@@ -301,7 +301,7 @@ export class InstitucionesController extends BaseController {
     let CentroCapacitacionId = req.query[0]
     let CentroCapacitacionSedeId = req.query[1]
     const queryRunner = await getConnection(res.locals.userName)
-    await queryRunner.connect()
+    
     await queryRunner.startTransaction()
     try {
 
@@ -331,13 +331,12 @@ export class InstitucionesController extends BaseController {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
 
-    //throw new ClientException(`test.`)
     CentroCapacitacionInactivo = CentroCapacitacionInactivo ? CentroCapacitacionInactivo : false
 
 
     await this.validateFormInstituciones(CentroCapacitacionCuit, CentroCapacitacionRazonSocial, CentroCapacitacionInactivo)
     const queryRunner = await getConnection(res.locals.userName)
-    await queryRunner.connect();
+    
     await queryRunner.startTransaction();
 
     try {

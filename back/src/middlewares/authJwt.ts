@@ -207,7 +207,7 @@ export class AuthMiddleware {
   hasAuthByDocId = () => {
     return async (req, res, next) => {
       const queryRunner = await getConnection(res.locals.userName);
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
        
 

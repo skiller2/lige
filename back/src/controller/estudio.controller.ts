@@ -326,9 +326,8 @@ export class EstudioController extends BaseController {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
 
-    //throw new ClientException(`test.`)
     const queryRunner = await getConnection(res.locals.userName)
-    await queryRunner.connect();
+    
     await queryRunner.startTransaction();
     
 
@@ -520,7 +519,7 @@ export class EstudioController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const PersonalEstudioPagina1Id = await queryRunner.query(`SELECT PersonalEstudioPagina1Id FROM PersonalEstudio WHERE PersonalEstudioId = @0 AND PersonalId = @1`, [PersonalEstudioId, PersonalId])
@@ -536,7 +535,9 @@ export class EstudioController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
-    } 
+    } finally {
+      await queryRunner.release()
+    }
 
   }
 

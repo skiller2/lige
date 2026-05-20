@@ -172,7 +172,7 @@ export class AuthController extends BaseController {
 
     try {
       let user: any = await this.authUser(userName, password)
-      await queryRunner.connect();
+      
 
       const persona_cuit = Number(user.description)
 
@@ -220,10 +220,6 @@ export class AuthController extends BaseController {
       // you need to release query runner which is manually created:
       await queryRunner.release();
     }
-    //  })
-    //      .catch((error) => {
-    //  return next(error);
-    //});
   }
 
   refreshToken(req: any, res: any, next: NextFunction) {

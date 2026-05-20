@@ -38,7 +38,7 @@ export class LiquidacionesController extends BaseController {
     const ip = this.getRemoteAddress(req)
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       if (files?.length == 0)
@@ -490,7 +490,7 @@ export class LiquidacionesController extends BaseController {
       if (!deleteId)
         throw new ClientException(`No se pudo identificar el grupo de importación ${anio} ${mes} ${deleteId}`)
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
@@ -516,7 +516,7 @@ export class LiquidacionesController extends BaseController {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      //   await queryRunner.release();
+      await queryRunner.release();
     }
 
 
@@ -540,7 +540,7 @@ export class LiquidacionesController extends BaseController {
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
         throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       for (const row of req.body[1].gridDataInsert) {
@@ -587,7 +587,7 @@ export class LiquidacionesController extends BaseController {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      //   await queryRunner.release();
+      await queryRunner.release();
     }
 
   }
@@ -616,7 +616,7 @@ export class LiquidacionesController extends BaseController {
       if (!tipo_movimiento_id) new ClientException("No se especificó el movimiento")
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)

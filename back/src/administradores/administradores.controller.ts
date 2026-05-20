@@ -171,6 +171,8 @@ export class AdministradoresController extends BaseController {
 
     } catch (error) {
         return next(error)
+    }finally {
+      await queryRunner.release()
     }
 
 }
@@ -203,7 +205,9 @@ async listAdministradoresClientes(req: any, res: Response, next: NextFunction) {
 
   } catch (error) {
       return next(error)
-  }
+  }finally {
+      await queryRunner.release()
+    }
 
 }
 

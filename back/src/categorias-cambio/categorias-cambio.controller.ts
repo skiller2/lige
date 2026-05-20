@@ -161,12 +161,14 @@ export class CategoriasController extends BaseController {
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 
   async jobCambioCategoria(req: any, res: Response, next: NextFunction) {
     const options = {}
-    const usuario = res?.locals.userName || 'server'
+    const usuario = this.getUser(res)
     const ip = this.getRemoteAddress(req)
 
     const queryRunner = await getConnection(usuario);
@@ -193,7 +195,7 @@ export class CategoriasController extends BaseController {
         "JOB"
       ));
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       //            throw new ClientException("Ups")

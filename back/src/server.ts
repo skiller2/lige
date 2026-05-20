@@ -8,6 +8,7 @@ import { createServer } from "http";
 import { ClientException, ClientWarning } from "./controller/base.controller.ts";
 
 import { logger } from "./logger/logger.ts";
+import { dataSource } from "./data-source.ts";
 
 
 const { version, author, name, description } = versionMetadata;
@@ -24,7 +25,7 @@ export class DBServer {
   private retriesCount: number = 1;
   private timeOutDelay: number;
 
-  constructor(retries: number, timeOutDelay: number, dataSource: DataSource) {
+  constructor(retries: number, timeOutDelay: number) {
     this.timeOutDelay = timeOutDelay;
     this.dataSource = dataSource;
   }

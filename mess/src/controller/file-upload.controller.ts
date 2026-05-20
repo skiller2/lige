@@ -376,7 +376,7 @@ export class FileUploadController extends BaseController {
     if (!doctipo_id)
       throw new ClientException(`No se especificó destino -doctipo_id-`)
 
-    //throw new ClientException(`test`)
+
     //if (doc_id>0 && (!file.tempfilename || file.tempfilename === '')) {
     //  throw new ClientException(`No se especificó archivo a actualizar`)
     //}
@@ -414,8 +414,8 @@ export class FileUploadController extends BaseController {
           }
 
           newFilePath = `${folder}${doc_id}-${doctipo_id}-${den_documento}.${type}`;
-           
-           
+
+
           this.copyTmpFile(file.tempfilename, `${process.env.PATH_DOCUMENTS}/${newFilePath}`)
 
           const namefile = `${doc_id}-${doctipo_id}-${den_documento}.${type}`
@@ -677,7 +677,7 @@ export class FileUploadController extends BaseController {
 
         if (fechaCreacion < limiteFecha) {
           await unlink(filePath);
-           
+
         }
       });
 
@@ -692,7 +692,7 @@ export class FileUploadController extends BaseController {
     const deleteId = Number(req.query[0])
     const tableForSearch = req.query[1];
     const queryRunner = await getConnection(res.locals.userName);
-    
+
     let document: any
     let finalurl: any
 
@@ -703,7 +703,7 @@ export class FileUploadController extends BaseController {
 
     try {
 
-      await queryRunner.connect();
+
       await queryRunner.startTransaction();
 
       // Verificar si el documento tiene descargas asociadas
@@ -824,6 +824,8 @@ export class FileUploadController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 

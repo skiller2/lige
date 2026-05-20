@@ -491,6 +491,8 @@ export class CargaLicenciaController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -521,6 +523,8 @@ export class CargaLicenciaController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -540,10 +544,10 @@ export class CargaLicenciaController extends BaseController {
     //const orderBy = orderToSQL(req.body.options.sort)
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
 
-      let queryRunner = await getConnection(res.locals.userName);
       const listHorasLicencia = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], filterSql, true, false)
       this.jsonRes(
         {
@@ -555,6 +559,8 @@ export class CargaLicenciaController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -587,7 +593,7 @@ export class CargaLicenciaController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     try {
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
 
@@ -935,6 +941,8 @@ export class CargaLicenciaController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
 
   }
@@ -982,7 +990,7 @@ export class CargaLicenciaController extends BaseController {
 
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
 
@@ -1029,6 +1037,8 @@ export class CargaLicenciaController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
 
   }
@@ -1047,6 +1057,8 @@ export class CargaLicenciaController extends BaseController {
       this.jsonRes(result[0], res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 
@@ -1164,7 +1176,7 @@ export class CargaLicenciaController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     try {
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
       const horas = req.body.PersonalLicenciaAplicaPeriodoHorasMensuales
       const PersonalId = req.body.PersonalId;
@@ -1248,6 +1260,8 @@ export class CargaLicenciaController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 

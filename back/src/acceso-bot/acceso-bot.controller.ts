@@ -102,7 +102,7 @@ export class AccesoBotController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = await getConnection(res.locals.userName);
+        const queryRunner = await getConnection(this.getUser(res));
         const fechaActual = new Date()
 
         try {
@@ -138,6 +138,8 @@ export class AccesoBotController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
 
     }
@@ -153,6 +155,8 @@ export class AccesoBotController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
     }
 
@@ -181,7 +185,7 @@ export class AccesoBotController extends BaseController {
         const PersonalId = Number(req.params.PersonalId)
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+
             await queryRunner.startTransaction();
 
             await queryRunner.query(`DELETE FROM BotRegTelefonoPersonal WHERE PersonalId = @0`, [PersonalId])
@@ -219,6 +223,8 @@ export class AccesoBotController extends BaseController {
             this.jsonRes(result[0], res);
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
     }
 
@@ -261,8 +267,6 @@ export class AccesoBotController extends BaseController {
             let numeroAleatorio
             let newArray = { ...req.body }
 
-            //throw new ClientException(`test.`)
-
             //validaciones
             await this.FormValidations(req.body)
 
@@ -300,7 +304,6 @@ export class AccesoBotController extends BaseController {
             const ip = this.getRemoteAddress(req)
 
             const fecha = new Date()
-            //throw new ClientException(`test.`)
             await queryRunner.startTransaction()
 
             let { files } = req.body
@@ -680,6 +683,7 @@ export class AccesoBotController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
         }
     }
 

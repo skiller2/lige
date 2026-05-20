@@ -41,7 +41,7 @@ export class IngresoPorAsistenciaController extends BaseController {
       if (resPendAsisCierre.length > 0)
         throw new ClientException(`Existen ${resPendAsisCierre.length} objetivos pendientes de cierre o sin asistencia para el período ${mes}/${anio}`)
       
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const result = await AsistenciaController.getObjetivoAsistencia(anio,mes,[],queryRunner)
@@ -184,7 +184,7 @@ export class IngresoPorAsistenciaController extends BaseController {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      //   await queryRunner.release();
+      await queryRunner.release();
     }
   }
 }

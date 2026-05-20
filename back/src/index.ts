@@ -1,7 +1,9 @@
 import 'dotenv/config';
+import { logger } from "./logger/logger.ts";
+
 import { DBServer, WebServer } from "./server.ts";
 import { makeRoutes } from "./routes/routes.module.ts"
-import { dataSource, getConnection } from "./data-source.ts";
+
 import { scheduleJob } from "node-schedule"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller.ts";
 import { CargaLicenciaController } from "./carga-licencia/carga-licencia.controller.ts";
@@ -14,7 +16,7 @@ import { HabilitacionesController } from "./habilitaciones/habilitaciones.contro
 import { GestionDescuentosController } from "./gestion-descuentos/gestion-descuentos.controller.ts";
 
 import { version, GlobalWorkerOptions, getDocument } from "pdfjs-dist";
-import { logger } from "./logger/logger.ts";
+import { ClientException } from './controller/base.controller.ts';
 
 
 function createMinimalPDF(): ArrayBuffer {
@@ -45,7 +47,7 @@ startxref
 }
 
 async function main() {
-  const workerPath = (process.env.NODE_ENV === "dev") ? "../node_modules/pdfjs-dist/build/pdf.worker.min.mjs" : "./pdf.worker.min.mjs";
+  const workerPath = (process.env.NODE_ENV === "dev") ? "../node_modules/pdfjs-dist/build/pdf.worker.min.mjs" : "./pdf.worker.mjs";
 
   GlobalWorkerOptions.workerSrc = new URL(workerPath, import.meta.url).href;
 
@@ -59,7 +61,7 @@ async function main() {
 
 
   // Init App
-  const dbServer = new DBServer(5, 2000, dataSource)
+  const dbServer = new DBServer(5, 2000)
   const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
   const categoriasController = new CategoriasController()
   const grupoActividadController = new GrupoActividadController()
@@ -199,10 +201,10 @@ async function main() {
     logger.debug('Heartbeat', { uptime: process.uptime() });
   }, 1 * 60 * 60 * 1000); // Cada 1 horas
 
-
-  const queryRunner=await getConnection('elserver')
-  await queryRunner.startTransaction()
-  await queryRunner.commitTransaction()
+  //throw new ClientException(["aaa","bbb"],{user:1,name:"alfredo"}) 
+  //const queryRunner=await getConnection('elserver')
+  //await queryRunner.startTransaction()
+  //await queryRunner.commitTransaction()
 
 }
 

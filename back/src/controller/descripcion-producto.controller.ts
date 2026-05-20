@@ -5,9 +5,10 @@ import type { Request, NextFunction, Response } from "express";
 
 export class DescripcionProductoController extends BaseController {
 
-  async getAllProductos(res: Response, req: Request, next:NextFunction) {
+  async getAllProductos(res: Response, req: Request, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         'SELECT ProductoTipoCodigo as TipoProductoId ,Descripcion as TipoProductoDescripcion, ProductoTipoCodigo as value, Descripcion as label  FROM  ProductoTipo'
       )
@@ -15,6 +16,8 @@ export class DescripcionProductoController extends BaseController {
     }
     catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 }

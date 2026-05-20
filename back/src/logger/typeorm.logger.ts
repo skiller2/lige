@@ -7,7 +7,6 @@ import { logger } from './logger.ts';
 export class TypeOrmLogger implements Logger {
 
   logQuery(query: string, parameters?: any[], queryRunner?: QueryRunner) {
-    console.log('-------',queryRunner?.data)
     //TODO: Cuando proviene de .begintransaction or .commit queryRunner está vacio
     logger.debug('SQL Query', {
       query,

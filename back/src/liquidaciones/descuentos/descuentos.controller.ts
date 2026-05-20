@@ -36,7 +36,7 @@ export class DescuentosController extends BaseController {
       if (mes > 12 || mes < 1 || isNaN(mes))
         throw new ClientException(`Mes ${mes} no válido `)
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const result = await AsistenciaController.getDescuentos(anio, mes, [],queryRunner)

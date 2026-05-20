@@ -626,7 +626,7 @@ LEFT JOIN banco banc
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
 
-    await queryRunner.connect();
+    
     await queryRunner.startTransaction();
 
     try {
@@ -643,6 +643,8 @@ LEFT JOIN banco banc
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
 
   }
@@ -656,7 +658,7 @@ LEFT JOIN banco banc
     let anio = Number(req.body.selectedPeriod.year)
     let mes = Number(req.body.selectedPeriod.month)
 
-    await queryRunner.connect();
+    
     await queryRunner.startTransaction();
     try {
 
@@ -758,6 +760,8 @@ LEFT JOIN banco banc
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
 
   }
@@ -827,7 +831,7 @@ LEFT JOIN banco banc
       if (banco.length == 0)
         throw new ClientException('No hay registros para generar archivo')
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
       const periodods = await queryRunner.query('SELECT periodo_id FROM lige.dbo.liqmaperiodo WHERE anio=@0 AND mes=@1', [periodo.year, periodo.month])
       const periodo_id = periodods[0]['periodo_id']
@@ -971,6 +975,8 @@ LEFT JOIN banco banc
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -1180,7 +1186,7 @@ LEFT JOIN banco banc
       if (persona_id == null)
         throw new ClientException(`Debe seleccionar una persona`)
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
 
@@ -1196,7 +1202,7 @@ LEFT JOIN banco banc
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      //   await queryRunner.release();
+      await queryRunner.release();
     }
 
 
@@ -1207,7 +1213,7 @@ LEFT JOIN banco banc
   async jobLimiteImporteBanco(req: any, res: Response, next: NextFunction) {   //Actualiza el campo HorasAutorizadasMax de Personal con el valor calculado en funcion de los ultimos meses
 
     const fechaActual = new Date()
-    const usuario = res?.locals.userName || 'server'
+    const usuario = this.getUser(res)
     const ip = this.getRemoteAddress(req)
     let EventoLogCodigo = 0
     const anio = fechaActual.getFullYear()

@@ -444,7 +444,6 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     let totalsumaxls = 0
     let EventoLogCodigo = 0
      
-    //throw new ClientException(`test...`)
     const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
 
     try {
@@ -1087,7 +1086,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     const fechaActual: Date = new Date()
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
       //VALIDACIONES
       let campos_vacios: any[] = []

@@ -31,7 +31,7 @@ export class IngresoCoordinadorCuentaController extends BaseController {
 
 
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const result = []
@@ -67,7 +67,7 @@ export class IngresoCoordinadorCuentaController extends BaseController {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      //   await queryRunner.release();
+      await queryRunner.release();
     }
   }
 }

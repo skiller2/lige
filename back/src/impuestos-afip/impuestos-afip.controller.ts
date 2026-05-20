@@ -95,7 +95,7 @@ export class ImpuestosAfipController extends BaseController {
         mes: String(periodo.month),
         descuentoId: descuentoId,
         options,
-      },queryRunner);
+      }, queryRunner);
       const files = descuentos
         .filter(
           (descuento) => descuento.PersonalComprobantePagoAFIPId !== null
@@ -133,7 +133,7 @@ export class ImpuestosAfipController extends BaseController {
     mes: string;
     descuentoId: string;
     options: Options;
-  },queryRunner: QueryRunner) {
+  }, queryRunner: QueryRunner) {
 
     const filtros = params.options.filtros;
 
@@ -278,7 +278,7 @@ export class ImpuestosAfipController extends BaseController {
     anio: string;
     mes: string;
     GrupoActividadId: string;
-  },queryRunner: QueryRunner) {
+  }, queryRunner: QueryRunner) {
     const extrafilter =
       options.GrupoActividadId && options.GrupoActividadId != "0"
         ? "AND gap.GrupoActividadId = @4"
@@ -359,7 +359,7 @@ export class ImpuestosAfipController extends BaseController {
         mes,
         descuentoId,
         options,
-      },queryRunner);
+      }, queryRunner);
 
       this.jsonRes(
         {
@@ -384,7 +384,7 @@ export class ImpuestosAfipController extends BaseController {
         anio,
         mes,
         GrupoActividadId,
-      },queryRunner);
+      }, queryRunner);
       const sincomprobante = result.reduce(
         (total, item: any) =>
           item.PersonalComprobantePagoAFIPId == null ? total + 1 : total,
@@ -580,7 +580,7 @@ export class ImpuestosAfipController extends BaseController {
         fielname: '',
         mimetype: file.mimetype
       }
-      
+
 
       if (pagenum == null) {
 
@@ -627,7 +627,7 @@ export class ImpuestosAfipController extends BaseController {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
       if (!anioRequest) throw new ClientException("Faltó indicar el mes.");
 
-      await queryRunner.connect();
+
       //await queryRunner.startTransaction();
 
       let CUIT: string;
@@ -758,6 +758,8 @@ export class ImpuestosAfipController extends BaseController {
           } catch (err: any) {
             await this.rollbackTransaction(queryRunner)
             errList.push(err);
+          } finally {
+            await queryRunner.release()
           }
         }
 
@@ -836,7 +838,7 @@ export class ImpuestosAfipController extends BaseController {
         mes: month,
         descuentoId: descuentoId,
         options: { filtros: filtros, sort: [], extra: null }
-      },queryRunner);
+      }, queryRunner);
 
       const files = descuentos
         .filter(
@@ -1344,5 +1346,5 @@ export class ImpuestosAfipController extends BaseController {
 
   async getOptions(req, res) {
     this.jsonRes(getOptionsSINO, res);
-}
+  }
 }

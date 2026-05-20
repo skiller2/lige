@@ -1208,7 +1208,7 @@ SELECT doc.DocumentoId id,
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+
             await queryRunner.startTransaction();
 
             //Validacion
@@ -1254,7 +1254,7 @@ SELECT doc.DocumentoId id,
 
 
             //Datos para la denominacion del documento
-            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1,queryRunner)
+            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1, queryRunner)
             const cuit = infoPersonal[0].PersonalCUITCUILCUIT;
             result = await queryRunner.query(`
                 SELECT TRIM(LugarHabilitacionDescripcion) Descripcion
@@ -1294,6 +1294,8 @@ SELECT doc.DocumentoId id,
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -1321,7 +1323,7 @@ SELECT doc.DocumentoId id,
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+
             await queryRunner.startTransaction();
 
             //Validacion
@@ -1360,7 +1362,7 @@ SELECT doc.DocumentoId id,
                 GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
             //Datos para la denominacion del documento
-            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1,queryRunner)
+            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1, queryRunner)
             const cuit = infoPersonal[0].PersonalCUITCUILCUIT;
             let result = await queryRunner.query(`
                 SELECT TRIM(LugarHabilitacionDescripcion) Descripcion
@@ -1400,6 +1402,8 @@ SELECT doc.DocumentoId id,
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -1486,7 +1490,7 @@ SELECT doc.DocumentoId id,
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+
             await queryRunner.startTransaction();
 
             //Validación
@@ -1549,7 +1553,7 @@ SELECT doc.DocumentoId id,
             `, [newCodigoUlt, PersonalId, LugarHabilitacionId, newPersonalHabilitacionId, GestionHabilitacionEstadoCodigo, Detalle, fechaActual, usuario, ip])
 
             //Datos para la denominacion del documento
-            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1,queryRunner)
+            let infoPersonal = await PersonalController.infoPersonalQuery(PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1, queryRunner)
             const cuit = infoPersonal[0].PersonalCUITCUILCUIT;
             result = await queryRunner.query(`
                 SELECT TRIM(LugarHabilitacionDescripcion) Descripcion
@@ -1589,6 +1593,8 @@ SELECT doc.DocumentoId id,
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -1601,7 +1607,7 @@ SELECT doc.DocumentoId id,
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+
             await queryRunner.startTransaction();
 
             await this.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, LugarHabilitacionIds, usuario, ip)
@@ -1611,6 +1617,8 @@ SELECT doc.DocumentoId id,
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
@@ -1743,8 +1751,8 @@ SELECT doc.DocumentoId id,
     }
 
     async jobHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
-        const usuario = res?.locals.userName || 'server'
-        
+        const usuario = this.getUser(res)
+
         const queryRunner = await getConnection(usuario);
 
         const ip = this.getRemoteAddress(req)
@@ -1764,7 +1772,7 @@ SELECT doc.DocumentoId id,
             ));
 
             await queryRunner.startTransaction();
-            const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [],queryRunner)
+            const resAsisObjetiv = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [], queryRunner)
             const resCustodias = await CustodiaController.listPersonalCustodiaQuery({ filtros: [] }, queryRunner, anio, mes, 0)
             const now = new Date()
             const desde = new Date(anio, mes - 1, 1);
@@ -1955,7 +1963,7 @@ SELECT doc.DocumentoId id,
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            await queryRunner.connect();
+
             await queryRunner.startTransaction();
 
             await queryRunner.query(`
@@ -1970,7 +1978,8 @@ SELECT doc.DocumentoId id,
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
-
 }

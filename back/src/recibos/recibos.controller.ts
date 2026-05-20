@@ -47,16 +47,16 @@ export class RecibosController extends BaseController {
     try {
 
       if (isUnique) {
-        try {  await unlink(directorPathUnique) }catch(error){}
+        try { await unlink(directorPathUnique) } catch (error) { }
 
       } else {
         if (fs.existsSync(directorPath)) {
           const archivos = fs.readdirSync(directorPath);
           archivos.forEach(async archivo => {
             const rutaArchivo = path.join(directorPath, archivo);
-            try {  await unlink(rutaArchivo) }catch(error){}
+            try { await unlink(rutaArchivo) } catch (error) { }
 
-            
+
           });
         }
       }
@@ -128,13 +128,13 @@ export class RecibosController extends BaseController {
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
 
-      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(periodo.year, periodo.month, 3,queryRunner)
+      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(periodo.year, periodo.month, 3, queryRunner)
       if (resPendLiq.length > 0) {
         const FechaLimite = resPendLiq[0].FechaLimite
         throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(FechaLimite)}`)
       }
 
-      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(periodo.year, periodo.month,queryRunner)
+      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(periodo.year, periodo.month, queryRunner)
       if (resPendAsisCierre.length > 0)
         throw new ClientException(`Existen ${resPendAsisCierre.length} objetivos pendientes de cierre o sin asistencia para el período ${periodo.month}/${periodo.year}`)
 
@@ -145,7 +145,7 @@ export class RecibosController extends BaseController {
           throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
       } else {
-          throw new ClientException(`El código proporcionado falla al generar el recibo único. Por favor, contacte al administrador del sistema.`)
+        throw new ClientException(`El código proporcionado falla al generar el recibo único. Por favor, contacte al administrador del sistema.`)
 
         // codigo para cuando es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
         const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo.year, periodo.month, personalId);
@@ -257,7 +257,7 @@ export class RecibosController extends BaseController {
       await this.eventoLogFin(queryRunner, EventoLogCodigo, 'ERR', { res: error }, usuario, ip)
       return next(error)
     } finally {
-      //   await queryRunner.release();
+      await queryRunner.release();
     }
 
   }
@@ -389,10 +389,10 @@ export class RecibosController extends BaseController {
     await page.setContent(htmlContent);
 
     //fs.writeFileSync("./full.html",htmlContent)
-    try { 
-    await unlink(filesPath)
-    }catch(error){}
-    
+    try {
+      await unlink(filesPath)
+    } catch (error) { }
+
     await page.pdf({
       path: filesPath,
       margin: { top: '80px', right: '0px', bottom: '50px', left: '0px' },
@@ -633,7 +633,7 @@ export class RecibosController extends BaseController {
 
 
     try {
-      await queryRunner.connect();
+
 
       // // validar la sucursal del usuario que desea descargar el recibo
       // if (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) {
@@ -766,8 +766,9 @@ export class RecibosController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
-
   }
 
   async getGrupFilterDowload(queryRunner: QueryRunner, periodo_id: number, ObjetivoIdWithSearch: number, ClienteIdWithSearch: number, SucursalIdWithSearch: number, PersonalIdWithSearch: number, SeachField: string
@@ -959,10 +960,10 @@ export class RecibosController extends BaseController {
       if (err) {
         return next(err);
       } else {
-         
-        try {  await unlink(filesPath) }catch(error){}
 
-         
+        try { await unlink(filesPath) } catch (error) { }
+
+
       }
     });
   }

@@ -48,7 +48,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
 
 
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
 
@@ -106,7 +106,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      //   await queryRunner.release();
+      await queryRunner.release();
     }
   }
 }

@@ -23,8 +23,9 @@ export class MovimientosAutomaticosController extends BaseController {
 //      return next(error)
     return next(`Se procesaron cambios `)
     } finally {
+       await queryRunner.release();
+
         return next(`Se procesaron cambios `)
-    //   await queryRunner.release();
     }
   }
 }

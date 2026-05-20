@@ -1,75 +1,77 @@
-
-
-
-    
 <nz-card class="small-margin">
-<div style="display: flex; justify-content: space-between; align-items: center;">
-      <nz-form-control>
-        <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzPlaceHolder="Periodo" (ngModelChange)="refreshList()"/>
-      </nz-form-control>
-      <nz-button-group nz-button nzButtonGroup style="display: flex;">
-        <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-          <button nz-button nzType="default" (click)="selectNewItemRow()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-        </a>
-        <a nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-          <button nz-button nzType="default" [disabled]="editValorHora().length == 0"
-            nz-popconfirm nzPopconfirmTitle="¿Está seguro que quiere eliminar el valor hora seleccionado?"
-            (nzOnConfirm)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
-        </a>
-        <a nz-tooltip nzTooltipTitle="Aumentar valores">
-          <button nz-button nzType="default" (click)="abrirAumentoModal()"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-        </a>
-      </nz-button-group>
-    </div>
-    <nz-modal [(nzVisible)]="showAumentoModal" nzTitle="Aumentar valores del período" [nzOkLoading]="aumentoLoading"
-      (nzOnCancel)="showAumentoModal = false" (nzOnOk)="aplicarAumento()" nzOkText="Aplicar" nzCancelText="Cancelar">
-      <ng-container *nzModalContent>
-        <div style="display: flex; flex-direction: column; gap: 16px;">
-          <nz-form-item style="margin-bottom: 0;">
-            <nz-form-label>Período</nz-form-label>
-            <nz-form-control>
-              <nz-date-picker nzMode="month" [ngModel]="aumentoPeriodo()"
-                (ngModelChange)="aumentoPeriodo.set($event)" nzPlaceHolder="Seleccione período"
-                style="width: 100%;">
-              </nz-date-picker>
-            </nz-form-control>
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <nz-form-control>
+      <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzPlaceHolder="Periodo" (ngModelChange)="refreshList()" />
+    </nz-form-control>
+    <nz-button-group nz-button nzButtonGroup style="display: flex;">
+      <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <button nz-button nzType="default" (click)="selectNewItemRow()"><span nz-icon nzType="plus"
+            nzTheme="outline"></span></button>
+      </a>
+      <a nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+        <button nz-button nzType="default" [disabled]="editValorHora().length == 0" nz-popconfirm
+          nzPopconfirmTitle="¿Está seguro que quiere eliminar el valor hora seleccionado?"
+          (nzOnConfirm)="deleteItem()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
+      </a>
+      <a nz-tooltip nzTooltipTitle="Modificar Importes Masivo">
+        <button nz-button nzType="default" (click)="abrirAumentoModal()"><span nz-icon nzType="edit"
+            nzTheme="outline"></span></button>
+      </a>
+    </nz-button-group>
+  </div>
+  <nz-modal [(nzVisible)]="showAumentoModal" nzTitle="Modificación de todos los Importes" [nzOkLoading]="aumentoLoading"
+    (nzOnCancel)="showAumentoModal = false" (nzOnOk)="aplicarAumento()" nzOkText="Aplicar" nzCancelText="Cancelar">
+    <ng-container *nzModalContent>
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <nz-form-item style="margin-bottom: 0;">
+            <b>Aumento aplicado sobre valores del {{ getCalculatedPeriodDay() }}</b>
           </nz-form-item>
-          <nz-form-item style="margin-bottom: 0;">
-            <nz-form-label>Tipo de aumento</nz-form-label>
-            <nz-form-control>
-              <nz-radio-group [ngModel]="aumentoTipo()" (ngModelChange)="aumentoTipo.set($event); aumentoValor = 0">
-                <label nz-radio nzValue="porcentaje">Porcentaje</label>
-                <label nz-radio nzValue="fijo">Monto fijo</label>
-              </nz-radio-group>
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item style="margin-bottom: 0;">
-            <nz-form-label>Valor</nz-form-label>
-            <nz-form-control>
-              @if (aumentoTipo() === 'porcentaje') {
-                <nz-input-group nzAddOnAfter="%">
-                  <input nz-input type="text" [(ngModel)]="aumentoValor" appDotToComma mask="separator.2" placeholder="" />
-                </nz-input-group>
-              } @else {
-                <input nz-input type="text" [(ngModel)]="aumentoValor" appDotToComma mask="separator.2" placeholder="" style="width: 100%;" />
-              }
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      </ng-container>
-    </nz-modal>
+        <nz-form-item style="margin-bottom: 0;">
+          <nz-form-label>Modificación por</nz-form-label>
+          <nz-form-control>
+            <nz-radio-group [ngModel]="aumentoTipo()" (ngModelChange)="aumentoTipo.set($event); aumentoValor = undefined;">
+              <label nz-radio nzValue="porcentaje">Porcentaje</label>
+              <label nz-radio nzValue="fijo">Monto fijo</label>
+            </nz-radio-group>
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item style="margin-bottom: 0;">
+          <nz-form-label>Valor</nz-form-label>
+          <nz-form-control>
+            @if (aumentoTipo() === 'porcentaje') {
+            <nz-input-group nzAddOnAfter="%">
+              <input nz-input type="text" [(ngModel)]="aumentoValor" appDotToComma mask="separator.2" placeholder="" />
+            </nz-input-group>
+            } @else {
+            <input nz-input type="text" [(ngModel)]="aumentoValor" appDotToComma mask="separator.2" placeholder=""
+              style="width: 100%;" />
+            }
+          </nz-form-control>
+        </nz-form-item>
+        <nz-form-item style="margin-bottom: 0;">
+          <nz-form-label>Período Aplica</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker nzMode="month" [ngModel]="aumentoPeriodo()" (ngModelChange)="aumentoPeriodo.set($event)"
+              nzPlaceHolder="Seleccione período" style="width: 100%;">
+            </nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </ng-container>
+  </nz-modal>
 
   @if ((columns$|async); as columnas) {
-    <div nz-tab>
-        <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
-        <div class="gridContainer container-fluid">
-          <angular-slickgrid gridId="gridEdit" [columns]="columnas  | colsFilter" [options]="gridOptionsEdit"
-            [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
-            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" (onCellChange)="onCellChanged($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
-          </angular-slickgrid>
-        </div>
-      </div>
-    }
+  <div nz-tab>
+    <shared-filtro-builder [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)"
+      [startFilters]="startFilters()" />
+    <div class="gridContainer container-fluid">
+      <angular-slickgrid gridId="gridEdit" [columns]="columnas  | colsFilter" [options]="gridOptionsEdit"
+        [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
+        (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" (onCellChange)="onCellChanged($event)"
+        (onBeforeEditCell)="handleOnBeforeEditCell($event)">
+      </angular-slickgrid>
+    </div>
+  </div>
+  }
 
-  </nz-card>
-
+</nz-card>

@@ -386,6 +386,8 @@ export class ActasController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

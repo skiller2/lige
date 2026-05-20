@@ -170,10 +170,8 @@ export class AdelantosController extends BaseController {
     res: Response,
     next: NextFunction
   ) {
-
+    const queryRunner = await getConnection(res.locals.userName);
     try {
-      const queryRunner = await getConnection(res.locals.userName);
-
       const grupos = await queryRunner.query(
         `SELECT DISTINCT ga.GrupoActividadId, ga.GrupoActividadJerarquicoComo, 1
         FroM GrupoActividadJerarquico ga 
@@ -200,6 +198,8 @@ export class AdelantosController extends BaseController {
       this.jsonRes(adelantos, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -208,7 +208,7 @@ export class AdelantosController extends BaseController {
     const now = new Date();
     const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 31, 23, 59, 0); // 23:59 del día 31
     try {
-      await queryRunner.connect();
+
       await queryRunner.startTransaction();
 
       if (!personalId) throw new ClientException("Falta cargar la persona");
@@ -253,7 +253,7 @@ export class AdelantosController extends BaseController {
     const now = new Date();
     const fechaLimite = new Date(now.getFullYear(), now.getMonth(), 20, 12, 0, 0); // 12:00 del día 20
     try {
-      await queryRunner.connect();
+
       await queryRunner.startTransaction();
 
       if (!personalId) throw new ClientException("Falta cargar la persona.");
@@ -488,6 +488,8 @@ export class AdelantosController extends BaseController {
       this.jsonRes({ list: adelantos }, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 }

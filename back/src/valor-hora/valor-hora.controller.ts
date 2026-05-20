@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { BaseController, ClientException } from "../controller/base.controller.ts";
+import { BaseController, ClientException, ClientWarning } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import { recibosController } from "../controller/controller.module.ts";
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
@@ -75,6 +75,18 @@ export class ValorHoraController extends BaseController {
       sortable: true,
       hidden: false,
       searchHidden: true,
+    },
+    {
+      name: "Fecha Desde",
+      type: "date",
+      id: "ValorLiquidacionDesde",
+      field: "ValorLiquidacionDesde",
+      fieldName: "vl.ValorLiquidacionDesde",
+      searchType: "date",
+      searchComponent: "inputForFechaSearch",
+      sortable: true,
+      searchHidden: false,
+      hidden: false,
     },
     {
       name: "Importe",
@@ -169,166 +181,20 @@ export class ValorHoraController extends BaseController {
   }
 
   async changecellvalorHora(req: Request, res: Response, next: NextFunction) {
-
     const queryRunner = await getConnection(res.locals.userName);
-    let message = ""
-    const params = req.body
-    const usuario = res.locals.userName
-    const ip = this.getRemoteAddress(req)
-    const fechaActual = new Date()
-
-    const { ValorLiquidacionId, ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde, anio, mes } = params
-    if (!ValorLiquidacionSucursalId || !ValorLiquidacionTipoAsociadoId || !ValorLiquidacionCategoriaPersonalId || ValorLiquidacionHoraNormal == null)
-      return next(new ClientException("Faltan datos obligatorios (Sucursal, Tipo Asociado, Categoría o Importe)"))
-
-    if (!anio || !mes)
-      return next(new ClientException("Debe indicar año y mes."))
+    const params = req.body;
+    const usuario = res.locals.userName;
+    const ip = this.getRemoteAddress(req);
+    const fechaActual = new Date();
 
     try {
-      await queryRunner.connect()
-      await queryRunner.startTransaction()
+      
+      await queryRunner.startTransaction();
 
-      let dataResultado = {}
+      const { dataResultado, message } = await this.setValorHora(queryRunner, params, usuario, ip, fechaActual);
 
-      // Validar que no existan recibos generados para el período
-      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip)
-
-      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
-
-      if (getRecibosGenerados[0].ind_recibos_generados == 1)
-        throw new ClientException(`No se puede modificar el Importe, debido a que el periodo ${mes}/${anio} cuenta con los recibos generados.`)
-
-      // Validar que la combinación TipoAsociado + CategoriaPersonal exista
-      const catValid = await queryRunner.query(`
-              SELECT 1 AS ok FROM CategoriaPersonal
-              WHERE TipoAsociadoId = @0 AND CategoriaPersonalId = @1`,
-        [ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId]
-      )
-      if (!catValid.length)
-        throw new ClientException("La categoría seleccionada no corresponde al tipo de asociado")
-
-      const newValorLiquidacionDesde = new Date(anio, mes - 1, 1);
-      const registrosExistentes = await queryRunner.query(`
-        SELECT vl.ValorLiquidacionId AS id, vl.ValorLiquidacionId, vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId,
-               vl.ValorLiquidacionCategoriaPersonalId, vl.ValorLiquidacionHoraNormal,
-               vl.ValorLiquidacionDesde, isnull(vl.ValorLiquidacionHasta, '9999-12-31') AS ValorLiquidacionHasta
-        FROM ValorLiquidacion vl
-        WHERE vl.ValorLiquidacionSucursalId = @0 
-          AND vl.ValorLiquidacionTipoAsociadoId = @1 
-          AND vl.ValorLiquidacionCategoriaPersonalId = @2
-        ORDER BY vl.ValorLiquidacionDesde ASC
-      `, [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId]);
-
-      if (registrosExistentes.length === 0) {
-        // No existe ningún registro previo
-        const result = await queryRunner.query(`
-          INSERT INTO ValorLiquidacion (ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde,
-            AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
-          VALUES (@0, @1, @2, @3, DATEFROMPARTS(@4, @5, 1), @6, @6, @7, @7, @8, @8);
-          SELECT SCOPE_IDENTITY() AS id`,
-          [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, anio, mes, fechaActual, ip, usuario]
-        );
-        dataResultado = { action: 'I', id: result[0].id };
-        message = "Registro creado exitosamente";
-      } else {
-        // Existen registros
-        // Se Evalua si existe uno con Desde igual a newDesde (UPDATE)
-        const registroMismoMes = registrosExistentes.find((r: any) => {
-          const d = new Date(r.ValorLiquidacionDesde);
-          return d.getFullYear() === anio && d.getMonth() === (mes - 1);
-        });
-
-        if (registroMismoMes) {
-          // Existe uno pero con Desde igual a newDesde (UPDATE)
-          await queryRunner.query(`
-            UPDATE ValorLiquidacion
-            SET ValorLiquidacionHoraNormal = @0,
-                AudFechaMod = @1,
-                AudIpMod = @2,
-                AudUsuarioMod = @3
-            WHERE ValorLiquidacionId = @4`,
-            [ValorLiquidacionHoraNormal, fechaActual, ip, usuario, registroMismoMes.ValorLiquidacionId]
-          );
-          dataResultado = { action: 'U', id: registroMismoMes.ValorLiquidacionId };
-          message = "Actualización exitosa";
-        } else {
-          // Verificamos dónde cae en la línea de tiempo
-          const futuros = registrosExistentes.filter((r: any) => new Date(r.ValorLiquidacionDesde) > newValorLiquidacionDesde);
-          const pasados = registrosExistentes.filter((r: any) => new Date(r.ValorLiquidacionDesde) < newValorLiquidacionDesde);
-
-          if (pasados.length > 0 && futuros.length === 0) {
-            // Existen registros hacia el pasado solo
-            const ultimoRegistro = pasados[pasados.length - 1]; // El más reciente del pasado
-            const newHastaAnterior = new Date(anio, mes - 1, 0); // Último día del mes anterior
-
-            // Update del registro anterior para cerrarlo
-            await queryRunner.query(`
-              UPDATE ValorLiquidacion
-              SET ValorLiquidacionHasta = @0,
-                  AudFechaMod = @1, AudIpMod = @2, AudUsuarioMod = @3
-              WHERE ValorLiquidacionId = @4`,
-              [newHastaAnterior, fechaActual, ip, usuario, ultimoRegistro.ValorLiquidacionId]
-            );
-
-            // Insert del nuevo
-            const result = await queryRunner.query(`
-              INSERT INTO ValorLiquidacion (ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde,
-                AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
-              VALUES (@0, @1, @2, @3, DATEFROMPARTS(@4, @5, 1), @6, @6, @7, @7, @8, @8);
-              SELECT SCOPE_IDENTITY() AS id`,
-              [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, anio, mes, fechaActual, ip, usuario]
-            );
-            dataResultado = { action: 'I', id: result[0].id };
-            message = "Registro insertado exitosamente (futuro)";
-          } else if (futuros.length > 0 && pasados.length === 0) {
-            // Existen registros hacia el futuro solo
-            const primerRegistro = futuros[0]; // El más antiguo del futuro
-            const refDesde = new Date(primerRegistro.ValorLiquidacionDesde);
-            const newHasta = new Date(refDesde.getFullYear(), refDesde.getMonth(), 0); // Último día del mes anterior al siguiente
-
-            const result = await queryRunner.query(`
-              INSERT INTO ValorLiquidacion (ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde, ValorLiquidacionHasta,
-                AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
-              VALUES (@0, @1, @2, @3, DATEFROMPARTS(@4, @5, 1), @9, @6, @6, @7, @7, @8, @8);
-              SELECT SCOPE_IDENTITY() AS id`,
-              [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, anio, mes, fechaActual, ip, usuario, newHasta]
-            );
-            dataResultado = { action: 'I', id: result[0].id };
-            message = "Registro insertado exitosamente (pasado)";
-          } else {
-            // Hay registros antes y después
-            const registroAnterior = pasados[pasados.length - 1];
-            const registroSiguiente = futuros[0];
-
-            const newHastaAnterior = new Date(anio, mes - 1, 0); // Cerrar el anterior
-            const refDesdeSig = new Date(registroSiguiente.ValorLiquidacionDesde);
-            const newHastaNuevo = new Date(refDesdeSig.getFullYear(), refDesdeSig.getMonth(), 0); // Cerrar el nuevo
-
-            // Cerrar el anterior
-            await queryRunner.query(`
-              UPDATE ValorLiquidacion
-              SET ValorLiquidacionHasta = @0,
-                  AudFechaMod = @1, AudIpMod = @2, AudUsuarioMod = @3
-              WHERE ValorLiquidacionId = @4`,
-              [newHastaAnterior, fechaActual, ip, usuario, registroAnterior.ValorLiquidacionId]
-            );
-
-            // Insert del nuevo
-            const result = await queryRunner.query(`
-              INSERT INTO ValorLiquidacion (ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde, ValorLiquidacionHasta,
-                AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
-              VALUES (@0, @1, @2, @3, DATEFROMPARTS(@4, @5, 1), @9, @6, @6, @7, @7, @8, @8);
-              SELECT SCOPE_IDENTITY() AS id`,
-              [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, anio, mes, fechaActual, ip, usuario, newHastaNuevo]
-            );
-            dataResultado = { action: 'I', id: result[0].id };
-            message = "Registro insertado exitosamente (intermedio)";
-          }
-        }
-      }
-
-      await queryRunner.commitTransaction()
-      return this.jsonRes(dataResultado, res, message)
+      await queryRunner.commitTransaction();
+      return this.jsonRes(dataResultado, res, message);
     } catch (error) {
       await queryRunner.rollbackTransaction();
       return next(error);
@@ -342,23 +208,14 @@ export class ValorHoraController extends BaseController {
     if (!ids || !ids.length) return next(new ClientException("Debe seleccionar al menos un registro"));
     if (!anio || !mes) return next(new ClientException("Debe indicar año y mes"));
 
-    let usuario = res.locals.userName
-    let ip = this.getRemoteAddress(req)
-    let fechaActual = new Date()
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    const fechaActual = new Date()
 
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
-
-      // Validar que no existan recibos generados para el período
-      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip)
-
-      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
-
-      if (getRecibosGenerados[0].ind_recibos_generados == 1)
-        throw new ClientException(`No se puede eliminar el Importe, debido a que el periodo ${mes}/${anio} cuenta con los recibos generados.`)
-
 
       for (const id of ids) {
         // Obtener los datos del registro a eliminar
@@ -375,6 +232,13 @@ export class ValorHoraController extends BaseController {
             ValorLiquidacionCategoriaPersonalId,
             ValorLiquidacionDesde
           } = registros[0];
+
+          // Validar que no existan recibos generados para el período del registro a eliminar
+          const periodoId = await Utils.getPeriodoId(queryRunner, fechaActual, ValorLiquidacionDesde.getFullYear(), ValorLiquidacionDesde.getMonth() + 1, usuario, ip)
+          const recibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodoId)
+
+          if (recibosGenerados[0].ind_recibos_generados == 1)
+            throw new ClientException(`No se puede eliminar el registro debido a que dicho importe cuenta con fecha desde ${ValorLiquidacionDesde.getDate()}/${ValorLiquidacionDesde.getMonth() + 1}/${ValorLiquidacionDesde.getFullYear()}. Se encuentran generados los recibos para el período ${ValorLiquidacionDesde.getMonth() + 1}/${ValorLiquidacionDesde.getFullYear()}.`)
 
           // Traer todos los registros de la misma combinación ordenados, excluyendo el que se va a borrar
           const registrosRestantes = await queryRunner.query(`
@@ -414,7 +278,7 @@ export class ValorHoraController extends BaseController {
             );
           }
         } else {
-          throw new ClientException(`Error al eliminar el siguiente registro: Id= ${id}, SucursalId= ${registros[0].ValorLiquidacionSucursalId}, TipoAsociadoId= ${registros[0].ValorLiquidacionTipoAsociadoId}, CategoriaPersonalId= ${registros[0].ValorLiquidacionCategoriaPersonalId}, Desde= ${registros[0].ValorLiquidacionDesde}`)
+          throw new ClientException(`Error al eliminar el siguiente registro: Id= ${id}, SucursalId= ${registros[0].ValorLiquidacionSucursalId}, TipoAsociadoId= ${registros[0].ValorLiquidacionTipoAsociadoId}, CategoriaPersonalId= ${registros[0].ValorLiquidacionCategoriaPersonalId}, Desde= ${registros[0].ValorLiquidacionDesde.getDate()}/${registros[0].ValorLiquidacionDesde.getMonth() + 1}/${registros[0].ValorLiquidacionDesde.getFullYear()}`)
         }
 
       }
@@ -433,7 +297,7 @@ export class ValorHoraController extends BaseController {
     const { anio, mes, tipo, valor } = req.body;
     if (!anio || !mes || !tipo || valor == null) return next(new ClientException("Datos incompletos"));
     if (!['porcentaje', 'fijo'].includes(tipo)) return next(new ClientException("Tipo debe ser 'porcentaje' o 'fijo'"));
-
+    if (!valor || Number(valor) == 0) return next(new ClientException("El valor debe ser distinto de 0"));
     let usuario = res.locals.userName
     let ip = this.getRemoteAddress(req)
     let fechaActual = new Date()
@@ -448,34 +312,218 @@ export class ValorHoraController extends BaseController {
 
 
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
-        throw new ClientException(`No es posible modificar valores de periodos con recibos generados.`)
+        throw new ClientException(`No se puede modificar los Importes del período ${mes}/${anio}, los recibos se encuentran generados para ese período.`)
 
 
-      if (tipo === 'porcentaje') {
-        await queryRunner.query(`
-          UPDATE vl SET vl.ValorLiquidacionHoraNormal = ROUND(vl.ValorLiquidacionHoraNormal * (1 + @2 / 100.0), 2)
-          FROM ValorLiquidacion vl
-          WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
-            AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
-          [anio, mes, valor]
-        );
-      } else {
-        await queryRunner.query(`
-          UPDATE vl SET vl.ValorLiquidacionHoraNormal = vl.ValorLiquidacionHoraNormal + @2
-          FROM ValorLiquidacion vl
-          WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
-            AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
-          [anio, mes, valor]
-        );
+      const registros = await queryRunner.query(`
+        SELECT vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId, vl.ValorLiquidacionCategoriaPersonalId, vl.ValorLiquidacionHoraNormal
+        FROM ValorLiquidacion vl
+        WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
+          AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
+        [anio, mes]
+      );
+
+      if (registros.length === 0) throw new ClientException(`No se encontraron registros para el período ${mes}/${anio}.`)
+        
+      for (const reg of registros) {
+        let nuevoValor = Number(reg.ValorLiquidacionHoraNormal);
+        switch (tipo) {
+          case 'porcentaje':
+            nuevoValor = Math.round((nuevoValor * (1 + Number(valor) / 100.0)) * 100) / 100;
+            break;
+          case 'fijo':
+            nuevoValor = nuevoValor + Number(valor);
+            break;
+          default:
+            throw new ClientException(`No se especifico un tipo.`);
+        }
+
+        const paramsSet = {
+          ValorLiquidacionSucursalId: reg.ValorLiquidacionSucursalId,
+          ValorLiquidacionTipoAsociadoId: reg.ValorLiquidacionTipoAsociadoId,
+          ValorLiquidacionCategoriaPersonalId: reg.ValorLiquidacionCategoriaPersonalId,
+          ValorLiquidacionHoraNormal: nuevoValor,
+          anio,
+          mes
+        };
+
+        try {
+          await this.setValorHora(queryRunner, paramsSet, usuario, ip, fechaActual);
+        } catch (e: any) {
+          if (e instanceof ClientWarning) {
+            continue; // Si el valor es idéntico, simplemente saltamos la actualización de este registro
+          }
+          throw e; // Abortar la transacción para cualquier otro error (ej. ClientException)
+        }
       }
-      //throw new Error("Error de prueba para rollback") // TODO: eliminar esta línea una vez probado el rollback
+
       await queryRunner.commitTransaction();
-      this.jsonRes({ success: true }, res);
+      this.jsonRes({ success: true }, res, "Modificación de valores aplicada exitosamente");
     } catch (error) {
       await queryRunner.rollbackTransaction();
       return next(error);
     } finally {
       await queryRunner.release();
     }
+  }
+
+  async setValorHora(queryRunner: any, params: any, usuario: string, ip: string, fechaActual: Date = new Date()) {
+    const { ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, anio, mes } = params;
+
+    if (!ValorLiquidacionSucursalId || !ValorLiquidacionTipoAsociadoId || !ValorLiquidacionCategoriaPersonalId || ValorLiquidacionHoraNormal == null)
+      throw new ClientException("Faltan datos obligatorios (Sucursal, Tipo Asociado, Categoría o Importe)");
+
+    if (!anio || !mes)
+      throw new ClientException("Debe indicar año y mes.");
+
+    if (!ValorLiquidacionHoraNormal || Number(ValorLiquidacionHoraNormal) == 0)
+      throw new ClientException("Ingrese un importe válido distinto de 0.");
+
+    let dataResultado = {};
+    let message = "";
+
+    // Validar que no existan recibos generados para el período
+    const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip);
+    const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id);
+
+    if (getRecibosGenerados[0].ind_recibos_generados == 1)
+      throw new ClientException(`No se puede modificar el Importe, debido a que el periodo ${mes}/${anio} cuenta con los recibos generados.`);
+
+    // Validar que la combinación TipoAsociado + CategoriaPersonal exista
+    const catValid = await queryRunner.query(`
+            SELECT 1 AS ok FROM CategoriaPersonal
+            WHERE TipoAsociadoId = @0 AND CategoriaPersonalId = @1`,
+      [ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId]
+    );
+    if (!catValid.length)
+      throw new ClientException("La categoría seleccionada no corresponde al tipo de asociado");
+
+    const newValorLiquidacionDesde = new Date(anio, mes - 1, 1);
+
+    const registrosExistentes = await queryRunner.query(`
+      SELECT vl.ValorLiquidacionId AS id, vl.ValorLiquidacionId, vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId,
+             vl.ValorLiquidacionCategoriaPersonalId, vl.ValorLiquidacionHoraNormal,
+             vl.ValorLiquidacionDesde, isnull(vl.ValorLiquidacionHasta, '9999-12-31') AS ValorLiquidacionHasta
+      FROM ValorLiquidacion vl
+      WHERE vl.ValorLiquidacionSucursalId = @0 
+        AND vl.ValorLiquidacionTipoAsociadoId = @1 
+        AND vl.ValorLiquidacionCategoriaPersonalId = @2
+      ORDER BY vl.ValorLiquidacionDesde ASC
+    `, [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId]);
+
+    if (registrosExistentes.length === 0) {
+      // No existe ningún registro previo
+      const result = await queryRunner.query(`
+        INSERT INTO ValorLiquidacion (ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde,
+          AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
+        VALUES (@0, @1, @2, @3, DATEFROMPARTS(@4, @5, 1), @6, @6, @7, @7, @8, @8);
+        SELECT SCOPE_IDENTITY() AS id`,
+        [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, anio, mes, fechaActual, ip, usuario]
+      );
+      dataResultado = { action: 'I', id: result[0].id };
+      message = "Registro creado exitosamente";
+    } else {
+      // Existen registros
+      // Se Evalua si existe uno con Desde igual a newDesde (UPDATE)
+      const registroMismoMes = registrosExistentes.find((r: any) => {
+        const d = new Date(r.ValorLiquidacionDesde);
+        return d.getFullYear() === anio && d.getMonth() === (mes - 1);
+      });
+
+      if (registroMismoMes) {
+        // Existe uno pero con Desde igual a newDesde (UPDATE)
+        await queryRunner.query(`
+          UPDATE ValorLiquidacion
+          SET ValorLiquidacionHoraNormal = @0,
+              AudFechaMod = @1,
+              AudIpMod = @2,
+              AudUsuarioMod = @3
+          WHERE ValorLiquidacionId = @4`,
+          [ValorLiquidacionHoraNormal, fechaActual, ip, usuario, registroMismoMes.ValorLiquidacionId]
+        );
+        dataResultado = { action: 'U', id: registroMismoMes.ValorLiquidacionId };
+        message = "Actualización exitosa";
+      } else {
+        // Verificamos dónde cae en la línea de tiempo
+        const futuros = registrosExistentes.filter((r: any) => new Date(r.ValorLiquidacionDesde) > newValorLiquidacionDesde);
+        const pasados = registrosExistentes.filter((r: any) => new Date(r.ValorLiquidacionDesde) < newValorLiquidacionDesde);
+
+        if (pasados.length > 0 && futuros.length === 0) {
+          // Existen registros hacia el pasado solo
+          const ultimoRegistro = pasados[pasados.length - 1]; // El más reciente del pasado
+          const newHastaAnterior = new Date(anio, mes - 1, 0); // Último día del mes anterior
+
+          // valido que el registro pasado no tenga un valor igual al nuevo para evitar cerrar e insertar un registro idéntico
+          if (ultimoRegistro.ValorLiquidacionHoraNormal === ValorLiquidacionHoraNormal) throw new ClientWarning("El valor ingresado es igual al valor vigente para ese período, no se realizaron cambios.");
+
+          // Update del registro anterior para cerrarlo
+          await queryRunner.query(`
+            UPDATE ValorLiquidacion
+            SET ValorLiquidacionHasta = @0,
+                AudFechaMod = @1, AudIpMod = @2, AudUsuarioMod = @3
+            WHERE ValorLiquidacionId = @4`,
+            [newHastaAnterior, fechaActual, ip, usuario, ultimoRegistro.ValorLiquidacionId]
+          );
+
+          // Insert del nuevo
+          const result = await queryRunner.query(`
+            INSERT INTO ValorLiquidacion (ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde,
+              AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
+            VALUES (@0, @1, @2, @3, DATEFROMPARTS(@4, @5, 1), @6, @6, @7, @7, @8, @8);
+            SELECT SCOPE_IDENTITY() AS id`,
+            [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, anio, mes, fechaActual, ip, usuario]
+          );
+          dataResultado = { action: 'I', id: result[0].id };
+          message = "Registro insertado exitosamente";
+        } else if (futuros.length > 0 && pasados.length === 0) {
+          // Existen registros hacia el futuro solo
+          const primerRegistro = futuros[0]; // El más antiguo del futuro
+          const refDesde = new Date(primerRegistro.ValorLiquidacionDesde);
+          const newHasta = new Date(refDesde.getFullYear(), refDesde.getMonth(), 0); // Último día del mes anterior al siguiente
+
+          const result = await queryRunner.query(`
+            INSERT INTO ValorLiquidacion (ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde, ValorLiquidacionHasta,
+              AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
+            VALUES (@0, @1, @2, @3, DATEFROMPARTS(@4, @5, 1), @9, @6, @6, @7, @7, @8, @8);
+            SELECT SCOPE_IDENTITY() AS id`,
+            [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, anio, mes, fechaActual, ip, usuario, newHasta]
+          );
+          dataResultado = { action: 'I', id: result[0].id };
+          message = "Registro insertado exitosamente";
+        } else {
+          // Hay registros antes y después
+          const registroAnterior = pasados[pasados.length - 1];
+          const registroSiguiente = futuros[0];
+
+          const newHastaAnterior = new Date(anio, mes - 1, 0); // Cerrar el anterior
+          const refDesdeSig = new Date(registroSiguiente.ValorLiquidacionDesde);
+          const newHastaNuevo = new Date(refDesdeSig.getFullYear(), refDesdeSig.getMonth(), 0); // Cerrar el nuevo
+
+          // valido que el registro anterior no tenga un valor igual al nuevo para evitar cerrar e insertar un registro idéntico
+          if (registroAnterior.ValorLiquidacionHoraNormal === ValorLiquidacionHoraNormal) throw new ClientWarning("El valor ingresado es igual al valor vigente para ese período, no se realizaron cambios.");
+          // Cerrar el anterior
+          await queryRunner.query(`
+            UPDATE ValorLiquidacion
+            SET ValorLiquidacionHasta = @0,
+                AudFechaMod = @1, AudIpMod = @2, AudUsuarioMod = @3
+            WHERE ValorLiquidacionId = @4`,
+            [newHastaAnterior, fechaActual, ip, usuario, registroAnterior.ValorLiquidacionId]
+          );
+
+          // Insert del nuevo
+          const result = await queryRunner.query(`
+            INSERT INTO ValorLiquidacion (ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, ValorLiquidacionDesde, ValorLiquidacionHasta,
+              AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
+            VALUES (@0, @1, @2, @3, DATEFROMPARTS(@4, @5, 1), @9, @6, @6, @7, @7, @8, @8);
+            SELECT SCOPE_IDENTITY() AS id`,
+            [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, ValorLiquidacionHoraNormal, anio, mes, fechaActual, ip, usuario, newHastaNuevo]
+          );
+          dataResultado = { action: 'I', id: result[0].id };
+          message = "Registro insertado exitosamente";
+        }
+      }
+    }
+
+    return { dataResultado, message };
   }
 }

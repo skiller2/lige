@@ -35,7 +35,7 @@ export class CompensaGeneralACordinadorController extends BaseController {
         throw new ClientException(`Mes ${mes} no válido `)
 
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const cuentasGnegativo = await queryRunner.query(
@@ -130,7 +130,7 @@ export class CompensaGeneralACordinadorController extends BaseController {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      //   await queryRunner.release();
+      await queryRunner.release();
     }
   }
 }

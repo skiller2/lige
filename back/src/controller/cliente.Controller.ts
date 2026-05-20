@@ -1,10 +1,10 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import { getConnection } from "../data-source.ts";
-import type { Response,NextFunction } from "express";
+import type { Response, NextFunction } from "express";
 
 export class ClienteController extends BaseController {
-  
-  async search(req: any, res: Response, next:NextFunction) {
+
+  async search(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
     let buscar = false;
     const queryRunner = await getConnection(res.locals.userName);
@@ -15,7 +15,7 @@ export class ClienteController extends BaseController {
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
-//            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
+            //            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
             query += `(CONCAT(ClienteNombreFantasia, ClienteDenominacion) LIKE '%${element.trim()}%') AND `;
             buscar = true;
           }
@@ -38,7 +38,8 @@ export class ClienteController extends BaseController {
 
     queryRunner
       .query((query += " 1=1"))
-      .then((records) => {
+      .then(async (records) => {
+        await queryRunner.release();
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {
@@ -54,7 +55,7 @@ export class ClienteController extends BaseController {
     // ... do something with the result
   }
 
-  async getClientesBillingData(req: any, res: Response, next:NextFunction) {
+  async getClientesBillingData(req: any, res: Response, next: NextFunction) {
     const clientesIds: number[] = req.body
     const queryRunner = await getConnection(res.locals.userName);
     let infoCliente: any[] = []

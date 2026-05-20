@@ -2086,7 +2086,7 @@ export class PersonalController extends BaseController {
     let document: any
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       switch (tipo) {
@@ -2147,6 +2147,8 @@ export class PersonalController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
 
   }
@@ -3250,7 +3252,7 @@ UNION ALL
     const personalId = Number(req.params.personalId);
 
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const PersonaActaList = await queryRunner.query(`
@@ -3279,6 +3281,8 @@ UNION ALL
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -3309,7 +3313,7 @@ UNION ALL
 
     let campos_vacios: string[] = []
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       //Validadar que los campos no este vacios
@@ -3346,6 +3350,8 @@ UNION ALL
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -3644,7 +3650,7 @@ UNION ALL
     if (PersonalExencionDesde) PersonalExencionDesde.setHours(0, 0, 0, 0)
     if (PersonalExencionHasta) PersonalExencionHasta.setHours(0, 0, 0, 0)
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const valsTipoDocumento = await this.valsExeciones(queryRunner, req.body)
@@ -3727,7 +3733,7 @@ UNION ALL
     if (PersonalExencionHasta) PersonalExencionHasta.setHours(0, 0, 0, 0)
 
     try {
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const valsTipoDocumento = await this.valsExeciones(queryRunner, req.body)

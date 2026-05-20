@@ -379,8 +379,10 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
                 return fallBack()
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
+            const usuario = 'bot'
+            const ip = '127.0.0.1'
             const personalId = state.get('personalId')
-            const queryRunner = await getConnection('bot')
+            const queryRunner = await getConnection(usuario)
             const novedad = await novedadController.getBackupNovedad(personalId)
             const telefono = ctx.from
             try {
@@ -394,8 +396,8 @@ export const flowNovedadEnvio = addKeyword(EVENTS.ACTION)
                         novedad.files = []
 
                     for (const doc of novedad.files) {
-                        const resdoc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, doc, 'bot', '::1')
-                        await novedadController.addRelNovedadDoc(novedadId, resdoc.doc_id, new Date())
+                        const resdoc: any = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(novedad.Fecha), null, novedadId.toString(), null, null, doc, usuario, ip)
+                        await novedadController.addRelNovedadDoc(novedadId, resdoc.doc_id, new Date(),queryRunner,usuario,ip)
                     }
 
                     await novedadController.sendMsgResponsable(novedad)

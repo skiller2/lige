@@ -45,7 +45,7 @@ export class IngresoPorCustodiaController extends BaseController {
        throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(FechaLimite)}`)
       }
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       const result = await CustodiaController.listPersonalCustodiaQuery({}, queryRunner, anio, mes,0)
@@ -86,7 +86,7 @@ export class IngresoPorCustodiaController extends BaseController {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      //   await queryRunner.release();
+      await queryRunner.release();
     }
   }
 }

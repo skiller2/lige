@@ -36,7 +36,6 @@ export class CustodiaFormComponent {
     onChange = model(0)
 
     facturacion = signal(0)
-    horaspopover = signal('test')
     diferencia = computed(() => {
         if (this.costo() || this.facturacion()) {
             const diffTmp = (this.facturacion() > 0) ? 100 - this.costo() * 100 / this.facturacion() : 0

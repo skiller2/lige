@@ -5,8 +5,9 @@ import type { NextFunction, Response, Request } from "express";
 export class DepositoController extends BaseController {
 
   async getAllDepositos(res: Response, req: Request, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         `SELECT dep.DepositoId, dep.DepositoNombre, dep.DepositoSucursalId,
                 TRIM(suc.SucursalDescripcion) AS DepositoSucursalDescripcion,
@@ -18,6 +19,8 @@ export class DepositoController extends BaseController {
     }
     catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 }

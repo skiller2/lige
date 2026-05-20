@@ -55,14 +55,9 @@ export class FileUploadController extends BaseController {
   }
 
   async getSelectTipoinFile(req: any, res: Response, next: NextFunction) {
-
     const queryRunner = await getConnection(res.locals.userName);
-
     try {
-      await queryRunner.startTransaction()
-
       let info = await queryRunner.query(`SELECT tipo.DocumentoTipoCodigo doctipo_id, tipo.DocumentoTipoDetalle detalle FROM DocumentoTipo tipo`)
-      await queryRunner.commitTransaction()
       return this.jsonRes(info, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
@@ -453,7 +448,7 @@ export class FileUploadController extends BaseController {
       throw new ClientException(`No se especificó un archivo para subir`)
     }
 
-    //throw new ClientException(`test`)
+    
     //if (doc_id>0 && (!file.tempfilename || file.tempfilename === '')) {
     //  throw new ClientException(`No se especificó archivo a actualizar`)
     //}
@@ -1096,7 +1091,7 @@ export class FileUploadController extends BaseController {
 
     try {
 
-      await queryRunner.connect();
+      
       await queryRunner.startTransaction();
 
       // Verificar si el documento tiene descargas asociadas
@@ -1215,6 +1210,8 @@ export class FileUploadController extends BaseController {
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

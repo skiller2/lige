@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { table } from "node:console";
 import path from "node:path";
 import { BaseController} from "../controller/base.controller.ts";
-import { dataSource, getConnection } from "../data-source.ts";
+import { getConnection } from "../data-source.ts";
 import { performance } from "node:perf_hooks";
 
 //import { TokenExpiredError } from "jsonwebtoken";
