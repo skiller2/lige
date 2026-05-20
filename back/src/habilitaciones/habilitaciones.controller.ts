@@ -1743,7 +1743,7 @@ SELECT doc.DocumentoId id,
     }
 
     async jobHabilitacionNecesaria(req: any, res: Response, next: NextFunction) {
-        const usuario = res?.locals.userName || 'server'
+        const usuario = this.getUser(res)
         
         const queryRunner = await getConnection(usuario);
 

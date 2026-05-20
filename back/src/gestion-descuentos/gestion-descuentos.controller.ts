@@ -1156,7 +1156,7 @@ export class GestionDescuentosController extends BaseController {
   async jobDescuentoCuotas(req: any, res: Response, next: NextFunction) {   //Procesa las CUOTAS de los descuentos de EFECTOS
 
     const fechaActual = new Date()
-    const usuario = res?.locals.userName || 'server'
+    const usuario = this.getUser(res)
     const ip = this.getRemoteAddress(req)
     let EventoLogCodigo = 0
 
@@ -1374,7 +1374,7 @@ FROM cte
     const queryRunner = await getConnection(res.locals.userName);
     const anio: number = req.body.year
     const mes: number = req.body.month
-    const usuario = res?.locals.userName || 'server'
+    const usuario = this.getUser(res)
     const ip = this.getRemoteAddress(req)
 
     let CuotasGeneradas = 0

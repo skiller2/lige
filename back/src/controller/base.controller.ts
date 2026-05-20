@@ -78,6 +78,9 @@ export class BaseController {
       return '127.0.0.1'
   }
 
+  getUser(res:any){
+    return res?.locals?.userName || 'server'
+  }
 
   currencyPipe = Intl.NumberFormat("de-DE", {
     minimumFractionDigits: 2,

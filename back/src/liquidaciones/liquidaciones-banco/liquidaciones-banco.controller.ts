@@ -1207,7 +1207,7 @@ LEFT JOIN banco banc
   async jobLimiteImporteBanco(req: any, res: Response, next: NextFunction) {   //Actualiza el campo HorasAutorizadasMax de Personal con el valor calculado en funcion de los ultimos meses
 
     const fechaActual = new Date()
-    const usuario = res?.locals.userName || 'server'
+    const usuario = this.getUser(res)
     const ip = this.getRemoteAddress(req)
     let EventoLogCodigo = 0
     const anio = fechaActual.getFullYear()

@@ -166,7 +166,7 @@ export class CategoriasController extends BaseController {
 
   async jobCambioCategoria(req: any, res: Response, next: NextFunction) {
     const options = {}
-    const usuario = res?.locals.userName || 'server'
+    const usuario = this.getUser(res)
     const ip = this.getRemoteAddress(req)
 
     const queryRunner = await getConnection(usuario);

@@ -4,6 +4,7 @@ import { ObjetivoController } from "./objetivo.controller.ts";
 import { PersonalController } from "./personal.controller.ts";
 import { ChatBotController } from "./chatbot.controller.ts";
 import type { QueryRunner } from "typeorm";
+import { getConnection } from "../data-source.ts";
 
 const personalController = new PersonalController()
 
@@ -14,6 +15,7 @@ function parseFecha(fecha: string): string {
 
 export class NovedadController extends BaseController {
   async sendMsgResponsable(novedad: any) {
+    const usuario = NovedadController.getUser(null)
     const Fecha = new Date(novedad.Fecha)
     const ClienteId = novedad.ClienteId
     const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
@@ -22,14 +24,14 @@ export class NovedadController extends BaseController {
     const mes = Fecha.getMonth() + 1
     const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
     const supervisor = responsables.find(r => r.ord == 3)
-    
+    const queryRunner = await getConnection(usuario)
     const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}` 
 
     if (supervisor.GrupoActividadId) {
       const PersonalId = supervisor.GrupoActividadId
-      const result = await dbServer.dataSource.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
+      const result = await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
       if (result.length>0)
-        ChatBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD${novedad.novedadId}`, 'bot', '127.0.0.1')
+        ChatBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD${novedad.novedadId}`, usuario, '127.0.0.1')
     }
   }
 
@@ -64,8 +66,9 @@ export class NovedadController extends BaseController {
   }
 
 
-  async addRelNovedadDoc(novdedadId: number, documentoId: number, fechaActual: Date) {
-    await dbServer.dataSource.query(`
+  async addRelNovedadDoc(novdedadId: number, documentoId: number, fechaActual: Date, queryRunner:QueryRunner, usuario:string,ip:string) {
+
+    await queryRunner.query(`
       INSERT INTO DocumentoRelaciones (DocumentoId, PersonalId, ObjetivoId, ClienteId, PersonalLicenciaId, NovedadCodigo, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
  VALUES (@0,@1,@2,@3,@4,@5, @6,@6, @7,@7, @8,@8)
       `, [
@@ -75,13 +78,13 @@ export class NovedadController extends BaseController {
       null,
       null,
       novdedadId,
-      fechaActual, 'bot', '127.0.0.1'
+      fechaActual, usuario, ip
     ])
   }
 
 
   async addNovedad(novedad: any, Telefono: string, PersonalId: number, queryRunner:QueryRunner) {
-    console.log("novedad",novedad)
+    const usuario = NovedadController.getUser(null)
     const ClienteId = novedad.ClienteId
     const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
 
@@ -92,13 +95,13 @@ export class NovedadController extends BaseController {
     const NovedadTipoCod = novedad.Tipo.NovedadTipoCod || novedad.TipoNovedadId
     const now: Date = new Date()
     const jsonNovedad = JSON.stringify(novedad)
-    const NovedadCodigo = await BaseController.getProxNumero(dbServer.dataSource, `Novedad`, 'bot', '::1')
+    const NovedadCodigo = await BaseController.getProxNumero(dbServer.dataSource, `Novedad`, usuario, '::1')
     await queryRunner.query(`
       INSERT INTO Novedad (
         NovedadCodigo, ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod,
         Json, AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod
       ) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@10,@11,@11,@12,@12)`, 
-       [NovedadCodigo, ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod, jsonNovedad, now, '::1', 'bot'])
+       [NovedadCodigo, ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod, jsonNovedad, now, '::1', usuario])
 
         await this.saveNovedad(PersonalId, {},queryRunner)
     

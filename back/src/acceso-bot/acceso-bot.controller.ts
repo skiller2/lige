@@ -102,7 +102,7 @@ export class AccesoBotController extends BaseController {
 
         const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
         const orderBy = orderToSQL(req.body.options.sort)
-        const queryRunner = await getConnection(res.locals.userName);
+        const queryRunner = await getConnection(this.getUser(res));
         const fechaActual = new Date()
 
         try {

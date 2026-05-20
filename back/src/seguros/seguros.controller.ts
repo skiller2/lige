@@ -504,7 +504,7 @@ UNION
 
   async updateSeguros(req: any, res: any, anio: number, mes: number, next: NextFunction) {
     const stm_now = new Date()
-    const usuario = res?.locals.userName || 'server'
+    const usuario = this.getUser(res)
     const ip = this.getRemoteAddress(req)
 
     let segAltas = 0, segBajas = 0

@@ -1419,7 +1419,7 @@ export class GrupoActividadController extends BaseController {
 
 
     async gruposPersonas(req: any, res: Response, next: NextFunction) {
-        const usuario = res?.locals.userName || 'server'
+        const usuario = this.getUser(res)
         const queryRunner = await getConnection(usuario);
 
         const today = new Date();
@@ -1465,7 +1465,7 @@ export class GrupoActividadController extends BaseController {
 
 
     async objetivosGrupos(req: any, res: Response, next: NextFunction) {
-        const usuario = res?.locals.userName || 'server'
+        const usuario = this.getUser(res)
         const queryRunner = await getConnection(usuario);
         let fechaActual = new Date()
 
