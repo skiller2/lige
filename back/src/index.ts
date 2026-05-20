@@ -45,7 +45,7 @@ startxref
 }
 
 async function main() {
-  const workerPath = (process.env.NODE_ENV === "dev") ? "../node_modules/pdfjs-dist/build/pdf.worker.min.mjs" : "./pdf.worker.min.mjs";
+  const workerPath = (process.env.NODE_ENV === "dev") ? "../node_modules/pdfjs-dist/build/pdf.worker.min.mjs" : "./pdf.worker.mjs";
 
   GlobalWorkerOptions.workerSrc = new URL(workerPath, import.meta.url).href;
 
