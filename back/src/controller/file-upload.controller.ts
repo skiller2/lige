@@ -55,9 +55,7 @@ export class FileUploadController extends BaseController {
   }
 
   async getSelectTipoinFile(req: any, res: Response, next: NextFunction) {
-
     const queryRunner = await getConnection(res.locals.userName);
-
     try {
       let info = await queryRunner.query(`SELECT tipo.DocumentoTipoCodigo doctipo_id, tipo.DocumentoTipoDetalle detalle FROM DocumentoTipo tipo`)
       return this.jsonRes(info, res);

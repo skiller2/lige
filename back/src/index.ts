@@ -1,9 +1,9 @@
 import 'dotenv/config';
 import { logger } from "./logger/logger.ts";
-console.log('test')
+
 import { DBServer, WebServer } from "./server.ts";
 import { makeRoutes } from "./routes/routes.module.ts"
-import { dataSource, getConnection } from "./data-source.ts";
+import { dataSource } from "./data-source.ts";
 import { scheduleJob } from "node-schedule"
 import { CategoriasController } from "./categorias-cambio/categorias-cambio.controller.ts";
 import { CargaLicenciaController } from "./carga-licencia/carga-licencia.controller.ts";
