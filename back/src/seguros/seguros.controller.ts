@@ -1110,7 +1110,6 @@ UNION
 
       const validationDniResults = await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo, usuario, ip, fechaPersonalSeguro, polizaEndoso[0], endoso[1], CompaniaSeguroId)
        
-      
       const version = await queryRunner.query(`
         SELECT PolizaSeguroVersion FROM PolizaSeguro 
         WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`,
@@ -1135,8 +1134,6 @@ UNION
         PolizaSeguroFechaEndoso: fechaDesde
       }
 
-
-      /
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
@@ -1157,8 +1154,6 @@ UNION
     const notFoundInPersonalSeguro: number[] = [];
     const shouldNotBeInSeguro: number[] = [];
 
-     
-    
     const dniNumeros = dni.map(d => parseInt(d.replace(/\./g, '')));
 
     const personalRows = await queryRunner.query(`

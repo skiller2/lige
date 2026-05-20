@@ -465,7 +465,6 @@ export class NovedadesController extends BaseController {
 
             const usuarioId = res.locals.PersonalId
 
-            
 
             await queryRunner.startTransaction()
 

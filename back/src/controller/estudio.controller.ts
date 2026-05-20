@@ -326,7 +326,6 @@ export class EstudioController extends BaseController {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
 
-    
     const queryRunner = await getConnection(res.locals.userName)
     await queryRunner.connect();
     await queryRunner.startTransaction();

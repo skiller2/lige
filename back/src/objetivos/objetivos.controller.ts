@@ -1297,7 +1297,6 @@ export class ObjetivosController extends BaseController {
             let ObjObjetivoNew = { infoDocRequerido: [], infoCoordinadorCuenta: [], infoActividad: [], ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
 
             const now = new Date();
-            
             //validaciones
             await queryRunner.startTransaction()
 
