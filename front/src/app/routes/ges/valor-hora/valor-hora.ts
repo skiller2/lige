@@ -58,34 +58,34 @@ export class ValorHoraComponent {
   showAumentoModal = false
   aumentoLoading = false
   aumentoTipo = signal<string>('porcentaje')
-  aumentoValor: number = 0
+  aumentoValor: number | undefined = undefined
   aumentoPeriodo = signal<Date>(new Date())
   recibosGenerados = signal<boolean>(false)
 
   getCalculatedPeriodDay(): string {
     const periodo = this.aumentoPeriodo();
     if (!periodo) return '';
-    
+
     const primerDia = new Date(periodo.getFullYear(), periodo.getMonth(), 1);
-    const opciones: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const opciones: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     };
-    
+
     return primerDia.toLocaleDateString('es-ES', opciones);
   }
 
   async abrirAumentoModal() {
     this.aumentoTipo.set('porcentaje');
-    this.aumentoValor = 0;
+    this.aumentoValor = undefined;
     this.aumentoPeriodo.set(this.periodo());
     this.showAumentoModal = true;
   }
 
   async aplicarAumento() {
-    if (this.aumentoValor <= 0) {
-      this.messageSrv.warning('Ingrese un valor mayor a 0');
+    if (this.aumentoValor == undefined || this.aumentoValor === 0) {
+      this.messageSrv.warning('Ingrese un valor');
       return;
     }
     if (!this.aumentoPeriodo()) {
@@ -97,9 +97,9 @@ export class ValorHoraComponent {
     this.aumentoLoading = true;
     try {
       await firstValueFrom(this.apiService.aumentarValorHora({ anio, mes, tipo: this.aumentoTipo(), valor: this.aumentoValor }));
-      this.messageSrv.success('Aumento aplicado correctamente');
+      // this.messageSrv.success('Aumento aplicado correctamente');
       this.showAumentoModal = false;
-      this.aumentoValor = 0;
+      this.aumentoValor = undefined;
       this.listValorHora$.next('');
     } catch (e) {
       // error handled by api service
@@ -129,7 +129,7 @@ export class ValorHoraComponent {
     }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
-         
+
         switch (col.id) {
 
           case 'SucursalId':
@@ -221,7 +221,7 @@ export class ValorHoraComponent {
       this.angularGridEdit.slickGrid.invalidate();
 
       const emptyrows = this.angularGridEdit.dataView.getItems().filter(row => (!row.id))
-   
+
       //Intento grabar si tiene error hago undo
 
       try {
@@ -234,8 +234,8 @@ export class ValorHoraComponent {
         editCommand.execute()
         while (this.rowLocked) await firstValueFrom(timer(100));
         row = this.angularGridEdit.dataView.getItemById(row.id)
- 
-          const rowComplete = !!row?.ValorLiquidacionSucursalId && !!row?.ValorLiquidacionTipoAsociadoId && !!row?.ValorLiquidacionCategoriaPersonalId && row?.ValorLiquidacionHoraNormal > 0
+
+        const rowComplete = !!row?.ValorLiquidacionSucursalId && !!row?.ValorLiquidacionTipoAsociadoId && !!row?.ValorLiquidacionCategoriaPersonalId && row?.ValorLiquidacionHoraNormal > 0
 
         if (!rowComplete)
           return
