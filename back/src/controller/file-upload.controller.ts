@@ -59,10 +59,7 @@ export class FileUploadController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      await queryRunner.startTransaction()
-
       let info = await queryRunner.query(`SELECT tipo.DocumentoTipoCodigo doctipo_id, tipo.DocumentoTipoDetalle detalle FROM DocumentoTipo tipo`)
-      await queryRunner.commitTransaction()
       return this.jsonRes(info, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
