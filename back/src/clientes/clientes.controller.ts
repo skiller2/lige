@@ -621,8 +621,6 @@ ${orderBy}`, [fechaActual])
             const ObjCliente = { ...req.body }
             let ObjClienteNew = { infoDomicilio: {}, infoClienteContacto: {} }
 
-            //throw new ClientException(`test`)
-
             //validaciones
             await this.FormValidations(ObjCliente, queryRunner)
             //validacion de barrio

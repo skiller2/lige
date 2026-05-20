@@ -958,7 +958,6 @@ UNION
     let resultFile = null
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
-    // throw new ClientException(`test.`)
     const queryRunner = await getConnection(res.locals.userName)
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -1064,7 +1063,7 @@ UNION
         if (polizaExistente[0].count > 0) {
           throw new ClientException(`Ya existe una póliza de tipo ${TipoSeguroCodigo} - ${CompaniaSeguroId} - ${polizaEndoso[0]} - ${endoso[1]}`)
         }
-        //throw new ClientException(`test`)
+        
 
         await queryRunner.query(`
             INSERT INTO PolizaSeguro (
@@ -1111,7 +1110,7 @@ UNION
 
       const validationDniResults = await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo, usuario, ip, fechaPersonalSeguro, polizaEndoso[0], endoso[1], CompaniaSeguroId)
        
-      //throw new ClientException(`test.`)
+      
       const version = await queryRunner.query(`
         SELECT PolizaSeguroVersion FROM PolizaSeguro 
         WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`,
@@ -1137,7 +1136,7 @@ UNION
       }
 
 
-      ///throw new ClientException(`test.`)
+      /
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
@@ -1159,7 +1158,7 @@ UNION
     const shouldNotBeInSeguro: number[] = [];
 
      
-    //throw new ClientException(`test.`)
+    
     const dniNumeros = dni.map(d => parseInt(d.replace(/\./g, '')));
 
     const personalRows = await queryRunner.query(`

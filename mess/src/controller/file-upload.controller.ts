@@ -376,7 +376,7 @@ export class FileUploadController extends BaseController {
     if (!doctipo_id)
       throw new ClientException(`No se especificó destino -doctipo_id-`)
 
-    //throw new ClientException(`test`)
+    
     //if (doc_id>0 && (!file.tempfilename || file.tempfilename === '')) {
     //  throw new ClientException(`No se especificó archivo a actualizar`)
     //}

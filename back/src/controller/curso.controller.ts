@@ -388,7 +388,6 @@ export class CursoController extends BaseController {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
 
-    //throw new ClientException(`test.`)
     const queryRunner = await getConnection(res.locals.userName)
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -513,7 +512,6 @@ export class CursoController extends BaseController {
   async deleteCurso(req: any, res: Response, next: NextFunction) {
     const { CursoHabilitacionId } = req.query
     const queryRunner = await getConnection(res.locals.userName)
-    // throw new ClientException(`test`)
 
     try {
       await queryRunner.connect();

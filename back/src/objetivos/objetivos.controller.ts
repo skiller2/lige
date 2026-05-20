@@ -1297,7 +1297,7 @@ export class ObjetivosController extends BaseController {
             let ObjObjetivoNew = { infoDocRequerido: [], infoCoordinadorCuenta: [], infoActividad: [], ClienteElementoDependienteId: 0, ClienteId: 0, DomicilioId: 0 }
 
             const now = new Date();
-            //throw new ClientException(`test.`)
+            
             //validaciones
             await queryRunner.startTransaction()
 
@@ -1892,7 +1892,7 @@ export class ObjetivosController extends BaseController {
 
             // }
 
-            //throw new ClientException(`test`)
+            
 
 
             let infoMaxClienteElementoDependiente = await queryRunner.query(`SELECT ClienteElementoDependienteUltNro AS ClienteElementoDependienteUltNro FROM Cliente WHERE ClienteId = @0`, [Number(Obj.ClienteId)])

@@ -1252,7 +1252,7 @@ export class GrupoActividadController extends BaseController {
     async deleteGrupo(req: any, res: Response, next: NextFunction) {
 
         let cod_grupo_actividad = req.query[0]
-        //throw new ClientException(`test`)
+        
         const queryRunner = await getConnection(res.locals.userName)
 
         try {

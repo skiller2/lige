@@ -448,7 +448,7 @@ export class FileUploadController extends BaseController {
       throw new ClientException(`No se especificó un archivo para subir`)
     }
 
-    //throw new ClientException(`test`)
+    
     //if (doc_id>0 && (!file.tempfilename || file.tempfilename === '')) {
     //  throw new ClientException(`No se especificó archivo a actualizar`)
     //}

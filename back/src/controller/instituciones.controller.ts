@@ -331,7 +331,7 @@ export class InstitucionesController extends BaseController {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
 
-    //throw new ClientException(`test.`)
+    
     CentroCapacitacionInactivo = CentroCapacitacionInactivo ? CentroCapacitacionInactivo : false
 
 

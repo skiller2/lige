@@ -261,8 +261,6 @@ export class AccesoBotController extends BaseController {
             let numeroAleatorio
             let newArray = { ...req.body }
 
-            //throw new ClientException(`test.`)
-
             //validaciones
             await this.FormValidations(req.body)
 
@@ -300,7 +298,6 @@ export class AccesoBotController extends BaseController {
             const ip = this.getRemoteAddress(req)
 
             const fecha = new Date()
-            //throw new ClientException(`test.`)
             await queryRunner.startTransaction()
 
             let { files } = req.body
