@@ -236,6 +236,7 @@ export class ValorHoraComponent {
         row = this.angularGridEdit.dataView.getItemById(row.id)
 
         const rowComplete = !!row?.ValorLiquidacionSucursalId && !!row?.ValorLiquidacionTipoAsociadoId && !!row?.ValorLiquidacionCategoriaPersonalId && row?.ValorLiquidacionHoraNormal > 0
+          && row?.ValorLiquidacionHoraNormal != undefined && row?.ValorLiquidacionHoraNormal != null
 
         if (!rowComplete)
           return
@@ -311,7 +312,7 @@ export class ValorHoraComponent {
       ValorLiquidacionSucursalId: "",
       ValorLiquidacionTipoAsociadoId: "",
       ValorLiquidacionCategoriaPersonalId: "",
-      ValorLiquidacionHoraNormal: 0,
+      ValorLiquidacionHoraNormal: undefined,
     };
   }
 
@@ -354,7 +355,7 @@ export class ValorHoraComponent {
             ValorLiquidacionSucursalId: "",
             ValorLiquidacionTipoAsociadoId: "",
             ValorLiquidacionCategoriaPersonalId: "",
-            ValorLiquidacionHoraNormal: 0,
+            ValorLiquidacionHoraNormal: undefined,
           })
           return list
         })
@@ -391,7 +392,7 @@ export class ValorHoraComponent {
         item.ValorLiquidacionSucursalId === "" ||
         item.ValorLiquidacionTipoAsociadoId === "" ||
         item.ValorLiquidacionCategoriaPersonalId === "" ||
-        item.ValorLiquidacionHoraNormal === 0
+        item.ValorLiquidacionHoraNormal === undefined || item.ValorLiquidacionHoraNormal === null || item.ValorLiquidacionHoraNormal <= 0
 
       ) {
         meta.cssClasses = 'element-add-no-complete';

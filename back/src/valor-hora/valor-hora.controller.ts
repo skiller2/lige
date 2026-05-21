@@ -283,7 +283,7 @@ export class ValorHoraController extends BaseController {
             );
           }
         } else {
-          throw new ClientException(`Error al eliminar el siguiente registro: Id= ${id}, Sucursal= ${registros[0].SucursalDescripcion}, Categoria= ${registros[0].Categoria}, Desde= ${registros[0].ValorLiquidacionDesde.getDate()}/${registros[0].ValorLiquidacionDesde.getMonth() + 1}/${registros[0].ValorLiquidacionDesde.getFullYear()}`)
+          throw new ClientException(`Error al eliminar el siguiente registro: Id= ${id}, Sucursal= ${registros[0].SucursalDescripcion}, Categoría= ${registros[0].Categoria}, Desde= ${registros[0].ValorLiquidacionDesde.getDate()}/${registros[0].ValorLiquidacionDesde.getMonth() + 1}/${registros[0].ValorLiquidacionDesde.getFullYear()}, Importe= ${registros[0].ValorLiquidacionHoraNormal}. No se encontró el registro a eliminar.`)
         }
 
       }
