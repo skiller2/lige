@@ -158,15 +158,38 @@
   @for (ef of formEfectoStock.efectos; let i = $index; track i) {
     <nz-form-item class="marginElement">
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Efecto</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="10">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Efecto</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9" [nzLg]="7">
         <app-efecto-search [formField]="ef.EfectoId"></app-efecto-search>
+        @if (relacionesDe(parametroStock().efectos[i]?.EfectoId).length) {
+          <div class="efecto-relaciones" style="font-size: 12px; color: rgba(0,0,0,0.55); margin-top: 4px;">
+            Relacionado con:
+            @for (rel of relacionesDe(parametroStock().efectos[i]?.EfectoId); track rel.EfectoRelacionadoId; let last = $last) {
+              <span>{{ rel.EfectoRelacionadoId }} - {{ rel.EfectoRelacionadoDescripcion }}</span>@if (!last) {<span>, </span>}
+            }
+          </div>
+        }
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cantidad</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Ubicación</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9" [nzLg]="7">
+        <nz-select [formField]="ef.UbicacionStockId" nzAllowClear nzShowSearch
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+          nzPlaceHolder="Seleccione una ubicación">
+          @for (grupo of ubicacionesAgrupadas(parametroStock().efectos[i]?.EfectoId); track grupo.tipo) {
+            <nz-option-group [nzLabel]="grupo.label">
+              @for (u of grupo.items; track u.StockId) {
+                <nz-option [nzValue]="u.StockId" [nzLabel]="ubicacionLabel(u)"></nz-option>
+              }
+            </nz-option-group>
+          }
+        </nz-select>
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Cantidad</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" [nzLg]="4">
         <nz-input-group style="width: 100%" [nzAddOnAfter]="controlEfectoButton" nzSearch>
-          <input nz-input placeholder="" [formField]="ef.Cantidad" type="number"  />
+          <input nz-input placeholder="" [formField]="ef.Cantidad" type="number" />
         </nz-input-group>
         <ng-template #controlEfectoButton>
           <button nz-button *ngIf="formEfectoStock.efectos.length == i+1" nzType="primary"

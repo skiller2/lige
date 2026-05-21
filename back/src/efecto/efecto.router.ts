@@ -51,3 +51,11 @@ efectoRouter.post("/searchEfecto", authMiddleware.verifyToken, (req, res, next) 
 
 efectoRouter.post("/searchEfectoIndividual", authMiddleware.verifyToken, (req, res, next) => {efectoController.searchEfectoIndividual(req, res, next);
 });
+
+efectoRouter.get("/relaciones/:id", authMiddleware.verifyToken, (req, res, next) => {
+  efectoController.getEfectoRelaciones(req, res, next);
+});
+
+efectoRouter.get("/ubicaciones/:id", authMiddleware.verifyToken, (req, res, next) => {
+  efectoController.getEfectoUbicaciones(req, res, next);
+});

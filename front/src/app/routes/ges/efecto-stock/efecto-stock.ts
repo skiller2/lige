@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, resource, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
-import { SearchService } from '../../../services/search.service';
+import { EfectoUbicacion, SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
 import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
@@ -15,6 +15,7 @@ import { EfectoSearchComponent } from '../../../shared/efecto-search/efecto-sear
 export interface EfectoStockLinea {
   EfectoId: number | null;
   Cantidad: number | null;
+  UbicacionStockId: number | null;
 }
 
 export interface ParametroformEfectoStock {
@@ -38,7 +39,7 @@ export class EfectoStockComponent {
   private searchService = inject(SearchService);
   private apiService = inject(ApiService);
 
-  private readonly objEfectoLinea: EfectoStockLinea = { EfectoId: null, Cantidad: null };
+  private readonly objEfectoLinea: EfectoStockLinea = { EfectoId: null, Cantidad: null, UbicacionStockId: null };
 
   private readonly defaultStockForm: ParametroformEfectoStock = {
     fecha: null,
@@ -140,6 +141,83 @@ export class EfectoStockComponent {
       );
     },
   });
+
+  readonly relacionesByEfectoId = signal<Map<number, { EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[]>>(new Map());
+
+  private cargandoRelaciones = new Set<number>();
+
+  private relacionesEffect = effect(() => {
+    const ids = this.parametroStock().efectos
+      .map(e => e.EfectoId)
+      .filter((id): id is number => !!id);
+    const cache = this.relacionesByEfectoId();
+    for (const id of ids) {
+      if (cache.has(id) || this.cargandoRelaciones.has(id)) continue;
+      this.cargandoRelaciones.add(id);
+      firstValueFrom(this.searchService.getEfectoRelaciones(id)).then(rels => {
+        this.cargandoRelaciones.delete(id);
+        this.relacionesByEfectoId.update(m => {
+          const next = new Map(m);
+          next.set(id, rels ?? []);
+          return next;
+        });
+      });
+    }
+  });
+
+  relacionesDe(efectoId: number | null | undefined): { EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[] {
+    if (!efectoId) return [];
+    return this.relacionesByEfectoId().get(efectoId) ?? [];
+  }
+
+  readonly ubicacionesByEfectoId = signal<Map<number, EfectoUbicacion[]>>(new Map());
+  private cargandoUbicaciones = new Set<number>();
+
+  private ubicacionesEffect = effect(() => {
+    const ids = this.parametroStock().efectos
+      .map(e => e.EfectoId)
+      .filter((id): id is number => !!id);
+    const cache = this.ubicacionesByEfectoId();
+    for (const id of ids) {
+      if (cache.has(id) || this.cargandoUbicaciones.has(id)) continue;
+      this.cargandoUbicaciones.add(id);
+      firstValueFrom(this.searchService.getEfectoUbicaciones(id)).then(ubs => {
+        this.cargandoUbicaciones.delete(id);
+        this.ubicacionesByEfectoId.update(m => {
+          const next = new Map(m);
+          next.set(id, ubs ?? []);
+          return next;
+        });
+      });
+    }
+  });
+
+  ubicacionesAgrupadas(efectoId: number | null | undefined): { tipo: string; label: string; items: EfectoUbicacion[] }[] {
+    if (!efectoId) return [];
+    const all = this.ubicacionesByEfectoId().get(efectoId) ?? [];
+    const grupos: Record<string, { tipo: string; label: string; items: EfectoUbicacion[] }> = {
+      personal:  { tipo: 'personal',  label: 'Personal',  items: [] },
+      objetivo:  { tipo: 'objetivo',  label: 'Objetivo',  items: [] },
+      proveedor: { tipo: 'proveedor', label: 'Proveedor', items: [] },
+      deposito:  { tipo: 'deposito',  label: 'Depósito',  items: [] },
+    };
+    for (const u of all) {
+      const g = grupos[u.Tipo];
+      if (g) g.items.push(u);
+    }
+    return Object.values(grupos).filter(g => g.items.length > 0);
+  }
+
+  ubicacionLabel(u: EfectoUbicacion): string {
+    const stock = u.StockStock != null ? ` (Stock: ${u.StockStock})` : '';
+    switch (u.Tipo) {
+      case 'personal':  return `${u.PersonalApellidoNombre ?? u.PersonalId}${stock}`;
+      case 'objetivo':  return `${u.ObjetivoDescripcion ?? u.ObjetivoId}${stock}`;
+      case 'proveedor': return `${u.ProveedorRazonSocial ?? u.ProveedorId}${stock}`;
+      case 'deposito':  return `${u.DepositoNombre ?? u.DepositoId}${stock}`;
+      default: return String(u.StockId);
+    }
+  }
 
   addEfecto(e?: MouseEvent): void {
     e?.preventDefault();

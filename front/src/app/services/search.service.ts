@@ -29,6 +29,20 @@ import {
 } from '../shared/schemas/ResponseJSON';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 
+export interface EfectoUbicacion {
+  StockId: number;
+  Tipo: 'personal' | 'objetivo' | 'proveedor' | 'deposito';
+  PersonalId: number | null;
+  ObjetivoId: number | null;
+  ProveedorId: number | null;
+  DepositoId: number | null;
+  PersonalApellidoNombre: string | null;
+  ObjetivoDescripcion: string | null;
+  ProveedorRazonSocial: string | null;
+  DepositoNombre: string | null;
+  StockStock: number | null;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -2475,6 +2489,22 @@ export class SearchService {
     );
   }
 
+
+  getEfectoRelaciones(efectoId: number): Observable<{ EfectoRelacionEfectoId: number; EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[]> {
+    if (!efectoId) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/efecto/relaciones/${efectoId}`).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  getEfectoUbicaciones(efectoId: number): Observable<EfectoUbicacion[]> {
+    if (!efectoId) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/efecto/ubicaciones/${efectoId}`).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
 
   getEfectoFromName(fieldName: string, values: string): Observable<SearchEfecto[]> {
     if (!values || values == '') {

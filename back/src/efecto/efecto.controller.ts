@@ -834,6 +834,82 @@ export class EfectoController extends BaseController {
   }
 
 
+  async getEfectoRelaciones(req: any, res: Response, next: NextFunction) {
+    const efectoId = Number(req.params.id);
+    if (!efectoId) {
+      this.jsonRes([], res);
+      return;
+    }
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const list = await queryRunner.query(`
+        SELECT
+          rel.EfectoRelacionEfectoId,
+          CASE WHEN rel.EfectoRelacionDeEfectoId = @0
+               THEN rel.EfectoRelacionConEfectoId
+               ELSE rel.EfectoRelacionDeEfectoId
+          END AS EfectoRelacionadoId,
+          CASE WHEN rel.EfectoRelacionDeEfectoId = @0
+               THEN efC.EfectoDescripcion
+               ELSE efD.EfectoDescripcion
+          END AS EfectoRelacionadoDescripcion
+        FROM EfectoRelacionEfecto rel
+        LEFT JOIN EfectoDescripcion efD ON efD.EfectoId = rel.EfectoRelacionDeEfectoId
+        LEFT JOIN EfectoDescripcion efC ON efC.EfectoId = rel.EfectoRelacionConEfectoId
+        WHERE rel.EfectoRelacionDeEfectoId = @0 OR rel.EfectoRelacionConEfectoId = @0
+      `, [efectoId]);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async getEfectoUbicaciones(req: any, res: Response, next: NextFunction) {
+    const efectoId = Number(req.params.id);
+    if (!efectoId) {
+      this.jsonRes([], res);
+      return;
+    }
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const list = await queryRunner.query(`
+        SELECT
+          stk.StockId,
+          CASE
+            WHEN stk.PersonalId IS NOT NULL THEN 'personal'
+            WHEN stk.ObjetivoId IS NOT NULL THEN 'objetivo'
+            WHEN stk.ProveedorId IS NOT NULL THEN 'proveedor'
+            WHEN stk.DepositoId IS NOT NULL THEN 'deposito'
+          END AS Tipo,
+          stk.PersonalId,
+          stk.ObjetivoId,
+          stk.ProveedorId,
+          stk.DepositoId,
+          IIF(per.PersonalId IS NULL, NULL, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre))) AS PersonalApellidoNombre,
+          IIF(ele.ClienteElementoDependienteId IS NULL, NULL, CONCAT(cli.ClienteId, '/', ele.ClienteElementoDependienteId, ' ', ele.ClienteElementoDependienteDescripcion)) AS ObjetivoDescripcion,
+          pro.ProveedorRazonSocial,
+          dep.DepositoNombre,
+          stk.StockStock
+        FROM StockReal stk
+        LEFT JOIN Personal per ON per.PersonalId = stk.PersonalId
+        LEFT JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
+        LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND ele.ClienteId = obj.ClienteId
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN Proveedor pro ON pro.ProveedorId = stk.ProveedorId
+        LEFT JOIN Deposito dep ON dep.DepositoId = stk.DepositoId
+        WHERE stk.EfectoId = @0
+          AND (stk.PersonalId IS NOT NULL OR stk.ObjetivoId IS NOT NULL OR stk.ProveedorId IS NOT NULL OR stk.DepositoId IS NOT NULL)
+      `, [efectoId]);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async getGridColsPersonal(req, res) {
     this.jsonRes(listaColumnasPersonal, res);
   }
