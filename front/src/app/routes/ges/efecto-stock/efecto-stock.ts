@@ -10,6 +10,12 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 import { TipoDestinoSearchComponent } from '../../../shared/tipo-destino-search/tipo-destino-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { ProveedorSearchComponent } from '../../../shared/proveedor-search/proveedor-search.component';
+import { EfectoSearchComponent } from '../../../shared/efecto-search/efecto-search';
+
+export interface EfectoStockLinea {
+  EfectoId: number | null;
+  Cantidad: number | null;
+}
 
 export interface ParametroformEfectoStock {
   fecha: Date | null;
@@ -18,11 +24,12 @@ export interface ParametroformEfectoStock {
   personalId: number | null;
   objetivoId: string | null;
   proveedorId: number | null;
+  efectos: EfectoStockLinea[];
 }
 
 @Component({
   selector: 'app-efecto-stock',
-  imports: [...SHARED_IMPORTS, CommonModule, FormField, PersonalSearchComponent, TipoDestinoSearchComponent, ObjetivoSearchComponent, ProveedorSearchComponent],
+  imports: [...SHARED_IMPORTS, CommonModule, FormField, PersonalSearchComponent, TipoDestinoSearchComponent, ObjetivoSearchComponent, ProveedorSearchComponent, EfectoSearchComponent],
   templateUrl: './efecto-stock.html',
   styleUrl: './efecto-stock.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +38,8 @@ export class EfectoStockComponent {
   private searchService = inject(SearchService);
   private apiService = inject(ApiService);
 
+  private readonly objEfectoLinea: EfectoStockLinea = { EfectoId: null, Cantidad: null };
+
   private readonly defaultStockForm: ParametroformEfectoStock = {
     fecha: null,
     tipoDestino: '',
@@ -38,6 +47,7 @@ export class EfectoStockComponent {
     personalId: null,
     objetivoId: null,
     proveedorId: null,
+    efectos: [structuredClone(this.objEfectoLinea)],
   };
 
   readonly parametroStock = signal<ParametroformEfectoStock>(this.defaultStockForm);
@@ -130,6 +140,25 @@ export class EfectoStockComponent {
       );
     },
   });
+
+  addEfecto(e?: MouseEvent): void {
+    e?.preventDefault();
+    this.parametroStock.update(s => ({
+      ...s,
+      efectos: [...s.efectos, structuredClone(this.objEfectoLinea)],
+    }));
+  }
+
+  removeEfecto(index: number, e: MouseEvent): void {
+    e.preventDefault();
+    this.parametroStock.update(s => ({
+      ...s,
+      efectos: s.efectos.filter((_, i) => i !== index),
+    }));
+    if (this.parametroStock().efectos.length === 0) {
+      this.addEfecto();
+    }
+  }
 
   sucursalDescripcionDisplay = computed(() => {
     const tipo = this.tipoDestinoSeleccionado();
