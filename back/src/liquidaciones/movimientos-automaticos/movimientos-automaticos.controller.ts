@@ -20,12 +20,9 @@ export class MovimientosAutomaticosController extends BaseController {
       return next(`Se procesaron cambios `)
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
-//      return next(error)
-    return next(`Se procesaron cambios `)
+      return next(error)
     } finally {
        await queryRunner.release();
-
-        return next(`Se procesaron cambios `)
     }
   }
 }

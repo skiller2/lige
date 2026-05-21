@@ -409,6 +409,8 @@ export class GrupoActividadController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -477,6 +479,8 @@ export class GrupoActividadController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -548,6 +552,8 @@ export class GrupoActividadController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -613,6 +619,8 @@ export class GrupoActividadController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -1272,8 +1280,8 @@ export class GrupoActividadController extends BaseController {
             await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
-      await queryRunner.release()
-    }
+            await queryRunner.release()
+        }
     }
 
     async deleteResponsables(req: any, res: Response, next: NextFunction) {
@@ -1299,8 +1307,8 @@ export class GrupoActividadController extends BaseController {
             await this.rollbackTransaction(queryRunner)
             return next(error)
         } finally {
-      await queryRunner.release()
-    }
+            await queryRunner.release()
+        }
     }
 
     async validateFormGrupo(params: any, queryRunner: any) {

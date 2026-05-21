@@ -381,7 +381,7 @@ export class LiquidacionesBancoController extends BaseController {
 
   ];
 
-  async getSaldoCuentas(anio: Number, mes: Number, filtros: any, sort: any,queryRunner: QueryRunner) {
+  async getSaldoCuentas(anio: Number, mes: Number, filtros: any, sort: any, queryRunner: QueryRunner) {
     const filterSql = filtrosToSql(filtros, this.listaColumnas);
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
@@ -536,9 +536,9 @@ LEFT JOIN banco banc
   ) {
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const banco = await this.getSaldoCuentas(anio, mes, req.body.options?.filtros, req.body.options?.sort, queryRunner)
 
       this.jsonRes(
@@ -551,6 +551,8 @@ LEFT JOIN banco banc
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -561,9 +563,9 @@ LEFT JOIN banco banc
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
 
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const movimientosPendientes = await this.getMovimientosPendientes(req.body.options.filtros, req.body.options.sort, queryRunner)
 
       this.jsonRes(
@@ -576,6 +578,8 @@ LEFT JOIN banco banc
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -587,9 +591,9 @@ LEFT JOIN banco banc
     const orderBy = orderToSQL(req.body.options.sort)
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const ayuda = await this.getBancoSaldoAyudaAsistencial(anio, mes, req.body.options.filtros, req.body.options.sort, queryRunner)
 
       this.jsonRes(
@@ -602,6 +606,8 @@ LEFT JOIN banco banc
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -626,7 +632,7 @@ LEFT JOIN banco banc
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
 
-    
+
     await queryRunner.startTransaction();
 
     try {
@@ -658,7 +664,7 @@ LEFT JOIN banco banc
     let anio = Number(req.body.selectedPeriod.year)
     let mes = Number(req.body.selectedPeriod.month)
 
-    
+
     await queryRunner.startTransaction();
     try {
 
@@ -799,7 +805,7 @@ LEFT JOIN banco banc
           banco = recordSet.filter((item: any) => item.importe > 0)
           break;
         case 2: //Adelanto
-          banco = await this.getBancoSaldoAyudaAsistencial(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort,queryRunner)
+          banco = await this.getBancoSaldoAyudaAsistencial(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort, queryRunner)
           break;
         default:
           throw new ClientException('Debe posicionarse en la sopapa Listado o Adelanto/Ayuda')
@@ -831,7 +837,7 @@ LEFT JOIN banco banc
       if (banco.length == 0)
         throw new ClientException('No hay registros para generar archivo')
 
-      
+
       await queryRunner.startTransaction();
       const periodods = await queryRunner.query('SELECT periodo_id FROM lige.dbo.liqmaperiodo WHERE anio=@0 AND mes=@1', [periodo.year, periodo.month])
       const periodo_id = periodods[0]['periodo_id']
@@ -1021,6 +1027,7 @@ LEFT JOIN banco banc
       SendFileToDownload(res, filename, responsePDFBuffer);
     } catch (error) {
       return next(error)
+    } finally {
     }
   }
 
@@ -1186,7 +1193,7 @@ LEFT JOIN banco banc
       if (persona_id == null)
         throw new ClientException(`Debe seleccionar una persona`)
 
-      
+
       await queryRunner.startTransaction();
 
 

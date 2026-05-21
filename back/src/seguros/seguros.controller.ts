@@ -781,8 +781,9 @@ UNION
     const orderBy = orderToSQL(req.body.options.sort)
     const anio: number = req.body.anio
     const mes: number = req.body.mes
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(`
        SELECT
             ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
@@ -822,6 +823,8 @@ UNION
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -833,8 +836,9 @@ UNION
 
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPoliza);
     const orderBy = orderToSQL(req.body.options.sort)
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       let result = await queryRunner.query(`
       SELECT 
         ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id,
@@ -864,6 +868,8 @@ UNION
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -876,8 +882,9 @@ UNION
 
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnasPersonalSeguro);
     const orderBy = orderToSQL(req.body.options.sort)
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       let result = await queryRunner.query(`
       SELECT  ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS id, perpoliz.PolizaSeguroNroPoliza,
       perpoliz.PolizaSeguroNroEndoso,perpoliz.CompaniaSeguroId,perpoliz.TipoSeguroCodigo,per.PersonalId,CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS PersonalApellidoNombre,
@@ -906,13 +913,15 @@ UNION
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
   async getPolizaSeguro(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       //acomodar select para que sea el correcto
       const result = await queryRunner.query(`
       SELECT
@@ -936,6 +945,8 @@ UNION
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
 
   }
@@ -1332,7 +1343,8 @@ UNION
 
     queryRunner
       .query((query += " 1=1"))
-      .then((records) => {
+      .then(async (records) => {
+        await queryRunner.release();
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {

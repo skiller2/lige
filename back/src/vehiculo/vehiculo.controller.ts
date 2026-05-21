@@ -3,7 +3,7 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { getConnection } from "../data-source.ts";
 
 export class VehiculoController extends BaseController {
-  
+
   private async getTipoVehiculoQuery(queryRunner: any) {
     return await queryRunner.query(`
         SELECT tipo.TipoVehiculoId value, TRIM(tipo.TipoVehiculoDescripcion) label
@@ -18,15 +18,17 @@ export class VehiculoController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
-  private async getMarcaVehiculoQuery(queryRunner: any, TipoVehiculoId:number) {
+  private async getMarcaVehiculoQuery(queryRunner: any, TipoVehiculoId: number) {
     return await queryRunner.query(`
         SELECT m.VehiculoMarcaId value, TRIM(m.VehiculoMarcaDescripcion) label
         FROM VehiculoMarca m
         WHERE m.TipoVehiculoId IN (@0)
-      `,[TipoVehiculoId])
+      `, [TipoVehiculoId])
   }
 
   async getMarcaVehiculo(req: Request, res: Response, next: NextFunction) {
@@ -38,10 +40,12 @@ export class VehiculoController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
-  private async getModeloVehiculoQuery(queryRunner: any, TipoVehiculoId:number, VehiculoMarcaId:number) {
+  private async getModeloVehiculoQuery(queryRunner: any, TipoVehiculoId: number, VehiculoMarcaId: number) {
     return await queryRunner.query(`
         SELECT m.VehiculoMarcaModeloId value, TRIM(m.VehiculoMarcaModeloDescripcion) label
         FROM VehiculoMarcaVehiculoMarcaModelo m
@@ -59,6 +63,8 @@ export class VehiculoController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 

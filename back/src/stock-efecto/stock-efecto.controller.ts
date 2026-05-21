@@ -16,6 +16,7 @@ export class StockEfectoController extends BaseController {
       this.jsonRes(tiposDestino, res);
     } catch (error) {
       return next(error);
+    } finally {
     }
   }
 
@@ -64,8 +65,9 @@ export class StockEfectoController extends BaseController {
   }
 
   async getProveedores(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const rows = await queryRunner.query(`
         SELECT pro.ProveedorId, TRIM(pro.ProveedorRazonSocial) AS ProveedorRazonSocial
         FROM Proveedor pro
@@ -74,16 +76,19 @@ export class StockEfectoController extends BaseController {
       this.jsonRes(rows, res);
     } catch (error) {
       return next(error);
+    } finally {
+      await queryRunner.release();
     }
   }
 
   async getObjetivoInfo(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
       const objetivoId = Number(req.params.objetivoId);
       const anio = Number(req.params.anio);
       const mes = Number(req.params.mes);
 
-      const queryRunner = await getConnection(res.locals.userName);
 
       const objetivoRows = await queryRunner.query(`
         SELECT TOP 1 obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId
@@ -140,6 +145,8 @@ export class StockEfectoController extends BaseController {
       }, res);
     } catch (error) {
       return next(error);
+    } finally {
+      await queryRunner.release();
     }
   }
 

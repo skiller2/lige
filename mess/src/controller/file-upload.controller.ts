@@ -158,6 +158,7 @@ export class FileUploadController extends BaseController {
       });
     } catch (error) {
       return next(error)
+    }finally {
     }
   }
 
@@ -245,6 +246,8 @@ export class FileUploadController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 

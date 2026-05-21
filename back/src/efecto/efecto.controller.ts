@@ -782,7 +782,8 @@ export class EfectoController extends BaseController {
 
     queryRunner
       .query((query += " 1=1"))
-      .then((records) => {
+      .then(async (records) => {
+      await queryRunner.release()
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {
@@ -911,6 +912,8 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -923,6 +926,8 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -935,6 +940,8 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -967,6 +974,8 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -1034,6 +1043,8 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -1066,6 +1077,8 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -1077,6 +1090,8 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 

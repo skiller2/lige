@@ -842,6 +842,8 @@ export class GestionDescuentosController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -878,6 +880,8 @@ export class GestionDescuentosController extends BaseController {
       this.jsonRes(descuentos, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -1427,7 +1431,7 @@ FROM cte
         const PersonalOtroDescuentoCantidad = descuento.PersonalOtroDescuentoCantidad ?? 1
         const PorcentajeDescuento = descuento.PorcentajeDescuento ?? 100
 
-        const importeTotal = PersonalOtroDescuentoCantidad * descuento.PersonalOtroDescuentoImporteVariable *  PorcentajeDescuento / 100
+        const importeTotal = PersonalOtroDescuentoCantidad * descuento.PersonalOtroDescuentoImporteVariable * PorcentajeDescuento / 100
 
         const importeCuota = Math.round((importeTotal / Number(descuento.PersonalOtroDescuentoCantidadCuotas)) * 100) / 100
 
@@ -1771,7 +1775,7 @@ FROM cte
       , CuentaTipoCodigo = @16
       WHERE PersonalOtroDescuentoId = @0 AND PersonalId = @1
       `, [PersonalOtroDescuentoId, PersonalId, DescuentoId, anio, mes, Cuotas, importeVariable, AplicaEl, Detalle, ip, usuario, hoy
-        , Cantidad, EfectoId, EfectoIndividualId, PorcentajeDescuento, CuentaTipoCodigo])
+      , Cantidad, EfectoId, EfectoIndividualId, PorcentajeDescuento, CuentaTipoCodigo])
 
     await queryRunner.query(`
       DELETE FROM PersonalOtroDescuentoCuota WHERE PersonalOtroDescuentoId IN (@0) AND PersonalId IN (@1)
@@ -2436,7 +2440,7 @@ FROM cte
         throw new ClientException(campos_vacios)
       }
 
-      
+
       await queryRunner.startTransaction();
 
       //Valida que el período no tenga el indicador de recibos generado
@@ -2653,7 +2657,7 @@ FROM cte
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      
+
       await queryRunner.startTransaction()
 
       const importacionesDescuentosAnteriores = await queryRunner.query(
@@ -2739,7 +2743,7 @@ FROM cte
     let dataset = []
     try {
 
-      
+
       await queryRunner.startTransaction();
 
 
@@ -2826,7 +2830,7 @@ FROM cte
     const DescuentoId: number = req.body[2]
 
     try {
-      
+
       await queryRunner.startTransaction();
       let AplicaEl: Date
       if (periodo && typeof periodo === 'string' && /^(0?[1-9]|1[0-2])\/\d{4}$/.test(periodo)) {
@@ -2982,6 +2986,8 @@ FROM cte
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2991,7 +2997,7 @@ FROM cte
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      
+
       await queryRunner.startTransaction();
 
       let consult: any = null

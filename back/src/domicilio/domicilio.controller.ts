@@ -20,6 +20,8 @@ export class DomicilioController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -40,6 +42,8 @@ export class DomicilioController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -61,6 +65,8 @@ export class DomicilioController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -83,6 +89,8 @@ export class DomicilioController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
   
@@ -101,6 +109,8 @@ export class DomicilioController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
   
@@ -120,6 +130,8 @@ export class DomicilioController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -140,6 +152,8 @@ export class DomicilioController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 

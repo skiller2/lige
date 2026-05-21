@@ -1,10 +1,10 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import { getConnection } from "../data-source.ts";
-import type { Response,NextFunction } from "express";
+import type { Response, NextFunction } from "express";
 
 export class RubroController extends BaseController {
-  
-  async search(req: any, res: Response, next:NextFunction) {
+
+  async search(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
     const queryRunner = await getConnection(res.locals.userName);
     let buscar = false;
@@ -37,8 +37,11 @@ export class RubroController extends BaseController {
     */
 
 
-      queryRunner.query((query += " 1=1"))
-      .then((records) => {
+    queryRunner.query((query += " 1=1"))
+      .then(async (records) => {
+
+        await queryRunner.release()
+
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {
@@ -56,6 +59,8 @@ export class RubroController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 }

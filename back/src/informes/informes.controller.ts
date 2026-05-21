@@ -100,6 +100,8 @@ export class InformesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 }

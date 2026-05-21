@@ -1,11 +1,11 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import { getConnection } from "../data-source.ts";
-import type { Response,NextFunction } from "express";
+import type { Response, NextFunction } from "express";
 
 
 export class SituacionRevistaController extends BaseController {
-  
-  async search(req: any, res: Response, next:NextFunction) {
+
+  async search(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
     const queryRunner = await getConnection(res.locals.userName);
 
@@ -38,7 +38,10 @@ export class SituacionRevistaController extends BaseController {
 
     queryRunner
       .query((query += " 1=1"))
-      .then((records) => {
+      .then(async (records) => {
+
+        await queryRunner.release()
+
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {

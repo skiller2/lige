@@ -164,7 +164,9 @@ export class EstudioController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
-    }
+    }finally {
+            await queryRunner.release()
+        }
   }
 
   private async getTiposEstudioQuery(queryRunner: any) {
@@ -181,7 +183,9 @@ export class EstudioController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
-    }
+    }finally {
+            await queryRunner.release()
+        }
   }
 
 
@@ -268,7 +272,9 @@ export class EstudioController extends BaseController {
 
     } catch (error) {
       return next(error)
-    }
+    }finally {
+            await queryRunner.release()
+        }
 
   }
 
@@ -282,8 +288,8 @@ export class EstudioController extends BaseController {
     } catch (error) {
       return next(error)
     } finally {
-
-    }
+            await queryRunner.release()
+        }
 
 
   }
@@ -299,8 +305,8 @@ export class EstudioController extends BaseController {
     } catch (error) {
       return next(error)
     } finally {
-
-    }
+            await queryRunner.release()
+        }
 
 
   }
@@ -510,7 +516,9 @@ export class EstudioController extends BaseController {
       this.jsonRes(result[0], res);
     } catch (error) {
       return next(error)
-    }
+    }finally {
+            await queryRunner.release()
+        }
 
   }
 

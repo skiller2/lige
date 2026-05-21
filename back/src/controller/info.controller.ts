@@ -16,9 +16,11 @@ export class InfoController extends BaseController {
 
     queryRunner
       .query("SELECT 1 + @0", [2])
-      .then((records) => {
+      .then(async (records) => {
         data.sqltest = records;
         data.connected = true;
+
+        await queryRunner.release()
 
         this.jsonRes(data, res);
       })

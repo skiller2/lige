@@ -403,6 +403,8 @@ export class EventoLogController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -456,6 +458,8 @@ export class EventoLogController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -477,6 +481,8 @@ export class EventoLogController extends BaseController {
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -490,6 +496,8 @@ export class EventoLogController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -503,6 +511,8 @@ export class EventoLogController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 

@@ -164,7 +164,9 @@ export class PersonalController extends BaseController {
         return this.jsonRes(result, res);
       } catch (error) {
         return next(error)
-      }
+      }finally {
+      await queryRunner.release();
+    }
     }
   
   */

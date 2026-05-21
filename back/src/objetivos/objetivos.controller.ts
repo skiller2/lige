@@ -642,6 +642,8 @@ export class ObjetivosController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
 
     }
@@ -676,6 +678,8 @@ export class ObjetivosController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
 
     }
@@ -2099,6 +2103,8 @@ export class ObjetivosController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
     }
 
@@ -2153,6 +2159,8 @@ export class ObjetivosController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
     }
 
@@ -2196,6 +2204,8 @@ export class ObjetivosController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release();
         }
     }
 

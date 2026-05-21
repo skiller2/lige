@@ -38,7 +38,7 @@ export class LiquidacionesController extends BaseController {
     const ip = this.getRemoteAddress(req)
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      
+
       await queryRunner.startTransaction();
 
       if (files?.length == 0)
@@ -142,6 +142,8 @@ export class LiquidacionesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -175,6 +177,8 @@ export class LiquidacionesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -197,6 +201,8 @@ export class LiquidacionesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -207,9 +213,10 @@ export class LiquidacionesController extends BaseController {
 
   async getByDownloadDocument(req: any, res: Response, next: NextFunction) {
     const documentId = Number(req.body.documentId);
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
-      const document = await this.getDocumentInfo(documentId,queryRunner);
+      const document = await this.getDocumentInfo(documentId, queryRunner);
 
       const finalurl = `${this.directory}/${document[0]["path"]}`
       if (!existsSync(finalurl))
@@ -219,6 +226,8 @@ export class LiquidacionesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -239,6 +248,8 @@ export class LiquidacionesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -250,9 +261,9 @@ export class LiquidacionesController extends BaseController {
     res: Response,
     next: NextFunction
   ) {
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const importacionesAnteriores = await queryRunner.query(
 
         `SELECT impoexpo_id AS id, path, nombre_archivo_orig AS nombre, path, aud_fecha_ins AS fecha FROM lige.dbo.convalorimpoexpo WHERE anio = @0 AND mes = @1 AND ind_eliminado = 0`,
@@ -269,6 +280,8 @@ export class LiquidacionesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -437,10 +450,10 @@ export class LiquidacionesController extends BaseController {
     const orderBy = orderToSQL(req.body.options.sort)
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
+    const queryRunner = await getConnection(res.locals.userName);
 
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const liqudacion = await queryRunner.query(
         `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,eledep.ClienteElementoDependienteDescripcion,CONCAT(cus.CustodiaCodigo, ' ', cli.ClienteDenominacion,' ',FORMAT (cus.FechaInicio,'dd/MM/yyyy') ) AS CustodiaDescripcion,  CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
         li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.horas, cuit.PersonalCUITCUILCUIT,
@@ -469,6 +482,8 @@ export class LiquidacionesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -490,7 +505,7 @@ export class LiquidacionesController extends BaseController {
       if (!deleteId)
         throw new ClientException(`No se pudo identificar el grupo de importación ${anio} ${mes} ${deleteId}`)
 
-      
+
       await queryRunner.startTransaction();
 
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
@@ -540,7 +555,7 @@ export class LiquidacionesController extends BaseController {
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
         throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
-      
+
       await queryRunner.startTransaction();
 
       for (const row of req.body[1].gridDataInsert) {
@@ -616,7 +631,7 @@ export class LiquidacionesController extends BaseController {
       if (!tipo_movimiento_id) new ClientException("No se especificó el movimiento")
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
-      
+
       await queryRunner.startTransaction();
 
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)

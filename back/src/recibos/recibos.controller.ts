@@ -666,6 +666,8 @@ export class RecibosController extends BaseController {
       await fileUploadController.getByDownloadFile(req, res, next);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -880,6 +882,7 @@ export class RecibosController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
     }
   }
 
@@ -891,6 +894,7 @@ export class RecibosController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
     }
   }
 
@@ -952,6 +956,8 @@ export class RecibosController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 

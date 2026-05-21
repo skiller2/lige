@@ -312,9 +312,9 @@ export class PersonalController extends BaseController {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
     const mes = req.params.mes;
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         `SELECT
         per.PersonalId PersonalId, cuit2.PersonalCUITCUILCUIT AS CUIT, CONCAT(TRIM(per.PersonalApellido), ',', TRIM(per.PersonalNombre)) ApellidoNombre,
@@ -335,10 +335,12 @@ export class PersonalController extends BaseController {
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
-  async getNameFromIdQuery(queryRunner:any, PersonalId:number) {
+  async getNameFromIdQuery(queryRunner: any, PersonalId: number) {
     return queryRunner.query(`
       SELECT per.PersonalId personalId, cuit.PersonalCUITCUILCUIT cuit,
       TRIM(per.PersonalNombre) nombre, TRIM(per.PersonalApellido) apellido
@@ -358,6 +360,8 @@ export class PersonalController extends BaseController {
       this.jsonRes(info, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -365,9 +369,9 @@ export class PersonalController extends BaseController {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
     const mes = req.params.mes;
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const responsables = await queryRunner.query(
         `SELECT 1 AS ord, gap.GrupoActividadPersonalPersonalId as id, 'Grupo' tipo,
         ga.GrupoActividadId AS id, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadPersonalDesde AS desde , gap.GrupoActividadPersonalHasta hasta, '' as Telefonos,
@@ -409,6 +413,8 @@ export class PersonalController extends BaseController {
       this.jsonRes(responsables, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -417,9 +423,9 @@ export class PersonalController extends BaseController {
     const anio = req.params.anio;
     const mes = req.params.mes;
     const stmactual = new Date()
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const responsables = await queryRunner.query(
         `SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.*, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
         FROM Personal per
@@ -431,10 +437,12 @@ export class PersonalController extends BaseController {
       this.jsonRes(responsables, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
-  static async infoPersonalQuery(PersonalId: any, anio: number, mes: number,queryRunner:QueryRunner) {
+  static async infoPersonalQuery(PersonalId: any, anio: number, mes: number, queryRunner: QueryRunner) {
     return queryRunner.query(`
       SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 
@@ -544,6 +552,10 @@ export class PersonalController extends BaseController {
 
         personaData.mails = mails;
         personaData.estudios = (estudios[0]) ? `${String(estudios[0].TipoEstudioDescripcion).trim()} ${String(estudios[0].PersonalEstudioTitulo).trim()}` : 'Sin registro'
+
+
+        await queryRunner.release()
+
         this.jsonRes(personaData, res);
       })
       .catch((error) => {
@@ -552,8 +564,9 @@ export class PersonalController extends BaseController {
   }
 
   async getTelefonosPorPersona(PersonalId: string, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         `SELECT tel.PersonalId, tip.TipoTelefonoDescripcion, tel.PersonalTelefonoNro
         FROM PersonalTelefono tel 
@@ -565,13 +578,16 @@ export class PersonalController extends BaseController {
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getCuentasBancoPorPersona(PersonalId: string, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
       const stmactual = new Date();
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         `SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta
         FROM PersonalBanco cue
@@ -583,6 +599,8 @@ export class PersonalController extends BaseController {
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -631,7 +649,9 @@ export class PersonalController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     queryRunner
       .query((query += " 1=1"))
-      .then((records) => {
+      .then(async (records) => {
+        await queryRunner.release()
+
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {
@@ -816,6 +836,8 @@ export class PersonalController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -833,6 +855,8 @@ export class PersonalController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -1272,6 +1296,8 @@ export class PersonalController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2063,6 +2089,8 @@ export class PersonalController extends BaseController {
       this.jsonRes(data, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2072,7 +2100,7 @@ export class PersonalController extends BaseController {
     let document: any
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      
+
       await queryRunner.startTransaction();
 
       switch (tipo) {
@@ -2166,14 +2194,16 @@ export class PersonalController extends BaseController {
       this.jsonRes(domicilios, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getHistoryPersonalSitRevista(req: any, res: Response, next: NextFunction) {
     const personalId = Number(req.params.personalId);
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const listSitRevista = await queryRunner.query(
         `SELECT sitrev.PersonalSituacionRevistaId,
         TRIM(sit.SituacionRevistaDescripcion) Descripcion, TRIM(sitrev.PersonalSituacionRevistaMotivo) Motivo,
@@ -2188,6 +2218,8 @@ export class PersonalController extends BaseController {
       this.jsonRes(listSitRevista, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2197,6 +2229,7 @@ export class PersonalController extends BaseController {
       this.jsonRes(recordSet, res);
     } catch (error) {
       return next(error)
+    } finally {
     }
   }
 
@@ -2306,12 +2339,15 @@ export class PersonalController extends BaseController {
       this.jsonRes(responsables, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getGrupoActividad(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const options = await queryRunner.query(`
         SELECT ga.GrupoActividadId value, ga.GrupoActividadDetalle label
         FROM GrupoActividad ga
@@ -2322,6 +2358,8 @@ export class PersonalController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2508,7 +2546,7 @@ UNION ALL
       // this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      // await queryRunner.release()
+      await queryRunner.release()
     }
   }
 
@@ -2538,7 +2576,7 @@ UNION ALL
       // this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      // await queryRunner.release()
+      await queryRunner.release()
     }
   }
 
@@ -2582,6 +2620,8 @@ UNION ALL
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2596,6 +2636,8 @@ UNION ALL
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2613,14 +2655,16 @@ UNION ALL
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getHistoryPersonalCategoria(req: any, res: Response, next: NextFunction) {
     const personalId = Number(req.params.personalId);
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const listSitRevista = await queryRunner.query(`
         SELECT percat.PersonalCategoriaId, percat.PersonalCategoriaTipoAsociadoId, TRIM(tipo.TipoAsociadoDescripcion) TipoAsociado,
         percat.PersonalCategoriaCategoriaPersonalId, TRIM(catper.CategoriaPersonalDescripcion) Categoria,
@@ -2636,6 +2680,8 @@ UNION ALL
       this.jsonRes(listSitRevista, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2843,6 +2889,8 @@ UNION ALL
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -2857,14 +2905,16 @@ UNION ALL
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getHistoryPersonalBanco(req: any, res: Response, next: NextFunction) {
     const personalId = Number(req.params.personalId);
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const listSitRevista = await queryRunner.query(`
         SELECT perb.PersonalBancoId,
         TRIM(ban.BancoDescripcion) Descripcion, TRIM(perb.PersonalBancoCBU) CBU,
@@ -2878,6 +2928,8 @@ UNION ALL
       this.jsonRes(listSitRevista, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -3032,6 +3084,8 @@ UNION ALL
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -3046,6 +3100,8 @@ UNION ALL
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -3238,7 +3294,7 @@ UNION ALL
     const personalId = Number(req.params.personalId);
 
     try {
-      
+
       await queryRunner.startTransaction();
 
       const PersonaActaList = await queryRunner.query(`
@@ -3283,6 +3339,8 @@ UNION ALL
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -3299,7 +3357,7 @@ UNION ALL
 
     let campos_vacios: string[] = []
     try {
-      
+
       await queryRunner.startTransaction();
 
       //Validadar que los campos no este vacios
@@ -3442,6 +3500,8 @@ UNION ALL
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -3515,7 +3575,10 @@ UNION ALL
 
     queryRunner
       .query((query += " 1=1"))
-      .then((records) => {
+      .then(async (records) => {
+
+        await queryRunner.release()
+
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {
@@ -3636,7 +3699,7 @@ UNION ALL
     if (PersonalExencionDesde) PersonalExencionDesde.setHours(0, 0, 0, 0)
     if (PersonalExencionHasta) PersonalExencionHasta.setHours(0, 0, 0, 0)
     try {
-      
+
       await queryRunner.startTransaction();
 
       const valsTipoDocumento = await this.valsExeciones(queryRunner, req.body)
@@ -3719,7 +3782,7 @@ UNION ALL
     if (PersonalExencionHasta) PersonalExencionHasta.setHours(0, 0, 0, 0)
 
     try {
-      
+
       await queryRunner.startTransaction();
 
       const valsTipoDocumento = await this.valsExeciones(queryRunner, req.body)
@@ -3783,13 +3846,16 @@ UNION ALL
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getDatosBotByPersonalId(req: any, res: Response, next: NextFunction) {
     const PersonalId = Number(req.params.personalId)
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         `SELECT 
               per.PersonalId id,
@@ -3816,6 +3882,8 @@ UNION ALL
       this.jsonRes(data, res)
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

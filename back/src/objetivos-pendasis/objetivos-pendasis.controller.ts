@@ -290,12 +290,15 @@ export class ObjetivosPendasisController extends BaseController {
     next: NextFunction
   ) {
     const options = getOptionsFromRequest(req);
-    try {
       const queryRunner = await getConnection(res.locals.userName)
+
+    try {
       const pendCambioCategoria = await ObjetivosPendasisController.listObjetivosAsis(options,queryRunner)
       this.jsonRes({ list: pendCambioCategoria }, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 }

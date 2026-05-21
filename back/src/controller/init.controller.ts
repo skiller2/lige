@@ -11,7 +11,7 @@ export class InitController extends BaseController {
   async getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
 
-    CategoriasController.listCambiosPendCategoria(res, {},queryRunner).then((records: Array<any>) => {
+    CategoriasController.listCambiosPendCategoria(res, {}, queryRunner).then(async (records: Array<any>) => {
       let data: { x: string; y: any; }[] = []
       let total = 0
 
@@ -21,6 +21,8 @@ export class InitController extends BaseController {
         //        total += rec.CantidadObjetivos
         total++
       })
+
+      await queryRunner.release()
 
       this.jsonRes({ data, total }, res);
 
@@ -65,19 +67,20 @@ export class InitController extends BaseController {
       }
       data.sort((a, b) => b.y - a.y);
 
-
       this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal: total, anio: anio, mes: mes }, res);
     } catch (error) {
       return next(error);
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getCustodiasPendientes(req: Request, res: Response, next: NextFunction) {
     const anio = Number(req.params.anio)
     const mes = Number(req.params.mes)
+    const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      const queryRunner = await getConnection(res.locals.userName)
       const result = await CustodiaController.listCustodiasPendientesLiqui(anio, mes, 3, queryRunner)
 
       let porGrupo: { ResponsableDetalle: string; CantidadCustodias: number; }[] = []
@@ -104,6 +107,8 @@ export class InitController extends BaseController {
       this.jsonRes({ custodiasPendientes: data, custodiasPendientesTotal: total, anio: anio, mes: mes }, res);
     } catch (error) {
       return next(error);
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -145,7 +150,7 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 `,
         [stmactual]
       )
-      .then((records: Array<any>) => {
+      .then(async (records: Array<any>) => {
         let data: { x: string; y: any; }[] = []
         let total = 0
 
@@ -155,6 +160,8 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
           //          total += rec.totalpersonas
           total++
         })
+
+        await queryRunner.release()
 
         this.jsonRes({ objetivossingrupo: data, objetivossingrupoTotal: total }, res);
 
@@ -166,8 +173,9 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 
 
   async getRecibosPendDescarga(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName)
+
     try {
-      const queryRunner = await getConnection(res.locals.userName)
       const rec = await queryRunner.query(
         `SELECT TOP 1 COUNT(DISTINCT dc.DocumentoId) total, COUNT(DISTINCT lg.DocumentoId) descargados, dc.DocumentoAnio, dc.DocumentoMes 
           FROM Documento dc
@@ -181,6 +189,8 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
     } catch (error) {
       return next(error);
 
+    } finally {
+      await queryRunner.release()
     }
 
   }
@@ -202,11 +212,13 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
       let data: { x: string; y: any; }[] = []
       let total = 0
       //      if (records.length ==0) throw new ClientException('Data not found')
-      records.forEach(rec => {
+      records.forEach(async rec => {
 
         data.push({ x: rec.totalpersonas, y: rec.PersonalPrestamoMonto })
         total += rec.totalpersonas
 
+      await queryRunner.release()
+    
         this.jsonRes({ adelantos: data, adelantosTotal: total }, res);
 
       })
@@ -237,7 +249,7 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
         `,
         [stmactual]
       )
-      .then((records: Array<any>) => {
+      .then(async (records: Array<any>) => {
         let data: { x: string; y: any; }[] = []
         let total = 0
         //      if (records.length ==0) throw new ClientException('Data not found')
@@ -247,6 +259,8 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
           total += rec.totalpersonas
         })
 
+      await queryRunner.release()
+    
         this.jsonRes({ Excepciones: data, excepcionesTotal: total }, res);
 
       })

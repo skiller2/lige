@@ -37,7 +37,8 @@ export class InasistenciaController extends BaseController {
 
     queryRunner
       .query((query += " 1=1"))
-      .then((records) => {
+      .then(async (records) => {
+            await queryRunner.release()
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {

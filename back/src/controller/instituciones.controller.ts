@@ -150,6 +150,8 @@ export class InstitucionesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
 
   }
@@ -176,6 +178,8 @@ export class InstitucionesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
 
   }
@@ -215,6 +219,8 @@ export class InstitucionesController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
 
   }
@@ -317,6 +323,8 @@ export class InstitucionesController extends BaseController {
     } catch (error) {
         await this.rollbackTransaction(queryRunner)
         return next(error)
+    }finally {
+      await queryRunner.release()
     }
     
   

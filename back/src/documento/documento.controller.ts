@@ -372,8 +372,9 @@ export class DocumentoController extends BaseController {
   ) {
     const filterSql = filtrosToSql(req.body.options.filtros, this.listaDocumento);
     const orderBy = orderToSQL(req.body.options.sort)
+    const queryRunner = await getConnection(res.locals.userName)
+
     try {
-      const queryRunner = await getConnection(res.locals.userName)
       const TipoDocumentos = await this.getdocgenralListQuery(filterSql, orderBy, queryRunner)
       this.jsonRes(
         {
@@ -385,6 +386,8 @@ export class DocumentoController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -402,6 +405,8 @@ export class DocumentoController extends BaseController {
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -465,9 +470,10 @@ export class DocumentoController extends BaseController {
     const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null }
     const filterSql = filtrosToSql(options.filtros, this.listaPersonalDescarga)
     const orderBy = orderToSQL(options.sort)
+    const queryRunner = await getConnection(res.locals.userName)
+
     const doc_id = req.body.doc_id
     try {
-      const queryRunner = await getConnection(res.locals.userName)
       const PersonalDescarga = await this.getPersonalDescargaQuery(filterSql, orderBy, doc_id, queryRunner)
 
       this.jsonRes(
@@ -480,6 +486,8 @@ export class DocumentoController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -535,8 +543,9 @@ export class DocumentoController extends BaseController {
     const filterSql = filtrosToSql(options.filtros, this.listaPersonalNoDescarga)
     const orderBy = orderToSQL(options.sort)
     const doc_id = req.body.doc_id
+    const queryRunner = await getConnection(res.locals.userName)
+
     try {
-      const queryRunner = await getConnection(res.locals.userName)
       const PersonalDescarga = await this.getPersonalNoDescargaQuery(filterSql, orderBy, doc_id, queryRunner)
       this.jsonRes(
         {
@@ -548,6 +557,8 @@ export class DocumentoController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

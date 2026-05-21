@@ -5,9 +5,10 @@ import type { Request } from "express";
 
 export class SucursalController extends BaseController {
 
-  async getAllSucursales(res: Response, req: Request, next:NextFunction) {
+  async getAllSucursales(res: Response, req: Request, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await queryRunner.query(
         'SELECT SucursalId, SucursalDescripcion, SucursalId as value, SucursalDescripcion as label FROM Sucursal '
       )
@@ -19,12 +20,8 @@ export class SucursalController extends BaseController {
     }
     catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
-    /*
-        const result = await this.connection.query(
-          'EXEC procedures.MyProcedure @0', [someParam]
-        );
-        */
-    // ... do something with the result
   }
 }

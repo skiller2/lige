@@ -6,8 +6,9 @@ import type { QueryRunner } from "typeorm";
 
 export class ObjetivoController extends BaseController {
   async ObjetivoInfoFromId(objetivoId: string, res, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result: ObjetivoInfo[] = await queryRunner.query(
         `SELECT obj.ObjetivoId objetivoId, obj.ClienteId clienteId, obj.ClienteElementoDependienteId,
         CONCAT(TRIM(cli.ClienteDenominacion), TRIM(ele.ClienteElementoDependienteDescripcion)) descripcion, 
@@ -22,12 +23,15 @@ export class ObjetivoController extends BaseController {
       this.jsonRes(info, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getContactoOperativo(objetivoId: string, res, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result: ObjetivoInfo[] = await queryRunner.query(
         `SELECT
             concat( TRIM(cc.ContactoApellido), ', ', TRIM(cc.ContactoNombre)) AS ApellidoNombre,
@@ -44,17 +48,20 @@ export class ObjetivoController extends BaseController {
             LEFT JOIN TipoTelefono tiptel on tiptel.TipoTelefonoId=cct.TipoTelefonoId
 
             WHERE  obj.ObjetivoId=@0 and cc.ContactoTipoCod = 'OPE'`,
-                    [objetivoId]
+        [objetivoId]
       );
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getDomicilio(objetivoId: string, res, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result: ObjetivoInfo[] = await queryRunner.query(
         `SELECT dom.DomicilioId 
 
@@ -79,26 +86,31 @@ export class ObjetivoController extends BaseController {
                 LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
                 LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
 
-                WHERE obj.ObjetivoId=@0`,   [objetivoId]
+                WHERE obj.ObjetivoId=@0`, [objetivoId]
       );
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getCoberturaServicio(objetivoId: string, res, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result: ObjetivoInfo[] = await queryRunner.query(
         `Select ele.CoberturaServicio
           from ClienteElementoDependiente ele
           LEFT JOIN Objetivo Obj on Obj.ClienteElementoDependienteId=ele.ClienteElementoDependienteId and Obj.ClienteId=ele.ClienteId
-          where Obj.ObjetivoId=@0`,   [objetivoId]
+          where Obj.ObjetivoId=@0`, [objetivoId]
       );
       this.jsonRes(result, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -211,26 +223,32 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
   }
 
   async getObjetivoContratosResponse(objetivoId: number, anio: number, mes: number, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const records = await ObjetivoController.getObjetivoContratos(objetivoId, anio, mes, queryRunner)
       this.jsonRes(records, res);
 
     } catch (error) {
       return next(error);
 
+    } finally {
+      await queryRunner.release()
     }
   }
 
   async getObjetivoResponsablesResponse(objetivoId: number, anio: number, mes: number, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const records = await ObjetivoController.getObjetivoResponsables(objetivoId, anio, mes, queryRunner)
       this.jsonRes(records, res);
 
     } catch (error) {
       return next(error);
 
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -278,8 +296,11 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
             WHERE obj.ObjetivoId=@1`,
         [fechaHasta, objetivoId]
       )
-      .then((records: Array<any>) => {
+      .then(async (records: Array<any>) => {
         //                if (records.length != 1) throw new ClientException('Objetivo not found')
+
+        await queryRunner.release()
+
         this.jsonRes(records, res);
       })
       .catch((error) => {
@@ -289,8 +310,9 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
 
 
   async search(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const { sucursalId, fieldName, value } = req.body;
       if (sucursalId == "") {
         this.jsonRes({ objetivos: [] }, res);
@@ -356,6 +378,8 @@ WHERE  `;
       } else this.jsonRes({ objetivos: [] }, res);
     } catch (error) {
       return next(error);
+    } finally {
+      await queryRunner.release()
     }
   }
 }

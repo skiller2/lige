@@ -390,6 +390,7 @@ export class ChatBotController extends BaseController {
       res.end();
     } catch (error) {
       return next(error)
+    }finally {
     }
   }
 

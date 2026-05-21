@@ -352,6 +352,8 @@ export class OrdenesDeVentaController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 }

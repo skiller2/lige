@@ -362,6 +362,8 @@ export class ExcepcionesAsistenciaController extends BaseController {
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
 
   }

@@ -8,40 +8,42 @@ export class PersonalObjetivosController extends BaseController {
 
 
   async getObjetivo(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       let user_id = Number(req.params.user)
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await this.getPersonaAndGroup(queryRunner, user_id, true)
       this.jsonRes({ recordsArray: [result] }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
-
-
   }
 
   async getpersonal(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       let objetivo = Number(req.params.objetivo)
-      const queryRunner = await getConnection(res.locals.userName);
       const result = await this.getPersonaAndGroup(queryRunner, objetivo, false)
       this.jsonRes({ recordsArray: [result] }, res);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
 
   }
 
   async setPersonaAndGroup(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       const { userId, ObjetivoId } = req.body
       let usuario = res.locals.userName
       let ip = this.getRemoteAddress(req)
       let fechaActual = new Date();
-      const queryRunner = await getConnection(res.locals.userName);
 
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasGroup(req, 'administrativo'))
         throw new ClientException(`No tiene permisos para realizar la carga, no se encuentra en el grupo liquidaciones o administrativo`)
@@ -57,6 +59,8 @@ export class PersonalObjetivosController extends BaseController {
       return this.jsonRes([], res, `Se realizo la tarea con exito`);
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
 
   }

@@ -398,6 +398,8 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       });
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 
@@ -418,6 +420,8 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       this.jsonRes({ list: telefonos, ImpuestoInternoTelefoniaImpuesto }, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 
@@ -1010,13 +1014,13 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
     res: Response,
     next: NextFunction
   ) {
+      const queryRunner = await getConnection(res.locals.userName);
 
     try {
 
       let usuario = res.locals.userName
       let ip = this.getRemoteAddress(req)
       let fechaActual = new Date()
-      const queryRunner = await getConnection(res.locals.userName);
       //const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Number(Anio), Number(Mes), usuario, ip)
 
 
@@ -1039,6 +1043,8 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 
@@ -1056,6 +1062,8 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
       this.jsonRes(options, res);
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release();
     }
   }
 

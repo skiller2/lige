@@ -323,6 +323,8 @@ export class FacturacionController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
 
     }
@@ -386,20 +388,22 @@ export class FacturacionController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 
     async saveFacturacion(req: any, res: Response, next: NextFunction) {
 
         const queryRunner = await getConnection(res.locals.userName)
-        
-        
+
+
 
         try {
             await queryRunner.startTransaction();
             const { ComprobanteNro, comprobanteNroold, ComprobanteTipoCodigo, ClienteId, ClienteElementoDependienteId } = req.body[0]
 
-            
+
             if (!ComprobanteTipoCodigo) {
                 throw new ClientException("El tipo de comprobante es requerido")
             }
@@ -420,16 +424,16 @@ export class FacturacionController extends BaseController {
             }
 
 
-            
+
             for (const registro of req.body[1]) {
                 const { id } = registro
 
-                await queryRunner.query(`UPDATE Facturacion SET ComprobanteNro = @0, ComprobanteTipoCodigo = @1  WHERE FacturacionCodigo = @2`, 
-                  [ComprobanteNro, ComprobanteTipoCodigo, id])
+                await queryRunner.query(`UPDATE Facturacion SET ComprobanteNro = @0, ComprobanteTipoCodigo = @1  WHERE FacturacionCodigo = @2`,
+                    [ComprobanteNro, ComprobanteTipoCodigo, id])
 
-                
+
             }
-           
+
             //throw new ClientException("todo ok")
             await queryRunner.commitTransaction()
             this.jsonRes({}, res, 'Actualización de registro exitoso');
@@ -438,12 +442,8 @@ export class FacturacionController extends BaseController {
             await queryRunner.rollbackTransaction();
             await queryRunner.release();
             return next(error);
+        } finally {
+            await queryRunner.release()
         }
-
-
-
-
     }
-
-
 }

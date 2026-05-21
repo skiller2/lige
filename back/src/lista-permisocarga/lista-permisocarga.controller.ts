@@ -5,7 +5,7 @@ import type { NextFunction, Request, Response } from "express";
 import { ObjetivoController } from "../controller/objetivo.controller.ts";
 
 const columnasGrilla: any[] = [
-  
+
   {
     name: "id",
     type: "number",
@@ -13,7 +13,7 @@ const columnasGrilla: any[] = [
     field: "id",
     fieldName: "id",
     hidden: true,
-    searchHidden:true
+    searchHidden: true
   },
   {
     name: "Objetivo Código",
@@ -23,7 +23,7 @@ const columnasGrilla: any[] = [
     fieldName: "carg.objetivo_id",
     searchComponent: "inputForObjetivoSearch",
     hidden: false,
-    searchHidden:false
+    searchHidden: false
   },
   {
     name: "Objetivo Descripción",
@@ -33,7 +33,7 @@ const columnasGrilla: any[] = [
     fieldName: "carg.objetivo_id",
     searchComponent: "inputForObjetivoSearch",
     hidden: false,
-    searchHidden:false
+    searchHidden: false
   },
   {
     name: "Persona Descripción",
@@ -43,7 +43,7 @@ const columnasGrilla: any[] = [
     fieldName: "carg.persona_id",
     searchComponent: "inputForPersonalSearch",
     hidden: false,
-    searchHidden:false
+    searchHidden: false
   },
   {
     name: "Fecha de última modificación",
@@ -51,9 +51,9 @@ const columnasGrilla: any[] = [
     id: "Fechadeultimamodificación",
     field: "Fechadeultimamodificación",
     fieldName: "carg.aud_fecha_mod",
-      searchComponent: "inputForFechaSearch",
+    searchComponent: "inputForFechaSearch",
     hidden: false,
-    searchHidden:false
+    searchHidden: false
   },
   {
     name: "CUIT",
@@ -63,7 +63,7 @@ const columnasGrilla: any[] = [
     fieldName: "carg.persona_id",
     searchComponent: "inputForPersonalSearch",
     hidden: false,
-    searchHidden:false
+    searchHidden: false
   },
 ];
 
@@ -77,17 +77,15 @@ export class ListaPermisoCargaController extends BaseController {
   async list(
     req: any,
     res: Response,
-    next:NextFunction
+    next: NextFunction
   ) {
-   
+
     const filterSql = filtrosToSql(req.body.options.filtros, columnasGrilla);
     //const orderBy = orderToSQL(req.body.options.sort)
-    // const anio = Number(req.body.anio)
-    // const mes = Number(req.body.mes)
+    const queryRunner = await getConnection(res.locals.userName);
 
 
     try {
-const queryRunner = await getConnection(res.locals.userName);
       const listPermisoCarga = await queryRunner.query(
         `SELECT 
         ROW_NUMBER() OVER (ORDER BY carg.objetivo_id) AS id,
@@ -112,9 +110,11 @@ const queryRunner = await getConnection(res.locals.userName);
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
- 
+
 
 }

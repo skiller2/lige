@@ -6,7 +6,7 @@ import { FileUploadController } from "../controller/file-upload.controller.ts"
 import type { QueryRunner } from "typeorm";
 import { ObjetivoController } from "../controller/objetivo.controller.ts";
 import { ObjetivosController } from "../objetivos/objetivos.controller.ts";
-import type {  Selections } from '../schemas/filtro.ts';
+import type { Selections } from '../schemas/filtro.ts';
 
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
 import { PersonalController } from "../controller/personal.controller.ts"
@@ -752,7 +752,7 @@ export class NovedadesController extends BaseController {
                 value: grupoActividad,
                 closeable: res.locals?.authADGroup ? true : false,
                 label: '',
-                originIdx:null
+                originIdx: null
             })
             return this.jsonRes(startFilters, res)
         }
@@ -764,7 +764,7 @@ export class NovedadesController extends BaseController {
             value: res.locals.userName,
             closeable: res.locals?.authADGroup ? true : false,
             label: '',
-            originIdx:null
+            originIdx: null
         })
         return this.jsonRes(startFilters, res)
 
@@ -824,6 +824,7 @@ export class NovedadesController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
         }
     }
 
@@ -835,6 +836,7 @@ export class NovedadesController extends BaseController {
 
         } catch (error) {
             return next(error)
+        } finally {
         }
     }
 
@@ -888,7 +890,7 @@ export class NovedadesController extends BaseController {
                 throw new ClientException(`Novedad no encontrada`)
             NovedadInfo = NovedadInfo[0]
 
-            let infoPersonal = await PersonalController.infoPersonalQuery(NovedadInfo.PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1,queryRunner)
+            let infoPersonal = await PersonalController.infoPersonalQuery(NovedadInfo.PersonalId, fechaActual.getFullYear(), fechaActual.getMonth() + 1, queryRunner)
             infoPersonal = infoPersonal[0]
 
             const personaNombre = infoPersonal.PersonalApellido + ' ' + infoPersonal.PersonalNombre;
@@ -1191,8 +1193,8 @@ export class NovedadesController extends BaseController {
                 EventoLogCodigo,
                 'COM',
                 {
-                res: `Procesado correctamente`,
-                'Informes generados': novedades
+                    res: `Procesado correctamente`,
+                    'Informes generados': novedades
                 },
                 usuario,
                 ip

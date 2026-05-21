@@ -5,7 +5,7 @@ import type { NextFunction, Request, Response } from "express";
 
 export class DescuentoPorDeudaAnteriorController extends BaseController {
 
- 
+
   async procesaCambios(req: any, res: Response, next: NextFunction) {
     const options = {}
 
@@ -18,13 +18,12 @@ export class DescuentoPorDeudaAnteriorController extends BaseController {
     fechaAyer.setHours(0, 0, 0, 0)
 
     try {
-          return next(`Se procesaron cambios `)
+      return next(`Se procesaron cambios `)
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-        await queryRunner.release();      
-        return next(`Se procesaron cambios `)
+      await queryRunner.release();
     }
   }
 }

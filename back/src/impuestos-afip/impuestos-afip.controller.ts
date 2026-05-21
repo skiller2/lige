@@ -79,9 +79,10 @@ const importeMontoRegex = [
 
 export class ImpuestosAfipController extends BaseController {
   async handleDownloadComprobantesByFiltro(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
-      const queryRunner = await getConnection(res.locals.userName);
       req.body.options.sort = [{ fieldName: 'ApellidoNombre', direction: 'ASC' }]
 
       const periodo = getPeriodoFromRequest(req);
@@ -125,6 +126,8 @@ export class ImpuestosAfipController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -351,9 +354,9 @@ export class ImpuestosAfipController extends BaseController {
       : { filtros: [], sort: null };
 
     const descuentoId = process.env.OTRO_DESCUENTO_ID;
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const listaDescuentos = await this.DescuentosByPeriodo({
         anio,
         mes,
@@ -370,6 +373,8 @@ export class ImpuestosAfipController extends BaseController {
       );
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -377,9 +382,9 @@ export class ImpuestosAfipController extends BaseController {
     const anio = String(req.params.anio);
     const mes = String(req.params.mes);
     const GrupoActividadId = String(req.params.GrupoActividadId);
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const queryRunner = await getConnection(res.locals.userName);
       const result: DescuentoJSON[] = await this.getDescuentosByPeriodo({
         anio,
         mes,
@@ -400,6 +405,8 @@ export class ImpuestosAfipController extends BaseController {
       );
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -822,8 +829,8 @@ export class ImpuestosAfipController extends BaseController {
     res: Response,
     next: NextFunction
   ) {
+    const queryRunner = await getConnection(res.locals.userName);
     try {
-      const queryRunner = await getConnection(res.locals.userName);
 
       const formattedMonth = month.padStart(2, "0");
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
@@ -865,6 +872,8 @@ export class ImpuestosAfipController extends BaseController {
       });
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -1096,6 +1105,8 @@ export class ImpuestosAfipController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -1165,6 +1176,8 @@ export class ImpuestosAfipController extends BaseController {
       });
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -1341,6 +1354,8 @@ export class ImpuestosAfipController extends BaseController {
 
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release();
     }
   }
 

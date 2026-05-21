@@ -627,6 +627,8 @@ LEFT JOIN (
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
   }
 
@@ -831,6 +833,8 @@ LEFT JOIN (
   }
 
   async getImportacionesOrdenesDeVentaAnteriores(req: Request, res: Response, next: NextFunction) {
+      const queryRunner = await getConnection(res.locals.userName);
+
     try {
 
       const anio = req.params.anio
@@ -840,7 +844,6 @@ LEFT JOIN (
 
       if (!anio || !mes) throw new ClientException("Faltan indicar el anio y el mes")
 
-      const queryRunner = await getConnection(res.locals.userName);
 
       const importacionesAnteriores = await queryRunner.query(
 
@@ -860,6 +863,8 @@ LEFT JOIN (
 
     } catch (error) {
       return next(error)
+    }finally {
+      await queryRunner.release()
     }
 
   }
@@ -886,6 +891,8 @@ LEFT JOIN (
       });
     } catch (error) {
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
