@@ -108,7 +108,7 @@ export class InitV1Component implements OnInit {
   public adelantosPendientes = resource({
     params: () => null,
     loader: async () => {
-      const ds = await fetch('/api/init/stats/adelantospendientes', { headers: { token: this.token } })
+      const ds = await fetch('api/init/stats/adelantospendientes', { headers: { token: this.token } })
       return await ds.json()
     }
   });
@@ -116,7 +116,7 @@ export class InitV1Component implements OnInit {
   public excepcionesPendientes = resource({
     params: () => null,
     loader: async () => {
-      const ds = await fetch('/api/init/stats/excepcionespendientes', { headers: { token: this.token } })
+      const ds = await fetch('api/init/stats/excepcionespendientes', { headers: { token: this.token } })
       return await ds.json()
     }
   });
@@ -124,7 +124,7 @@ export class InitV1Component implements OnInit {
   public clientesActivos = resource({
     params: () => null,
     loader: async () => {
-      const ds = await fetch('/api/init/stats/clientesactivos', { headers: { token: this.token } })
+      const ds = await fetch('api/init/stats/clientesactivos', { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -133,7 +133,7 @@ export class InitV1Component implements OnInit {
   public objetivosActivos = resource({
     params: () => null,
     loader: async () => {
-      const ds = await fetch('/api/init/stats/objetivosactivos', { headers: { token: this.token } })
+      const ds = await fetch('api/init/stats/objetivosactivos', { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -142,7 +142,7 @@ export class InitV1Component implements OnInit {
   public cambioCategoriaPendientes = resource({
     params: () => null,
     loader: async () => {
-      const ds = await fetch('/api/init/stats/cambioscategoria', { headers: { token: this.token } })
+      const ds = await fetch('api/init/stats/cambioscategoria', { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -152,7 +152,7 @@ export class InitV1Component implements OnInit {
   public objetivosSinGrupo = resource({
     params: () => null,
     loader: async () => {
-      const ds = await fetch('/api/init/stats/objetivossingrupo', { headers: { token: this.token } })
+      const ds = await fetch('api/init/stats/objetivossingrupo', { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -162,7 +162,7 @@ export class InitV1Component implements OnInit {
   public recibosPendientes = resource({
     params: () => null,
     loader: async () => {
-      const ds = await fetch(`/api/init/stats/recibos`, { headers: { token: this.token } })
+      const ds = await fetch(`api/init/stats/recibos`, { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -171,7 +171,7 @@ export class InitV1Component implements OnInit {
   public personasActivasSinHabilitaciones = resource({
     params: () => null,
     loader: async () => {
-      const ds = await fetch('/api/init/stats/personasactivassinhabilitacion', { headers: { token: this.token } })
+      const ds = await fetch('api/init/stats/personasactivassinhabilitacion', { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -181,7 +181,7 @@ export class InitV1Component implements OnInit {
   public objetivosActivosSinHabilitaciones = resource({
     params: () => null,
     loader: async () => {
-      const ds = await fetch('/api/init/stats/objetivosactivossinhabilitacion', { headers: { token: this.token } })
+      const ds = await fetch('api/init/stats/objetivosactivossinhabilitacion', { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -190,7 +190,7 @@ export class InitV1Component implements OnInit {
   public habilitacionesProximaVencer = resource({
     params: () => null,
     loader: async () => {
-      const ds = await fetch('/api/init/stats/habilitacionesproximavencer', { headers: { token: this.token } })
+      const ds = await fetch('api/init/stats/habilitacionesproximavencer', { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -206,7 +206,7 @@ export class InitV1Component implements OnInit {
       const mes = stmactual.getMonth() + 1;
       const anio = stmactual.getFullYear();
 
-      const ds = await fetch(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`, { headers: { token: this.token } })
+      const ds = await fetch(`api/init/stats/objetivossinasistencia/${anio}/${mes}`, { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -218,7 +218,7 @@ export class InitV1Component implements OnInit {
       const stmactual = new Date();
       const mes = stmactual.getMonth() + 1;
       const anio = stmactual.getFullYear();
-      const ds = await fetch(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`, { headers: { token: this.token } })
+      const ds = await fetch(`api/init/stats/objetivossinasistencia/${anio}/${mes}`, { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -233,7 +233,7 @@ export class InitV1Component implements OnInit {
       const mes = stmactual.getMonth() + 1;
       const anio = stmactual.getFullYear();
 
-      const ds = await fetch(`/api/init/stats/licenciasinconsistentes/${anio}/${mes}`, { headers: { token: this.token } })
+      const ds = await fetch(`api/init/stats/licenciasinconsistentes/${anio}/${mes}`, { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -249,7 +249,7 @@ export class InitV1Component implements OnInit {
 
       const mes = stmactual.getMonth() + 1;
       const anio = stmactual.getFullYear();
-      const ds = await fetch(`/api/init/stats/custodiaspendientes/${anio}/${mes}`, { headers: { token: this.token } })
+      const ds = await fetch(`api/init/stats/custodiaspendientes/${anio}/${mes}`, { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -262,7 +262,7 @@ export class InitV1Component implements OnInit {
       //stmactual.setMonth(stmactual.getMonth() - 1)
       const mes = stmactual.getMonth() + 1;
       const anio = stmactual.getFullYear();
-      const ds = await fetch(`/api/init/stats/custodiaspendientes/${anio}/${mes}`, { headers: { token: this.token } })
+      const ds = await fetch(`api/init/stats/custodiaspendientes/${anio}/${mes}`, { headers: { token: this.token } })
       return await ds.json()
 
     }
@@ -273,7 +273,7 @@ export class InitV1Component implements OnInit {
     loader: async () => {
       const stmactual = new Date();
       const anio = stmactual.getFullYear();
-      const ds = await fetch(`/api/init/stats/horastrabajadas/${anio}`, { headers: { token: this.token } })
+      const ds = await fetch(`api/init/stats/horastrabajadas/${anio}`, { headers: { token: this.token } })
       return await ds.json()
     }
   });

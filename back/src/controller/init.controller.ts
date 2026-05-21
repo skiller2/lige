@@ -2,7 +2,6 @@ import type { Request, Response, NextFunction } from "express";
 import { BaseController, ClientException } from "./base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import { CategoriasController } from "../categorias-cambio/categorias-cambio.controller.ts";
-import { objetivosPendasisController } from "./controller.module.ts";
 import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pendasis.controller.ts";
 import { AsistenciaController } from "./asistencia.controller.ts";
 import { CustodiaController } from "./custodia.controller.ts";
@@ -21,14 +20,13 @@ export class InitController extends BaseController {
         //        total += rec.CantidadObjetivos
         total++
       })
-
-      await queryRunner.release()
-
       this.jsonRes({ data, total }, res);
 
     })
       .catch((error) => {
         return next(error);
+      }).finally(async () => {
+        await queryRunner.release()
       });
   }
 
@@ -161,13 +159,14 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
           total++
         })
 
-        await queryRunner.release()
 
         this.jsonRes({ objetivossingrupo: data, objetivossingrupoTotal: total }, res);
 
       })
       .catch((error) => {
         return next(error);
+      }).finally(async() => {
+        await queryRunner.release();
       });
   }
 
@@ -211,20 +210,18 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
 
       let data: { x: string; y: any; }[] = []
       let total = 0
-      //      if (records.length ==0) throw new ClientException('Data not found')
-      records.forEach(async rec => {
 
+      records.forEach((rec: any) => {
         data.push({ x: rec.totalpersonas, y: rec.PersonalPrestamoMonto })
         total += rec.totalpersonas
-
-      await queryRunner.release()
-    
-        this.jsonRes({ adelantos: data, adelantosTotal: total }, res);
-
       })
+
+      this.jsonRes({ adelantos: data, adelantosTotal: total }, res);
+
     } catch (error) {
       return next(error);
-
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -258,14 +255,14 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
           data.push({ x: rec.SucursalDescripcion, y: rec.totalpersonas })
           total += rec.totalpersonas
         })
-
-      await queryRunner.release()
     
         this.jsonRes({ Excepciones: data, excepcionesTotal: total }, res);
 
       })
       .catch((error) => {
         return next(error);
+      }).finally(async() => {
+        await queryRunner.release();
       });
   }
 
@@ -320,6 +317,8 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       })
       .catch((error) => {
         return next(error);
+      }).finally(async() => {
+        await queryRunner.release();
       });
   }
 
@@ -327,7 +326,8 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
   async getClientesActivos(req: Request, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName)
     const stmactual = new Date()
-    const clientesActivos = await queryRunner.query(
+    try {
+      const clientesActivos = await queryRunner.query(
       `with cte as (
 SELECT cli.ClienteId AS id, cli.ClienteId,fac.ClienteFacturacionCUIT,con.CondicionAnteIVADescripcion,cli.ClienteDenominacion,cli.ClienteNombreFantasia,cli.ClienteFechaAlta,
 	CONCAT_WS(' ',TRIM(domcli.DomicilioDomCalle),TRIM(domcli.DomicilioDomNro)) AS Domicilio,cant.CantidadObjetivos,        custodias.CantidadCustodias,        correonoti.ContactoEmailEmail,        calc.activo    
@@ -350,28 +350,36 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
       [stmactual]
     )
 
-    this.jsonRes({ clientesActivos: clientesActivos[0]?.ClientesActivos || 0 }, res);
+      this.jsonRes({ clientesActivos: clientesActivos[0]?.ClientesActivos || 0 }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async getLicenciasInconsistentes(req: Request, res: Response, next: NextFunction) {
     const anio = Number(req.params.anio)
     const mes = Number(req.params.mes)
     const queryRunner = await getConnection(res.locals.userName)
-
-
-    const licencias = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], null, false, false)
-    const licerror = licencias.filter((r: any) => r.PersonalLicenciaSePaga == null || (r.PersonalLicenciaSePaga == 'S' && Number(r.PersonalLicenciaAplicaPeriodoHorasMensuales) == 0) || (r.PersonalLicenciaSePaga == 'N' && Number(r.PersonalLicenciaAplicaPeriodoHorasMensuales) > 0))
-    this.jsonRes({ total: licerror.length, anio, mes }, res);
+    try {
+      const licencias = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], null, false, false)
+      const licerror = licencias.filter((r: any) => r.PersonalLicenciaSePaga == null || (r.PersonalLicenciaSePaga == 'S' && Number(r.PersonalLicenciaAplicaPeriodoHorasMensuales) == 0) || (r.PersonalLicenciaSePaga == 'N' && Number(r.PersonalLicenciaAplicaPeriodoHorasMensuales) > 0))
+      this.jsonRes({ total: licerror.length, anio, mes }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
 
   async getHorasTrabajadas(req: Request, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName)
-
     const anio = Number(req.params.anio)
 
-    queryRunner
-      .query(
+    try {
+      const records: Array<any> = await queryRunner.query(
         `SELECT 
 
         obja.ObjetivoAsistenciaAnoAno, 
@@ -415,10 +423,6 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
         ISNULL(CAST(LEFT(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objd.ObjetivoAsistenciaAnoMesPersonalDias31Gral),2) AS INT),0) )/ 60
         )) AS totalhorascalc
         
-        
-        
-        
-        
         FROM ObjetivoAsistenciaAnoMesPersonalDias objd
         JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoMesId = objd.ObjetivoAsistenciaAnoMesId AND objm.ObjetivoAsistenciaAnoId = objd.ObjetivoAsistenciaAnoId AND objm.ObjetivoId = objd.ObjetivoId
         JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId AND obja.ObjetivoId = objm.ObjetivoId
@@ -436,52 +440,48 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
         AND  DATEFROMPARTS(obja.ObjetivoAsistenciaAnoAno,objm.ObjetivoAsistenciaAnoMesMes,'01') BETWEEN 
         val.ValorLiquidacionDesde and COALESCE (val.ValorLiquidacionHasta, '9999-01-01')
         
-        
         WHERE obja.ObjetivoAsistenciaAnoAno = @1 OR obja.ObjetivoAsistenciaAnoAno = @2
         GROUP BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras
         ORDER BY obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes, objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras
         `,
         [, anio, anio - 1]
       )
-      .then((records: Array<any>) => {
-        let horasTrabajadas: any[] = []
 
-        if (records.length > 0) {
-          const lastrecord = records.slice(-1)[0]
-          const lastmonth = lastrecord.ObjetivoAsistenciaAnoMesMes
-          const lastyear = lastrecord.ObjetivoAsistenciaAnoAno
+      let horasTrabajadas: any[] = []
 
+      if (records.length > 0) {
+        const lastrecord = records.slice(-1)[0]
+        const lastmonth = lastrecord.ObjetivoAsistenciaAnoMesMes
+        const lastyear = lastrecord.ObjetivoAsistenciaAnoAno
 
-          records.forEach(rec => {
-            if (rec.ObjetivoAsistenciaAnoAno == lastyear || (rec.ObjetivoAsistenciaAnoAno < lastyear && rec.ObjetivoAsistenciaAnoMesMes >= lastmonth)) {
-              let color = '#f80'
-              switch (rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras) {
-                case 'C':
-                  color = '#f50'
-                  break;
-                case 'N':
-                  color = '#e30'
-                  break;
-                case 'R':
-                  color = '#d10'
-                  break;
-                default:
-                  break;
-              }
-              horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc, type: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras, color: color, })
+        records.forEach(rec => {
+          if (rec.ObjetivoAsistenciaAnoAno == lastyear || (rec.ObjetivoAsistenciaAnoAno < lastyear && rec.ObjetivoAsistenciaAnoMesMes >= lastmonth)) {
+            let color = '#f80'
+            switch (rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras) {
+              case 'C':
+                color = '#f50'
+                break;
+              case 'N':
+                color = '#e30'
+                break;
+              case 'R':
+                color = '#d10'
+                break;
+              default:
+                break;
             }
-          })
-        }
+            horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc, type: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras, color: color, })
+          }
+        })
+      }
 
-        this.jsonRes({ horasTrabajadas: horasTrabajadas, anio: anio }, res);
+      this.jsonRes({ horasTrabajadas: horasTrabajadas, anio: anio }, res);
 
-      })
-      .catch((error) => {
-        return next(error);
-      }).finally(() => {
-        queryRunner.release()
-      })
-      ;
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   async search(
@@ -519,8 +519,8 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
       })
       .catch((error) => {
         return next(error);
-      }).finally(() => {
-        queryRunner.release();
+      }).finally(async() => {
+        await queryRunner.release();
       });
   }
 
@@ -609,7 +609,7 @@ SELECT COUNT(*) AS ClientesActivos FROM cte
       return next(error);
 
     } finally {
-      queryRunner.release()
+      await queryRunner.release()
     }
   }
 
@@ -725,7 +725,7 @@ e.PersonalHabilitacionId = b.PersonalHabilitacionId
       return next(error);
 
     } finally {
-      queryRunner.release()
+      await queryRunner.release()
     }
   }
 
@@ -775,7 +775,7 @@ e.PersonalHabilitacionId = b.PersonalHabilitacionId
       return next(error);
 
     } finally {
-      queryRunner.release()
+      await queryRunner.release()
     }
   }
 
