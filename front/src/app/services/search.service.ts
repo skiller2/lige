@@ -2325,7 +2325,7 @@ export class SearchService {
 
   getStockEfectoPersonaInfo(personalId: number, anio: number, mes: number) {
     if (!personalId || !anio || !mes) return of(null);
-    return this.http.get<ResponseJSON<any>>(`api/stock-efecto/persona-info/${personalId}/${anio}/${mes}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/personal/info/${personalId}/${anio}/${mes}`).pipe(
       map(res => res.data),
       catchError(() => of(null))
     );

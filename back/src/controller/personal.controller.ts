@@ -437,12 +437,24 @@ export class PersonalController extends BaseController {
       this.jsonRes(responsables, res);
     } catch (error) {
       return next(error)
-    } finally {
-      await queryRunner.release()
     }
   }
 
-  static async infoPersonalQuery(PersonalId: any, anio: number, mes: number, queryRunner: QueryRunner) {
+  async getInfo(req: any, res: Response, next: NextFunction) {
+    try {
+      const personalId = Number(req.params.personalId);
+      const anio = Number(req.params.anio);
+      const mes = Number(req.params.mes);
+
+      const queryRunner = await getConnection(res.locals.userName);
+      const rows = await PersonalController.infoPersonalQuery(personalId, anio, mes, queryRunner);
+      this.jsonRes(rows[0] ?? null, res);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  static async infoPersonalQuery(PersonalId: any, anio: number, mes: number,queryRunner:QueryRunner) {
     return queryRunner.query(`
       SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 

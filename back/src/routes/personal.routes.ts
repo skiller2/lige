@@ -212,6 +212,10 @@ personalRouter.get(`${base}/name/:personalId`, authMiddleware.verifyToken, (req,
   personalController.getNameFromId(req.params.personalId, res, next);
 });
 
+personalRouter.get(`${base}/info/:personalId/:anio/:mes`, [authMiddleware.verifyToken], (req, res, next) => {
+  personalController.getInfo(req, res, next);
+});
+
 personalRouter.get(`${base}/:id`, [authMiddleware.verifyToken], (req, res, next) => {
   personalController.getById(req.params.id, res, next);
 });

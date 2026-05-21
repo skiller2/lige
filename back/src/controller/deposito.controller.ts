@@ -9,7 +9,11 @@ export class DepositoController extends BaseController {
 
     try {
       const result = await queryRunner.query(
-        'SELECT DepositoId, DepositoNombre, DepositoSucursalId, DepositoId as value, DepositoNombre as label FROM Deposito'
+        `SELECT dep.DepositoId, dep.DepositoNombre, dep.DepositoSucursalId,
+                TRIM(suc.SucursalDescripcion) AS DepositoSucursalDescripcion,
+                dep.DepositoId AS value, dep.DepositoNombre AS label
+         FROM Deposito dep
+         LEFT JOIN Sucursal suc ON suc.SucursalId = dep.DepositoSucursalId`
       )
       this.jsonRes(result, res)
     }

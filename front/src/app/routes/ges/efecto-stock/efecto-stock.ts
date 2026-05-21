@@ -10,7 +10,6 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 import { TipoDestinoSearchComponent } from '../../../shared/tipo-destino-search/tipo-destino-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { ProveedorSearchComponent } from '../../../shared/proveedor-search/proveedor-search.component';
-import { SucursalSearchComponent } from '../../../shared/sucursal-search/sucursal-search.component';
 
 export interface ParametroformEfectoStock {
   fecha: Date | null;
@@ -23,7 +22,7 @@ export interface ParametroformEfectoStock {
 
 @Component({
   selector: 'app-efecto-stock',
-  imports: [...SHARED_IMPORTS, CommonModule, FormField, PersonalSearchComponent, TipoDestinoSearchComponent, ObjetivoSearchComponent, ProveedorSearchComponent, SucursalSearchComponent],
+  imports: [...SHARED_IMPORTS, CommonModule, FormField, PersonalSearchComponent, TipoDestinoSearchComponent, ObjetivoSearchComponent, ProveedorSearchComponent],
   templateUrl: './efecto-stock.html',
   styleUrl: './efecto-stock.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -63,6 +62,14 @@ export class EfectoStockComponent {
     loader: async ({ params }) => {
       if (params.tipo !== 'deposito') return [];
       return await firstValueFrom(this.searchService.getDepositos());
+    },
+  });
+
+  proveedores = resource({
+    params: () => ({ tipo: this.tipoDestinoSeleccionado() }),
+    loader: async ({ params }) => {
+      if (params.tipo !== 'proveedor') return [];
+      return await firstValueFrom(this.searchService.getStockEfectoProveedores());
     },
   });
 
@@ -124,14 +131,19 @@ export class EfectoStockComponent {
     },
   });
 
-  sucursalIdDisplay = computed(() => {
+  sucursalDescripcionDisplay = computed(() => {
     const tipo = this.tipoDestinoSeleccionado();
-    if (tipo === 'personal') return this.personaInfo.value()?.SucursalId ?? null;
-    if (tipo === 'objetivo') return this.objetivoInfo.value()?.SucursalId ?? null;
+    if (tipo === 'personal') return this.personaInfo.value()?.SucursalDescripcion ?? null;
+    if (tipo === 'objetivo') return this.objetivoInfo.value()?.SucursalDescripcion ?? null;
     if (tipo === 'deposito') {
       const id = this.parametroStock().depositoId;
       const dep = (this.depositos.value() ?? []).find((d: any) => d.DepositoId === id);
-      return dep?.DepositoSucursalId ?? null;
+      return dep?.DepositoSucursalDescripcion ?? null;
+    }
+    if (tipo === 'proveedor') {
+      const id = this.parametroStock().proveedorId;
+      const pro = (this.proveedores.value() ?? []).find((p: any) => p.ProveedorId === id);
+      return pro?.ProveedorSucursalDescripcion ?? null;
     }
     return null;
   });

@@ -23,7 +23,7 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="8">Sucursal</nz-form-label>
         <nz-form-control [nzSpan]="16">
-          <app-sucursal-search [ngModel]="sucursalIdDisplay()" [disabled]="true" [ngModelOptions]="{ standalone: true }"></app-sucursal-search>
+          <input nz-input disabled [value]="sucursalDescripcionDisplay() || ''" />
         </nz-form-control>
       </nz-form-item>
     </div>
@@ -84,8 +84,8 @@
       }
       <div nz-col [nzSpan]="8">
         <nz-form-item>
-          <nz-form-label [nzSpan]="10">Contrato</nz-form-label>
-          <nz-form-control [nzSpan]="13  ">
+          <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
+          <nz-form-control [nzSpan]="11">
             @if (objetivoContratos.value(); as contratos) {
               @if (contratos.length === 0 && parametroStock().objetivoId) {
                 <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
