@@ -629,7 +629,8 @@ export class ImpuestosAfipController extends BaseController {
     const anioRequest: number = req.body.anio;
     const mesRequest: number = req.body.mes;
     const queryRunner = await getConnection(res.locals.userName);
-
+    const ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
     try {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
       if (!anioRequest) throw new ClientException("Faltó indicar el mes.");
@@ -652,8 +653,7 @@ export class ImpuestosAfipController extends BaseController {
 
         //Call to writefile
         await queryRunner.startTransaction()
-        const ip = this.getRemoteAddress(req)
-        const usuario = res.locals.userName
+
 
         await this.insertPDF(
           queryRunner,
@@ -745,9 +745,6 @@ export class ImpuestosAfipController extends BaseController {
 
           try {
             await queryRunner.startTransaction()
-            const ip = this.getRemoteAddress(req)
-            const usuario = res.locals.userName
-
 
             await this.insertPDF(
               queryRunner,
