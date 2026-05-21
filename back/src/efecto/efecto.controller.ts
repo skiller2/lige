@@ -753,7 +753,7 @@ export class EfectoController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
 
     let buscar = false;
-    let query: string = `SELECT EfectoId,EfectoDescripcion  FROM EfectoDescripcion WHERE`;
+    let query: string = `SELECT EfectoId,EfectoEfectoIndividualId,EfectoDescripcionCompleto as EfectoDescripcion  FROM stockreal WHERE`;
     switch (fieldName) {
       case "EfectoDescripcion":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
