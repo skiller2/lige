@@ -462,7 +462,7 @@ export class EstudioController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result[0] }, res, (PersonalIdForEdit > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
-      await queryRunner.rollbackTransaction()
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()

@@ -281,7 +281,7 @@ export class InstitucionesController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result[0] }, res, (!isNewOrEdit) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
-      await queryRunner.rollbackTransaction()
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -389,7 +389,7 @@ export class InstitucionesController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, (CentroCapacitacionId > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
-      await queryRunner.rollbackTransaction()
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()

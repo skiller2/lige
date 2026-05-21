@@ -438,9 +438,7 @@ export class FacturacionController extends BaseController {
             await queryRunner.commitTransaction()
             this.jsonRes({}, res, 'Actualización de registro exitoso');
         } catch (error) {
-
-            await queryRunner.rollbackTransaction();
-            await queryRunner.release();
+            await this.rollbackTransaction(queryRunner)
             return next(error);
         } finally {
             await queryRunner.release()

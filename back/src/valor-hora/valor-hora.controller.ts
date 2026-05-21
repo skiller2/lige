@@ -196,7 +196,7 @@ export class ValorHoraController extends BaseController {
       await queryRunner.commitTransaction();
       return this.jsonRes(dataResultado, res, message);
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      await this.rollbackTransaction(queryRunner)
       return next(error);
     } finally {
       await queryRunner.release();
@@ -286,7 +286,7 @@ export class ValorHoraController extends BaseController {
       await queryRunner.commitTransaction();
       return this.jsonRes({ success: true }, res, "Registro eliminado exitosamente");
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      await this.rollbackTransaction(queryRunner)
       return next(error);
     } finally {
       await queryRunner.release();
@@ -360,7 +360,7 @@ export class ValorHoraController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes({ success: true }, res, "Modificación de valores aplicada exitosamente");
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      await this.rollbackTransaction(queryRunner)
       return next(error);
     } finally {
       await queryRunner.release();

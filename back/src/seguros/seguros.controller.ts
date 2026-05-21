@@ -1150,7 +1150,7 @@ UNION
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, (PolizaSeguroNroPoliza && PolizaSeguroNroEndoso && CompaniaSeguroId && TipoSeguroCodigo) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
-      await queryRunner.rollbackTransaction()
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()

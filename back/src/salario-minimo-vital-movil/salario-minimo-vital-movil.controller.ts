@@ -318,12 +318,6 @@ export class SalarioMinimoVitalMovilController extends BaseController {
     }
   }
 
-  async rollbackTransaction(queryRunner: any) {
-    if (queryRunner.isTransactionActive) {
-      await queryRunner.rollbackTransaction();
-    }
-  }
-
   async deleteSMVM(req: any, res: Response, next: NextFunction) {
 
 

@@ -2677,7 +2677,7 @@ FROM cte
       await queryRunner.commitTransaction()
 
     } catch (error) {
-      await queryRunner.rollbackTransaction()
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()

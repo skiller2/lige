@@ -471,7 +471,7 @@ export class CursoController extends BaseController {
       await queryRunner.commitTransaction();
       this.jsonRes({ list: result }, res, (CursoHabilitacionIdForEdit > 0) ? `se Actualizó con exito el registro` : `se Agregó con exito el registro`);
     } catch (error) {
-      await queryRunner.rollbackTransaction()
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
