@@ -40,47 +40,34 @@ export class InitV1Component implements OnInit {
     this.ngZone.runOutsideAngular(() => this.init(el.nativeElement));
   }
 
-  private async init(el: HTMLElement): Promise<void> {
-    const data = await this.horasTrabajadas.value()
-    const chart: Chart = new (window as NzSafeAny).G2.Chart({
-      container: el,
-      autoFit: true,
-    });
 
-    chart.data(data.data.horasTrabajadas);
-    chart.scale('y', {
-      alias: 'horas'
-    });
+  private chart?: Chart;
 
-    chart.axis('x', {
-      //      tickLine: null,
-    });
+  private async init(el: HTMLElement) {
+    const data = await this.horasTrabajadas.value();
 
-    chart.axis('y', {
-      label: {
-        formatter: text => {
-          return text.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
-        }
-      },
-    });
+    if (!this.chart) {
+      this.chart = new (window as NzSafeAny).G2.Chart({
+        container: el,
+        autoFit: true
+      });
+    }
 
-    chart.legend({
-      position: 'right',
-    });
+    const chart = this.chart;
+    if (chart) {
+      chart.clear(); // ✅ evita recrear
 
-    chart.tooltip({
-      shared: true,
-      showMarkers: false,
-    });
-    chart.interaction('active-region');
+      chart.data(data.data.horasTrabajadas);
 
-    chart
-      .interval()
-      .adjust('stack')
-      .position('x*y')
-      .color('type');
+      chart.interval()
+        .adjust('stack')
+        .position('x*y')
+        .color('type');
 
-    chart.render();
+      chart.render();
+
+      this.fixDark(chart);
+    }
   }
 
   ngOnInit(): void {
@@ -100,7 +87,6 @@ export class InitV1Component implements OnInit {
       },
     });
   }
-
 
   private genOnboarding(): void {
     const KEY = 'on-boarding';
