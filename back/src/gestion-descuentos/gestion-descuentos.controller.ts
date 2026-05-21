@@ -2719,6 +2719,8 @@ FROM cte
       }
     }
 
+    if (!formInputs.CuentaTipoCodigo ) campos_vacios.push(`- Tipo de Cuenta`)
+
     if (campos_vacios.length) {
       campos_vacios.unshift('Debe completar los siguientes campos: ')
       throw new ClientException(campos_vacios)
