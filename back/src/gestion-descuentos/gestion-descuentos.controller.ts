@@ -2657,9 +2657,6 @@ FROM cte
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-
-      await queryRunner.startTransaction()
-
       const importacionesDescuentosAnteriores = await queryRunner.query(
         `SELECT doc.DocumentoId,DocumentoTipoCodigo, doc.DocumentoAnio,doc.DocumentoMes, doc.DocumentoDenominadorDocumento, FORMAT(DocumentoAudFechaIng, 'dd/MM/yyyy HH:mm:ss') AS DocumentoAudFechaIng
         FROM documento doc
@@ -2674,8 +2671,6 @@ FROM cte
 
         res
       );
-      await queryRunner.commitTransaction()
-
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
