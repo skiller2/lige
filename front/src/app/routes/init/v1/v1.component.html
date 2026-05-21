@@ -5,29 +5,28 @@
   </h1>
 </div>
 <div nz-row nzGutter="16">
-  @if (adelantosPendientes$ | async; as adelantosPendientes) {
+  @if (adelantosPendientes.value()) {
   <ng-container>
-    @if (adelantosPendientes.data.adelantosTotal >0) {
+    @if (adelantosPendientes.value().data.adelantosTotal >0) {
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
-          <div class="h2 mt0">{{ adelantosPendientes.data.adelantosTotal }}</div>
+          <div class="h2 mt0">{{ adelantosPendientes.value().data?.adelantosTotal }}</div>
           <p class="text-nowrap mb0">Adelantos pendientes de aprobación</p>
         </div>
-
       </div>
     </div>
     }
   </ng-container>
   }
 
-  @if (cambioCategoriaPendientes$ | async; as cambioCategoriaPendientes) {
+  @if (cambioCategoriaPendientes.value()) {
   <ng-container>
-    @if (cambioCategoriaPendientes.data.total >0){
+    @if (cambioCategoriaPendientes.value().data.total >0){
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
-          <div class="h2 mt0">{{ cambioCategoriaPendientes.data.total }}</div>
+          <div class="h2 mt0">{{ cambioCategoriaPendientes.value().data.total }}</div>
           <a class="link-reset" href="#/ges/cambio_categoria" >
             <p class="text-nowrap mb0">Cambios Categorias pendientes</p>
           </a>
@@ -39,15 +38,15 @@
   </ng-container>
   }
 
-  @if (licenciasInconsistentes$ | async; as licenciasInconsistentes) {
+  @if (licenciasInconsistentes.value()) {
   <ng-container>
-    @if (licenciasInconsistentes.data.total >0){
+    @if (licenciasInconsistentes.value().data.total >0){
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
-          <div class="h2 mt0">{{ licenciasInconsistentes.data.total }}</div>
+          <div class="h2 mt0">{{ licenciasInconsistentes.value().data.total }}</div>
           <a class="link-reset" href="#/ges" >
-            <p class="text-nowrap mb0">{{ licenciasInconsistentes.data.mes }}/{{ licenciasInconsistentes.data.anio }}
+            <p class="text-nowrap mb0">{{ licenciasInconsistentes.value().data.mes }}/{{ licenciasInconsistentes.value().data.anio }}
               Licencias inconsistentes</p>
           </a>
 
@@ -58,52 +57,52 @@
     }
   </ng-container>
   }
-  @if (excepcionesPendientes$ | async; as excepcionesPendientes) {
+  @if (excepcionesPendientes.value()) {
   <ng-container>
-    @if (excepcionesPendientes.data.excepcionesTotal>0){
+    @if (excepcionesPendientes.value().data.excepcionesTotal>0){
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
-          <div class="h2 mt0">{{ excepcionesPendientes.data.excepcionesTotal }}</div>
+          <div class="h2 mt0">{{ excepcionesPendientes.value().data.excepcionesTotal }}</div>
           <a href="#/ges/excepciones-asistencia">
             <p class="text-nowrap mb0">Excepciones pendientes de aprobación</p>
           </a>
         </div>
         <div nz-col nzSpan="12">
           <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
-            [data]="excepcionesPendientes.data.Excepciones" yTooltipSuffix="" (ready)="fixDark($event)"></g2-mini-bar>
+            [data]="excepcionesPendientes.value().data.Excepciones" yTooltipSuffix="" (ready)="fixDark($event)"></g2-mini-bar>
         </div>
       </div>
     </div>
     }
   </ng-container>
   }
-  @if (objetivosSinGrupo$ | async; as objetivosSinGrupo) {
+  @if (objetivosSinGrupo.value()) {
   <ng-container>
-    @if (objetivosSinGrupo.data.objetivossingrupoTotal>0) {
+    @if (objetivosSinGrupo.value().data.objetivossingrupoTotal>0) {
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
-          <div class="h2 mt0">{{ objetivosSinGrupo.data.objetivossingrupoTotal }}</div>
+          <div class="h2 mt0">{{ objetivosSinGrupo.value().data.objetivossingrupoTotal }}</div>
           <p class="text-nowrap mb0">Objetivos sin Responsable</p>
         </div>
         <div nz-col nzSpan="12">
           <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
-            [data]="objetivosSinGrupo.data.objetivossingrupo" yTooltipSuffix="" (ready)="fixDark($event)"></g2-mini-bar>
+            [data]="objetivosSinGrupo.value().data.objetivossingrupo" yTooltipSuffix="" (ready)="fixDark($event)"></g2-mini-bar>
         </div>
       </div>
     </div>
     }
   </ng-container>
   }
-  @if (statsRecibosPendientes$ | async; as recibosPendientes) {
+  @if (recibosPendientes.value()) {
   <ng-container>
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
-          <div class="h2 mt0">{{ (recibosPendientes.data.descargados * 100 / recibosPendientes.data.total) |
+          <div class="h2 mt0">{{ (recibosPendientes.value().data.descargados * 100 / recibosPendientes.value().data.total) |
             number:'1.0-0' }}%</div>
-          <p class="text-nowrap mb0">Recibos vistos {{recibosPendientes.data.mes}}/{{recibosPendientes.data.anio}}</p>
+          <p class="text-nowrap mb0">Recibos vistos {{recibosPendientes.value().data.mes}}/{{recibosPendientes.value().data.anio}}</p>
         </div>
         <div nz-col nzSpan="12">
         </div>
@@ -111,19 +110,19 @@
     </div>
   </ng-container>
   }
-  @if (objetivosSinAsistencia$ | async; as objetivosSinAsistencia) {
+  @if (objetivosSinAsistencia.value()) {
   <ng-container>
-    @if (objetivosSinAsistencia.data.objetivosSinAsistenciaTotal > 0){
+    @if (objetivosSinAsistencia.value().data.objetivosSinAsistenciaTotal > 0){
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
-          <div class="h2 mt0">{{ objetivosSinAsistencia.data.objetivosSinAsistenciaTotal }}</div>
-          <p class="text-nowrap mb0">{{ objetivosSinAsistencia.data.mes }}/{{ objetivosSinAsistencia.data.anio }}
+          <div class="h2 mt0">{{ objetivosSinAsistencia.value().data.objetivosSinAsistenciaTotal }}</div>
+          <p class="text-nowrap mb0">{{ objetivosSinAsistencia.value().data.mes }}/{{ objetivosSinAsistencia.value().data.anio }}
             Objetivos sin asistencia</p>
         </div>
         <div nz-col nzSpan="12">
           <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
-            [data]="objetivosSinAsistencia.data.objetivosSinAsistencia" yTooltipSuffix=""
+            [data]="objetivosSinAsistencia.value().data.objetivosSinAsistencia" yTooltipSuffix=""
             (ready)="fixDark($event)"></g2-mini-bar>
         </div>
       </div>
@@ -131,19 +130,19 @@
     }
   </ng-container>
   }
-  @if (custodiasPendientes$ | async; as custodiasPendientes) {
+  @if (custodiasPendientes.value()) {
   <ng-container>
-    @if (custodiasPendientes.data.custodiasPendientesTotal > 0) {
+    @if (custodiasPendientes.value().data.custodiasPendientesTotal > 0) {
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white ">
-          <div class="h2 mt0">{{ custodiasPendientes.data.custodiasPendientesTotal }}</div>
-          <p class="text-nowrap mb0">{{ custodiasPendientes.data.mes }}/{{ custodiasPendientes.data.anio }} Custodias
+          <div class="h2 mt0">{{ custodiasPendientes.value().data.custodiasPendientesTotal }}</div>
+          <p class="text-nowrap mb0">{{ custodiasPendientes.value().data.mes }}/{{ custodiasPendientes.value().data.anio }} Custodias
             Pendientes</p>
         </div>
         <div nz-col nzSpan="12">
           <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
-            [data]="custodiasPendientes.data.custodiasPendientes" yTooltipSuffix=""
+            [data]="custodiasPendientes.value().data.custodiasPendientes" yTooltipSuffix=""
             (ready)="fixDark($event)"></g2-mini-bar>
         </div>
       </div>
@@ -151,13 +150,13 @@
     }
   </ng-container>
   }
-  @if (habilitacionesProximaVencer$ | async; as habsProximaVencer) {
+  @if (habilitacionesProximaVencer.value()) {
   <ng-container>
-    @if (habsProximaVencer.data.HabilitacionesProxVencimiento >0) {
+    @if (habilitacionesProximaVencer.value().data.HabilitacionesProxVencimiento >0) {
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
-          <div class="h2 mt0">{{ habsProximaVencer.data.HabilitacionesProxVencimiento }}</div>
+          <div class="h2 mt0">{{ habilitacionesProximaVencer.value().data.HabilitacionesProxVencimiento }}</div>
           <p class="text-nowrap mb0">Habilitaciones próximas a vencer</p>
         </div>
 
@@ -166,13 +165,13 @@
     }
   </ng-container>
   }
-  @if (personasActivasSinHabilitaciones$ | async; as perActivasSinHabilitaciones) {
+  @if (personasActivasSinHabilitaciones.value()) {
   <ng-container>
-    @if (perActivasSinHabilitaciones.data.PersonalSinHabilitacion >0) {
+    @if (personasActivasSinHabilitaciones.value().data.PersonalSinHabilitacion >0) {
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
-          <div class="h2 mt0">{{ perActivasSinHabilitaciones.data.PersonalSinHabilitacion }}</div>
+          <div class="h2 mt0">{{ personasActivasSinHabilitaciones.value().data.PersonalSinHabilitacion }}</div>
           <a class="link-reset" [routerLink]="['/ges/habilitaciones/listado']"
           [queryParams]="{ DiasFaltantesVencimiento: 0, GestionHabilitacionEstadoCodigo: ['PEN'], PersonalSituacionRevistaSituacionId: [2,10,12] }">
             <p class="text-nowrap mb0">Personas Activas sin habilitación</p>
@@ -184,13 +183,13 @@
     }
   </ng-container>
   }
-  @if (objetivosActivosSinHabilitaciones$ | async; as objActivosSinHabilitaciones) {
+  @if (objetivosActivosSinHabilitaciones.value()) {
   <ng-container>
-    @if (objActivosSinHabilitaciones.data.ObjetivosSinHabilitacion >0) {
+    @if (objetivosActivosSinHabilitaciones.value().data.ObjetivosSinHabilitacion >0) {
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
-          <div class="h2 mt0">{{ objActivosSinHabilitaciones.data.ObjetivosSinHabilitacion }}</div>
+          <div class="h2 mt0">{{ objetivosActivosSinHabilitaciones.value().data.ObjetivosSinHabilitacion }}</div>
             <p class="text-nowrap mb0">Objetivos Activos sin habilitación</p>
         </div>
 
@@ -199,30 +198,30 @@
     }
   </ng-container>
   }
-  @if (objetivosActivos$ | async; as objetivosActivos) {
+  @if (objetivosActivos.value()) {
   <ng-container>
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
-          <div class="h2 mt0">{{ objetivosActivos.data.objetivosActivosTotal }}</div>
+          <div class="h2 mt0">{{ objetivosActivos.value().data.objetivosActivosTotal }}</div>
           <a class="link-reset" [routerLink]="['/ges/objetivos/listado']">
             <p class="text-nowrap mb0">Objetivos Activos</p>
           </a>
         </div>
         <div nz-col nzSpan="12">
           <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
-            [data]="objetivosActivos.data.objetivosActivos" yTooltipSuffix="" (ready)="fixDark($event)"></g2-mini-bar>
+            [data]="objetivosActivos.value().data.objetivosActivos" yTooltipSuffix="" (ready)="fixDark($event)"></g2-mini-bar>
         </div>
       </div>
     </div>
   </ng-container>
   }
-  @if (clientesActivos$ | async; as clientesActivos) {
+  @if (clientesActivos.value()) {
   <ng-container>
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="bg-primary rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
-          <div class="h2 mt0">{{ clientesActivos.data.clientesActivos }}</div>
+          <div class="h2 mt0">{{ clientesActivos.value().data.clientesActivos }}</div>
           <a class="link-reset" [routerLink]="['/ges/clientes/listado']">
             <p class="text-nowrap mb0">Clientes Activos</p>
           </a>
@@ -231,21 +230,21 @@
     </div>
   </ng-container>
   }
-  @if (objetivosSinAsistenciaCur$ | async; as objetivosSinAsistencia) {
+  @if (objetivosSinAsistenciaCur.value()) {
   <ng-container>
     <div nz-col nzXs="24" nzSm="12" nzMd="6" class="mb-md">
       <div nz-row nzType="flex" nzAlign="middle" class="app-ant-btn-warning rounded-md">
         <div nz-col nzSpan="12" class="p-md text-black ">
-          <div class="h2 mt0">{{ objetivosSinAsistencia.data.objetivosSinAsistenciaTotal }}</div>
+          <div class="h2 mt0">{{ objetivosSinAsistenciaCur.value().data.objetivosSinAsistenciaTotal }}</div>
           <a class="link-reset" [routerLink]="['/ges/objetivos_pendasis/pendientes']"
-          [queryParams]="{ GrupoActividadId: 0 , anio: objetivosSinAsistencia.data.anio, mes: objetivosSinAsistencia.data.mes }">
-            <p class="text-nowrap mb0">{{ objetivosSinAsistencia.data.mes }}/{{ objetivosSinAsistencia.data.anio }}
+          [queryParams]="{ GrupoActividadId: 0 , anio: objetivosSinAsistenciaCur.value().data.anio, mes: objetivosSinAsistenciaCur.value().data.mes }">
+            <p class="text-nowrap mb0">{{ objetivosSinAsistenciaCur.value().data.mes }}/{{ objetivosSinAsistenciaCur.value().data.anio }}
             Objetivos sin asistencia</p>
           </a>
         </div>
         <div nz-col nzSpan="12">
           <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
-            [data]="objetivosSinAsistencia.data.objetivosSinAsistencia" yTooltipSuffix=""
+            [data]="objetivosSinAsistencia.value().data.objetivosSinAsistencia" yTooltipSuffix=""
             (ready)="fixDark($event)"></g2-mini-bar>
         </div>
       </div>
@@ -257,72 +256,72 @@
 
 <div nz-row nzGutter="16">
   
-  @if (custodiasPendientes$ | async; as custodiasPendientes) {
+  @if (custodiasPendientes.value()) {
   <div nz-col nzXs="24" nzMd="24">
-    @if (custodiasPendientes.data.custodiasPendientesTotal > 0){
+    @if (custodiasPendientes.value().data.custodiasPendientesTotal > 0){
     <nz-card [nzBordered]="false" [nzTitle]="objsinAsis">
       <ng-template #objsinAsis>
-        Custodias pendientes {{ custodiasPendientes.data.mes }}/{{ custodiasPendientes.data.anio }}
+        Custodias pendientes {{ custodiasPendientes.value().data.mes }}/{{ custodiasPendientes.value().data.anio }}
         <small class="text-sm font-weight-normal">Custodias pendientes</small>
       </ng-template>
-      <g2-pie height="275" [data]="custodiasPendientes.data.custodiasPendientes" [hasLegend]="true"
-        [total]="custodiasPendientes.data.custodiasPendientesTotal"></g2-pie>
+      <g2-pie height="275" [data]="custodiasPendientes.value().data.custodiasPendientes" [hasLegend]="true"
+        [total]="custodiasPendientes.value().data.custodiasPendientesTotal"></g2-pie>
     </nz-card>
     }
   </div>
   }
 
-  @if (objetivosSinAsistencia$ | async; as objetivosSinAsistencia) {
+  @if (objetivosSinAsistencia.value()) {
   <div nz-col nzXs="24" nzMd="24">
-    @if (objetivosSinAsistencia.data.objetivosSinAsistenciaTotal > 0) {
+    @if (objetivosSinAsistencia.value().data.objetivosSinAsistenciaTotal > 0) {
     <nz-card [nzBordered]="false" [nzTitle]="objsinAsis">
       <ng-template #objsinAsis>
-        Objetivos sin asistencia {{ objetivosSinAsistencia.data.mes }}/{{ objetivosSinAsistencia.data.anio }}
+        Objetivos sin asistencia {{ objetivosSinAsistencia.value().data.mes }}/{{ objetivosSinAsistencia.value().data.anio }}
         <small class="text-sm font-weight-normal">Objetivos pendientes de carga por grupo</small>
       </ng-template>
-      <g2-pie height="275" [data]="objetivosSinAsistencia.data.objetivosSinAsistencia" [hasLegend]="true"
-        [total]="objetivosSinAsistencia.data.objetivosSinAsistenciaTotal"></g2-pie>
+      <g2-pie height="275" [data]="objetivosSinAsistencia.value().data.objetivosSinAsistencia" [hasLegend]="true"
+        [total]="objetivosSinAsistencia.value().data.objetivosSinAsistenciaTotal"></g2-pie>
     </nz-card>
     }
   </div>
   }
 
-  @if (custodiasPendientesCur$ | async; as custodiasPendientes) {
+  @if (custodiasPendientesCur.value()) {
   <div nz-col nzXs="24" nzMd="24">
-    @if (custodiasPendientes.data.custodiasPendientesTotal > 0) {
+    @if (custodiasPendientesCur.value().data.custodiasPendientesTotal > 0) {
     <nz-card [nzBordered]="false" [nzTitle]="objsinAsis">
       <ng-template #objsinAsis>
-        Custodias pendientes {{ custodiasPendientes.data.mes }}/{{ custodiasPendientes.data.anio }}
+        Custodias pendientes {{ custodiasPendientesCur.value().data.mes }}/{{ custodiasPendientesCur.value().data.anio }}
         <small class="text-sm font-weight-normal">Custodias pendientes</small>
       </ng-template>
-      <g2-pie height="275" [data]="custodiasPendientes.data.custodiasPendientes" [hasLegend]="true"
-        [total]="custodiasPendientes.data.custodiasPendientesTotal"></g2-pie>
+      <g2-pie height="275" [data]="custodiasPendientesCur.value().data.custodiasPendientes" [hasLegend]="true"
+        [total]="custodiasPendientesCur.value().data.custodiasPendientesTotal"></g2-pie>
     </nz-card>
     }
   </div>
   }
 
-  @if (horasTrabajadas$ | async; as horasTrabajadas) {
+  @if (horasTrabajadas.value()) {
   <div nz-col nzXs="24" nzMd="12">
     <nz-card [nzBordered]="false" [nzTitle]="horasTrab">
       <ng-template #horasTrab>
         Horas trabajadas
         <small class="text-sm font-weight-normal">Se calculan las horas totales ingresadas en la liquidación</small>
       </ng-template>
-      <!-- <g2-bar #g2horas height="275" [data]="horasTrabajadas.data.horasTrabajadas" title="hola" autoLabel="true"></g2-bar> -->
+      <!-- <g2-bar #g2horas height="275" [data]="horasTrabajadas.value().data.horasTrabajadas" title="hola" autoLabel="true"></g2-bar> -->
       <g2-custom #g2horascustom height="275" autoLabel="true" (render)="render($event)"></g2-custom>
     </nz-card>
   </div>
   }
 
-  @if (objetivosActivos$ | async; as objetivosActivos) {
+  @if (objetivosActivos.value()) {
   <div nz-col nzXs="24" nzMd="12">
     <nz-card [nzBordered]="false" [nzTitle]="objetivosTitle">
       <ng-template #objetivosTitle>
         Objetivos Activos
         <small class="text-sm font-weight-normal">Objetivos con contrato vigente</small>
       </ng-template>
-      <g2-bar height="275" [data]="objetivosActivos.data.objetivosActivos"></g2-bar>
+      <g2-bar height="275" [data]="objetivosActivos.value().data.objetivosActivos"></g2-bar>
     </nz-card>
   </div>
   }
@@ -333,7 +332,7 @@
         Clientes Activos
         <small class="text-sm font-weight-normal">Clientes con contrato vigente</small>
       </ng-template>
-      <g2-bar height="275" [data]="clientesActivos.data.clientesActivos"></g2-bar>
+      <g2-bar height="275" [data]="clientesActivos.value().data.clientesActivos"></g2-bar>
     </nz-card>
   </div>
   } -->

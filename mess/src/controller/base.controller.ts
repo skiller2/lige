@@ -322,7 +322,6 @@ export class BaseController {
     try {
       if (queryRunner.isTransactionActive)
         await queryRunner.rollbackTransaction()
-      await queryRunner.release()
     } catch (error2) {
       return Promise.resolve()
     }

@@ -749,7 +749,6 @@ export class GestionDescuentosController extends BaseController {
     const mes = req.body.mes
     try {
       await queryRunner.startTransaction()
-
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
       const filterSql = filtrosToSql(options.filtros, columnsPersonalDescuentos);
       const orderBy = orderToSQL(options.sort)

@@ -1,59 +1,47 @@
 import { Platform } from '@angular/cdk/platform';
 import { CommonModule } from '@angular/common';
 import {
-  AfterContentInit,
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   ElementRef,
-  Inject,
   NgZone,
   OnInit,
-  Renderer2,
   ViewChild,
   ViewEncapsulation,
   inject,
-  DOCUMENT
+  DOCUMENT,
+  resource
 } from '@angular/core';
 import type { Chart } from '@antv/g2';
-//import { OnboardingConfig, OnboardingService } from '@delon/abc/onboarding';
-import { _HttpClient } from '@delon/theme';
 import { SHARED_IMPORTS } from '@shared';
 import { NzSafeAny } from 'ng-zorro-antd/core/types';
-import {
-  BehaviorSubject,
-  Observable,
-  debounceTime,
-  firstValueFrom,
-  share,
-  switchMap,
-} from 'rxjs';
 import { G2BarComponent, G2BarModule } from '@delon/chart/bar';
 import { G2PieModule } from '@delon/chart/pie';
 import { G2MiniBarModule } from '@delon/chart/mini-bar';
 import { G2TimelineModule } from '@delon/chart/timeline';
 import { G2CustomModule } from '@delon/chart/custom';
-import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
+import { DA_SERVICE_TOKEN } from '@delon/auth';
 
 @Component({
-    selector: 'app-init-v1',
-    templateUrl: './v1.component.html',
-    styleUrl: './v1.component.less',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [...SHARED_IMPORTS, CommonModule, G2TimelineModule, G2BarModule, G2MiniBarModule, G2PieModule, G2CustomModule],
-    encapsulation: ViewEncapsulation.None
+  selector: 'app-init-v1',
+  templateUrl: './v1.component.html',
+  styleUrl: './v1.component.less',
+  imports: [...SHARED_IMPORTS, CommonModule, G2TimelineModule, G2BarModule, G2MiniBarModule, G2PieModule, G2CustomModule],
+  encapsulation: ViewEncapsulation.None
 })
 export class InitV1Component implements OnInit {
   private readonly ngZone = inject(NgZone);
-
+  private stmactual: Date = new Date();
+  private readonly tokenService = inject(DA_SERVICE_TOKEN);
+  private platform = inject(Platform)
   @ViewChild("g2horas") g2horas!: G2BarComponent;
+  private doc = inject(DOCUMENT);
+
   render(el: ElementRef<HTMLDivElement>): void {
     this.ngZone.runOutsideAngular(() => this.init(el.nativeElement));
   }
 
   private async init(el: HTMLElement): Promise<void> {
-    const data = await firstValueFrom(this.horasTrabajadas$)
+    const data = await this.horasTrabajadas.value()
     const chart: Chart = new (window as NzSafeAny).G2.Chart({
       container: el,
       autoFit: true,
@@ -65,7 +53,7 @@ export class InitV1Component implements OnInit {
     });
 
     chart.axis('x', {
-//      tickLine: null,
+      //      tickLine: null,
     });
 
     chart.axis('y', {
@@ -73,7 +61,7 @@ export class InitV1Component implements OnInit {
         formatter: text => {
           return text.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,');
         }
-      },      
+      },
     });
 
     chart.legend({
@@ -95,48 +83,8 @@ export class InitV1Component implements OnInit {
     chart.render();
   }
 
-  adelantosPendientes$ = this.http.get('/api/init/stats/adelantospendientes');
-  excepcionesPendientes$ = this.http.get(
-    '/api/init/stats/excepcionespendientes'
-  );
-  clientesActivos$ = this.http
-    .get('/api/init/stats/clientesactivos')
-    .pipe(share());
-  objetivosActivos$ = this.http
-    .get('/api/init/stats/objetivosactivos')
-    .pipe(share());
-  cambioCategoriaPendientes$ = this.http
-    .get('/api/init/stats/cambioscategoria').pipe(share());
-
-  objetivosSinGrupo$ = this.http
-    .get('/api/init/stats/objetivossingrupo').pipe(share());
-  
-  
-  statsRecibosPendientes$ = this.http.get( `/api/init/stats/recibos` ).pipe(share());
-  
-  personasActivasSinHabilitaciones$ = this.http.get('/api/init/stats/personasactivassinhabilitacion');
-  objetivosActivosSinHabilitaciones$ = this.http.get('/api/init/stats/objetivosactivossinhabilitacion');
-  habilitacionesProximaVencer$ = this.http.get('/api/init/stats/habilitacionesproximavencer');
-
-  horasTrabajadas$ = this.statshorastrabajadas();
-  objetivosSinAsistencia$ = this.statssinAsistencia();
-  objetivosSinAsistenciaCur$ = this.statssinAsistenciaCur();
-  licenciasInconsistentes$ = this.statsLicenciasInconsistentes()
-  custodiasPendientes$ = this.statsCustodiasPendientes(true);
-  custodiasPendientesCur$ = this.statsCustodiasPendientes(false);
-  webSite!: any[];
-  salesData!: any[];
-  offlineChartData!: any[];
-
-  constructor(
-    private http: _HttpClient,
-    private cdr: ChangeDetectorRef,
-    //    private obSrv: OnboardingService,
-    private platform: Platform,
-    @Inject(DOCUMENT) private doc: NzSafeAny
-  ) {
-    // TODO: Wait for the page to load
-    setTimeout(() => this.genOnboarding(), 1000);
+  ngOnInit(): void {
+    queueMicrotask(() => this.genOnboarding());
   }
 
   fixDark(chart: Chart): void {
@@ -153,63 +101,6 @@ export class InitV1Component implements OnInit {
     });
   }
 
-  statshorastrabajadas(): Observable<any> {
-    const stmactual = new Date();
-    const anio = stmactual.getFullYear();
-    return this.http.get(`/api/init/stats/horastrabajadas/${anio}`);
-  }
-
-  statssinAsistencia(): Observable<any> {
-    const stmactual = new Date();
-    stmactual.setMonth(stmactual.getMonth() - 1)
-
-    const mes = stmactual.getMonth() + 1;
-    const anio = stmactual.getFullYear();
-
-    return this.http.get(
-      `/api/init/stats/objetivossinasistencia/${anio}/${mes}`
-    );
-  }
-
-
-  statsLicenciasInconsistentes(): Observable<any> {
-    const stmactual = new Date();
-    stmactual.setMonth(stmactual.getMonth() - 1)
-
-    const mes = stmactual.getMonth() + 1;
-    const anio = stmactual.getFullYear();
-
-    return this.http.get(
-      `/api/init/stats/licenciasinconsistentes/${anio}/${mes}`
-    );
-  }
-
-
-  statssinAsistenciaCur(): Observable<any> {
-    const stmactual = new Date();
-    const mes = stmactual.getMonth() + 1;
-    const anio = stmactual.getFullYear();
-    return this.http.get(
-      `/api/init/stats/objetivossinasistencia/${anio}/${mes}`
-    );
-  }
-
-  statsCustodiasPendientes(prev:boolean): Observable<any> {
-    const stmactual = new Date();
-
-    if (prev)
-      stmactual.setMonth(stmactual.getMonth() - 1)
-
-    const mes = stmactual.getMonth() + 1;
-    const anio = stmactual.getFullYear();
-    return this.http.get( `/api/init/stats/custodiaspendientes/${anio}/${mes}` );
-  }
-
-
-
-  ngOnInit(): void {
-
-  }
 
   private genOnboarding(): void {
     const KEY = 'on-boarding';
@@ -225,4 +116,180 @@ export class InitV1Component implements OnInit {
       });
       */
   }
+
+  private readonly token = this.tokenService.get()?.token ?? ''
+
+  public adelantosPendientes = resource({
+    params: () => null,
+    loader: async () => {
+      const ds = await fetch('/api/init/stats/adelantospendientes', { headers: { token: this.token } })
+      return await ds.json()
+    }
+  });
+
+  public excepcionesPendientes = resource({
+    params: () => null,
+    loader: async () => {
+      const ds = await fetch('/api/init/stats/excepcionespendientes', { headers: { token: this.token } })
+      return await ds.json()
+    }
+  });
+
+  public clientesActivos = resource({
+    params: () => null,
+    loader: async () => {
+      const ds = await fetch('/api/init/stats/clientesactivos', { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+  public objetivosActivos = resource({
+    params: () => null,
+    loader: async () => {
+      const ds = await fetch('/api/init/stats/objetivosactivos', { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+  public cambioCategoriaPendientes = resource({
+    params: () => null,
+    loader: async () => {
+      const ds = await fetch('/api/init/stats/cambioscategoria', { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+
+  public objetivosSinGrupo = resource({
+    params: () => null,
+    loader: async () => {
+      const ds = await fetch('/api/init/stats/objetivossingrupo', { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+
+  public recibosPendientes = resource({
+    params: () => null,
+    loader: async () => {
+      const ds = await fetch(`/api/init/stats/recibos`, { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+  public personasActivasSinHabilitaciones = resource({
+    params: () => null,
+    loader: async () => {
+      const ds = await fetch('/api/init/stats/personasactivassinhabilitacion', { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+
+  public objetivosActivosSinHabilitaciones = resource({
+    params: () => null,
+    loader: async () => {
+      const ds = await fetch('/api/init/stats/objetivosactivossinhabilitacion', { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+  public habilitacionesProximaVencer = resource({
+    params: () => null,
+    loader: async () => {
+      const ds = await fetch('/api/init/stats/habilitacionesproximavencer', { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+
+  public objetivosSinAsistencia = resource({
+    params: () => null,
+    loader: async () => {
+      const stmactual = new Date();
+      stmactual.setMonth(stmactual.getMonth() - 1)
+
+      const mes = stmactual.getMonth() + 1;
+      const anio = stmactual.getFullYear();
+
+      const ds = await fetch(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`, { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+  public objetivosSinAsistenciaCur = resource({
+    params: () => null,
+    loader: async () => {
+      const stmactual = new Date();
+      const mes = stmactual.getMonth() + 1;
+      const anio = stmactual.getFullYear();
+      const ds = await fetch(`/api/init/stats/objetivossinasistencia/${anio}/${mes}`, { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+  public licenciasInconsistentes = resource({
+    params: () => null,
+    loader: async () => {
+      const stmactual = new Date();
+      stmactual.setMonth(stmactual.getMonth() - 1)
+
+      const mes = stmactual.getMonth() + 1;
+      const anio = stmactual.getFullYear();
+
+      const ds = await fetch(`/api/init/stats/licenciasinconsistentes/${anio}/${mes}`, { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+  public custodiasPendientes = resource({
+    params: () => null,
+    loader: async () => {
+      const stmactual = new Date();
+
+
+      stmactual.setMonth(stmactual.getMonth() - 1)
+
+      const mes = stmactual.getMonth() + 1;
+      const anio = stmactual.getFullYear();
+      const ds = await fetch(`/api/init/stats/custodiaspendientes/${anio}/${mes}`, { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+  public custodiasPendientesCur = resource({
+    params: () => null,
+    loader: async () => {
+      const stmactual = new Date();
+      //stmactual.setMonth(stmactual.getMonth() - 1)
+      const mes = stmactual.getMonth() + 1;
+      const anio = stmactual.getFullYear();
+      const ds = await fetch(`/api/init/stats/custodiaspendientes/${anio}/${mes}`, { headers: { token: this.token } })
+      return await ds.json()
+
+    }
+  });
+
+  public horasTrabajadas = resource({
+    params: () => null,
+    loader: async () => {
+      const stmactual = new Date();
+      const anio = stmactual.getFullYear();
+      const ds = await fetch(`/api/init/stats/horastrabajadas/${anio}`, { headers: { token: this.token } })
+      return await ds.json()
+    }
+  });
+
 }
