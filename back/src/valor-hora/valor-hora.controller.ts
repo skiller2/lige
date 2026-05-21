@@ -188,7 +188,7 @@ export class ValorHoraController extends BaseController {
     const fechaActual = new Date();
 
     try {
-      
+
       await queryRunner.startTransaction();
 
       const { dataResultado, message } = await this.setValorHora(queryRunner, params, usuario, ip, fechaActual);
@@ -214,7 +214,7 @@ export class ValorHoraController extends BaseController {
 
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      
+
       await queryRunner.startTransaction();
 
       for (const id of ids) {
@@ -242,13 +242,18 @@ export class ValorHoraController extends BaseController {
 
           // Traer todos los registros de la misma combinación ordenados, excluyendo el que se va a borrar
           const registrosRestantes = await queryRunner.query(`
-            SELECT ValorLiquidacionId, ValorLiquidacionDesde
-            FROM ValorLiquidacion
-            WHERE ValorLiquidacionSucursalId = @0 
-              AND ValorLiquidacionTipoAsociadoId = @1 
-              AND ValorLiquidacionCategoriaPersonalId = @2
-              AND ValorLiquidacionId != @3
-            ORDER BY ValorLiquidacionDesde ASC
+            SELECT vl.ValorLiquidacionId, vl.ValorLiquidacionDesde, 
+              CONCAT(TRIM(ta.TipoAsociadoDescripcion), ' - ', TRIM(cp.CategoriaPersonalDescripcion)) AS Categoria,
+              s.SucursalDescripcion
+            FROM ValorLiquidacion vl
+            LEFT JOIN TipoAsociado ta ON ta.TipoAsociadoId = vl.ValorLiquidacionTipoAsociadoId
+            LEFT JOIN CategoriaPersonal cp ON cp.CategoriaPersonalId = vl.ValorLiquidacionCategoriaPersonalId AND vl.ValorLiquidacionTipoAsociadoId = cp.TipoAsociadoId
+            LEFT JOIN Sucursal s ON s.SucursalId = vl.ValorLiquidacionSucursalId
+            WHERE vl.ValorLiquidacionSucursalId = @0 
+              AND vl.ValorLiquidacionTipoAsociadoId = @1 
+              AND vl.ValorLiquidacionCategoriaPersonalId = @2
+              AND vl.ValorLiquidacionId != @3
+            ORDER BY vl.ValorLiquidacionDesde ASC
           `, [ValorLiquidacionSucursalId, ValorLiquidacionTipoAsociadoId, ValorLiquidacionCategoriaPersonalId, id]);
 
           // Borrar el registro
@@ -278,7 +283,7 @@ export class ValorHoraController extends BaseController {
             );
           }
         } else {
-          throw new ClientException(`Error al eliminar el siguiente registro: Id= ${id}, SucursalId= ${registros[0].ValorLiquidacionSucursalId}, TipoAsociadoId= ${registros[0].ValorLiquidacionTipoAsociadoId}, CategoriaPersonalId= ${registros[0].ValorLiquidacionCategoriaPersonalId}, Desde= ${registros[0].ValorLiquidacionDesde.getDate()}/${registros[0].ValorLiquidacionDesde.getMonth() + 1}/${registros[0].ValorLiquidacionDesde.getFullYear()}`)
+          throw new ClientException(`Error al eliminar el siguiente registro: Id= ${id}, Sucursal= ${registros[0].SucursalDescripcion}, Categoria= ${registros[0].Categoria}, Desde= ${registros[0].ValorLiquidacionDesde.getDate()}/${registros[0].ValorLiquidacionDesde.getMonth() + 1}/${registros[0].ValorLiquidacionDesde.getFullYear()}`)
         }
 
       }
@@ -316,15 +321,19 @@ export class ValorHoraController extends BaseController {
 
 
       const registros = await queryRunner.query(`
-        SELECT vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId, vl.ValorLiquidacionCategoriaPersonalId, vl.ValorLiquidacionHoraNormal
+        SELECT vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId, vl.ValorLiquidacionCategoriaPersonalId, vl.ValorLiquidacionHoraNormal, vl.ValorLiquidacionDesde,
+          CONCAT(TRIM(ta.TipoAsociadoDescripcion), ' - ', TRIM(cp.CategoriaPersonalDescripcion)) AS Categoria, s.SucursalDescripcion
         FROM ValorLiquidacion vl
+        LEFT JOIN TipoAsociado ta ON ta.TipoAsociadoId = vl.ValorLiquidacionTipoAsociadoId
+        LEFT JOIN CategoriaPersonal cp ON cp.CategoriaPersonalId = vl.ValorLiquidacionCategoriaPersonalId AND vl.ValorLiquidacionTipoAsociadoId = cp.TipoAsociadoId
+        LEFT JOIN Sucursal s ON s.SucursalId = vl.ValorLiquidacionSucursalId
         WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
           AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
         [anio, mes]
       );
 
       if (registros.length === 0) throw new ClientException(`No se encontraron registros para el período ${mes}/${anio}.`)
-        
+
       for (const reg of registros) {
         let nuevoValor = Number(reg.ValorLiquidacionHoraNormal);
         switch (tipo) {
@@ -337,6 +346,9 @@ export class ValorHoraController extends BaseController {
           default:
             throw new ClientException(`No se especifico un tipo.`);
         }
+
+        if (nuevoValor < 0)
+          throw new ClientException(`Error en calculo: hay un Importe negativo en Sucursal= ${reg.SucursalDescripcion}, Categoria= ${reg.Categoria}, Desde= ${reg.ValorLiquidacionDesde}, Valor: ${reg.ValorLiquidacionHoraNormal}, Resultado: ${nuevoValor}`)
 
         const paramsSet = {
           ValorLiquidacionSucursalId: reg.ValorLiquidacionSucursalId,
