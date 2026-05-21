@@ -142,32 +142,49 @@ export class EfectoStockComponent {
     },
   });
 
-  readonly relacionesByEfectoId = signal<Map<number, { EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[]>>(new Map());
+  readonly relacionesByKey = signal<Map<string, { EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[]>>(new Map());
 
-  private cargandoRelaciones = new Set<number>();
+  private cargandoRelaciones = new Set<string>();
+
+  private resolverUbicacion(efectoId: number, stockId: number | null | undefined): { tipo: string; id: number } | null {
+    if (!stockId) return null;
+    const ubs = this.ubicacionesByEfectoId().get(efectoId) ?? [];
+    const u = ubs.find(x => x.StockId === stockId);
+    if (!u) return null;
+    const id = u.PersonalId ?? u.ObjetivoId ?? u.ProveedorId ?? u.DepositoId;
+    return id ? { tipo: u.Tipo, id } : null;
+  }
+
+  private relacionesKey(efectoId: number, ubic: { tipo: string; id: number } | null): string {
+    return ubic ? `${efectoId}|${ubic.tipo}|${ubic.id}` : `${efectoId}|`;
+  }
 
   private relacionesEffect = effect(() => {
-    const ids = this.parametroStock().efectos
-      .map(e => e.EfectoId)
-      .filter((id): id is number => !!id);
-    const cache = this.relacionesByEfectoId();
-    for (const id of ids) {
-      if (cache.has(id) || this.cargandoRelaciones.has(id)) continue;
-      this.cargandoRelaciones.add(id);
-      firstValueFrom(this.searchService.getEfectoRelaciones(id)).then(rels => {
-        this.cargandoRelaciones.delete(id);
-        this.relacionesByEfectoId.update(m => {
+    const lineas = this.parametroStock().efectos;
+    const cache = this.relacionesByKey();
+    for (const linea of lineas) {
+      if (!linea.EfectoId || !linea.UbicacionStockId) continue;
+      const ubic = this.resolverUbicacion(linea.EfectoId, linea.UbicacionStockId);
+      if (!ubic) continue;
+      const key = this.relacionesKey(linea.EfectoId, ubic);
+      if (cache.has(key) || this.cargandoRelaciones.has(key)) continue;
+      this.cargandoRelaciones.add(key);
+      firstValueFrom(this.searchService.getEfectoRelaciones(linea.EfectoId, ubic.tipo, ubic.id)).then(rels => {
+        this.cargandoRelaciones.delete(key);
+        this.relacionesByKey.update(m => {
           const next = new Map(m);
-          next.set(id, rels ?? []);
+          next.set(key, rels ?? []);
           return next;
         });
       });
     }
   });
 
-  relacionesDe(efectoId: number | null | undefined): { EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[] {
-    if (!efectoId) return [];
-    return this.relacionesByEfectoId().get(efectoId) ?? [];
+  relacionesDe(linea: EfectoStockLinea | undefined): { EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[] {
+    if (!linea?.EfectoId || !linea.UbicacionStockId) return [];
+    const ubic = this.resolverUbicacion(linea.EfectoId, linea.UbicacionStockId);
+    if (!ubic) return [];
+    return this.relacionesByKey().get(this.relacionesKey(linea.EfectoId, ubic)) ?? [];
   }
 
   readonly ubicacionesByEfectoId = signal<Map<number, EfectoUbicacion[]>>(new Map());
