@@ -501,7 +501,7 @@ export class ImpuestosAfipController extends BaseController {
         PersonalOtroDescuentoUltNro++
         await queryRunner.query(
           `INSERT INTO PersonalOtroDescuento (PersonalOtroDescuentoId, PersonalId, PersonalOtroDescuentoDescuentoId, PersonalOtroDescuentoAnoAplica
-          , PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PorcentajeDescuento,
+          , PersonalOtroDescuentoMesesAplica, PersonalOtroDescuentoMes, PersonalOtroDescuentoCantidad, PersonalOtroDescuentoCantidadCuotas, PorcentajeDescuento
           , PersonalOtroDescuentoImporteVariable, PersonalOtroDescuentoFechaAplica, PersonalOtroDescuentoCuotasPagas, PersonalOtroDescuentoLiquidoFinanzas
           , PersonalOtroDescuentoCuotaUltNro, PersonalOtroDescuentoUltimaLiquidacion, PersonalOtroDescuentoDetalle, CuentaTipoCodigo
           , PersonalOtroDescuentoAudFechaIng, PersonalOtroDescuentoAudUsuarioIng, PersonalOtroDescuentoAudIpIng, PersonalOtroDescuentoAudFechaMod, PersonalOtroDescuentoAudUsuarioMod, PersonalOtroDescuentoAudIpMod)
@@ -765,8 +765,6 @@ export class ImpuestosAfipController extends BaseController {
           } catch (err: any) {
             await this.rollbackTransaction(queryRunner)
             errList.push(err);
-          } finally {
-            await queryRunner.release()
           }
         }
 
