@@ -413,6 +413,11 @@ export class ValorHoraComponent {
   handleOnBeforeEditCell(e: Event) {
     const { column, item, grid } = (<CustomEvent>e).detail.args;
 
+    if (column.id === 'ValorLiquidacionDesde') {
+      e.stopImmediatePropagation();
+      return false;
+    }
+
     if (column.id === 'ValorLiquidacionHoraNormal' && this.recibosGenerados()) {
       e.stopImmediatePropagation();
       return false;
