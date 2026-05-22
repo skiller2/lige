@@ -14,7 +14,6 @@ import { Component, signal, inject, resource, computed } from '@angular/core';
 import { Selections } from '../../../shared/schemas/filtro';
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { EditorImporteComponent } from '../../../shared/editor-importe/editor-importe.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -196,15 +195,9 @@ export class ValorHoraComponent {
 
             case 'ValorLiquidacionHoraNormal':
               col.editor = {
-                model: CustomInputEditor,
-                collection: [],
-                params: {
-                  component: EditorImporteComponent,
-                },
+                model: CustomFloatEditor,
                 alwaysSaveOnEnterKey: true,
                 required: true,
-
-
               }
 
               break
