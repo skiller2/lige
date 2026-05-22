@@ -17,8 +17,22 @@ export class IngresoPorAsistenciaController extends BaseController {
     let usuario = res.locals.userName
     const tipo_movimiento_id = Number(process.env.MOV_ASISTENCIA_VIGILANCIA)
     const queryRunner = await getConnection(res.locals.userName);
-
+    let Art14SumaFija = 0
+    let Art14AdicionalHora = 0
+    let Art14Categoria = 0
+    let Art14Horas = 0
+    let EventoLogCodigo = 0
     try {
+
+      // Log de inicio
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Ingreso por Asistencia ${mes}/${anio}`,
+        { anio, mes, usuario, ip },
+        usuario,
+        ip,
+        'LIQ'
+      ))
 
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
@@ -77,6 +91,7 @@ export class IngresoPorAsistenciaController extends BaseController {
         );
 
         if (row.PersonalArt14Horas) {
+          Art14Horas++
           const detalle = `Art.17 Horas adicionales ${row.PersonalArt14Horas}`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas, tipo_asociado_id, categoria_personal_id,
@@ -102,6 +117,7 @@ export class IngresoPorAsistenciaController extends BaseController {
 
 
         if (row.ValorHoraArt14Categoria > 0) {
+          Art14Categoria++
           const detalle = `Art.17 Equivalencia ${row.art14CategoriaDescripcion.trim()}, horas:${row.totalhorascalc+row.PersonalArt14Horas}`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
@@ -127,6 +143,7 @@ export class IngresoPorAsistenciaController extends BaseController {
 
 
         if (row.PersonalArt14AdicionalHora) {
+          Art14AdicionalHora++
           const detalle = `Art.17 Importe Adicional Horas ${row.totalhorascalc+row.PersonalArt14Horas}`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
@@ -151,6 +168,7 @@ export class IngresoPorAsistenciaController extends BaseController {
         }
 
         if (row.PersonalArt14SumaFija) {
+          Art14SumaFija++
           const detalle = `Art.17 Suma fija`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
@@ -177,11 +195,28 @@ export class IngresoPorAsistenciaController extends BaseController {
         
 
       }
+      
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        { res: `Procesado correctamente`, 'totalAsistencias':result.asistencia.length
+          , Art14SumaFija, Art14AdicionalHora, Art14Categoria, Art14Horas},
+        usuario,
+        ip
+      );
 
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Se procesaron ${result.asistencia.length} registros `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
       return next(error)
     } finally {
       await queryRunner.release();

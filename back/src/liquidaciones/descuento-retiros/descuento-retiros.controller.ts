@@ -277,8 +277,16 @@ export class DescuentoRetirosController extends BaseController {
     fechaActual.setHours(0, 0, 0, 0)
     let cantRegistros = 0
     const tipo_movimiento_id = 29
-
+    let EventoLogCodigo = 0
     try {
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Generar descuentos retiros a Coordinador ${mes}/${anio}`,
+        { anio, mes, usuario, ip },
+        usuario,
+        ip,
+        'LIQ'
+      ))
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
@@ -331,11 +339,26 @@ export class DescuentoRetirosController extends BaseController {
       if (objetivosSinCerrar > 0)
         throw new ClientException(`Hay ${objetivosSinCerrar} objetivos sin cerrar liquidación. No se pueden procesar los movimientos de descuento por retiro hasta que estén cerrados`)
 
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        { res: `Procesado correctamente`, 'totalDescuentoRetiro': retirosxobj.length},
+        usuario,
+        ip
+      );
 
 
       this.jsonRes({ list: {} }, res, (`Se procesaron ${cantRegistros} registros`));
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
       return next(error)
     } finally {
       await queryRunner.release()

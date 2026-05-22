@@ -17,7 +17,16 @@ export class CompensaGeneralACordinadorController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     let cantRegistros = 0
     let movimientos = []
+    let EventoLogCodigo = 0
     try {
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Generar compensa General Coordinador ${mes}/${anio}`,
+        { anio, mes, usuario, ip },
+        usuario,
+        ip,
+        'LIQ' //Consultar por EventoLogClaseCodigo
+      ))
 
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
@@ -119,7 +128,14 @@ export class CompensaGeneralACordinadorController extends BaseController {
         }
       }
 
-
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        { res: `Procesado correctamente`},
+        usuario,
+        ip
+      );
 
      // throw new ClientException("DEBUG")
       await queryRunner.commitTransaction();
@@ -128,6 +144,13 @@ export class CompensaGeneralACordinadorController extends BaseController {
       this.jsonRes({ list: movimientos }, res, ((cantRegistros>0)? `Se procesaron ${cantRegistros} registros <BR>`+movimientos.join('<BR>'):'No hay saldos para compensar'));
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
       return next(error)
     } finally {
       await queryRunner.release();

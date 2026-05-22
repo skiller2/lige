@@ -17,9 +17,18 @@ export class IngresoPorCustodiaController extends BaseController {
     let usuario = res.locals.userName
     const tipo_movimiento_id = Number(process.env.MOV_ASISTENCIA_CUSTODIA)
     const queryRunner = await getConnection(res.locals.userName);
-
+    let EventoLogCodigo = 0
     try {
 
+      // Log de inicio
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Actualización por Custodia ${mes}/${anio}`,
+        { anio, mes, usuario, ip },
+        usuario,
+        ip,
+        'LIQ'
+      ))
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
@@ -80,10 +89,26 @@ export class IngresoPorCustodiaController extends BaseController {
         );
       }
 
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        { res: `Procesado correctamente`, 'cantCustodias':result.length },
+        usuario,
+        ip
+      );
+
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Se procesaron ${result.length} registros `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
       return next(error)
     } finally {
       await queryRunner.release();
