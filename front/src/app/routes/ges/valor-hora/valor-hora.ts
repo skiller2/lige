@@ -398,20 +398,25 @@ export class ValorHoraComponent {
 
 
     return (rowNumber: number) => {
-      const newCssClass = 'element-add-no-complete';
       const item = this.angularGridEdit.dataView.getItem(rowNumber);
       let meta: any = {
         cssClasses: ''
       };
+
+
       if (typeof previousItemMetadata === 'object') {
         meta = previousItemMetadata(rowNumber);
       }
+      if (!item) return meta;
+
 
       if (
-        item.ValorLiquidacionSucursalId === "" ||
-        item.ValorLiquidacionTipoAsociadoId === "" ||
-        item.ValorLiquidacionCategoriaPersonalId === "" ||
-        item.ValorLiquidacionHoraNormal === undefined || item.ValorLiquidacionHoraNormal === null || item.ValorLiquidacionHoraNormal <= 0
+        (!item.ValorLiquidacionSucursalId  ||
+        !item.ValorLiquidacionTipoAsociadoId ||
+        !item.ValorLiquidacionCategoriaPersonalId  ||
+        !item.ValorLiquidacionHoraNormal) && (
+          item.ValorLiquidacionSucursalId || item.ValorLiquidacionTipoAsociadoId || item.ValorLiquidacionCategoriaPersonalId || item.ValorLiquidacionHoraNormal  
+        )
 
       ) {
         meta.cssClasses = 'element-add-no-complete';
