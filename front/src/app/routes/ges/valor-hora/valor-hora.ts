@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGlobalEditorLock, EditCommand, Editors } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -169,8 +169,25 @@ export class ValorHoraComponent {
                   component: SelectSearchComponent,
                 },
                 alwaysSaveOnEnterKey: true,
-                required: true
+                required: true,
+                //                disabled: (row) => !row.TipoAsociadoId,
+
+                //                collectionFilterBy: ((item:any, args:any) => {
+                //                  console.log('filtro',args.dataContext)
+                //                  return item.TipoAsociadoId === args.dataContext.TipoAsociadoId;
+                //                }) as any
+
               }
+
+              col.formatter = (row, cell, value, columnDef, dataContext) => {
+                const item = data.categorias.find((c: any) =>
+                  c.value === value &&
+                  c.TipoAsociadoId === dataContext.ValorLiquidacionTipoAsociadoId
+                );
+
+                return item ? item.label : '';
+              }
+
               col.params = {
                 collection: data.categorias,
               }
@@ -185,8 +202,11 @@ export class ValorHoraComponent {
                   component: EditorImporteComponent,
                 },
                 alwaysSaveOnEnterKey: true,
-                required: true
+                required: true,
+
+
               }
+
               break
 
             default:
