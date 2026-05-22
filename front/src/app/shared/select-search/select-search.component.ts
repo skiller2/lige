@@ -29,7 +29,6 @@ export class SelectSearchComponent {
   public element = inject(ElementRef);
 
   ngOnInit() {
-    console.log('select search this', this)
   }
 
   onChange(item: any) {
