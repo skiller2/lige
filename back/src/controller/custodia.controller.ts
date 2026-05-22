@@ -1098,7 +1098,7 @@ export class CustodiaController extends BaseController {
             const orderBy = orderToSQL(options.sort)
 
             let result: any
-            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas') || await this.hasGroup(req, 'Administrativo')) {
+            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas')) {
                 result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo)
             } else {
                 result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo, ResponsableId)
@@ -1172,8 +1172,8 @@ export class CustodiaController extends BaseController {
                 infoCustodia.FechaLiquidacion = null
             }
 
-            if (!(await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Administrativo')) && ResponsableId != infoCustodia.ResponsableId) {
-                throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.Responsable} o pertenecer al grupo 'Administracion'/'Liquidaciones'.`)
+             if (!(await this.hasGroup(req, 'Liquidaciones')) && ResponsableId != infoCustodia.ResponsableId) {
+                throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.Responsable} o pertenecer al grupo 'Liquidaciones'.`)
             }
 
             if (infoCustodia.EstadoCodigo == 4) {
@@ -1473,12 +1473,8 @@ export class CustodiaController extends BaseController {
                 const EstadoCodigo: number = form.EstadoCodigo
                 const NumeroFactura: number = form.NumeroFactura
 
-                const authEditAdmin: boolean = await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Administrativo')
-                const adminEdit: boolean = await this.hasGroup(req, 'administrativo')
+                const authEditAdmin: boolean = await this.hasGroup(req, 'Liquidaciones')
                 const fullEdit: boolean = await this.hasGroup(req, 'gSistemas')
-
-                if (EstadoCodigo == 4 && !adminEdit)
-                    throw new ClientException(`Requiere ser miembro del grupo Administrativo`)
 
                 if (EstadoCodigo == 4 && !NumeroFactura) {
                     throw new ClientException(`El Número de Factura es invalido.`)
@@ -1489,12 +1485,12 @@ export class CustodiaController extends BaseController {
                     infoCustodia = infoCustodia[0]
 
                     if (!authEditAdmin && infoCustodia.ResponsableId != ResponsableId) {
-                        errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia o grupos Administrativo/Liquidaciones.`)
+                        errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia o grupo 'Liquidaciones'.`)
                         continue
                     }
 
                     if (!authEditAdmin && EstadoCodigo == 4) {
-                        errores.push(`Codigo ${id}: Solo los grupos Administrativo/Liquidaciones, pueden grabar estado Facturado`)
+                        errores.push(`Codigo ${id}: Solo el grupo 'Liquidaciones', pueden grabar estado Facturado`)
                         continue
                     }
                     //Validaciones
@@ -1702,7 +1698,7 @@ export class CustodiaController extends BaseController {
             const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
 
             let result: any
-            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas') || await this.hasGroup(req, 'Administrativo')) {
+            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas')) {
                 result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, 0)
             } else {
                 result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, responsableId)
