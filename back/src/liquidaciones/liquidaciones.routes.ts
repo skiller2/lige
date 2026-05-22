@@ -144,7 +144,7 @@ liquidacionesRouter.get('/tipo_movimiento_by_id/:TipoMovimiento', [authMiddlewar
   liquidacionesController.getTipoMovimientoById(req, res, next)
 });
 
-liquidacionesRouter.get('/tipo_cuenta', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas'])], (req, res, next) => {
+liquidacionesRouter.get('/tipo_cuenta', [authMiddleware.verifyToken], (req, res, next) => {
   liquidacionesController.getTipoCuenta(req, res, next)
 });
 
