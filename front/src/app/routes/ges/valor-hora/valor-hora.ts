@@ -10,12 +10,12 @@ import { SearchService } from '../../../services/search.service';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject,resource, computed } from '@angular/core';
 import { Selections } from '../../../shared/schemas/filtro';
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { EditorImporteComponent } from '../../../shared/editor-importe/editor-importe.component';
-
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-precios-productos',
@@ -37,12 +37,12 @@ export class ValorHoraComponent {
   private readonly messageSrv = inject(NzMessageService);
   columnDefinitions: Column[] = []
   itemAddActive = false
-  listValorHora$ = new BehaviorSubject('')
+  // listValorHora$ = new BehaviorSubject('')
   editValorHora = signal<{ valorHoraId: string }[]>([])
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  })
   startFilters = signal<Selections[]>([])
 
 
@@ -54,6 +54,8 @@ export class ValorHoraComponent {
   rowLocked: boolean = false;
 
   periodo = signal<Date>(new Date())
+  anio = computed(() => this.periodo().getFullYear()) 
+  mes = computed(() => this.periodo().getMonth() + 1)
   categoriasAll: any[] = []
   showAumentoModal = false
   aumentoLoading = false
@@ -100,7 +102,7 @@ export class ValorHoraComponent {
       // this.messageSrv.success('Aumento aplicado correctamente');
       this.showAumentoModal = false;
       this.aumentoValor = undefined;
-      this.listValorHora$.next('');
+      this.gridData.reload()
     } catch (e) {
       // error handled by api service
     } finally {
@@ -109,16 +111,11 @@ export class ValorHoraComponent {
   }
 
   listOptionsChange(options: any) {
-    this.listOptions = options
-    this.listValorHora$.next('')
+    this.listOptions.set(options)
   }
 
-  refreshList() {
-    this.listValorHora$.next('')
-  }
-
-
-  columns$ = this.apiService.getCols('/api/valor-hora/cols').pipe(
+  columns = toSignal(
+    this.apiService.getCols('/api/valor-hora/cols').pipe(
     switchMap(async (cols) => {
       const sucursales = await firstValueFrom(this.searchService.getSucursales());
       const tipoasociado = await firstValueFrom(this.searchService.getTipoAsociadoOptions());
@@ -199,7 +196,9 @@ export class ValorHoraComponent {
         return col
       });
       return mapped
-    }));
+    }))
+    , { initialValue: [] as Column[] }
+  )
 
   async ngOnInit() {
 
@@ -248,7 +247,7 @@ export class ValorHoraComponent {
         const anio = this.periodo().getFullYear()
         const mes = this.periodo().getMonth() + 1
         const response = await firstValueFrom(this.apiService.onchangecellvalorHora({ ...row, anio, mes }))
-        this.listValorHora$.next('')
+        this.gridData.reload()
         this.rowLocked = false
       } catch (e: any) {
 
@@ -293,7 +292,7 @@ export class ValorHoraComponent {
     const ids = this.editValorHora().map((item: any) => item.valorHoraId)
     await firstValueFrom(this.apiService.deleteValorHora({ ids, anio, mes }))
     this.editValorHora.set([])
-    this.listValorHora$.next('')
+    this.gridData.reload()
   }
 
   createNewItem(incrementIdByHowMany = 1) {
@@ -340,12 +339,11 @@ export class ValorHoraComponent {
   async onCellChanged(e: any) {
   }
 
-  gridData$ = this.listValorHora$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      const anio = this.periodo().getFullYear()
-      const mes = this.periodo().getMonth() + 1
-      return this.apiService.getValorHoraData(anio, mes, { options: this.listOptions })
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes:this.mes() }),
+    loader: async ({ params }) => {
+      
+      const response = await firstValueFrom(this.apiService.getValorHoraData(params.anio, params.mes, { options: params.options })
         .pipe(map(data => {
           this.recibosGenerados.set(!!data?.recibosGenerados)
           const list = data?.list ?? []
@@ -358,10 +356,11 @@ export class ValorHoraComponent {
             ValorLiquidacionHoraNormal: undefined,
           })
           return list
-        })
-        )
-    })
-  )
+        })))
+      return response;
+    },
+    defaultValue: []
+  });
 
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
