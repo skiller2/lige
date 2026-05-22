@@ -984,7 +984,7 @@ SELECT doc.DocumentoImagenEstudioId id,
 				when pere.PersonalEstudioCursoId is not null then CONCAT(TRIM(TipoEstudioDescripcion),' - ', ch.CursoHabilitacionDescripcion)
 				else pere.PersonalEstudioTitulo
 				end as Descripcion, 'Estudio' DocumentoTipoDetalle, null AS DocumentoAudFechaIng, pere.PersonalEstudioOtorgado AS DocumentoFecha, pere.PersonalEstudioHasta AS DocumentoFechaDocumentoVencimiento
-                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenEstudioId, '/DocumentoImagenDocumento/0') url, doc.DocumentoImagenEstudioBlobNombreArchivo NombreArchivo, 0 AS canDelete,
+                , CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenEstudioId, '/DocumentoImagenEstudio/0') url, doc.DocumentoImagenEstudioBlobNombreArchivo NombreArchivo, 0 AS canDelete,
 				CASE 
                    WHEN CHARINDEX('.', doc.DocumentoImagenEstudioBlobNombreArchivo) > 0 
                    THEN LOWER(RIGHT(doc.DocumentoImagenEstudioBlobNombreArchivo, CHARINDEX('.', REVERSE(doc.DocumentoImagenEstudioBlobNombreArchivo)) - 1))
