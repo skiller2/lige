@@ -6,6 +6,7 @@ import type { Options } from "../schemas/filtro.ts";
 import type { QueryRunner } from "typeorm";
 import { AsistenciaController } from "./asistencia.controller.ts";
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
+import { logger } from "../logger/logger.ts";
 
 const columnsObjCustodia: any[] = [
     {
@@ -827,8 +828,10 @@ export class CustodiaController extends BaseController {
             obj.NumeroFactura ,
             obj.FechaLiquidacion,
             obj.AudUsuarioIng ,
+            obj.AudIpIng ,
             obj.AudFechaIng ,
             obj.AudUsuarioMod ,
+            obj.AudIpMod ,
             obj.AudFechaMod 
         FROM Custodia obj
         INNER JOIN Cliente cli 
@@ -1150,12 +1153,12 @@ export class CustodiaController extends BaseController {
     }
 
     async updateObjetivoCustodia(req: any, res: Response, next: NextFunction) {
-        const queryRunner = await getConnection(res.locals.userName);
+        const usuario = res.locals.userName
+        const queryRunner = await getConnection(usuario);
         let errores = []
 
         try {
             await queryRunner.startTransaction()
-            const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
             // const ResponsableId = 699
             const ResponsableId = res.locals.PersonalId
@@ -1169,9 +1172,6 @@ export class CustodiaController extends BaseController {
                 infoCustodia.FechaLiquidacion = null
             }
 
-            delete infoCustodia.CustodiaCodigo
-            delete infoCustodia.Responsable
-
             if (!(await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Administrativo')) && ResponsableId != infoCustodia.ResponsableId) {
                 throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.Responsable} o pertenecer al grupo 'Administracion'/'Liquidaciones'.`)
             }
@@ -1183,10 +1183,9 @@ export class CustodiaController extends BaseController {
             const valCustodiaForm = this.valCustodiaForm(objetivoCustodia, queryRunner)
             if (valCustodiaForm instanceof ClientException)
                 throw valCustodiaForm
-            if (infoCustodia.FechaLiquidacion) {
-                var listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, CustodiaCodigo)
-                var listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, CustodiaCodigo)
-            }
+
+            let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, CustodiaCodigo)
+            let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, CustodiaCodigo)
 
             var seen = {};
             var hasDupPersonal = objetivoCustodia.personal.some(function (currentObject) {
@@ -1196,6 +1195,22 @@ export class CustodiaController extends BaseController {
             });
             if (hasDupPersonal)
                 errores.push(`Hay personal duplicado`)
+
+            // guardo registro pasado
+            const newCustodiaCambiosCodigo = await BaseController.getProxNumero(queryRunner, `CustodiaCambios`, usuario, ip)
+            await queryRunner.query(`
+            INSERT INTO CustodiaCambios(CustodiaCambiosCodigo,CustodiaCodigo, ResponsableId, ClienteId, DescripcionRequirente,
+                Descripcion, FechaInicio, Origen, FechaFin, Destino, CantidadModulos, ImporteModulo, CantidadHorasExcedente,
+                ImporteHorasExcedente, CantidadKmExcedente, ImporteKmExcedente, ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo,
+                FechaLiquidacion, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudIpMod, AudFechaMod,
+                PersonalCustodia, VehiculoCustodia)
+            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @24, @25, @26, @27, @28, @29)`,
+                [newCustodiaCambiosCodigo, infoCustodia.CustodiaCodigo, infoCustodia.ResponsableId, infoCustodia.ClienteId, infoCustodia.DescripcionRequirente,
+                    infoCustodia.Descripcion, infoCustodia.FechaInicio, infoCustodia.Origen, infoCustodia.FechaFin, infoCustodia.Destino, infoCustodia.CantidadModulos, infoCustodia.ImporteModulo, infoCustodia.CantidadHorasExcedente,
+                     infoCustodia.ImporteHorasExcedente, infoCustodia.CantidadKmExcedente, infoCustodia.ImporteKmExcedente, infoCustodia.ImportePeaje, infoCustodia.ImporteFactura, infoCustodia.DescripcionFacturacion, infoCustodia.NumeroFactura, infoCustodia.EstadoCodigo,
+                    infoCustodia.FechaLiquidacion, infoCustodia.AudUsuarioIng, infoCustodia.AudIpIng, infoCustodia.AudFechaIng, infoCustodia.AudUsuarioMod, infoCustodia.AudIpMod, infoCustodia.AudFechaMod, 
+                    JSON.stringify(listPersonal), JSON.stringify(listVehiculo)])
+
 
             //NEW TABLE
             await queryRunner.query(`DELETE FROM PersonalCustodia WHERE CustodiaCodigo = @0`, [CustodiaCodigo])
@@ -1209,7 +1224,7 @@ export class CustodiaController extends BaseController {
                         break
                     }
                     if (infoCustodia.FechaLiquidacion && !this.comparePersonal(obj, listPersonal)) {
-                        errores.push(`NO se pueden modificar los campos del Personal.`)
+                        errores.push(`NO se pueden modificar los campos del Personal. La custodia fue liquidada el día ${this.dateOutputFormat(infoCustodia.FechaLiquidacion)}.`)
                         break
                     }
 
@@ -1253,7 +1268,7 @@ export class CustodiaController extends BaseController {
                         continue
                     }
                     if (infoCustodia.FechaLiquidacion && !this.compareVehiculo(obj, listVehiculo)) {
-                        errores.push(`NO se pueden modificar los campos de la Patente ${obj.Patente}.`)
+                        errores.push(`NO se pueden modificar los campos de la Patente ${obj.Patente}. La custodia fue liquidada el día ${this.dateOutputFormat(infoCustodia.FechaLiquidacion)}.`)
                         continue
                     }
                     //
@@ -1730,7 +1745,7 @@ export class CustodiaController extends BaseController {
     }
 
     comparePersonal(per: any, list: any[]): boolean {
-        const result: any = list.find((obj: any) => (obj.PersonalId == per.PersonalId && obj.HorasTrabajadas == per.HorasTrabajadas && per.ImporteSumaFija == per.ImporteSumaFija))
+        const result: any = list.find((obj: any) => (obj.PersonalId == per.PersonalId && obj.HorasTrabajadas == per.HorasTrabajadas && obj.ImporteSumaFija == per.ImporteSumaFija))
         return result ? true : false
     }
 
