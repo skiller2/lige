@@ -836,29 +836,12 @@ export class EfectoController extends BaseController {
 
   async getEfectoRelaciones(req: any, res: Response, next: NextFunction) {
     const efectoId = Number(req.params.id);
-    const tipo = String(req.query.tipo ?? '').toLowerCase();
-    const ubicacionId = Number(req.query.ubicacionId);
     if (!efectoId) {
       this.jsonRes([], res);
       return;
     }
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      let ubicacionWhere = '';
-      const params: any[] = [efectoId];
-      if (ubicacionId) {
-        if (tipo === 'personal') {
-          ubicacionWhere = ' AND rel.PersonalId = @1';
-          params.push(ubicacionId);
-        } else if (tipo === 'objetivo') {
-          ubicacionWhere = ' AND rel.ObjetivoId = @1';
-          params.push(ubicacionId);
-        } else if (tipo === 'deposito') {
-          ubicacionWhere = ' AND rel.DepositoId = @1';
-          params.push(ubicacionId);
-        }
-        // tipo === 'proveedor': la tabla no tiene ProveedorId, no se filtra
-      }
       const list = await queryRunner.query(`
         SELECT
           rel.EfectoRelacionEfectoId,
@@ -873,8 +856,8 @@ export class EfectoController extends BaseController {
         FROM EfectoRelacionEfecto rel
         LEFT JOIN EfectoDescripcion efD ON efD.EfectoId = rel.EfectoRelacionDeEfectoId
         LEFT JOIN EfectoDescripcion efC ON efC.EfectoId = rel.EfectoRelacionConEfectoId
-        WHERE (rel.EfectoRelacionDeEfectoId = @0 OR rel.EfectoRelacionConEfectoId = @0)${ubicacionWhere}
-      `, params);
+        WHERE rel.EfectoRelacionDeEfectoId = @0 OR rel.EfectoRelacionConEfectoId = @0
+      `, [efectoId]);
       this.jsonRes(list, res);
     } catch (error) {
       return next(error);

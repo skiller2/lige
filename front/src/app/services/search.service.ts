@@ -2486,10 +2486,9 @@ export class SearchService {
   }
 
 
-  getEfectoRelaciones(efectoId: number, tipo?: string, ubicacionId?: number | null): Observable<{ EfectoRelacionEfectoId: number; EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[]> {
+  getEfectoRelaciones(efectoId: number): Observable<{ EfectoRelacionEfectoId: number; EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[]> {
     if (!efectoId) return of([]);
-    const qs = (tipo && ubicacionId) ? `?tipo=${encodeURIComponent(tipo)}&ubicacionId=${ubicacionId}` : '';
-    return this.http.get<ResponseJSON<any>>(`api/efecto/relaciones/${efectoId}${qs}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/efecto/relaciones/${efectoId}`).pipe(
       map(res => res.data ?? []),
       catchError(() => of([]))
     );

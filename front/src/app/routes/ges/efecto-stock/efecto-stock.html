@@ -72,16 +72,14 @@
         </nz-form-item>
       </div>
 
-      @if (objetivoInfo.value(); as info) {
-        <div nz-col [nzSpan]="8">
-          <nz-form-item>
-            <nz-form-label [nzSpan]="10">Grupo actividad</nz-form-label>
-            <nz-form-control [nzSpan]="14">
-              <span>{{ info.GrupoActividadDetalle || '—' }}</span>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      }
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="8">Grupo actividad</nz-form-label>
+          <nz-form-control [nzSpan]="14">
+            <app-view-responsable [list]="objetivoResponsables.value() ?? []"></app-view-responsable>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
       <div nz-col [nzSpan]="8">
         <nz-form-item>
           <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
@@ -139,16 +137,14 @@
           </nz-form-control>
         </nz-form-item>
       </div>
-      @if (personaInfo.value(); as info) {
-        <div nz-col [nzSpan]="8">
-          <nz-form-item>
-            <nz-form-label [nzSpan]="10">Grupo actividad</nz-form-label>
-            <nz-form-control [nzSpan]="14">
-              <span>{{ info.GrupoActividadDetalle || '—' }}</span>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-      }
+      <div nz-col [nzSpan]="8">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="4">Grupo actividad</nz-form-label>
+          <nz-form-control [nzSpan]="14">
+            <app-view-responsable [list]="personaResponsables.value() ?? []"></app-view-responsable>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
     </div>
   }
 
@@ -161,6 +157,14 @@
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Efecto</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9" [nzLg]="7">
         <app-efecto-search [formField]="ef.EfectoId"></app-efecto-search>
+        @if (relacionesDe(parametroStock().efectos[i]?.EfectoId).length) {
+          <div class="efecto-relaciones" style="font-size: 12px; color: rgba(0,0,0,0.55); margin-top: 4px;">
+            Relacionado con:
+            @for (rel of relacionesDe(parametroStock().efectos[i]?.EfectoId); track rel.EfectoRelacionadoId; let last = $last) {
+              <span>{{ rel.EfectoRelacionadoId }} - {{ rel.EfectoRelacionadoDescripcion }}</span>@if (!last) {<span>, </span>}
+            }
+          </div>
+        }
       </nz-form-control>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Ubicación</nz-form-label>
@@ -176,14 +180,6 @@
             </nz-option-group>
           }
         </nz-select>
-        @if (relacionesDe(parametroStock().efectos[i]).length) {
-          <div class="efecto-relaciones" style="font-size: 12px; color: rgba(0,0,0,0.55); margin-top: 4px;">
-            Relacionado con:
-            @for (rel of relacionesDe(parametroStock().efectos[i]); track rel.EfectoRelacionadoId; let last = $last) {
-              <span>{{ rel.EfectoRelacionadoId }} - {{ rel.EfectoRelacionadoDescripcion }}</span>@if (!last) {<span>, </span>}
-            }
-          </div>
-        }
       </nz-form-control>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Cantidad</nz-form-label>
