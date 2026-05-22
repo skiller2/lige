@@ -10,7 +10,7 @@ import { SearchService } from '../../../services/search.service';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
-import { Component, signal, inject,resource, computed } from '@angular/core';
+import { Component, signal, inject, resource, computed } from '@angular/core';
 import { Selections } from '../../../shared/schemas/filtro';
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -54,7 +54,7 @@ export class ValorHoraComponent {
   rowLocked: boolean = false;
 
   periodo = signal<Date>(new Date())
-  anio = computed(() => this.periodo().getFullYear()) 
+  anio = computed(() => this.periodo().getFullYear())
   mes = computed(() => this.periodo().getMonth() + 1)
   categoriasAll: any[] = []
   showAumentoModal = false
@@ -116,87 +116,87 @@ export class ValorHoraComponent {
 
   columns = toSignal(
     this.apiService.getCols('/api/valor-hora/cols').pipe(
-    switchMap(async (cols) => {
-      const sucursales = await firstValueFrom(this.searchService.getSucursales());
-      const tipoasociado = await firstValueFrom(this.searchService.getTipoAsociadoOptions());
-      const categorias = await firstValueFrom(this.searchService.getCategoriasPersonal());
-      this.categoriasAll = categorias
+      switchMap(async (cols) => {
+        const sucursales = await firstValueFrom(this.searchService.getSucursales());
+        const tipoasociado = await firstValueFrom(this.searchService.getTipoAsociadoOptions());
+        const categorias = await firstValueFrom(this.searchService.getCategoriasPersonal());
+        this.categoriasAll = categorias
 
-      return { cols, sucursales, tipoasociado, categorias }
-    }),
-    map((data) => {
-      let mapped = data.cols.map((col: Column) => {
+        return { cols, sucursales, tipoasociado, categorias }
+      }),
+      map((data) => {
+        let mapped = data.cols.map((col: Column) => {
 
-        switch (col.id) {
+          switch (col.id) {
 
-          case 'SucursalId':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.sucursales,
-            }
+            case 'SucursalId':
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: SelectSearchComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true
+              }
+              col.params = {
+                collection: data.sucursales,
+              }
 
-            break;
+              break;
 
-          case 'TipoAsociadoId':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.tipoasociado,
-            }
+            case 'TipoAsociadoId':
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: SelectSearchComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true
+              }
+              col.params = {
+                collection: data.tipoasociado,
+              }
 
-            break;
+              break;
 
-          case 'CategoriaPersonalId':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.categorias,
-            }
+            case 'CategoriaPersonalId':
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: SelectSearchComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true
+              }
+              col.params = {
+                collection: data.categorias,
+              }
 
-            break;
+              break;
 
-          case 'ValorLiquidacionHoraNormal':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: EditorImporteComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            break
+            case 'ValorLiquidacionHoraNormal':
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: EditorImporteComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true
+              }
+              break
 
-          default:
-            break;
-        }
+            default:
+              break;
+          }
 
-        return col
-      });
-      return mapped
-    }))
+          return col
+        });
+        return mapped
+      }))
     , { initialValue: [] as Column[] }
   )
 
@@ -340,9 +340,9 @@ export class ValorHoraComponent {
   }
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), anio: this.anio(), mes:this.mes() }),
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
-      
+
       const response = await firstValueFrom(this.apiService.getValorHoraData(params.anio, params.mes, { options: params.options })
         .pipe(map(data => {
           this.recibosGenerados.set(!!data?.recibosGenerados)
@@ -411,7 +411,8 @@ export class ValorHoraComponent {
   }
 
   handleOnBeforeEditCell(e: Event) {
-    const { column, item, grid } = (<CustomEvent>e).detail.args;
+    const { item, grid } = (<CustomEvent>e).detail.args;
+    const column: Column = (<CustomEvent>e).detail.args.column
 
     if (column.id === 'ValorLiquidacionDesde') {
       e.stopImmediatePropagation();
@@ -424,7 +425,7 @@ export class ValorHoraComponent {
     }
 
     const lockedColumns = ['SucursalId', 'TipoAsociadoId', 'CategoriaPersonalId'];
-    if (item?.ValorLiquidacionDesde && lockedColumns.includes(column.id)) {
+    if (item?.ValorLiquidacionDesde && lockedColumns.includes(String(column.id))) {
       e.stopImmediatePropagation();
       return false;
     }
@@ -436,10 +437,8 @@ export class ValorHoraComponent {
         e.stopImmediatePropagation()
         return false
       }
-      column.params = {
-        ...column.params,
-        collection: this.categoriasAll.filter((c: any) => c.TipoAsociadoId == tipoAsociadoId),
-      }
+
+      column!.editor!.collection = this.categoriasAll.filter((c: any) => c.TipoAsociadoId == tipoAsociadoId)
     }
 
     return true;
