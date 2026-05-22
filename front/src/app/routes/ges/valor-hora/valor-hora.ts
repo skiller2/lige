@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGlobalEditorLock, EditCommand, Editors } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -10,12 +10,12 @@ import { SearchService } from '../../../services/search.service';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, resource, computed } from '@angular/core';
 import { Selections } from '../../../shared/schemas/filtro';
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { EditorImporteComponent } from '../../../shared/editor-importe/editor-importe.component';
-
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-precios-productos',
@@ -37,12 +37,12 @@ export class ValorHoraComponent {
   private readonly messageSrv = inject(NzMessageService);
   columnDefinitions: Column[] = []
   itemAddActive = false
-  listValorHora$ = new BehaviorSubject('')
+  // listValorHora$ = new BehaviorSubject('')
   editValorHora = signal<{ valorHoraId: string }[]>([])
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  })
   startFilters = signal<Selections[]>([])
 
 
@@ -54,6 +54,8 @@ export class ValorHoraComponent {
   rowLocked: boolean = false;
 
   periodo = signal<Date>(new Date())
+  anio = computed(() => this.periodo().getFullYear())
+  mes = computed(() => this.periodo().getMonth() + 1)
   categoriasAll: any[] = []
   showAumentoModal = false
   aumentoLoading = false
@@ -100,7 +102,7 @@ export class ValorHoraComponent {
       // this.messageSrv.success('Aumento aplicado correctamente');
       this.showAumentoModal = false;
       this.aumentoValor = undefined;
-      this.listValorHora$.next('');
+      this.gridData.reload()
     } catch (e) {
       // error handled by api service
     } finally {
@@ -109,97 +111,114 @@ export class ValorHoraComponent {
   }
 
   listOptionsChange(options: any) {
-    this.listOptions = options
-    this.listValorHora$.next('')
+    this.listOptions.set(options)
   }
 
-  refreshList() {
-    this.listValorHora$.next('')
-  }
+  columns = toSignal(
+    this.apiService.getCols('/api/valor-hora/cols').pipe(
+      switchMap(async (cols) => {
+        const sucursales = await firstValueFrom(this.searchService.getSucursales());
+        const tipoasociado = await firstValueFrom(this.searchService.getTipoAsociadoOptions());
+        const categorias = await firstValueFrom(this.searchService.getCategoriasPersonal());
+        this.categoriasAll = categorias
+
+        return { cols, sucursales, tipoasociado, categorias }
+      }),
+      map((data) => {
+        let mapped = data.cols.map((col: Column) => {
+
+          switch (col.id) {
+
+            case 'SucursalId':
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: SelectSearchComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true
+              }
+              col.params = {
+                collection: data.sucursales,
+              }
+
+              break;
+
+            case 'TipoAsociadoId':
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: SelectSearchComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true
+              }
+              col.params = {
+                collection: data.tipoasociado,
+              }
+
+              break;
+
+            case 'CategoriaPersonalId':
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: SelectSearchComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true,
+                //                disabled: (row) => !row.TipoAsociadoId,
+
+                //                collectionFilterBy: ((item:any, args:any) => {
+                //                  console.log('filtro',args.dataContext)
+                //                  return item.TipoAsociadoId === args.dataContext.TipoAsociadoId;
+                //                }) as any
+
+              }
+
+              col.formatter = (row, cell, value, columnDef, dataContext) => {
+                const item = data.categorias.find((c: any) =>
+                  c.value === value &&
+                  c.TipoAsociadoId === dataContext.ValorLiquidacionTipoAsociadoId
+                );
+
+                return item ? item.label : '';
+              }
+
+              col.params = {
+                collection: data.categorias,
+              }
+
+              break;
+
+            case 'ValorLiquidacionHoraNormal':
+              col.editor = {
+                model: CustomInputEditor,
+                collection: [],
+                params: {
+                  component: EditorImporteComponent,
+                },
+                alwaysSaveOnEnterKey: true,
+                required: true,
 
 
-  columns$ = this.apiService.getCols('/api/valor-hora/cols').pipe(
-    switchMap(async (cols) => {
-      const sucursales = await firstValueFrom(this.searchService.getSucursales());
-      const tipoasociado = await firstValueFrom(this.searchService.getTipoAsociadoOptions());
-      const categorias = await firstValueFrom(this.searchService.getCategoriasPersonal());
-      this.categoriasAll = categorias
+              }
 
-      return { cols, sucursales, tipoasociado, categorias }
-    }),
-    map((data) => {
-      let mapped = data.cols.map((col: Column) => {
+              break
 
-        switch (col.id) {
+            default:
+              break;
+          }
 
-          case 'SucursalId':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.sucursales,
-            }
-
-            break;
-
-          case 'TipoAsociadoId':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.tipoasociado,
-            }
-
-            break;
-
-          case 'CategoriaPersonalId':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: SelectSearchComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            col.params = {
-              collection: data.categorias,
-            }
-
-            break;
-
-          case 'ValorLiquidacionHoraNormal':
-            col.editor = {
-              model: CustomInputEditor,
-              collection: [],
-              params: {
-                component: EditorImporteComponent,
-              },
-              alwaysSaveOnEnterKey: true,
-              required: true
-            }
-            break
-
-          default:
-            break;
-        }
-
-        return col
-      });
-      return mapped
-    }));
+          return col
+        });
+        return mapped
+      }))
+    , { initialValue: [] as Column[] }
+  )
 
   async ngOnInit() {
 
@@ -248,7 +267,7 @@ export class ValorHoraComponent {
         const anio = this.periodo().getFullYear()
         const mes = this.periodo().getMonth() + 1
         const response = await firstValueFrom(this.apiService.onchangecellvalorHora({ ...row, anio, mes }))
-        this.listValorHora$.next('')
+        this.gridData.reload()
         this.rowLocked = false
       } catch (e: any) {
 
@@ -293,7 +312,7 @@ export class ValorHoraComponent {
     const ids = this.editValorHora().map((item: any) => item.valorHoraId)
     await firstValueFrom(this.apiService.deleteValorHora({ ids, anio, mes }))
     this.editValorHora.set([])
-    this.listValorHora$.next('')
+    this.gridData.reload()
   }
 
   createNewItem(incrementIdByHowMany = 1) {
@@ -340,12 +359,11 @@ export class ValorHoraComponent {
   async onCellChanged(e: any) {
   }
 
-  gridData$ = this.listValorHora$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      const anio = this.periodo().getFullYear()
-      const mes = this.periodo().getMonth() + 1
-      return this.apiService.getValorHoraData(anio, mes, { options: this.listOptions })
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes() }),
+    loader: async ({ params }) => {
+
+      const response = await firstValueFrom(this.apiService.getValorHoraData(params.anio, params.mes, { options: params.options })
         .pipe(map(data => {
           this.recibosGenerados.set(!!data?.recibosGenerados)
           const list = data?.list ?? []
@@ -358,10 +376,11 @@ export class ValorHoraComponent {
             ValorLiquidacionHoraNormal: undefined,
           })
           return list
-        })
-        )
-    })
-  )
+        })))
+      return response;
+    },
+    defaultValue: []
+  });
 
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
@@ -412,7 +431,8 @@ export class ValorHoraComponent {
   }
 
   handleOnBeforeEditCell(e: Event) {
-    const { column, item, grid } = (<CustomEvent>e).detail.args;
+    const { item, grid } = (<CustomEvent>e).detail.args;
+    const column: Column = (<CustomEvent>e).detail.args.column
 
     if (column.id === 'ValorLiquidacionDesde') {
       e.stopImmediatePropagation();
@@ -425,7 +445,7 @@ export class ValorHoraComponent {
     }
 
     const lockedColumns = ['SucursalId', 'TipoAsociadoId', 'CategoriaPersonalId'];
-    if (item?.ValorLiquidacionDesde && lockedColumns.includes(column.id)) {
+    if (item?.ValorLiquidacionDesde && lockedColumns.includes(String(column.id))) {
       e.stopImmediatePropagation();
       return false;
     }
@@ -437,10 +457,8 @@ export class ValorHoraComponent {
         e.stopImmediatePropagation()
         return false
       }
-      column.params = {
-        ...column.params,
-        collection: this.categoriasAll.filter((c: any) => c.TipoAsociadoId == tipoAsociadoId),
-      }
+
+      column!.editor!.collection = this.categoriasAll.filter((c: any) => c.TipoAsociadoId == tipoAsociadoId)
     }
 
     return true;

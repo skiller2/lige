@@ -47,7 +47,11 @@ export class CustomInputEditor implements Editor {
 
   /** Get the Collection */
   get collection(): any[] {
-    return this.columnDef?.params?.collection ?? this.columnDef?.editor!.collection ?? [];
+    if (this.columnDef?.editor?.collection && this.columnDef.editor.collection.length > 0)
+      return this.columnDef.editor.collection
+    if (this.columnDef?.params?.collection && this.columnDef.params?.collection.length > 0)
+      return this.columnDef.params.collection
+    return [];
   }
 
   /** Get Column Definition object */
@@ -86,7 +90,7 @@ export class CustomInputEditor implements Editor {
 
       // here we override the collection object of the Angular Component
       // but technically you can pass any values you wish to your Component
-      Object.assign(this.componentRef.instance, { collection: this.collection, item:this.args.item, params:this.gridOptions.params });
+      Object.assign(this.componentRef.instance, { collection: this.collection, item: this.args.item, params: this.gridOptions.params });
 
       // when our model (item object) changes, we'll call a save of the slickgrid editor
       this._subscriptions.push(

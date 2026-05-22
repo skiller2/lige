@@ -28,8 +28,12 @@ export class SelectSearchComponent {
   
   public element = inject(ElementRef);
 
+  ngOnInit() {
+    console.log('select search this', this)
+  }
+
   onChange(item: any) {
-    if(this.collection!.length > 0 ){
+    if (this.collection!.length > 0) {
 //      const selectedItem = this.optionsArray.find(option => option.TipoProductoId === item);
       this.sss?.focus()  //Al hacer click en el componente hace foco nuevamente
       this.selectedId = item
@@ -48,9 +52,6 @@ export class SelectSearchComponent {
     }
   }
 
-  async ngOnInit() {
-  }
-
   ngOnDestroy() {
 
     this.sss.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this));
@@ -64,6 +65,4 @@ export class SelectSearchComponent {
 
     }, 1);
   }
-
-
 }

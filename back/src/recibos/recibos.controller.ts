@@ -230,7 +230,7 @@ export class RecibosController extends BaseController {
           usuario,
           ip,
           fechaActual,
-          "REC",
+          "RECC",
           den_documento
 
         )

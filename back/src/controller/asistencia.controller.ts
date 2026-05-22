@@ -1935,9 +1935,10 @@ export class AsistenciaController extends BaseController {
 
       // Objetngo el id del documento de recibo
 
-      const listRecibos = await queryRunner.query(`SELECT doc.DocumentoId, doc.DocumentoDenominadorDocumento, iif(doc.DocumentoNombreArchivo like '%-C-%', 'Coordinador', 'General') as TipoRecibo
+      const listRecibos = await queryRunner.query(`SELECT doc.DocumentoId, doc.DocumentoDenominadorDocumento, dt.DocumentoTipoDetalle
         FROM Documento doc
-        WHERE doc.PersonalId=@0 AND doc.DocumentoTipoCodigo=@3 and doc.DocumentoAnio=@1 and doc.DocumentoMes=@2`, [personalId, anio, mes, 'REC'])
+        LEFT JOIN DocumentoTipo dt ON dt.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
+        WHERE doc.PersonalId=@0 AND doc.DocumentoTipoCodigo in ('REC', 'RECC') and doc.DocumentoAnio=@1 and doc.DocumentoMes=@2`, [personalId, anio, mes])
 
       this.jsonRes({ ingresos: result, total, totalHoras, recibos: listRecibos }, res);
     } catch (error) {

@@ -20,8 +20,18 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
     const tipo_movimiento_id_art42vigi = Number(process.env.MOV_ART42VIGI)
     const tipo_movimiento_id_art42admi = Number(process.env.MOV_ART42ADMI)
     const queryRunner = await getConnection(res.locals.userName);
-
+    let EventoLogCodigo = 0
     try {
+
+      // Log de inicio
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Ingreso por Asistencia Administrativos Art42 ${mes}/${anio}`,
+        { anio, mes, usuario, ip },
+        usuario,
+        ip,
+        'LIQ'
+      ))
 
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
@@ -100,10 +110,26 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
         );
       }
 
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        { res: `Procesado correctamente`, 'totalAsistenciaAdminArt42':result.length },
+        usuario,
+        ip
+      );
+
       await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Se procesaron ${cntLincencias} licencias de ${result.length} `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
       return next(error)
     } finally {
       await queryRunner.release();
