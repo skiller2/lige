@@ -70,6 +70,25 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
     for (let valorBusqueda of filtro.valor) {
 
+      // Filtro compuesto de Efecto: { EfectoId, EfectoEfectoIndividualId }.
+      // Se detecta por la forma del valor (la columna sigue siendo type: 'number').
+      const vbAny: any = valorBusqueda;
+      if (
+        vbAny && typeof vbAny === 'object' && !(vbAny instanceof Date)
+        && Object.prototype.hasOwnProperty.call(vbAny, 'EfectoId')
+      ) {
+        const efectoId = vbAny.EfectoId;
+        const indivId = vbAny.EfectoEfectoIndividualId;
+        if (efectoId === null || efectoId === undefined || efectoId === '') continue;
+        // Derivamos el fieldName del individual asumiendo mismo alias (stk.EfectoId -> stk.EfectoEfectoIndividualId)
+        const indivFieldName = String(fieldName).replace(/EfectoId$/, 'EfectoEfectoIndividualId');
+        const indivPart = (indivId === null || indivId === undefined || indivId === '')
+          ? `${indivFieldName} IS NULL`
+          : `${indivFieldName} = ${Number(indivId)}`;
+        filterString.push(`(${fieldName} = ${Number(efectoId)} AND ${indivPart})`);
+        continue;
+      }
+
       if (type == 'date') {
         const valtmp = new Date(valorBusqueda)
         valtmp.setHours(0, 0, 0, 0)

@@ -760,7 +760,7 @@ export class EfectoController extends BaseController {
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
             //            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
-            query += `(EfectoDescripcion LIKE '%${element.trim()}%') AND `;
+            query += `(EfectoDescripcionCompleto LIKE '%${element.trim()}%') AND `;
             buscar = true;
           }
         });

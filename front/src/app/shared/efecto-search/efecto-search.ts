@@ -40,7 +40,8 @@ export class EfectoSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = ''
-  extendedOption = { EfectoId: 0, fullName: "" }
+  extendedOption: { EfectoId: number; EfectoEfectoIndividualId: number | null; fullName: string } =
+    { EfectoId: 0, EfectoEfectoIndividualId: null, fullName: "" }
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
@@ -57,7 +58,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
   }
 
   onRemove() {
-     
+
   }
 
   registerOnTouched(fn: any) {
@@ -84,6 +85,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
       if (this._selectedId == '') {
         this.valueExtendedEmitter.emit({})
         this._selected = ''
+        this.extendedOption = { EfectoId: 0, EfectoEfectoIndividualId: null, fullName: "" }
         this.propagateChange(this._selectedId)
         return
       }
@@ -92,10 +94,14 @@ export class EfectoSearchComponent implements ControlValueAccessor {
         this.searchService.getEfectoFromName('EfectoId', this._selectedId)
           .pipe(tap(res => {
             if (res && res.length > 0) {
-              this.extendedOption = { EfectoId: res[0].EfectoId, fullName: res[0].EfectoDescripcion }
-              this._selected = this._selectedId
+              this.extendedOption = {
+                EfectoId: res[0].EfectoId,
+                EfectoEfectoIndividualId: res[0].EfectoEfectoIndividualId ?? null,
+                fullName: res[0].EfectoDescripcion
+              }
+              this._selected = `${this.extendedOption.EfectoId}|${this.extendedOption.EfectoEfectoIndividualId ?? ''}`
               this.valueExtendedEmitter.emit(this.extendedOption)
-              if (this.tmpInputVal != this._selected) {
+              if (this.tmpInputVal != this._selectedId) {
                 this.propagateChange(this._selectedId)
               }
             }
@@ -127,12 +133,26 @@ export class EfectoSearchComponent implements ControlValueAccessor {
     )
   );
 
-  modelChange(val: string) {
-    this.selectedId = val
+  modelChange(val: string | null) {
+    if (!val) {
+      this.selectedId = ''
+      return
+    }
+    const [idStr, indivStr] = val.split('|');
+    const efectoId = Number(idStr);
+    const individualId = indivStr === '' || indivStr === undefined ? null : Number(indivStr);
+
+    // Capturamos el individual antes de disparar selectedId para que valueExtended lo lleve.
+    this.extendedOption = {
+      EfectoId: efectoId,
+      EfectoEfectoIndividualId: Number.isNaN(individualId as number) ? null : individualId,
+      fullName: this.extendedOption.fullName
+    }
+    this.selectedId = String(efectoId)
   }
 
   search(value: string): void {
-    this.extendedOption = { EfectoId: 0, fullName: "" }
+    this.extendedOption = { EfectoId: 0, EfectoEfectoIndividualId: null, fullName: "" }
     this.$searchChange.next(value)
   }
 

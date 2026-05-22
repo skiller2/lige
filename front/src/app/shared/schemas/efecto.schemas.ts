@@ -1,5 +1,6 @@
 export interface SearchEfecto {
     EfectoId: number,
+    EfectoEfectoIndividualId: number | null,
     EfectoDescripcion: string
 }
 

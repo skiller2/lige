@@ -269,6 +269,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         }
       }
 
+      // Para EfectoSearch enviamos un unico valor compuesto { EfectoId, EfectoEfectoIndividualId }
+      // y filtrosToSql lo traduce a (EfectoId=X AND EfectoEfectoIndividualId=Y/IS NULL).
+      if (this.selections.field.searchComponent === 'inputForEfectoSearch') {
+        const ext: any = this.valueExtended ?? {};
+        const efectoId = Number(ext.EfectoId ?? this.selections.value);
+        const indivId = ext.EfectoEfectoIndividualId ?? null;
+        value = [{ EfectoId: efectoId, EfectoEfectoIndividualId: indivId }];
+      }
+
       const filtro = {
         index: this.selections.field.id,
         name: this.selections.field.name,
