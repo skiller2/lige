@@ -19,7 +19,6 @@ import { G2PieModule } from '@delon/chart/pie';
 import { G2MiniBarModule } from '@delon/chart/mini-bar';
 import { G2TimelineModule } from '@delon/chart/timeline';
 import { G2CustomModule } from '@delon/chart/custom';
-import { DA_SERVICE_TOKEN } from '@delon/auth';
 import { ApiService } from '../../../services/api.service';
 
 @Component({
@@ -32,7 +31,6 @@ import { ApiService } from '../../../services/api.service';
 export class InitV1Component implements OnInit {
   private readonly ngZone = inject(NgZone);
   private stmactual: Date = new Date();
-  private readonly tokenService = inject(DA_SERVICE_TOKEN);
   private platform = inject(Platform)
   @ViewChild("g2horas") g2horas!: G2BarComponent;
   private doc = inject(DOCUMENT);
@@ -104,7 +102,6 @@ export class InitV1Component implements OnInit {
       */
   }
 
-  private readonly token = this.tokenService.get()?.token ?? ''
 
   public adelantosPendientes = resource({
     params: () => null,
