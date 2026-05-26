@@ -62,7 +62,31 @@ export class EfectoStockComponent {
   }
 
   readonly formEfectoStock = form(this.parametroStock, (p) => {
-    // Schema vacío por ahora — necesario para que las bindings [formField] inicialicen bien.
+    required(p.fecha, { message: 'La fecha es obligatoria' });
+    required(p.tipoDestino, { message: 'El tipo de destino es obligatorio' });
+
+    required(p.depositoId, {
+      message: 'El depósito es obligatorio',
+      when: (ctx) => ctx.valueOf(p.tipoDestino) === 'deposito',
+    });
+    required(p.personalId, {
+      message: 'La persona es obligatoria',
+      when: (ctx) => ctx.valueOf(p.tipoDestino) === 'personal',
+    });
+    required(p.objetivoId, {
+      message: 'El objetivo es obligatorio',
+      when: (ctx) => ctx.valueOf(p.tipoDestino) === 'objetivo',
+    });
+    required(p.proveedorId, {
+      message: 'El proveedor es obligatorio',
+      when: (ctx) => ctx.valueOf(p.tipoDestino) === 'proveedor',
+    });
+
+    applyEach(p.efectos, (linea) => {
+      required(linea.EfectoId, { message: 'Efecto obligatorio' });
+      required(linea.UbicacionStockId, { message: 'Ubicación obligatoria' });
+      required(linea.Cantidad, { message: 'Cantidad obligatoria' });
+    });
   });
 
   tipoDestinoSeleccionado = computed(() => this.parametroStock().tipoDestino);
@@ -174,7 +198,6 @@ export class EfectoStockComponent {
   });
 
   readonly individualByIndex = signal<Map<number, number | null>>(new Map());
-  readonly debugExtended = signal<{ last: any } | null>(null);
 
   onEfectoExtended(index: number, ext: { EfectoId?: number; EfectoEfectoIndividualId?: number | null } | null | undefined): void {
     const individualId = ext?.EfectoEfectoIndividualId ?? null;
@@ -187,7 +210,6 @@ export class EfectoStockComponent {
       ...s,
       efectos: s.efectos.map((e, i) => i === index ? { ...e, UbicacionStockId: null } : e),
     }));
-    this.debugExtended.set({ last: { index, ext } });
   }
 
   readonly relacionesByIndex = signal<Map<number, EfectoRelacionEfecto[]>>(new Map());
@@ -286,7 +308,9 @@ export class EfectoStockComponent {
   }
 
   async confirmar() {
-    await firstValueFrom(this.apiService.confirmarStockEfecto(this.parametroStock()));
+    await submit(this.formEfectoStock, async (form) => {
+      await firstValueFrom(this.apiService.confirmarStockEfecto(form().value()));
+    });
   }
 
   sucursalDescripcionDisplay = computed(() => {
