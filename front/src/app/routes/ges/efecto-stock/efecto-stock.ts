@@ -183,6 +183,10 @@ export class EfectoStockComponent {
       next.set(index, individualId);
       return next;
     });
+    this.parametroStock.update(s => ({
+      ...s,
+      efectos: s.efectos.map((e, i) => i === index ? { ...e, UbicacionStockId: null } : e),
+    }));
     this.debugExtended.set({ last: { index, ext } });
   }
 
@@ -209,31 +213,27 @@ export class EfectoStockComponent {
     return this.relacionesByIndex().get(index) ?? [];
   }
 
-  readonly ubicacionesByEfectoId = signal<Map<number, EfectoUbicacion[]>>(new Map());
-  private cargandoUbicaciones = new Set<number>();
+  readonly ubicacionesByIndex = signal<Map<number, EfectoUbicacion[]>>(new Map());
 
   private ubicacionesEffect = effect(() => {
-    const ids = this.parametroStock().efectos
-      .map(e => e.EfectoId)
-      .filter((id): id is number => !!id);
-    const cache = this.ubicacionesByEfectoId();
-    for (const id of ids) {
-      if (cache.has(id) || this.cargandoUbicaciones.has(id)) continue;
-      this.cargandoUbicaciones.add(id);
-      firstValueFrom(this.searchService.getEfectoUbicaciones(id)).then(ubs => {
-        this.cargandoUbicaciones.delete(id);
-        this.ubicacionesByEfectoId.update(m => {
+    const individuales = this.individualByIndex();
+    const efectos = this.parametroStock().efectos;
+    efectos.forEach((e, i) => {
+      const efectoId = e.EfectoId;
+      if (!efectoId) return;
+      const individualId = individuales.get(i) ?? null;
+      firstValueFrom(this.searchService.getEfectoUbicaciones(efectoId, individualId)).then(ubs => {
+        this.ubicacionesByIndex.update(m => {
           const next = new Map(m);
-          next.set(id, ubs ?? []);
+          next.set(i, ubs ?? []);
           return next;
         });
       });
-    }
+    });
   });
 
-  ubicacionesAgrupadas(efectoId: number | null | undefined): { tipo: string; label: string; items: EfectoUbicacion[] }[] {
-    if (!efectoId) return [];
-    const all = this.ubicacionesByEfectoId().get(efectoId) ?? [];
+  ubicacionesAgrupadas(index: number): { tipo: string; label: string; items: EfectoUbicacion[] }[] {
+    const all = this.ubicacionesByIndex().get(index) ?? [];
     const grupos: Record<string, { tipo: string; label: string; items: EfectoUbicacion[] }> = {
       personal:  { tipo: 'personal',  label: 'Personal',  items: [] },
       objetivo:  { tipo: 'objetivo',  label: 'Objetivo',  items: [] },

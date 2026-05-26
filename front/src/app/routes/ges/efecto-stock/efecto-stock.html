@@ -172,7 +172,7 @@
         <nz-select [formField]="ef.UbicacionStockId" nzAllowClear nzShowSearch
           [nzDropdownMatchSelectWidth]="false" style="width: 100%"
           nzPlaceHolder="Seleccione una ubicación">
-          @for (grupo of ubicacionesAgrupadas(parametroStock().efectos[i]?.EfectoId); track grupo.tipo) {
+          @for (grupo of ubicacionesAgrupadas(i); track grupo.tipo) {
             <nz-option-group [nzLabel]="grupo.label">
               @for (u of grupo.items; track u.StockId) {
                 <nz-option [nzValue]="u.StockId" [nzLabel]="ubicacionLabel(u)"></nz-option>

@@ -134,7 +134,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
     debounceTime(500),
     switchMap(value =>
       this.searchService
-        .getEfectoFromName(Number(value) ? 'EfectoId' : 'EfectoDescripcion', value)
+        .getEfectoFromName('EfectoDescripcion', value)
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
           tap({ complete: () => this.$isOptionsLoading.next(false) })
