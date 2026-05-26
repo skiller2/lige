@@ -270,8 +270,8 @@ export class ClientesController extends BaseController {
             TRIM(domcli.DomicilioDomCalle), 
             TRIM(domcli.DomicilioDomNro)
         ) AS Domicilio,
-        cant.CantidadObjetivos,
-        custodias.CantidadCustodias,
+        cant.CantidadObjetivos, cant.SucursalObjetivos,
+        custodias.CantidadCustodias, custodias.SucursalReponsableIds,
         correonoti.ContactoEmailEmail,
         calc.activo
     FROM 
@@ -291,9 +291,12 @@ export class ClientesController extends BaseController {
         ) correonoti ON correonoti.ClienteId = cli.ClienteId
 
         LEFT JOIN (
-          SELECT cus.ClienteId , COUNT(*) CantidadCustodias FROM Custodia cus
-          WHERE DATEDIFF(day, cus.FechaInicio, @0)< 30
-          GROUP BY cus.ClienteId
+           SELECT cus.ClienteId , COUNT(*) CantidadCustodias, STRING_AGG(sucper.PersonalSucursalPrincipalSucursalId, ', ') SucursalReponsableIds
+             FROM Custodia cus
+             LEFT JOIN Personal per on per.PersonalId= cus.ResponsableId
+             LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+            WHERE DATEDIFF(day, cus.FechaInicio, @0)< 30
+            GROUP BY cus.ClienteId
         ) custodias ON custodias.ClienteId = cli.ClienteId
 
 
@@ -313,26 +316,19 @@ export class ClientesController extends BaseController {
                 WHERE ClienteId = domcli.ClienteId AND ClienteElementoDependienteId IS NULL
                 AND NexoDomicilioActual = 1
             )        ) AS domcli ON domcli.ClienteId = cli.ClienteId
-			LEFT JOIN (SELECT DISTINCT 
-   obj.ClienteId, 
-	COUNT(DISTINCT obj.ObjetivoId) CantidadObjetivos
-        
-    FROM Objetivo obj
+        LEFT JOIN (SELECT DISTINCT 
+            obj.ClienteId, 
+            COUNT(DISTINCT obj.ObjetivoId) CantidadObjetivos, STRING_AGG(suc.SucursalId, ', ') AS SucursalObjetivos
+            FROM Objetivo obj
+            LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+            LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
+            AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0
+            LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
+            LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, cli.ClienteSucursalId)
+            WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL 
+        GROUP BY obj.ClienteId) cant ON cant.ClienteId=cli.ClienteId        
 
-
-    LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
-    LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId 
-    AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0
-    
-    LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId 
-
-        
-        
-    WHERE 
-      eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
-GROUP BY obj.ClienteId) cant ON cant.ClienteId=cli.ClienteId        
-CROSS APPLY
-    (SELECT (IIF(cant.CantidadObjetivos>0 OR custodias.CantidadCustodias>0,'1','0')) AS activo) AS calc
+    CROSS APPLY (SELECT (IIF(cant.CantidadObjetivos>0 OR custodias.CantidadCustodias>0,'1','0')) AS activo) AS calc
 
     WHERE 
         ${filterSql}
@@ -553,8 +549,8 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-      await queryRunner.release();
-    }
+            await queryRunner.release();
+        }
 
     }
 
@@ -566,8 +562,8 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-      await queryRunner.release();
-    }
+            await queryRunner.release();
+        }
 
     }
 
@@ -581,8 +577,8 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-      await queryRunner.release();
-    }
+            await queryRunner.release();
+        }
     }
 
     async getJurImpositiva(req: any, res: Response, next: NextFunction) {
@@ -592,8 +588,8 @@ ${orderBy}`, [fechaActual])
         } catch (error) {
             return next(error)
         } finally {
-      await queryRunner.release();
-    }
+            await queryRunner.release();
+        }
     }
 
     async infoClienteQuerys(queryRunner: any, clienteId: any) {
