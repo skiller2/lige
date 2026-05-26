@@ -330,7 +330,7 @@
     <nz-card [nzBordered]="false" [nzTitle]="clientesTitle">
       <ng-template #clientesTitle>
         Clientes Activos
-        <small class="text-sm font-weight-normal">Clientes con contrato vigente</small>
+        <small class="text-sm font-weight-normal">(Con contrato vigente o Custodias dentro de los 30 días)</small>
       </ng-template>
       <g2-bar height="275" [data]="clientesActivos.value().data.clientesActivosPorSucursal"></g2-bar>
     </nz-card>
