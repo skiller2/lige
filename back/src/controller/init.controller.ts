@@ -9,6 +9,7 @@ import { ClientesController } from "../clientes/clientes.controller.ts";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Filtro } from "../schemas/filtro.ts";
 import { logger } from "../logger/logger.ts";
+import { SucursalController } from "./sucursal.controller.ts";
 
 export class InitController extends BaseController {
   async getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
@@ -169,7 +170,7 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
       })
       .catch((error) => {
         return next(error);
-      }).finally(async() => {
+      }).finally(async () => {
         await queryRunner.release();
       });
   }
@@ -259,13 +260,13 @@ AND eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
           data.push({ x: rec.SucursalDescripcion, y: rec.totalpersonas })
           total += rec.totalpersonas
         })
-    
+
         this.jsonRes({ Excepciones: data, excepcionesTotal: total }, res);
 
       })
       .catch((error) => {
         return next(error);
-      }).finally(async() => {
+      }).finally(async () => {
         await queryRunner.release();
       });
   }
@@ -321,7 +322,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       })
       .catch((error) => {
         return next(error);
-      }).finally(async() => {
+      }).finally(async () => {
         await queryRunner.release();
       });
   }
@@ -334,12 +335,61 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       const filtros: Filtro[] = [
         { index: 'activo', operador: '=', condition: 'AND', valor: ['1'] }
       ]
+      // Reutiliza la query central de clientes para conservar el mismo criterio de "activo".
       const filterSql = filtrosToSql(filtros, clientesController.listaColumnas)
       const orderBy = orderToSQL(null)
       const clientesActivos = await clientesController.listClientesQuery(queryRunner, filterSql, orderBy)
-     
+
+      // Obtiene el catalogo de sucursales para traducir ids a descripciones legibles en el grafico.
+      const sucursales = await SucursalController.listSucursalesQuery(queryRunner)
+
+      const clientesActivosPorSucursal: {
+        x: string;
+        y: number;
+        sucursalId: string;
+        clienteIds: Set<number>;
+      }[] = []
+
+      clientesActivos.forEach((cliente: any) => {
+        // Une sucursales provenientes de objetivos y custodias y elimina duplicados por cliente.
+        const sucursalesCliente = new Set<string>([
+          ...String(cliente.SucursalObjetivos ?? '').split(','),
+          ...String(cliente.SucursalReponsableIds ?? '').split(','),
+        ].map(sucursalId => sucursalId.trim()).filter(Boolean))
+
+        sucursalesCliente.forEach(sucursalId => {
+          let sucursalCliente = clientesActivosPorSucursal.find(row => row.sucursalId === sucursalId)
+
+          // Si la sucursal todavia no existe en el array, se crea su fila inicial para empezar a acumular clientes.
+          if (!sucursalCliente) {
+            const sucursal = sucursales.find((s: any) => String(s.SucursalId) === sucursalId)
+            // Si no encuentra la descripcion, usa el id como respaldo para no perder la referencia en el grafico.
+            const sucursalDescripcion = sucursal ? String(sucursal.SucursalDescripcion).trim() : sucursalId
+
+            sucursalCliente = {
+              x: sucursalDescripcion,
+              y: 0,
+              sucursalId,
+              clienteIds: new Set<number>(),
+            }
+            clientesActivosPorSucursal.push(sucursalCliente)
+          }
+
+          // El Set interno evita contar dos veces al mismo cliente para una misma sucursal.
+          sucursalCliente.clienteIds.add(Number(cliente.ClienteId))
+          sucursalCliente.y = sucursalCliente.clienteIds.size
+        })
+      })
+
+      // Ordena y formatea el resultado para el grafico, eliminando campos auxiliares.
+      const clientesActivosPorSucursalJson = clientesActivosPorSucursal
+        .sort((a, b) => b.y - a.y)
+        .map(({ clienteIds, sucursalId, ...row }) => row)
+
       this.jsonRes({
-        clientesActivos: clientesActivos.length}, res);
+        clientesActivos: clientesActivos.length,
+        clientesActivosPorSucursal: clientesActivosPorSucursalJson,
+      }, res);
     } catch (error) {
       return next(error);
     } finally {
@@ -508,7 +558,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       })
       .catch((error) => {
         return next(error);
-      }).finally(async() => {
+      }).finally(async () => {
         await queryRunner.release();
       });
   }

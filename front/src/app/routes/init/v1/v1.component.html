@@ -325,15 +325,15 @@
     </nz-card>
   </div>
   }
-  <!-- @if (clientesActivos$ | async; as clientesActivos) {
+  @if (clientesActivos.value()) {
   <div nz-col nzXs="24" nzMd="12">
     <nz-card [nzBordered]="false" [nzTitle]="clientesTitle">
       <ng-template #clientesTitle>
         Clientes Activos
         <small class="text-sm font-weight-normal">Clientes con contrato vigente</small>
       </ng-template>
-      <g2-bar height="275" [data]="clientesActivos.value().data.clientesActivos"></g2-bar>
+      <g2-bar height="275" [data]="clientesActivos.value().data.clientesActivosPorSucursal"></g2-bar>
     </nz-card>
   </div>
-  } -->
+  }
 </div>
