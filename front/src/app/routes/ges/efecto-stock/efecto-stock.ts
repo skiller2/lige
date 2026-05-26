@@ -285,6 +285,10 @@ export class EfectoStockComponent {
     }
   }
 
+  async confirmar() {
+    await firstValueFrom(this.apiService.confirmarStockEfecto(this.parametroStock()));
+  }
+
   sucursalDescripcionDisplay = computed(() => {
     const tipo = this.tipoDestinoSeleccionado();
     if (tipo === 'personal') return this.personaInfo.value()?.SucursalDescripcion ?? null;
