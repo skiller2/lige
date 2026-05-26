@@ -209,11 +209,7 @@ export class AuthMiddleware {
   hasAuthByDocId = () => {
     return async (req, res, next) => {
       const queryRunner = await getConnection(res.locals.userName);
-      
-      await queryRunner.startTransaction();
-       
-
-
+  
       try {
 
         const stmActual = new Date();
@@ -225,19 +221,6 @@ export class AuthMiddleware {
         const documentType = req.body?.doctipo_id || req.body?.files?.[0]?.doctipo_id || req.body?.DocumentoTipoCodigo//|| req.params.doctipo_id || req.query.doctipo_id;
 
         const path = req?.route?.path
-
-         
-
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
 
         if (!documentId && !documentType && !tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
         if (!tableForSearch) return res.status(403).json({ msg: "Documento Requerido. No se ha adjuntado ningún documento." })
@@ -256,12 +239,12 @@ export class AuthMiddleware {
               );
 
 
+              if (Documento.length === 0) return next();
+
               const doc = Documento[0];
               const DocumentoPersonalId = doc.persona_id;
 
               // Si el documento no tiene persona_id ni json_permisos_act_dir, se asume que es un documento general, sin restriccion de permisos y se permite el acceso
-
-              if (Documento.length === 0) return next();
               if (path.includes('downloadFile') && UserPersonalId == DocumentoPersonalId) return next();
 
               const documentoTipoIdOld = doc.doctipo_id
@@ -418,7 +401,6 @@ export class AuthMiddleware {
 
 
       } catch (error) {
-        await queryRunner.rollbackTransaction();
         logger.error(error);
         return res.status(409).json({ msg: "Error al verificar autorización", error: error.message });
       } finally {
