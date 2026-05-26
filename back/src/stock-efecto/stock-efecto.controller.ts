@@ -1,4 +1,4 @@
-import { BaseController } from "../controller/base.controller.ts";
+import { BaseController, ClientException } from "../controller/base.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import { getConnection } from "../data-source.ts";
 
@@ -34,6 +34,57 @@ export class StockEfectoController extends BaseController {
         ORDER BY pro.ProveedorRazonSocial
       `);
       this.jsonRes(rows, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async confirmarMovimiento(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const body = req.body ?? {};
+      const fecha = body.fecha;
+      const tipoDestino: string = body.tipoDestino ?? '';
+      const depositoId = body.depositoId ?? null;
+      const personalId = body.personalId ?? null;
+      const objetivoId = body.objetivoId != null ? Number(body.objetivoId) : null;
+      const proveedorId = body.proveedorId ?? null;
+      const efectos: Array<{ EfectoId: number; UbicacionStockId: number; Cantidad: number }> = Array.isArray(body.efectos) ? body.efectos : [];
+
+      if (!fecha) throw new ClientException("La fecha es obligatoria.");
+      const tiposValidos = ['deposito', 'personal', 'objetivo', 'proveedor'];
+      if (!tiposValidos.includes(tipoDestino)) throw new ClientException("El tipo de destino es obligatorio.");
+      if (tipoDestino === 'deposito' && !depositoId) throw new ClientException("El depósito es obligatorio.");
+      if (tipoDestino === 'personal' && !personalId) throw new ClientException("La persona es obligatoria.");
+      if (tipoDestino === 'objetivo' && !objetivoId) throw new ClientException("El objetivo es obligatorio.");
+      if (tipoDestino === 'proveedor' && !proveedorId) throw new ClientException("El proveedor es obligatorio.");
+      if (!efectos.length) throw new ClientException("Debe ingresar al menos un efecto.");
+
+      for (let i = 0; i < efectos.length; i++) {
+        const linea = efectos[i];
+        const n = i + 1;
+        if (!linea.EfectoId) throw new ClientException(`Línea ${n}: efecto obligatorio.`);
+        if (!linea.UbicacionStockId) throw new ClientException(`Línea ${n}: ubicación obligatoria.`);
+        if (linea.Cantidad == null || Number(linea.Cantidad) <= 0) throw new ClientException(`Línea ${n}: cantidad debe ser mayor a 0.`);
+
+        const rows = await queryRunner.query(
+          `SELECT TOP 1 stk.StockStock, stk.EfectoId
+           FROM StockReal stk
+           WHERE stk.StockId = @0`,
+          [linea.UbicacionStockId]
+        );
+        const row = rows?.[0];
+        if (!row) throw new ClientException(`Línea ${n}: la ubicación no existe.`);
+        if (Number(row.EfectoId) !== Number(linea.EfectoId)) throw new ClientException(`Línea ${n}: la ubicación no corresponde al efecto seleccionado.`);
+        const disponible = Number(row.StockStock ?? 0);
+        if (Number(linea.Cantidad) > disponible) {
+          throw new ClientException(`Línea ${n}: cantidad (${linea.Cantidad}) supera el stock disponible (${disponible}).`);
+        }
+      }
+
+      this.jsonRes({ ok: true }, res, "Movimiento confirmado");
     } catch (error) {
       return next(error);
     } finally {

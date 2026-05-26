@@ -15,3 +15,7 @@ stockEfectoRouter.get("/objetivo-info/:objetivoId/:anio/:mes", [authMiddleware.v
 stockEfectoRouter.get("/proveedores", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   stockEfectoController.getProveedores(req, res, next);
 });
+
+stockEfectoRouter.post("/confirmar", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  stockEfectoController.confirmarMovimiento(req, res, next);
+});
