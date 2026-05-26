@@ -5,6 +5,10 @@ import { CategoriasController } from "../categorias-cambio/categorias-cambio.con
 import { ObjetivosPendasisController } from "../objetivos-pendasis/objetivos-pendasis.controller.ts";
 import { AsistenciaController } from "./asistencia.controller.ts";
 import { CustodiaController } from "./custodia.controller.ts";
+import { ClientesController } from "../clientes/clientes.controller.ts";
+import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import type { Filtro } from "../schemas/filtro.ts";
+import { logger } from "../logger/logger.ts";
 
 export class InitController extends BaseController {
   async getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
@@ -325,32 +329,17 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
 
   async getClientesActivos(req: Request, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName)
-    const stmactual = new Date()
     try {
-      const clientesActivos = await queryRunner.query(
-      `with cte as (
-SELECT cli.ClienteId AS id, cli.ClienteId,fac.ClienteFacturacionCUIT,con.CondicionAnteIVADescripcion,cli.ClienteDenominacion,cli.ClienteNombreFantasia,cli.ClienteFechaAlta,
-	CONCAT_WS(' ',TRIM(domcli.DomicilioDomCalle),TRIM(domcli.DomicilioDomNro)) AS Domicilio,cant.CantidadObjetivos,        custodias.CantidadCustodias,        correonoti.ContactoEmailEmail,        calc.activo    
-	FROM Cliente cli        
-	LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId AND fac.ClienteFacturacionDesde <= @0 AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @0        
-	LEFT JOIN CondicionAnteIVA con ON con.CondicionAnteIVAId = fac.CondicionAnteIVAId        
-	LEFT JOIN (SELECT ct.ClienteId, STRING_AGG(mail.ContactoEmailEmail, ', ') ContactoEmailEmail  FROM Contacto ct             JOIN ContactoEmail mail ON mail.ContactoId = ct.ContactoId AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo =0)            WHERE ct.ClienteElementoDependienteId IS NULL AND  mail.ContactoEmailEmail IS NOT NULL AND (mail.ContactoEmailInactivo IS NULL OR mail.ContactoEmailInactivo=0) AND (ct.ContactoInactivo IS NULL OR ct.ContactoInactivo=0)  AND ct.ContactoTipoCod = 'NOTI'            GROUP BY ct.ClienteId        ) correonoti ON correonoti.ClienteId = cli.ClienteId
-	LEFT JOIN (SELECT cus.ClienteId , COUNT(*) CantidadCustodias FROM Custodia cus          WHERE DATEDIFF(day, cus.FechaInicio, @0)< 30          GROUP BY cus.ClienteId        ) custodias ON custodias.ClienteId = cli.ClienteId        
-	LEFT JOIN (SELECT                 domcli.ClienteId,                  dom.DomicilioDomCalle,                  dom.DomicilioDomNro            FROM                 NexoDomicilio domcli                JOIN Domicilio dom ON dom.DomicilioId = domcli.DomicilioId            WHERE                 domcli.NexoDomicilioActual = 1 AND domcli.ClienteId IS NOT NULL            AND domcli.DomicilioId = (                SELECT MAX(DomicilioId)                 FROM NexoDomicilio                 WHERE ClienteId = domcli.ClienteId AND ClienteElementoDependienteId IS NULL                AND NexoDomicilioActual = 1            )        ) AS domcli ON domcli.ClienteId = cli.ClienteId
-	LEFT JOIN (SELECT DISTINCT    obj.ClienteId, COUNT(DISTINCT obj.ObjetivoId) CantidadObjetivos            FROM Objetivo obj   
-	LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId    
-	LEFT JOIN ClienteElementoDependienteContrato eledepcon ON eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId     AND @0 >= eledepcon.ClienteElementoDependienteContratoFechaDesde AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaHasta,'9999-12-31') >= @0 AND ISNuLL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion,'9999-12-31') >= @0        
-	LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL GROUP BY obj.ClienteId) cant ON cant.ClienteId=cli.ClienteId        CROSS APPLY    (SELECT (IIF(cant.CantidadObjetivos>0 OR custodias.CantidadCustodias>0,'1','0')) AS activo) AS calc    
-	WHERE (calc.activo IN ('1'))
-)
-
-SELECT COUNT(*) AS ClientesActivos FROM cte
-
-        `,
-      [stmactual]
-    )
-
-      this.jsonRes({ clientesActivos: clientesActivos[0]?.ClientesActivos || 0 }, res);
+      const clientesController = new ClientesController()
+      const filtros: Filtro[] = [
+        { index: 'activo', operador: '=', condition: 'AND', valor: ['1'] }
+      ]
+      const filterSql = filtrosToSql(filtros, clientesController.listaColumnas)
+      const orderBy = orderToSQL(null)
+      const clientesActivos = await clientesController.listClientesQuery(queryRunner, filterSql, orderBy)
+     
+      this.jsonRes({
+        clientesActivos: clientesActivos.length}, res);
     } catch (error) {
       return next(error);
     } finally {
