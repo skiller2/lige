@@ -1,4 +1,4 @@
-import { inject, Injectable, LOCALE_ID } from '@angular/core';
+import { inject, Injectable, Injector, LOCALE_ID } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
 import { Observable, catchError, defer, filter, map, of, tap, throwError } from 'rxjs';
@@ -8,12 +8,12 @@ import { collectionFormatter, ExternalResource, Formatters, Column, Editors } fr
 import { AngularUtilService, Formatter, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
-import { ALLOW_ANONYMOUS } from '@delon/auth';
+import { ALLOW_ANONYMOUS, DA_SERVICE_TOKEN } from '@delon/auth';
 import { DEFAULT_DECIMAL_MARKER, DEFAULT_THOUSAND_SEPARATOR } from '../app.config.defaults';
 import { I18NService } from '@core';
 import { FieldTree, ValidationError } from '@angular/forms/signals';
 import { SILENT_NOTIFICATION_ERROR } from '../../context-tokens';
-
+import { toLogin } from '../core/net/helper';
 
 @Injectable({
   providedIn: 'root',
@@ -53,7 +53,7 @@ export class ApiService {
       //      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
       map((res: any) => res.data.list),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -64,7 +64,7 @@ export class ApiService {
       //      map(res => res.data.list.map((row: { tipo_movimiento_id: any; des_movimiento: any; }) => ( { value: row.tipo_movimiento_id, label: row.des_movimiento } ))),
       map((res: any) => res.data.list),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -74,7 +74,7 @@ export class ApiService {
     return this.http.get(`/api/liquidaciones/importaciones_anteriores/${anio}/${mes}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -86,7 +86,7 @@ export class ApiService {
     return this.http.get(`/api/file-upload/archivos_anteriores/${id}/${TipoSearch}/${keyField}/${TableSearch}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -96,7 +96,7 @@ export class ApiService {
     return this.http.get(`/api/file-upload/archivo_anterior/${id}`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -106,7 +106,7 @@ export class ApiService {
     return this.http.get(`/api/file-upload/select_tipo_in_file`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -116,7 +116,7 @@ export class ApiService {
     return this.http.get(`/api/carga-licencia/sepaga_getOptions`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -126,7 +126,7 @@ export class ApiService {
     return this.http.get(`/api/telefonia/importaciones_anteriores/${anio}/${mes}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -136,7 +136,7 @@ export class ApiService {
     return this.http.get(`/api/gestion-descuentos/importaciones_anteriores/${anio}/${mes}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -146,7 +146,7 @@ export class ApiService {
     return this.http.get(`/api/importe-venta-vigilancia/importaciones_anteriores/${anio}/${mes}/${DocumentoTipoCodigo}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -156,7 +156,7 @@ export class ApiService {
     return this.http.get(`/api/liquidaciones/tipo_cuenta`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -346,7 +346,7 @@ export class ApiService {
     return this.http.get<ResponseJSON<any[]>>(`api/personal/monotributo/${personalId}/${year}/${month}`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -357,7 +357,7 @@ export class ApiService {
     return this.http.get<any>(url).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -426,7 +426,7 @@ export class ApiService {
         return res.data
       }),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -441,7 +441,7 @@ export class ApiService {
     return this.http.get<ResponseJSON<any[]>>(`api/adelantos/${personalID}/${year}/${month}`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -454,7 +454,7 @@ export class ApiService {
     return this.http.get<ResponseJSON<any[]>>(`api/personal/responsables/${personalID}/${year}/${month}`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -467,7 +467,7 @@ export class ApiService {
     return this.http.get<ResponseJSON<any[]>>(`api/personal/sitrevista/${personalID}/${year}/${month}`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -499,7 +499,7 @@ export class ApiService {
   }
 
   sendMessage(dst: string, msg: string) {
-     
+
     return this.http.post<ResponseJSON<any>>(`mess/api/personal/sendmsg`, { dst, msg }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -565,7 +565,7 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/list', parameter).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -576,19 +576,19 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/list', parameter).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
   }
 
   getMovimientosBanco(filters: any) {
-     
+
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/listMovimientos', parameter).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -599,7 +599,7 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('api/liquidaciones/banco/listAyudaAsistencial', parameter).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -701,7 +701,7 @@ export class ApiService {
 
 
   getListCargaLicenciaHistory(filters: any, anio: any, mes: any, personalId: any) {
-     
+
     const parameter = { filters, anio, mes, personalId }
     return this.http.post<ResponseJSON<any>>('/api/carga-licencia/listHistory', parameter).pipe(
       map((res: { data: any; }) => res.data),
@@ -951,7 +951,7 @@ export class ApiService {
 
   generaDescuentoRetiros(anio: number, mes: number) {
 
-    const parameter = { anio, mes}
+    const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio Descuento Retiros`);
 
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/descuento-retiros', parameter).pipe(
@@ -994,7 +994,7 @@ export class ApiService {
   generaRecibos(anio: number, mes: number, fechaRecibo: Date) {
     const isUnique = false
     const parameter = { anio, mes, isUnique, fechaRecibo }
-     
+
     this.notification.success('Respuesta', `Inicio generación de recibos`);
 
     return this.http.post<ResponseJSON<any>>('/api/recibos/generar', parameter).pipe(
@@ -1049,7 +1049,7 @@ export class ApiService {
     return this.http.get(`/api/productos/importaciones_anteriores/${anio}/${mes}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -1072,7 +1072,7 @@ export class ApiService {
 
   }
 
-   onchangecellvalorHora(params: any) {
+  onchangecellvalorHora(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/valor-hora/changecellvalorHora', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
 
@@ -1111,7 +1111,7 @@ export class ApiService {
   }
 
   onchangecellSMVM(params: any) {
-     
+
     return this.http.post<ResponseJSON<any>>('/api/salario-minimo-vital-movil/onchangecell', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     )
@@ -1150,8 +1150,8 @@ export class ApiService {
       catchError(() => of([]))
     );
   }
-  
-  setImpuestoTelefonia(params:any) {
+
+  setImpuestoTelefonia(params: any) {
     return this.http.post<ResponseJSON<any>>(`api/telefonia/set-impuesto`, params)
       .pipe(
         tap((res: ResponseJSON<any>) => this.response(res)),
@@ -1225,7 +1225,7 @@ export class ApiService {
   }
 
   setRecibo(parameter: any) {
-     
+
     return this.http.post<ResponseJSON<any>>('/api/recibos/config', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -1243,7 +1243,7 @@ export class ApiService {
   }
 
   setNovedad(parameter: any) {
-     
+
     return this.http.post<ResponseJSON<any>>('/api/novedades/config', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -1326,12 +1326,12 @@ export class ApiService {
   }
 
   getUrlTest(url: any): Observable<Blob> {
-     
+
 
     return this.http.get(`/api/acceso-bot/downloadImagenDni/${url}`, {
       responseType: 'blob',
     }).pipe(
-      tap(() => {}),
+      tap(() => { }),
       catchError((error) => {
         return throwError(() => new Error("No se pudo descargar el archivo"));
       })
@@ -1463,7 +1463,7 @@ export class ApiService {
   }
 
   downloadReciboPrueba(parameter: any) {
-     
+
     return this.http.post<ResponseJSON<any>>('/api/recibos/prueba', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -1647,7 +1647,7 @@ export class ApiService {
     return this.http.get<ResponseJSON<any[]>>(`api/personal/responsableslist/${personalId}`).pipe(
       map((res: any) => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -1731,7 +1731,7 @@ export class ApiService {
 
   }
 
-  importXLSImporteVentaTelefonia(files: any, anio: number, mes: number, fecha: Date, totaldeclarado:number) {
+  importXLSImporteVentaTelefonia(files: any, anio: number, mes: number, fecha: Date, totaldeclarado: number) {
     const parameter = { files, anio, mes, fecha, totaldeclarado }
     return this.http.post<ResponseJSON<any>>(`api/telefonia/import-xls-telefonia`, parameter)
       .pipe(
@@ -1947,7 +1947,7 @@ export class ApiService {
     );
   }
 
-  deletedImportDescuento(DocumentoId: number, tableForSearch:string) {
+  deletedImportDescuento(DocumentoId: number, tableForSearch: string) {
     if (!DocumentoId && !tableForSearch.length) {
       return of(null);
     }
@@ -2018,7 +2018,7 @@ export class ApiService {
     return this.http.get<ResponseJSON<any>>(`api/domicilio/provincias/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -2028,7 +2028,7 @@ export class ApiService {
     return this.http.get<ResponseJSON<any>>(`api/domicilio/localidades/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -2038,7 +2038,7 @@ export class ApiService {
     return this.http.get<ResponseJSON<any>>(`api/domicilio/barrios/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
     );
@@ -2142,9 +2142,9 @@ export class ApiService {
   getAvisos(): Observable<any[]> {
     return this.http.get(`/api/aviso`,
       {}, { context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
-      map((res: ResponseJSON<any>) => res.data),
-      catchError(() => of([]))
-    )
+        map((res: ResponseJSON<any>) => res.data),
+        catchError(() => of([]))
+      )
 
 
     /*
@@ -2214,6 +2214,27 @@ export class ApiService {
       };
     });
   }
+  private readonly tokenService = inject(DA_SERVICE_TOKEN);
+  private injector = inject(Injector);
+  
+  async fastFetch<T>(url: string): Promise<T> {
+
+    const res = await fetch(url, {
+      headers: { token: this.tokenService.get()?.token ?? '' }
+    });
+
+    if (!res.ok) {
+
+      if (res.status === 401) {
+        toLogin(this.injector)
+      }
+
+      throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    }
+
+    return res.json();
+  }
+
 
 
   getValorHoraData(anio: number, mes: number, filters: any) {
