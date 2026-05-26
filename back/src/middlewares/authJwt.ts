@@ -138,23 +138,25 @@ export class AuthMiddleware {
         if (PersonalId < 1) return next()
 
         const grupos = res.locals.GrupoActividad //|| await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
-
-        if (grupos.length < 0) return next()
+        
+        if (!grupos || grupos.length == 0) return next()
         const GrupoActividadIdList = grupos.map((grupo: any) => grupo.GrupoActividadId)
 
-        let resPers = await queryRunner.query(`
-        SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
-        WHERE gap.GrupoActividadPersonalPersonalId = @0  AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
-        ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${GrupoActividadIdList.join(',')})
-        UNION
-        SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
-        WHERE gap.GrupoActividadJerarquicoPersonalId = @0  AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
-        ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${GrupoActividadIdList.join(',')})
-        AND gap.GrupoActividadJerarquicoComo = 'J'
-        `,
-          [PersonalId_auth, anio, mes])
-        if (resPers.length > 0) {
-          res.locals.authResp = true
+        if (GrupoActividadIdList.length > 0) {
+          const resPers = await queryRunner.query(`
+          SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
+          WHERE gap.GrupoActividadPersonalPersonalId = @0  AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
+          ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${GrupoActividadIdList.join(',')})
+          UNION
+          SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
+          WHERE gap.GrupoActividadJerarquicoPersonalId = @0  AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
+          ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${GrupoActividadIdList.join(',')})
+          AND gap.GrupoActividadJerarquicoComo = 'J'
+          `,
+            [PersonalId_auth, anio, mes])
+          if (resPers.length > 0) {
+            res.locals.authResp = true
+          }
         }
 
         return next()
