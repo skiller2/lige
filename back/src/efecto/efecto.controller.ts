@@ -836,6 +836,10 @@ export class EfectoController extends BaseController {
 
   async getEfectoRelaciones(req: any, res: Response, next: NextFunction) {
     const efectoId = Number(req.params.id);
+    const individualIdRaw = req.query?.individualId;
+    const individualId =  individualIdRaw === undefined || individualIdRaw === '' || individualIdRaw === 'null'
+        ? null
+        : Number(individualIdRaw);
     if (!efectoId) {
       this.jsonRes([], res);
       return;
@@ -844,20 +848,25 @@ export class EfectoController extends BaseController {
     try {
       const list = await queryRunner.query(`
         SELECT
-          rel.EfectoRelacionEfectoId,
-          CASE WHEN rel.EfectoRelacionDeEfectoId = @0
-               THEN rel.EfectoRelacionConEfectoId
-               ELSE rel.EfectoRelacionDeEfectoId
-          END AS EfectoRelacionadoId,
-          CASE WHEN rel.EfectoRelacionDeEfectoId = @0
-               THEN efC.EfectoDescripcion
-               ELSE efD.EfectoDescripcion
-          END AS EfectoRelacionadoDescripcion
-        FROM EfectoRelacionEfecto rel
-        LEFT JOIN EfectoDescripcion efD ON efD.EfectoId = rel.EfectoRelacionDeEfectoId
-        LEFT JOIN EfectoDescripcion efC ON efC.EfectoId = rel.EfectoRelacionConEfectoId
-        WHERE rel.EfectoRelacionDeEfectoId = @0 OR rel.EfectoRelacionConEfectoId = @0
-      `, [efectoId]);
+          ere.EfectoRelacionEfectoId,
+          ere.EfectoRelacionConEfectoId,
+          ere.EfectoRelacionConEfectoEfectoIndividualId,
+          stDe.EfectoDescripcionCompleto  AS DescripcionDe,
+          stCon.EfectoDescripcionCompleto AS DescripcionCon
+        FROM EfectoRelacionEfecto AS ere
+        INNER JOIN StockReal AS stDe
+          ON stDe.EfectoId = ere.EfectoRelacionDeEfectoId
+         AND (stDe.EfectoEfectoIndividualId = ere.EfectoRelacionDeEfectoEfectoIndividualId
+              OR (stDe.EfectoEfectoIndividualId IS NULL AND ere.EfectoRelacionDeEfectoEfectoIndividualId IS NULL))
+        INNER JOIN StockReal AS stCon
+          ON stCon.EfectoId = ere.EfectoRelacionConEfectoId
+         AND (stCon.EfectoEfectoIndividualId = ere.EfectoRelacionConEfectoEfectoIndividualId
+              OR (stCon.EfectoEfectoIndividualId IS NULL AND ere.EfectoRelacionConEfectoEfectoIndividualId IS NULL))
+        WHERE ere.EfectoRelacionDeEfectoId = @0
+          AND (ere.EfectoRelacionDeEfectoEfectoIndividualId = @1
+               OR (@1 IS NULL AND ere.EfectoRelacionDeEfectoEfectoIndividualId IS NULL))
+      `, [efectoId, individualId]);
+      console.log('list', list);
       this.jsonRes(list, res);
     } catch (error) {
       return next(error);

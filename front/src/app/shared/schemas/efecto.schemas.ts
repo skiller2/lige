@@ -16,3 +16,11 @@ export interface SearchEfectoIndividual {
 export interface ResponseBySearchEfectoIndividual {
     recordsArray: Array<SearchEfectoIndividual>
 }
+
+export interface EfectoRelacionEfecto {
+    EfectoRelacionEfectoId: number;
+    EfectoRelacionConEfectoId: number;
+    EfectoRelacionConEfectoEfectoIndividualId: number | null;
+    DescripcionDe: string;
+    DescripcionCon: string;
+}

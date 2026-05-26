@@ -90,6 +90,15 @@ export class EfectoSearchComponent implements ControlValueAccessor {
         return
       }
 
+      if (this.extendedOption.EfectoId === Number(this._selectedId)) {
+        this._selected = `${this.extendedOption.EfectoId}|${this.extendedOption.EfectoEfectoIndividualId ?? ''}`
+        this.valueExtendedEmitter.emit(this.extendedOption)
+        if (this.tmpInputVal != this._selectedId) {
+          this.propagateChange(this._selectedId)
+        }
+        return
+      }
+
       firstValueFrom(
         this.searchService.getEfectoFromName('EfectoId', this._selectedId)
           .pipe(tap(res => {
@@ -141,14 +150,24 @@ export class EfectoSearchComponent implements ControlValueAccessor {
     const [idStr, indivStr] = val.split('|');
     const efectoId = Number(idStr);
     const individualId = indivStr === '' || indivStr === undefined ? null : Number(indivStr);
+    const normalizedIndividual = Number.isNaN(individualId as number) ? null : individualId;
 
-    // Capturamos el individual antes de disparar selectedId para que valueExtended lo lleve.
     this.extendedOption = {
       EfectoId: efectoId,
-      EfectoEfectoIndividualId: Number.isNaN(individualId as number) ? null : individualId,
+      EfectoEfectoIndividualId: normalizedIndividual,
       fullName: this.extendedOption.fullName
     }
-    this.selectedId = String(efectoId)
+    this._selected = `${efectoId}|${normalizedIndividual ?? ''}`
+
+    // Siempre emitimos con la selección actual del usuario (incluye individual).
+    this.valueExtendedEmitter.emit(this.extendedOption)
+
+    // Sincronizamos el id y propagamos al form si cambió.
+    const efectoIdStr = String(efectoId)
+    if (efectoIdStr !== this._selectedId) {
+      this._selectedId = efectoIdStr
+      this.propagateChange(this._selectedId)
+    }
   }
 
   search(value: string): void {

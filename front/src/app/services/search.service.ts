@@ -15,7 +15,7 @@ import {
 import { SearchGrup, ResponseBySearchGrup } from '../shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente, SearchClient } from '../shared/schemas/cliente.schemas';
 import { ResponseBySearchAdministrador, SearchAdmind } from '../shared/schemas/administrador.schemas';
-import { ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual } from '../shared/schemas/efecto.schemas';
+import { EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual } from '../shared/schemas/efecto.schemas';
 import { ResponseBySearchTipoAsociadoCategoria, SearchTipoAsociadoCategoria } from '../shared/schemas/tipo-asociado-categoria.schemas';
 import { ResponseBySearchRubro, SearchRubro } from '../shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from '../shared/schemas/seguro.schemas';
@@ -2486,9 +2486,10 @@ export class SearchService {
   }
 
 
-  getEfectoRelaciones(efectoId: number): Observable<{ EfectoRelacionEfectoId: number; EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[]> {
+  getEfectoRelaciones(efectoId: number, individualId: number | null = null): Observable<EfectoRelacionEfecto[]> {
     if (!efectoId) return of([]);
-    return this.http.get<ResponseJSON<any>>(`api/efecto/relaciones/${efectoId}`).pipe(
+    const params = individualId != null ? { individualId: String(individualId) } : {};
+    return this.http.get<ResponseJSON<EfectoRelacionEfecto[]>>(`api/efecto/relaciones/${efectoId}`, params).pipe(
       map(res => res.data ?? []),
       catchError(() => of([]))
     );

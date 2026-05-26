@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { EfectoUbicacion, SearchService } from '../../../services/search.service';
+import { EfectoRelacionEfecto } from '../../../shared/schemas/efecto.schemas';
 import { ApiService } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
 import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
@@ -172,32 +173,40 @@ export class EfectoStockComponent {
     },
   });
 
-  readonly relacionesByEfectoId = signal<Map<number, { EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[]>>(new Map());
+  readonly individualByIndex = signal<Map<number, number | null>>(new Map());
+  readonly debugExtended = signal<{ last: any } | null>(null);
 
-  private cargandoRelaciones = new Set<number>();
+  onEfectoExtended(index: number, ext: { EfectoId?: number; EfectoEfectoIndividualId?: number | null } | null | undefined): void {
+    const individualId = ext?.EfectoEfectoIndividualId ?? null;
+    this.individualByIndex.update(m => {
+      const next = new Map(m);
+      next.set(index, individualId);
+      return next;
+    });
+    this.debugExtended.set({ last: { index, ext } });
+  }
+
+  readonly relacionesByIndex = signal<Map<number, EfectoRelacionEfecto[]>>(new Map());
 
   private relacionesEffect = effect(() => {
-    const ids = this.parametroStock().efectos
-      .map(e => e.EfectoId)
-      .filter((id): id is number => !!id);
-    const cache = this.relacionesByEfectoId();
-    for (const id of ids) {
-      if (cache.has(id) || this.cargandoRelaciones.has(id)) continue;
-      this.cargandoRelaciones.add(id);
-      firstValueFrom(this.searchService.getEfectoRelaciones(id)).then(rels => {
-        this.cargandoRelaciones.delete(id);
-        this.relacionesByEfectoId.update(m => {
+    const individuales = this.individualByIndex();
+    const efectos = this.parametroStock().efectos;
+    efectos.forEach((e, i) => {
+      const efectoId = e.EfectoId;
+      if (!efectoId) return;
+      const individualId = individuales.get(i) ?? null;
+      firstValueFrom(this.searchService.getEfectoRelaciones(efectoId, individualId)).then(rels => {
+        this.relacionesByIndex.update(m => {
           const next = new Map(m);
-          next.set(id, rels ?? []);
+          next.set(i, rels ?? []);
           return next;
         });
       });
-    }
+    });
   });
 
-  relacionesDe(efectoId: number | null | undefined): { EfectoRelacionadoId: number; EfectoRelacionadoDescripcion: string }[] {
-    if (!efectoId) return [];
-    return this.relacionesByEfectoId().get(efectoId) ?? [];
+  relacionesDeLinea(index: number): EfectoRelacionEfecto[] {
+    return this.relacionesByIndex().get(index) ?? [];
   }
 
   readonly ubicacionesByEfectoId = signal<Map<number, EfectoUbicacion[]>>(new Map());
@@ -263,6 +272,14 @@ export class EfectoStockComponent {
       ...s,
       efectos: s.efectos.filter((_, i) => i !== index),
     }));
+    this.individualByIndex.update(m => {
+      const next = new Map<number, number | null>();
+      for (const [i, v] of m) {
+        if (i < index) next.set(i, v);
+        else if (i > index) next.set(i - 1, v);
+      }
+      return next;
+    });
     if (this.parametroStock().efectos.length === 0) {
       this.addEfecto();
     }
