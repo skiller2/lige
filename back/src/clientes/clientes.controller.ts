@@ -2,6 +2,7 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
+import type { Options } from "../schemas/filtro.ts";
 import type { QueryRunner } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
 
@@ -249,16 +250,35 @@ export class ClientesController extends BaseController {
     }
 
     async listClientes(req: any, res: Response, next: NextFunction) {
-
-        const filterSql = filtrosToSql(req.body.options.filtros, this.listaColumnas);
-        const orderBy = orderToSQL(req.body.options.sort)
         const queryRunner = await getConnection(res.locals.userName);
-        const fechaActual = new Date()
 
         try {
+            const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null, extra: null };
+            const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
+            const orderBy = orderToSQL(options.sort)
+            const clientes = await this.listClientesQuery(queryRunner, filterSql, orderBy)
 
-            const clientes = await queryRunner.query(
-                `SELECT 
+            this.jsonRes(
+                {
+                    total: clientes.length,
+                    list: clientes,
+                },
+                res
+            );
+
+        } catch (error) {
+            return next(error)
+        } finally {
+            await queryRunner.release();
+        }
+
+    }
+
+    async listClientesQuery(queryRunner: QueryRunner, filterSql: string, orderBy: String) {
+        const fechaActual = new Date()
+
+        return await queryRunner.query(
+            `SELECT 
         cli.ClienteId AS id, 
         cli.ClienteId,
         fac.ClienteFacturacionCUIT,
@@ -333,21 +353,6 @@ export class ClientesController extends BaseController {
     WHERE 
         ${filterSql}
 ${orderBy}`, [fechaActual])
-
-            this.jsonRes(
-                {
-                    total: clientes.length,
-                    list: clientes,
-                },
-                res
-            );
-
-        } catch (error) {
-            return next(error)
-        } finally {
-            await queryRunner.release();
-        }
-
     }
 
     async listDocsCliente(req: any, res: Response, next: NextFunction) {
