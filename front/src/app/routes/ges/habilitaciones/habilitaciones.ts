@@ -106,8 +106,12 @@ export class HabilitacionesComponent {
       if (params['PersonalId']) {
         this.startFilters.set([
           { index:'PersonalId', condition:'AND', operator:'=', value: params['PersonalId'], closeable: true }
-        ])
+        ])  
       }
+      setTimeout(() => {
+        this.gridData.reload()
+      }, 500);
+      
     })
   }
 

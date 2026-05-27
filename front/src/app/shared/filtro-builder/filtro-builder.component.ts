@@ -66,23 +66,65 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
 export class FiltroBuilderComponent implements ControlValueAccessor {
   readonly startFilters = input<Selections[]>([])
   readonly fieldsToSelect = input<any[]>([])
-
   readonly keyLocalstorage = input<string>("")
 
   private searchService = inject(SearchService)
   private settingsService = inject(SettingsService)
   private elRef = inject(ElementRef)
   private datePipe = inject(DatePipe)
-  private apiService = inject(ApiService);
+  private apiService = inject(ApiService)
+  private _options= signal<Options>({
+    filtros: [],
+    sort: null,
+  })
+
+  isFiltroBuilder = signal<boolean>(false);
+  listOfSelectedValue = [];
+  selections: any = {
+    field: { searchComponent: '', name: '', type: '', searchType: '' },
+    condition: 'AND',
+    operator: '',
+    value: null,
+    label: '',
+    closeable: true,
+    originIdx: null,
+    inicial: false
+  };
+  valueExtended = { fullName: '' }
+
+  options = model<Options>({
+    filtros: [],
+    sort: null
+  })
+
+  // listOptions: listOptionsT = {
+  //   filtros: [],
+  //   sort: null,
+  // };
 
   //conditionsToSelect = ['AND', 'OR'];
   //operatorsToSelect = ['LIKE', '>', '<', '>=', '<=', '!=', '<>', '='];
   @Output() optionsChange = new EventEmitter<Options>();
-  options = model<Options>({
-      filtros: [],
-      sort: null
-    })
   formChange$ = new BehaviorSubject('');
+
+  private loggingEffect = effect(() => {
+    if (this.fieldsToSelect() && this.startFilters()) {
+
+
+      for (const filter of this.startFilters()) {
+        this.addFilter(filter.index, filter.condition, filter.operator, filter.value, filter.label || '', filter.closeable || true, true)
+      }
+      let storedFilters = []
+      try {
+        const storageKey = this.getUserStorageKey();
+        if (storageKey != '')
+          storedFilters = JSON.parse(localStorage.getItem(storageKey) || 'null') || []
+      } catch (error) { }
+      for (const filter of storedFilters) {
+        this.addFilter(filter.index, filter.condition, filter.operador, filter.valor, filter.label || '', filter.closeable, false)
+      }
+    }
+  });
 
   $optionsEstadoCust = this.searchService.getEstadoCustodia();
   $optionsEstadoPrest = this.searchService.getEstadoPrestamo();
@@ -104,15 +146,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsProvincias = this.apiService.getProvinciasOptions();
   $optionsLocalidades = this.apiService.getLocalidadesOptions();
   $optionsBarrios = this.apiService.getBarriosOptions();
-  $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
-  $optionsHabilitacionClase = this.searchService.getHabilitacionClaseOptions();
-  $optionsHabilitacionEstado = this.searchService.getEstadosHabilitaciones();
-  $optionsEventoLogClase = this.searchService.getEventoLogClaseOptions();
-
-  private _options: Options = {
-    filtros: [],
-    sort: null,
-  };
 
   $optionsSepaga = this.searchService.getSePaga();
   $optionsInactivo = this.searchService.getInactivo();
@@ -125,48 +158,16 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsCompaniaSeguro = this.searchService.getCompaniaSeguroSearch();
   $optionsTipoSeguro = this.searchService.getTipoSeguroSearch();
   $optionsCentroCapacitacion = this.searchService.getCentroCapacitacionSearch()
-
-  isFiltroBuilder = false;
-
-  listOfSelectedValue = [];
-  selections: any = {
-    field: { searchComponent: '', name: '', type: '', searchType: '' },
-    condition: 'AND',
-    operator: '',
-    value: null,
-    label: '',
-    closeable: true,
-    originIdx: null,
-    inicial: false
-  };
-
-  valueExtended = { fullName: '' }
-
-  private loggingEffect = effect(() => {
-    if (this.fieldsToSelect() && this.startFilters()) {
-
-
-      for (const filter of this.startFilters()) {
-        this.addFilter(filter.index, filter.condition, filter.operator, filter.value, filter.label || '', filter.closeable || true, true)
-      }
-      let storedFilters = []
-      try {
-        const storageKey = this.getUserStorageKey();
-        if (storageKey != '')
-          storedFilters = JSON.parse(localStorage.getItem(storageKey) || 'null') || []
-      } catch (error) { }
-      for (const filter of storedFilters) {
-        this.addFilter(filter.index, filter.condition, filter.operador, filter.valor, filter.label || '', filter.closeable, false)
-      }
-    }
-  });
-
+  $optionsLugarHabilitacion = this.searchService.getLugarHabilitacionOptions();
+  $optionsHabilitacionClase = this.searchService.getHabilitacionClaseOptions();
+  $optionsHabilitacionEstado = this.searchService.getEstadosHabilitaciones();
+  $optionsEventoLogClase = this.searchService.getEventoLogClaseOptions();
 
   ngOnInit(): void {
   }
 
   handleTagInteraction() {
-    this.isFiltroBuilder = true;
+    this.isFiltroBuilder.set(true)
   }
 
   verifySelections(): boolean {
@@ -298,11 +299,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       if (!(this.selections.inicial == true)) {
         this.saveLocalStorage()
       }
-    this.options.update(v=>({...this.localoptions}))
+      this.options.update(v=>({...this.localoptions}))
       this.optionsChange.emit(this.localoptions);
     }
     this.resetSelections();
-    this.isFiltroBuilder = false;
+    this.isFiltroBuilder.set(false)
 
     let inputSearch: HTMLElement = this.elRef.nativeElement.querySelector('nz-select-clear');
     //    let inputSearch: HTMLElement = document.getElementsByTagName("nz-select-clear")[0] as HTMLElement;
@@ -452,7 +453,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       originIdx: originIdx
     };
 
-    this.isFiltroBuilder = true;
+    this.isFiltroBuilder.set(true)
 
     setTimeout(() => {
       const input = this.elRef.nativeElement.querySelector('input[nz-input]');
@@ -484,13 +485,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   //get accessor
   get localoptions(): Options {
-    return this._options;
+    return this._options();
   }
 
   //set accessor including call the onchange callback
   set localoptions(v: Options) {
-    if (v !== this._options) {
-      this._options = v;
+    if (v !== this._options()) {
+      this._options.set(v);
       this.onChangeCallback(v);
     }
   }
@@ -516,11 +517,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   registerOnTouched(fn: any) {
     this.onTouchedCallback = fn;
   }
-
-  listOptions: listOptionsT = {
-    filtros: [],
-    sort: null,
-  };
 
   onOptionChange() {
   }
@@ -690,11 +686,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   async addFilter(index: string, condition: string, operator: string, value: any, label: string, closeable: boolean, inicial: boolean) {
     if (!this.fieldsToSelect()) return
 
-
     const fieldObj: any = this.fieldsToSelect().filter(x => x.id === index)[0]
     if (!fieldObj)
       return
-
     //    value = Array.isArray(value) ? value[0] : value
 
     //TODO revisar que pasa con el resto de los filtros
