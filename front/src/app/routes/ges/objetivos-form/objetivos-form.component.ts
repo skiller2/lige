@@ -129,7 +129,7 @@ export class ObjetivosFormComponent {
     GrupoActividadObjetivoId: 0,
     GrupoActividadId: 0,
     GrupoActividadOriginal: 0,
-    GrupoActividadObjetivoDesde: new Date(),
+    GrupoActividadObjetivoDesde: null,
     GrupoActividadObjetivoDesdeOriginal: ''
   }
   private readonly objetivoDefault: Objetivo = { 
@@ -268,6 +268,9 @@ export class ObjetivosFormComponent {
     if (!infoObjetivo.infoCoordinadorCuenta.length) {
       infoObjetivo.infoCoordinadorCuenta = [{ ...this.coordinadorCuentaDefault }]
     }
+    if (!infoObjetivo.infoActividad?.length || !infoObjetivo.infoActividad[0]) {
+      infoObjetivo.infoActividad = [{ ...this.actividadDefault }]
+    }
     // infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
     //   this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
     // });
@@ -301,9 +304,9 @@ export class ObjetivosFormComponent {
       ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
       ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
       codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
-      GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
+      GrupoActividadId: infoObjetivo.infoActividad[0].GrupoActividadId,
       clienteOld: this.ClienteId(),
-      GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
+      GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico?.[0]?.GrupoActividadJerarquicoPersonalId ?? 0
     }));
     setTimeout(() => { this.formObjetivo().reset() }, 400);
     // this.formObj.patchValue({
@@ -365,6 +368,9 @@ export class ObjetivosFormComponent {
           if (!infoObjetivo.infoCoordinadorCuenta.length) {
             infoObjetivo.infoCoordinadorCuenta = [{ ...this.coordinadorCuentaDefault }]
           }
+          if (!infoObjetivo.infoActividad?.length || !infoObjetivo.infoActividad[0]) {
+            infoObjetivo.infoActividad = [{ ...this.actividadDefault }]
+          }
           // this.formObj.get('ClienteId')?.disable();
 
           this.objetivo.update(m => ({
@@ -375,9 +381,9 @@ export class ObjetivosFormComponent {
             ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
             ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
             codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
-            GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
+            GrupoActividadId: infoObjetivo.infoActividad[0].GrupoActividadId,
             clienteOld: infoObjetivo.ClienteId,
-            GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
+            GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico?.[0]?.GrupoActividadJerarquicoPersonalId ?? 0
           }));
           
           // this.formObj.reset(infoObjetivo)
