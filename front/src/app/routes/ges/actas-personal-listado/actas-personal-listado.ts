@@ -1,16 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, resource } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { BehaviorSubject, debounceTime, map, switchMap } from 'rxjs';
+import { BehaviorSubject, debounceTime, map, switchMap, firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
 import { SettingsService } from '@delon/theme';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
+import { LoadingService } from '@delon/abc/loading';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-actas-personal-listado',
@@ -26,25 +28,43 @@ export class ActasPersonalListadoComponent {
   gridOptions!: GridOption;
   detailViewRowCount = 1;
   excelExportService = new ExcelExportService();
-  listListado$ = new BehaviorSubject('');
-  listOptions: listOptionsT = {
+  // listListado$ = new BehaviorSubject('');
+  listOptions = signal<listOptionsT>({
     filtros: [], // TODO: Agregar filtros iniciales aquí si es necesario (ej: [{field: 'Estado', operator: '=', value: 'Activo'}])
     sort: null,
-  };
+  })
   hiddenColumnIds: string[] = [];
 
   private angularUtilService = inject(AngularUtilService);
   private searchService = inject(SearchService);
   private settingsService = inject(SettingsService);
   private apiService = inject(ApiService);
+  private readonly loadingSrv = inject(LoadingService)
 
-  columns$ = this.apiService.getCols('/api/actas/cols-personal').pipe(
+  columns = toSignal(this.apiService.getCols('/api/actas/cols-personal').pipe(
     map((cols: Column<any>[]) => {
       this.hiddenColumnIds = cols
         .filter((col: any) => col.showGridColumn === false)
         .map((col: Column) => col.id as string);
       return cols
-    }));
+  })), { initialValue: [] as Column[] })
+
+  gridData = resource({
+          params: () => ({ options: this.listOptions() }),
+          loader: async ({ params }) => {
+              let response = []
+              this.loadingSrv.open({ type: 'spin', text: '' })
+              try {
+                  response = await firstValueFrom(this.searchService.getActasPersonalListado(this.listOptions()))
+                  
+              } catch (_e) { }
+              this.loadingSrv.close()
+  
+              return response || [];
+          },
+  
+          defaultValue: []
+      });
 
   ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions(
@@ -62,16 +82,7 @@ export class ActasPersonalListadoComponent {
 
     // this.settingsService.setLayout('collapsed', true);
     
-    // Trigger inicial: dispara la carga de datos al entrar al módulo
-    this.listListado$.next('');
   }
-
-  gridData$ = this.listListado$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getActasPersonalListado(this.listOptions);
-    })
-  );
 
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail;
@@ -89,8 +100,7 @@ export class ActasPersonalListadoComponent {
   }
 
   listOptionsChange(options: any) {
-    this.listOptions = options;
-    this.listListado$.next('');
+    this.listOptions.set(options);
   }
 
   renderApellidoNombreComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {

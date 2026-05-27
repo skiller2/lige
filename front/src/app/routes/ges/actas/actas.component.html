@@ -30,13 +30,13 @@
   <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
     <nz-tab>
       <a nz-tab-link routerLink="/ges/actas/listado">Actas</a>
-      @if ((columns$|async); as columnas) {
+      @if (columns().length) {
       <ng-template nz-tab>
-        <shared-filtro-builder [fieldsToSelect]="columnas" [startFilters]="startFilters"
+        <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters"
           (optionsChange)="listOptionsChange($event)" />
         <div class="gridContainer container-fluid">
-          <angular-slickgrid gridId="grid" class="" [columns]="columnas | colsFilter" [options]="gridOptions"
-            [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+          <angular-slickgrid gridId="grid" [columns]="columns() | colsFilter" [options]="gridOptions"
+            [dataset]="gridData.value() || []" (onAngularGridCreated)="angularGridReady($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
           </angular-slickgrid>
         </div>
