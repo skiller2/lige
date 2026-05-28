@@ -251,6 +251,13 @@ export class InitV1Component implements OnInit {
     }
   });
 
+  public custodiasRealizadas = resource({
+    params: () => null,
+    loader: async () => {
+      return <any> await this.apiService.fastFetch('api/init/stats/custodiasrealizadas')
+    }
+  });
+
   public horasTrabajadas = resource({
     params: () => null,
     loader: async () => {
