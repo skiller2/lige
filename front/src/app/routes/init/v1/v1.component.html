@@ -306,7 +306,7 @@
     <nz-card [nzBordered]="false" [nzTitle]="horasTrab">
       <ng-template #horasTrab>
         Horas trabajadas
-        <small class="text-sm font-weight-normal">Se calculan las horas totales ingresadas en la liquidación</small>
+        <small class="text-sm font-weight-normal">(Se calculan las horas totales ingresadas en la liquidación)</small>
       </ng-template>
       <!-- <g2-bar #g2horas height="275" [data]="horasTrabajadas.value().data.horasTrabajadas" title="hola" autoLabel="true"></g2-bar> -->
       <g2-custom #g2horascustom height="275" autoLabel="true" (render)="render($event)"></g2-custom>
@@ -314,12 +314,13 @@
   </div>
   }
 
+
   @if (objetivosActivos.value()) {
   <div nz-col nzXs="24" nzMd="12">
     <nz-card [nzBordered]="false" [nzTitle]="objetivosTitle">
       <ng-template #objetivosTitle>
         Objetivos Activos
-        <small class="text-sm font-weight-normal">Objetivos con contrato vigente</small>
+        <small class="text-sm font-weight-normal">(Con contrato vigente)</small>
       </ng-template>
       <g2-bar height="275" [data]="objetivosActivos.value().data.objetivosActivos"></g2-bar>
     </nz-card>
@@ -333,6 +334,19 @@
         <small class="text-sm font-weight-normal">(Con contrato vigente o Custodias dentro de los 30 días)</small>
       </ng-template>
       <g2-bar height="275" [data]="clientesActivos.value().data.clientesActivosPorSucursal"></g2-bar>
+    </nz-card>
+  </div>
+  }
+
+  
+  @if (custodiasLiquidadas.value()) {
+  <div nz-col nzXs="24" nzMd="12">
+    <nz-card [nzBordered]="false" [nzTitle]="custodiasLiquidadasTitle">
+      <ng-template #custodiasLiquidadasTitle>
+        Custodias Liquidadas
+        <small class="text-sm font-weight-normal">(No se contempla custodias en estado "canceladas" ni "pendientes")</small>
+      </ng-template>
+      <g2-bar height="275" [data]="custodiasLiquidadas.value().data.custodiasLiquidadas"></g2-bar>
     </nz-card>
   </div>
   }
