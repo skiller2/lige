@@ -503,8 +503,8 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   //From ControlValueAccessor interface
   writeValue(value: any) {
-    if (value !== this._options) {
-      this._options = value;
+    if (value !== this._options()) {
+      this._options.set(value);
     }
   }
 
