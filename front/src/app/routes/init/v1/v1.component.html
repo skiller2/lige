@@ -339,14 +339,14 @@
   }
 
   
-  @if (custodiasRealizadas.value()) {
+  @if (custodiasLiquidadas.value()) {
   <div nz-col nzXs="24" nzMd="12">
-    <nz-card [nzBordered]="false" [nzTitle]="custodiasRealizadasTitle">
-      <ng-template #custodiasRealizadasTitle>
+    <nz-card [nzBordered]="false" [nzTitle]="custodiasLiquidadasTitle">
+      <ng-template #custodiasLiquidadasTitle>
         Custodias Liquidadas
         <small class="text-sm font-weight-normal">(No se contempla custodias en estado "canceladas" ni "pendientes")</small>
       </ng-template>
-      <g2-bar height="275" [data]="custodiasRealizadas.value().data.custodiasRealizadas"></g2-bar>
+      <g2-bar height="275" [data]="custodiasLiquidadas.value().data.custodiasLiquidadas"></g2-bar>
     </nz-card>
   </div>
   }

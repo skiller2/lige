@@ -251,10 +251,10 @@ export class InitV1Component implements OnInit {
     }
   });
 
-  public custodiasRealizadas = resource({
+  public custodiasLiquidadas = resource({
     params: () => null,
     loader: async () => {
-      return <any> await this.apiService.fastFetch('api/init/stats/custodiasrealizadas')
+      return <any> await this.apiService.fastFetch('api/init/stats/custodiasliquidadas')
     }
   });
 

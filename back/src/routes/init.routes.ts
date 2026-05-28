@@ -49,8 +49,8 @@ initRouter.get(`${base}/stats/custodiaspendientes/:anio/:mes`, authMiddleware.ve
 	initController.getCustodiasPendientes(req, res, next)
 })
 
-initRouter.get(`${base}/stats/custodiasrealizadas`, authMiddleware.verifyToken, (req, res, next) => {
-	initController.getCustodiasRealizadas(req, res, next)
+initRouter.get(`${base}/stats/custodiasliquidadas`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getCustodiasLiquidadas(req, res, next)
 })
 
 initRouter.get(`${base}/stats/recibos`, authMiddleware.verifyToken, (req, res, next) => {
