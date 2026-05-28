@@ -1320,16 +1320,21 @@ export class ObjetivosController extends BaseController {
 
             // }
 
-            if (infoActividad[0].GrupoActividadOriginal != infoActividad[0].GrupoActividadId || infoActividad[0].GrupoActividadObjetivoDesdeOriginal != infoActividad[0].GrupoActividadObjetivoDesde) {
-                await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuarioId, usuario)
-            }
+            const actividad = infoActividad?.[0]
+            const tieneDatosCompletos = actividad?.GrupoActividadId > 0 && actividad?.GrupoActividadObjetivoId > 0 && actividad?.GrupoActividadObjetivoDesde != null
+            const huboCambiosGrupoActividad = actividad?.GrupoActividadOriginal != actividad?.GrupoActividadId || actividad?.GrupoActividadObjetivoDesdeOriginal != actividad?.GrupoActividadObjetivoDesde
+
+            if (tieneDatosCompletos && huboCambiosGrupoActividad) await this.grupoActividad(queryRunner, Obj.infoActividad, ObjetivoId, ip, usuarioId, usuario)
 
             await this.validateDateAndCreateContrato(queryRunner, Obj.ContratoFechaDesde, Obj.ContratoFechaDesdeOLD, Obj.ContratoFechaHasta, Obj.ContratoFechaHastaOLD, Obj.FechaModificada, Obj.ClienteId, Obj.ClienteElementoDependienteId, ObjetivoId, Obj.ContratoId, ip, usuarioId, usuario)
             //update
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, Obj.ClienteId, Obj.ClienteElementoDependienteId)
-            ObjObjetivoNew.infoActividad[0] = grupoactividad[0]
-            ObjObjetivoNew.infoActividad[0].GrupoActividadOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadId
-            ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesdeOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesde
+            ObjObjetivoNew.infoActividad[0] = grupoactividad[0] || {}
+
+            if (grupoactividad[0]) {
+                ObjObjetivoNew.infoActividad[0].GrupoActividadOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadId
+                ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesdeOriginal = ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoDesde
+            }
 
             if ((!Obj.ContratoFechaHasta && ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoHasta) || (Obj.ContratoFechaHasta > ObjObjetivoNew.infoActividad[0].GrupoActividadObjetivoHasta)) {
                 await queryRunner.query(`UPDATE GrupoActividadObjetivo SET GrupoActividadObjetivoHasta = @2, 
