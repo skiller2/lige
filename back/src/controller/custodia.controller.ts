@@ -618,7 +618,7 @@ export class CustodiaController extends BaseController {
 
         //NEW TABLE
         return await queryRunner.query(`
-            SELECT DISTINCT 
+           SELECT DISTINCT 
                 obj.CustodiaCodigo AS id, obj.ResponsableId, obj.ClienteId,
                 obj.DescripcionRequirente,
                 obj.Descripcion,
@@ -645,7 +645,8 @@ export class CustodiaController extends BaseController {
                     obj.ImporteFactura > 0,
                     100 - (ISNULL(regveh.COSTO,0) + ISNULL(regper.COSTO,0)) * 100 / obj.ImporteFactura,
                     0
-                ) AS diferencia
+                ) AS diferencia,
+                regper.HorasTrabajadas
             FROM Custodia obj
             JOIN Personal per 
                 ON per.PersonalId = obj.ResponsableId
@@ -662,13 +663,15 @@ export class CustodiaController extends BaseController {
             LEFT JOIN (
                 SELECT 
                     regper.CustodiaCodigo,
-                    SUM(ISNULL(regper.Importe,0)) AS COSTO
+                    SUM(ISNULL(regper.Importe,0)) AS COSTO,
+                    SUM(ISNULL(regper.HorasTrabajadas,0)) AS HorasTrabajadas
                 FROM PersonalCustodia regper
                 GROUP BY regper.CustodiaCodigo
             ) regper 
                 ON regper.CustodiaCodigo = obj.CustodiaCodigo
             LEFT JOIN PersonalCustodia percus 
                 ON percus.CustodiaCodigo = obj.CustodiaCodigo
+
             WHERE (${condition})
             AND (${search}) AND (${filterSql}) 
             ${orderBy}`, [year, month])
@@ -1172,7 +1175,7 @@ export class CustodiaController extends BaseController {
                 infoCustodia.FechaLiquidacion = null
             }
 
-             if (!(await this.hasGroup(req, 'Liquidaciones')) && ResponsableId != infoCustodia.ResponsableId) {
+            if (!(await this.hasGroup(req, 'Liquidaciones')) && ResponsableId != infoCustodia.ResponsableId) {
                 throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.Responsable} o pertenecer al grupo 'Liquidaciones'.`)
             }
 
@@ -1207,8 +1210,8 @@ export class CustodiaController extends BaseController {
             VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @24, @25, @26, @27, @28, @29)`,
                 [newCustodiaCambiosCodigo, infoCustodia.CustodiaCodigo, infoCustodia.ResponsableId, infoCustodia.ClienteId, infoCustodia.DescripcionRequirente,
                     infoCustodia.Descripcion, infoCustodia.FechaInicio, infoCustodia.Origen, infoCustodia.FechaFin, infoCustodia.Destino, infoCustodia.CantidadModulos, infoCustodia.ImporteModulo, infoCustodia.CantidadHorasExcedente,
-                     infoCustodia.ImporteHorasExcedente, infoCustodia.CantidadKmExcedente, infoCustodia.ImporteKmExcedente, infoCustodia.ImportePeaje, infoCustodia.ImporteFactura, infoCustodia.DescripcionFacturacion, infoCustodia.NumeroFactura, infoCustodia.EstadoCodigo,
-                    infoCustodia.FechaLiquidacion, infoCustodia.AudUsuarioIng, infoCustodia.AudIpIng, infoCustodia.AudFechaIng, infoCustodia.AudUsuarioMod, infoCustodia.AudIpMod, infoCustodia.AudFechaMod, 
+                    infoCustodia.ImporteHorasExcedente, infoCustodia.CantidadKmExcedente, infoCustodia.ImporteKmExcedente, infoCustodia.ImportePeaje, infoCustodia.ImporteFactura, infoCustodia.DescripcionFacturacion, infoCustodia.NumeroFactura, infoCustodia.EstadoCodigo,
+                    infoCustodia.FechaLiquidacion, infoCustodia.AudUsuarioIng, infoCustodia.AudIpIng, infoCustodia.AudFechaIng, infoCustodia.AudUsuarioMod, infoCustodia.AudIpMod, infoCustodia.AudFechaMod,
                     JSON.stringify(listPersonal), JSON.stringify(listVehiculo)])
 
 

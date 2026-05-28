@@ -141,6 +141,33 @@ export class InitController extends BaseController {
     }
   }
 
+  async getHorasTrabajadasCustodias(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName)
+    try {
+      const custodiaController = new CustodiaController()
+      const filterSql = `obj.EstadoCodigo <> 2 AND obj.FechaLiquidacion IS NOT NULL`
+      const orderBy = orderToSQL(null)
+      const periodoActual = new Date()
+      const horasTrabajadasCustodias: { x: string; y: number }[] = []
+      let total = 0
+
+      for (let i = 12; i >= 0; i--) {
+        const periodo = new Date(periodoActual.getFullYear(), periodoActual.getMonth() - i, 1)
+        const custodiasPeriodo = await custodiaController.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo)
+        const horasPeriodo = Math.round(custodiasPeriodo.reduce((acc: number, custodia: any) => acc + Number(custodia.HorasTrabajadas ?? 0), 0) * 100) / 100
+
+        horasTrabajadasCustodias.push({ x: `${periodo.getMonth() + 1}/${periodo.getFullYear()}`, y: horasPeriodo })
+        total += horasPeriodo
+      }
+
+      this.jsonRes({ horasTrabajadasCustodias, horasTrabajadasCustodiasTotal: total }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
 
 
   async getObjetivosSinGrupo(req: Request, res: Response, next: NextFunction) {

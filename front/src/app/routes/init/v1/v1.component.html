@@ -305,7 +305,7 @@
   <div nz-col nzXs="24" nzMd="12">
     <nz-card [nzBordered]="false" [nzTitle]="horasTrab">
       <ng-template #horasTrab>
-        Horas trabajadas
+        Horas trabajadas en Vigilancia
         <small class="text-sm font-weight-normal">(Se calculan las horas totales ingresadas en la liquidación)</small>
       </ng-template>
       <!-- <g2-bar #g2horas height="275" [data]="horasTrabajadas.value().data.horasTrabajadas" title="hola" autoLabel="true"></g2-bar> -->
@@ -347,6 +347,18 @@
         <small class="text-sm font-weight-normal">(No se contempla custodias en estado "canceladas" ni "pendientes")</small>
       </ng-template>
       <g2-bar height="275" [data]="custodiasLiquidadas.value().data.custodiasLiquidadas"></g2-bar>
+    </nz-card>
+  </div>
+  }
+
+  @if (horasTrabajadasCustodias.value()) {
+  <div nz-col nzXs="24" nzMd="12">
+    <nz-card [nzBordered]="false" [nzTitle]="horasTrabajadasCustodiasTitle">
+      <ng-template #horasTrabajadasCustodiasTitle>
+        Horas trabajadas en Custodias
+        <small class="text-sm font-weight-normal">(Calculado sobre Custodias liquidadas)</small>
+      </ng-template>
+      <g2-bar height="275" [data]="horasTrabajadasCustodias.value().data.horasTrabajadasCustodias"></g2-bar>
     </nz-card>
   </div>
   }

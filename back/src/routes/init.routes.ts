@@ -53,6 +53,10 @@ initRouter.get(`${base}/stats/custodiasliquidadas`, authMiddleware.verifyToken, 
 	initController.getCustodiasLiquidadas(req, res, next)
 })
 
+initRouter.get(`${base}/stats/horastrabajadascustodias`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getHorasTrabajadasCustodias(req, res, next)
+})
+
 initRouter.get(`${base}/stats/recibos`, authMiddleware.verifyToken, (req, res, next) => {
 	initController.getRecibosPendDescarga(req, res, next)
 })
