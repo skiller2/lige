@@ -15,7 +15,7 @@ const listaColumnasPersonal: any[] = [
     searchHidden: true
   },
   {
-    name: "Apellido Nombre ",
+    name: "Persona",
     type: "number",
     id: "PersonalId",
     field: "PersonalId",
@@ -27,7 +27,7 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "ApellidoNombre",
-    name: "Apellido Nombre",
+    name: "Persona",
     field: "ApellidoNombre",
     fieldName: "ApellidoNombre",
     type: "string",
@@ -134,13 +134,13 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "EfectoDescripcionCompleto",
-    name: "Efecto Descripción Completa",
+    name: "Efecto",
     field: "EfectoDescripcionCompleto",
     fieldName: "stk.EfectoDescripcionCompleto",
     type: "string",
-    sortable: true,
+    sortable: false,
     hidden: false,
-    searchHidden: false
+    searchHidden: true
   },
   {
     id: "StockStock",
@@ -172,7 +172,7 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "Importe",
-    name: "Importe",
+    name: "Importe Unitario",
     field: "Importe",
     fieldName: "ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio)",
     type: "currency",
@@ -340,7 +340,7 @@ const listaColumnasObjetivos: any[] = [
   },
   {
     id: "EfectoDescripcionCompleto",
-    name: "Efecto Descripción Completa",
+    name: "Efecto",
     field: "EfectoDescripcionCompleto",
     fieldName: "stk.EfectoDescripcionCompleto",
     type: "string",
@@ -376,7 +376,7 @@ const listaColumnasObjetivos: any[] = [
   },
   {
     id: "Importe",
-    name: "Importe",
+    name: "Importe Unitario",
     field: "Importe",
     fieldName: "ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio)",
     type: "currency",
@@ -482,7 +482,7 @@ const listaColumnasDeposito: any[] = [
   },
   {
     id: "Importe",
-    name: "Importe",
+    name: "Importe Unitario",
     field: "Importe",
     fieldName: "ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio)",
     type: "currency",
@@ -529,7 +529,7 @@ const listaColumnasEfectoGeneral: any[] = [
   },
   {
     id: "PersonalId",
-    name: "Personal",
+    name: "Persona",
     field: "PersonalId",
     fieldName: "per.PersonalId",
     type: "number",
@@ -540,7 +540,7 @@ const listaColumnasEfectoGeneral: any[] = [
   },
   {
     id: "ApellidoNombre",
-    name: "Personal",
+    name: "Persona",
     field: "ApellidoNombre",
     fieldName: "ApellidoNombre",
     type: "string",
@@ -639,7 +639,7 @@ const listaColumnasEfectoGeneral: any[] = [
   },
   {
     id: "Importe",
-    name: "Importe",
+    name: "Importe Unitario",
     field: "Importe",
     fieldName: "ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio)",
     type: "currency",
@@ -733,7 +733,7 @@ const listaColumnasProveedores: any[] = [
   },
   {
     id: "Importe",
-    name: "Importe",
+    name: "Importe Unitario",
     field: "Importe",
     fieldName: "ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio)",
     type: "currency",
@@ -753,7 +753,7 @@ export class EfectoController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
 
     let buscar = false;
-    let query: string = `SELECT EfectoId,EfectoEfectoIndividualId,EfectoDescripcionCompleto as EfectoDescripcion  FROM stockreal WHERE`;
+    let query: string = `SELECT DISTINCT EfectoId,EfectoEfectoIndividualId,EfectoDescripcionCompleto as EfectoDescripcion  FROM stockreal WHERE`;
     switch (fieldName) {
       case "EfectoDescripcion":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
