@@ -134,13 +134,13 @@ const listaColumnasPersonal: any[] = [
   },
   {
     id: "EfectoDescripcionCompleto",
-    name: "Efecto",
+    name: "Efecto Descripción",
     field: "EfectoDescripcionCompleto",
     fieldName: "stk.EfectoDescripcionCompleto",
     type: "string",
     sortable: false,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
   },
   {
     id: "StockStock",
@@ -340,7 +340,7 @@ const listaColumnasObjetivos: any[] = [
   },
   {
     id: "EfectoDescripcionCompleto",
-    name: "Efecto",
+    name: "Efecto Descripción",
     field: "EfectoDescripcionCompleto",
     fieldName: "stk.EfectoDescripcionCompleto",
     type: "string",
@@ -446,13 +446,13 @@ const listaColumnasDeposito: any[] = [
   },
   {
     id: "EfectoDescripcionCompleto",
-    name: "Efecto",
+    name: "Efecto Descripción",
     field: "EfectoDescripcionCompleto",
     fieldName: "stk.EfectoDescripcionCompleto",
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
   },
   {
     id: "StockStock",
@@ -519,13 +519,13 @@ const listaColumnasEfectoGeneral: any[] = [
   },
   {
     id: "EfectoDescripcionCompleto",
-    name: "Efecto",
+    name: "Efecto Descripción",
     field: "EfectoDescripcionCompleto",
     fieldName: "stk.EfectoDescripcionCompleto",
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
   },
   {
     id: "PersonalId",
@@ -697,13 +697,13 @@ const listaColumnasProveedores: any[] = [
   },
   {
     id: "EfectoDescripcionCompleto",
-    name: "Efecto",
+    name: "Efecto Descripción",
     field: "EfectoDescripcionCompleto",
     fieldName: "stk.EfectoDescripcionCompleto",
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
   },
   {
     id: "StockStock",
