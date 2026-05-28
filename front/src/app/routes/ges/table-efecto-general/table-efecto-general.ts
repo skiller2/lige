@@ -53,10 +53,9 @@ export class TableEfectoGeneralComponent {
   gridData = resource({
     params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
     loader: async ({ params }) => {
-      if (!params.options?.filtros?.length) return []
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
-        const response = await firstValueFrom(this.searchService.getEfectoGeneral(params.options))
+        const response = await firstValueFrom(this.searchService.getEfectoGeneral(params.options ?? { filtros: [], sort: null }))
         return response || []
       } catch (_e) {
         return []

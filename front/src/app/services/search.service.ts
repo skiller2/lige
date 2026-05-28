@@ -2313,15 +2313,9 @@ export class SearchService {
   }
 
   getEfectoGeneral(listOptions: any) {
-    if (!listOptions.filtros.length) {
-      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
-      return of([]);
-    }
-
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoGeneral`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-         
         return of([]);
       })
     );

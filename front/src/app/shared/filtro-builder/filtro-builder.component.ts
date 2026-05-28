@@ -300,7 +300,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         this.saveLocalStorage()
       }
       this.options.update(v=>({...this.localoptions}))
-      this.optionsChange.emit(this.localoptions);
+      this.optionsChange.emit({ ...this.localoptions, filtros: [...this.localoptions.filtros] });
     }
     this.resetSelections();
     this.isFiltroBuilder.set(false)
@@ -331,7 +331,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   removeFiltro(indexToRemove: number) {
     this.localoptions.filtros.splice(indexToRemove, 1);
     this.options.update(v=>({...this.localoptions}))
-    this.optionsChange.emit(this.localoptions);
+    this.optionsChange.emit({ ...this.localoptions, filtros: [...this.localoptions.filtros] });
     this.saveLocalStorage()
   }
 

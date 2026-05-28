@@ -130,6 +130,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
 
   $searchChange = new BehaviorSubject('');
   $isOptionsLoading = new BehaviorSubject<boolean>(false);
+  private latestOptions: SearchEfecto[] = [];
   $optionsArray: Observable<SearchEfecto[]> = this.$searchChange.pipe(
     debounceTime(500),
     switchMap(value =>
@@ -137,6 +138,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
         .getEfectoFromName('EfectoDescripcion', value)
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
+          tap(opts => { this.latestOptions = opts ?? [] }),
           tap({ complete: () => this.$isOptionsLoading.next(false) })
         )
     )
@@ -152,10 +154,14 @@ export class EfectoSearchComponent implements ControlValueAccessor {
     const individualId = indivStr === '' || indivStr === undefined ? null : Number(indivStr);
     const normalizedIndividual = Number.isNaN(individualId as number) ? null : individualId;
 
+    const picked = this.latestOptions.find(efect =>
+      efect.EfectoId === efectoId && (efect.EfectoEfectoIndividualId ?? null) === normalizedIndividual
+    );
+
     this.extendedOption = {
       EfectoId: efectoId,
       EfectoEfectoIndividualId: normalizedIndividual,
-      fullName: this.extendedOption.fullName
+      fullName: picked?.EfectoDescripcion ?? this.extendedOption.fullName
     }
     this._selected = `${efectoId}|${normalizedIndividual ?? ''}`
 

@@ -877,11 +877,6 @@ export class EfectoController extends BaseController {
 
   async getEfectoUbicaciones(req: any, res: Response, next: NextFunction) {
     const efectoId = Number(req.params.id);
-    const individualIdRaw = req.query?.individualId;
-    const individualId =
-      individualIdRaw === undefined || individualIdRaw === '' || individualIdRaw === 'null'
-        ? null
-        : Number(individualIdRaw);
     if (!efectoId) {
       this.jsonRes([], res);
       return;
@@ -914,9 +909,8 @@ export class EfectoController extends BaseController {
         LEFT JOIN Proveedor pro ON pro.ProveedorId = stk.ProveedorId
         LEFT JOIN Deposito dep ON dep.DepositoId = stk.DepositoId
         WHERE stk.EfectoId = @0
-          AND (@1 IS NULL OR stk.EfectoEfectoIndividualId = @1)
           AND (stk.PersonalId IS NOT NULL OR stk.ObjetivoId IS NOT NULL OR stk.ProveedorId IS NOT NULL OR stk.DepositoId IS NOT NULL)
-      `, [efectoId, individualId]);
+      `, [efectoId]);
       this.jsonRes(list, res);
     } catch (error) {
       return next(error);
