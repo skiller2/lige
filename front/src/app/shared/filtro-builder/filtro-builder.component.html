@@ -139,6 +139,15 @@
       }
     </nz-select>
     }
+    @if (selections.field.searchComponent=='inputForSubrubroSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Subrubro" nzShowSearch
+      (ngModelChange)="selectedValueSubrubro($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsSubrubros | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.SubrubroDescripcion"></nz-option>
+      }
+    </nz-select>
+    }
     @if (selections.field.searchComponent=='inputForSePaga') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Se paga" nzShowSearch
       (ngModelChange)="selectedValueSePaga($event)" [nzDropdownMatchSelectWidth]="false"

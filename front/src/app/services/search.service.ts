@@ -590,6 +590,13 @@ export class SearchService {
     );
   }
 
+  getSubrubros(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/rubro/subrubro`).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
   getPersonas(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/sucursales`).pipe(
       map(res => res.data),
