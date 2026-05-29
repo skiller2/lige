@@ -36,7 +36,7 @@
         <span nz-icon nzType="reload" nzTheme="outline"></span>
       </button>
         <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.stock' | i18n }}"
-        [routerLink]="['/', 'ges', 'efecto', 'stock']">
+        [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
         <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
       </button>
     </nz-button-group>
@@ -68,7 +68,7 @@
       <app-table-proveedores-efecto [refreshGrid]="refreshTickProveedores()" />
     </div>
   }
-  @if (visitedTabs().has('stock')) {
+  @if (visitedTabs().has('movimiento')) {
     
       <app-efecto-stock />
     
