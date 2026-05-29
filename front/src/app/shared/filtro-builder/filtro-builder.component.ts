@@ -143,6 +143,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsSucursales = this.searchService.getSucursales();
   $optionsDepositos = this.searchService.getDepositos();
   $optionsRubros = this.searchService.getRubros();
+  $optionsSubrubros = this.searchService.getSubrubros();
   $optionsMetodologias = this.searchService.getMetodologia();
   $optionsProvincias = this.apiService.getProvinciasOptions();
   $optionsLocalidades = this.apiService.getLocalidadesOptions();
@@ -544,6 +545,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (val) {
       this.selections.value = val.RubroId;
       this.valueExtended = { fullName: val.RubroDescripcion };
+    }
+  }
+
+  selectedValueSubrubro(val: any) {
+    if (val) {
+      this.selections.value = val.SubrubroId;
+      this.valueExtended = { fullName: val.SubrubroDescripcion };
     }
   }
 
