@@ -130,6 +130,15 @@
       }
     </nz-select>
     }
+    @if (selections.field.searchComponent=='inputForRubroSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Rubro" nzShowSearch
+      (ngModelChange)="selectedValueRubro($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsRubros | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.RubroDescripcion"></nz-option>
+      }
+    </nz-select>
+    }
     @if (selections.field.searchComponent=='inputForSePaga') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Se paga" nzShowSearch
       (ngModelChange)="selectedValueSePaga($event)" [nzDropdownMatchSelectWidth]="false"

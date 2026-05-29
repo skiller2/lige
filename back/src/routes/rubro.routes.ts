@@ -4,6 +4,10 @@ import { rubroController } from "../controller/controller.module.ts";
 
 export const rubroRouter = Router();
 
+rubroRouter.get("/", authMiddleware.verifyToken,(req, res, next) => {
+    rubroController.getAllRubros(req, res, next)
+});
+
 rubroRouter.get("/rublo-cliente/options", authMiddleware.verifyToken,(req, res, next) => {
     rubroController.getRubroCliente(req, res, next)
 });

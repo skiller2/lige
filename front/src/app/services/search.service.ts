@@ -577,9 +577,16 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/depositos`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-         
+
         return of([]);
       })
+    );
+  }
+
+  getRubros(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/rubro`).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
     );
   }
 

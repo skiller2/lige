@@ -63,4 +63,22 @@ export class RubroController extends BaseController {
       await queryRunner.release()
     }
   }
+
+  async getAllRubros(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const result = await queryRunner.query(`
+        SELECT
+          ru.RubroId,
+          ru.RubroDescripcion
+        FROM Rubro ru
+        ORDER BY ru.RubroDescripcion
+      `)
+      this.jsonRes(result, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 }
