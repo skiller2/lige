@@ -183,9 +183,46 @@ const listaColumnasPersonal: any[] = [
     searchComponent: "inputForNumberAdvancedSearch",
     maxWidth: 100,
   },
-
-
-
+  {
+    id: "RubroId",
+    name: "Rubro",
+    field: "RubroId",
+    fieldName: "stk.RubroId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "RubroDescripcion",
+    name: "Rubro",
+    field: "RubroDescripcion",
+    fieldName: "ru.RubroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "SubrubroId",
+    name: "Subrubro",
+    field: "SubrubroId",
+    fieldName: "stk.SubrubroId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "SubrubroDescripcion",
+    name: "Subrubro",
+    field: "SubrubroDescripcion",
+    fieldName: "sru.SubrubroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
 ]
 
 const listaColumnasObjetivos: any[] = [
@@ -387,7 +424,46 @@ const listaColumnasObjetivos: any[] = [
     searchComponent: "inputForNumberAdvancedSearch",
     maxWidth: 100,
   },
-
+  {
+    id: "RubroId",
+    name: "Rubro",
+    field: "RubroId",
+    fieldName: "stk.RubroId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "RubroDescripcion",
+    name: "Rubro",
+    field: "RubroDescripcion",
+    fieldName: "ru.RubroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "SubrubroId",
+    name: "Subrubro",
+    field: "SubrubroId",
+    fieldName: "stk.SubrubroId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "SubrubroDescripcion",
+    name: "Subrubro",
+    field: "SubrubroDescripcion",
+    fieldName: "sru.SubrubroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
 ]
 
 const listaColumnasDeposito: any[] = [
@@ -492,6 +568,46 @@ const listaColumnasDeposito: any[] = [
     searchType: "numberAdvanced",
     searchComponent: "inputForNumberAdvancedSearch",
     maxWidth: 100,
+  },
+  {
+    id: "RubroId",
+    name: "Rubro",
+    field: "RubroId",
+    fieldName: "stk.RubroId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "RubroDescripcion",
+    name: "Rubro",
+    field: "RubroDescripcion",
+    fieldName: "ru.RubroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "SubrubroId",
+    name: "Subrubro",
+    field: "SubrubroId",
+    fieldName: "stk.SubrubroId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "SubrubroDescripcion",
+    name: "Subrubro",
+    field: "SubrubroDescripcion",
+    fieldName: "sru.SubrubroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
   },
 ]
 
@@ -638,6 +754,46 @@ const listaColumnasEfectoGeneral: any[] = [
     maxWidth: 100,
   },
   {
+    id: "RubroId",
+    name: "Rubro",
+    field: "RubroId",
+    fieldName: "stk.RubroId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "RubroDescripcion",
+    name: "Rubro",
+    field: "RubroDescripcion",
+    fieldName: "ru.RubroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "SubrubroId",
+    name: "Subrubro",
+    field: "SubrubroId",
+    fieldName: "stk.SubrubroId",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "SubrubroDescripcion",
+    name: "Subrubro",
+    field: "SubrubroDescripcion",
+    fieldName: "sru.SubrubroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
     id: "Importe",
     name: "Importe Unitario",
     field: "Importe",
@@ -649,7 +805,8 @@ const listaColumnasEfectoGeneral: any[] = [
     searchType: "numberAdvanced",
     searchComponent: "inputForNumberAdvancedSearch",
     maxWidth: 100,
-  },
+  }
+
 ]
 
 const listaColumnasProveedores: any[] = [
@@ -964,16 +1121,20 @@ export class EfectoController extends BaseController {
     const now = new Date();
     const filterSql = filtrosToSql(listOptions.filtros, listaColumnasPersonal)
     return queryRunner.query(`
-     SELECT ROW_NUMBER() OVER (ORDER BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockId) AS id, 
+     SELECT ROW_NUMBER() OVER (ORDER BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockId) AS id,
 	    CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,per.PersonalId,
 	    cuit.PersonalCUITCUILCUIT , sitrev.SituacionRevistaId, sitrev.SituacionRevistaDescripcion, persitrev.PersonalSituacionRevistaDesde,persitrev.PersonalSituacionRevistaHasta,
 		  stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
-		  stk.EfectoDescripcion, stk.EfectoAtrDescripcion, stk.EfectoEfectoIndividualDescripcion, stk.EfectoIndividualAtrDescripcion, 
-	    stk.EfectoDescripcionCompleto, 
+		  stk.EfectoDescripcion, stk.EfectoAtrDescripcion, stk.EfectoEfectoIndividualDescripcion, stk.EfectoIndividualAtrDescripcion,
+	    stk.EfectoDescripcionCompleto,
       ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
 
+      stk.RubroId,
+      ru.RubroDescripcion,
+      stk.SubrubroId,
+      sru.SubrubroDescripcion,
 
-	    ga.GrupoActividadDetalle,gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta, 
+	    ga.GrupoActividadDetalle,gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta,
 	    suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
       1
     FROM StockReal stk
@@ -981,15 +1142,17 @@ export class EfectoController extends BaseController {
       LEFT join PersonalSituacionRevista persitrev on persitrev.PersonalId=per.PersonalId and persitrev.PersonalSituacionRevistaDesde<=@0 AND ISNULL(persitrev.PersonalSituacionRevistaHasta,'9999-12-31')>=@0
       left JOIN SituacionRevista sitrev on sitrev.SituacionRevistaId=persitrev.PersonalSituacionRevistaSituacionId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-	
+
 	    LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
 	    LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
-	
+
 	    LEFT JOIN GrupoActividadPersonal gaper on gaper.GrupoActividadPersonalPersonalId=per.PersonalId and (select max(GrupoActividadPersonalId) from GrupoActividadPersonal where GrupoActividadPersonalPersonalId=per.PersonalId) = gaper.GrupoActividadPersonalId
 	    LEFT JOIN GrupoActividad ga on ga.GrupoActividadId = gaper.GrupoActividadId
       LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId AND stk.EfectoEfectoIndividualId IS NULL and lp.ListaPrecioDesde<= @0 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
       LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
-    WHERE stk.StockStock > 0 
+      LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
+      LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
+    WHERE stk.StockStock > 0
         AND ${filterSql} `, [now])
   }
 
@@ -1075,18 +1238,24 @@ export class EfectoController extends BaseController {
     const now = new Date();
     return queryRunner.query(`
 
-      SELECT ROW_NUMBER() OVER (ORDER BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockId) as id, 
+      SELECT ROW_NUMBER() OVER (ORDER BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockId) as id,
           stk.StockId,
           obj.ClienteId,
-          cli.ClienteDenominacion, obj.ClienteElementoDependienteId, 
+          cli.ClienteDenominacion, obj.ClienteElementoDependienteId,
           CONCAT(cli.ClienteId,'/', ISNULL(ele.ClienteElementoDependienteId,0), ' ',ele.ClienteElementoDependienteDescripcion) as ClienteElementoDependienteDescripcion, obj.ObjetivoId,
           stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
           stk.EfectoDescripcion, stk.EfectoAtrDescripcion, stk.EfectoEfectoIndividualDescripcion, stk.EfectoIndividualAtrDescripcion, eledepcon.ClienteElementoDependienteContratoId,eledepcon.ClienteElementoDependienteContratoFechaDesde,eledepcon.ClienteElementoDependienteContratoFechaHasta,
           stk.EfectoDescripcionCompleto,
-          suc.SucursalDescripcion, 
+          suc.SucursalDescripcion,
           ga.GrupoActividadDetalle, ga.GrupoActividadId,
           ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
            ISNULL(eledepcon.Activo,0) AS Activo,
+
+          stk.RubroId,
+          ru.RubroDescripcion,
+          stk.SubrubroId,
+          sru.SubrubroDescripcion,
+
         1
     FROM StockReal stk
     JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
@@ -1117,6 +1286,8 @@ export class EfectoController extends BaseController {
     LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
     LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId AND stk.EfectoEfectoIndividualId IS NULL   and lp.ListaPrecioDesde<= @0 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
     LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
+    LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
+    LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
 
 
     WHERE stk.StockStock > 0
@@ -1150,12 +1321,20 @@ export class EfectoController extends BaseController {
           dep.DepositoNombre,
           suc.SucursalDescripcion,
           ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
+
+          stk.RubroId,
+          ru.RubroDescripcion,
+          stk.SubrubroId,
+          sru.SubrubroDescripcion,
+
           1
       FROM StockReal stk
       LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId AND stk.EfectoEfectoIndividualId IS NULL AND lp.ListaPrecioDesde <= @0 AND ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
       LEFT JOIN ListaPrecioIndividual lpi ON lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
       JOIN Deposito dep ON dep.DepositoId = stk.DepositoId
       LEFT JOIN Sucursal suc ON suc.SucursalId = dep.DepositoSucursalId
+      LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
+      LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
       WHERE ${filterSql} `, [now])
   }
 
@@ -1195,6 +1374,11 @@ export class EfectoController extends BaseController {
           stk.StockId,
           stk.StockStock, stk.StockReservado,
 
+          stk.RubroId,
+          ru.RubroDescripcion,
+          stk.SubrubroId,
+          sru.SubrubroDescripcion,
+
           pro.ProveedorRazonSocial, sucpro.SucursalDescripcion AS ProveedorSucursalDescripcion,
           dep.DepositoNombre, sucdep.SucursalDescripcion AS DepositoSucursalDescripcion,
           per.PersonalId, cuit.PersonalCUITCUILCUIT, IIF(per.PersonalId IS NULL,NULL,CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre))) ApellidoNombre,
@@ -1204,6 +1388,9 @@ export class EfectoController extends BaseController {
 
           1
       FROM StockReal stk
+
+      LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
+      LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
 
       LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId AND stk.EfectoEfectoIndividualId IS NULL and lp.ListaPrecioDesde<= @0 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
       LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
