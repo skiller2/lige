@@ -271,11 +271,12 @@ export class TelefoniaController extends BaseController {
 
     return queryRunner.query(
       `
-SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, 
+SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.ObjetivoPersonalJerarquicoPersonalId) id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, 
 		stk.EfectoDescripcionCompleto, 
       eledep.ClienteElementoDependienteDescripcion, 
       tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe, conx.importesum,
-      per.PersonalId, tel.TelefoniaEfectoId, tel.TelefoniaEfectoEfectoIndividualId,
+      per.PersonalId,
+      efeind.EfectoId, efeind.EfectoEfectoIndividualId,
       conx.ImpuestoInternoTelefoniaImpuesto,
       tel.TelefoniaObservacion,
       iif(tel.TelefoniaObjetivoId is not null, CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)), null) as codObjetivo,
@@ -539,7 +540,7 @@ SELECT tel.TelefoniaId id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor,
         rowCount++
 
         if (currTel && currTel.StockStock > 1) {
-          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` tiene stock (${currTel.StockStock}) debe ser 1,   EfectoId: ${currTel.TelefoniaEfectoId}, EfectoEfectoIndividualId: ${currTel.TelefoniaEfectoEfectoIndividualId}` })
+          dataset.push({ id: datasetid++, TelefoniaNro: TelefoniaNro, Detalle: ` tiene stock (${currTel.StockStock}) debe ser 1,   EfectoId: ${currTel.EfectoId}, EfectoEfectoIndividualId: ${currTel.EfectoEfectoIndividualId}` })
         }
 
         if (currTel && (currTel.StockStock == null || currTel.StockStock < 1)) {
