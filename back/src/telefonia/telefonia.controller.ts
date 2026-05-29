@@ -328,7 +328,7 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
                             AND eledepcon.RowNum = 1
 
 
-      LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoDescuentos = 1
+      LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoSeDescuentaTelefono = 1
       LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId, objjer.ObjetivoPersonalJerarquicoPersonalId)
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
@@ -595,9 +595,9 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
         if (!tel.EfectoAtributoIngresoValor)
           dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin número de teléfono asignado (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
 
-        telRepeat[tel.TelefoniaEfectoEfectoIndividualId] = (telRepeat[tel.TelefoniaEfectoEfectoIndividualId] || 0) + 1;
-        if (telRepeat[tel.TelefoniaEfectoEfectoIndividualId] > 1)
-          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` se encuentra repetido #${telRepeat[tel.TelefoniaEfectoEfectoIndividualId]} el teléfono (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
+        telRepeat[tel.EfectoEfectoIndividualId] = (telRepeat[tel.EfectoEfectoIndividualId] || 0) + 1;
+        if (telRepeat[tel.EfectoEfectoIndividualId] > 1)
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` se encuentra repetido #${telRepeat[tel.EfectoEfectoIndividualId]} el teléfono (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
 
         if (tel.TelefoniaObjetivoId) {
           if (!tel.ClienteElementoDependienteContratoFechaHasta && !tel.ClienteElementoDependienteContratoFechaDesde)
@@ -1177,4 +1177,3 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
   }
 
 }
-
