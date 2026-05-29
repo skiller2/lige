@@ -257,10 +257,10 @@ export class EfectoStockComponent {
   ubicacionesAgrupadas(index: number): { tipo: string; label: string; items: EfectoUbicacion[] }[] {
     const all = this.ubicacionesByIndex().get(index) ?? [];
     const grupos: Record<string, { tipo: string; label: string; items: EfectoUbicacion[] }> = {
+      deposito:  { tipo: 'deposito',  label: 'Depósito',  items: [] },
       personal:  { tipo: 'personal',  label: 'Personal',  items: [] },
       objetivo:  { tipo: 'objetivo',  label: 'Objetivo',  items: [] },
       proveedor: { tipo: 'proveedor', label: 'Proveedor', items: [] },
-      deposito:  { tipo: 'deposito',  label: 'Depósito',  items: [] },
     };
     for (const u of all) {
       const g = grupos[u.Tipo];
