@@ -328,7 +328,7 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
                             AND eledepcon.RowNum = 1
 
 
-      LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoDescuentos = 1
+      LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoSeDescuentaTelefono = 1
       LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId, objjer.ObjetivoPersonalJerarquicoPersonalId)
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
@@ -1177,4 +1177,3 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
   }
 
 }
-
