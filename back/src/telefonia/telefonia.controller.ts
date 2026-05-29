@@ -595,9 +595,9 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
         if (!tel.EfectoAtributoIngresoValor)
           dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin número de teléfono asignado (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
 
-        telRepeat[tel.TelefoniaEfectoEfectoIndividualId] = (telRepeat[tel.TelefoniaEfectoEfectoIndividualId] || 0) + 1;
-        if (telRepeat[tel.TelefoniaEfectoEfectoIndividualId] > 1)
-          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` se encuentra repetido #${telRepeat[tel.TelefoniaEfectoEfectoIndividualId]} el teléfono (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
+        telRepeat[tel.EfectoEfectoIndividualId] = (telRepeat[tel.EfectoEfectoIndividualId] || 0) + 1;
+        if (telRepeat[tel.EfectoEfectoIndividualId] > 1)
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` se encuentra repetido #${telRepeat[tel.EfectoEfectoIndividualId]} el teléfono (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
 
         if (tel.TelefoniaObjetivoId) {
           if (!tel.ClienteElementoDependienteContratoFechaHasta && !tel.ClienteElementoDependienteContratoFechaDesde)
