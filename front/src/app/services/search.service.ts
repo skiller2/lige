@@ -2506,7 +2506,7 @@ export class SearchService {
   getEfectoUbicaciones(efectoId: number, individualId: number | null = null): Observable<EfectoUbicacion[]> {
     if (!efectoId) return of([]);
     const params = individualId != null ? { individualId: String(individualId) } : {};
-    return this.http.get<ResponseJSON<any>>(`api/efecto/ubicaciones/${individualId}`, params).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/efecto/ubicaciones/${efectoId}`, params).pipe(
       map(res => res.data ?? []),
       catchError(() => of([]))
     );
