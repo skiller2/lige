@@ -1,15 +1,14 @@
+import dotenv from "dotenv"
+dotenv.config()
 import { DBServer, WebServer } from "./server.ts";
 import { BotServer } from "./bot-server.ts";
 import { makeRoutes } from "./routes/routes.module.ts"
-import { dataSource } from "./data-source.ts";
 import { scheduleJob } from "node-schedule"
-import dotenv from "dotenv"
 import { ChatBotController } from "./controller/chatbot.controller.ts";
 import { exit } from "process";
-dotenv.config()
 
 // Init App
-export const dbServer = new DBServer(5, 2000, dataSource)
+export const dbServer = new DBServer(5, 2000)
 const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
 export const botServer = new BotServer(process.env.PROVIDER)
 //const categoriasController = new CategoriasController()

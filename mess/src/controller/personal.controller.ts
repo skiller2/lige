@@ -24,20 +24,21 @@ export class PersonalController extends BaseController {
     if (now.getMonth() + 1 != mes)
       throw new ClientException("El mes del adelato debe ser el corriente")
 
-    await dbServer.dataSource.query(
+    const queryRunner = await getConnection('bot')
+    await queryRunner.query(
       `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
       , [personalId, FormaPrestamoId, anio, mes]
     );
 
     const prestamoId =
       Number((
-        await dbServer.dataSource.query(
+        await queryRunner.query(
           `SELECT per.PersonalPrestamoUltNro as max FROM Personal per WHERE per.PersonalId = @0`,
           [personalId]
         )
       )[0].max) + 1;
 
-    await dbServer.dataSource.query(
+    await queryRunner.query(
       `INSERT INTO PersonalPrestamo(
       PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId, 
       PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
@@ -68,7 +69,7 @@ export class PersonalController extends BaseController {
       ]
     );
 
-    await dbServer.dataSource.query(
+    await queryRunner.query(
       `UPDATE Personal SET PersonalPrestamoUltNro=@1 WHERE PersonalId=@0 `,
       [
         personalId,
@@ -85,7 +86,8 @@ export class PersonalController extends BaseController {
     if (now > fechaLimite)
       throw new ClientException("Fuera de vigencia para eliminar un adelanto")
 
-    const adelanto: any = await dbServer.dataSource.query(`
+    const queryRunner = await getConnection('bot')
+    const adelanto: any = await queryRunner.query(`
       SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl FROM PersonalPrestamo ade
       WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1) 
       AND ade.PersonalId = @0
@@ -93,7 +95,7 @@ export class PersonalController extends BaseController {
     )
 
     if (adelanto.length && !adelanto[0].PersonalPrestamoFechaAprobacion) {
-      await dbServer.dataSource.query(
+      await queryRunner.query(
         `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
         , [personalId, FormaPrestamoId, anio, mes]
       );
@@ -101,7 +103,8 @@ export class PersonalController extends BaseController {
   }
 
   async getDocsPendDescarga(PersonalId: number) {
-    const result = await dbServer.dataSource.query(
+    const queryRunner = await getConnection('bot')
+    const result = await queryRunner.query(
       `SELECT doc.personalid PersonalId, 
         doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle, tip.DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, pr.anio, pr.mes, doc.DocumentoNombreArchivo,
         MAX(dl.FechaDescarga) fecha_descarga, IIF(dl.DocumentoId IS NOT NULL,1,0) AS visto
@@ -118,7 +121,8 @@ export class PersonalController extends BaseController {
   }
 
   async removeCode(telefono: string) {
-    return dbServer.dataSource.query(
+    const queryRunner = await getConnection('bot')
+    return queryRunner.query(
       `UPDATE BotRegTelefonoPersonal SET Codigo=NULL WHERE Telefono=@0`,
       [telefono]
     );
@@ -128,7 +132,8 @@ export class PersonalController extends BaseController {
 
   async delTelefonoPersona(telefono: string) {
 
-    const result = await dbServer.dataSource.query(
+    const queryRunner = await getConnection('bot')
+    const result = await queryRunner.query(
       `DELETE FROM BotRegTelefonoPersonal WHERE Telefono=@0`,
       [telefono]
     );
@@ -143,7 +148,8 @@ export class PersonalController extends BaseController {
     }
   
     async searchQuery(cuit: number) {
-      const result = await dbServer.dataSource.query(
+      const queryRunner = await getConnection('bot')
+      const result = await queryRunner.query(
         `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName 
         FROM dbo.Personal per 
         LEFT JOIN PersonalCUITCUIL cuit 
@@ -196,7 +202,8 @@ export class PersonalController extends BaseController {
   }
 
   async getPersonalQuery(telefono: string, PersonalId: number) {
-    return await dbServer.dataSource.query(
+    const queryRunner = await getConnection('bot')
+    return await queryRunner.query(
       `SELECT reg.PersonalId, reg.Telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, reg.Codigo, 
       sitrev.PersonalSituacionRevistaSituacionId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, 
       sit.SituacionRevistaDescripcion, per.PersonalNroLegajo, ing.PersonalFechaIngreso, ing.PersonalFechaBaja 
@@ -374,7 +381,8 @@ export class PersonalController extends BaseController {
   }
 
   static async getPersonalSitRevista(personalId: number, anio: number, mes: number) {
-    const responsables = await dbServer.dataSource.query(
+    const queryRunner = await getConnection('bot')
+    const responsables = await queryRunner.query(
       `SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.*, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
         FROM Personal per
         JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND ((DATEPART(YEAR,sitrev.PersonalSituacionRevistaDesde)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaDesde)=@2) OR (DATEPART(YEAR,sitrev.PersonalSituacionRevistaHasta)=@1 AND  DATEPART(MONTH, sitrev.PersonalSituacionRevistaHasta)=@2) OR (sitrev.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)))
@@ -387,7 +395,8 @@ export class PersonalController extends BaseController {
 
 
   static async getCategoriasPorPersonaQuery(anio: number, mes: number, personalId: number, SucursalId: number) {
-    return dbServer.dataSource.query(
+    const queryRunner = await getConnection('bot')
+    return queryRunner.query(
       `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, CONCAT(cat.TipoAsociadoId, '-',catrel.PersonalCategoriaCategoriaPersonalId) AS id, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,
         TRIM(tip.TipoAsociadoDescripcion) as TipoAsociadoDescripcion ,TRIM(cat.CategoriaPersonalDescripcion) as CategoriaPersonalDescripcion ,
         TRIM(cat.CategoriaPersonalDescripcion) as fullName,
@@ -404,7 +413,8 @@ export class PersonalController extends BaseController {
 
 
   static async getResponsablesListByPersonal(personalId: number) {
-    return await dbServer.dataSource.query(`
+    const queryRunner = await getConnection('bot')
+    return await queryRunner.query(`
         SELECT ga.GrupoActividadId, ga.GrupoActividadNumero Numero, ga.GrupoActividadDetalle Detalle,
         gap.GrupoActividadPersonalDesde Desde, gap.GrupoActividadPersonalHasta Hasta,
         gaj.GrupoActividadJerarquicoPersonalId PersonalId,
@@ -430,7 +440,8 @@ export class PersonalController extends BaseController {
   }
 
   static async getPersonalAdelanto(personalId: number, anio: number, mes: number) {
-    return await dbServer.dataSource.query(`
+    const queryRunner = await getConnection('bot')
+    return await queryRunner.query(`
       SELECT ade.PersonalPrestamoId, ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl, ade.PersonalPrestamoAprobado, ade.PersonalPrestamoAudFechaIng 
       FROM PersonalPrestamo ade
       WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1) 
@@ -441,7 +452,8 @@ export class PersonalController extends BaseController {
   }
 
   static async getTelefono(personalId: number) {
-    return await dbServer.dataSource.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId IN (@0)`, [personalId])
+    const queryRunner = await getConnection('bot')
+    return await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId IN (@0)`, [personalId])
   }
 
   async getInfoEmpresa() {

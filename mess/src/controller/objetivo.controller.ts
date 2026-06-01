@@ -9,7 +9,8 @@ export class ObjetivoController extends BaseController {
     const array = CodObjetivo.split('/')
     const ClienteId:number = parseInt(array[0])
     const ClienteElementoDependienteId:number = parseInt(array[1])
-    const res = await dbServer.dataSource.query(`
+    const queryRunner = await dbServer.connection();
+    const res = await queryRunner.query(`
       SELECT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
         CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(ele.ClienteElementoDependienteDescripcion)) descripcion, 
         ISNULL(ISNULL(ele.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1) SucursalId
@@ -23,7 +24,8 @@ export class ObjetivoController extends BaseController {
   }
 
   static async getObjetivoResponsables(anio: number, mes: number, ClienteId:number,ClienteElementoDependienteId:number) {
-    return dbServer.dataSource.query(`
+    const queryRunner = await dbServer.connection();
+    return queryRunner.query(`
         SELECT 
             1 AS ord, obj.ObjetivoId as id, 'Grupo' tipo,
             ga.GrupoActividadId, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadObjetivoDesde AS desde , gap.GrupoActividadObjetivoHasta hasta,

@@ -48,7 +48,8 @@ export class NovedadController extends BaseController {
   }
 
   async getBackupNovedad(personalId: number) {
-    const result = await dbServer.dataSource.query(`
+    const queryRunner = await getConnection('bot')
+    const result = await queryRunner.query(`
       SELECT JsonNovedad
       FROM BotRegTelefonoPersonal
       WHERE PersonalId = @0
@@ -95,7 +96,7 @@ export class NovedadController extends BaseController {
     const NovedadTipoCod = novedad.Tipo.NovedadTipoCod || novedad.TipoNovedadId
     const now: Date = new Date()
     const jsonNovedad = JSON.stringify(novedad)
-    const NovedadCodigo = await BaseController.getProxNumero(dbServer.dataSource, `Novedad`, usuario, '::1')
+    const NovedadCodigo = await BaseController.getProxNumero(queryRunner, `Novedad`, usuario, '::1')
     await queryRunner.query(`
       INSERT INTO Novedad (
         NovedadCodigo, ClienteId, ClienteElementoDependienteId, PersonalId, Telefono, Fecha, Descripcion, Accion, NovedadTipoCod,
@@ -109,7 +110,8 @@ export class NovedadController extends BaseController {
   }
 
   async getNovedadTipo() {
-    const result = await dbServer.dataSource.query(`
+    const queryRunner = await getConnection('bot')
+    const result = await queryRunner.query(`
       SELECT NovedadTipoCod, Descripcion
       FROM NovedadTipo
     `)
@@ -117,9 +119,9 @@ export class NovedadController extends BaseController {
   }
 
   async addDocumentoRelaciones(novedadId: any, documentoId: any) {
-
+    const queryRunner = await getConnection('bot')
     const now: Date = new Date()
-    await dbServer.dataSource.query(`
+    await queryRunner.query(`
 
       `, [novedadId, documentoId])
   }
@@ -128,7 +130,9 @@ export class NovedadController extends BaseController {
     const date = new Date()
     const year = date.getFullYear()
     const month = date.getMonth() + 1
-    const res = await dbServer.dataSource.query(`
+
+    const queryRunner = await getConnection('bot')
+    const res = await queryRunner.query(`
         SELECT obj.ClienteElementoDependienteId, obj.ClienteId, 'Responsable' tipo,
           per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta
           
@@ -147,7 +151,8 @@ export class NovedadController extends BaseController {
     for (let index = 0; index < res.length; index++) {
       const ClienteElementoDependienteId = res[index].ClienteElementoDependienteId
       const ClienteId = res[index].ClienteId
-      const novedades = await dbServer.dataSource.query(`
+      const queryRunner = await getConnection('bot')
+      const novedades = await queryRunner.query(`
           SELECT 
             ROW_NUMBER() OVER (ORDER BY nov.NovedadCodigo) id
             , nov.NovedadCodigo, nov.PersonalId, nov.Telefono, nov.Fecha, nov.Descripcion, nov.NovedadTipoCod, nov.Accion
@@ -182,7 +187,8 @@ export class NovedadController extends BaseController {
   }
 
   async getDocumentosByNovedadCodigo(NovedadCodigo: number) {
-    const result = await dbServer.dataSource.query(`
+    const queryRunner = await getConnection('bot')
+    const result = await queryRunner.query(`
       SELECT 
         doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle
         , tip.DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, doc.DocumentoNombreArchivo
@@ -195,8 +201,9 @@ export class NovedadController extends BaseController {
   }
 
   async setNovedadVisualizacion(NovedadCodigo: number, telefono: string, personalId:any) {
+    const queryRunner = await getConnection('bot')
     const now = new Date()
-    await dbServer.dataSource.query(`
+    await queryRunner.query(`
       UPDATE Novedad
       SET VisualizacionFecha = @1, VisualizacionTelefono = @2, VisualizacionPersonaId = @3
       WHERE NovedadCodigo = @0 AND VisualizacionFecha IS NULL

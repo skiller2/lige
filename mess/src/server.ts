@@ -9,6 +9,7 @@ import { ClientException } from "./controller/base.controller.ts";
 //{ version, author, name, description }
 import dotenv from "dotenv"
 import { performance } from "node:perf_hooks";
+import { dataSource, getConnection } from "./data-source.ts";
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -19,24 +20,28 @@ export const tmpName = (dir: string) => {
 };
 
 export class DBServer {
-  public dataSource: DataSource;
+  connection() {
+    console.log('obteniendo conexión')
+    return getConnection('bot')
+  }
+  private daSo: DataSource = dataSource;
   private retriesCount: number = 1;
   private timeOutDelay: number;
 
-  constructor(retries: number, timeOutDelay: number, dataSource: DataSource) {
+  constructor(retries: number, timeOutDelay: number) {
     this.timeOutDelay = timeOutDelay;
-    this.dataSource = dataSource;
   }
+  
   public async init() {
     return new Promise<{ res: string; ds: DataSource }>((resolve, reject) => {
       const interval = setInterval(() => {
-        this.dataSource
+        this.daSo
           .initialize()
           .then(() => {
             clearInterval(interval);
             resolve({
-              res: `Success: connected to Database ${this.dataSource.options.database}`,
-              ds: this.dataSource,
+              res: `Success: connected to Database ${this.daSo.options.database}`,
+              ds: this.daSo,
             });
           })
           .catch((error) => {
@@ -112,6 +117,10 @@ export class WebServer {
         reject(e);
       });
     });
+  }
+
+  public connection() {
+    return getConnection('bot')
   }
 
   public lateInit() {
