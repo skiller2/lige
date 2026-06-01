@@ -20,9 +20,8 @@ export const tmpName = (dir: string) => {
 };
 
 export class DBServer {
-  connection() {
-    console.log('obteniendo conexión')
-    return getConnection('bot')
+  connection(user: string='bot') {
+    return getConnection(user)
   }
   private daSo: DataSource = dataSource;
   private retriesCount: number = 1;
@@ -117,10 +116,6 @@ export class WebServer {
         reject(e);
       });
     });
-  }
-
-  public connection() {
-    return getConnection('bot')
   }
 
   public lateInit() {

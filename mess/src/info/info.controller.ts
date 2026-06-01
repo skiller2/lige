@@ -1,7 +1,6 @@
 import { dbServer } from "../index.ts";
 import { BaseController } from "../controller/base.controller.ts";
 import type { Request, Response, NextFunction } from "express";
-import { getConnection } from "../data-source.ts";
 
 export class InfoController extends BaseController {
 
@@ -12,7 +11,9 @@ export class InfoController extends BaseController {
       sqltest: {},
       random: Math.floor(Math.random() * (100000000000 + 1)),
     };
-    const queryRunner = await getConnection(res.locals.userName);
+
+    const usuario = BaseController.getUser(res)
+    const queryRunner = await dbServer.connection(usuario);
 
     queryRunner.query("SELECT 1 + @0", [2])
       .then(async (records) => {

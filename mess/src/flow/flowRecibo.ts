@@ -2,9 +2,9 @@ import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu.ts'
 import { documentosController } from "../controller/controller.module.ts";
 import { chatBotController } from "../controller/controller.module.ts";
-import { botServer } from "../index.ts";
+import { botServer, dbServer } from "../index.ts";
 import { reset, stop } from "./flowIdle.ts";
-import { getConnection } from "../data-source.ts";
+import { ChatBotController } from "../controller/chatbot.controller.ts";
 
 const delay = chatBotController.getDelay()
 
@@ -13,9 +13,11 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
         await flowDynamic([{ body: `⏱️ Buscando recibos`, delay }])
         const myState = state.getMyState()
         console.log('myState', myState)
-        const queryRunner = await getConnection('bot')
+        const usuario = ChatBotController.getUser(null)
+        const queryRunner = await dbServer.connection(usuario);
+
         const personalId = myState.personalId
-        const periodosArray: any[] = await documentosController.getLastPeriodoOfComprobantes(personalId, 3,queryRunner).then(array => { return array })
+        const periodosArray: any[] = await documentosController.getLastPeriodoOfComprobantes(personalId, 3, queryRunner).then(array => { return array })
         let resPeriodos = ''
         if (periodosArray && periodosArray?.length) {
             periodosArray.forEach((obj: any, index: number) => {
@@ -43,7 +45,8 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
 
             const myState = state.getMyState()
-            const queryRunner= await getConnection('bot')
+            const usuario = ChatBotController.getUser(null)
+            const queryRunner = await dbServer.connection(usuario)
             const periodosArray: any[] = myState.recibo.periodosArray
             const msj = ctx.body
             if (parseInt(msj) < 1 || Number.isNaN(parseInt(msj)) || parseInt(msj) > periodosArray.length) {
@@ -53,12 +56,12 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
             const anio = periodosArray[parseInt(msj) - 1]?.anio
             const PersonalId = await state.get('personalId')
             try {
-                const urlDocRecibo = await documentosController.getURLDocumento(PersonalId, anio, mes, 'REC',queryRunner)
+                const urlDocRecibo = await documentosController.getURLDocumento(PersonalId, anio, mes, 'REC', queryRunner)
                 await flowDynamic([{ body: `Recibo`, media: urlDocRecibo.URL, delay }])
-                await chatBotController.addToDocLog(urlDocRecibo.doc_id, ctx.from,PersonalId)
+                await chatBotController.addToDocLog(urlDocRecibo.doc_id, ctx.from, PersonalId)
             } catch (error) {
                 console.log(error)
-                await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])                
+                await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])
             }
         }
     )

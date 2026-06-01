@@ -4,8 +4,12 @@
       <nz-descriptions-item [nzTitle]="key">
         @if (isObject(data()[key])) {
           <app-object-viewer [data]="data()[key]"></app-object-viewer>
+        } @else if (isArray(data()[key]) && data()[key].length > 1) {
+          <div style="width: 400px;">
+            {{ data()[key] | json }}
+          </div>
         } @else {
-          {{ data()[key] }}
+          {{ data()[key] }} 
         }
       </nz-descriptions-item>
     }
