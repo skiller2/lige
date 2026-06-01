@@ -6,7 +6,7 @@ import { EfectoUbicacion, SearchService } from '../../../services/search.service
 import { EfectoRelacionEfecto } from '../../../shared/schemas/efecto.schemas';
 import { ApiService } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
-import { applyEach, disabled, FieldTree, form, FormField, required, submit, validate, type ValidationError } from '@angular/forms/signals';
+import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { TipoDestinoSearchComponent } from '../../../shared/tipo-destino-search/tipo-destino-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -85,21 +85,7 @@ export class MovimientoStockComponent {
     applyEach(p.efectos, (linea) => {
       required(linea.EfectoId, { message: 'Efecto obligatorio' });
       required(linea.StockId, { message: 'Ubicación obligatoria' });
-      required(linea.Cantidad, { message: 'Cantidad obligatoria' });
-      validate(linea.Cantidad, (ctx) => {
-        const cantidad = ctx.value();
-        if (cantidad == null || (cantidad as any) === '') return null; // 'required' se ocupa del vacío
-        const n = Number(cantidad);
-        if (Number.isNaN(n) || n <= 0) return { kind: 'cantidad', message: 'La cantidad debe ser mayor a 0.' };
-
-        const stockId = ctx.valueOf(linea.StockId);
-        if (stockId == null) return null; // sin ubicación seleccionada todavía
-        const disponible = this.stockDisponibleByStockId().get(Number(stockId));
-        if (disponible != null && n > disponible) {
-          return { kind: 'stock', message: `La cantidad (${n}) supera el stock disponible (${disponible}).` };
-        }
-        return null;
-      });
+      // La cantidad NO se valida acá: se valida al confirmar (ver confirmar / validarCantidades)
     });
   });
 
@@ -263,20 +249,40 @@ export class MovimientoStockComponent {
 
   private ubicacionesEffect = effect(() => {
     const individuales = this.individualByIndex();
-    const efectos = this.parametroStock().efectos;
-    efectos.forEach((e, i) => {
-      const efectoId = e.EfectoId;
-      if (!efectoId) return;
-      const individualId = individuales.get(i) ?? null;
-      firstValueFrom(this.searchService.getEfectoUbicaciones(efectoId, individualId)).then(ubs => {
-        this.ubicacionesByIndex.update(m => {
-          const next = new Map(m);
-          next.set(i, ubs ?? []);
-          return next;
-        });
-      });
+    this.parametroStock().efectos.forEach((linea, i) => {
+      if (linea.EfectoId) this.cargarUbicaciones(i, linea.EfectoId, individuales.get(i) ?? null);
     });
   });
+
+  private async cargarUbicaciones(index: number, efectoId: number, individualId: number | null): Promise<void> {
+    const lista = (await firstValueFrom(this.searchService.getEfectoUbicaciones(efectoId, individualId))) ?? [];
+
+    // Descartar respuestas obsoletas: la línea pudo cambiar de efecto mientras se resolvía
+    if (!this.lineaCoincide(index, efectoId, individualId)) return;
+
+    this.ubicacionesByIndex.update(m => new Map(m).set(index, lista));
+    this.setStockId(index, this.resolverStockId(index, lista));
+  }
+
+  private lineaCoincide(index: number, efectoId: number, individualId: number | null): boolean {
+    return this.parametroStock().efectos[index]?.EfectoId === efectoId
+      && (this.individualByIndex().get(index) ?? null) === individualId;
+  }
+
+  /** StockId que debe quedar según las ubicaciones cargadas */
+  private resolverStockId(index: number, lista: EfectoUbicacion[]): number | null {
+    if (lista.length === 1) return lista[0].StockId;                  // una sola ubicación -> autoseleccionar
+    const actual = this.parametroStock().efectos[index]?.StockId ?? null;
+    const sigueExistiendo = lista.some(u => Number(u.StockId) === Number(actual));
+    return sigueExistiendo ? actual : null;                           // limpiar si la elegida ya no está
+  }
+
+  private setStockId(index: number, stockId: number | null): void {
+    this.parametroStock.update(s => {
+      if ((s.efectos[index]?.StockId ?? null) === stockId) return s;  // sin cambios -> evita re-trigger
+      return { ...s, efectos: s.efectos.map((e, i) => (i === index ? { ...e, StockId: stockId } : e)) };
+    });
+  }
 
   ubicacionesAgrupadas(index: number): { tipo: string; label: string; items: EfectoUbicacion[] }[] {
     const all = this.ubicacionesByIndex().get(index) ?? [];
@@ -333,6 +339,10 @@ export class MovimientoStockComponent {
 
   async confirmar() {
     await submit(this.formEfectoStock, async (form) => {
+      // La cantidad se valida al confirmar (no al perder foco). Es client-side: no va al back.
+      const errores = this.validarCantidades(form().value());
+      if (errores.length) return this.apiService.formBackendErrors(form, errores);
+
       try {
         await firstValueFrom(this.apiService.confirmarStockEfecto(form().value()));
       } catch (e: any) {
@@ -340,6 +350,23 @@ export class MovimientoStockComponent {
       }
       return undefined;
     });
+  }
+
+  private validarCantidades(v: ParametroformEfectoStock): { fieldTree: string; kind: string; message: string }[] {
+    const errores: { fieldTree: string; kind: string; message: string }[] = [];
+    const stock = this.stockDisponibleByStockId();
+    v.efectos.forEach((linea, i) => {
+      const cantidad = Number(linea.Cantidad);
+      if (linea.Cantidad == null || Number.isNaN(cantidad) || cantidad <= 0) {
+        errores.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' });
+      } else if (linea.StockId != null) {
+        const disponible = stock.get(Number(linea.StockId));
+        if (disponible != null && cantidad > disponible) {
+          errores.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'stock', message: `La cantidad (${cantidad}) supera el stock disponible (${disponible})` });
+        }
+      }
+    });
+    return errores;
   }
 
   sucursalDescripcionDisplay = computed(() => {
