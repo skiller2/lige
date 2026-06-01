@@ -1966,9 +1966,13 @@ export class ApiService {
     );
   }
 
-  getActas(filters: any) {
-    const parameter = filters
-    return this.http.post<ResponseJSON<any>>('/api/actas/list', parameter).pipe(
+  getActas(parameters: any) {
+    const { options } = parameters
+    if (!options.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>('/api/actas/list', parameters).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([]))
     );
