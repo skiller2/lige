@@ -1,5 +1,4 @@
-import dotenv from "dotenv"
-dotenv.config()
+import 'dotenv/config';
 import { DBServer, WebServer } from "./server.ts";
 import { BotServer } from "./bot-server.ts";
 import { makeRoutes } from "./routes/routes.module.ts"
