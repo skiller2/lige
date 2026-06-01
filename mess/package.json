@@ -12,7 +12,7 @@
     "buildnew": "esbuild src/index.ts --bundle --format=esm --platform=node --external:node:* --external:express --outfile=/dist/bundle.mjs",
     "prod": "node ./dist/index.js",
     "start": "npm run dev",
-    "dev": "node --experimental-strip-types --experimental-transform-types --watch ./src/index.ts",
+    "dev": "node --watch-path=./src ./src/index.ts",
     "devnew": "node --experimental-strip-types --experimental-transform-types --watch ./src/index.ts",
     "devold": "tsx watch --trace-warnings --tsconfig ./tsconfig.json ./src/index.ts"
   },

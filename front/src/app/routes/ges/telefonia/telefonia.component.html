@@ -95,7 +95,7 @@
 
     </nz-tab>
     <nz-tab>
-      <a nz-tab-link routerLink="/ges/telefonia/carga">Importar Consumos</a>
+      <a nz-tab-link routerLink="/ges/telefonia/carga">Carga</a>
       <ng-template nz-tab>
         <form>
           <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
@@ -118,6 +118,15 @@
               </ng-container>
             </nz-form-control>
             </nz-form-item>-->
+
+            <nz-form-item>
+              <nz-form-control [nzXs]="1" [nzSm]="1" [nzMd]="1" [nzLg]="1" >
+
+              </nz-form-control>
+              <nz-form-control [nzLg]="3">
+                <label nz-checkbox [formField]="formImportacionTelefono.simulacion" >Simular</label>
+              </nz-form-control>
+            </nz-form-item>
 
             <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
               <nz-form-label [nzXs]="24" [nzSm]="5" [nzMd]="4" [nzLg]="3">Archivo Telefonía</nz-form-label>

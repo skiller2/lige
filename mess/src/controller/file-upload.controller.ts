@@ -71,7 +71,7 @@ export class FileUploadController extends BaseController {
     let finalurl = '', docname = ''
     let document = ''
     let deleteFile = false
-
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
       if (documentId == '0' || documentId == 'null') throw new ClientException(`Archivo no localizado`)
@@ -88,7 +88,7 @@ export class FileUploadController extends BaseController {
         case 'DocumentoImagenRenar':
         case 'DocumentoImagenCertificadoReincidencia':
         case 'DocumentoImagenPreocupacional':
-          document = await dbServer.dataSource.query(
+          document = await queryRunner.query(
             `SELECT 
                 doc.${tableForSearch}Id AS id, 
                 CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(doc.${tableForSearch}BlobNombreArchivo)) path, 
@@ -101,7 +101,7 @@ export class FileUploadController extends BaseController {
 
           break;
         case 'docgeneral':
-          document = await dbServer.dataSource.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.persona_id, docgen.path, docgen.nombre_archivo AS name
+          document = await queryRunner.query(`SELECT docgen.doc_id AS id , docgen.doctipo_id, docgen.persona_id, docgen.path, docgen.nombre_archivo AS name
                 FROM lige.dbo.docgeneral docgen
                 LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo=docgen.doctipo_id
                 WHERE docgen.doc_id = @0`, [documentId]);
@@ -113,7 +113,7 @@ export class FileUploadController extends BaseController {
           break;
         case 'Documento':
         case 'documento':
-          document = await dbServer.dataSource.query(`SELECT doc.DocumentoId AS id , doc.DocumentoTipoCodigo AS doctipo_id, doc.PersonalId AS persona_id, doc.DocumentoPath AS path, doc.DocumentoNombreArchivo AS name
+          document = await queryRunner.query(`SELECT doc.DocumentoId AS id , doc.DocumentoTipoCodigo AS doctipo_id, doc.PersonalId AS persona_id, doc.DocumentoPath AS path, doc.DocumentoNombreArchivo AS name
                 FROM Documento doc
                 LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
                 WHERE doc.DocumentoId = @0`, [documentId]);
@@ -710,7 +710,7 @@ export class FileUploadController extends BaseController {
       await queryRunner.startTransaction();
 
       // Verificar si el documento tiene descargas asociadas
-      const telefonos = await dbServer.dataSource.query(`
+      const telefonos = await queryRunner.query(`
           SELECT Telefono
           FROM DocumentoDescargaLog
           WHERE DocumentoId IN (@0)
@@ -722,7 +722,7 @@ export class FileUploadController extends BaseController {
       switch (tableForSearch) {
         case 'documento':
         case 'Documento':
-          document = await dbServer.dataSource.query(`
+          document = await queryRunner.query(`
                   SELECT DocumentoId AS id, DocumentoPath as path, DocumentoNombreArchivo AS name
                   FROM Documento
                   WHERE DocumentoId = @0
@@ -741,7 +741,7 @@ export class FileUploadController extends BaseController {
 
           break;
         case 'docgeneral':
-          document = await dbServer.dataSource.query(`
+          document = await queryRunner.query(`
                   SELECT doc_id AS id, path, nombre_archivo AS name
                   FROM lige.dbo.docgeneral
                   WHERE doc_id = @0

@@ -19,8 +19,8 @@ export const dataSource = new DataSource({
     encrypt: false,
 
   },
-  pool:{max:1000},
-  
+  pool: { max: 1000 },
+
   logger: new TypeOrmLogger(),
 
   // optional: control what gets logged
@@ -35,9 +35,9 @@ export async function getConnection(user: string): Promise<QueryRunner> {
     await new Promise((resolve) => setTimeout(resolve, 2000));
   }
   const queryRunner = ds.createQueryRunner();
-  queryRunner.data.user=user
+  queryRunner.data.user = user
   return queryRunner
   //return null
 
-  }
+}
 

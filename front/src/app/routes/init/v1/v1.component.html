@@ -286,6 +286,21 @@
   </div>
   }
 
+  @if (reaperturasAsistencia.value()) {
+  <div nz-col nzXs="24" nzMd="24">
+    @if (reaperturasAsistencia.value().data.reaperturasAsistenciaTotal > 0) {
+    <nz-card [nzBordered]="false" [nzTitle]="reaperturasAsis">
+      <ng-template #reaperturasAsis>
+        Reaperturas de asistencia {{ reaperturasAsistencia.value().data.mes }}/{{ reaperturasAsistencia.value().data.anio }}
+        <small class="text-sm font-weight-normal">(Reaperturas de Planilla de Asistencia por grupo)</small>
+      </ng-template>
+      <g2-pie height="275" [data]="reaperturasAsistencia.value().data.reaperturasAsistencia" [hasLegend]="true"
+        [total]="reaperturasAsistencia.value().data.reaperturasAsistenciaTotal"></g2-pie>
+    </nz-card>
+    }
+  </div>
+  }
+
   @if (custodiasPendientesCur.value()) {
   <div nz-col nzXs="24" nzMd="24">
     @if (custodiasPendientesCur.value().data.custodiasPendientesTotal > 0) {
