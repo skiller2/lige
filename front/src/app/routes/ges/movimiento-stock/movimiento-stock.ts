@@ -6,7 +6,7 @@ import { EfectoUbicacion, SearchService } from '../../../services/search.service
 import { EfectoRelacionEfecto } from '../../../shared/schemas/efecto.schemas';
 import { ApiService } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
-import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
+import { applyEach, disabled, FieldTree, form, FormField, required, submit, validate, type ValidationError } from '@angular/forms/signals';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { TipoDestinoSearchComponent } from '../../../shared/tipo-destino-search/tipo-destino-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -17,7 +17,7 @@ import { ViewResponsableComponent } from '../../../shared/view-responsable/view-
 export interface EfectoStockLinea {
   EfectoId: number | null;
   Cantidad: number | null;
-  UbicacionStockId: number | null;
+  StockId: number | null;
 }
 
 export interface ParametroformEfectoStock {
@@ -31,17 +31,17 @@ export interface ParametroformEfectoStock {
 }
 
 @Component({
-  selector: 'app-efecto-stock',
+  selector: 'app-movimiento-stock',
   imports: [...SHARED_IMPORTS, CommonModule, FormField, PersonalSearchComponent, TipoDestinoSearchComponent, ObjetivoSearchComponent, ProveedorSearchComponent, EfectoSearchComponent, ViewResponsableComponent],
-  templateUrl: './efecto-stock.html',
-  styleUrl: './efecto-stock.scss',
+  templateUrl: './movimiento-stock.html',
+  styleUrl: './movimiento-stock.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EfectoStockComponent {
+export class MovimientoStockComponent {
   private searchService = inject(SearchService);
   private apiService = inject(ApiService);
 
-  private readonly objEfectoLinea: EfectoStockLinea = { EfectoId: null, Cantidad: null, UbicacionStockId: null };
+  private readonly objEfectoLinea: EfectoStockLinea = { EfectoId: null, Cantidad: null, StockId: null };
 
   private readonly defaultStockForm: ParametroformEfectoStock = {
     fecha: null,
@@ -84,8 +84,22 @@ export class EfectoStockComponent {
 
     applyEach(p.efectos, (linea) => {
       required(linea.EfectoId, { message: 'Efecto obligatorio' });
-      required(linea.UbicacionStockId, { message: 'Ubicación obligatoria' });
+      required(linea.StockId, { message: 'Ubicación obligatoria' });
       required(linea.Cantidad, { message: 'Cantidad obligatoria' });
+      validate(linea.Cantidad, (ctx) => {
+        const cantidad = ctx.value();
+        if (cantidad == null || (cantidad as any) === '') return null; // 'required' se ocupa del vacío
+        const n = Number(cantidad);
+        if (Number.isNaN(n) || n <= 0) return { kind: 'cantidad', message: 'La cantidad debe ser mayor a 0.' };
+
+        const stockId = ctx.valueOf(linea.StockId);
+        if (stockId == null) return null; // sin ubicación seleccionada todavía
+        const disponible = this.stockDisponibleByStockId().get(Number(stockId));
+        if (disponible != null && n > disponible) {
+          return { kind: 'stock', message: `La cantidad (${n}) supera el stock disponible (${disponible}).` };
+        }
+        return null;
+      });
     });
   });
 
@@ -208,7 +222,7 @@ export class EfectoStockComponent {
     });
     this.parametroStock.update(s => ({
       ...s,
-      efectos: s.efectos.map((e, i) => i === index ? { ...e, UbicacionStockId: null } : e),
+      efectos: s.efectos.map((e, i) => i === index ? { ...e, StockId: null } : e),
     }));
   }
 
@@ -236,6 +250,16 @@ export class EfectoStockComponent {
   }
 
   readonly ubicacionesByIndex = signal<Map<number, EfectoUbicacion[]>>(new Map());
+
+  // Stock disponible por StockId (a partir de las ubicaciones ya cargadas) para validar la cantidad client-side
+  readonly stockDisponibleByStockId = computed(() => {
+    const ubicaciones = [...this.ubicacionesByIndex().values()].flat();
+    return new Map(
+      ubicaciones
+        .filter(u => u.StockId != null && u.StockStock != null)
+        .map(u => [Number(u.StockId), Number(u.StockStock)])
+    );
+  });
 
   private ubicacionesEffect = effect(() => {
     const individuales = this.individualByIndex();
@@ -309,7 +333,12 @@ export class EfectoStockComponent {
 
   async confirmar() {
     await submit(this.formEfectoStock, async (form) => {
-      await firstValueFrom(this.apiService.confirmarStockEfecto(form().value()));
+      try {
+        await firstValueFrom(this.apiService.confirmarStockEfecto(form().value()));
+      } catch (e: any) {
+        return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
+      }
+      return undefined;
     });
   }
 
