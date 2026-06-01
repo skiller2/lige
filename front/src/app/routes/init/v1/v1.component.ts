@@ -199,6 +199,19 @@ export class InitV1Component implements OnInit {
     }
   });
 
+  public reaperturasAsistencia = resource({
+    params: () => null,
+    loader: async () => {
+      const stmactual = new Date();
+      stmactual.setMonth(stmactual.getMonth() - 1)
+
+      const mes = stmactual.getMonth() + 1;
+      const anio = stmactual.getFullYear();
+
+      return <any> await this.apiService.fastFetch(`api/init/stats/reaperturasasistencia/${anio}/${mes}`)
+    }
+  });
+
   public objetivosSinAsistenciaCur = resource({
     params: () => null,
     loader: async () => {
