@@ -1735,8 +1735,8 @@ export class ApiService {
 
   }
 
-  importXLSImporteVentaTelefonia(files: any, anio: number, mes: number, fecha: Date, totaldeclarado: number) {
-    const parameter = { files, anio, mes, fecha, totaldeclarado }
+  importXLSImporteVentaTelefonia(files: any, anio: number, mes: number, fecha: Date, totaldeclarado: number, simulacion:boolean) {
+    const parameter = { files, anio, mes, fecha, totaldeclarado, simulacion }
     return this.http.post<ResponseJSON<any>>(`api/telefonia/import-xls-telefonia`, parameter)
       .pipe(
         tap((res: ResponseJSON<any>) => this.response(res)),

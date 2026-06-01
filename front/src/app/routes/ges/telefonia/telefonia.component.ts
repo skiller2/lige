@@ -23,6 +23,7 @@ import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, requ
 export interface ImportacionTelefono {
   files:any[],
   totaldeclarado:string,
+  simulacion: boolean
 }
 
 @Component({
@@ -137,6 +138,7 @@ export class TelefoniaComponent {
   private importacionTelefonoDefault: ImportacionTelefono = {
     files: [],
     totaldeclarado: '',
+    simulacion: false
   }
 
   readonly importacionTelefono = signal<ImportacionTelefono>(this.importacionTelefonoDefault);
@@ -163,10 +165,11 @@ export class TelefoniaComponent {
         this.loadingSrv.open({ type: 'spin', text: '' })
         this.lastErrorsTels = []  
         this.gridDataImport.set([])
-        const totaldeclarado = Number(untracked(() => this.importacionTelefono().totaldeclarado)) || 0
+        const simulacion:boolean = Boolean(untracked(() => this.importacionTelefono().simulacion))
+        const totaldeclarado:number = Number(untracked(() => this.importacionTelefono().totaldeclarado)) || 0
 
         try {
-          await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio(), this.mes(), this.fecha(), totaldeclarado))
+          await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio(), this.mes(), this.fecha(), totaldeclarado, simulacion))
           this.gridData.reload()
           this.fileUploadComponent().DeleteFileByExporterror(filesValue)
         } catch (e: any) {

@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { BaseController, ClientException } from "../controller/base.controller.ts";
+import { BaseController, ClientException, ClientWarning } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
@@ -439,6 +439,7 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
     const totaldeclarado = Number(req.body.totaldeclarado)
     const file = req.body?.files?.[0] ?? req.body?.files;
     const fechaRequest: Date = new Date(req.body.fecha);
+    const simulacion: boolean = Boolean(req.body.simulacion);
     const queryRunner = await getConnection(res.locals.userName);
 
 
@@ -448,24 +449,8 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
     let totalsuma = 0
     let totalsumaxls = 0
     let EventoLogCodigo = 0
-     
-    const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
 
     try {
-      if (!anioRequest) throw new ClientException("Faltó indicar el anio");
-      if (!mesRequest) throw new ClientException("Faltó indicar el mes");
-      if (!fechaRequest) throw new ClientException("Faltó indicar fecha de aplicación");
-      if (!totaldeclarado) throw new ClientException("Faltó indicar el total declarado");
-
-
-
-
-      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id);
-
-      if (getRecibosGenerados[0].ind_recibos_generados == 1)
-        throw new ClientException(`Los recibos para este periodo ya se generaron`);
-
-
       ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
         `Importa XLS Telefonia`,
@@ -474,9 +459,20 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
         ip,
         'DES'
       ))
-
-
       await queryRunner.startTransaction();
+
+      if (!anioRequest) throw new ClientException("Faltó indicar el anio");
+      if (!mesRequest) throw new ClientException("Faltó indicar el mes");
+      if (!fechaRequest) throw new ClientException("Faltó indicar fecha de aplicación");
+      if (!totaldeclarado) throw new ClientException("Faltó indicar el total declarado");
+
+
+      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
+
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id);
+
+      if (getRecibosGenerados[0].ind_recibos_generados == 1)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`);
 
       let dataset = []
       let datasetid = 0
@@ -968,6 +964,10 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
       if (Math.abs(totalsuma - totaldeclarado) > 0.0001)
         throw new ClientException(`Importe Total declarado:${this.round2(totaldeclarado)}, Total procesado:${this.round2(totalsuma)} `, { totaldeclarado, totalsuma })
 
+      if (simulacion) {
+        throw new ClientWarning(`Simulación finalizada, no se encontro errores`)
+      }
+      
       await queryRunner.commitTransaction();
 
       const resMsg = "Se procesaron " + telefonos.length + " teléfonos, con un total de $ " + this.round2(totalsuma)
