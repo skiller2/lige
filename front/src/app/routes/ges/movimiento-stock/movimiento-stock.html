@@ -172,7 +172,7 @@
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Ubicación</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9" [nzLg]="7" nzHasFeedback sfErrorTip>
-        <nz-select [formField]="ef.UbicacionStockId" nzAllowClear nzShowSearch
+        <nz-select [formField]="ef.StockId" nzAllowClear nzShowSearch
           [nzDropdownMatchSelectWidth]="false" style="width: 100%"
           nzPlaceHolder="Seleccione una ubicación">
           @for (grupo of ubicacionesAgrupadas(i); track grupo.tipo) {

@@ -25,6 +25,10 @@ initRouter.get(`${base}/stats/objetivossinasistencia/:anio/:mes`, authMiddleware
 	initController.getObjetivosSinAsistencia(req, res, next)
 })
 
+initRouter.get(`${base}/stats/reaperturasasistencia/:anio/:mes`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getReaperturasAsistencia(req, res, next)
+})
+
 initRouter.get(`${base}/stats/licenciasinconsistentes/:anio/:mes`, authMiddleware.verifyToken, (req, res, next) => {
 	initController.getLicenciasInconsistentes(req, res, next)
 })

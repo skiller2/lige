@@ -45,44 +45,57 @@ export class StockEfectoController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     try {
       const body = req.body ?? {};
+      console.log('[confirmarMovimiento] body recibido:', JSON.stringify(body, null, 2));
       const fecha = body.fecha;
       const tipoDestino: string = body.tipoDestino ?? '';
       const depositoId = body.depositoId ?? null;
       const personalId = body.personalId ?? null;
       const objetivoId = body.objetivoId != null ? Number(body.objetivoId) : null;
       const proveedorId = body.proveedorId ?? null;
-      const efectos: Array<{ EfectoId: number; UbicacionStockId: number; Cantidad: number }> = Array.isArray(body.efectos) ? body.efectos : [];
+      const efectos: Array<{ EfectoId: number; StockId: number; Cantidad: number }> = Array.isArray(body.efectos) ? body.efectos : [];
 
-      if (!fecha) throw new ClientException("La fecha es obligatoria.");
+      const fieldErrors: any[] = [];
+
+      if (!fecha) fieldErrors.push({ fieldTree: 'fecha', kind: 'server', message: 'La fecha es obligatoria.' });
       const tiposValidos = ['deposito', 'personal', 'objetivo', 'proveedor'];
-      if (!tiposValidos.includes(tipoDestino)) throw new ClientException("El tipo de destino es obligatorio.");
-      if (tipoDestino === 'deposito' && !depositoId) throw new ClientException("El depósito es obligatorio.");
-      if (tipoDestino === 'personal' && !personalId) throw new ClientException("La persona es obligatoria.");
-      if (tipoDestino === 'objetivo' && !objetivoId) throw new ClientException("El objetivo es obligatorio.");
-      if (tipoDestino === 'proveedor' && !proveedorId) throw new ClientException("El proveedor es obligatorio.");
+      if (!tiposValidos.includes(tipoDestino)) fieldErrors.push({ fieldTree: 'tipoDestino', kind: 'server', message: 'El tipo de destino es obligatorio.' });
+      if (tipoDestino === 'deposito' && !depositoId) fieldErrors.push({ fieldTree: 'depositoId', kind: 'server', message: 'El depósito es obligatorio.' });
+      if (tipoDestino === 'personal' && !personalId) fieldErrors.push({ fieldTree: 'personalId', kind: 'server', message: 'La persona es obligatoria.' });
+      if (tipoDestino === 'objetivo' && !objetivoId) fieldErrors.push({ fieldTree: 'objetivoId', kind: 'server', message: 'El objetivo es obligatorio.' });
+      if (tipoDestino === 'proveedor' && !proveedorId) fieldErrors.push({ fieldTree: 'proveedorId', kind: 'server', message: 'El proveedor es obligatorio.' });
       if (!efectos.length) throw new ClientException("Debe ingresar al menos un efecto.");
 
       for (let i = 0; i < efectos.length; i++) {
         const linea = efectos[i];
         const n = i + 1;
-        if (!linea.EfectoId) throw new ClientException(`Línea ${n}: efecto obligatorio.`);
-        if (!linea.UbicacionStockId) throw new ClientException(`Línea ${n}: ubicación obligatoria.`);
-        if (linea.Cantidad == null || Number(linea.Cantidad) <= 0) throw new ClientException(`Línea ${n}: cantidad debe ser mayor a 0.`);
+        console.log(`[confirmarMovimiento] linea ${n} -> EfectoId:`, linea.EfectoId, 'StockId:', linea.StockId, 'Cantidad:', linea.Cantidad);
+        if (!linea.EfectoId) fieldErrors.push({ fieldTree: `efectos[${i}].EfectoId`, kind: 'server', message: 'Efecto obligatorio.' });
+        if (!linea.StockId) fieldErrors.push({ fieldTree: `efectos[${i}].StockId`, kind: 'server', message: 'Ubicación obligatoria.' });
+        if (linea.Cantidad == null || Number(linea.Cantidad) <= 0)
+          fieldErrors.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'server', message: 'La cantidad debe ser mayor a 0.' });
+
+        if (!linea.StockId) continue;
 
         const rows = await queryRunner.query(
           `SELECT TOP 1 stk.StockStock, stk.EfectoId
            FROM StockReal stk
            WHERE stk.StockId = @0`,
-          [linea.UbicacionStockId]
+          [linea.StockId]
         );
         const row = rows?.[0];
-        if (!row) throw new ClientException(`Línea ${n}: la ubicación no existe.`);
-        if (Number(row.EfectoId) !== Number(linea.EfectoId)) throw new ClientException(`Línea ${n}: la ubicación no corresponde al efecto seleccionado.`);
-        const disponible = Number(row.StockStock ?? 0);
-        if (Number(linea.Cantidad) > disponible) {
-          throw new ClientException(`Línea ${n}: cantidad (${linea.Cantidad}) supera el stock disponible (${disponible}).`);
+        if (!row) {
+          fieldErrors.push({ fieldTree: `efectos[${i}].StockId`, kind: 'server', message: 'La ubicación no existe.' });
+          continue;
         }
+        if (linea.EfectoId && Number(row.EfectoId) !== Number(linea.EfectoId))
+          fieldErrors.push({ fieldTree: `efectos[${i}].StockId`, kind: 'server', message: 'La ubicación no corresponde al efecto seleccionado.' });
+        const disponible = Number(row.StockStock ?? 0);
+        if (linea.Cantidad != null && Number(linea.Cantidad) > disponible)
+          fieldErrors.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'server', message: `La cantidad (${linea.Cantidad}) supera el stock disponible (${disponible}).` });
       }
+
+      if (fieldErrors.length > 0)
+        throw new ClientException('Debe corregir los campos indicados.', { fieldErrors });
 
       this.jsonRes({ ok: true }, res, "Movimiento confirmado");
     } catch (error) {

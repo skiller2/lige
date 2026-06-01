@@ -36,7 +36,7 @@ export class InitController extends BaseController {
   }
 
 
-  async getObjetivosSinAsistencia(req: Request, res: Response, next: NextFunction) {
+  async   getObjetivosSinAsistencia(req: Request, res: Response, next: NextFunction) {
     const anio = req.params.anio
     const mes = req.params.mes
     const queryRunner = await getConnection(res.locals.userName)
@@ -71,6 +71,82 @@ export class InitController extends BaseController {
       data.sort((a, b) => b.y - a.y);
 
       this.jsonRes({ objetivosSinAsistencia: data, objetivosSinAsistenciaTotal: total, anio: anio, mes: mes }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async getReaperturasAsistencia(req: Request, res: Response, next: NextFunction) {
+    const anio = Number(req.params.anio)
+    const mes = Number(req.params.mes)
+    const queryRunner = await getConnection(res.locals.userName)
+    try {
+      const result = await queryRunner.query(`
+        WITH Reaperturas AS (
+          SELECT
+            a.Anio,
+            a.Mes,
+            c.GrupoActividadId,
+            COUNT(*) cantidad,
+            COUNT(DISTINCT b.ObjetivoId) cant_obj
+          FROM AperturaAsistenciaLog a
+          JOIN Objetivo b
+            ON b.ClienteId = a.ClienteId
+            AND b.ClienteElementoDependienteId = a.ClienteElementoDependienteId
+          OUTER APPLY (
+            SELECT TOP 1 c.GrupoActividadId
+            FROM GrupoActividadObjetivo c
+            WHERE c.GrupoActividadObjetivoObjetivoId = b.ObjetivoId
+              AND EOMONTH(DATEFROMPARTS(@0, @1, 1)) >= c.GrupoActividadObjetivoDesde
+              AND DATEFROMPARTS(@0, @1, 1) <= ISNULL(c.GrupoActividadObjetivoHasta, '9999-12-31')
+            ORDER BY c.GrupoActividadObjetivoDesde DESC
+          ) c
+          GROUP BY a.Anio, a.Mes, c.GrupoActividadId
+          HAVING COUNT(*) > 1
+        )
+        SELECT
+          re.*,
+          CONCAT(TRIM(per.PersonalApellido), ', ' ,trim(per.PersonalNombre)) ApellidoNombreJer,
+          re.cantidad - re.cant_obj cantReaperturas
+        FROM Reaperturas re
+        LEFT JOIN GrupoActividadJerarquico gaj
+          ON gaj.GrupoActividadId = re.GrupoActividadId
+          AND gaj.GrupoActividadJerarquicoDesde <= DATEFROMPARTS(re.Anio, re.Mes, 1)
+          AND DATEFROMPARTS(re.Anio, re.Mes, 1) <= ISNULL(gaj.GrupoActividadJerarquicoHasta, '9999-12-31')
+          AND gaj.GrupoActividadJerarquicoComo = 'J'
+        LEFT JOIN Personal per
+          ON per.PersonalId = gaj.GrupoActividadJerarquicoPersonalId
+        WHERE (re.cantidad - re.cant_obj) > 0
+          AND re.Anio = @0
+          AND re.Mes = @1
+      `, [anio, mes])
+
+      const reaperturasPorJerarquico: { ApellidoNombreJer: string; CantidadReaperturas: number }[] = []
+      const data: { x: string; y: any }[] = []
+      let total = 0
+
+      result.forEach((rec: any) => {
+        const GrupoActividadId = rec.GrupoActividadId ? rec.GrupoActividadId : 0
+        const cant = Number(reaperturasPorJerarquico[GrupoActividadId]?.CantidadReaperturas ?? 0)
+        const ApellidoNombreJer = rec.ApellidoNombreJer ? rec.ApellidoNombreJer : 'Sin Grupo Actividad'
+        const cantReaperturas = Number(rec.cantReaperturas ?? 0)
+
+        reaperturasPorJerarquico[GrupoActividadId] = {
+          ApellidoNombreJer,
+          CantidadReaperturas: cant + cantReaperturas,
+        }
+        total += cantReaperturas
+      })
+
+      for (const row of reaperturasPorJerarquico) {
+        if (row)
+          data.push({ x: row.ApellidoNombreJer, y: row.CantidadReaperturas })
+      }
+      data.sort((a, b) => b.y - a.y);
+
+      this.jsonRes({ reaperturasAsistencia: data, reaperturasAsistenciaTotal: total, anio: anio, mes: mes }, res);
     } catch (error) {
       return next(error);
     } finally {
@@ -562,7 +638,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
               default:
                 break;
             }
-            horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoAno + '-' + rec.ObjetivoAsistenciaAnoMesMes, y: rec.totalhorascalc, type: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras, color: color, })
+            horasTrabajadas.push({ x: rec.ObjetivoAsistenciaAnoMesMes  + '/' + rec.ObjetivoAsistenciaAnoAno , y: rec.totalhorascalc, type: rec.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras, color: color, })
           }
         })
       }
