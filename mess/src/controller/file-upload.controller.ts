@@ -15,7 +15,7 @@ import * as CryptoJS from 'crypto-js';
 
 const stat = promisify(fs.stat);
 import { unlink } from "fs/promises";
-import { getConnection } from "../data-source.ts";
+import { ChatBotController } from "./chatbot.controller.ts";
 
 export class FileUploadController extends BaseController {
   static pathDocuments = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.'   //Los archivos de lige
@@ -46,7 +46,7 @@ export class FileUploadController extends BaseController {
 
   async getSelectTipoinFile(req: any, res: Response, next: NextFunction) {
 
-    const queryRunner = await getConnection(res.locals.userName);
+    const queryRunner = await dbServer.connection(res.locals.userName);
 
     try {
       await queryRunner.startTransaction()
@@ -68,10 +68,12 @@ export class FileUploadController extends BaseController {
     const documentId = req.params.id;
     const filename = req.params.filename;
     const tableForSearch = req.params.tableForSearch;
+    const usuario = BaseController.getUser(res)
+    
     let finalurl = '', docname = ''
     let document = ''
     let deleteFile = false
-    const queryRunner = await getConnection(res.locals.userName);
+    const queryRunner = await dbServer.connection(usuario);
 
     try {
       if (documentId == '0' || documentId == 'null') throw new ClientException(`Archivo no localizado`)
@@ -171,7 +173,8 @@ export class FileUploadController extends BaseController {
     const columnSearch = req.params.columnForSearch
     const TipoSearch = req.params.TipoSearch
     const tableSearch = req.params.tableForSearch
-    const queryRunner = await getConnection(res.locals.userName);
+    const usuario = BaseController.getUser(res)
+    const queryRunner = await dbServer.connection(usuario);
 
     try {
 
@@ -346,7 +349,7 @@ export class FileUploadController extends BaseController {
     ip: any,
     DocumentoCliente?: any
   ) {
-    const queryRunner = await getConnection(usuario);
+    const queryRunner = await dbServer.connection(usuario);
     let periodo_id = 0
     let fechaActual = new Date();
     if (anio && mes) {
@@ -693,8 +696,10 @@ export class FileUploadController extends BaseController {
 
   async deleteDocumento(req, res, next) {
     const deleteId = Number(req.query[0])
-    const tableForSearch = req.query[1];
-    const queryRunner = await getConnection(res.locals.userName);
+    const tableForSearch = req.query[1];    
+    const usuario = BaseController.getUser(res)
+    const queryRunner = await dbServer.connection(usuario);
+
 
     let document: any
     let finalurl: any

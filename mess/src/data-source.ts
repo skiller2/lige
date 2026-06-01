@@ -17,7 +17,6 @@ export const dataSource = new DataSource({
 });
 
 export async function getConnection(user: string): Promise<QueryRunner> {
-  console.log('obteniendo conexión getConnection')
   const ds = dataSource
   while (!ds.isInitialized) {
     console.info('esparando inicialización')

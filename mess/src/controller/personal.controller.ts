@@ -2,15 +2,13 @@ import { BaseController, ClientException } from "./base.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import * as CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
-import { getConnection } from "../data-source.ts";
 
 export class PersonalController extends BaseController {
   async setPersonalAdelanto(personalId: any, anio: any, mes: any, monto: number) {
     const now = new Date()
     const ip = this.getRemoteAddress(null)
     const FormaPrestamoId = 7 //Adelanto
-    const usuario = 'bot'
-
+    const usuario = BaseController.getUser(null)
     const { maxImporte, minImporte, fechaLimite } = PersonalController.getAdelantoLimits(now)
 
     if (monto > maxImporte)
@@ -24,7 +22,8 @@ export class PersonalController extends BaseController {
     if (now.getMonth() + 1 != mes)
       throw new ClientException("El mes del adelato debe ser el corriente")
 
-    const queryRunner = await getConnection('bot')
+
+    const queryRunner = await dbServer.connection(usuario);
     await queryRunner.query(
       `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
       , [personalId, FormaPrestamoId, anio, mes]
@@ -85,8 +84,8 @@ export class PersonalController extends BaseController {
 
     if (now > fechaLimite)
       throw new ClientException("Fuera de vigencia para eliminar un adelanto")
-
-    const queryRunner = await getConnection('bot')
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario)
     const adelanto: any = await queryRunner.query(`
       SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl FROM PersonalPrestamo ade
       WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1) 
@@ -103,7 +102,8 @@ export class PersonalController extends BaseController {
   }
 
   async getDocsPendDescarga(PersonalId: number) {
-    const queryRunner = await getConnection('bot')
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario);
     const result = await queryRunner.query(
       `SELECT doc.personalid PersonalId, 
         doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle, tip.DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, pr.anio, pr.mes, doc.DocumentoNombreArchivo,
@@ -121,7 +121,8 @@ export class PersonalController extends BaseController {
   }
 
   async removeCode(telefono: string) {
-    const queryRunner = await getConnection('bot')
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario)
     return queryRunner.query(
       `UPDATE BotRegTelefonoPersonal SET Codigo=NULL WHERE Telefono=@0`,
       [telefono]
@@ -131,8 +132,8 @@ export class PersonalController extends BaseController {
   linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
 
   async delTelefonoPersona(telefono: string) {
-
-    const queryRunner = await getConnection('bot')
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario)
     const result = await queryRunner.query(
       `DELETE FROM BotRegTelefonoPersonal WHERE Telefono=@0`,
       [telefono]
@@ -148,7 +149,8 @@ export class PersonalController extends BaseController {
     }
   
     async searchQuery(cuit: number) {
-      const queryRunner = await getConnection('bot')
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario
       const result = await queryRunner.query(
         `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName 
         FROM dbo.Personal per 
@@ -202,7 +204,8 @@ export class PersonalController extends BaseController {
   }
 
   async getPersonalQuery(telefono: string, PersonalId: number) {
-    const queryRunner = await getConnection('bot')
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario)
     return await queryRunner.query(
       `SELECT reg.PersonalId, reg.Telefono, TRIM(per.PersonalNombre) name,CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) fullName, cuit.PersonalCUITCUILCUIT cuit, reg.Codigo, 
       sitrev.PersonalSituacionRevistaSituacionId, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, 
@@ -260,7 +263,7 @@ export class PersonalController extends BaseController {
     const ip = this.getRemoteAddress(req)
     let dni = ''
     const des_doc_ident_parts = des_doc_ident.split('@')
-    const queryRunner = await getConnection(usuario)
+    const queryRunner = await dbServer.connection(usuario)
 
     try {
       if (des_doc_ident_parts.length > 4) {
@@ -347,7 +350,7 @@ export class PersonalController extends BaseController {
     const stmactual = new Date();
     const usuario = 'anon'
     const ip = this.getRemoteAddress(req)
-    const queryRunner = await getConnection(usuario)
+    const queryRunner = await dbServer.connection(usuario)
 
     try {
 
@@ -381,7 +384,8 @@ export class PersonalController extends BaseController {
   }
 
   static async getPersonalSitRevista(personalId: number, anio: number, mes: number) {
-    const queryRunner = await getConnection('bot')
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario);
     const responsables = await queryRunner.query(
       `SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.*, ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
         FROM Personal per
@@ -395,7 +399,8 @@ export class PersonalController extends BaseController {
 
 
   static async getCategoriasPorPersonaQuery(anio: number, mes: number, personalId: number, SucursalId: number) {
-    const queryRunner = await getConnection('bot')
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario);
     return queryRunner.query(
       `SELECT cat.TipoAsociadoId, catrel.PersonalCategoriaCategoriaPersonalId, catrel.PersonalCategoriaPersonalId, CONCAT(cat.TipoAsociadoId, '-',catrel.PersonalCategoriaCategoriaPersonalId) AS id, catrel.PersonalCategoriaDesde, catrel.PersonalCategoriaHasta,
         TRIM(tip.TipoAsociadoDescripcion) as TipoAsociadoDescripcion ,TRIM(cat.CategoriaPersonalDescripcion) as CategoriaPersonalDescripcion ,
@@ -413,7 +418,8 @@ export class PersonalController extends BaseController {
 
 
   static async getResponsablesListByPersonal(personalId: number) {
-    const queryRunner = await getConnection('bot')
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario);
     return await queryRunner.query(`
         SELECT ga.GrupoActividadId, ga.GrupoActividadNumero Numero, ga.GrupoActividadDetalle Detalle,
         gap.GrupoActividadPersonalDesde Desde, gap.GrupoActividadPersonalHasta Hasta,
@@ -440,7 +446,8 @@ export class PersonalController extends BaseController {
   }
 
   static async getPersonalAdelanto(personalId: number, anio: number, mes: number) {
-    const queryRunner = await getConnection('bot')
+        const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario);
     return await queryRunner.query(`
       SELECT ade.PersonalPrestamoId, ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl, ade.PersonalPrestamoAprobado, ade.PersonalPrestamoAudFechaIng 
       FROM PersonalPrestamo ade
@@ -452,7 +459,8 @@ export class PersonalController extends BaseController {
   }
 
   static async getTelefono(personalId: number) {
-    const queryRunner = await getConnection('bot')
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario);
     return await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId IN (@0)`, [personalId])
   }
 

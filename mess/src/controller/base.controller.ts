@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { performance } from "node:perf_hooks";
 import { type DataSource, type QueryRunner } from "typeorm";
 import { dbServer } from "../index.ts";
-import { getConnection } from '../data-source.ts';
+
 export class ClientException extends Error {
   messageArr: string[]
   extended: any
@@ -385,10 +385,10 @@ export class BaseController {
     res: Response,
     next: NextFunction
   ) {
-    let usuario = res.locals.userName
-    let ip = this.getRemoteAddress(req)
+    const usuario = BaseController.getUser(res)
+    const ip = this.getRemoteAddress(req)
     const DocumentoId = req.params.doc_id
-    const queryRunner = await getConnection(usuario)
+    const queryRunner = await dbServer.connection(usuario)
     try {
       const data = await queryRunner.query(`SELECT doc.DocumentoPath, doc.DocumentoNombreArchivo from Documento doc
       WHERE doc.DocumentoId=@0`,

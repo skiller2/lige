@@ -2,9 +2,9 @@ import { documentosController } from "../controller/controller.module.ts";
 import { EVENTS, addKeyword } from "@builderbot/bot";
 import flowMenu from './flowMenu.ts'
 import { chatBotController } from "../controller/controller.module.ts";
-import { botServer } from "../index.ts";
+import { botServer, dbServer } from "../index.ts";
 import { reset, stop } from "./flowIdle.ts";
-import { getConnection } from "../data-source.ts";
+import { ChatBotController } from "../controller/chatbot.controller.ts";
 
 const delay = chatBotController.getDelay()
 
@@ -24,10 +24,11 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
     .addAction(async (_, { flowDynamic, state, gotoFlow }) => {
         await flowDynamic([{ body: `⏱️ Buscando comprobantes`, delay }])
         const myState = state.getMyState()
-        const queryRunner = await getConnection('bot')
+        const usuario = ChatBotController.getUser(null)
+        const queryRunner = await dbServer.connection(usuario);
         const personalId = myState.personalId
-        const periodosArray: any[] = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, 3,queryRunner).then(array => { return array })
-         
+        const periodosArray: any[] = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, 3, queryRunner).then(array => { return array })
+
         let resPeriodos = ''
         if (periodosArray && periodosArray?.length) {
             periodosArray.forEach((obj: any, index: number) => {
@@ -55,7 +56,9 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
                 return fallBack()
 
             reset(ctx, gotoFlow, botServer.globalTimeOutMs)
-            const queryRunner= await getConnection('bot')
+            const usuario = ChatBotController.getUser(null)
+            const queryRunner = await dbServer.connection(usuario);
+
 
             const myState = state.getMyState()
             const periodosArray: any[] = myState.recibo.periodosArray
@@ -69,9 +72,9 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
 
 
             try {
-                const urlDoc = await documentosController.getURLDocumento(PersonalId, anio, mes, 'MONOT',queryRunner)
+                const urlDoc = await documentosController.getURLDocumento(PersonalId, anio, mes, 'MONOT', queryRunner)
                 await flowDynamic([{ body: `Monotributo`, media: urlDoc.URL, delay }])
-                await chatBotController.addToDocLog(urlDoc.doc_id, ctx.from,PersonalId)
+                await chatBotController.addToDocLog(urlDoc.doc_id, ctx.from, PersonalId)
             } catch (error) {
                 console.log(error)
                 await flowDynamic([{ body: `El documento no se encuentra disponible, reintente mas tarde`, delay }])

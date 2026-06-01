@@ -3,10 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import { existsSync, readFileSync } from "node:fs";
 import { readFile, writeFile } from 'node:fs/promises';
 import CryptoJS from 'crypto-js';
-
-//import { botServer } from "../bot-server.ts";
-import { getConnection } from "../data-source.ts";
-import { botServer } from "../index.ts";
+import { botServer, dbServer } from "../index.ts";
 import { documentosController, personalController, novedadController, objetivoController } from "./controller.module.ts";
 import { PersonalController } from "./personal.controller.ts";
 
@@ -125,7 +122,8 @@ export class ChatBotController extends BaseController {
 
 
   async chat(req: Request, res: Response, next: NextFunction) {
-    const queryRunner= await getConnection(res.locals.userName)
+    const usuario = BaseController.getUser(res)
+    const queryRunner= await dbServer.connection(usuario)
     if (req.body.message.trim() == '')
       return this.jsonRes({ 'response': [] }, res, 'ok');
     const chatId: string = req.body.chatId
@@ -395,8 +393,8 @@ export class ChatBotController extends BaseController {
   }
 
   async addToDocLog(doc_id: number, telefono: string, PersonalId: number) {
-    const usuario = ChatBotController.getUser(null)
-    const queryRunner= await getConnection(usuario)
+    const usuario = BaseController.getUser(null)
+    const queryRunner= await dbServer.connection(usuario)
     const fechaActual = new Date()
     await queryRunner.query(`INSERT INTO DocumentoDescargaLog (DocumentoId, FechaDescarga, Telefono, PersonalId, AudUsuarioIng, AudIpIng, AudFechaIng)
       VALUES (@0,@1,@2,@3,@4,@5,@6)`,
@@ -404,7 +402,7 @@ export class ChatBotController extends BaseController {
   }
 
   static async enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string) {
-    const queryRunner= await getConnection(usuario)
+    const queryRunner= await dbServer.connection(usuario)
 
     const fechaActual = new Date()
     try {
@@ -423,8 +421,8 @@ export class ChatBotController extends BaseController {
 
 
   static async getColaMsg() {
-    const usuario = ChatBotController.getUser(null)
-    const queryRunner= await getConnection(usuario)
+    const usuario = BaseController.getUser(null)
+    const queryRunner= await dbServer.connection(usuario)
     const fechaActual = new Date()
     return queryRunner.query(`
       SELECT col.FechaIngreso, col.PersonalId, tel.Telefono, col.TextoMensaje,
@@ -435,8 +433,8 @@ export class ChatBotController extends BaseController {
   }
 
   static async updColaMsg(fecha_ingreso: Date, personal_id: number, method: string, provider: string) {
-    const usuario = ChatBotController.getUser(null)
-    const queryRunner= await getConnection(usuario)
+    const usuario = BaseController.getUser(null)
+    const queryRunner= await dbServer.connection(usuario)
     const fechaActual = new Date()
 
     if (!method && !provider) throw new Error('Se debe especificar al menos method o provider para actualizar el mensaje en cola.');
