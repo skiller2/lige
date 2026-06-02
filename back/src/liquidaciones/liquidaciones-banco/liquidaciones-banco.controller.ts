@@ -787,6 +787,34 @@ LEFT JOIN banco banc
   }
 
 
+  normalizarPiso(input: string): string | null {
+
+    const regex = /^(?:\s+|PB|[1-4]|(?:0[1-9]|[1-8][0-9]|9[0-8]))$/;
+
+    if (input == null) return "PB";
+
+    const original = input;
+    const value = input.trim().toUpperCase();
+
+    // Caso: solo espacios → devolver tal cual
+    if (/^\s+$/.test(original)) {
+      return original;
+    }
+
+    // Validación
+    if (!regex.test(value)) {
+      return "PB";
+    }
+
+    // Transformación
+    if (/^[1-4]$/.test(value)) {
+      return `0${value}`;
+    }
+
+    return value;
+  }
+
+
   async archivoCuentaNuevaPatagonia //   hidden: false,
     (req: any, res: any, next: any) {
     const ip = this.getRemoteAddress(req)
@@ -869,11 +897,11 @@ LEFT JOIN banco banc
         const EstadoCivil = 'S'
         const DomicilioCalle = row.domCalle ? row.domCalle.trim().slice(0, 19).padEnd(19, ' ') : ' '.repeat(19)
         const DomicilioNro = row.domNro ? row.domNro.trim().slice(0, 5).padStart(5, '0') : '99999'
-        const DomicilioDomPiso = row.DomicilioDomPiso ? row.DomicilioDomPiso.trim().slice(0, 2).padStart(2, ' ') : '  '
+        const DomicilioDomPiso = this.normalizarPiso(row.DomicilioDomPiso)
         const DomicilioDomDpto = row.DomicilioDomDpto ? row.DomicilioDomDpto.trim().slice(0, 2).padEnd(2, ' ') : '  '
         const Localidad = row.localidad ? row.localidad.trim().slice(0, 30).padStart(30, ' ') : 'LocalidadNoInformada'
         const DomicilioCodigoPostal = row.DomicilioCodigoPostal ? row.DomicilioCodigoPostal.trim().slice(0, 5).padStart(5, '0') : '00000'
-        
+
         const ProvinciaCodigoBancoCuentaSueldo = row.ProvinciaCodigoBancoCuentaSueldo ? row.ProvinciaCodigoBancoCuentaSueldo.trim().slice(0, 2).padStart(2, '0') : '00'
         const TipoCuenta = '2'  //Caja Ahorro
         const Espacios2 = ' '.repeat(3)
@@ -881,12 +909,12 @@ LEFT JOIN banco banc
         const ReservadoUsoEmpresa = ' '.repeat(17)
         const CodigoIdentAfip = '101'
 
-        const PersonalCUITCUILCUIT = row.PersonalCUITCUILCUIT.toString().substring(0, 11).padStart(11, '0')        
+        const PersonalCUITCUILCUIT = row.PersonalCUITCUILCUIT.toString().substring(0, 11).padStart(11, '0')
         const IngresosNetos = '99999'
         const ReservadoUsoBanco2 = ' '.repeat(3)
         const Categoria = ' '.repeat(15)
         const PersonalFechaIngreso = row.PersonalFechaIngreso ? this.formatDDMMAAAA(new Date(row.PersonalFechaIngreso)) : '00000000'
-        const DependenciaPago = '01'.padEnd(15,'0')
+        const DependenciaPago = '01'.padEnd(15, '0')
         const CodPosDependenciaPago = '00000'
         const ReservadoUsoBanco3 = ' '.repeat(22)
         const ReservadoUsoBanco4 = ' '.repeat(3)
