@@ -787,14 +787,14 @@ LEFT JOIN banco banc
   }
 
 
-  normalizarPiso(input: string): string | null {
+  normalizarPiso(input: string): string {
 
     const regex = /^(?:\s+|PB|[1-4]|(?:0[1-9]|[1-8][0-9]|9[0-8]))$/;
 
-    if (input == null) return "PB";
+    if (!input) return "PB";
 
-    const original = input;
-    const value = input.trim().toUpperCase();
+    const original = input.trim().slice(0, 2).toUpperCase();
+    const value = input.trim().slice(0, 2).toUpperCase();
 
     // Caso: solo espacios → devolver tal cual
     if (/^\s+$/.test(original)) {
@@ -811,7 +811,7 @@ LEFT JOIN banco banc
       return `0${value}`;
     }
 
-    return value.slice(0, 2);
+    return value
   }
 
 
@@ -896,8 +896,9 @@ LEFT JOIN banco banc
         const PersonalSexo = row.PersonalSexo ? row.PersonalSexo.trim().charAt(0).toUpperCase() : 'X'
         const EstadoCivil = 'S'
         const DomicilioCalle = row.domCalle ? row.domCalle.trim().slice(0, 19).padEnd(19, ' ') : ' '.repeat(19)
-        const DomicilioNro = row.domNro ? row.domNro.trim().slice(0, 5).padStart(5, '0') : '99999'
-        const DomicilioDomPiso = this.normalizarPiso(row.DomicilioDomPiso)
+
+        const DomicilioNro = row.domNro == null || isNaN(Number(row.domNro)) ? '99999' : String(row.domNro).trim().slice(0, 5).padStart(5, '0');
+        const DomicilioDomPiso = this.normalizarPiso(String(row.DomicilioDomPiso??'').trim())
         const DomicilioDomDpto = row.DomicilioDomDpto ? row.DomicilioDomDpto.trim().slice(0, 2).padEnd(2, ' ') : '  '
         const Localidad = String(row.localidad ?? '').trim().slice(0, 30).padEnd(30, ' ')
         const DomicilioCodigoPostal = row.DomicilioCodigoPostal ? row.DomicilioCodigoPostal.trim().slice(0, 5).padStart(5, '0') : '00000'
@@ -926,6 +927,8 @@ LEFT JOIN banco banc
         const ReservadoUsoBanco7 = ' '.repeat(5)
         //const ReservadoUsoBanco7 = '    X'
 
+
+
         const filerow = NroEmpresaAsignado + PersonalApellido + Espacios + PersonalNombre + TipoDocumentoCodigo + PersonalDocumentoNro +
           ProvinciaDocumento + Nacionalidad +
           PersonalFechaNacimiento + PersonalSexo + EstadoCivil +
@@ -944,9 +947,14 @@ LEFT JOIN banco banc
           ReservadoUsoBanco7 +
           '\r\n'
 
-        console.log('longitud:', filerow.length)
+        if  ( filerow.length != 303) {
+          console.log('longitud:', filerow.length,  DomicilioDomPiso.length,DomicilioDomPiso,`BEGIN${String(row.DomicilioDomPiso).trim()}END`)
+          throw new ClientException(`Error en formato de fila para PersonalId ${row.PersonalId}. Longitud obtenida: ${filerow.length}`)
+        }
         file.write(filerow)
       }
+
+
 
       file.end()
       await once(file, 'finish')
