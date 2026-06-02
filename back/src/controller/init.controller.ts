@@ -130,7 +130,7 @@ export class InitController extends BaseController {
       result.forEach((rec: any) => {
         const GrupoActividadId = rec.GrupoActividadId ? rec.GrupoActividadId : 0
         const cant = Number(reaperturasPorJerarquico[GrupoActividadId]?.CantidadReaperturas ?? 0)
-        const ApellidoNombreJer = rec.ApellidoNombreJer ? rec.ApellidoNombreJer : 'Sin Grupo Actividad'
+        const ApellidoNombreJer = rec.GrupoActividadId ? rec.ApellidoNombreJer : 'Sin Grupo Actividad'
         const cantReaperturas = Number(rec.cantReaperturas ?? 0)
 
         reaperturasPorJerarquico[GrupoActividadId] = {
