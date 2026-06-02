@@ -78,6 +78,11 @@
                 [nzPopconfirmShowArrow]="false" (nzOnConfirm)="importCBU(10)">
                 <span nz-icon nzType="plus" nzTheme="outline"></span> Importa Archivo CBU Banco Macro
               </li>
+              <li nz-menu-item app-down-file [httpMethod]="'GET'"
+                httpUrl="api/liquidaciones/download/cuenta-nueva-patagonia/">
+                <span nz-icon nzType="download"></span> Generar Archivo Cuenta Nueva Patagonia
+              </li>
+              
               <ng-template #confirmImporteCBU>
                 <span>Importa CBUs desde fecha </span>
                 <nz-date-picker [(ngModel)]="fechaDesdeCBU" [ngModelOptions]="{standalone: true}" />

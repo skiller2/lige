@@ -606,7 +606,7 @@ export class PersonalController extends BaseController {
     try {
       const stmactual = new Date();
       const result = await queryRunner.query(
-        `SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta
+        `SELECT cue.PersonalId, ban.BancoDescripcion, cue.PersonalBancoCBU, cue.PersonalBancoDesde, cue.PersonalBancoHasta, cue.IndNuevaCuenta
         FROM PersonalBanco cue
         JOIN Banco ban ON ban.BancoId = cue.PersonalBancoBancoId
         WHERE cue.PersonalBancoDesde <= @1 AND ISNULL(cue.PersonalBancoHasta,'9999-12-31')>= @1 AND cue.PersonalId=@0`,
@@ -2966,6 +2966,9 @@ UNION ALL
   }
 
   async setPersonalBanco(req: any, res: Response, next: NextFunction) {
+    const fechaActual = new Date()
+    const ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
     const queryRunner = await getConnection(res.locals.userName);
     const PersonalId: number = Number(req.params.id);
     const BancoId: number = req.body.BancoId
@@ -3030,13 +3033,14 @@ UNION ALL
           WHERE PersonalId IN (@0)
         `, [PersonalId])
         const newPersonalBancoId = Personal[0].UltNro
-
+        const IndNuevaCuenta= (CBU.trim() != '')? 0 : 1
         await queryRunner.query(`
-          INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde)
-          VALUES (@0, @1, @2, @3, @4)
+          INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
+          AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod)
+          VALUES (@0, @1, @2, @3, @4,@5, @6,@7,@8,@9,@10,@11)
 
           UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
-        `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde])
+        `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, IndNuevaCuenta,fechaActual, fechaActual, usuario, usuario, ip, ip])
       }
 
       await queryRunner.commitTransaction()

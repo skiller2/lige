@@ -50,6 +50,9 @@ const getOptsSINO: any[] = [
 
 
 export class LiquidacionesBancoController extends BaseController {
+  //   hidden: false,
+  //   searchHidden: false
+  // },
 
   directory = process.env.PATH_BANCO || "tmp";
   constructor() {
@@ -454,7 +457,7 @@ LEFT JOIN PersonalBanco perban
 		SELECT MAX(perbanmax.PersonalBancoId)
 		FROM PersonalBanco perbanmax
 		WHERE perbanmax.PersonalId = per.PersonalId
-			AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0
+			AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0 AND perbanmax.IndNuevaCuenta = 0
 	)
 
 LEFT JOIN PersonalCUITCUIL cuit 
@@ -500,7 +503,7 @@ LEFT JOIN banco banc
               FROM Personal per
               JOIN PersonalPrestamo pre ON pre.PersonalId = per.PersonalId AND pre.PersonalPrestamoAprobado='S' AND ISNULL(pre.PersonalPrestamoLiquidoFinanzas,0) =0
               JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = 1
-              LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0)
+              LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0 AND perbanmax.IndNuevaCuenta = 0 )
               LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
               LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@0 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @0
               LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
@@ -773,12 +776,200 @@ LEFT JOIN banco banc
   }
 
 
+  formatDDMMAAAA(value: Date): string {
+    const d = new Date(value);
+
+    return [
+      String(d.getDate()).padStart(2, '0'),
+      String(d.getMonth() + 1).padStart(2, '0'),
+      d.getFullYear()
+    ].join('');
+  }
+
+
+  normalizarPiso(input: string): string | null {
+
+    const regex = /^(?:\s+|PB|[1-4]|(?:0[1-9]|[1-8][0-9]|9[0-8]))$/;
+
+    if (input == null) return "PB";
+
+    const original = input;
+    const value = input.trim().toUpperCase();
+
+    // Caso: solo espacios → devolver tal cual
+    if (/^\s+$/.test(original)) {
+      return original;
+    }
+
+    // Validación
+    if (!regex.test(value)) {
+      return "PB";
+    }
+
+    // Transformación
+    if (/^[1-4]$/.test(value)) {
+      return `0${value}`;
+    }
+
+    return value.slice(0, 2);
+  }
+
+
+  async archivoCuentaNuevaPatagonia //   hidden: false,
+    (req: any, res: any, next: any) {
+    const ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
+    const stmactual = new Date()
+
+    const queryRunner = await getConnection(usuario);
+    const directory = process.env.PATH_LIQUIDACIONES || "tmp";
+    const tmpfilename = `${directory}/${tmpName(directory)}`;
+    const fileName = `cuentas-nuevas-patagonia-${new Date().toISOString()}.txt`
+    const BancoId = 4 //Number(req.body.BancoId)
+
+    try {
+      const file = createWriteStream(tmpfilename, {
+        flags: 'a' // 'a' means appending (old data will be preserved)
+      })
+
+      const cuentasNuevas = await queryRunner.query(`SELECT per.PersonalId, TRIM(per.PersonalApellido) AS Apellido, TRIM(per.PersonalNombre) AS Nombre, cuit.PersonalCUITCUILCUIT, td.TipoDocumentoCodigo, doc.PersonalDocumentoNro,
+      nac.NacionalidadDescripcion Nacionalidad, per.PersonalFechaNacimiento, per.PersonalSexo,
+      perdom.domCalle,perdom.domNro, perdom.DomicilioDomPiso, perdom.DomicilioDomDpto, perdom.localidad, perdom.DomicilioCodigoPostal,perdom.provincia,perdom.DomicilioProvinciaId,
+      perban.PersonalBancoCBU, banc.BancoDescripcion, banc.NroEmpresaAsignado,
+      detsit.SituacionRevistaDescripcion,
+      perdom.ProvinciaCodigoBancoCuentaSueldo,
+      ie.PersonalFechaIngreso,
+      1
+
+      FROM Personal per 
+      LEFT JOIN PersonalSituacionRevista sit ON sit.PersonalId=per.PersonalId AND sit.PersonalSituacionRevistaDesde <= @0 
+          AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= @0  -- AND sit.PersonalSituacionRevistaSituacionId IN (2,5,11,12,14,20,26,28)
+      LEFT JOIN SituacionRevista detsit ON detsit.SituacionRevistaId = sit.PersonalSituacionRevistaId
+
+
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+
+      LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId 
+        AND perban.PersonalBancoDesde = ( SELECT MAX(perbanmax.PersonalBancoDesde) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId) 
+        -- AND perban.PersonalBancoDesde <= @0 
+        -- AND ISNULL(perban.PersonalBancoHasta,'9999-12-31') >= @0
+      LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+
+
+
+
+      LEFT JOIN PersonalDocumento AS doc ON doc.PersonalId = per.PersonalId
+                      AND doc.PersonalDocumentoId = ( SELECT MAX(docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = per.PersonalId) 
+      left join TipoDocumento as td on td.TipoDocumentoId = doc.TipoDocumentoId
+
+      left join Nacionalidad as nac on nac.NacionalidadId= per.PersonalNacionalidadId
+      LEFT JOIN PersonalIngresoEgreso AS ie ON ie.PersonalId =  per.PersonalId  
+
+      LEFT JOIN (Select  TRIM(dom.DomicilioDomCalle) domCalle,TRIM(dom.DomicilioDomNro) domNro, per.PersonalId, dom.DomicilioDomPiso,dom.DomicilioDomDpto,
+                      prov.ProvinciaCodigoBancoCuentaSueldo,
+                      TRIM(bar.BarrioDescripcion) barrio, TRIM(loc.LocalidadDescripcion) localidad,TRIM(prov.ProvinciaDescripcion) provincia,TRIM(pais.PaisDescripcion) paid,
+                                      
+                      dom.DomicilioCodigoPostal, dom.DomicilioPaisId,dom.DomicilioProvinciaId,dom.DomicilioLocalidadId,dom.DomicilioBarrioId
+                                      from Personal per
+                                      LEFT JOIN NexoDomicilio nexdom ON nexdom.PersonalId = per.PersonalId AND nexdom.NexoDomicilioActual = 1
+                                      LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
+                                      LEFT JOIN Pais pais on pais.PaisId=dom.DomicilioPaisId
+                                      LEFT JOIN Provincia prov on prov.PaisId=pais.PaisId and prov.ProvinciaId=dom.DomicilioProvinciaId
+                                      LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
+                                      LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
+                                      ) AS perdom on perdom.PersonalId=per.PersonalId
+      WHERE perban.PersonalBancoBancoId = @1 AND perban.PersonalBancoCBU IS NULL AND perban.IndNuevaCuenta =1`, [stmactual, BancoId])
+
+      if (cuentasNuevas.length == 0)
+        throw new ClientException('No se encontraron cuentas nuevas para el banco seleccionado')
+      //      const cuentasNuevas = []
+      for (const row of cuentasNuevas) {
+        const NroEmpresaAsignado = row.NroEmpresaAsignado ? row.NroEmpresaAsignado.toString().padStart(4, '0') : '0000'
+        const PersonalApellido = row.Apellido ? row.Apellido.trim().slice(0, 15).padEnd(15, ' ') : ' '.repeat(15)
+        const Espacios = ' '.repeat(15)
+        const PersonalNombre = row.Nombre ? row.Nombre.trim().slice(0, 16).padEnd(16, ' ') : ' '.repeat(16)
+        const TipoDocumentoCodigo = '001'  //DNI
+        const PersonalDocumentoNro = row.PersonalDocumentoNro ? row.PersonalDocumentoNro.toString().padStart(17, '0') : '0'.repeat(17)
+        const ProvinciaDocumento = '00'
+        const Nacionalidad = (row.NacionalidadId == 2) ? 'A' : 'E'
+        const PersonalFechaNacimiento = row.PersonalFechaNacimiento ? this.formatDDMMAAAA(new Date(row.PersonalFechaNacimiento)) : '00000000'
+        const PersonalSexo = row.PersonalSexo ? row.PersonalSexo.trim().charAt(0).toUpperCase() : 'X'
+        const EstadoCivil = 'S'
+        const DomicilioCalle = row.domCalle ? row.domCalle.trim().slice(0, 19).padEnd(19, ' ') : ' '.repeat(19)
+        const DomicilioNro = row.domNro ? row.domNro.trim().slice(0, 5).padStart(5, '0') : '99999'
+        const DomicilioDomPiso = this.normalizarPiso(row.DomicilioDomPiso)
+        const DomicilioDomDpto = row.DomicilioDomDpto ? row.DomicilioDomDpto.trim().slice(0, 2).padEnd(2, ' ') : '  '
+        const Localidad = String(row.localidad ?? '').trim().slice(0, 30).padEnd(30, ' ')
+        const DomicilioCodigoPostal = row.DomicilioCodigoPostal ? row.DomicilioCodigoPostal.trim().slice(0, 5).padStart(5, '0') : '00000'
+
+        const ProvinciaCodigoBancoCuentaSueldo = row.ProvinciaCodigoBancoCuentaSueldo ? row.ProvinciaCodigoBancoCuentaSueldo.trim().slice(0, 2).padStart(2, '0') : '00'
+        const TipoCuenta = '2'  //Caja Ahorro
+        const Espacios2 = ' '.repeat(3)
+        const ReservadoUsoBanco = ' '.repeat(10)
+        const ReservadoUsoEmpresa = ' '.repeat(17)
+        const CodigoIdentAfip = '101'
+
+        const PersonalCUITCUILCUIT = String(row.PersonalCUITCUILCUIT ?? '').substring(0, 11).padStart(11, '0')
+        const IngresosNetos = '99999'
+        const ReservadoUsoBanco2 = ' '.repeat(3)
+        const Categoria = ' '.repeat(15)
+        const PersonalFechaIngreso = row.PersonalFechaIngreso ? this.formatDDMMAAAA(new Date(row.PersonalFechaIngreso)) : '00000000'
+        const DependenciaPago = '01'.padEnd(15, '0')
+        const CodPosDependenciaPago = '00000'
+        const ReservadoUsoBanco3 = ' '.repeat(22)
+        const ReservadoUsoBanco4 = ' '.repeat(3)
+        const TelefonoPrefijo = ' '.repeat(4)
+        const TelefonoCaracteristica = ' '.repeat(4)
+        const TelefonoNumero = ' '.repeat(5)
+        const ReservadoUsoBanco5 = ' '.repeat(11)
+        const ReservadoUsoBanco6 = ' '.repeat(3)
+        const ReservadoUsoBanco7 = ' '.repeat(5)
+        //const ReservadoUsoBanco7 = '    X'
+
+        const filerow = NroEmpresaAsignado + PersonalApellido + Espacios + PersonalNombre + TipoDocumentoCodigo + PersonalDocumentoNro +
+          ProvinciaDocumento + Nacionalidad +
+          PersonalFechaNacimiento + PersonalSexo + EstadoCivil +
+          DomicilioCalle + DomicilioNro + DomicilioDomPiso + DomicilioDomDpto + Localidad + DomicilioCodigoPostal + ProvinciaCodigoBancoCuentaSueldo +
+          TipoCuenta + Espacios2 + ReservadoUsoBanco + ReservadoUsoEmpresa +
+          CodigoIdentAfip + PersonalCUITCUILCUIT +
+          IngresosNetos + ReservadoUsoBanco2 +
+          Categoria + PersonalFechaIngreso +
+          DependenciaPago +
+          CodPosDependenciaPago +
+          ReservadoUsoBanco3 +
+          ReservadoUsoBanco4 +
+          TelefonoPrefijo + TelefonoCaracteristica + TelefonoNumero +
+          ReservadoUsoBanco5 +
+          ReservadoUsoBanco6 +
+          ReservadoUsoBanco7 +
+          '\r\n'
+
+        console.log('longitud:', filerow.length)
+        file.write(filerow)
+      }
+
+      file.end()
+      await once(file, 'finish')
+
+      res.download(tmpfilename, fileName, async (msg) => { });
+
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+
   async downloadArchivoBanco(req: Request, res: Response, next: NextFunction) {
     const directory = process.env.PATH_LIQUIDACIONES || "tmp";
     if (!existsSync(directory)) {
       mkdirSync(directory, { recursive: true });
     }
-    const queryRunner = await getConnection(res.locals.userName);
+    const ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
+
+    const queryRunner = await getConnection(usuario);
 
     try {
       const periodo = getPeriodoFromRequest(req);
@@ -793,8 +984,6 @@ LEFT JOIN banco banc
       let banco: any[] = []
 
       let fechaActual = new Date()
-      let ip = this.getRemoteAddress(req)
-      let usuario = res.locals.userName
 
 
       options.filtros.push({ index: 'BancoId', condition: 'AND', operador: '=', valor: [BancoId] })
@@ -1039,7 +1228,7 @@ LEFT JOIN banco banc
   }, queryRunner: QueryRunner) {
     return queryRunner.query(`SELECT per.PersonalId as id,per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.importe
       FROM Personal per
-      JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
+      JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.IndNuevaCuenta = 0 AND perban.PersonalBancoDesde <= @0 AND ISNULL(perban.PersonalBancoHasta,'9999-12-31') >= @0
       JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = per.PersonalId
       JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
       JOIN(SELECT liq.persona_id, SUM(liq.importe) importe FROM lige.dbo.liqmamovimientos liq
