@@ -179,6 +179,13 @@ liquidacionesRouter.post("/download/banco/", [authMiddleware.verifyToken, authMi
   }
 );
 
+liquidacionesRouter.get("/download/cuenta-nueva-patagonia/", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
+  (req, res, next) => {
+    liquidacionesBancoController.archivoCuentaNuevaPatagonia(req, res, next);
+  }
+);
+
+
 liquidacionesRouter.post("/elimina/banco/", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
   (req, res, next) => {
     liquidacionesBancoController.eliminaMovimientosBanco(req, res, next);
