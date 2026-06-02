@@ -851,8 +851,8 @@ LEFT JOIN banco banc
 
       LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId 
         AND perban.PersonalBancoDesde = ( SELECT MAX(perbanmax.PersonalBancoDesde) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId) 
-        AND perban.PersonalBancoDesde <= @0 
-        AND ISNULL(perban.PersonalBancoHasta,'9999-12-31') >= @0
+        -- AND perban.PersonalBancoDesde <= @0 
+        -- AND ISNULL(perban.PersonalBancoHasta,'9999-12-31') >= @0
       LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
 
 
@@ -899,7 +899,7 @@ LEFT JOIN banco banc
         const DomicilioNro = row.domNro ? row.domNro.trim().slice(0, 5).padStart(5, '0') : '99999'
         const DomicilioDomPiso = this.normalizarPiso(row.DomicilioDomPiso)
         const DomicilioDomDpto = row.DomicilioDomDpto ? row.DomicilioDomDpto.trim().slice(0, 2).padEnd(2, ' ') : '  '
-        const Localidad = row.localidad ? row.localidad.trim().slice(0, 30).padStart(30, ' ') : 'LocalidadNoInformada'
+        const Localidad = String(row.localidad ?? '').trim().slice(0, 30).padEnd(30, ' ')
         const DomicilioCodigoPostal = row.DomicilioCodigoPostal ? row.DomicilioCodigoPostal.trim().slice(0, 5).padStart(5, '0') : '00000'
 
         const ProvinciaCodigoBancoCuentaSueldo = row.ProvinciaCodigoBancoCuentaSueldo ? row.ProvinciaCodigoBancoCuentaSueldo.trim().slice(0, 2).padStart(2, '0') : '00'
@@ -909,7 +909,7 @@ LEFT JOIN banco banc
         const ReservadoUsoEmpresa = ' '.repeat(17)
         const CodigoIdentAfip = '101'
 
-        const PersonalCUITCUILCUIT = row.PersonalCUITCUILCUIT.toString().substring(0, 11).padStart(11, '0')
+        const PersonalCUITCUILCUIT = String(row.PersonalCUITCUILCUIT ?? '').substring(0, 11).padStart(11, '0')
         const IngresosNetos = '99999'
         const ReservadoUsoBanco2 = ' '.repeat(3)
         const Categoria = ' '.repeat(15)
