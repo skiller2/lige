@@ -1148,15 +1148,16 @@ export class ObjetivosController extends BaseController {
 
             //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
             if (ContratoId && !createNewContrato) {
-                await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteElementoDependienteContratoFechaDesde = @3, ClienteElementoDependienteContratoFechaHasta = @4
+                await queryRunner.query(`UPDATE ClienteElementoDependienteContrato SET ClienteElementoDependienteContratoFechaDesde = @3, ClienteElementoDependienteContratoFechaHasta = @4, 
+                AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7
                     WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND ClienteElementoDependienteContratoId = @2`,
-                    [ClienteId, ClienteElementoDependienteId, ContratoId, ContratoFechaDesde, ContratoFechaHasta])
+                    [ClienteId, ClienteElementoDependienteId, ContratoId, ContratoFechaDesde, ContratoFechaHasta, now, usuario, ip])
             } else {
                 const resUltNro = await queryRunner.query(`SELECT ClienteElementoDependienteContratoUltNro FROM ClienteElementoDependiente WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 `, [ClienteId, ClienteElementoDependienteId])
                 const ClienteElementoDependienteContratoId = (resUltNro[0]?.ClienteElementoDependienteContratoUltNro) ? resUltNro[0].ClienteElementoDependienteContratoUltNro + 1 : 1
                 await queryRunner.query(`INSERT INTO ClienteElementoDependienteContrato (ClienteElementoDependienteContratoId,
-                    ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteContratoFechaDesde,ClienteElementoDependienteContratoFechaHasta) VALUES(@0,@1,@2,@3,@4)`,
-                    [ClienteElementoDependienteContratoId, ClienteId, ClienteElementoDependienteId, ContratoFechaDesde, ContratoFechaHasta])
+                    ClienteId,ClienteElementoDependienteId, ClienteElementoDependienteContratoFechaDesde,ClienteElementoDependienteContratoFechaHasta, AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod) VALUES(@0,@1,@2,@3,@4, @5, @6, @7, @5, @6, @7)`,
+                    [ClienteElementoDependienteContratoId, ClienteId, ClienteElementoDependienteId, ContratoFechaDesde, ContratoFechaHasta, now, usuario, ip])
                 await queryRunner.query(`UPDATE ClienteElementoDependiente SET ClienteElementoDependienteContratoUltNro = @2 WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`,
                     [ClienteId, ClienteElementoDependienteId, ClienteElementoDependienteContratoId])
             }
