@@ -457,7 +457,7 @@ LEFT JOIN PersonalBanco perban
 		SELECT MAX(perbanmax.PersonalBancoId)
 		FROM PersonalBanco perbanmax
 		WHERE perbanmax.PersonalId = per.PersonalId
-			AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0
+			AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0 AND perbanmax.IndNuevaCuenta = 0
 	)
 
 LEFT JOIN PersonalCUITCUIL cuit 
@@ -503,7 +503,7 @@ LEFT JOIN banco banc
               FROM Personal per
               JOIN PersonalPrestamo pre ON pre.PersonalId = per.PersonalId AND pre.PersonalPrestamoAprobado='S' AND ISNULL(pre.PersonalPrestamoLiquidoFinanzas,0) =0
               JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = 1
-              LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0)
+              LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoId = ( SELECT MAX(perbanmax.PersonalBancoId) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId AND ISNULL(perbanmax.PersonalBancoHasta,'9999-12-31') >= @0 AND perbanmax.IndNuevaCuenta = 0 )
               LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
               LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaDesde<=@0 AND  ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= @0
               LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
@@ -850,7 +850,7 @@ LEFT JOIN banco banc
                                       LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
                                       LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
                                       ) AS perdom on perdom.PersonalId=per.PersonalId
-      WHERE perban.PersonalBancoBancoId = @1 AND perban.PersonalBancoCBU IS NULL AND perban.ImporteProyectado >0`, [stmactual, BancoId])
+      WHERE perban.PersonalBancoBancoId = @1 AND perban.PersonalBancoCBU IS NULL AND perban.IndNuevaCuenta =1`, [stmactual, BancoId])
 
       if (cuentasNuevas.length == 0)
         throw new ClientException('No se encontraron cuentas nuevas para el banco seleccionado')
@@ -1200,7 +1200,7 @@ LEFT JOIN banco banc
   }, queryRunner: QueryRunner) {
     return queryRunner.query(`SELECT per.PersonalId as id,per.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,movpos.importe
       FROM Personal per
-      JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId
+      JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.IndNuevaCuenta = 0 AND perban.PersonalBancoDesde <= @0 AND ISNULL(perban.PersonalBancoHasta,'9999-12-31') >= @0
       JOIN PersonalCUITCUIL AS cuit ON cuit.PersonalId = per.PersonalId
       JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
       JOIN(SELECT liq.persona_id, SUM(liq.importe) importe FROM lige.dbo.liqmamovimientos liq
