@@ -37,6 +37,7 @@ export class LiquidacionesController extends BaseController {
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
     const queryRunner = await getConnection(res.locals.userName);
+    const fechaActual = new Date()
     try {
 
       await queryRunner.startTransaction();
@@ -87,10 +88,13 @@ export class LiquidacionesController extends BaseController {
 
         await queryRunner.query(
           `UPDATE PersonalBanco SET PersonalBancoHasta=@0 WHERE PersonalId=@1 AND ISNULL(PersonalBancoHasta,'9999-12-31') > @0`, [fechaAyer, PersonalId])
-
-        await queryRunner.query(`INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoBancoSucursalId, PersonalBancoCBU, PersonalBancoCC, PersonalBancoCA, PersonalBancoCuentaSueldo, PersonalBancoDesde, PersonalBancoHasta, PersonalBancoAlias)
-                      VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)`,
-          [PersonalId, PersonalBancoUltNro, banco_id, null, cbu, null, null, 1, fechaDesde, null, null])
+        const IndCuentaNueva = (cbu.trim() != '') ? 0 : 1
+        await queryRunner.query(`INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoBancoSucursalId, PersonalBancoCBU, PersonalBancoCC, PersonalBancoCA, PersonalBancoCuentaSueldo, PersonalBancoDesde, PersonalBancoHasta, PersonalBancoAlias, IndNuevaCuenta,
+          AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod )
+                      VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10,@11,
+                      @12, @13, @14, @15, @16, @17
+                      )`,
+          [PersonalId, PersonalBancoUltNro, banco_id, null, cbu, null, null, 1, fechaDesde, null, null, IndCuentaNueva, fechaActual, fechaActual, usuario, usuario, ip, ip])
 
         await queryRunner.query(
           `UPDATE Personal SET PersonalBancoUltNro=@0 WHERE PersonalId=@1`, [PersonalBancoUltNro, PersonalId]
