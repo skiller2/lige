@@ -18,6 +18,8 @@ export interface EfectoStockLinea {
   EfectoId: number | null;
   Cantidad: number | null;
   StockId: number | null;
+  EfectoIndividualId: number | null;
+  Usado: boolean;
 }
 
 export interface ParametroformEfectoStock {
@@ -27,6 +29,7 @@ export interface ParametroformEfectoStock {
   personalId: number | null;
   objetivoId: string | null;
   proveedorId: number | null;
+  observaciones: string;
   efectos: EfectoStockLinea[];
 }
 
@@ -41,7 +44,7 @@ export class MovimientoStockComponent {
   private searchService = inject(SearchService);
   private apiService = inject(ApiService);
 
-  private readonly objEfectoLinea: EfectoStockLinea = { EfectoId: null, Cantidad: null, StockId: null };
+  private readonly objEfectoLinea: EfectoStockLinea = { EfectoId: null, Cantidad: null, StockId: null, EfectoIndividualId: null, Usado: false };
 
   private readonly defaultStockForm: ParametroformEfectoStock = {
     fecha: null,
@@ -50,6 +53,7 @@ export class MovimientoStockComponent {
     personalId: null,
     objetivoId: null,
     proveedorId: null,
+    observaciones: '',
     efectos: [structuredClone(this.objEfectoLinea)],
   };
 
@@ -208,17 +212,22 @@ export class MovimientoStockComponent {
     });
     this.parametroStock.update(s => ({
       ...s,
-      efectos: s.efectos.map((e, i) => i === index ? { ...e, StockId: null } : e),
+      efectos: s.efectos.map((e, i) => i === index ? { ...e, StockId: null, EfectoIndividualId: individualId } : e),
     }));
   }
 
   readonly relacionesByIndex = signal<Map<number, EfectoRelacionEfecto[]>>(new Map());
 
+  // Solo los EfectoId por línea: así los effects no se redisparan al cambiar Cantidad/StockId
+  private readonly efectoIds = computed(
+    () => this.parametroStock().efectos.map(e => e.EfectoId),
+    { equal: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]) }
+  );
+
   private relacionesEffect = effect(() => {
     const individuales = this.individualByIndex();
-    const efectos = this.parametroStock().efectos;
-    efectos.forEach((e, i) => {
-      const efectoId = e.EfectoId;
+    const ids = this.efectoIds();
+    ids.forEach((efectoId, i) => {
       if (!efectoId) return;
       const individualId = individuales.get(i) ?? null;
       firstValueFrom(this.searchService.getEfectoRelaciones(efectoId, individualId)).then(rels => {
@@ -249,8 +258,8 @@ export class MovimientoStockComponent {
 
   private ubicacionesEffect = effect(() => {
     const individuales = this.individualByIndex();
-    this.parametroStock().efectos.forEach((linea, i) => {
-      if (linea.EfectoId) this.cargarUbicaciones(i, linea.EfectoId, individuales.get(i) ?? null);
+    this.efectoIds().forEach((efectoId, i) => {
+      if (efectoId) this.cargarUbicaciones(i, efectoId, individuales.get(i) ?? null);
     });
   });
 

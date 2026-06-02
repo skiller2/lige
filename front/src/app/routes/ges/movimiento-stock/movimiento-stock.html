@@ -149,7 +149,19 @@
         </nz-form-item>
       </div>
     </div>
+
+   
   }
+   <div nz-row [nzGutter]="15">
+      <div nz-col [nzSpan]="16">
+        <nz-form-item>
+          <nz-form-label [nzSpan]="3">Observaciones</nz-form-label>
+          <nz-form-control [nzSpan]="11">
+            <input nz-input [formField]="formEfectoStock.observaciones" placeholder="Observaciones" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+    </div>
 
   <nz-divider nzText="Origen" style="margin-bottom: 40px;">
   </nz-divider>
@@ -158,7 +170,8 @@
     <nz-form-item class="marginElement">
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Efecto</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9" [nzLg]="7" nzHasFeedback sfErrorTip>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" [nzLg]="5" nzHasFeedback sfErrorTip>
+        <input type="hidden" [value]="ef.EfectoIndividualId().value()" />
         <app-efecto-search [formField]="ef.EfectoId" (valueExtendedChange)="onEfectoExtended(i, $event)"></app-efecto-search>
         @if (relacionesDeLinea(i).length) {
           <div class="efecto-relaciones" style="font-size: 12px; color: rgba(0,0,0,0.55); margin-top: 4px;">
@@ -170,8 +183,8 @@
         }
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Ubicación</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9" [nzLg]="7" nzHasFeedback sfErrorTip>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Ubicación</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="6" nzHasFeedback sfErrorTip>
         <nz-select [formField]="ef.StockId" nzAllowClear nzShowSearch
           [nzDropdownMatchSelectWidth]="false" style="width: 100%"
           nzPlaceHolder="Seleccione una ubicación">
@@ -186,23 +199,26 @@
       </nz-form-control>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Cantidad</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" [nzLg]="4" nzHasFeedback sfErrorTip>
-        <nz-input-group style="width: 100%" [nzAddOnAfter]="controlEfectoButton" nzSearch>
-          <input nz-input placeholder="" [formField]="ef.Cantidad" type="number" />
-        </nz-input-group>
-        <ng-template #controlEfectoButton>
-          <button nz-button *ngIf="formEfectoStock.efectos.length == i+1" nzType="primary"
-            type="button" class="add-button" (click)="addEfecto($event)" nz-tooltip
-            nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-            <span nz-icon nzType="plus"></span>
-          </button>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="3" nzHasFeedback sfErrorTip>
+        <input nz-input placeholder="" [formField]="ef.Cantidad" type="number" />
+      </nz-form-control>
 
-          <button nz-button nzType="default" *ngIf="formEfectoStock.efectos.length > 1"
-            type="button" (click)="removeEfecto(i, $event)" nz-tooltip
-            nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-            <span nz-icon nzType="delete" nzTheme="outline"></span>
-          </button>
-        </ng-template>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2"  style="padding-left: 15px;">
+        <label nz-checkbox [formField]="ef.Usado">Usado</label>
+      </nz-form-control>
+
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">
+        <button nz-button *ngIf="formEfectoStock.efectos.length == i+1" nzType="primary"
+          type="button" class="add-button" (click)="addEfecto($event)" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+          <span nz-icon nzType="plus"></span>
+        </button>
+
+        <button nz-button nzType="default" *ngIf="formEfectoStock.efectos.length > 1"
+          type="button" (click)="removeEfecto(i, $event)" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+          <span nz-icon nzType="delete" nzTheme="outline"></span>
+        </button>
       </nz-form-control>
 
     </nz-form-item>
