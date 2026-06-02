@@ -3033,14 +3033,14 @@ UNION ALL
           WHERE PersonalId IN (@0)
         `, [PersonalId])
         const newPersonalBancoId = Personal[0].UltNro
-        const IndCuentaNueva= (CBU.trim() != '')? 0 : 1
+        const IndNuevaCuenta= (CBU.trim() != '')? 0 : 1
         await queryRunner.query(`
-          INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndCuentaNueva,
+          INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
           AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod)
           VALUES (@0, @1, @2, @3, @4,@5, @6,@7,@8,@9,@10,@11)
 
           UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
-        `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, IndCuentaNueva,fechaActual, fechaActual, usuario, usuario, ip, ip])
+        `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, IndNuevaCuenta,fechaActual, fechaActual, usuario, usuario, ip, ip])
       }
 
       await queryRunner.commitTransaction()
