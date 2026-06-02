@@ -852,6 +852,8 @@ LEFT JOIN banco banc
                                       ) AS perdom on perdom.PersonalId=per.PersonalId
       WHERE perban.PersonalBancoBancoId = @1 AND perban.PersonalBancoCBU IS NULL AND perban.ImporteProyectado >0`, [stmactual, BancoId])
 
+      if (cuentasNuevas.length == 0)
+        throw new ClientException('No se encontraron cuentas nuevas para el banco seleccionado')
       //      const cuentasNuevas = []
       for (const row of cuentasNuevas) {
         const NroEmpresaAsignado = row.NroEmpresaAsignado ? row.NroEmpresaAsignado.toString().padStart(4, '0') : '0000'
