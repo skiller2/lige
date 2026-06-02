@@ -811,7 +811,7 @@ LEFT JOIN banco banc
       return `0${value}`;
     }
 
-    return value;
+    return value.slice(0, 2);
   }
 
 
