@@ -52,7 +52,8 @@ export class StockEfectoController extends BaseController {
       const personalId = body.personalId ?? null;
       const objetivoId = body.objetivoId != null ? Number(body.objetivoId) : null;
       const proveedorId = body.proveedorId ?? null;
-      const efectos: Array<{ EfectoId: number; StockId: number; Cantidad: number }> = Array.isArray(body.efectos) ? body.efectos : [];
+      const observaciones: string = body.observaciones ?? '';
+      const efectos: Array<{ EfectoId: number; StockId: number; Cantidad: number; EfectoIndividualId: number | null; Usado: boolean }> = Array.isArray(body.efectos) ? body.efectos : [];
 
       const fieldErrors: any[] = [];
 
@@ -68,7 +69,7 @@ export class StockEfectoController extends BaseController {
       for (let i = 0; i < efectos.length; i++) {
         const linea = efectos[i];
         const n = i + 1;
-        console.log(`[confirmarMovimiento] linea ${n} -> EfectoId:`, linea.EfectoId, 'StockId:', linea.StockId, 'Cantidad:', linea.Cantidad);
+        console.log(`[confirmarMovimiento] linea ${n} -> EfectoId:`, linea.EfectoId, 'StockId:', linea.StockId, 'Cantidad:', linea.Cantidad, 'EfectoIndividualId:', linea.EfectoIndividualId, 'Usado:', linea.Usado);
         if (!linea.EfectoId) fieldErrors.push({ fieldTree: `efectos[${i}].EfectoId`, kind: 'server', message: 'Efecto obligatorio.' });
         if (!linea.StockId) fieldErrors.push({ fieldTree: `efectos[${i}].StockId`, kind: 'server', message: 'Ubicación obligatoria.' });
         if (linea.Cantidad == null || Number(linea.Cantidad) <= 0)
@@ -96,6 +97,8 @@ export class StockEfectoController extends BaseController {
 
       if (fieldErrors.length > 0)
         throw new ClientException('Debe corregir los campos indicados.', { fieldErrors });
+
+      console.log('[confirmarMovimiento] observaciones:', observaciones);
 
       this.jsonRes({ ok: true }, res, "Movimiento confirmado");
     } catch (error) {
