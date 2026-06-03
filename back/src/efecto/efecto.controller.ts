@@ -1069,6 +1069,8 @@ export class EfectoController extends BaseController {
           IIF(ele.ClienteElementoDependienteId IS NULL, NULL, CONCAT(cli.ClienteId, '/', ele.ClienteElementoDependienteId, ' ', ele.ClienteElementoDependienteDescripcion)) AS ObjetivoDescripcion,
           pro.ProveedorRazonSocial,
           dep.DepositoNombre,
+          dep.DepositoSucursalId,
+          TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
           stk.StockStock
         FROM StockReal stk
         LEFT JOIN Personal per ON per.PersonalId = stk.PersonalId
@@ -1077,6 +1079,7 @@ export class EfectoController extends BaseController {
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
         LEFT JOIN Proveedor pro ON pro.ProveedorId = stk.ProveedorId
         LEFT JOIN Deposito dep ON dep.DepositoId = stk.DepositoId
+        LEFT JOIN Sucursal suc ON suc.SucursalId = dep.DepositoSucursalId
         WHERE stk.EfectoId = @0
           AND ((@1 IS NULL AND stk.EfectoEfectoIndividualId IS NULL) OR stk.EfectoEfectoIndividualId = @1)
           AND (stk.PersonalId IS NOT NULL OR stk.ObjetivoId IS NOT NULL OR stk.ProveedorId IS NOT NULL OR stk.DepositoId IS NOT NULL)
