@@ -95,6 +95,11 @@ export class MovimientoStockComponent {
 
   tipoDestinoSeleccionado = computed(() => this.parametroStock().tipoDestino);
 
+
+  // al cambiar otros campos del form (observaciones, cantidad, etc.)
+  personalIdSig = computed(() => this.parametroStock().personalId);
+  objetivoIdSig = computed(() => this.parametroStock().objetivoId);
+
   anio = computed(() => this.parametroStock().fecha?.getFullYear() ?? new Date().getFullYear());
   mes = computed(() => (this.parametroStock().fecha?.getMonth() ?? new Date().getMonth()) + 1);
 
@@ -116,7 +121,7 @@ export class MovimientoStockComponent {
 
   personaInfo = resource({
     params: () => ({
-      personalId: this.parametroStock().personalId,
+      personalId: this.personalIdSig(),
       anio: this.anio(),
       mes: this.mes(),
     }),
@@ -130,7 +135,7 @@ export class MovimientoStockComponent {
 
   personaResponsables = resource({
     params: () => ({
-      personalId: this.parametroStock().personalId,
+      personalId: this.personalIdSig(),
       anio: this.anio(),
       mes: this.mes(),
     }),
@@ -144,7 +149,7 @@ export class MovimientoStockComponent {
 
   personaSitRevista = resource({
     params: () => ({
-      personalId: this.parametroStock().personalId,
+      personalId: this.personalIdSig(),
       anio: this.anio(),
       mes: this.mes(),
     }),
@@ -158,7 +163,7 @@ export class MovimientoStockComponent {
 
   objetivoInfo = resource({
     params: () => ({
-      objetivoId: this.parametroStock().objetivoId,
+      objetivoId: this.objetivoIdSig(),
       anio: this.anio(),
       mes: this.mes(),
     }),
@@ -173,7 +178,7 @@ export class MovimientoStockComponent {
 
   objetivoResponsables = resource({
     params: () => ({
-      objetivoId: this.parametroStock().objetivoId,
+      objetivoId: this.objetivoIdSig(),
       anio: this.anio(),
       mes: this.mes(),
     }),
@@ -188,7 +193,7 @@ export class MovimientoStockComponent {
 
   objetivoContratos = resource({
     params: () => ({
-      objetivoId: this.parametroStock().objetivoId,
+      objetivoId: this.objetivoIdSig(),
       anio: this.anio(),
       mes: this.mes(),
     }),
