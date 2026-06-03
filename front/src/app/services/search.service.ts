@@ -2347,6 +2347,13 @@ export class SearchService {
     );
   }
 
+  getStockEfectoTiposOrigen() {
+    return this.http.get<ResponseJSON<any>>(`api/stock-efecto/tipos-origen`).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
   getStockEfectoPersonaInfo(personalId: number, anio: number, mes: number) {
     if (!personalId || !anio || !mes) return of(null);
     return this.http.get<ResponseJSON<any>>(`api/personal/info/${personalId}/${anio}/${mes}`).pipe(

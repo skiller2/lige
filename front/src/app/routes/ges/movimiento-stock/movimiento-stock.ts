@@ -11,7 +11,7 @@ import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetiv
 import { ProveedorSearchComponent } from '../../../shared/proveedor-search/proveedor-search.component';
 import { ViewResponsableComponent } from '../../../shared/view-responsable/view-responsable.component';
 import { EfectoStockLineaComponent } from './efecto-stock-linea/efecto-stock-linea';
-import { ParametroformEfectoStock, nuevaEfectoLinea } from './movimiento-stock.types';
+import { EfectoStockLinea, ParametroformEfectoStock, nuevaEfectoLinea } from './movimiento-stock.types';
 
 export type { EfectoStockLinea, ParametroformEfectoStock } from './movimiento-stock.types';
 
@@ -71,12 +71,74 @@ export class MovimientoStockComponent {
   // Cada fila es un <app-efecto-stock-linea>; las consultamos para conocer el stock disponible al confirmar.
   private readonly lineas = viewChildren(EfectoStockLineaComponent);
 
-  // Buscador de persona suelto bajo "Origen": el ícono lo muestra/oculta.
-  readonly mostrarBuscadorPersona = signal(false);
+  // Buscador suelto bajo "Origen": el ícono muestra/oculta un selector Persona/Objetivo + su buscador.
+  readonly mostrarBuscador = signal(false);
+  readonly tipoBusqueda = signal<'persona' | 'objetivo'>('persona');
+  // Opciones del selector Persona/Objetivo, traídas del backend.
+  readonly tiposOrigen = resource({
+    loader: async () => await firstValueFrom(this.searchService.getStockEfectoTiposOrigen()) as { value: string; label: string }[],
+  });
   personaBuscadaId: number | null = null;
+  objetivoBuscadoId: number | string | null = null;
+  // Las líneas vienen precargadas (persona u objetivo) -> no se ofrece "Relacionar".
+  readonly cargadoDesdeBusqueda = signal(false);
 
-  toggleBuscadorPersona(): void {
-    this.mostrarBuscadorPersona.update(v => !v);
+  toggleBuscador(): void {
+    if (this.mostrarBuscador()) {
+      // Se está cerrando: si había algo seleccionado, vacía la búsqueda y las líneas de abajo.
+      if (this.personaBuscadaId != null || this.objetivoBuscadoId != null || this.cargadoDesdeBusqueda()) {
+        this.limpiarBusqueda();
+      }
+      this.mostrarBuscador.set(false);
+    } else {
+      // Se está abriendo: arranca en limpio, porque las líneas se van a cargar desde persona/objetivo.
+      this.limpiarBusqueda();
+      this.mostrarBuscador.set(true);
+    }
+  }
+
+  onChangeTipoBusqueda(tipo: 'persona' | 'objetivo' | null): void {
+    this.tipoBusqueda.set(tipo ?? 'persona');
+    this.limpiarBusqueda(); // al cambiar de tipo, limpia lo anterior
+  }
+
+  private limpiarBusqueda(): void {
+    this.personaBuscadaId = null;
+    this.objetivoBuscadoId = null;
+    this.cargadoDesdeBusqueda.set(false);
+    this.parametroStock.update(s => ({ ...s, efectos: [nuevaEfectoLinea()] }));
+  }
+
+  // Reemplaza las líneas de Origen con una por cada efecto en stock de la persona / objetivo elegido.
+  async cargarEfectosDePersona(personalId: number | string | null): Promise<void> {
+    const id = Number(personalId);
+    if (!id) { this.cargadoDesdeBusqueda.set(false); return; }
+    this.aplicarLineas(this.construirLineas(await firstValueFrom(this.searchService.getEfectoByPersonalId(id))));
+  }
+
+  async cargarEfectosDeObjetivo(objetivoId: number | string | null): Promise<void> {
+    const id = Number(objetivoId);
+    if (!id) { this.cargadoDesdeBusqueda.set(false); return; }
+    this.aplicarLineas(this.construirLineas(await firstValueFrom(this.searchService.getEfectoByObjetivoId(id))));
+  }
+
+  // El individual viene como EfectoIndividualId (persona) o EfectoEfectoIndividualId (objetivo).
+  private construirLineas(registros: any[]): EfectoStockLinea[] {
+    return (registros ?? []).map((r: any) => ({
+      EfectoId: r.EfectoId ?? null,
+      Cantidad: Number(r.StockStock ?? 0) - Number(r.StockReservado ?? 0),
+      StockId: r.StockId ?? null,
+      EfectoIndividualId: r.EfectoIndividualId ?? r.EfectoEfectoIndividualId ?? null,
+      Usado: false,
+      RelacionEfectoId: null,
+      RelacionStockId: null,
+      RelacionEfectoIndividualId: null,
+    }));
+  }
+
+  private aplicarLineas(efectos: EfectoStockLinea[]): void {
+    this.parametroStock.update(s => ({ ...s, efectos: efectos.length ? efectos : [nuevaEfectoLinea()] }));
+    this.cargadoDesdeBusqueda.set(efectos.length > 0);
   }
 
   tipoDestinoSeleccionado = computed(() => this.parametroStock().tipoDestino);

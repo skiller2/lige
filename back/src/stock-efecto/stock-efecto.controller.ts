@@ -9,11 +9,26 @@ const tiposDestino = [
   { value: "proveedor", label: "Proveedores" },
 ];
 
+// Orígenes válidos para precargar las líneas de movimiento (buscador suelto bajo "Origen").
+const tiposOrigen = [
+  { value: "persona", label: "Persona" },
+  { value: "objetivo", label: "Objetivo" },
+];
+
 export class StockEfectoController extends BaseController {
 
   async getTiposDestino(req: Request, res: Response, next: NextFunction) {
     try {
       this.jsonRes(tiposDestino, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+    }
+  }
+
+  async getTiposOrigen(req: Request, res: Response, next: NextFunction) {
+    try {
+      this.jsonRes(tiposOrigen, res);
     } catch (error) {
       return next(error);
     } finally {

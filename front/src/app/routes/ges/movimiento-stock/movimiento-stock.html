@@ -168,18 +168,32 @@
 
   <div nz-row [nzGutter]="15" style="margin-bottom: 16px;">
     <div nz-col [nzSpan]="24" style="text-align: center;">
-      <button nz-button nzType="default" type="button" (click)="toggleBuscadorPersona()"
+      <button nz-button nzType="default" type="button" (click)="toggleBuscador()"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}">
         <span nz-icon nzType="user" nzTheme="outline"></span>
       </button>
     </div>
   </div>
 
-  @if (mostrarBuscadorPersona()) {
+  @if (mostrarBuscador()) {
     <div nz-row [nzGutter]="15" nzJustify="center" style="margin-bottom: 24px;">
+      <div nz-col [nzSpan]="4">
+        <nz-select [ngModel]="tipoBusqueda()" (ngModelChange)="onChangeTipoBusqueda($event)"
+          [ngModelOptions]="{ standalone: true }"   [nzDropdownMatchSelectWidth]="false" style="width: 100%;"  nzAllowClear
+  nzShowSearch>
+          @for (t of tiposOrigen.value() ?? []; track t.value) {
+            <nz-option [nzValue]="t.value" [nzLabel]="t.label"></nz-option>
+          }
+        </nz-select>
+      </div>
       <div nz-col [nzSpan]="8">
-        <app-personal-search [(ngModel)]="personaBuscadaId" [ngModelOptions]="{ standalone: true }"
-          [anio]="anio()" [mes]="mes()" />
+        @if (tipoBusqueda() === 'persona') {
+          <app-personal-search [(ngModel)]="personaBuscadaId" [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="cargarEfectosDePersona($event)" [anio]="anio()" [mes]="mes()" />
+        } @else {
+          <app-objetivo-search [(ngModel)]="objetivoBuscadoId" [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="cargarEfectosDeObjetivo($event)" />
+        }
       </div>
     </div>
   }
@@ -188,6 +202,7 @@
     <app-efecto-stock-linea
       [field]="ef"
       [sucursalDestino]="sucursalDescripcionDisplay()"
+      [ocultarRelacionar]="cargadoDesdeBusqueda()"
       [esUltima]="formEfectoStock.efectos.length === i + 1"
       [puedeEliminar]="formEfectoStock.efectos.length > 1"
       (agregar)="addEfecto()"

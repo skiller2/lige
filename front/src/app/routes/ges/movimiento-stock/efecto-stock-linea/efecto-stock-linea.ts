@@ -11,12 +11,13 @@ type EfectoExtended = { EfectoId?: number; EfectoEfectoIndividualId?: number | n
 type UbicacionGrupo = { tipo: string; label: string; items: EfectoUbicacion[] };
 
 /**
+ *
  * Flujo reactivo (todo declarativo, sin guardas anti-carrera manuales):
- *   EfectoId / individualId  --> resource ubicaciones  --> autoStockId (una sola ubicación, o el
- *                                                          depósito de la sucursal del destino con mayor stock)
- *   StockId                  --> autoCantidad          (cantidad = 1 si el stock es 1; si no, la limpia)
- *   EfectoId / individualId  --> resource relaciones    (chips "Relacionado con")
- *   RelacionEfectoId         --> resource relacionUbicaciones --> autoselección si hay una sola
+ *   EfectoId / EfectoIndividualId --> resource ubicaciones --> autoStockId (una sola ubicación, o el
+ *                                                              depósito de la sucursal del destino con mayor stock)
+ *   StockId (con mismo efecto)    --> autoCantidad         (cantidad = 1 si el stock es 1; si no, la limpia)
+ *   EfectoId / EfectoIndividualId --> resource relaciones   (chips "Relacionado con")
+ *   RelacionEfectoId              --> resource relacionUbicaciones --> autoselección si hay una sola
  */
 @Component({
   selector: 'app-efecto-stock-linea',
@@ -33,20 +34,25 @@ export class EfectoStockLineaComponent {
   readonly puedeEliminar = input(false);
   /** Descripción de la sucursal del destino, para autoseleccionar el depósito que coincide. */
   readonly sucursalDestino = input<string | null>(null);
+  /** Oculta el botón "Relacionar" (p. ej. cuando la línea vino precargada desde una persona). */
+  readonly ocultarRelacionar = input(false);
 
   readonly agregar = output<void>();
   readonly eliminar = output<void>();
 
-  /** EfectoIndividualId del efecto elegido (lo emite el buscador, no viene del id). */
-  private readonly individualId = signal<number | null>(null);
-  private readonly relacionIndividualId = signal<number | null>(null);
-
   /** El bloque "Relacionado con" está visible. */
   readonly relacionAbierta = signal(false);
 
+  // Guarda para autoCantidad: último (efecto, ubicación) visto. Distingue un cambio real de ubicación
+  // (que recalcula la cantidad) de una precarga o un reuso del componente (que la respetan).
+  private lastEfectoId: number | null | undefined = undefined;
+  private lastStockId: number | null | undefined = undefined;
+
   // ---- Ubicaciones / relaciones del efecto principal -----------------------------------------
+  // El individualId sale del propio form (no del buscador), así una línea precargada con su
+  // EfectoIndividualId carga la ubicación correcta sin depender del evento del buscador.
   readonly ubicaciones = resource({
-    params: () => ({ efectoId: this.field().EfectoId().value(), individualId: this.individualId() }),
+    params: () => ({ efectoId: this.field().EfectoId().value(), individualId: this.field().EfectoIndividualId().value() }),
     loader: async ({ params }) =>
       params.efectoId
         ? (await firstValueFrom(this.search.getEfectoUbicaciones(params.efectoId, params.individualId))) ?? []
@@ -54,7 +60,7 @@ export class EfectoStockLineaComponent {
   });
 
   readonly relaciones = resource({
-    params: () => ({ efectoId: this.field().EfectoId().value(), individualId: this.individualId() }),
+    params: () => ({ efectoId: this.field().EfectoId().value(), individualId: this.field().EfectoIndividualId().value() }),
     loader: async ({ params }) =>
       params.efectoId
         ? (await firstValueFrom(this.search.getEfectoRelaciones(params.efectoId, params.individualId))) ?? []
@@ -63,7 +69,7 @@ export class EfectoStockLineaComponent {
 
   // ---- Ubicaciones del efecto relacionado ----------------------------------------------------
   readonly relacionUbicaciones = resource({
-    params: () => ({ efectoId: this.field().RelacionEfectoId().value(), individualId: this.relacionIndividualId() }),
+    params: () => ({ efectoId: this.field().RelacionEfectoId().value(), individualId: this.field().RelacionEfectoIndividualId().value() }),
     loader: async ({ params }) =>
       params.efectoId
         ? (await firstValueFrom(this.search.getEfectoUbicaciones(params.efectoId, params.individualId))) ?? []
@@ -90,7 +96,7 @@ export class EfectoStockLineaComponent {
    *  - en cualquier otro caso -> sin selección.
    */
   private resolverStockId(lista: EfectoUbicacion[], actual: number | null): number | null {
-    if (lista.length === 0) return null;
+    if (lista.length === 0) return actual;   // todavía cargando -> no limpiar lo que ya hay
     if (lista.length === 1) return lista[0].StockId;
     if (actual != null && lista.some(u => Number(u.StockId) === Number(actual))) return actual;
 
@@ -103,11 +109,21 @@ export class EfectoStockLineaComponent {
     return candidatos.reduce((mejor, u) => Number(u.StockStock ?? 0) > Number(mejor.StockStock ?? 0) ? u : mejor).StockId;
   }
 
-  // Al cambiar la ubicación (solo entonces): cantidad = 1 si el stock es 1; en otro caso la limpia.
-  // Depende solo de StockId, así una recarga de ubicaciones no pisa lo que escribió el usuario.
+  // Cantidad automática al cambiar la UBICACIÓN (no el efecto): 1 si el stock es 1, si no la limpia.
+  //  - Si cambió el efecto (o se reusó el componente / se precargó la línea) -> re-siembra la guarda
+  //    sin tocar la cantidad, así respeta la cantidad precargada.
+  //  - Si cambió solo la ubicación dentro del mismo efecto -> recalcula la cantidad.
   private readonly autoCantidad = effect(() => {
+    const efectoId = this.field().EfectoId().value();
     const stockId = this.field().StockId().value();
     untracked(() => {
+      if (this.lastEfectoId !== efectoId) {
+        this.lastEfectoId = efectoId;
+        this.lastStockId = stockId;
+        return;
+      }
+      if (this.lastStockId === stockId) return;
+      this.lastStockId = stockId;
       const u = (this.ubicaciones.value() ?? []).find(x => Number(x.StockId) === Number(stockId));
       const disponible = u?.StockStock != null ? Number(u.StockStock) : null;
       this.field().Cantidad().value.set(stockId != null && disponible === 1 ? 1 : null);
@@ -122,12 +138,10 @@ export class EfectoStockLineaComponent {
   });
 
   onEfectoExtended(ext: EfectoExtended): void {
-    const individualId = ext?.EfectoEfectoIndividualId ?? null;
-    this.individualId.set(individualId);
-    this.field().EfectoIndividualId().value.set(individualId);
-    this.field().StockId().value.set(null);
-    this.field().Cantidad().value.set(null);
-    this.cerrarRelacion(); // al cambiar el efecto, oculta y limpia la relación
+    // Solo fija el individual y cierra la relación. La ubicación/cantidad las reajustan los effects
+    // al recargar las ubicaciones del nuevo efecto (así no se pisan los valores precargados).
+    this.field().EfectoIndividualId().value.set(ext?.EfectoEfectoIndividualId ?? null);
+    this.cerrarRelacion();
   }
 
   relacionar(): void {
@@ -135,15 +149,12 @@ export class EfectoStockLineaComponent {
   }
 
   onRelacionEfectoExtended(ext: EfectoExtended): void {
-    const individualId = ext?.EfectoEfectoIndividualId ?? null;
-    this.relacionIndividualId.set(individualId);
     this.field().RelacionStockId().value.set(null);
-    this.field().RelacionEfectoIndividualId().value.set(individualId);
+    this.field().RelacionEfectoIndividualId().value.set(ext?.EfectoEfectoIndividualId ?? null);
   }
 
   private cerrarRelacion(): void {
     this.relacionAbierta.set(false);
-    this.relacionIndividualId.set(null);
     this.field().RelacionEfectoId().value.set(null);
     this.field().RelacionStockId().value.set(null);
     this.field().RelacionEfectoIndividualId().value.set(null);
