@@ -12,25 +12,24 @@
     <span nz-icon nzType=""></span>
     <a [routerLink]="['/', 'ges', 'adelanto','carga']">Carga</a>
   </li> -->
-</ul>
-<form nz-form #formAsist="ngForm" class="">
+  </ul>
   <br>
-    <nz-form-item>
-      <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
-      <nz-form-control>
-        <nz-date-picker nzMode="month" name="periodo" ngModel (ngModelChange)="dateChange($event)" />
-      </nz-form-control>
+  <nz-form-item>
+    <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
+    <nz-form-control>
+      <nz-date-picker [(ngModel)]="periodo" nzMode="month" nzFormat="MM/yyyy" (ngModelChange)="dateChange($event)" />
+    </nz-form-control>
 
-      <nz-form-control style="display: flex; justify-content:center; align-items:end;">
-        @if(viweButtonListado()) {
-          <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="¿Aprobar {{rows.length}} registros?" (nzOnConfirm)="aprobarReg()" [disabled]="!rows.length || loadingRec() || loadingCuo()" [nzLoading]="loadingApr()" nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}">
-            <span nz-icon nzType="check" nzTheme="outline"></span>
-          </button>
-          <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="¿Rechazar {{rows.length}} registros?" (nzOnConfirm)="rechazarReg()" [disabled]="!rows.length || loadingApr() || loadingCuo()" [nzLoading]="loadingRec()" nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
-            <span nz-icon nzType="close" nzTheme="outline"></span>
-          </button>
-          <!-- <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas para el periodo {{selectedPeriod.month}}/{{selectedPeriod.year}}" (nzOnConfirm)="addCuotaReg()" [nzLoading]="loadingCuo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas' | i18n }}" >
-          <span nz-icon nzType="info-circle" nzTheme="outline"></span>
+    <nz-form-control style="display: flex; justify-content:center; align-items:end;">
+      @if(viweButtonListado()) {
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="¿Aprobar {{rows.length}} registros?" (nzOnConfirm)="aprobarReg()" [disabled]="!rows.length || loadingRec() || loadingCuo()" [nzLoading]="loadingApr()" nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}">
+          <span nz-icon nzType="check" nzTheme="outline"></span>
+        </button>
+        <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="¿Rechazar {{rows.length}} registros?" (nzOnConfirm)="rechazarReg()" [disabled]="!rows.length || loadingApr() || loadingCuo()" [nzLoading]="loadingRec()" nz-tooltip nzTooltipTitle="{{ 'app.icon.rechazar' | i18n }}">
+          <span nz-icon nzType="close" nzTheme="outline"></span>
+        </button>
+        <!-- <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="Generar cuotas para el periodo {{mes()}}/{{anio()}}" (nzOnConfirm)="addCuotaReg()" [nzLoading]="loadingCuo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.generar.cuotas' | i18n }}" >
+        <span nz-icon nzType="info-circle" nzTheme="outline"></span>
         </button> -->
       }
       <button nzType="default" nz-button (click)="openDrawer()" [nzLoading]="false"  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
@@ -43,17 +42,15 @@
 
   </nz-form-item>
 
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
-    <nz-tab></nz-tab>
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [nzLinkExact]="false">
     <nz-tab>
       <a nz-tab-link routerLink="/ges/ayuda_asistencial/listado">Listado</a>
-      @if (conditional()|async) {}
-        @if ((columns$|async); as columnas) {
+        @if (columns().length) {
           <ng-template nz-tab>
-            <shared-filtro-builder  [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"/>
+            <shared-filtro-builder  [fieldsToSelect]="columns()" [startFilters]="startFilters()" (optionsChange)="listOptionsChange($event)"/>
             <div class="gridContainer container-fluid">
-              <angular-slickgrid gridId="grid" class="" [columns]="columnas | colsFilter"
-                [options]="gridOptions" [dataset]="(gridData$ | async) || []"
+              <angular-slickgrid gridId="grid" class="" [columns]="columns() | colsFilter"
+                [options]="gridOptions" [dataset]="gridData.value()"
                 (onAngularGridCreated)="angularGridReady($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)"
                 (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"
                 >
@@ -61,22 +58,19 @@
             </div>
           </ng-template>
         }
-      </nz-tab>
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/ayuda_asistencial/cuotas">Cuotas</a>
-        <ng-template nz-tab>
-          @defer (on idle) {
-          <app-table-ayuda-asistencial-cuotas #tableCuotas [periodo]="periodo()" [(personalId)]="personalId" [(rowsSelectedCount)]="rowsSelectedCountCuotas"></app-table-ayuda-asistencial-cuotas>
+    </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/ayuda_asistencial/cuotas">Cuotas</a>
+      <ng-template nz-tab>
+        @defer (on idle) {
+        <app-table-ayuda-asistencial-cuotas #tableCuotas [periodo]="periodo()" [(personalId)]="personalId" [(rowsSelectedCount)]="rowsSelectedCountCuotas"></app-table-ayuda-asistencial-cuotas>
         }
       </ng-template>
 
     </nz-tab>
   </nz-tabs>
-
-</form>
-
 </nz-card>
-<app-ayuda-asistencial-drawer  [periodo]="periodo()" [(visible)]="visibleDrawer" [(refresh)]="refresh"></app-ayuda-asistencial-drawer>
+<app-ayuda-asistencial-drawer [periodo]="periodo()" [(visible)]="visibleDrawer" (onAddorUpdate)="refreshGrid($event)"></app-ayuda-asistencial-drawer>
 
 <app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
 (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>

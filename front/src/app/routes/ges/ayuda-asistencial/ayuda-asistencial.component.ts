@@ -1,4 +1,4 @@
-import { Component, viewChild, inject, signal, model, computed, effect } from '@angular/core';
+import { Component, viewChild, inject, signal, model, computed, effect, resource } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
@@ -15,9 +15,10 @@ import { SearchService } from '../../../services/search.service';
 import { AyudaAsistencialDrawerComponent } from "../ayuda-asistencial-drawer/ayuda-asistencial-drawer.component";
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 import { TableAyudaAsistencialCuotasComponent } from "../table-ayuda-asistencial-cuotas/table-ayuda-asistencial-cuotas.component";
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { LoadingService } from '@delon/abc/loading';
 import { Selections } from '../../../shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-ayuda-asistencial',
@@ -29,7 +30,6 @@ import { Selections } from '../../../shared/schemas/filtro';
     ]
 })
 export class AyudaAsistencialComponent {
-    formAsist = viewChild.required(NgForm)
     tableCuotas = viewChild<TableAyudaAsistencialCuotasComponent>('tableCuotas')
     rows: number[] = []
     registerId: string = ''
@@ -37,29 +37,25 @@ export class AyudaAsistencialComponent {
     loadingRec = signal(false)
     loadingApr = signal(false)
     loadingCuo = signal(false)
-    refresh = signal(0)
     rowsError = signal<number[]>([])
     visibleDrawer: boolean = false
-    selectedPeriod = { year: 0, month: 0 };
     angularGrid!: AngularGridInstance;
     gridOptions!: GridOption;
     gridObj!: SlickGrid;
     excelExportService = new ExcelExportService()
     detailViewRowCount = 1
-    startFilters: Selections[] = []
-    listOptions: listOptionsT = { filtros: [], sort: null, };
-    periodo = signal(new Date())
-    formChange$ = new BehaviorSubject('');
+    startFilters = signal<Selections[]>([])
+    listOptions = signal<listOptionsT>({ filtros: [], sort: null, })
     tableLoading$ = new BehaviorSubject(false);
     visibleDetalle = model<boolean>(false)
     personalId = model<number>(0)
     rowsSelectedCountCuotas = model<number>(0)
-    anio = signal(0)
-    mes = signal(0)
+    periodo = signal(new Date())
+    anio = computed(() => { return this.periodo()? this.periodo().getFullYear() : 0 })
+    mes = computed(() => { return this.periodo()? this.periodo().getMonth()+1 : 0 })
     viweButtonListado = signal(true)
-    private readonly loadingSrv = inject(LoadingService);
+    
     hiddenColumnIds: string[] = [];
-
 
     canOpenDetalle = computed(() => {
         if (this.personalId() === 0) return false;
@@ -85,14 +81,10 @@ export class AyudaAsistencialComponent {
     private angularUtilService = inject(AngularUtilService)
     private settingService = inject(SettingsService)
     private router = inject(Router)
+    private route = inject(ActivatedRoute);
+    private readonly loadingSrv = inject(LoadingService);
 
-    conditional = computed(async () => {
-        if (this.refresh()) {
-            this.formChange('')
-        }
-    });
-
-    columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols').pipe(map((cols: Column<any>[]) => {
+    columns = toSignal(this.apiService.getCols('/api/ayuda-asistencial/cols').pipe(map((cols: Column<any>[]) => {
         // Reiniciar el array de columnas ocultas
         this.hiddenColumnIds = [];
 
@@ -132,26 +124,21 @@ export class AyudaAsistencialComponent {
             return col
         });
         return mapped
-    }));
+    })), { initialValue: [] as Column[] });
 
+    gridData = resource({
+        params: () => ({ options: this.listOptions(), anio:this.anio(), mes:this.mes() }),
+        loader: async ({ params }) => {
+            let response = []
+            
+            try {
+                response = await firstValueFrom(this.searchService.getPersonasAyudaAsistencial({ anio: params.anio, mes: params.mes, options: params.options }))
+            } catch (_e) { }
 
-    gridData$ = this.formChange$.pipe(
-        debounceTime(500),
-        switchMap(() => {
-            this.loadingSrv.open({ type: 'spin', text: '' })
-            return this.searchService.getPersonasAyudaAsistencial(
-                { anio: this.selectedPeriod.year, mes: this.selectedPeriod.month, options: this.listOptions }
-            )
-                .pipe(
-                    map(data => {
-                        return data
-                    }),
-                    doOnSubscribe(() => { }),
-                    tap({ complete: () => { this.loadingSrv.close() } })
-                )
-        })
-    )
-
+            return response || [];
+        },
+        defaultValue: []
+    });
 
     async ngOnInit() {
         // Verificar la ruta actual al inicializar para establecer el valor correcto del signal
@@ -171,7 +158,6 @@ export class AyudaAsistencialComponent {
         this.gridOptions.cellHighlightCssClass = 'changed'
         this.gridOptions.enableCellNavigation = true
         this.gridOptions.forceFitColumns = true
-
 
 
         this.gridOptions.editCommandHandler = async (item, column, editCommand) => {
@@ -195,22 +181,17 @@ export class AyudaAsistencialComponent {
 
         }
 
-        this.startFilters = [{ index: 'PersonalPrestamoAprobado', condition: 'AND', operator: '=', value: 'S', closeable: true }]
+        const PersonalPrestamoAprobado = this.route.snapshot.queryParamMap.get('PersonalPrestamoAprobado')
+        if (PersonalPrestamoAprobado === 'null') {
+            this.startFilters.set([{index:'PersonalPrestamoAprobado', condition:'AND', operator:'=', value: null, closeable: true}]);
+        } else {
+            this.startFilters.set([{ index: 'PersonalPrestamoAprobado', condition: 'AND', operator: '=', value: 'S', closeable: true }])
+        }
+        
 
     }
 
-    ngAfterViewInit(): void {
-        const now = new Date();
-        setTimeout(() => {
-            const anio = now.getFullYear()
-            const mes = now.getMonth() + 1
-            this.selectedPeriod.year = anio
-            this.selectedPeriod.month = mes
-            this.formAsist().form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
-            this.anio.set(anio)
-            this.mes.set(mes)
-        }, 1);
-    }
+    ngAfterViewInit(): void {}
 
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
@@ -269,29 +250,16 @@ export class AyudaAsistencialComponent {
     }
 
     listOptionsChange(options: any) {
-        this.listOptions = options;
-        this.formChange$.next('');
+        this.listOptions.set(options);
     }
 
     dateChange(result: Date): void {
         if (result) {
-            this.selectedPeriod.year = result.getFullYear();
-            this.selectedPeriod.month = result.getMonth() + 1;
-
-            localStorage.setItem('anio', String(this.selectedPeriod.year));
-            localStorage.setItem('mes', String(this.selectedPeriod.month));
-        } else {
-            this.selectedPeriod.year = 0;
-            this.selectedPeriod.month = 0;
+            localStorage.setItem('anio', String(result.getFullYear()));
+            localStorage.setItem('mes', String(result.getMonth() + 1));
         }
-        this.periodo.set(result)
         this.rows = []
         this.registerId = ''
-        this.formChange$.next('')
-    }
-
-    formChange(event: any) {
-        this.formChange$.next(event);
     }
 
     async rechazarReg() {
@@ -301,7 +269,7 @@ export class AyudaAsistencialComponent {
          
         try {
             await firstValueFrom(this.apiService.ayudaAsistencialRechazar({ ids: ids, rows: this.rows }))
-            this.formChange('')
+            this.gridData.reload()
         } catch (error: any) {
             let rows: any[] = error.error.data
              
@@ -318,7 +286,7 @@ export class AyudaAsistencialComponent {
          
         try {
             const res: any = await firstValueFrom(this.apiService.ayudaAsistencialAprobar({ ids: ids, rows: this.rows }))
-            this.formChange('')
+            this.gridData.reload()
         } catch (error: any) {
             let rows: any[] = error.error.data
              
@@ -333,8 +301,8 @@ export class AyudaAsistencialComponent {
         const ids = this.angularGrid.dataView.getAllSelectedFilteredIds()
          
         try {
-            const res: any = await firstValueFrom(this.apiService.ayudaAsistencialAddCuota({ year: this.selectedPeriod.year, month: this.selectedPeriod.month }))
-            this.formChange('')
+            const res: any = await firstValueFrom(this.apiService.ayudaAsistencialAddCuota({ year: this.anio(), month: this.mes() }))
+            this.gridData.reload()
         } catch (error) {
              
         }
@@ -383,7 +351,6 @@ export class AyudaAsistencialComponent {
         };
     }
 
-
     closeDrawerforConsultDetalle(): void {
         this.visibleDetalle.set(false)
     }
@@ -394,6 +361,10 @@ export class AyudaAsistencialComponent {
 
     onCuotasClick(): void {
         this.viweButtonListado.set(false);
+    }
+
+    async refreshGrid(_e: any) {
+        this.gridData.reload()
     }
 
 }
