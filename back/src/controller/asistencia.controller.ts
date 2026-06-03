@@ -388,7 +388,17 @@ export class AsistenciaController extends BaseController {
     }
 
     if (cabecera[0].ObjetivoAsistenciaAnoMesHasta != null) {
-      if (req && !await this.hasGroup(req, 'Liquidaciones')) throw new ClientException(`No tiene permisos para rehabilitar la carga de asistencia. Para volver a habilitarla, debe ser miembro del grupo 'Liquidaciones'`)
+      if (req) {
+        const hasLiquidaciones = await this.hasGroup(req, 'Liquidaciones')
+        const hasOperaciones = await this.hasGroup(req, 'gOperaciones')
+
+        // calculo del 3er dia del mes siguiente al periodo de la grilla de asistencia 
+        const limiteOperaciones = new Date(Number(anio), Number(mes), 3, 10, 0, 0, 0)
+        const puedeRehabilitar = hasLiquidaciones || (hasOperaciones && new Date() < limiteOperaciones)
+        if (!puedeRehabilitar) {
+          throw new ClientException(`No tiene permisos para rehabilitar la carga de asistencia. Para volver a habilitarla, debe ser miembro del grupo 'gOperaciones' y no superar la fecha límite (10:00 am del día ${limiteOperaciones.toLocaleDateString()}) ó ser miembro del grupo 'Liquidaciones'.`)
+        }
+      }
       const result = await queryRunner.query(
         `UPDATE ObjetivoAsistenciaAnoMes SET ObjetivoAsistenciaAnoMesHasta = NULL WHERE ObjetivoAsistenciaAnoMesId=@2 AND ObjetivoAsistenciaAnoId=@1 AND ObjetivoId=@0
           `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
