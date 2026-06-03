@@ -1017,7 +1017,13 @@ export class EfectoController extends BaseController {
           ere.EfectoRelacionConEfectoId,
           ere.EfectoRelacionConEfectoEfectoIndividualId,
           stDe.EfectoDescripcionCompleto  AS DescripcionDe,
-          stCon.EfectoDescripcionCompleto AS DescripcionCon
+          CASE
+            WHEN ere.EfectoRelacionDeEfectoId = @0
+                 AND (ere.EfectoRelacionDeEfectoEfectoIndividualId = @1
+                      OR (@1 IS NULL AND ere.EfectoRelacionDeEfectoEfectoIndividualId IS NULL))
+            THEN stCon.EfectoDescripcionCompleto
+            ELSE stDe.EfectoDescripcionCompleto
+          END AS DescripcionCon
         FROM EfectoRelacionEfecto AS ere
         INNER JOIN StockReal AS stDe
           ON stDe.EfectoId = ere.EfectoRelacionDeEfectoId
@@ -1027,11 +1033,15 @@ export class EfectoController extends BaseController {
           ON stCon.EfectoId = ere.EfectoRelacionConEfectoId
          AND (stCon.EfectoEfectoIndividualId = ere.EfectoRelacionConEfectoEfectoIndividualId
               OR (stCon.EfectoEfectoIndividualId IS NULL AND ere.EfectoRelacionConEfectoEfectoIndividualId IS NULL))
-        WHERE ere.EfectoRelacionDeEfectoId = @0
-          AND (ere.EfectoRelacionDeEfectoEfectoIndividualId = @1
-               OR (@1 IS NULL AND ere.EfectoRelacionDeEfectoEfectoIndividualId IS NULL))
+        WHERE
+          (ere.EfectoRelacionDeEfectoId = @0
+           AND (ere.EfectoRelacionDeEfectoEfectoIndividualId = @1
+                OR (@1 IS NULL AND ere.EfectoRelacionDeEfectoEfectoIndividualId IS NULL)))
+          OR
+          (ere.EfectoRelacionConEfectoId = @0
+           AND (ere.EfectoRelacionConEfectoEfectoIndividualId = @1
+                OR (@1 IS NULL AND ere.EfectoRelacionConEfectoEfectoIndividualId IS NULL)))
       `, [efectoId, individualId]);
-      console.log('list', list);
       this.jsonRes(list, res);
     } catch (error) {
       return next(error);
