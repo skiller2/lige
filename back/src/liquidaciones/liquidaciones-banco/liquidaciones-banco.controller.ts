@@ -915,7 +915,7 @@ LEFT JOIN banco banc
         const ReservadoUsoBanco2 = ' '.repeat(3)
         const Categoria = ' '.repeat(15)
         const PersonalFechaIngreso = row.PersonalFechaIngreso ? this.formatDDMMAAAA(new Date(row.PersonalFechaIngreso)) : '00000000'
-        const DependenciaPago = '01'.padEnd(15, '0')
+        const DependenciaPago = '01'.padEnd(15, ' ')
         const CodPosDependenciaPago = '00000'
         const ReservadoUsoBanco3 = ' '.repeat(22)
         const ReservadoUsoBanco4 = ' '.repeat(3)
