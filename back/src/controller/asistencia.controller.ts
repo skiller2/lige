@@ -3893,17 +3893,17 @@ export class AsistenciaController extends BaseController {
     const password = process.env.CA_PASSWORD
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-
+/*
     const agent = new Agent({
       checkServerIdentity: (host, cert) => {
         // Ignorar totalmente la validación del certificado
         return undefined;
       }
     });
-
-
-
-    const initialResponse = await fetch(url, { method: 'POST', dispatcher: agent as any, body: JSON.stringify({ validateStatus: () => true }), })
+    const initialResponse = await fetch(url, { method: 'POST', dispatcher: agent as any,  body: JSON.stringify({ validateStatus: () => true }), })
+  
+*/
+    const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
     const authHeader = initialResponse.headers.get('www-authenticate')
     let authOptions = AsistenciaController.createDigestAuthOptions(authHeader, username, password, url)
 
