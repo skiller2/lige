@@ -181,6 +181,12 @@
             }
           </div>
         }
+        @if (ef.EfectoIndividualId().value() && !relacionAbierta(i)) {
+          <button nz-button nzType="link" type="button" style="padding: 0; margin-top: 4px;"
+            (click)="relacionar(i, $event)">
+            Relacionar
+          </button>
+        }
       </nz-form-control>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Ubicación</nz-form-label>
@@ -222,6 +228,31 @@
       </nz-form-control>
 
     </nz-form-item>
+
+    @if (relacionAbierta(i)) {
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Relacionado con</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" [nzLg]="5" nzHasFeedback sfErrorTip>
+          <app-efecto-search [formField]="ef.RelacionEfectoId"
+            (valueExtendedChange)="onRelacionEfectoExtended(i, $event)"></app-efecto-search>
+        </nz-form-control>
+
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Ubicación</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="6" nzHasFeedback sfErrorTip>
+          <nz-select [formField]="ef.RelacionStockId" nzAllowClear nzShowSearch
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%"
+            nzPlaceHolder="Seleccione una ubicación">
+            @for (grupo of ubicacionesRelacionAgrupadas(i); track grupo.tipo) {
+              <nz-option-group [nzLabel]="grupo.label">
+                @for (u of grupo.items; track u.StockId) {
+                  <nz-option [nzValue]="u.StockId" [nzLabel]="ubicacionLabel(u)"></nz-option>
+                }
+              </nz-option-group>
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    }
   }
 
   <div nz-row style="margin-top: 40px; margin-bottom: 40px;">

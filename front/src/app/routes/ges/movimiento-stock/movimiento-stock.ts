@@ -6,7 +6,7 @@ import { EfectoUbicacion, SearchService } from '../../../services/search.service
 import { EfectoRelacionEfecto } from '../../../shared/schemas/efecto.schemas';
 import { ApiService } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
-import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
+import { applyEach, disabled, FieldTree, form, FormField, required, submit, validate, type ValidationError } from '@angular/forms/signals';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { TipoDestinoSearchComponent } from '../../../shared/tipo-destino-search/tipo-destino-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -20,6 +20,9 @@ export interface EfectoStockLinea {
   StockId: number | null;
   EfectoIndividualId: number | null;
   Usado: boolean;
+  RelacionEfectoId: number | null;
+  RelacionStockId: number | null;
+  RelacionEfectoIndividualId: number | null;
 }
 
 export interface ParametroformEfectoStock {
@@ -44,7 +47,7 @@ export class MovimientoStockComponent {
   private searchService = inject(SearchService);
   private apiService = inject(ApiService);
 
-  private readonly objEfectoLinea: EfectoStockLinea = { EfectoId: null, Cantidad: null, StockId: null, EfectoIndividualId: null, Usado: false };
+  private readonly objEfectoLinea: EfectoStockLinea = { EfectoId: null, Cantidad: null, StockId: null, EfectoIndividualId: null, Usado: false, RelacionEfectoId: null, RelacionStockId: null, RelacionEfectoIndividualId: null };
 
   private readonly defaultStockForm: ParametroformEfectoStock = {
     fecha: null,
@@ -89,7 +92,14 @@ export class MovimientoStockComponent {
     applyEach(p.efectos, (linea) => {
       required(linea.EfectoId, { message: 'Efecto obligatorio' });
       required(linea.StockId, { message: 'Ubicación obligatoria' });
-      // La cantidad NO se valida acá: se valida al confirmar (ver confirmar / validarCantidades)
+      // La cantidad no puede ser 0 (ni negativa). El tope por stock se valida al confirmar (ver validarCantidades).
+      validate(linea.Cantidad, (ctx) => {
+        const v = ctx.value();
+        if (v == null || (v as any) === '') return null; // el vacío se valida al confirmar
+        const n = Number(v);
+        if (Number.isNaN(n) || n <= 0) return { kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' };
+        return null;
+      });
     });
   });
 
@@ -215,10 +225,31 @@ export class MovimientoStockComponent {
       next.set(index, individualId);
       return next;
     });
+    // Al cambiar el efecto principal, oculta y limpia el bloque de relación de esa línea
     this.parametroStock.update(s => ({
       ...s,
-      efectos: s.efectos.map((e, i) => i === index ? { ...e, StockId: null, EfectoIndividualId: individualId } : e),
+      efectos: s.efectos.map((e, i) => i === index
+        ? { ...e, StockId: null, Cantidad: null, EfectoIndividualId: individualId, RelacionEfectoId: null, RelacionStockId: null, RelacionEfectoIndividualId: null }
+        : e),
     }));
+    this.relacionAbiertaByIndex.update(set => {
+      if (!set.has(index)) return set;
+      const next = new Set(set);
+      next.delete(index);
+      return next;
+    });
+    this.relacionIndividualByIndex.update(m => {
+      if (!m.has(index)) return m;
+      const next = new Map(m);
+      next.delete(index);
+      return next;
+    });
+    this.relacionUbicacionesByIndex.update(m => {
+      if (!m.has(index)) return m;
+      const next = new Map(m);
+      next.delete(index);
+      return next;
+    });
   }
 
   readonly relacionesByIndex = signal<Map<number, EfectoRelacionEfecto[]>>(new Map());
@@ -267,6 +298,33 @@ export class MovimientoStockComponent {
       if (efectoId) this.cargarUbicaciones(i, efectoId, individuales.get(i) ?? null);
     });
   });
+
+  // StockId por línea (sin reaccionar a Cantidad/otros campos)
+  private readonly stockIds = computed(
+    () => this.parametroStock().efectos.map(e => e.StockId),
+    { equal: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]) }
+  );
+
+  // Último StockId visto por línea: distingue un cambio real de ubicación de una recarga de ubicaciones
+  private readonly lastStockIdByIndex = new Map<number, number | null>();
+
+  // Al cambiar la ubicación: si la nueva tiene stock 1 autocompleta la cantidad en 1; en otro caso la limpia.
+  private autoCantidadEffect = effect(() => {
+    const stock = this.stockDisponibleByStockId();
+    this.stockIds().forEach((stockId, i) => {
+      const actual = stockId ?? null;
+      if (this.lastStockIdByIndex.has(i) && this.lastStockIdByIndex.get(i) === actual) return; // sin cambio -> respeta al usuario
+      this.lastStockIdByIndex.set(i, actual);
+      this.setCantidad(i, actual != null && stock.get(Number(actual)) === 1 ? 1 : null);
+    });
+  });
+
+  private setCantidad(index: number, cantidad: number | null): void {
+    this.parametroStock.update(s => {
+      if ((s.efectos[index]?.Cantidad ?? null) === cantidad) return s; //  -> evita re-trigger
+      return { ...s, efectos: s.efectos.map((e, i) => (i === index ? { ...e, Cantidad: cantidad } : e)) };
+    });
+  }
 
   private async cargarUbicaciones(index: number, efectoId: number, individualId: number | null): Promise<void> {
     const lista = (await firstValueFrom(this.searchService.getEfectoUbicaciones(efectoId, individualId))) ?? [];
@@ -324,6 +382,82 @@ export class MovimientoStockComponent {
     }
   }
 
+  // Líneas con el bloque de relación ("Relacionado con" + Ubicación) habilitado
+  readonly relacionAbiertaByIndex = signal<Set<number>>(new Set());
+
+  relacionAbierta(index: number): boolean {
+    return this.relacionAbiertaByIndex().has(index);
+  }
+
+  relacionar(index: number, e?: MouseEvent): void {
+    e?.preventDefault();
+    this.relacionAbiertaByIndex.update(s => {
+      const next = new Set(s);
+      next.add(index);
+      return next;
+    });
+  }
+
+  // ===== Efecto relacionado: ubicaciones (espeja la lógica del efecto principal) =====
+  readonly relacionIndividualByIndex = signal<Map<number, number | null>>(new Map());
+
+  onRelacionEfectoExtended(index: number, ext: { EfectoId?: number; EfectoEfectoIndividualId?: number | null } | null | undefined): void {
+    const individualId = ext?.EfectoEfectoIndividualId ?? null;
+    this.relacionIndividualByIndex.update(m => {
+      const next = new Map(m);
+      next.set(index, individualId);
+      return next;
+    });
+    this.parametroStock.update(s => ({
+      ...s,
+      efectos: s.efectos.map((e, i) => i === index ? { ...e, RelacionStockId: null, RelacionEfectoIndividualId: individualId } : e),
+    }));
+  }
+
+  private readonly relacionEfectoIds = computed(
+    () => this.parametroStock().efectos.map(e => e.RelacionEfectoId),
+    { equal: (a, b) => a.length === b.length && a.every((v, i) => v === b[i]) }
+  );
+
+  readonly relacionUbicacionesByIndex = signal<Map<number, EfectoUbicacion[]>>(new Map());
+
+  private relacionUbicacionesEffect = effect(() => {
+    const individuales = this.relacionIndividualByIndex();
+    this.relacionEfectoIds().forEach((efectoId, i) => {
+      if (efectoId) this.cargarRelacionUbicaciones(i, efectoId, individuales.get(i) ?? null);
+    });
+  });
+
+  private async cargarRelacionUbicaciones(index: number, efectoId: number, individualId: number | null): Promise<void> {
+    const lista = (await firstValueFrom(this.searchService.getEfectoUbicaciones(efectoId, individualId))) ?? [];
+    if (this.parametroStock().efectos[index]?.RelacionEfectoId !== efectoId
+      || (this.relacionIndividualByIndex().get(index) ?? null) !== individualId) return;
+    this.relacionUbicacionesByIndex.update(m => new Map(m).set(index, lista));
+    if (lista.length === 1) this.setRelacionStockId(index, lista[0].StockId);
+  }
+
+  private setRelacionStockId(index: number, stockId: number | null): void {
+    this.parametroStock.update(s => {
+      if ((s.efectos[index]?.RelacionStockId ?? null) === stockId) return s;
+      return { ...s, efectos: s.efectos.map((e, i) => (i === index ? { ...e, RelacionStockId: stockId } : e)) };
+    });
+  }
+
+  ubicacionesRelacionAgrupadas(index: number): { tipo: string; label: string; items: EfectoUbicacion[] }[] {
+    const all = this.relacionUbicacionesByIndex().get(index) ?? [];
+    const grupos: Record<string, { tipo: string; label: string; items: EfectoUbicacion[] }> = {
+      deposito:  { tipo: 'deposito',  label: 'Depósito',  items: [] },
+      personal:  { tipo: 'personal',  label: 'Personal',  items: [] },
+      objetivo:  { tipo: 'objetivo',  label: 'Objetivo',  items: [] },
+      proveedor: { tipo: 'proveedor', label: 'Proveedor', items: [] },
+    };
+    for (const u of all) {
+      const g = grupos[u.Tipo];
+      if (g) g.items.push(u);
+    }
+    return Object.values(grupos).filter(g => g.items.length > 0);
+  }
+
   addEfecto(e?: MouseEvent): void {
     e?.preventDefault();
     this.parametroStock.update(s => ({
@@ -346,6 +480,29 @@ export class MovimientoStockComponent {
       }
       return next;
     });
+    this.relacionIndividualByIndex.update(m => {
+      const next = new Map<number, number | null>();
+      for (const [i, v] of m) {
+        if (i < index) next.set(i, v);
+        else if (i > index) next.set(i - 1, v);
+      }
+      return next;
+    });
+    this.relacionAbiertaByIndex.update(s => {
+      const next = new Set<number>();
+      for (const i of s) {
+        if (i < index) next.add(i);
+        else if (i > index) next.add(i - 1);
+      }
+      return next;
+    });
+    const nextLastStock = new Map<number, number | null>();
+    for (const [i, v] of this.lastStockIdByIndex) {
+      if (i < index) nextLastStock.set(i, v);
+      else if (i > index) nextLastStock.set(i - 1, v);
+    }
+    this.lastStockIdByIndex.clear();
+    for (const [i, v] of nextLastStock) this.lastStockIdByIndex.set(i, v);
     if (this.parametroStock().efectos.length === 0) {
       this.addEfecto();
     }
