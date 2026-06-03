@@ -40,6 +40,8 @@ export interface EfectoUbicacion {
   ObjetivoDescripcion: string | null;
   ProveedorRazonSocial: string | null;
   DepositoNombre: string | null;
+  DepositoSucursalId: number | null;
+  SucursalDescripcion: string | null;
   StockStock: number | null;
 }
 

@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, effect, } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, output, effect, } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm, FormBuilder } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -31,7 +31,7 @@ export class AyudaAsistencialDrawerComponent {
     tituloDrawer = signal<string>('Alta de Ayuda Asistencial')
     periodo = input.required<Date>()
     visible = model<boolean>(false)
-    refresh = model<number>(0)
+    onAddorUpdate = output()
     currDate = signal(new Date())
     placement: NzDrawerPlacement = 'left';
     options: any[] = [];
@@ -109,8 +109,7 @@ export class AyudaAsistencialDrawerComponent {
                  
             }
             //this.formChange('')
-            let ref = this.refresh()
-            this.refresh.set(++ref)
+            this.onAddorUpdate.emit()
         } catch (error) {
 
         }

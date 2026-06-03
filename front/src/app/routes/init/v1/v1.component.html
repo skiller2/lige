@@ -12,7 +12,10 @@
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
           <div class="h2 mt0">{{ adelantosPendientes.value().data.adelantosTotal }}</div>
-          <p class="text-nowrap mb0">Adelantos pendientes de aprobación</p>
+          <a class="link-reset" [routerLink]="['/ges/ayuda_asistencial/listado']"
+          [queryParams]="{ PersonalPrestamoAprobado: 'null'}" >
+            <p class="text-nowrap mb0">Adelantos pendientes de aprobación</p>
+          </a>
         </div>
       </div>
     </div>
