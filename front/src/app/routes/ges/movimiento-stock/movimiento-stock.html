@@ -163,8 +163,26 @@
       </div>
     </div>
 
-  <nz-divider nzText="Origen" style="margin-bottom: 40px;">
+  <nz-divider nzText="Origen" style="margin-bottom: 10px;">
   </nz-divider>
+
+  <div nz-row [nzGutter]="15" style="margin-bottom: 16px;">
+    <div nz-col [nzSpan]="24" style="text-align: center;">
+      <button nz-button nzType="default" type="button" (click)="toggleBuscadorPersona()"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}">
+        <span nz-icon nzType="user" nzTheme="outline"></span>
+      </button>
+    </div>
+  </div>
+
+  @if (mostrarBuscadorPersona()) {
+    <div nz-row [nzGutter]="15" nzJustify="center" style="margin-bottom: 24px;">
+      <div nz-col [nzSpan]="8">
+        <app-personal-search [(ngModel)]="personaBuscadaId" [ngModelOptions]="{ standalone: true }"
+          [anio]="anio()" [mes]="mes()" />
+      </div>
+    </div>
+  }
 
   @for (ef of formEfectoStock.efectos; let i = $index; track i) {
     <app-efecto-stock-linea

@@ -71,6 +71,14 @@ export class MovimientoStockComponent {
   // Cada fila es un <app-efecto-stock-linea>; las consultamos para conocer el stock disponible al confirmar.
   private readonly lineas = viewChildren(EfectoStockLineaComponent);
 
+  // Buscador de persona suelto bajo "Origen": el ícono lo muestra/oculta.
+  readonly mostrarBuscadorPersona = signal(false);
+  personaBuscadaId: number | null = null;
+
+  toggleBuscadorPersona(): void {
+    this.mostrarBuscadorPersona.update(v => !v);
+  }
+
   tipoDestinoSeleccionado = computed(() => this.parametroStock().tipoDestino);
   personalIdSig = computed(() => this.parametroStock().personalId);
   objetivoIdSig = computed(() => this.parametroStock().objetivoId);
