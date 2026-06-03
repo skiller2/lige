@@ -103,6 +103,7 @@ export class InitController extends BaseController {
               AND DATEFROMPARTS(@0, @1, 1) <= ISNULL(c.GrupoActividadObjetivoHasta, '9999-12-31')
             ORDER BY c.GrupoActividadObjetivoDesde DESC
           ) c
+          where a.TipoMovimiento = 'AP'
           GROUP BY a.Anio, a.Mes, c.GrupoActividadId
           HAVING COUNT(*) > 1
         )
