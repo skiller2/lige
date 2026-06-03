@@ -839,6 +839,7 @@ LEFT JOIN banco banc
       detsit.SituacionRevistaDescripcion,
       perdom.ProvinciaCodigoBancoCuentaSueldo,
       ie.PersonalFechaIngreso,
+      nac.NacionalidadId,
       1
 
       FROM Personal per 
