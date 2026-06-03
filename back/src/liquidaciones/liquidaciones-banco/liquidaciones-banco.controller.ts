@@ -815,6 +815,31 @@ LEFT JOIN banco banc
   }
 
 
+
+  normalizeSafe(str: string): string {
+    return str
+      // 1. quitar acentos / tildes / diéresis
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+
+      // 2. ñ → n explícito (por si acaso)
+      .replace(/ñ/gi, 'n')
+
+      // 3. todo lo que NO sea A-Z a-z 0-9 → espacio
+      .replace(/[^a-zA-Z0-9]/g, ' ')
+
+      // 4. colapsar espacios múltiples
+      .replace(/\s+/g, ' ')
+
+      // 5. trim final
+      .trim()
+      .toUpperCase()
+  
+  }
+
+
+
+
   async archivoCuentaNuevaPatagonia //   hidden: false,
     (req: any, res: any, next: any) {
     const ip = this.getRemoteAddress(req)
@@ -839,6 +864,7 @@ LEFT JOIN banco banc
       detsit.SituacionRevistaDescripcion,
       perdom.ProvinciaCodigoBancoCuentaSueldo,
       ie.PersonalFechaIngreso,
+      nac.NacionalidadId,
       1
 
       FROM Personal per 
@@ -885,9 +911,9 @@ LEFT JOIN banco banc
       //      const cuentasNuevas = []
       for (const row of cuentasNuevas) {
         const NroEmpresaAsignado = row.NroEmpresaAsignado ? row.NroEmpresaAsignado.toString().padStart(4, '0') : '0000'
-        const PersonalApellido = row.Apellido ? row.Apellido.trim().slice(0, 15).padEnd(15, ' ') : ' '.repeat(15)
+        const PersonalApellido = this.normalizeSafe(String(row.Apellido ?? '').trim()).slice(0, 15).padEnd(15, ' ')
         const Espacios = ' '.repeat(15)
-        const PersonalNombre = row.Nombre ? row.Nombre.trim().slice(0, 16).padEnd(16, ' ') : ' '.repeat(16)
+        const PersonalNombre = this.normalizeSafe(String(row.Nombre ?? '').trim()).slice(0, 16).padEnd(16, ' ')
         const TipoDocumentoCodigo = '001'  //DNI
         const PersonalDocumentoNro = row.PersonalDocumentoNro ? row.PersonalDocumentoNro.toString().padStart(17, '0') : '0'.repeat(17)
         const ProvinciaDocumento = '00'
@@ -895,12 +921,12 @@ LEFT JOIN banco banc
         const PersonalFechaNacimiento = row.PersonalFechaNacimiento ? this.formatDDMMAAAA(new Date(row.PersonalFechaNacimiento)) : '00000000'
         const PersonalSexo = row.PersonalSexo ? row.PersonalSexo.trim().charAt(0).toUpperCase() : 'X'
         const EstadoCivil = 'S'
-        const DomicilioCalle = row.domCalle ? row.domCalle.trim().slice(0, 19).padEnd(19, ' ') : ' '.repeat(19)
+        const DomicilioCalle = this.normalizeSafe(String(row.domCalle.trim())).toString().slice(0, 19).padEnd(19, ' ')
 
         const DomicilioNro = row.domNro == null || isNaN(Number(row.domNro)) ? '99999' : String(row.domNro).trim().slice(0, 5).padStart(5, '0');
-        const DomicilioDomPiso = this.normalizarPiso(String(row.DomicilioDomPiso??'').trim())
-        const DomicilioDomDpto = row.DomicilioDomDpto ? row.DomicilioDomDpto.trim().slice(0, 2).padEnd(2, ' ') : '  '
-        const Localidad = String(row.localidad ?? '').trim().slice(0, 30).padEnd(30, ' ')
+        const DomicilioDomPiso = this.normalizarPiso(String(row.DomicilioDomPiso ?? '').trim())
+        const DomicilioDomDpto = this.normalizeSafe(String(row.DomicilioDomDpto??'').trim()).slice(0, 2).padEnd(2, ' ')
+        const Localidad = this.normalizeSafe(String(row.localidad ?? '').trim()).toString().slice(0, 30).padEnd(30, ' ')
         const DomicilioCodigoPostal = row.DomicilioCodigoPostal ? row.DomicilioCodigoPostal.trim().slice(0, 5).padStart(5, '0') : '00000'
 
         const ProvinciaCodigoBancoCuentaSueldo = row.ProvinciaCodigoBancoCuentaSueldo ? row.ProvinciaCodigoBancoCuentaSueldo.trim().slice(0, 2).padStart(2, '0') : '00'
@@ -915,7 +941,7 @@ LEFT JOIN banco banc
         const ReservadoUsoBanco2 = ' '.repeat(3)
         const Categoria = ' '.repeat(15)
         const PersonalFechaIngreso = row.PersonalFechaIngreso ? this.formatDDMMAAAA(new Date(row.PersonalFechaIngreso)) : '00000000'
-        const DependenciaPago = '01'.padEnd(15, '0')
+        const DependenciaPago = '01'.padEnd(15, ' ')
         const CodPosDependenciaPago = '00000'
         const ReservadoUsoBanco3 = ' '.repeat(22)
         const ReservadoUsoBanco4 = ' '.repeat(3)
@@ -925,10 +951,7 @@ LEFT JOIN banco banc
         const ReservadoUsoBanco5 = ' '.repeat(11)
         const ReservadoUsoBanco6 = ' '.repeat(3)
         const ReservadoUsoBanco7 = ' '.repeat(5)
-        //const ReservadoUsoBanco7 = '    X'
-
-
-
+  
         const filerow = NroEmpresaAsignado + PersonalApellido + Espacios + PersonalNombre + TipoDocumentoCodigo + PersonalDocumentoNro +
           ProvinciaDocumento + Nacionalidad +
           PersonalFechaNacimiento + PersonalSexo + EstadoCivil +
@@ -944,14 +967,22 @@ LEFT JOIN banco banc
           TelefonoPrefijo + TelefonoCaracteristica + TelefonoNumero +
           ReservadoUsoBanco5 +
           ReservadoUsoBanco6 +
-          ReservadoUsoBanco7 +
-          '\r\n'
+          ReservadoUsoBanco7 
 
-        if  ( filerow.length != 303) {
-          console.log('longitud:', filerow.length,  DomicilioDomPiso.length,DomicilioDomPiso,`BEGIN${String(row.DomicilioDomPiso).trim()}END`)
-          throw new ClientException(`Error en formato de fila para PersonalId ${row.PersonalId}. Longitud obtenida: ${filerow.length}`)
+        //Calculo de bytes de la fila para asegurar que no supere los 301 bytes requeridos por el banco. Se utiliza Buffer.from para obtener la cantidad de bytes reales considerando caracteres especiales.
+        const cantBytesRow = Buffer.from(filerow, 'utf8').length
+        if (cantBytesRow != 301) {
+          console.error('longitud:', cantBytesRow, DomicilioCalle.length, Buffer.from(DomicilioCalle).length, row.domCalle.trim(), DomicilioCalle, DomicilioDomPiso, `${filerow}`)
+          throw new ClientException(`Error en formato de fila para PersonalId ${row.PersonalId} ${PersonalApellido} ${PersonalNombre}, Longitud calculada: ${cantBytesRow} `,{row:filerow})
         }
-        file.write(filerow)
+
+        //Validación de caracteres permitidos (A-Z, 0-9 y espacio)
+        if (/^[A-Z0-9 ]*$/.test(filerow) == false) {
+          console.error('Caracteres no permitidos en fila:', filerow)
+          throw new ClientException(`Error en formato de fila para PersonalId ${row.PersonalId} ${PersonalApellido} ${PersonalNombre}, Se encontraron caracteres no permitidos`,{row:filerow})
+        }
+
+        file.write(filerow+'\r\n')
       }
 
 
