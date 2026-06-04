@@ -718,6 +718,11 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = cliente[0].ClienteDenominacion
     }
 
+    if (fieldObj.searchComponent == 'inputForObjetivoSearch') {
+      const objetivo = await firstValueFrom(this.searchService.ObjetivoInfoFromId(String(value)))
+      label = objetivo.fullName
+    }
+
     if (fieldObj.searchComponent == 'inputForEfectoSearch') {
       const efecto = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', value))
       label = efecto[0].EfectoDescripcion

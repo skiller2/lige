@@ -55,7 +55,7 @@
   }
   @if (visitedTabs().has('objetivos')) {
     <div [hidden]="activeTab() !== 'objetivos'">
-      <app-table-objetivos-efecto [refreshGrid]="refreshTickObjetivos()" />
+      <app-table-objetivos-efecto [refreshGrid]="refreshTickObjetivos()" [objetivoIdFilter]="objetivoIdFilter()" />
     </div>
   }
   @if (visitedTabs().has('deposito')) {

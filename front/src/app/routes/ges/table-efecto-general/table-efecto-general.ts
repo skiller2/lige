@@ -51,11 +51,13 @@ export class TableEfectoGeneralComponent {
 
   columns = toSignal(
     this.apiService.getCols('/api/efecto/colsEfectoGeneral').pipe(
-      map((cols: Column[]) => cols.map(col =>
-        col.id === 'ApellidoNombre'
-          ? { ...col, asyncPostRender: this.renderPersonaComponent.bind(this) }
-          : col
-      ))
+      map((cols: Column[]) => cols.map(col => {
+        if (col.id === 'ApellidoNombre')
+          return { ...col, asyncPostRender: this.renderPersonaComponent.bind(this) }
+        if (col.id === 'ClienteElementoDependienteDescripcion')
+          return { ...col, asyncPostRender: this.renderObjetivoComponent.bind(this) }
+        return col
+      }))
     ),
     { initialValue: [] as Column[] }
   )
@@ -119,6 +121,21 @@ export class TableEfectoGeneralComponent {
       item: dataContext,
       link: '/ges/efecto/personal',
       params: { PersonalId: personalId },
+      detail: dataContext[colDef.field as string]
+    })
+    cellNode.replaceChildren(componentOutput.domElement)
+  }
+
+  renderObjetivoComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column): void {
+    const objetivoId = dataContext.ObjetivoId
+    // Solo las filas que pertenecen a un Objetivo llevan enlace a la solapa Objetivos
+    if (!objetivoId) return
+
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    Object.assign(componentOutput.componentRef.instance, {
+      item: dataContext,
+      link: '/ges/efecto/objetivos',
+      params: { ObjetivoId: objetivoId },
       detail: dataContext[colDef.field as string]
     })
     cellNode.replaceChildren(componentOutput.domElement)

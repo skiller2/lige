@@ -1,4 +1,4 @@
-import { Component, EventEmitter, computed, inject, input, signal, resource } from '@angular/core';
+import { Component, EventEmitter, computed, effect, inject, input, signal, resource } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, firstValueFrom } from 'rxjs';
@@ -11,6 +11,7 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords, columnTotal } from '../../../shared/custom-search/custom-search';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Selections } from '../../../shared/schemas/filtro';
 import { LoadingService } from '@delon/abc/loading';
 
 interface ListOptions {
@@ -45,6 +46,7 @@ interface PersonalEstudio {
 export class TableObjetivosEfectoComponent {
 
   refreshGrid = input<number>(0);
+  objetivoIdFilter = input<number>(0);
   private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
@@ -55,11 +57,24 @@ export class TableObjetivosEfectoComponent {
     sort: null,
   })
   filtersReady = signal(false)
+  startFilters = signal<Selections[]>([])
+  filtroVisible = signal(true)
 
   private readonly loadingSrv = inject(LoadingService)
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
+
+  private applyObjetivoFilter = effect(() => {
+    const id = this.objetivoIdFilter()
+    if (id > 0) {
+      this.startFilters.set([
+        { index: 'ObjetivoId', condition: 'AND', operator: '=', value: String(id), closeable: true },
+      ])
+      this.filtroVisible.set(false)
+      setTimeout(() => this.filtroVisible.set(true))
+    }
+  })
 
   columns = toSignal(this.apiService.getCols('/api/efecto/colsObjetivos'), { initialValue: [] as Column[] })
 
