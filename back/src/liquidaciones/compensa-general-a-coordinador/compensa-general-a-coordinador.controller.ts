@@ -128,6 +128,8 @@ export class CompensaGeneralACordinadorController extends BaseController {
         }
       }
 
+      await queryRunner.commitTransaction();
+
       await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
@@ -138,8 +140,6 @@ export class CompensaGeneralACordinadorController extends BaseController {
       );
 
      // throw new ClientException("DEBUG")
-      await queryRunner.commitTransaction();
-
 
       this.jsonRes({ list: movimientos }, res, ((cantRegistros>0)? `Se procesaron ${cantRegistros} registros <BR>`+movimientos.join('<BR>'):'No hay saldos para compensar'));
     } catch (error) {

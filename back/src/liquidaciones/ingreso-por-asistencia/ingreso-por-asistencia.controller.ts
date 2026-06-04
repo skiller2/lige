@@ -39,7 +39,7 @@ export class IngresoPorAsistenciaController extends BaseController {
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
-          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
       if (tipo_movimiento_id == 0 || Number.isNaN(tipo_movimiento_id))
         throw new ClientException("Tipo de monvimiento 'MOV_ASISTENCIA_VIGILANCIA' no definindo en .env ")
@@ -51,22 +51,22 @@ export class IngresoPorAsistenciaController extends BaseController {
       if (mes > 12 || mes < 1)
         throw new ClientException(`Mes ${mes} no válido `)
 
-      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(anio,mes,queryRunner)
+      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(anio, mes, queryRunner)
       if (resPendAsisCierre.length > 0)
         throw new ClientException(`Existen ${resPendAsisCierre.length} objetivos pendientes de cierre o sin asistencia para el período ${mes}/${anio}`)
-      
-      
+
+
       await queryRunner.startTransaction();
 
-      const result = await AsistenciaController.getObjetivoAsistencia(anio,mes,[],queryRunner)
+      const result = await AsistenciaController.getObjetivoAsistencia(anio, mes, [], queryRunner)
 
       await queryRunner.query(
-        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `,[ periodo_id, tipo_movimiento_id ])
+        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `, [periodo_id, tipo_movimiento_id])
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
       for (const row of result.asistencia) {
- //        const detalle = `Horas ${row.totalhorascalc}, Categoría ${((row.rt14CategoriaDescripcion != undefined) ? row.rt14CategoriaDescripcion : row.CategoriaPersonalDescripcion).trim()}  `
+        //        const detalle = `Horas ${row.totalhorascalc}, Categoría ${((row.rt14CategoriaDescripcion != undefined) ? row.rt14CategoriaDescripcion : row.CategoriaPersonalDescripcion).trim()}  `
 
         const detalle = `Horas ${row.totalhorascalc}, Categoría ${row.CategoriaPersonalDescripcion.trim()}`
         await queryRunner.query(
@@ -106,7 +106,7 @@ export class IngresoPorAsistenciaController extends BaseController {
               detalle,
               row.ObjetivoId,
               row.PersonalId,
-              row.PersonalArt14Horas*row.ValorHoraNorm,
+              row.PersonalArt14Horas * row.ValorHoraNorm,
               row.PersonalArt14Horas,
               row.ObjetivoAsistenciaTipoAsociadoId,
               row.ObjetivoAsistenciaCategoriaPersonalId,
@@ -118,7 +118,7 @@ export class IngresoPorAsistenciaController extends BaseController {
 
         if (row.ValorHoraArt14Categoria > 0) {
           Art14Categoria++
-          const detalle = `Art.17 Equivalencia ${row.art14CategoriaDescripcion.trim()}, horas:${row.totalhorascalc+row.PersonalArt14Horas}`
+          const detalle = `Art.17 Equivalencia ${row.art14CategoriaDescripcion.trim()}, horas:${row.totalhorascalc + row.PersonalArt14Horas}`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
@@ -132,7 +132,7 @@ export class IngresoPorAsistenciaController extends BaseController {
               detalle,
               row.ObjetivoId,
               row.PersonalId,
-              (row.totalhorascalc+row.PersonalArt14Horas) * (row.ValorHoraArt14Categoria-row.ValorHoraNorm),
+              (row.totalhorascalc + row.PersonalArt14Horas) * (row.ValorHoraArt14Categoria - row.ValorHoraNorm),
               row.totalhorascalc + row.PersonalArt14Horas,
               row.PersonalArt14TipoAsociadoId,
               row.PersonalArt14CategoriaId,
@@ -144,7 +144,7 @@ export class IngresoPorAsistenciaController extends BaseController {
 
         if (row.PersonalArt14AdicionalHora) {
           Art14AdicionalHora++
-          const detalle = `Art.17 Importe Adicional Horas ${row.totalhorascalc+row.PersonalArt14Horas}`
+          const detalle = `Art.17 Importe Adicional Horas ${row.totalhorascalc + row.PersonalArt14Horas}`
           await queryRunner.query(
             `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,tipo_asociado_id, categoria_personal_id,
              aud_usuario_ins, aud_ip_ins, aud_fecha_ins, aud_usuario_mod, aud_ip_mod, aud_fecha_mod)
@@ -158,7 +158,7 @@ export class IngresoPorAsistenciaController extends BaseController {
               detalle,
               row.ObjetivoId,
               row.PersonalId,
-              (row.totalhorascalc+row.PersonalArt14Horas)*row.PersonalArt14AdicionalHora,
+              (row.totalhorascalc + row.PersonalArt14Horas) * row.PersonalArt14AdicionalHora,
               row.totalhorascalc + row.PersonalArt14Horas,
               row.ObjetivoAsistenciaTipoAsociadoId,
               row.ObjetivoAsistenciaCategoriaPersonalId,
@@ -192,21 +192,23 @@ export class IngresoPorAsistenciaController extends BaseController {
           );
         }
 
-        
+
 
       }
-      
+
+      await queryRunner.commitTransaction();
       await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
-        { res: `Procesado correctamente`, 'totalAsistencias':result.asistencia.length
-          , Art14SumaFija, Art14AdicionalHora, Art14Categoria, Art14Horas},
+        {
+          res: `Procesado correctamente`, 'totalAsistencias': result.asistencia.length
+          , Art14SumaFija, Art14AdicionalHora, Art14Categoria, Art14Horas
+        },
         usuario,
         ip
       );
 
-      await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Se procesaron ${result.asistencia.length} registros `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)

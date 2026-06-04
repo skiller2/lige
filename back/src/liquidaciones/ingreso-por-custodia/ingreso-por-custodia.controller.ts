@@ -34,7 +34,7 @@ export class IngresoPorCustodiaController extends BaseController {
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
-          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
       if (tipo_movimiento_id == 0 || Number.isNaN(tipo_movimiento_id))
         throw new ClientException("Tipo de monvimiento 'MOV_ASISTENCIA_CUSTODIA' no definindo en .env ")
@@ -48,19 +48,19 @@ export class IngresoPorCustodiaController extends BaseController {
 
 
 
-      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(anio,mes,3,queryRunner)
+      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(anio, mes, 3, queryRunner)
       if (resPendLiq.length > 0) {
         const FechaLimite = resPendLiq[0].FechaLimite
-       throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(FechaLimite)}`)
+        throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(FechaLimite)}`)
       }
 
-      
+
       await queryRunner.startTransaction();
 
-      const result = await CustodiaController.listPersonalCustodiaQuery({}, queryRunner, anio, mes,0)
+      const result = await CustodiaController.listPersonalCustodiaQuery({}, queryRunner, anio, mes, 0)
 
       await queryRunner.query(
-        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `,[ periodo_id, tipo_movimiento_id ])
+        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `, [periodo_id, tipo_movimiento_id])
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
@@ -89,16 +89,16 @@ export class IngresoPorCustodiaController extends BaseController {
         );
       }
 
+      await queryRunner.commitTransaction();
       await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
-        { res: `Procesado correctamente`, 'cantCustodias':result.length },
+        { res: `Procesado correctamente`, 'cantCustodias': result.length },
         usuario,
         ip
       );
 
-      await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Se procesaron ${result.length} registros `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)

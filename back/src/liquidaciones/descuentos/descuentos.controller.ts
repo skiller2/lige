@@ -34,9 +34,9 @@ export class DescuentosController extends BaseController {
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
-          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
-      
+
       //if (tipo_movimiento_id == 0 || Number.isNaN(tipo_movimiento_id))
       //  throw new ClientException("Tipo de monvimiento 'MOV_DESCUENTO' no definindo en .env ")
 
@@ -46,10 +46,10 @@ export class DescuentosController extends BaseController {
       if (mes > 12 || mes < 1 || isNaN(mes))
         throw new ClientException(`Mes ${mes} no válido `)
 
-      
+
       await queryRunner.startTransaction();
 
-      const result = await AsistenciaController.getDescuentos(anio, mes, [],queryRunner)
+      const result = await AsistenciaController.getDescuentos(anio, mes, [], queryRunner)
 
       await queryRunner.query(
         `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id IN (4,5,15,7,14,6,16,17) `, [periodo_id])
@@ -99,8 +99,8 @@ export class DescuentosController extends BaseController {
         }
         let detalle = `${row.DescuentoDescripcion} ${row.desmovimiento.trim()}`
 
-//        if (row.desmovimiento == null || row.desmovimiento.trim() == '')
-//          throw new ClientException(`Sin descripción para el registro con id ${row.id} ${row.DescuentoDescripcion} ${row.ApellidoNombre} `,row)
+        //        if (row.desmovimiento == null || row.desmovimiento.trim() == '')
+        //          throw new ClientException(`Sin descripción para el registro con id ${row.id} ${row.DescuentoDescripcion} ${row.ApellidoNombre} `,row)
 
 
 
@@ -108,7 +108,7 @@ export class DescuentosController extends BaseController {
           detalle += ` cuota ${row.cuotanro}/${row.cantcuotas}, total $ ${row.importetotal} `
 
         if (row.PersonalId == null || row.PersonalId == 0)
-          throw new ClientException(`PersonalId no válido para el registro con id ${row.id} `,row)
+          throw new ClientException(`PersonalId no válido para el registro con id ${row.id} `, row)
 
         await queryRunner.query(
           `INSERT INTO lige.dbo.liqmamovimientos (movimiento_id, periodo_id, tipocuenta_id, tipo_movimiento_id, fecha, detalle, objetivo_id, persona_id, importe,horas,
@@ -124,26 +124,26 @@ export class DescuentosController extends BaseController {
             detalle,
             row.ObjetivoId,
             row.PersonalId,
-            Math.round((row.importe+Number.EPSILON)*100)/100,
+            Math.round((row.importe + Number.EPSILON) * 100) / 100,
             0,
             usuario, ip, fechaActual, usuario, ip, fechaActual,
           ]
         );
         if (1 == 1) { //Actualizo el campo LiquidacionMovimientoCodigo caso #838
-          
+
         }
       }
 
+      await queryRunner.commitTransaction();
       await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
-        { res: `Procesado correctamente`, 'totalDescuentos':result.length },
+        { res: `Procesado correctamente`, 'totalDescuentos': result.length },
         usuario,
         ip
       );
 
-      await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Se procesaron ${result.length} registros `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)

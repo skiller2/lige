@@ -8,14 +8,14 @@ import { recibosController } from "../../controller/controller.module.ts";
 
 export class IngresoAsistenciaAdministrativosArt42Controller extends BaseController {
 
- 
+
   async procesaCambios(req: any, res: Response, next: NextFunction) {
     let fechaActual = new Date()
     let anio = Number(req.body.anio)
     let mes = Number(req.body.mes)
     let ip = this.getRemoteAddress(req)
     let usuario = res.locals.userName
-    let  tipo_movimiento_id = 0
+    let tipo_movimiento_id = 0
     const tipo_movimiento_id_normadmi = Number(process.env.MOV_ASISTENCIA_ADMINISTRA)
     const tipo_movimiento_id_art42vigi = Number(process.env.MOV_ART42VIGI)
     const tipo_movimiento_id_art42admi = Number(process.env.MOV_ART42ADMI)
@@ -38,7 +38,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
       const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
 
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
-          throw new ClientException(`Los recibos para este periodo ya se generaron`)
+        throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
       if (tipo_movimiento_id_normadmi == 0 || Number.isNaN(tipo_movimiento_id_normadmi))
         throw new ClientException("Tipo de monvimiento 'MOV_ASISTENCIA_ADMINISTRA' no definindo en .env ")
@@ -48,7 +48,7 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
         throw new ClientException("Tipo de monvimiento 'MOV_ART42ADMI' no definindo en .env ")
 
 
-        if (anio < 2000 || isNaN(anio))
+      if (anio < 2000 || isNaN(anio))
         throw new ClientException(`Año ${anio} no válido `)
 
       if (mes > 12 || mes < 1 || isNaN(mes))
@@ -58,29 +58,29 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
 
 
 
-      
+
       await queryRunner.startTransaction();
 
 
       await queryRunner.query(
-        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `,[ periodo_id, tipo_movimiento_id_normadmi ])
+        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `, [periodo_id, tipo_movimiento_id_normadmi])
       await queryRunner.query(
-        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `,[ periodo_id, tipo_movimiento_id_art42vigi ])
+        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `, [periodo_id, tipo_movimiento_id_art42vigi])
       await queryRunner.query(
-        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `,[ periodo_id, tipo_movimiento_id_art42admi ])
-      
-      
-      
-      const result = await AsistenciaController.getAsistenciaAdminArt42(anio,mes,queryRunner,[],null,false,false)
+        `DELETE FROM lige.dbo.liqmamovimientos WHERE periodo_id=@0 AND tipo_movimiento_id=@1 `, [periodo_id, tipo_movimiento_id_art42admi])
+
+
+
+      const result = await AsistenciaController.getAsistenciaAdminArt42(anio, mes, queryRunner, [], null, false, false)
       let cntLincencias = 0
 
       let movimiento_id = await Utils.getMovimientoId(queryRunner)
 
       for (const row of result) {
         if (Number(row.total) == 0)
-                  continue 
+          continue
         cntLincencias++
-        tipo_movimiento_id = tipo_movimiento_id_normadmi 
+        tipo_movimiento_id = tipo_movimiento_id_normadmi
         if (row.TipoInasistenciaApartado.indexOf('5'))
           tipo_movimiento_id = tipo_movimiento_id_art42admi
         else if (row.TipoInasistenciaApartado.indexOf('4'))
@@ -110,16 +110,16 @@ export class IngresoAsistenciaAdministrativosArt42Controller extends BaseControl
         );
       }
 
+      await queryRunner.commitTransaction();
       await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
-        { res: `Procesado correctamente`, 'totalAsistenciaAdminArt42':result.length },
+        { res: `Procesado correctamente`, 'totalAsistenciaAdminArt42': result.length },
         usuario,
         ip
       );
 
-      await queryRunner.commitTransaction();
       this.jsonRes({ list: [] }, res, `Se procesaron ${cntLincencias} licencias de ${result.length} `);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
