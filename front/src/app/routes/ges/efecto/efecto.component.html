@@ -50,7 +50,7 @@
   }
   @if (visitedTabs().has('personal')) {
     <div [hidden]="activeTab() !== 'personal'">
-      <app-table-personal-efecto [refreshGrid]="refreshTickPersonal()" />
+      <app-table-personal-efecto [refreshGrid]="refreshTickPersonal()" [personalIdFilter]="personalIdFilter()" />
     </div>
   }
   @if (visitedTabs().has('objetivos')) {

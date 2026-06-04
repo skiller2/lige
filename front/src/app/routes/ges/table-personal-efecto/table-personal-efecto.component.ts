@@ -1,4 +1,4 @@
-import { Component, inject, input, resource, signal } from '@angular/core';
+import { Component, effect, inject, input, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
@@ -11,6 +11,7 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords, columnTotal } from '../../../shared/custom-search/custom-search';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Selections } from '../../../shared/schemas/filtro';
 import { LoadingService } from '@delon/abc/loading';
 
 @Component({
@@ -29,6 +30,7 @@ import { LoadingService } from '@delon/abc/loading';
 export class TablePersonalEfectoComponent {
 
   refreshGrid = input<number>(0);
+  personalIdFilter = input<number>(0);
   private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
@@ -39,10 +41,23 @@ export class TablePersonalEfectoComponent {
     sort: null,
   })
   filtersReady = signal(false)
+  startFilters = signal<Selections[]>([])
+  filtroVisible = signal(true)
   private readonly loadingSrv = inject(LoadingService)
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
+
+  private applyPersonaFilter = effect(() => {
+    const id = this.personalIdFilter()
+    if (id > 0) {
+      this.startFilters.set([
+        { index: 'PersonalId', condition: 'AND', operator: '=', value: String(id), closeable: true },
+      ])
+      this.filtroVisible.set(false)
+      setTimeout(() => this.filtroVisible.set(true))
+    }
+  })
 
   columns = toSignal(this.apiService.getCols('/api/efecto/colsPersonal'), { initialValue: [] as Column[] })
 

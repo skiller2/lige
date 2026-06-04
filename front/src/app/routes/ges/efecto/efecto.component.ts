@@ -36,6 +36,11 @@ export class EfectoComponent {
     { initialValue: 'general' }
   )
 
+  personalIdFilter = toSignal(
+    this.route.params.pipe(map(params => Number(params['PersonalId']) || 0)),
+    { initialValue: 0 }
+  )
+
   refreshTickGeneral = signal(0)
   refreshTickPersonal = signal(0)
   refreshTickObjetivos = signal(0)
