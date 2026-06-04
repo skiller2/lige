@@ -40,8 +40,20 @@ export class EfectoSearchComponent implements ControlValueAccessor {
 
   private _selectedId: string = ''
   _selected = ''
+  // Individual del efecto a mostrar cuando el valor llega sólo por EfectoId (p. ej. una línea precargada).
+  // Permite distinguir varios individuales del mismo EfectoId y no quedarse con el primero.
+  private _individualId: number | null = null
   extendedOption: { EfectoId: number; EfectoEfectoIndividualId: number | null; fullName: string } =
     { EfectoId: 0, EfectoEfectoIndividualId: null, fullName: "" }
+
+  @Input()
+  set individualId(val: number | null | undefined) {
+    const n = (val === null || val === undefined || (val as any) === '') ? null : Number(val)
+    const norm = Number.isNaN(n as number) ? null : n
+    if (norm === this._individualId) return
+    this._individualId = norm
+    this.scheduleResolve()
+  }
 
   private propagateTouched: () => void = noop
   private propagateChange: (_: any) => void = noop
@@ -90,32 +102,44 @@ export class EfectoSearchComponent implements ControlValueAccessor {
         return
       }
 
-      if (this.extendedOption.EfectoId === Number(this._selectedId)) {
-        this._selected = `${this.extendedOption.EfectoId}|${this.extendedOption.EfectoEfectoIndividualId ?? ''}`
-        this.valueExtendedEmitter.emit(this.extendedOption)
-        if (this.tmpInputVal != this._selectedId) {
-          this.propagateChange(this._selectedId)
-        }
-        return
-      }
+      // Resolvemos la etiqueta en un microtask: así, si EfectoId e individualId llegan en el mismo
+      // ciclo (línea precargada), elegimos el individual correcto en una sola pasada.
+      this.scheduleResolve()
+    }
+  }
 
-      firstValueFrom(
-        this.searchService.getEfectoFromName('EfectoId', this._selectedId)
-          .pipe(tap(res => {
-            if (res && res.length > 0) {
-              this.extendedOption = {
-                EfectoId: res[0].EfectoId,
-                EfectoEfectoIndividualId: res[0].EfectoEfectoIndividualId ?? null,
-                fullName: res[0].EfectoDescripcion
-              }
-              this._selected = `${this.extendedOption.EfectoId}|${this.extendedOption.EfectoEfectoIndividualId ?? ''}`
-              this.valueExtendedEmitter.emit(this.extendedOption)
-              if (this.tmpInputVal != this._selectedId) {
-                this.propagateChange(this._selectedId)
-              }
-            }
-          }))
-      )
+  private _resolvePending = false
+  private scheduleResolve(): void {
+    if (this._resolvePending) return
+    this._resolvePending = true
+    queueMicrotask(() => {
+      this._resolvePending = false
+      this.resolveLabel()
+    })
+  }
+
+  private async resolveLabel(): Promise<void> {
+    const id = this._selectedId
+    if (!id) return
+
+    // Ya resuelto para este efecto + individual: sólo aseguramos el valor mostrado, sin re-emitir.
+    if (this.extendedOption.EfectoId === Number(id) &&
+        (this.extendedOption.EfectoEfectoIndividualId ?? null) === this._individualId) {
+      this._selected = `${this.extendedOption.EfectoId}|${this.extendedOption.EfectoEfectoIndividualId ?? ''}`
+      return
+    }
+
+    const res = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', id))
+    if (res && res.length > 0) {
+      // Elegimos el registro del individual indicado; si no se indicó (o no está), caemos al primero.
+      const match = res.find(r => (r.EfectoEfectoIndividualId ?? null) === this._individualId) ?? res[0]
+      this.extendedOption = {
+        EfectoId: match.EfectoId,
+        EfectoEfectoIndividualId: match.EfectoEfectoIndividualId ?? null,
+        fullName: match.EfectoDescripcion
+      }
+      this._selected = `${this.extendedOption.EfectoId}|${this.extendedOption.EfectoEfectoIndividualId ?? ''}`
+      this.valueExtendedEmitter.emit(this.extendedOption)
     }
   }
 

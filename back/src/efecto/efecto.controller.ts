@@ -1122,20 +1122,22 @@ export class EfectoController extends BaseController {
     this.jsonRes(listaColumnasEfectoGeneral, res);
   }
 
-  private efectobyPersonalIdQuery(queryRunner: any, personalId: number) {
-    const now = new Date();
-    return queryRunner.query(`
-      SELECT stk.StockId, per.PersonalId, stk.EfectoId, stk.EfectoEfectoIndividualId as EfectoIndividualId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.StockReservado,
-      stk.EfectoDescripcion, stk.EfectoAtrDescripcion, stk.EfectoEfectoIndividualDescripcion, stk.EfectoIndividualAtrDescripcion,  
-      stk.EfectoDescripcionCompleto,  
-      ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
-      1
-      FROM StockReal stk
-      JOIN Personal per ON per.PersonalId = stk.PersonalId
-      LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId and lp.ListaPrecioDesde<= @0 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
-      LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
-      WHERE  per.PersonalId = @1;
-    `, [now, personalId])
+  private async efectobyPersonalIdQuery(queryRunner: any, personalId: number) {
+    console.log('estoy...........................')
+    const listOptions = {
+      filtros: [
+        {
+          index: 'PersonalId',
+          condition: 'AND',
+          operador: '=',
+          valor: [personalId],
+          type: 'number',
+        },
+      ],
+      sort: null,
+    };
+
+    return this.getEfectoQuery(queryRunner, listOptions);
   }
 
   private getEfectoQuery(queryRunner: any, listOptions: any) {
