@@ -921,7 +921,7 @@ LEFT JOIN banco banc
         const PersonalFechaNacimiento = row.PersonalFechaNacimiento ? this.formatDDMMAAAA(new Date(row.PersonalFechaNacimiento)) : '00000000'
         const PersonalSexo = row.PersonalSexo ? row.PersonalSexo.trim().charAt(0).toUpperCase() : 'X'
         const EstadoCivil = 'S'
-        const DomicilioCalle = this.normalizeSafe(String(row.domCalle.trim())).toString().slice(0, 19).padEnd(19, ' ')
+        const DomicilioCalle = this.normalizeSafe(String(row.domCalle??'').trim()).toString().slice(0, 19).padEnd(19, ' ')
 
         const DomicilioNro = row.domNro == null || isNaN(Number(row.domNro)) ? '99999' : String(row.domNro).trim().slice(0, 5).padStart(5, '0');
         const DomicilioDomPiso = this.normalizarPiso(String(row.DomicilioDomPiso ?? '').trim())
@@ -968,7 +968,7 @@ LEFT JOIN banco banc
           ReservadoUsoBanco5 +
           ReservadoUsoBanco6 +
           ReservadoUsoBanco7 
-
+          
         //Calculo de bytes de la fila para asegurar que no supere los 301 bytes requeridos por el banco. Se utiliza Buffer.from para obtener la cantidad de bytes reales considerando caracteres especiales.
         const cantBytesRow = Buffer.from(filerow, 'utf8').length
         if (cantBytesRow != 301) {
