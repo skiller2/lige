@@ -909,6 +909,48 @@ const listaColumnasProveedores: any[] = [
     searchComponent: "inputForNumberAdvancedSearch",
     maxWidth: 100,
   },
+  {
+    id: "RubroId",
+    name: "Rubro",
+    field: "RubroId",
+    fieldName: "stk.RubroId",
+    type: "number",
+    searchComponent: "inputForRubroSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "RubroDescripcion",
+    name: "Rubro",
+    field: "RubroDescripcion",
+    fieldName: "ru.RubroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "SubrubroId",
+    name: "Subrubro",
+    field: "SubrubroId",
+    fieldName: "stk.SubrubroId",
+    type: "number",
+    searchComponent: "inputForSubrubroSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "SubrubroDescripcion",
+    name: "Subrubro",
+    field: "SubrubroDescripcion",
+    fieldName: "sru.SubrubroDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
 ]
 
 export class EfectoController extends BaseController {
@@ -1448,12 +1490,20 @@ export class EfectoController extends BaseController {
           pro.ProveedorRazonSocial,
           suc.SucursalDescripcion,
           ISNULL(lpi.ListaPrecioIndividualPrecio,lp.ListaPrecioPrecio) as Importe,
+
+          stk.RubroId,
+          ru.RubroDescripcion,
+          stk.SubrubroId,
+          sru.SubrubroDescripcion,
+
           1
       FROM StockReal stk
       LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId AND stk.EfectoEfectoIndividualId IS NULL AND lp.ListaPrecioDesde <= @0 AND ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
       LEFT JOIN ListaPrecioIndividual lpi ON lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
       JOIN Proveedor pro ON pro.ProveedorId = stk.ProveedorId
       LEFT JOIN Sucursal suc ON suc.SucursalId = pro.ProveedorSucursalId
+      LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
+      LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
       WHERE ${filterSql} `, [now])
   }
 
