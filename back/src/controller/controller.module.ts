@@ -68,6 +68,7 @@ import { OrdenesDeVentaController } from "../ordenes-de-venta/ordenes-de-venta.c
 import { AvisoController } from "../aviso/aviso.controller.ts";
 import { VehiculoController } from "../vehiculo/vehiculo.controller.ts";
 import { ValorHoraController } from "../valor-hora/valor-hora.controller.ts";
+import { CuentasBancariasController } from "../cuentas-bancarias/cuentas-bancarias.controller.ts";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -140,3 +141,4 @@ export const ordenesDeVentaController = new OrdenesDeVentaController()
 export const avisoController = new AvisoController()
 export const vehiculoController = new VehiculoController()
 export const valorHoraController = new ValorHoraController()
+export const cuentasBancariasController = new CuentasBancariasController()

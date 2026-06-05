@@ -2262,6 +2262,14 @@ export class ApiService {
     );
   }
 
+  getCuentasBancarias(filters: any) {
+    const parameter = filters
+    return this.http.post<ResponseJSON<any>>(`api/cuentas-bancarias/list`, parameter).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

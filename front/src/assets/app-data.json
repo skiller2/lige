@@ -141,6 +141,11 @@
               "icon": "anticon-profile"
             },
             {
+              "text": "Cuentas Bancarias",
+              "link": "/ges/cuentas-bancarias",
+              "icon": "anticon-profile"
+            },
+            {
               "text": "Ayuda Asistencial",
               "link": "/ges/ayuda_asistencial",
               "icon": "anticon-profile"
