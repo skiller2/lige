@@ -829,6 +829,17 @@ const listaColumnasProveedores: any[] = [
     searchHidden: true
   },
   {
+    id: "ProveedorId",
+    name: "Proveedor",
+    field: "ProveedorId",
+    fieldName: "stk.ProveedorId",
+    type: "number",
+    searchComponent: "inputForProveedorSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
     id: "ProveedorRazonSocial",
     name: "Proveedor",
     field: "ProveedorRazonSocial",
@@ -1444,8 +1455,8 @@ export class EfectoController extends BaseController {
           stk.SubrubroId,
           sru.SubrubroDescripcion,
 
-          pro.ProveedorRazonSocial, sucpro.SucursalDescripcion AS ProveedorSucursalDescripcion,
-          dep.DepositoNombre, sucdep.SucursalDescripcion AS DepositoSucursalDescripcion,
+          pro.ProveedorId, pro.ProveedorRazonSocial, sucpro.SucursalDescripcion AS ProveedorSucursalDescripcion,
+          dep.DepositoId, dep.DepositoNombre, sucdep.SucursalDescripcion AS DepositoSucursalDescripcion,
           per.PersonalId, cuit.PersonalCUITCUILCUIT, IIF(per.PersonalId IS NULL,NULL,CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre))) ApellidoNombre,
           obj.ObjetivoId, cli.ClienteId, ele.ClienteElementoDependienteId, IIF(ele.ClienteElementoDependienteId IS NULL,NULL,CONCAT(cli.ClienteId,'/', ele.ClienteElementoDependienteId, ' ',ele.ClienteElementoDependienteDescripcion)) as ClienteElementoDependienteDescripcion,
 

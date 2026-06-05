@@ -2,7 +2,9 @@
   <ng-container>
 
     @if(columns().length; as columnas) {
-      <shared-filtro-builder [fieldsToSelect]="columns()" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+      @if(filtroVisible()) {
+        <shared-filtro-builder [fieldsToSelect]="columns()" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+      }
 
       <div class="gridContainerEfectoDeposito container-fluid">
         <angular-slickgrid

@@ -1,4 +1,4 @@
-import { Component, inject, input, resource, signal } from '@angular/core';
+import { Component, effect, inject, input, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { firstValueFrom } from 'rxjs';
@@ -29,6 +29,7 @@ import { LoadingService } from '@delon/abc/loading';
 export class TableProveedoresEfectoComponent {
 
   refreshGrid = input<number>(0);
+  proveedorIdFilter = input<number>(0);
   private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
@@ -42,11 +43,23 @@ export class TableProveedoresEfectoComponent {
   startFilters = signal<Selections[]>([
     { index: 'StockStock', condition: 'AND', operator: '>', value: '0', closeable: true },
   ])
+  filtroVisible = signal(true)
 
   private readonly loadingSrv = inject(LoadingService)
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
+
+  private applyProveedorFilter = effect(() => {
+    const id = this.proveedorIdFilter()
+    if (id > 0) {
+      this.startFilters.set([
+        { index: 'ProveedorId', condition: 'AND', operator: '=', value: String(id), closeable: true },
+      ])
+      this.filtroVisible.set(false)
+      setTimeout(() => this.filtroVisible.set(true))
+    }
+  })
 
   columns = toSignal(this.apiService.getCols('/api/efecto/colsProveedores'), { initialValue: [] as Column[] })
 

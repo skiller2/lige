@@ -20,7 +20,7 @@
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'efecto', 'deposito']">Depósito</a>
+        <a [routerLink]="['/', 'ges', 'efecto', 'deposito']">Depósitos</a>
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
@@ -60,12 +60,12 @@
   }
   @if (visitedTabs().has('deposito')) {
     <div [hidden]="activeTab() !== 'deposito'">
-      <app-table-deposito-efecto [refreshGrid]="refreshTickDeposito()" />
+      <app-table-deposito-efecto [refreshGrid]="refreshTickDeposito()" [depositoIdFilter]="depositoIdFilter()" />
     </div>
   }
   @if (visitedTabs().has('proveedores')) {
     <div [hidden]="activeTab() !== 'proveedores'">
-      <app-table-proveedores-efecto [refreshGrid]="refreshTickProveedores()" />
+      <app-table-proveedores-efecto [refreshGrid]="refreshTickProveedores()" [proveedorIdFilter]="proveedorIdFilter()" />
     </div>
   }
   @if (visitedTabs().has('movimiento')) {

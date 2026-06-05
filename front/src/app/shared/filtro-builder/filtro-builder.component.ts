@@ -723,6 +723,18 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = objetivo.fullName
     }
 
+    if (fieldObj.searchComponent == 'inputForProveedorSearch') {
+      const proveedores = await firstValueFrom(this.searchService.getStockEfectoProveedores())
+      const prov = (proveedores ?? []).find((p: any) => Number(p.ProveedorId) === Number(value))
+      if (prov) label = prov.ProveedorRazonSocial
+    }
+
+    if (fieldObj.searchComponent == 'inputForDepositoSearch') {
+      const depositos = await firstValueFrom(this.searchService.getDepositos())
+      const dep = (depositos ?? []).find((d: any) => Number(d.DepositoId) === Number(value))
+      if (dep) label = dep.DepositoNombre
+    }
+
     if (fieldObj.searchComponent == 'inputForEfectoSearch') {
       const efecto = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', value))
       label = efecto[0].EfectoDescripcion

@@ -56,6 +56,10 @@ export class TableEfectoGeneralComponent {
           return { ...col, asyncPostRender: this.renderPersonaComponent.bind(this) }
         if (col.id === 'ClienteElementoDependienteDescripcion')
           return { ...col, asyncPostRender: this.renderObjetivoComponent.bind(this) }
+        if (col.id === 'ProveedorRazonSocial')
+          return { ...col, asyncPostRender: this.renderProveedorComponent.bind(this) }
+        if (col.id === 'DepositoNombre')
+          return { ...col, asyncPostRender: this.renderDepositoComponent.bind(this) }
         return col
       }))
     ),
@@ -136,6 +140,36 @@ export class TableEfectoGeneralComponent {
       item: dataContext,
       link: '/ges/efecto/objetivos',
       params: { ObjetivoId: objetivoId },
+      detail: dataContext[colDef.field as string]
+    })
+    cellNode.replaceChildren(componentOutput.domElement)
+  }
+
+  renderProveedorComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column): void {
+    const proveedorId = dataContext.ProveedorId
+    // Solo las filas que pertenecen a un Proveedor llevan enlace a la solapa Proveedores
+    if (!proveedorId) return
+
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    Object.assign(componentOutput.componentRef.instance, {
+      item: dataContext,
+      link: '/ges/efecto/proveedores',
+      params: { ProveedorId: proveedorId },
+      detail: dataContext[colDef.field as string]
+    })
+    cellNode.replaceChildren(componentOutput.domElement)
+  }
+
+  renderDepositoComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column): void {
+    const depositoId = dataContext.DepositoId
+    // Solo las filas que pertenecen a un Depósito llevan enlace a la solapa Depósitos
+    if (!depositoId) return
+
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    Object.assign(componentOutput.componentRef.instance, {
+      item: dataContext,
+      link: '/ges/efecto/deposito',
+      params: { DepositoId: depositoId },
       detail: dataContext[colDef.field as string]
     })
     cellNode.replaceChildren(componentOutput.domElement)
