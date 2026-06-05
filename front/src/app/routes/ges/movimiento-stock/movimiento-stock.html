@@ -179,34 +179,45 @@
   <nz-divider [nzText]="origenLabel" style="margin-bottom: 10px;"></nz-divider>
   <ng-template #origenLabel>
     <span style="margin-right: 8px;">Origen</span>
-    <button nz-button nzType="default" type="button" (click)="toggleBuscador()"
+    <button nz-button nzType="default" type="button"
+      nz-popconfirm [nzPopconfirmTitle]="buscadorTpl" [nzPopconfirmShowArrow]="false"
+       nzOkText="Confirmar" (nzOnConfirm)="confirmarBusqueda()"
       nz-tooltip nzTooltipTitle="{{ 'app.buscador.personas.objetivos' | i18n }}">
       <span nz-icon nzType="user" nzTheme="outline"></span>
     </button>
-  </ng-template>
 
-  @if (mostrarBuscador()) {
-    <div nz-row [nzGutter]="15" nzJustify="center" style="margin-bottom: 24px;">
-      <div nz-col [nzSpan]="4">
-        <nz-select [ngModel]="tipoBusqueda()" (ngModelChange)="onChangeTipoBusqueda($event)"
-          [ngModelOptions]="{ standalone: true }"   [nzDropdownMatchSelectWidth]="false" style="width: 100%;"  nzAllowClear
-  nzShowSearch>
-          @for (t of tiposOrigen.value() ?? []; track t.value) {
-            <nz-option [nzValue]="t.value" [nzLabel]="t.label"></nz-option>
+    <button nz-button nzType="default" type="button" style="margin-left: 6px;"
+      (click)="limpiarOrigen()"
+      nz-tooltip nzTooltipTitle="Limpiar Origen">
+      <span nz-icon nzType="delete" nzTheme="outline"></span>
+    </button>
+
+    <ng-template #buscadorTpl>
+      <div style="width: 420px; padding: 4px 2px 2px;">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 12px; color: rgba(0,0,0,0.45); margin-bottom: 4px;">Tipo</label>
+          <nz-select [ngModel]="tipoBusqueda()" (ngModelChange)="onChangeTipoBusqueda($event)"
+            [ngModelOptions]="{ standalone: true }" [nzDropdownMatchSelectWidth]="false" style="width: 100%;" nzShowSearch>
+            @for (t of tiposOrigen.value() ?? []; track t.value) {
+              <nz-option [nzValue]="t.value" [nzLabel]="t.label"></nz-option>
+            }
+          </nz-select>
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 12px; color: rgba(0,0,0,0.45); margin-bottom: 4px;">
+            {{ tipoBusqueda() === 'persona' ? 'Persona' : 'Objetivo' }}
+          </label>
+          @if (tipoBusqueda() === 'persona') {
+            <app-personal-search [(ngModel)]="personaBuscadaId" [ngModelOptions]="{ standalone: true }"
+              [anio]="anio()" [mes]="mes()" />
+          } @else {
+            <app-objetivo-search [(ngModel)]="objetivoBuscadoId" [ngModelOptions]="{ standalone: true }" />
           }
-        </nz-select>
+        </div>
       </div>
-      <div nz-col [nzSpan]="8">
-        @if (tipoBusqueda() === 'persona') {
-          <app-personal-search [(ngModel)]="personaBuscadaId" [ngModelOptions]="{ standalone: true }"
-            (ngModelChange)="cargarEfectosDePersona($event)" [anio]="anio()" [mes]="mes()" />
-        } @else {
-          <app-objetivo-search [(ngModel)]="objetivoBuscadoId" [ngModelOptions]="{ standalone: true }"
-            (ngModelChange)="cargarEfectosDeObjetivo($event)" />
-        }
-      </div>
-    </div>
-  }
+    </ng-template>
+  </ng-template>
 
   @for (ef of formEfectoStock.efectos; let i = $index; track i) {
     @if (!ef.isDelete().value()) {

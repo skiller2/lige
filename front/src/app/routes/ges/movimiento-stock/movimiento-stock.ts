@@ -108,8 +108,7 @@ export class MovimientoStockComponent {
   // Cada fila es un <app-efecto-stock-linea>; las consultamos para conocer el stock disponible al confirmar.
   private readonly lineas = viewChildren(EfectoStockLineaComponent);
 
-  // Buscador suelto bajo "Origen": el ícono muestra/oculta un selector Persona/Objetivo + su buscador.
-  readonly mostrarBuscador = signal(false);
+  // Buscador persona/objetivo dentro del popconfirm bajo "Origen".
   readonly tipoBusqueda = signal<'persona' | 'objetivo'>('persona');
   // Opciones del selector Persona/Objetivo, traídas del backend.
   readonly tiposOrigen = resource({
@@ -120,26 +119,25 @@ export class MovimientoStockComponent {
   // Las líneas vienen precargadas (persona u objetivo) -> no se ofrece "Relacionar".
   readonly cargadoDesdeBusqueda = signal(false);
 
-  toggleBuscador(): void {
-    if (this.mostrarBuscador()) {
-      // Se está cerrando: si había algo seleccionado, vacía la búsqueda y las líneas de abajo.
-      if (this.personaBuscadaId != null || this.objetivoBuscadoId != null || this.cargadoDesdeBusqueda()) {
-        this.limpiarBusqueda();
-      }
-      this.mostrarBuscador.set(false);
+  onChangeTipoBusqueda(tipo: 'persona' | 'objetivo' | null): void {
+    this.tipoBusqueda.set(tipo ?? 'persona');
+    // Solo se resetea el input de búsqueda; NO se tocan las líneas (efecto/cantidad/ubicación):
+    // se reemplazan recién cuando se confirma la búsqueda.
+    this.personaBuscadaId = null;
+    this.objetivoBuscadoId = null;
+  }
+
+  // La carga se dispara al confirmar el popconfirm (no al seleccionar en el buscador).
+  confirmarBusqueda(): void {
+    if (this.tipoBusqueda() === 'persona') {
+      this.cargarEfectosDePersona(this.personaBuscadaId);
     } else {
-      // Se está abriendo: arranca en limpio, porque las líneas se van a cargar desde persona/objetivo.
-      this.limpiarBusqueda();
-      this.mostrarBuscador.set(true);
+      this.cargarEfectosDeObjetivo(this.objetivoBuscadoId);
     }
   }
 
-  onChangeTipoBusqueda(tipo: 'persona' | 'objetivo' | null): void {
-    this.tipoBusqueda.set(tipo ?? 'persona');
-    this.limpiarBusqueda(); // al cambiar de tipo, limpia lo anterior
-  }
-
-  private limpiarBusqueda(): void {
+  // Resetea la sección Origen: borra la selección del buscador y vuelve a una línea vacía.
+  limpiarOrigen(): void {
     this.personaBuscadaId = null;
     this.objetivoBuscadoId = null;
     this.cargadoDesdeBusqueda.set(false);
