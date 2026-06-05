@@ -58,6 +58,7 @@ import { salarioMinimoVitalMovilRouter } from "../salario-minimo-vital-movil/sal
 import { avisoRouter } from "../aviso/aviso.routes.ts";
 import { vehiculoRouter } from "../vehiculo/vehiculo.routes.ts";
 import { valorHoraRouter } from "../valor-hora/valor-hora.routes.ts";
+import { cuentasBancariasRouter } from "../cuentas-bancarias/cuentas-bancarias.routes.ts";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -119,4 +120,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/aviso", avisoRouter)
   server.setRoute("/api/vehiculo", vehiculoRouter)
   server.setRoute("/api/valor-hora", valorHoraRouter);
+  server.setRoute("/api/cuentas-bancarias", cuentasBancariasRouter);
 }
