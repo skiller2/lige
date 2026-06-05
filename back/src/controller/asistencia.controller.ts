@@ -2921,6 +2921,7 @@ export class AsistenciaController extends BaseController {
       `, [personalId, anio, mes]
     )
 
+    if (situacionesRevista.length < 1) errores.push(`La persona no tiene registrada una situación de revista.`)
     //Validación de Personal total de horas por dia
     let querydias = ''
     for (let index = 1; index <= 31; index++)
