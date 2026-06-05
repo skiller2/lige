@@ -91,10 +91,11 @@ export class MovimientoStockComponent {
     required(p.intermediarioId, { message: 'La persona es obligatoria', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'intermediario' });
 
     applyEach(p.efectos, (linea) => {
-      required(linea.EfectoId, { message: 'Efecto obligatorio' });
-      required(linea.StockId, { message: 'Ubicación obligatoria' });
+     required(linea.EfectoId, { message: 'Efecto obligatorio', when: (ctx) => !ctx.valueOf(linea.isDelete) });
+      required(linea.StockId, { message: 'Ubicación obligatoria', when: (ctx) => !ctx.valueOf(linea.isDelete) });
       // La cantidad no puede ser 0 ni negativa. El tope por stock se valida al confirmar (ver validarCantidades).
       validate(linea.Cantidad, (ctx) => {
+        if (ctx.valueOf(linea.isDelete)) return null; // línea borrada: no se valida
         const v = ctx.value();
         if (v == null || (v as any) === '') return null; // el vacío se valida al confirmar
         const n = Number(v);
@@ -169,6 +170,7 @@ export class MovimientoStockComponent {
       RelacionEfectoId: null,
       RelacionStockId: null,
       RelacionEfectoIndividualId: null,
+      isDelete: false,
     }));
   }
 
@@ -250,14 +252,26 @@ export class MovimientoStockComponent {
     return map;
   });
 
+  // Líneas visibles (no borradas) y el índice de la última visible: con esto la UI sabe dónde va
+  // el botón "+" y si se puede eliminar, sin tocar el array real (que mantiene su longitud).
+  readonly cantidadVisibles = computed(() => this.parametroStock().efectos.filter(e => !e.isDelete).length);
+  readonly ultimoVisibleIndex = computed(() => {
+    const efs = this.parametroStock().efectos;
+    for (let i = efs.length - 1; i >= 0; i--) if (!efs[i].isDelete) return i;
+    return -1;
+  });
+
   addEfecto(): void {
     this.parametroStock.update(s => ({ ...s, efectos: [...s.efectos, nuevaEfectoLinea()] }));
   }
 
+  // Borrado lógico: marca isDelete=true sin sacar el item del array (así el form no se reindexa
+  // ni re-dispara los resource de las demás filas). Si no queda ninguna visible, agrega una vacía.
   removeEfecto(index: number): void {
     this.parametroStock.update(s => {
-      const efectos = s.efectos.filter((_, i) => i !== index);
-      return { ...s, efectos: efectos.length ? efectos : [nuevaEfectoLinea()] };
+      const efectos = s.efectos.map((e, i) => i === index ? { ...e, isDelete: true } : e);
+      const hayVisibles = efectos.some(e => !e.isDelete);
+      return { ...s, efectos: hayVisibles ? efectos : [...efectos, nuevaEfectoLinea()] };
     });
   }
 
@@ -281,6 +295,7 @@ export class MovimientoStockComponent {
     const errores: { fieldTree: string; kind: string; message: string }[] = [];
     const stock = this.stockDisponibleByStockId();
     v.efectos.forEach((linea, i) => {
+      if (linea.isDelete) return; // línea borrada: no se valida
       const cantidad = Number(linea.Cantidad);
       if (linea.Cantidad == null || Number.isNaN(cantidad) || cantidad <= 0) {
         errores.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' });
