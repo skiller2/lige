@@ -15,7 +15,7 @@ const tiposOrigen = [
   { value: "objetivo", label: "Objetivo" },
 ];
 
-export class StockEfectoController extends BaseController {
+export class MovimientoStockController extends BaseController {
 
   async getTiposDestino(req: Request, res: Response, next: NextFunction) {
     try {

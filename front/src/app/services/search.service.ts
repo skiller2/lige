@@ -2338,7 +2338,7 @@ export class SearchService {
   }
 
   getStockEfectoTiposDestino() {
-     return this.http.get<ResponseJSON<any>>(`api/stock-efecto/tipos-destino`).pipe(
+     return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/tipos-destino`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -2348,7 +2348,7 @@ export class SearchService {
   }
 
   getStockEfectoTiposOrigen() {
-    return this.http.get<ResponseJSON<any>>(`api/stock-efecto/tipos-origen`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/tipos-origen`).pipe(
       map(res => res.data),
       catchError(() => of([]))
     );
@@ -2364,14 +2364,14 @@ export class SearchService {
 
   getStockEfectoObjetivoInfo(objetivoId: number, anio: number, mes: number) {
     if (!objetivoId || !anio || !mes) return of(null);
-    return this.http.get<ResponseJSON<any>>(`api/stock-efecto/objetivo-info/${objetivoId}/${anio}/${mes}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/objetivo-info/${objetivoId}/${anio}/${mes}`).pipe(
       map(res => res.data),
       catchError(() => of(null))
     );
   }
 
   getStockEfectoProveedores() {
-    return this.http.get<ResponseJSON<any>>(`api/stock-efecto/proveedores`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/proveedores`).pipe(
       map(res => res.data),
       catchError(() => of([]))
     );

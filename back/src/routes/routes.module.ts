@@ -51,7 +51,7 @@ import { novedadesRouter } from "../novedades/novedades.routes.ts";
 import { eventoLogRouter } from "../evento-log/evento-log.routes.ts";
 import { excepcionesAsistenciaRouter } from "../excepciones-asistencia/excepciones-asistencia.routes.ts";
 import { efectoRouter } from "../efecto/efecto.router.ts";
-import { stockEfectoRouter } from "../stock-efecto/stock-efecto.router.ts";
+import { movimientoStockRouter } from "../movimiento-stock/movimiento-stock.router.ts";
 import { habilitacionesRouter } from "../habilitaciones/habilitaciones.routes.ts";
 import { parametrosVentaRouter } from "../parametro-venta/parametro-venta.routes.ts";
 import { salarioMinimoVitalMovilRouter } from "../salario-minimo-vital-movil/salario-minimo-vital-movil.routes.ts";
@@ -112,7 +112,7 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/evento-log", eventoLogRouter)
   server.setRoute("/api/excepciones-asistencia", excepcionesAsistenciaRouter)
   server.setRoute("/api/efecto", efectoRouter)
-  server.setRoute("/api/stock-efecto", stockEfectoRouter)
+  server.setRoute("/api/movimiento-stock", movimientoStockRouter)
   server.setRoute("/api/habilitaciones", habilitacionesRouter)
   server.setRoute("/api/parametros-venta", parametrosVentaRouter)
   server.setRoute("/api/salario-minimo-vital-movil", salarioMinimoVitalMovilRouter)

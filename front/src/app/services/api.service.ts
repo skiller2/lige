@@ -1188,7 +1188,7 @@ export class ApiService {
   }
 
   confirmarStockEfecto(payload: any) {
-    return this.http.post<ResponseJSON<any>>(`api/stock-efecto/confirmar`, payload).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
+    return this.http.post<ResponseJSON<any>>(`api/movimiento-stock/confirmar`, payload).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
   delAdelanto(adelanto: { PersonalId: string; monto: number, anio: number, mes: number }) {
