@@ -35,6 +35,11 @@ export class EfectoSearchComponent implements ControlValueAccessor {
   constructor(private searchService: SearchService) { }
 
   @Input() valueExtended: any
+  // Param 1 (opcional): si es true, el buscador solo trae efectos con StockStock > 0. Por defecto
+  // false para NO afectar a los demás usos del componente (p. ej. el buscador de filtros de grillas).
+  @Input() soloConStock = false
+  // Param 2 (opcional): si es true, solo trae efectos que tengan EfectoEfectoIndividualId (individuales).
+  @Input() soloConIndividual = false
   @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
   @ViewChild("csc") csc!: NzSelectComponent
 
@@ -159,7 +164,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
     debounceTime(500),
     switchMap(value =>
       this.searchService
-        .getEfectoFromName('EfectoDescripcion', value)
+        .getEfectoFromName('EfectoDescripcion', value, this.soloConStock, this.soloConIndividual)
         .pipe(
           doOnSubscribe(() => this.$isOptionsLoading.next(true)),
           tap(opts => { this.latestOptions = opts ?? [] }),

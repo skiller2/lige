@@ -2521,12 +2521,12 @@ export class SearchService {
     );
   }
 
-  getEfectoFromName(fieldName: string, values: string): Observable<SearchEfecto[]> {
+  getEfectoFromName(fieldName: string, values: string, soloConStock = false, soloConIndividual = false): Observable<SearchEfecto[]> {
     if (!values || values == '') {
       return of([]);
     }
     return this.http
-      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', { fieldName: fieldName, value: values, }).pipe(map(res => {
+      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', { fieldName: fieldName, value: values, soloConStock, soloConIndividual }).pipe(map(res => {
         if (res.data.recordsArray) return res.data.recordsArray;
         else return [];
       }),

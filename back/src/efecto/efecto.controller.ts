@@ -967,7 +967,7 @@ const listaColumnasProveedores: any[] = [
 export class EfectoController extends BaseController {
 
   async searchEfecto(req: any, res: Response, next: NextFunction) {
-    const { fieldName, value } = req.body;
+    const { fieldName, value, soloConStock, soloConIndividual } = req.body;
     const queryRunner = await getConnection(res.locals.userName);
 
     let buscar = false;
@@ -997,6 +997,11 @@ export class EfectoController extends BaseController {
       this.jsonRes({ recordsArray: [] }, res);
       return;
     }
+
+    // Param 1 (opcional): solo efectos con stock disponible. Lo manda únicamente "Efecto:" del Origen.
+    if (soloConStock) query += ` StockStock > 0 AND `;
+    // Param 2 (opcional): solo efectos individuales (con EfectoEfectoIndividualId). Lo manda "Relacionado con".
+    if (soloConIndividual) query += ` EfectoEfectoIndividualId IS NOT NULL AND `;
 
     queryRunner
       .query((query += " 1=1"))

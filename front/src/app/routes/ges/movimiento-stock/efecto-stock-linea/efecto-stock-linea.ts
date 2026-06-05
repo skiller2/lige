@@ -34,8 +34,6 @@ export class EfectoStockLineaComponent {
   readonly puedeEliminar = input(false);
   /** Descripción de la sucursal del destino, para autoseleccionar el depósito que coincide. */
   readonly sucursalDestino = input<string | null>(null);
-  /** Oculta el botón "Relacionar" (p. ej. cuando la línea vino precargada desde una persona). */
-  readonly ocultarRelacionar = input(false);
 
   readonly agregar = output<void>();
   readonly eliminar = output<void>();
@@ -73,6 +71,15 @@ export class EfectoStockLineaComponent {
     loader: async ({ params }) =>
       params.efectoId
         ? (await firstValueFrom(this.search.getEfectoUbicaciones(params.efectoId, params.individualId))) ?? []
+        : [],
+  });
+
+  // ---- Relaciones del efecto relacionado (chips "Relacionado con:" debajo de su input) --------
+  readonly relacionRelaciones = resource({
+    params: () => ({ efectoId: this.field().RelacionEfectoId().value(), individualId: this.field().RelacionEfectoIndividualId().value() }),
+    loader: async ({ params }) =>
+      params.efectoId
+        ? (await firstValueFrom(this.search.getEfectoRelaciones(params.efectoId, params.individualId))) ?? []
         : [],
   });
 
