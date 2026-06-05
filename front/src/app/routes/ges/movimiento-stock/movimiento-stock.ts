@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, resource, signal, viewChildren } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, effect, inject, resource, signal, viewChildren } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { SearchService } from '../../../services/search.service';
@@ -26,6 +26,8 @@ export class MovimientoStockComponent {
   private searchService = inject(SearchService);
   private apiService = inject(ApiService);
 
+  private readonly STORAGE_KEY = 'movimiento-stock-form';
+
   private readonly defaultStockForm: ParametroformEfectoStock = {
     fecha: null,
     tipoDestino: '',
@@ -37,12 +39,44 @@ export class MovimientoStockComponent {
     efectos: [nuevaEfectoLinea()],
   };
 
-  readonly parametroStock = signal<ParametroformEfectoStock>(this.defaultStockForm);
+  readonly parametroStock = signal<ParametroformEfectoStock>(this.estadoInicial());
 
-  ngOnInit() {
-    queueMicrotask(() => {
+  
+  private readonly persistir = effect(() => {
+    const value = this.parametroStock();
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(value));
+    } catch { /* localStorage lleno o no disponible: se ignora */ }
+  });
+
+  constructor() {
+   afterNextRender(() => {
       this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
     });
+  }
+
+ private estadoInicial(): ParametroformEfectoStock {
+    const base = this.cargarDesdeStorage() ?? this.defaultStockForm;
+    return { ...base, fecha: null };
+  }
+
+  /** Lee el formulario guardado y reconstruye la `fecha` como Date (en JSON viaja como string). */
+  private cargarDesdeStorage(): ParametroformEfectoStock | null {
+    try {
+      const raw = localStorage.getItem(this.STORAGE_KEY);
+      if (!raw) return null;
+      const data = JSON.parse(raw) as ParametroformEfectoStock;
+      return { ...data, fecha: data.fecha ? new Date(data.fecha) : null };
+    } catch {
+      return null;
+    }
+  }
+
+  /** Borra el formulario persistido (al confirmar con éxito). */
+  private limpiarStorage(): void {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+    } catch { }
   }
 
   readonly formEfectoStock = form(this.parametroStock, (p) => {
@@ -236,6 +270,7 @@ export class MovimientoStockComponent {
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
+      this.limpiarStorage(); // confirmado: el borrador deja de tener sentido
       return undefined;
     });
   }

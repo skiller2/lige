@@ -163,17 +163,14 @@
       </div>
     </div>
 
-  <nz-divider nzText="Origen" style="margin-bottom: 10px;">
-  </nz-divider>
-
-  <div nz-row [nzGutter]="15" style="margin-bottom: 16px;">
-    <div nz-col [nzSpan]="24" style="text-align: center;">
-      <button nz-button nzType="default" type="button" (click)="toggleBuscador()"
-        nz-tooltip nzTooltipTitle="{{ 'app.buscador.personas.objetivos' | i18n }}">
-        <span nz-icon nzType="user" nzTheme="outline"></span>
-      </button>
-    </div>
-  </div>
+  <nz-divider [nzText]="origenLabel" style="margin-bottom: 10px;"></nz-divider>
+  <ng-template #origenLabel>
+    <span style="margin-right: 8px;">Origen</span>
+    <button nz-button nzType="default" type="button" (click)="toggleBuscador()"
+      nz-tooltip nzTooltipTitle="{{ 'app.buscador.personas.objetivos' | i18n }}">
+      <span nz-icon nzType="user" nzTheme="outline"></span>
+    </button>
+  </ng-template>
 
   @if (mostrarBuscador()) {
     <div nz-row [nzGutter]="15" nzJustify="center" style="margin-bottom: 24px;">
