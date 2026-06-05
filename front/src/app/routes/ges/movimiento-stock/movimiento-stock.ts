@@ -35,6 +35,7 @@ export class MovimientoStockComponent {
     personalId: null,
     objetivoId: null,
     proveedorId: null,
+    intermediarioId: null,
     observaciones: '',
     efectos: [nuevaEfectoLinea()],
   };
@@ -87,6 +88,7 @@ export class MovimientoStockComponent {
     required(p.personalId, { message: 'La persona es obligatoria', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'personal' });
     required(p.objetivoId, { message: 'El objetivo es obligatorio', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'objetivo' });
     required(p.proveedorId, { message: 'El proveedor es obligatorio', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'proveedor' });
+    required(p.intermediarioId, { message: 'La persona es obligatoria', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'intermediario' });
 
     applyEach(p.efectos, (linea) => {
       required(linea.EfectoId, { message: 'Efecto obligatorio' });

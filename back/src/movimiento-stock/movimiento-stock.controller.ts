@@ -7,6 +7,7 @@ const tiposDestino = [
   { value: "personal", label: "Personas" },
   { value: "objetivo", label: "Objetivos" },
   { value: "proveedor", label: "Proveedores" },
+  { value: "intermediario", label: "Intermediario" },
 ];
 
 // Orígenes válidos para precargar las líneas de movimiento (buscador suelto bajo "Origen").
@@ -67,18 +68,20 @@ export class MovimientoStockController extends BaseController {
       const personalId = body.personalId ?? null;
       const objetivoId = body.objetivoId != null ? Number(body.objetivoId) : null;
       const proveedorId = body.proveedorId ?? null;
+      const intermediarioId = body.intermediarioId ?? null;
       const observaciones: string = body.observaciones ?? '';
       const efectos: Array<{ EfectoId: number; StockId: number; Cantidad: number; EfectoIndividualId: number | null; Usado: boolean }> = Array.isArray(body.efectos) ? body.efectos : [];
 
       const fieldErrors: any[] = [];
 
       if (!fecha) fieldErrors.push({ fieldTree: 'fecha', kind: 'server', message: 'La fecha es obligatoria.' });
-      const tiposValidos = ['deposito', 'personal', 'objetivo', 'proveedor'];
+      const tiposValidos = ['deposito', 'personal', 'objetivo', 'proveedor', 'intermediario'];
       if (!tiposValidos.includes(tipoDestino)) fieldErrors.push({ fieldTree: 'tipoDestino', kind: 'server', message: 'El tipo de destino es obligatorio.' });
       if (tipoDestino === 'deposito' && !depositoId) fieldErrors.push({ fieldTree: 'depositoId', kind: 'server', message: 'El depósito es obligatorio.' });
       if (tipoDestino === 'personal' && !personalId) fieldErrors.push({ fieldTree: 'personalId', kind: 'server', message: 'La persona es obligatoria.' });
       if (tipoDestino === 'objetivo' && !objetivoId) fieldErrors.push({ fieldTree: 'objetivoId', kind: 'server', message: 'El objetivo es obligatorio.' });
       if (tipoDestino === 'proveedor' && !proveedorId) fieldErrors.push({ fieldTree: 'proveedorId', kind: 'server', message: 'El proveedor es obligatorio.' });
+      if (tipoDestino === 'intermediario' && !intermediarioId) fieldErrors.push({ fieldTree: 'intermediarioId', kind: 'server', message: 'La persona es obligatoria.' });
       if (!efectos.length) throw new ClientException("Debe ingresar al menos un efecto.");
 
       for (let i = 0; i < efectos.length; i++) {
