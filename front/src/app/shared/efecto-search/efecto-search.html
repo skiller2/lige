@@ -1,18 +1,18 @@
 
-<nz-select #csc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+<nz-select #csc [ngModel]="selectedLabel()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Descripción del Efecto"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
-  @for (option of $optionsArray | async; track option.EfectoId + '|' + (option['EfectoEfectoIndividualId'] ?? '')) {
-    @if (($isOptionsLoading | async) == false) {
+  @for (option of opciones.value() ?? []; track option.EfectoId + '|' + (option['EfectoEfectoIndividualId'] ?? '')) {
+    @if (!opciones.isLoading()) {
       <nz-option [nzValue]="option.EfectoId + '|' + (option['EfectoEfectoIndividualId'] ?? '')"
         [nzLabel]="option.EfectoDescripcion" />
     }
   }
-  @if (extendedOption.EfectoId > 0) {
-    <nz-option [nzValue]="extendedOption.EfectoId + '|' + (extendedOption.EfectoEfectoIndividualId ?? '')"
-      [nzLabel]="extendedOption.fullName" />
+  @if (extendedOption().EfectoId > 0) {
+    <nz-option [nzValue]="extendedOption().EfectoId + '|' + (extendedOption().EfectoEfectoIndividualId ?? '')"
+      [nzLabel]="extendedOption().fullName" />
   }
-  @if ($isOptionsLoading | async) {
+  @if (opciones.isLoading()) {
     <nz-option nzDisabled nzCustomContent>
       <span nz-icon nzType="loading" class="loading-icon"></span>
       Cargando datos...

@@ -1,27 +1,20 @@
-import { Component, EventEmitter, Input, Output, ViewChild, forwardRef } from '@angular/core';
-import {
-  BehaviorSubject,
-  Observable,
-  debounceTime,
-  firstValueFrom,
-  noop,
-  switchMap,
-  tap,
-} from 'rxjs';
+import { ChangeDetectionStrategy, Component, forwardRef, input, output, effect, inject, resource, signal, viewChild } from '@angular/core';
+import { firstValueFrom, noop } from 'rxjs';
 import { SearchEfecto } from '../schemas/efecto.schemas';
 import { SearchService } from '../../services/search.service';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
-import { doOnSubscribe } from '../../services/api.service';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 
+type ExtendedOption = { EfectoId: number; EfectoEfectoIndividualId: number | null; fullName: string };
 
 @Component({
   selector: 'app-efecto-search',
   imports: [...SHARED_IMPORTS, CommonModule],
   templateUrl: './efecto-search.html',
   styleUrl: './efecto-search.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -31,33 +24,62 @@ import { CommonModule } from '@angular/common';
   ],
 })
 export class EfectoSearchComponent implements ControlValueAccessor {
-  tmpInputVal: any;
-  constructor(private searchService: SearchService) { }
+  private searchService = inject(SearchService);
 
-  @Input() valueExtended: any
+  readonly valueExtended = input<any>()
   // Param 1 (opcional): si es true, el buscador solo trae efectos con StockStock > 0. Por defecto
   // false para NO afectar a los demás usos del componente (p. ej. el buscador de filtros de grillas).
-  @Input() soloConStock = false
+  readonly soloConStock = input(false)
   // Param 2 (opcional): si es true, solo trae efectos que tengan EfectoEfectoIndividualId (individuales).
-  @Input() soloConIndividual = false
-  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
-  @ViewChild("csc") csc!: NzSelectComponent
+  readonly soloConIndividual = input(false)
+  readonly valueExtendedChange = output<any>()
+  readonly csc = viewChild<NzSelectComponent>('csc')
 
-  private _selectedId: string = ''
-  _selected = ''
+  // Estado de la vista como signals (habilita OnPush): el valor del nz-select y la opción "fija"
+  // que se muestra para un efecto ya seleccionado (cuando no está entre los resultados de búsqueda).
+  readonly selectedLabel = signal('')
+  readonly extendedOption = signal<ExtendedOption>({ EfectoId: 0, EfectoEfectoIndividualId: null, fullName: '' })
+
+  private _selectedId = ''
+
   // Individual del efecto a mostrar cuando el valor llega sólo por EfectoId (p. ej. una línea precargada).
   // Permite distinguir varios individuales del mismo EfectoId y no quedarse con el primero.
-  private _individualId: number | null = null
-  extendedOption: { EfectoId: number; EfectoEfectoIndividualId: number | null; fullName: string } =
-    { EfectoId: 0, EfectoEfectoIndividualId: null, fullName: "" }
+  // El transform normaliza ('' / undefined / NaN -> null) para que la comparación del signal sea limpia.
+  readonly individualId = input<number | null, number | null | undefined | string>(null, {
+    transform: (val) => {
+      const n = (val === null || val === undefined || (val as any) === '') ? null : Number(val)
+      return Number.isNaN(n as number) ? null : n
+    }
+  })
 
-  @Input()
-  set individualId(val: number | null | undefined) {
-    const n = (val === null || val === undefined || (val as any) === '') ? null : Number(val)
-    const norm = Number.isNaN(n as number) ? null : n
-    if (norm === this._individualId) return
-    this._individualId = norm
-    this.scheduleResolve()
+  // ----- Búsqueda: signals + resource, sin pipelines rxjs -----
+  private readonly termino = signal('')
+  private readonly terminoDebounced = signal('')
+  readonly opciones = resource({
+    params: () => ({ q: this.terminoDebounced(), stock: this.soloConStock(), indiv: this.soloConIndividual() }),
+    loader: async ({ params }) => {
+      if (!params.q) return [] as SearchEfecto[]
+      return (await firstValueFrom(
+        this.searchService.getEfectoFromName('EfectoDescripcion', params.q, params.stock, params.indiv)
+      )) ?? []
+    },
+  })
+
+  constructor() {
+    // Cuando cambia el individual (input), reprogramamos la resolución del label. El signal solo
+    // notifica cuando el valor (ya normalizado por el transform) cambia, así que no hay re-resolución
+    // redundante (reemplaza la guarda manual que tenía el viejo setter).
+    effect(() => {
+      this.individualId();
+      this.scheduleResolve();
+    });
+    // Debounce del término de búsqueda SIN rxjs: effect + setTimeout, con onCleanup que cancela el
+    // timer anterior en cada tecla. A los 500ms sin cambios se actualiza terminoDebounced -> resource.
+    effect((onCleanup) => {
+      const t = this.termino();
+      const id = setTimeout(() => this.terminoDebounced.set(t), 500);
+      onCleanup(() => clearTimeout(id));
+    });
   }
 
   private propagateTouched: () => void = noop
@@ -67,27 +89,13 @@ export class EfectoSearchComponent implements ControlValueAccessor {
     this.propagateChange = fn
   }
 
-  onBlur() {
-    this.propagateTouched()
-  }
-
-  onChange() {
-  }
-
-  onRemove() {
-
-  }
-
   registerOnTouched(fn: any) {
     this.propagateTouched = fn
   }
 
-  ngAfterViewInit() {
-    setTimeout(() => {
-      // this.csc.focus()
-    }, 1);
+  onBlur() {
+    this.propagateTouched()
   }
-
 
   get selectedId() {
     return this._selectedId
@@ -100,9 +108,9 @@ export class EfectoSearchComponent implements ControlValueAccessor {
       this._selectedId = val
 
       if (this._selectedId == '') {
-        this.valueExtendedEmitter.emit({})
-        this._selected = ''
-        this.extendedOption = { EfectoId: 0, EfectoEfectoIndividualId: null, fullName: "" }
+        this.valueExtendedChange.emit({})
+        this.selectedLabel.set('')
+        this.extendedOption.set({ EfectoId: 0, EfectoEfectoIndividualId: null, fullName: '' })
         this.propagateChange(this._selectedId)
         return
       }
@@ -128,50 +136,32 @@ export class EfectoSearchComponent implements ControlValueAccessor {
     if (!id) return
 
     // Ya resuelto para este efecto + individual: sólo aseguramos el valor mostrado, sin re-emitir.
-    if (this.extendedOption.EfectoId === Number(id) &&
-        (this.extendedOption.EfectoEfectoIndividualId ?? null) === this._individualId) {
-      this._selected = `${this.extendedOption.EfectoId}|${this.extendedOption.EfectoEfectoIndividualId ?? ''}`
+    const opt = this.extendedOption()
+    if (opt.EfectoId === Number(id) && (opt.EfectoEfectoIndividualId ?? null) === this.individualId()) {
+      this.selectedLabel.set(`${opt.EfectoId}|${opt.EfectoEfectoIndividualId ?? ''}`)
       return
     }
 
     const res = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', id))
     if (res && res.length > 0) {
       // Elegimos el registro del individual indicado; si no se indicó (o no está), caemos al primero.
-      const match = res.find(r => (r.EfectoEfectoIndividualId ?? null) === this._individualId) ?? res[0]
-      this.extendedOption = {
+      const match = res.find(r => (r.EfectoEfectoIndividualId ?? null) === this.individualId()) ?? res[0]
+      const nuevo: ExtendedOption = {
         EfectoId: match.EfectoId,
         EfectoEfectoIndividualId: match.EfectoEfectoIndividualId ?? null,
         fullName: match.EfectoDescripcion
       }
-      this._selected = `${this.extendedOption.EfectoId}|${this.extendedOption.EfectoEfectoIndividualId ?? ''}`
-      this.valueExtendedEmitter.emit(this.extendedOption)
+      this.extendedOption.set(nuevo)
+      this.selectedLabel.set(`${nuevo.EfectoId}|${nuevo.EfectoEfectoIndividualId ?? ''}`)
+      this.valueExtendedChange.emit(nuevo)
     }
   }
 
   writeValue(value: any) {
-    this.tmpInputVal = value
     if (value !== this._selectedId) {
       this.selectedId = value
     }
   }
-
-  selectedInfoChange$ = new BehaviorSubject<SearchEfecto[] | null>(null);
-
-  $searchChange = new BehaviorSubject('');
-  $isOptionsLoading = new BehaviorSubject<boolean>(false);
-  private latestOptions: SearchEfecto[] = [];
-  $optionsArray: Observable<SearchEfecto[]> = this.$searchChange.pipe(
-    debounceTime(500),
-    switchMap(value =>
-      this.searchService
-        .getEfectoFromName('EfectoDescripcion', value, this.soloConStock, this.soloConIndividual)
-        .pipe(
-          doOnSubscribe(() => this.$isOptionsLoading.next(true)),
-          tap(opts => { this.latestOptions = opts ?? [] }),
-          tap({ complete: () => this.$isOptionsLoading.next(false) })
-        )
-    )
-  );
 
   modelChange(val: string | null) {
     if (!val) {
@@ -183,19 +173,20 @@ export class EfectoSearchComponent implements ControlValueAccessor {
     const individualId = indivStr === '' || indivStr === undefined ? null : Number(indivStr);
     const normalizedIndividual = Number.isNaN(individualId as number) ? null : individualId;
 
-    const picked = this.latestOptions.find(efect =>
+    const picked = (this.opciones.value() ?? []).find(efect =>
       efect.EfectoId === efectoId && (efect.EfectoEfectoIndividualId ?? null) === normalizedIndividual
     );
 
-    this.extendedOption = {
+    const nuevo: ExtendedOption = {
       EfectoId: efectoId,
       EfectoEfectoIndividualId: normalizedIndividual,
-      fullName: picked?.EfectoDescripcion ?? this.extendedOption.fullName
+      fullName: picked?.EfectoDescripcion ?? this.extendedOption().fullName
     }
-    this._selected = `${efectoId}|${normalizedIndividual ?? ''}`
+    this.extendedOption.set(nuevo)
+    this.selectedLabel.set(`${efectoId}|${normalizedIndividual ?? ''}`)
 
     // Siempre emitimos con la selección actual del usuario (incluye individual).
-    this.valueExtendedEmitter.emit(this.extendedOption)
+    this.valueExtendedChange.emit(nuevo)
 
     // Sincronizamos el id y propagamos al form si cambió.
     const efectoIdStr = String(efectoId)
@@ -206,12 +197,12 @@ export class EfectoSearchComponent implements ControlValueAccessor {
   }
 
   search(value: string): void {
-    this.extendedOption = { EfectoId: 0, EfectoEfectoIndividualId: null, fullName: "" }
-    this.$searchChange.next(value)
+    this.extendedOption.set({ EfectoId: 0, EfectoEfectoIndividualId: null, fullName: '' })
+    this.termino.set(value)
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.csc?.setDisabledState(isDisabled)
+    this.csc()?.setDisabledState(isDisabled)
   }
 
 }
