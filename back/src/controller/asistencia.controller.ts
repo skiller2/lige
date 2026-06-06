@@ -2914,12 +2914,14 @@ export class AsistenciaController extends BaseController {
     SELECT sit.PersonalSituacionRevistaId, sit.PersonalSituacionRevistaSituacionId, sr.SituacionRevistaDescripcion, sit.PersonalSituacionRevistaDesde desde, ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') hasta
     FROM PersonalSituacionRevista sit
     JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaSituacionId 
-    WHERE sit.PersonalId = @0  AND sit.PersonalSituacionRevistaSituacionId NOT IN (2,5,11,12,20,26) -- (2,4,5,6,10,11,12,20,23,26)
+    WHERE sit.PersonalId = @0 -- AND sit.PersonalSituacionRevistaSituacionId NOT IN (2,5,11,12,20,26) -- (2,4,5,6,10,11,12,20,23,26)
     AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
     AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
 
       `, [personalId, anio, mes]
     )
+
+    if (situacionesRevista.length < 1) errores.push(`La persona no tiene registrada una situación de revista.`)
 
     //Validación de Personal total de horas por dia
     let querydias = ''
@@ -2982,7 +2984,11 @@ export class AsistenciaController extends BaseController {
             errores.push(`La persona no se encuentra de licencia. dia:${numdia}`)
           }
           //Validación Situación de Revista
-          const situacion = situacionesRevista.find((fechas: any) => (fechas.desde <= fecha && fechas.hasta >= fecha))
+          
+          const situacionesOKA = [2, 5, 11, 12, 20, 26];
+
+          const situacion = situacionesRevista.find((row: any) => (row.desde <= fecha && row.hasta >= fecha && !situacionesOKA.includes(row.PersonalSituacionRevistaSituacionId)))
+
           if (situacion && (formaLiquidacion != 'A')) {
             errores.push(`La persona se encuentra en una situación de revista ${situacion.SituacionRevistaDescripcion} desde ${this.dateOutputFormat(situacion.desde)} hasta ${this.dateOutputFormat(situacion.hasta)}. dia:${numdia}`)
           }
