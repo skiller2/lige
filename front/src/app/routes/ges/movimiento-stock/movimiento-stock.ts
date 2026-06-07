@@ -251,7 +251,8 @@ export class MovimientoStockComponent {
       ...m,
       efectos: m.efectos.filter((row, i) => row.EfectoId),
     }));
-
+    if (this.parametroStock().efectos.length==0)
+      this.addEfectoLinea(null)
 
 
     await submit(this.formEfectoStock, async (form) => {
@@ -317,8 +318,8 @@ export class MovimientoStockComponent {
     return null;
   });
 
-  addEfectoLinea(e: MouseEvent): void {
-    e.preventDefault();
+  addEfectoLinea(e?: MouseEvent | null): void {
+    e?.preventDefault();
     const efectoLinea = structuredClone(nuevaEfectoLinea())
     this.parametroStock.update(s => ({ ...s, efectos: [...s.efectos, efectoLinea] }));
   }
