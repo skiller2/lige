@@ -55,8 +55,14 @@ export class MovimientoStockComponent {
       this.parametroStock.update(s => ({ ...s, ...form }));
     this.formEfectoStock().markAsTouched()
     this.formEfectoStock().markAsDirty()      
-    }  
+    }
+
+    //FIX for computed anio & mes
     this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
+
+    queueMicrotask(()=>{
+    this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
+  })
   }
 
   /** Lee el formulario guardado (en JSON viaja como string). */
