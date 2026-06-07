@@ -94,8 +94,8 @@ export class MovimientoStockComponent {
     required(p.proveedorId, { message: 'El proveedor es obligatorio', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'proveedor' });
 
     applyEach(p.efectos, (linea) => {
-      required(linea.EfectoId, { message: 'Efecto obligatorio' });
-      required(linea.StockId, { message: 'Ubicación obligatoria' });
+      required(linea.EfectoId, { message: 'Efecto obligatorio' , when: (ctx) => ctx.valueOf(linea.EfectoId) !== null });
+      required(linea.StockId, { message: 'Ubicación obligatoria' , when: (ctx) => ctx.valueOf(linea.StockId) !== null });
       // La cantidad no puede ser 0 ni negativa. El tope por stock se valida al confirmar (ver validarCantidades).
       validate(linea.Cantidad, (ctx) => {
         const v = ctx.value();
