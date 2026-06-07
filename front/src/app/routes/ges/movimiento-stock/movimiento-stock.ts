@@ -234,17 +234,20 @@ export class MovimientoStockComponent {
 
   async confirmar() {
     await submit(this.formEfectoStock, async (form) => {
+      const formValue = form().value();
+
       // La cantidad se valida al confirmar (no al perder foco). Es client-side: no va al back.
-      //      const errores = this.validarCantidades(form().value());
+      // En determinadas situaciones falla.  Ej cuando se borraban varios items
+      //      const errores = this.validarCantidades(formValue);
       //      if (errores.length) return this.apiService.formBackendErrors(form, errores);
 
       try {
-        await firstValueFrom(this.apiService.confirmarStockEfecto(form().value()));
+        await firstValueFrom(this.apiService.confirmarStockEfecto(formValue));
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
-      this.limpiarStorage(); // confirmado: el borrador deja de tener sentido
-      return undefined;
+      //this.limpiarStorage(); // confirmado: el borrador deja de tener sentido
+      return ;
     });
   }
 
