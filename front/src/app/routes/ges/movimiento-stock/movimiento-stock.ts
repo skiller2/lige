@@ -40,7 +40,7 @@ export class MovimientoStockComponent {
     efectos: [nuevaEfectoLinea()],
   };
 
-  readonly parametroStock = signal<ParametroformEfectoStock>(this.estadoInicial());
+  readonly parametroStock = signal<ParametroformEfectoStock>(this.defaultStockForm);
 
 
   private readonly persistir = effect(() => {
@@ -50,15 +50,9 @@ export class MovimientoStockComponent {
     } catch { /* localStorage lleno o no disponible: se ignora */ }
   });
 
-  constructor() {
-    afterNextRender(() => {
+  ngOnInit(): void {
+      this.parametroStock.set(this.cargarDesdeStorage()??this.defaultStockForm)
       this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
-    });
-  }
-
-  private estadoInicial(): ParametroformEfectoStock {
-    const base = this.cargarDesdeStorage() ?? this.defaultStockForm;
-    return { ...base, fecha: null };
   }
 
   /** Lee el formulario guardado y reconstruye la `fecha` como Date (en JSON viaja como string). */
@@ -67,7 +61,7 @@ export class MovimientoStockComponent {
       const raw = localStorage.getItem(this.STORAGE_KEY);
       if (!raw) return null;
       const data = JSON.parse(raw) as ParametroformEfectoStock;
-      return { ...data, fecha: data.fecha ? new Date(data.fecha) : null };
+      return data;
     } catch {
       return null;
     }
