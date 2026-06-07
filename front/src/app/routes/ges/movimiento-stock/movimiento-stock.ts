@@ -51,18 +51,18 @@ export class MovimientoStockComponent {
 
   ngOnInit(): void {
     const form = this.cargarDesdeStorage()
-    if (form){
+    if (form) {
       this.parametroStock.update(s => ({ ...s, ...form }));
-    this.formEfectoStock().markAsTouched()
-    this.formEfectoStock().markAsDirty()      
+      this.formEfectoStock().markAsTouched()
+      this.formEfectoStock().markAsDirty()
     }
 
     //FIX for computed anio & mes
     this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
 
-    queueMicrotask(()=>{
-    this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
-  })
+    queueMicrotask(() => {
+      this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
+    })
   }
 
   /** Lee el formulario guardado (en JSON viaja como string). */
@@ -94,8 +94,8 @@ export class MovimientoStockComponent {
     required(p.proveedorId, { message: 'El proveedor es obligatorio', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'proveedor' });
 
     applyEach(p.efectos, (linea) => {
-      required(linea.EfectoId, { message: 'Efecto obligatorio' , when: (ctx) => ctx.valueOf(linea.EfectoId) !== null });
-      required(linea.StockId, { message: 'Ubicación obligatoria' , when: (ctx) => ctx.valueOf(linea.StockId) !== null });
+      required(linea.EfectoId, { message: 'Efecto obligatorio', when: (ctx) => ctx.valueOf(linea.EfectoId) !== null });
+      required(linea.StockId, { message: 'Ubicación obligatoria', when: (ctx) => ctx.valueOf(linea.StockId) !== null });
       // La cantidad no puede ser 0 ni negativa. El tope por stock se valida al confirmar (ver validarCantidades).
       validate(linea.Cantidad, (ctx) => {
         const v = ctx.value();
@@ -251,7 +251,7 @@ export class MovimientoStockComponent {
       ...m,
       efectos: m.efectos.filter((row, i) => row.EfectoId),
     }));
-    if (this.parametroStock().efectos.length==0)
+    if (this.parametroStock().efectos.length == 0)
       this.addEfectoLinea(null)
 
 
@@ -268,8 +268,8 @@ export class MovimientoStockComponent {
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
-      //this.limpiarStorage(); // confirmado: el borrador deja de tener sentido
-      return ;
+      //this.parametroStock.set(this.defaultStockForm)
+      return;
     });
   }
 
@@ -288,6 +288,7 @@ export class MovimientoStockComponent {
     private validarCantidades(v: ParametroformEfectoStock): { fieldTree: string; kind: string; message: string }[] {
       const errores: { fieldTree: string; kind: string; message: string }[] = [];
       const stock = this.stockDisponibleByStockId();
+      //for (const linea of v.efectos)
       v.efectos.forEach((linea, i) => {
         const cantidad = Number(linea.Cantidad);
         if (linea.Cantidad == null || Number.isNaN(cantidad) || cantidad <= 0) {

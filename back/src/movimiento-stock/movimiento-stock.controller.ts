@@ -69,7 +69,7 @@ export class MovimientoStockController extends BaseController {
       const proveedorId     = Number(body.proveedorId) ?? null;
       const personalIdInter = Number(body.personalIdInter) ?? null;
       const observaciones   = String(body.observaciones) ?? '';
-      
+
       const efectos: Array<{ EfectoId: number; StockId: number; Cantidad: number; EfectoIndividualId: number | null; Usado: boolean; isDelete?: boolean }> = Array.isArray(body.efectos) ? body.efectos : [];
 
       const fieldErrors: any[] = [];
@@ -83,6 +83,8 @@ export class MovimientoStockController extends BaseController {
       if (tipoDestino === 'objetivo' && !objetivoId) fieldErrors.push({ fieldTree: 'objetivoId', kind: 'server', message: 'El objetivo es obligatorio.' });
       if (tipoDestino === 'proveedor' && !proveedorId) fieldErrors.push({ fieldTree: 'proveedorId', kind: 'server', message: 'El proveedor es obligatorio.' });
       if (!efectos.length) throw new ClientException("Debe ingresar al menos un efecto.");
+
+      //for (const linea of efectos)  {   //Ver index para los fieldTree
 
       for (let i = 0; i < efectos.length; i++) {
         const linea = efectos[i];

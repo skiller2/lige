@@ -222,12 +222,12 @@
       </div>
     </ng-template>
   </ng-template>
-
+                                            
   @for (ef of formEfectoStock.efectos; track trackByTrackId(ef); let i = $index, last = $last){
      
     <app-efecto-stock-linea [field]="ef" [sucursalDestino]="sucursalDescripcionDisplay()" />
 
-    <!--
+    <!--  formEfectoStock.value().SucursalId
   <p>Linea:{{ ef().value()|json}}</p>
     -->
       @if (last) {

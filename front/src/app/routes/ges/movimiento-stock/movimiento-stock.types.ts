@@ -28,7 +28,7 @@ export interface ParametroformEfectoStock {
 export const nuevaEfectoLinea = (): EfectoStockLinea => ({
   trackId: crypto.randomUUID(),
   EfectoId: null, 
-  Cantidad: null, 
+  Cantidad: null,
   StockId: null, 
   EfectoIndividualId: null,
   Usado: false, 
