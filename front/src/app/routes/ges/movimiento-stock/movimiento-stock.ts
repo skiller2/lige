@@ -247,6 +247,13 @@ export class MovimientoStockComponent {
 
 
   async confirmar() {
+    this.parametroStock.update(m => ({
+      ...m,
+      efectos: m.efectos.filter((row, i) => row.EfectoId),
+    }));
+
+
+
     await submit(this.formEfectoStock, async (form) => {
       const formValue = form().value();
 
