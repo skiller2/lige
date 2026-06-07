@@ -61,33 +61,33 @@ export class MovimientoStockController extends BaseController {
     try {
       const body = req.body ?? {};
       console.log('[confirmarMovimiento] body recibido:', JSON.stringify(body, null, 2));
-      const fecha = body.fecha;
-      const tipoDestino: string = body.tipoDestino ?? '';
-      const depositoId = body.depositoId ?? null;
-      const personalId = body.personalId ?? null;
-      const objetivoId = body.objetivoId != null ? Number(body.objetivoId) : null;
-      const proveedorId = body.proveedorId ?? null;
-      const intermediarioId = body.intermediarioId ?? null;
-      const observaciones: string = body.observaciones ?? '';
+      const fecha           = new Date(body.fecha);
+      const tipoDestino     = String(body.tipoDestino ) ?? null ;
+      const depositoId      = Number(body.depositoId) ?? null;
+      const personalId      = Number(body.personalId) ?? null;
+      const objetivoId      = Number(body.objetivoId) ?? null;
+      const proveedorId     = Number(body.proveedorId) ?? null;
+      const personalIdInter = Number(body.personalIdInter) ?? null;
+      const observaciones   = String(body.observaciones) ?? '';
+      
       const efectos: Array<{ EfectoId: number; StockId: number; Cantidad: number; EfectoIndividualId: number | null; Usado: boolean; isDelete?: boolean }> = Array.isArray(body.efectos) ? body.efectos : [];
 
       const fieldErrors: any[] = [];
 
       if (!fecha) fieldErrors.push({ fieldTree: 'fecha', kind: 'server', message: 'La fecha es obligatoria.' });
-      const tiposValidos = ['deposito', 'personal', 'objetivo', 'proveedor', 'intermediario'];
+      //TODO:  Ojo lo está repitiendo
+      const tiposValidos = ['deposito', 'personal', 'objetivo', 'proveedor'];
       if (!tiposValidos.includes(tipoDestino)) fieldErrors.push({ fieldTree: 'tipoDestino', kind: 'server', message: 'El tipo de destino es obligatorio.' });
       if (tipoDestino === 'deposito' && !depositoId) fieldErrors.push({ fieldTree: 'depositoId', kind: 'server', message: 'El depósito es obligatorio.' });
       if (tipoDestino === 'personal' && !personalId) fieldErrors.push({ fieldTree: 'personalId', kind: 'server', message: 'La persona es obligatoria.' });
       if (tipoDestino === 'objetivo' && !objetivoId) fieldErrors.push({ fieldTree: 'objetivoId', kind: 'server', message: 'El objetivo es obligatorio.' });
       if (tipoDestino === 'proveedor' && !proveedorId) fieldErrors.push({ fieldTree: 'proveedorId', kind: 'server', message: 'El proveedor es obligatorio.' });
-      if (tipoDestino === 'intermediario' && !intermediarioId) fieldErrors.push({ fieldTree: 'intermediarioId', kind: 'server', message: 'La persona es obligatoria.' });
       if (!efectos.length) throw new ClientException("Debe ingresar al menos un efecto.");
 
       for (let i = 0; i < efectos.length; i++) {
         const linea = efectos[i];
         const n = i + 1;
         console.log(`[confirmarMovimiento] linea ${n} -> EfectoId:`, linea.EfectoId, 'StockId:', linea.StockId, 'Cantidad:', linea.Cantidad, 'EfectoIndividualId:', linea.EfectoIndividualId, 'Usado:', linea.Usado, 'isDelete:', linea.isDelete);
-        if (linea.isDelete) continue; // línea borrada (borrado lógico): no se valida
         if (!linea.EfectoId) fieldErrors.push({ fieldTree: `efectos[${i}].EfectoId`, kind: 'server', message: 'Efecto obligatorio.' });
         if (!linea.StockId) fieldErrors.push({ fieldTree: `efectos[${i}].StockId`, kind: 'server', message: 'Ubicación obligatoria.' });
         if (linea.Cantidad == null || Number(linea.Cantidad) <= 0)
