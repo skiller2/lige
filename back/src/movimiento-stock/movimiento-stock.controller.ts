@@ -7,7 +7,6 @@ const tiposDestino = [
   { value: "personal", label: "Personas" },
   { value: "objetivo", label: "Objetivos" },
   { value: "proveedor", label: "Proveedores" },
-  { value: "intermediario", label: "Intermediario" },
 ];
 
 // Orígenes válidos para precargar las líneas de movimiento (buscador suelto bajo "Origen").

@@ -35,13 +35,12 @@ export class MovimientoStockComponent {
     personalId: null,
     objetivoId: null,
     proveedorId: null,
-    intermediarioId: null,
+    personalIdInter: null,
     observaciones: '',
     efectos: [nuevaEfectoLinea()],
   };
 
   readonly parametroStock = signal<ParametroformEfectoStock>(this.defaultStockForm);
-
 
   private readonly persistir = effect(() => {
     const value = this.parametroStock();
@@ -51,11 +50,13 @@ export class MovimientoStockComponent {
   });
 
   ngOnInit(): void {
-      this.parametroStock.set(this.cargarDesdeStorage()??this.defaultStockForm)
-      this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
+    const form = this.cargarDesdeStorage()
+    if (form)
+      this.parametroStock.update(s => ({ ...s, ...form }));  
+    this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
   }
 
-  /** Lee el formulario guardado y reconstruye la `fecha` como Date (en JSON viaja como string). */
+  /** Lee el formulario guardado (en JSON viaja como string). */
   private cargarDesdeStorage(): ParametroformEfectoStock | null {
     try {
       const raw = localStorage.getItem(this.STORAGE_KEY);
@@ -82,21 +83,20 @@ export class MovimientoStockComponent {
     required(p.personalId, { message: 'La persona es obligatoria', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'personal' });
     required(p.objetivoId, { message: 'El objetivo es obligatorio', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'objetivo' });
     required(p.proveedorId, { message: 'El proveedor es obligatorio', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'proveedor' });
-    required(p.intermediarioId, { message: 'La persona es obligatoria', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'intermediario' });
 
-        applyEach(p.efectos, (linea) => {
-          required(linea.EfectoId, { message: 'Efecto obligatorio' });
-          required(linea.StockId, { message: 'Ubicación obligatoria' });
-          // La cantidad no puede ser 0 ni negativa. El tope por stock se valida al confirmar (ver validarCantidades).
-          validate(linea.Cantidad, (ctx) => {
-            const v = ctx.value();
-            if (v == null || (v as any) === '') return null; // el vacío se valida al confirmar
-            const n = Number(v);
-            if (Number.isNaN(n) || n <= 0) return { kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' };
-            return null;
-          });
-          
-        });
+    applyEach(p.efectos, (linea) => {
+      required(linea.EfectoId, { message: 'Efecto obligatorio' });
+      required(linea.StockId, { message: 'Ubicación obligatoria' });
+      // La cantidad no puede ser 0 ni negativa. El tope por stock se valida al confirmar (ver validarCantidades).
+      validate(linea.Cantidad, (ctx) => {
+        const v = ctx.value();
+        if (v == null || (v as any) === '') return null; // el vacío se valida al confirmar
+        const n = Number(v);
+        if (Number.isNaN(n) || n <= 0) return { kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' };
+        return null;
+      });
+
+    });
 
   });
 
@@ -231,18 +231,6 @@ export class MovimientoStockComponent {
     },
   });
 
-  // Stock disponible por StockId, juntando las ubicaciones cargadas por cada fila (para validar la cantidad).
-  /*
-  readonly stockDisponibleByStockId = computed(() => {
-    const map = new Map<number, number>();
-    for (const row of this.parametroStock().efectos) {
-      for (const u of row.ubicaciones.value() ?? []) {
-        if (u.StockId != null && u.StockStock != null) map.set(Number(u.StockId), Number(u.StockStock));
-      }
-    }
-    return map;
-  });
-*/
 
   async confirmar() {
     await submit(this.formEfectoStock, async (form) => {
@@ -259,7 +247,19 @@ export class MovimientoStockComponent {
       return undefined;
     });
   }
+
+  // Stock disponible por StockId, juntando las ubicaciones cargadas por cada fila (para validar la cantidad).
   /*
+  readonly stockDisponibleByStockId = computed(() => {
+    const map = new Map<number, number>();
+    for (const row of this.parametroStock().efectos) {
+      for (const u of row.ubicaciones.value() ?? []) {
+        if (u.StockId != null && u.StockStock != null) map.set(Number(u.StockId), Number(u.StockStock));
+      }
+    }
+    return map;
+  });
+  
     private validarCantidades(v: ParametroformEfectoStock): { fieldTree: string; kind: string; message: string }[] {
       const errores: { fieldTree: string; kind: string; message: string }[] = [];
       const stock = this.stockDisponibleByStockId();
@@ -277,6 +277,7 @@ export class MovimientoStockComponent {
       return errores;
     }
   */
+
   sucursalDescripcionDisplay = computed(() => {
     const tipo = this.tipoDestinoSeleccionado();
     if (tipo === 'personal') return this.personaInfo.value()?.SucursalDescripcion ?? null;
@@ -306,7 +307,6 @@ export class MovimientoStockComponent {
       efectos: m.efectos.filter((_, i) => i !== index),
     }));
   }
-
 
   trackByTrackId(item: any) {
     try {
