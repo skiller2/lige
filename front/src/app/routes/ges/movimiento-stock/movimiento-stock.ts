@@ -51,8 +51,11 @@ export class MovimientoStockComponent {
 
   ngOnInit(): void {
     const form = this.cargarDesdeStorage()
-    if (form)
-      this.parametroStock.update(s => ({ ...s, ...form }));  
+    if (form){
+      this.parametroStock.update(s => ({ ...s, ...form }));
+    this.formEfectoStock().markAsTouched()
+    this.formEfectoStock().markAsDirty()      
+    }  
     this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
   }
 
@@ -141,12 +144,17 @@ export class MovimientoStockComponent {
     const id = Number(personalId);
     if (!id) { this.cargadoDesdeBusqueda.set(false); return; }
     this.aplicarLineas(this.construirLineas(await firstValueFrom(this.searchService.getEfectoByPersonalId(id))));
+    this.formEfectoStock().markAsTouched()
+    this.formEfectoStock().markAsDirty()
   }
 
   async cargarEfectosDeObjetivo(objetivoId: number | string | null): Promise<void> {
     const id = Number(objetivoId);
     if (!id) { this.cargadoDesdeBusqueda.set(false); return; }
     this.aplicarLineas(this.construirLineas(await firstValueFrom(this.searchService.getEfectoByObjetivoId(id))));
+    this.formEfectoStock().markAsTouched()
+    this.formEfectoStock().markAsDirty()
+
   }
 
   // El individual viene como EfectoIndividualId (persona) o EfectoEfectoIndividualId (objetivo).
