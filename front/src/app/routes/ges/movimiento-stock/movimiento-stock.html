@@ -223,14 +223,14 @@
     </ng-template>
   </ng-template>
 
-  @for (ef of formEfectoStock.efectos; track trackByTrackId(ef); let i = $index){
+  @for (ef of formEfectoStock.efectos; track trackByTrackId(ef); let i = $index, last = $last){
      
     <app-efecto-stock-linea [field]="ef" [sucursalDestino]="sucursalDescripcionDisplay()" />
 
     <!--
   <p>Linea:{{ ef().value()|json}}</p>
     -->
-      @if (formEfectoStock.efectos.length == i+1) {
+      @if (last) {
         <button type="button" nz-button nzType="primary" class="add-button" (click)="addEfectoLinea($event)" nz-tooltip
           nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
           <span nz-icon nzType="plus"></span>
