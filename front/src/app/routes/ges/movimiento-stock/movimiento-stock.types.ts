@@ -1,5 +1,6 @@
 /** Una línea de origen: el efecto a mover, su ubicación, cantidad y el efecto relacionado opcional. */
 export interface EfectoStockLinea {
+  trackId:string;
   EfectoId: number | null;
   Cantidad: number | null;
   StockId: number | null;
@@ -8,7 +9,6 @@ export interface EfectoStockLinea {
   RelacionEfectoId: number | null;
   RelacionStockId: number | null;
   RelacionEfectoIndividualId: number | null;
-  //isDelete: boolean;
 }
 
 /** Datos del formulario completo: destino (cabecera) + las líneas de origen. */
@@ -26,7 +26,14 @@ export interface ParametroformEfectoStock {
 
 /** Crea una línea vacía. */
 export const nuevaEfectoLinea = (): EfectoStockLinea => ({
-  EfectoId: null, Cantidad: null, StockId: null, EfectoIndividualId: null,
-  Usado: false, RelacionEfectoId: null, RelacionStockId: null, RelacionEfectoIndividualId: null,
-  //isDelete: false,
+  trackId: crypto.randomUUID(),
+  EfectoId: null, 
+  Cantidad: null, 
+  StockId: null, 
+  EfectoIndividualId: null,
+  Usado: false, 
+  RelacionEfectoId: null, 
+  RelacionStockId: null, 
+  RelacionEfectoIndividualId: null,
 });
+

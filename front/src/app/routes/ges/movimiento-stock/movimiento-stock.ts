@@ -90,23 +90,21 @@ export class MovimientoStockComponent {
     required(p.proveedorId, { message: 'El proveedor es obligatorio', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'proveedor' });
     required(p.intermediarioId, { message: 'La persona es obligatoria', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'intermediario' });
 
-    applyEach(p.efectos, (linea) => {
-      required(linea.EfectoId, { message: 'Efecto obligatorio' });
-      required(linea.StockId, { message: 'Ubicación obligatoria' });
-      // La cantidad no puede ser 0 ni negativa. El tope por stock se valida al confirmar (ver validarCantidades).
-      validate(linea.Cantidad, (ctx) => {
-        //if (ctx.valueOf(linea.isDelete)) return null; // línea borrada: no se valida
-        const v = ctx.value();
-        if (v == null || (v as any) === '') return null; // el vacío se valida al confirmar
-        const n = Number(v);
-        if (Number.isNaN(n) || n <= 0) return { kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' };
-        return null;
-      });
-    });
-  });
+        applyEach(p.efectos, (linea) => {
+          required(linea.EfectoId, { message: 'Efecto obligatorio' });
+          required(linea.StockId, { message: 'Ubicación obligatoria' });
+          // La cantidad no puede ser 0 ni negativa. El tope por stock se valida al confirmar (ver validarCantidades).
+          validate(linea.Cantidad, (ctx) => {
+            const v = ctx.value();
+            if (v == null || (v as any) === '') return null; // el vacío se valida al confirmar
+            const n = Number(v);
+            if (Number.isNaN(n) || n <= 0) return { kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' };
+            return null;
+          });
+          
+        });
 
-  // Cada fila es un <app-efecto-stock-linea>; las consultamos para conocer el stock disponible al confirmar.
-  private readonly lineas = viewChildren(EfectoStockLineaComponent);
+  });
 
   // Buscador persona/objetivo dentro del popconfirm bajo "Origen".
   readonly tipoBusqueda = signal<'persona' | 'objetivo'>('persona');
@@ -160,6 +158,7 @@ export class MovimientoStockComponent {
   // El individual viene como EfectoIndividualId (persona) o EfectoEfectoIndividualId (objetivo).
   private construirLineas(registros: any[]): EfectoStockLinea[] {
     return (registros ?? []).map((r: any) => ({
+      trackId: crypto.randomUUID(),
       EfectoId: r.EfectoId ?? null,
       Cantidad: Number(r.StockStock ?? 0) - Number(r.StockReservado ?? 0),
       StockId: r.StockId ?? null,
@@ -168,7 +167,6 @@ export class MovimientoStockComponent {
       RelacionEfectoId: null,
       RelacionStockId: null,
       RelacionEfectoIndividualId: null,
-      isDelete: false,
     }));
   }
 
@@ -240,42 +238,23 @@ export class MovimientoStockComponent {
   });
 
   // Stock disponible por StockId, juntando las ubicaciones cargadas por cada fila (para validar la cantidad).
+  /*
   readonly stockDisponibleByStockId = computed(() => {
     const map = new Map<number, number>();
-    for (const linea of this.lineas()) {
-      for (const u of linea.ubicaciones.value() ?? []) {
+    for (const row of this.parametroStock().efectos) {
+      for (const u of row.ubicaciones.value() ?? []) {
         if (u.StockId != null && u.StockStock != null) map.set(Number(u.StockId), Number(u.StockStock));
       }
     }
     return map;
   });
-
-  // Líneas visibles (no borradas) y el índice de la última visible: con esto la UI sabe dónde va
-  // el botón "+" y si se puede eliminar, sin tocar el array real (que mantiene su longitud).
-  readonly cantidadVisibles = computed(() => this.parametroStock().efectos.length);
-  readonly ultimoVisibleIndex = computed(() => {
-    const efs = this.parametroStock().efectos;
-    for (let i = efs.length - 1; i >= 0; i--)  return i;
-    return -1;
-  });
-
-  // Borrado lógico: marca isDelete=true sin sacar el item del array (así el form no se reindexa
-  // ni re-dispara los resource de las demás filas). Si no queda ninguna visible, agrega una vacía.
-  /*
-  removeEfecto(index: number): void {
-    this.parametroStock.update(s => {
-      const efectos = s.efectos.map((e, i) => i === index ? { ...e, isDelete: true } : e);
-      const hayVisibles = efectos;
-      return { ...s, efectos: hayVisibles ? efectos : [...efectos, nuevaEfectoLinea()] };
-    });
-  }
-    */
+*/
 
   async confirmar() {
     await submit(this.formEfectoStock, async (form) => {
       // La cantidad se valida al confirmar (no al perder foco). Es client-side: no va al back.
-      const errores = this.validarCantidades(form().value());
-      if (errores.length) return this.apiService.formBackendErrors(form, errores);
+      //      const errores = this.validarCantidades(form().value());
+      //      if (errores.length) return this.apiService.formBackendErrors(form, errores);
 
       try {
         await firstValueFrom(this.apiService.confirmarStockEfecto(form().value()));
@@ -286,24 +265,24 @@ export class MovimientoStockComponent {
       return undefined;
     });
   }
-
-  private validarCantidades(v: ParametroformEfectoStock): { fieldTree: string; kind: string; message: string }[] {
-    const errores: { fieldTree: string; kind: string; message: string }[] = [];
-    const stock = this.stockDisponibleByStockId();
-    v.efectos.forEach((linea, i) => {
-      const cantidad = Number(linea.Cantidad);
-      if (linea.Cantidad == null || Number.isNaN(cantidad) || cantidad <= 0) {
-        errores.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' });
-      } else if (linea.StockId != null) {
-        const disponible = stock.get(Number(linea.StockId));
-        if (disponible != null && cantidad > disponible) {
-          errores.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'stock', message: `La cantidad (${cantidad}) supera el stock disponible (${disponible})` });
+  /*
+    private validarCantidades(v: ParametroformEfectoStock): { fieldTree: string; kind: string; message: string }[] {
+      const errores: { fieldTree: string; kind: string; message: string }[] = [];
+      const stock = this.stockDisponibleByStockId();
+      v.efectos.forEach((linea, i) => {
+        const cantidad = Number(linea.Cantidad);
+        if (linea.Cantidad == null || Number.isNaN(cantidad) || cantidad <= 0) {
+          errores.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' });
+        } else if (linea.StockId != null) {
+          const disponible = stock.get(Number(linea.StockId));
+          if (disponible != null && cantidad > disponible) {
+            errores.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'stock', message: `La cantidad (${cantidad}) supera el stock disponible (${disponible})` });
+          }
         }
-      }
-    });
-    return errores;
-  }
-
+      });
+      return errores;
+    }
+  */
   sucursalDescripcionDisplay = computed(() => {
     const tipo = this.tipoDestinoSeleccionado();
     if (tipo === 'personal') return this.personaInfo.value()?.SucursalDescripcion ?? null;
@@ -322,15 +301,26 @@ export class MovimientoStockComponent {
   addEfectoLinea(e: MouseEvent): void {
     e.preventDefault();
     const efectoLinea = structuredClone(nuevaEfectoLinea())
-    this.parametroStock.update(s => ({ ...s, efectos: [...s.efectos, nuevaEfectoLinea()] }));
+    this.parametroStock.update(s => ({ ...s, efectos: [...s.efectos, efectoLinea] }));
   }
 
   removeEfectoLinea(index: number, e: MouseEvent): void {
     e.preventDefault();
+
     this.parametroStock.update(m => ({
       ...m,
       efectos: m.efectos.filter((_, i) => i !== index),
     }));
+  }
+
+
+  trackByTrackId(item: any) {
+    try {
+      const id = item().value().trackId
+      return id;
+    } catch (w) {
+      return null
+    }
 
   }
 

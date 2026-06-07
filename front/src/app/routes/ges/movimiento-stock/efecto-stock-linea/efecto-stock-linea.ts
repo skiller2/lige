@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, resource, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, model, output, resource, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
@@ -29,7 +29,7 @@ export class EfectoStockLineaComponent {
   private search = inject(SearchService);
 
   /** Sub-form de esta línea (lo provee el `form()` del padre vía applyEach). */
-  readonly field = input.required<FieldTree<EfectoStockLinea>>();
+  readonly field = model.required<FieldTree<EfectoStockLinea>>();
   /** Descripción de la sucursal del destino, para autoseleccionar el depósito que coincide. */
   readonly sucursalDestino = input<string | null>(null);
 
