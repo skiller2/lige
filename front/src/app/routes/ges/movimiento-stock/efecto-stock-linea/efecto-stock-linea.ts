@@ -30,13 +30,9 @@ export class EfectoStockLineaComponent {
 
   /** Sub-form de esta línea (lo provee el `form()` del padre vía applyEach). */
   readonly field = input.required<FieldTree<EfectoStockLinea>>();
-  readonly esUltima = input(false);
-  readonly puedeEliminar = input(false);
   /** Descripción de la sucursal del destino, para autoseleccionar el depósito que coincide. */
   readonly sucursalDestino = input<string | null>(null);
 
-  readonly agregar = output<void>();
-  readonly eliminar = output<void>();
 
   /** El bloque "Relacionado con" está visible. */
   readonly relacionAbierta = signal(false);
