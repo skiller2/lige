@@ -22,7 +22,7 @@
   </nz-form-control>
 
   <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Ubicación</nz-form-label>
-  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="6" nzHasFeedback sfErrorTip>
+  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="7" nzHasFeedback sfErrorTip>
     <nz-select [formField]="field().StockId" nzAllowClear nzShowSearch
       [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzPlaceHolder="Seleccione una ubicación">
       @for (grupo of agrupar(ubicaciones.value() ?? []); track grupo.tipo) {
@@ -36,7 +36,7 @@
   </nz-form-control>
 
   <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Cantidad</nz-form-label>
-  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="3" nzHasFeedback sfErrorTip>
+  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="4" nzHasFeedback sfErrorTip>
     <input nz-input placeholder="" [formField]="field().Cantidad" type="number" />
   </nz-form-control>
 
