@@ -51,7 +51,7 @@ export class CuentasBancariasComponent {
       let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
-          response = await firstValueFrom(this.apiService.getCuentasBancarias(params.options));
+        response = await firstValueFrom(this.apiService.getCuentasBancarias({options: params.options}));
       } catch (_e) { }
       this.loadingSrv.close()
 
