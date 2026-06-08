@@ -140,7 +140,7 @@ export class CuentasBancariasController extends BaseController {
   }
 
   async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any) {
-
+    const now = new Date();
     return await queryRunner.query(`
       SELECT CONCAT(pb.PersonalId, '-',PersonalBancoId, '-', pb.PersonalBancoCBU) id,
         pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta
@@ -164,7 +164,7 @@ export class CuentasBancariasController extends BaseController {
           END AS sitRevCom
         FROM PersonalSituacionRevista p
         JOIN SituacionRevista s
-        ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
+        ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= @0 AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >=@0
       ) sitrev ON sitrev.PersonalId = per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
@@ -186,12 +186,14 @@ export class CuentasBancariasController extends BaseController {
             END AS GrupoActividadDetalle
           FROM GrupoActividadPersonal gap
           LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
-          WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= CAST(GETDATE() AS DATE)
-            AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
+          WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= @0
+            AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= @0
       ) ga ON ga.GrupoActividadPersonalPersonalId= per.PersonalId
-      WHERE (${filterSql})
+
+      Where ((@0 >=pb.PersonalBancoDesde and @0<= isnull(pb.PersonalBancoHasta, '9999-12-31')) or @0 <= pb.PersonalBancoDesde) 
+      and (${filterSql})
       ${orderBy}
-    `, [])
+    `, [now])
   }
 
   async getCuentasBancarias(req: any, res: Response, next: NextFunction) {

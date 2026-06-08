@@ -2951,6 +2951,9 @@ UNION ALL
   }
 
   isCBU(cbu: string): boolean {
+    if (!cbu || cbu.trim() == '')
+      return true
+
     // Verifica que tenga exactamente 22 caracteres
     if (cbu.length != 22)
       return false
@@ -2969,17 +2972,19 @@ UNION ALL
     const fechaActual = new Date()
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
-    const queryRunner = await getConnection(res.locals.userName);
+    const queryRunner = await getConnection(usuario);
     const PersonalId: number = Number(req.params.id);
     const BancoId: number = req.body.BancoId
-    const CBU = req.body.CBU
+    const CBU = req.body.CBU?.trim() || null
     let Desde = req.body.Desde
+    const IndNuevaCuenta = CBU ? 0 : 1
+
     try {
       let campos_vacios: any[] = []
       await queryRunner.startTransaction()
 
       if (!BancoId) campos_vacios.push(`- Banco`);
-      if (!CBU) campos_vacios.push(`- CBU`);
+      //if (!CBU) campos_vacios.push(`- CBU`);
       if (!Desde) campos_vacios.push(`- Fecha Desde`);
       if (campos_vacios.length) {
         campos_vacios.unshift('Debe completar los siguientes campos:')
@@ -2989,12 +2994,14 @@ UNION ALL
         throw new ClientException('El CBU debe ser de 22 digitos.')
 
       let PersonalBanco = await queryRunner.query(`
-        SELECT PersonalBancoId
-        FROM PersonalBanco 
-        WHERE PersonalBancoCBU = @0 AND PersonalBancoHasta IS NULL
-      `, [CBU])
-      if (PersonalBanco.length)
-        throw new ClientException('No puedes ingresar un CBU ya registrado.');
+        SELECT pb.PersonalBancoId, CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT
+        FROM PersonalBanco pb
+        Left JOIN Personal per ON per.PersonalId = pb.PersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+        WHERE pb.PersonalBancoCBU = @0 AND  @1 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @1 >= pb.PersonalBancoDesde
+      `, [CBU, fechaActual])
+      if (PersonalBanco.length && CBU != '' && CBU != null)
+        throw new ClientException(`El CBU ingresado se encuentra registrado y vigente en una persona. (${PersonalBanco[0].ApellidoNombre} - CUIT: ${PersonalBanco[0].CUIT ? PersonalBanco[0].CUIT : ''})`);
 
       Desde = new Date(Desde)
       Desde.setHours(0, 0, 0, 0)
@@ -3009,9 +3016,10 @@ UNION ALL
         const PersonalBancoId = PersonalBanco[0].PersonalBancoId
         await queryRunner.query(`
           UPDATE PersonalBanco SET
-          PersonalBancoCBU = @3
+          PersonalBancoCBU = @3,
+          IndNuevaCuenta = @4
           WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
-        `, [PersonalId, BancoId, PersonalBancoId, CBU])
+        `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta])
       } else {
         if (PersonalBanco.length) {
           if (PersonalBanco[0].PersonalBancoDesde.getTime() > Desde.getTime())
@@ -3033,14 +3041,13 @@ UNION ALL
           WHERE PersonalId IN (@0)
         `, [PersonalId])
         const newPersonalBancoId = Personal[0].UltNro
-        const IndNuevaCuenta= (CBU.trim() != '')? 0 : 1
         await queryRunner.query(`
           INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
           AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod)
           VALUES (@0, @1, @2, @3, @4,@5, @6,@7,@8,@9,@10,@11)
 
           UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
-        `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, IndNuevaCuenta,fechaActual, fechaActual, usuario, usuario, ip, ip])
+        `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, IndNuevaCuenta, fechaActual, fechaActual, usuario, usuario, ip, ip])
       }
 
       await queryRunner.commitTransaction()
