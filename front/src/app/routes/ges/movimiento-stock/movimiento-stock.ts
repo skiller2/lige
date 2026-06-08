@@ -84,7 +84,7 @@ export class MovimientoStockComponent {
     //FIX for computed anio & mes
     this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
 
-    queueMicrotask(() => {
+    queueMicrotask(() => {  //Fix componente fecha de ng-zorro
       this.parametroStock.update(s => ({ ...s, fecha: new Date() }));
     })
   }
