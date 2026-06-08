@@ -127,7 +127,7 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Dir. Provincia",
+    name: "Provincia del Objetivo",
     type: "number",
     id: "DomicilioProvinciaId",
     field: "DomicilioProvinciaId",
@@ -137,6 +137,28 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: true,
     searchHidden: false,
+    editable: false
+  },
+  {
+    name: "Provincia del Objetivo",
+    type: "string",
+    id: "ProvinciaDescripcion",
+    field: "ProvinciaDescripcion",
+    fieldName: "objdom.ProvinciaDescripcion",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    editable: false
+  },
+  {
+    name: "Rubro Objetivo",
+    type: "string",
+    id: "RubroClienteDescripcion",
+    field: "RubroClienteDescripcion",
+    fieldName: "rub.RubroClienteDescripcion",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
     editable: false
   },
   {
@@ -433,6 +455,8 @@ export class ImporteVentaVigilanciaController extends BaseController {
           
           (ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0) -ISNULL( sumtotalhorascalcN,0)) AS DiferenciaHoras,
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
+          objdom.DomicilioProvinciaId, objdom.ProvinciaDescripcion,
+          rubros.RubroClienteDescripciones AS RubroClienteDescripcion, rubros.RubroClienteIds AS RubroClienteId,
 
           1
         FROM Objetivo obj 
@@ -501,27 +525,6 @@ export class ImporteVentaVigilanciaController extends BaseController {
         -- LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = persona.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = persona.PersonalId) 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 LEFT JOIN ( 
           SELECT objd.ObjetivoId, objd.ObjetivoAsistenciaAnoMesId, objd.ObjetivoAsistenciaAnoId,
             SUM(((
@@ -579,17 +582,6 @@ LEFT JOIN (
         ) objasissubT ON objasissubT.ObjetivoId = obj.ObjetivoId AND objasissubT.ObjetivoAsistenciaAnoMesId = objm.ObjetivoAsistenciaAnoMesId AND objasissubT.ObjetivoAsistenciaAnoId = objm.ObjetivoAsistenciaAnoId
 
 
-
-
-
-
-
-
-
-
-
-
-
         LEFT JOIN (
           SELECT gao.GrupoActividadObjetivoObjetivoId, MAX(ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31')) AS GrupoActividadObjetivoHasta FROM GrupoActividadObjetivo gao WHERE EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gao.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') GROUP BY gao.GrupoActividadObjetivoObjetivoId
         ) AS gas ON gas.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
@@ -607,11 +599,27 @@ LEFT JOIN (
         LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
 
         LEFT JOIN (
-          SELECT obj2.ObjetivoId, dom.DomicilioProvinciaId
+          SELECT obj2.ObjetivoId, dom.DomicilioProvinciaId, TRIM(prov.ProvinciaDescripcion) ProvinciaDescripcion
           FROM Objetivo obj2
           LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = obj2.ClienteElementoDependienteId AND nexdom.ClienteId = obj2.ClienteId AND nexdom.NexoDomicilioActual = 1
           LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
+        LEFT JOIN Provincia prov on prov.PaisId=dom.DomicilioPaisId and prov.ProvinciaId=dom.DomicilioProvinciaId
         ) AS objdom ON objdom.ObjetivoId = obj.ObjetivoId
+
+        LEFT JOIN (
+            SELECT
+                objru.ClienteId,
+                objru.ClienteElementoDependienteId,
+                STRING_AGG(CAST(rub.RubroClienteId AS varchar(20)), ', ') AS RubroClienteIds,
+                STRING_AGG(TRIM(rub.RubroClienteDescripcion), ', ') AS RubroClienteDescripciones
+            FROM ClienteEleDepRubro objru
+            LEFT JOIN RubroCliente rub
+                ON rub.RubroClienteId = objru.ClienteElementoDependienteRubroClienteId
+            GROUP BY
+                objru.ClienteId,
+                objru.ClienteElementoDependienteId
+        ) rubros ON rubros.ClienteId = obj.ClienteId
+        AND rubros.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
 
         WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
         AND (${filterSql})
@@ -627,7 +635,7 @@ LEFT JOIN (
 
     } catch (error) {
       return next(error)
-    }finally {
+    } finally {
       await queryRunner.release()
     }
   }
@@ -660,7 +668,7 @@ LEFT JOIN (
       if (checkrecibos[0]?.ind_recibos_generados == 1)
         throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
 
-      
+
       await queryRunner.startTransaction()
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
@@ -833,7 +841,7 @@ LEFT JOIN (
   }
 
   async getImportacionesOrdenesDeVentaAnteriores(req: Request, res: Response, next: NextFunction) {
-      const queryRunner = await getConnection(res.locals.userName);
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
 
@@ -863,7 +871,7 @@ LEFT JOIN (
 
     } catch (error) {
       return next(error)
-    }finally {
+    } finally {
       await queryRunner.release()
     }
 
