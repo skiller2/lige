@@ -1,4 +1,4 @@
-import { Component, inject, signal, model, computed, ViewEncapsulation, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal, model, resource, input, computed, effect, output } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -10,12 +10,23 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FormBuilder, FormArray } from '@angular/forms';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { form, FormField, required, submit } from '@angular/forms/signals';
+import { FormsModule } from '@angular/forms';
+
+export interface PersonalBanco {
+    PersonalId: number,
+    BancoId: number, 
+    CBU: string, 
+    Desde: Date|null
+}
 
 @Component({
     selector: 'app-personal-banco-drawer',
     templateUrl: './personal-banco-drawer.component.html',
     styleUrl: './personal-banco-drawer.component.less',
-    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
+    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, PersonalSearchComponent, FormField, FormsModule],
     providers: [AngularUtilService]
 })
   
@@ -26,30 +37,45 @@ export class PersonalBancoDrawerComponent {
     isLoading2 = signal(false);
     visibleBanco = model<boolean>(false)
     placement: NzDrawerPlacement = 'left';
+    onAddorUpdate = output()
 
-    constructor(
-        private searchService: SearchService,
-        private apiService: ApiService,
-    ) { }
+    private searchService = inject(SearchService)
+    private apiService = inject(ApiService)
     private destroy$ = new Subject();
 
-    selectedPersonalIdChange$ = new BehaviorSubject('');
+    private readonly defaultPersonalBancoForm: PersonalBanco = { 
+        PersonalId: 0,
+        BancoId: 0, 
+        CBU: '', 
+        Desde: new Date()
+    }
+    
+    readonly personalBanco = signal<PersonalBanco>(this.defaultPersonalBancoForm)
+    readonly formPersonalBanco = form(this.personalBanco)
 
-    fb = inject(FormBuilder)
-    formPerBanco = this.fb.group({
-        BancoId: 0, CBU:'', Desde:new Date()
+    effect = effect(async () => {
+        if (!this.visibleBanco()) return
+        this.personalBanco.set({...this.defaultPersonalBancoForm, PersonalId: this.PersonalId()});
     })
+    // this.personalBanco().Desde
+    anio = computed(() => (this.personalBanco().Desde)? this.personalBanco().Desde!.getFullYear(): 0);
+    mes = computed(() => (this.personalBanco().Desde)? (this.personalBanco().Desde!.getMonth()+1): 0);
 
-    $optionsBanco = this.searchService.getBancosOptions();
-    $listaBancoPer = this.selectedPersonalIdChange$.pipe(
-        debounceTime(500),
-        switchMap(() =>{
-            setTimeout(async () => {
-                const personal = await firstValueFrom(this.searchService.getPersonalById(this.PersonalId()))
+    optionsBanco = toSignal(this.searchService.getBancosOptions())
+    listaBancoPer = resource({
+        params: () => ({ PersonalId: this.PersonalId() }),
+        loader: async ({ params }) => {
+        let response = []
+        try {
+            const personal = await firstValueFrom(this.searchService.getPersonalById(params.PersonalId))
+            if (personal.PersonalApellido && personal.PersonalNombre) {
                 this.PersonalNombre.set(personal.PersonalApellido+', '+personal.PersonalNombre)
-            }, 0);
-            return this.searchService.getHistorialPersonalBanco(
-                Number(this.PersonalId())
+            } else {
+                this.PersonalNombre.set('')
+            }
+            
+            response = await firstValueFrom(this.searchService.getHistorialPersonalBanco(
+                params.PersonalId
             ).pipe(map(data => {
                 data.map((obj:any) =>{
                     let inicio = new Date(obj.Desde)
@@ -58,12 +84,16 @@ export class PersonalBancoDrawerComponent {
                     obj.Hasta = fin? `${fin.getDate()}/${fin.getMonth()+1}/${fin.getFullYear()}` : fin
                 })
                 return data
-            }))
-        })
-    );
+            })));
+        } catch (_e) { }
+
+        return response || [];
+        },
+
+        defaultValue: []
+    });
 
     async ngOnInit(){
-        this.selectedPersonalIdChange$.next('');
     }
 
     ngOnDestroy(): void {
@@ -72,26 +102,30 @@ export class PersonalBancoDrawerComponent {
     }
 
     async save() {
-        this.isLoading1.set(true)
-        let values = this.formPerBanco.value
-        try {
-            await firstValueFrom(this.apiService.setPersonalBanco(this.PersonalId(), values))
-            this.selectedPersonalIdChange$.next('')
-            this.formPerBanco.markAsUntouched()
-            this.formPerBanco.markAsPristine()
-        } catch (e) {
+        await submit(this.formPersonalBanco, async (form) => {
+            this.isLoading1.set(true)
+            const values: PersonalBanco = form().value()
+            try {
+                await firstValueFrom(this.apiService.setPersonalBanco(values))
+                this.onAddorUpdate.emit()
+            } catch (e) {
 
-        }
-        this.isLoading1.set(false)
+            }
+            this.isLoading1.set(false)
+            if (this.PersonalId()) {
+                this.listaBancoPer.reload()
+            } else {
+                this.visibleBanco.set(false)
+            }
+        })
     }
 
     async unsubscribeCBUs() {
         this.isLoading2.set(true)
         try {
             await firstValueFrom(this.apiService.unsubscribeCBUs(this.PersonalId()))
-            this.selectedPersonalIdChange$.next('')
-            this.formPerBanco.markAsUntouched()
-            this.formPerBanco.markAsPristine()
+            this.listaBancoPer.reload()
+            this.onAddorUpdate.emit()
         } catch (e) {
 
         }

@@ -50,7 +50,7 @@ personalRouter.post(`${base}/setgrupactividad/:id`, [authMiddleware.verifyToken,
   personalController.setGrupoActividadPersonal(req, res, next)
 });
 
-personalRouter.post(`${base}/setbanco/:id`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`])], (req, res, next) => {
+personalRouter.post(`${base}/setbanco`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`])], (req, res, next) => {
   personalController.setPersonalBanco(req, res, next)
 });
 

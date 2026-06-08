@@ -3,13 +3,22 @@
   <ng-container *nzDrawerContent>
 
     <nz-card nzType="inner" nzTitle="Agregar Nuevo Datos Bancarios" >
-      <form [formGroup]="formPerBanco">
+      <form (ngSubmit)="save()">
+        @if (!PersonalId()){
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="5">Personal</nz-form-label>
+          <nz-form-control>
+            <app-personal-search [formField]="formPersonalBanco.PersonalId" [anio]="anio()" [mes]="mes()"/>
+          </nz-form-control>
+        </nz-form-item>
+        }
+
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Banco</nz-form-label>
           <nz-form-control>
-            <nz-select formControlName="BancoId" nzPlaceHolder="Banco" nzAllowClear
+            <nz-select [formField]="formPersonalBanco.BancoId" nzPlaceHolder="Banco" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-              @for (option of $optionsBanco | async; track option) {
+              @for (option of optionsBanco(); track option) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               }
             </nz-select>
@@ -19,20 +28,21 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">CBU</nz-form-label>
           <nz-form-control>
-            <input nz-input placeholder="" formControlName="CBU" type="text" />
+            <input nz-input placeholder="" [formField]="formPersonalBanco.CBU" type="text" />
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Desde</nz-form-label>
           <nz-form-control>
-            <nz-date-picker formControlName="Desde" nzFormat="dd/MM/yyyy"></nz-date-picker>
+            <nz-date-picker [formField]="formPersonalBanco.Desde" nzFormat="dd/MM/yyyy"></nz-date-picker>
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading1()" [disabled]="formPerBanco.pristine">
+            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading1()" 
+              [disabled]="formPersonalBanco().submitting() || formPersonalBanco().dirty()==false">
               {{ 'app.btn.save' | i18n }}
             </button>
           </nz-form-control>
@@ -41,16 +51,18 @@
       </form>
     </nz-card>
 
-    <nz-form-control style="text-align: right; margin-right: 25px;">
-      <button nzType="default" nz-button (click)="unsubscribeCBUs()" [nzLoading]="isLoading2()" nz-tooltip nzTooltipTitle="Finalizar todos los CBUs vigentes.">
-        Finalizar CBUs
-      </button>
-    </nz-form-control>
+    @if (PersonalId()) {
+      <nz-form-control style="text-align: right; margin-right: 25px;">
+        <button nzType="default" nz-button (click)="unsubscribeCBUs()" [nzLoading]="isLoading2()" nz-tooltip nzTooltipTitle="Finalizar todos los CBUs vigentes.">
+          Finalizar CBUs
+        </button>
+      </nz-form-control>
+    }
     <br>
 
-      @if ($listaBancoPer | async; as listaBancoPer ) {
+      @if (listaBancoPer.value().length ) {
         <nz-form-control>
-          <nz-table #personalBanco [nzData]="listaBancoPer" nzSize="small" [nzPageSize]="100000000"
+          <nz-table #personalBanco [nzData]="listaBancoPer.value()" nzSize="small" [nzPageSize]="100000000"
             [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
             <thead>
               <tr>

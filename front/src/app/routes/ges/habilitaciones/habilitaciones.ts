@@ -172,10 +172,6 @@ export class HabilitacionesComponent {
 
   }
 
-  listOptionsChange(options: any) {
-    this.listOptions.set(options)
-  }
-
   onTabsetChange(_event: any) {
     window.dispatchEvent(new Event('resize'));
 

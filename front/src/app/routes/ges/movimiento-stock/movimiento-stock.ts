@@ -49,11 +49,34 @@ export class MovimientoStockComponent {
     } catch { /* localStorage lleno o no disponible: se ignora */ }
   });
 
+
+  private normalizarLinea(linea: Partial<EfectoStockLinea>): EfectoStockLinea {
+    return {
+      ...nuevaEfectoLinea(), // base completa
+      ...linea,              // override con lo persistido
+      trackId: linea.trackId ?? crypto.randomUUID(), // asegurar ID
+      Usado: linea.Usado ?? false,                   // defaults críticos
+    };
+  }
+
+  private normalizarForm(
+    data: Partial<ParametroformEfectoStock>
+  ): ParametroformEfectoStock {
+    return {
+      ...this.defaultStockForm,
+      ...data,
+      efectos: (data.efectos ?? []).map(e => this.normalizarLinea(e)),
+    };
+  }
+
+
   ngOnInit(): void {
     const form = this.cargarDesdeStorage()
     if (form) {
-    
-      this.parametroStock.update(s => ({ ...s, ...form }));
+      const normalizado = this.normalizarForm(form);
+
+      this.parametroStock.update(s => ({ ...s, ...normalizado }))
+
       this.formEfectoStock().markAsTouched()
       this.formEfectoStock().markAsDirty()
     }
@@ -99,13 +122,15 @@ export class MovimientoStockComponent {
       required(linea.StockId, { message: 'Ubicación obligatoria', when: (ctx) => ctx.valueOf(linea.StockId) !== null });
       // La cantidad no puede ser 0/negativa ni superar el stock disponible (StockStock, hermano de la línea).
       validate(linea.Cantidad, (ctx) => {
+        
         const v = ctx.value();
         if (v == null || (v as any) === '') return null; // el vacío se valida al confirmar
         const n = Number(v);
         if (Number.isNaN(n) || n <= 0) return { kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' };
-        const disp = ctx.valueOf(linea.StockStock);
+        const disp = ctx.valueOf(linea!.StockStock);
         if (disp != null && n > Number(disp)) return { kind: 'stock', message: `La cantidad (${n}) supera el stock disponible (${disp})` };
         return null;
+        
       });
 
     });
@@ -173,7 +198,7 @@ export class MovimientoStockComponent {
       EfectoId: r.EfectoId ?? null,
       Cantidad: Number(r.StockStock ?? 0) - Number(r.StockReservado ?? 0),
       StockId: r.StockId ?? null,
-      StockStock: r.StockStock != null ? Number(r.StockStock) : null,
+      StockStock: Number(r.StockStock ?? 0),
       EfectoIndividualId: r.EfectoIndividualId ?? r.EfectoEfectoIndividualId ?? null,
       Usado: false,
       RelacionEfectoId: null,

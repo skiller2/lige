@@ -1,7 +1,7 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
-import { filtrosToSql, isOptions, orderToSQL, } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import type { QueryRunner } from "typeorm";
@@ -123,8 +123,10 @@ const columns: any[] = [
     id: "IndNuevaCuenta",
     field: "IndNuevaCuenta",
     name: "Nueva Cuenta",
-    type: "number",
+    type: "string",
     fieldName: "pb.IndNuevaCuenta",
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsSINO },
     // searchComponent: "inputForFechaSearch",
     searchType: "number",
     sortable: false,
@@ -143,7 +145,7 @@ export class CuentasBancariasController extends BaseController {
     const now = new Date();
     return await queryRunner.query(`
       SELECT CONCAT(pb.PersonalId, '-',PersonalBancoId, '-', pb.PersonalBancoCBU) id,
-        pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta
+        pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(pb.IndNuevaCuenta AS VARCHAR(1)) AS IndNuevaCuenta
         , CONCAT(TRIM(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, sitrev.sitRevCom, sitrev.PersonalSituacionRevistaSituacionId
         , cuit.PersonalCUITCUILCUIT, suc.SucursalDescripcion, ga.GrupoActividadId, ga.GrupoActividadDetalle,
         1
@@ -209,6 +211,7 @@ export class CuentasBancariasController extends BaseController {
     } catch (error) {
       return next(error)
     } finally {
+      await queryRunner.release();
     }
   }
 
