@@ -127,7 +127,7 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Provincia del Objetivo",
+    name: "Dir. Provincia",
     type: "number",
     id: "DomicilioProvinciaId",
     field: "DomicilioProvinciaId",
@@ -140,7 +140,7 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Provincia del Objetivo",
+    name: "Dir. Provincia",
     type: "string",
     id: "ProvinciaDescripcion",
     field: "ProvinciaDescripcion",
