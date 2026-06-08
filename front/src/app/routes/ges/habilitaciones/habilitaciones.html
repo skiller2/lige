@@ -47,7 +47,7 @@
       <ng-template nz-tab>
         <div class="fila">
           <div class="izquierda">
-            <shared-filtro-builder [fieldsToSelect]="columns()" (optionsChange)="listOptionsChange($event)"
+            <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions"
               [startFilters]="startFilters()" />
           </div>
           <nz-button-group nz-button nzButtonGroup class="derecha">

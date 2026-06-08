@@ -2973,7 +2973,7 @@ UNION ALL
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
     const queryRunner = await getConnection(usuario);
-    const PersonalId: number = Number(req.params.id);
+    const PersonalId: number = Number(req.body.PersonalId);
     const BancoId: number = req.body.BancoId
     const CBU = req.body.CBU?.trim() || null
     let Desde = req.body.Desde
@@ -2982,6 +2982,8 @@ UNION ALL
     try {
       let campos_vacios: any[] = []
       await queryRunner.startTransaction()
+
+      if (!PersonalId) throw new ClientException('No se pudo identificar al personal');
 
       if (!BancoId) campos_vacios.push(`- Banco`);
       //if (!CBU) campos_vacios.push(`- CBU`);

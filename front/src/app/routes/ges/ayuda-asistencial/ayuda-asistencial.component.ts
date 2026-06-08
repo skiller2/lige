@@ -249,10 +249,6 @@ export class AyudaAsistencialComponent {
         }
     }
 
-    listOptionsChange(options: any) {
-        this.listOptions.set(options);
-    }
-
     dateChange(result: Date): void {
         if (result) {
             localStorage.setItem('anio', String(result.getFullYear()));

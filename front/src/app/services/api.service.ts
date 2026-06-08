@@ -1669,8 +1669,8 @@ export class ApiService {
     );
   }
 
-  setPersonalBanco(PersonalId: number, values: any) {
-    return this.http.post<ResponseJSON<any>>(`/api/personal/setbanco/${PersonalId}`, values).pipe(
+  setPersonalBanco(values: any) {
+    return this.http.post<ResponseJSON<any>>(`/api/personal/setbanco`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }

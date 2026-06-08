@@ -12,13 +12,16 @@ import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { Selections } from '../../../shared/schemas/filtro';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
+import { BankOutline, } from '@ant-design/icons-angular/icons';
+import { PersonalBancoDrawerComponent } from '../personal-banco-drawer/personal-banco-drawer.component';
 
 @Component({
     selector: 'app-cuentas-bancarias',
     templateUrl: './cuentas-bancarias.html',
     styleUrl: './cuentas-bancarias.less',
-    providers: [AngularUtilService],
-    imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent ],
+    providers: [AngularUtilService, provideNzIconsPatch([BankOutline, ])],
+    imports: [SHARED_IMPORTS, CommonModule, NzIconModule, FiltroBuilderComponent, PersonalBancoDrawerComponent],
 })
 export class CuentasBancariasComponent {
   angularGrid!: AngularGridInstance;
@@ -31,6 +34,9 @@ export class CuentasBancariasComponent {
     sort: null,
   });
   startFilters = signal<Selections[]>([])
+  personalId = signal<number>(0)
+  visiblePersonalBanco = model<boolean>(false)
+  visibleDatosBanco = model<boolean>(false)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -67,21 +73,44 @@ export class CuentasBancariasComponent {
     // this.settingsService.setLayout('collapsed', true)
   }
 
-    async angularGridReady(angularGrid: AngularGridInstance) {
-        this.angularGrid = angularGrid
-        angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-            totalRecords(angularGrid, 'Apellido Nombre')
-            // columnTotal('ImporteFactura', angularGrid)
-            // columnTotal('CantidadHorasExcedente', angularGrid)
-            // columnTotal('ImporteHorasExcedente', angularGrid)
-            // columnTotal('CantidadKmExcedente', angularGrid)
-            // columnTotal('ImporteKmExcedente', angularGrid)
-            // columnTotal('CantidadModulos', angularGrid)
-            // columnTotal('ImportePeaje', angularGrid)
+  async angularGridReady(angularGrid: AngularGridInstance) {
+    this.angularGrid = angularGrid
+    angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(angularGrid, 'PersonalCUITCUILCUIT')
+      // columnTotal('ImporteFactura', angularGrid)
+      // columnTotal('CantidadHorasExcedente', angularGrid)
+      // columnTotal('ImporteHorasExcedente', angularGrid)
+      // columnTotal('CantidadKmExcedente', angularGrid)
+      // columnTotal('ImporteKmExcedente', angularGrid)
+      // columnTotal('CantidadModulos', angularGrid)
+      // columnTotal('ImportePeaje', angularGrid)
 
-        })
-        if (this.apiService.isMobile())
-            angularGrid.gridService.hideColumnByIds([])
+    })
+    if (this.apiService.isMobile())
+      angularGrid.gridService.hideColumnByIds([])
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+    if (e.detail.args.changedSelectedRows.length == 1) {
+      const rowNum = e.detail.args.changedSelectedRows[0]
+      const PersonalId = this.angularGrid.dataView.getItemByIdx(rowNum)?.PersonalId
+      this.personalId.set(PersonalId)
+
+    } else {
+      this.personalId.set(0)
     }
+  }
+
+  onAddorUpdate(_e: any) {
+    this.gridData.reload()
+  }
+
+  openDrawerforConsultBanco(): void {
+    this.visibleDatosBanco.set(true)
+  }
+
+  openDrawerforNewPersonalBanco(): void {
+    this.visiblePersonalBanco.set(true)
+  }
   
 }
