@@ -84,7 +84,7 @@
           @if (detalle.contratos && detalle.contratos.length == 0 && descuentoObjetivo().ObjetivoId > 0) {
           <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
           }
-          @for (contrato of detalle.contratos; track contrato) {
+          @for (contrato of detalle.contratos; track contrato.ContratoFechaDesde) {
           <li>
             @if (!contrato.ContratoFechaHasta) {
             <span>Desde</span>
