@@ -52,6 +52,7 @@ export class MovimientoStockComponent {
   ngOnInit(): void {
     const form = this.cargarDesdeStorage()
     if (form) {
+    
       this.parametroStock.update(s => ({ ...s, ...form }));
       this.formEfectoStock().markAsTouched()
       this.formEfectoStock().markAsDirty()
@@ -96,12 +97,14 @@ export class MovimientoStockComponent {
     applyEach(p.efectos, (linea) => {
       required(linea.EfectoId, { message: 'Efecto obligatorio', when: (ctx) => ctx.valueOf(linea.EfectoId) !== null });
       required(linea.StockId, { message: 'Ubicación obligatoria', when: (ctx) => ctx.valueOf(linea.StockId) !== null });
-      // La cantidad no puede ser 0 ni negativa. El tope por stock se valida al confirmar (ver validarCantidades).
+      // La cantidad no puede ser 0/negativa ni superar el stock disponible (StockStock, hermano de la línea).
       validate(linea.Cantidad, (ctx) => {
         const v = ctx.value();
         if (v == null || (v as any) === '') return null; // el vacío se valida al confirmar
         const n = Number(v);
         if (Number.isNaN(n) || n <= 0) return { kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' };
+        const disp = ctx.valueOf(linea.StockStock);
+        if (disp != null && n > Number(disp)) return { kind: 'stock', message: `La cantidad (${n}) supera el stock disponible (${disp})` };
         return null;
       });
 
@@ -170,6 +173,7 @@ export class MovimientoStockComponent {
       EfectoId: r.EfectoId ?? null,
       Cantidad: Number(r.StockStock ?? 0) - Number(r.StockReservado ?? 0),
       StockId: r.StockId ?? null,
+      StockStock: r.StockStock != null ? Number(r.StockStock) : null,
       EfectoIndividualId: r.EfectoIndividualId ?? r.EfectoEfectoIndividualId ?? null,
       Usado: false,
       RelacionEfectoId: null,
@@ -258,11 +262,6 @@ export class MovimientoStockComponent {
     await submit(this.formEfectoStock, async (form) => {
       const formValue = form().value();
 
-      // La cantidad se valida al confirmar (no al perder foco). Es client-side: no va al back.
-      // En determinadas situaciones falla.  Ej cuando se borraban varios items
-      //      const errores = this.validarCantidades(formValue);
-      //      if (errores.length) return this.apiService.formBackendErrors(form, errores);
-
       try {
         await firstValueFrom(this.apiService.confirmarStockEfecto(formValue));
       } catch (e: any) {
@@ -273,36 +272,6 @@ export class MovimientoStockComponent {
     });
   }
 
-  // Stock disponible por StockId, juntando las ubicaciones cargadas por cada fila (para validar la cantidad).
-  /*
-  readonly stockDisponibleByStockId = computed(() => {
-    const map = new Map<number, number>();
-    for (const row of this.parametroStock().efectos) {
-      for (const u of row.ubicaciones.value() ?? []) {
-        if (u.StockId != null && u.StockStock != null) map.set(Number(u.StockId), Number(u.StockStock));
-      }
-    }
-    return map;
-  });
-  
-    private validarCantidades(v: ParametroformEfectoStock): { fieldTree: string; kind: string; message: string }[] {
-      const errores: { fieldTree: string; kind: string; message: string }[] = [];
-      const stock = this.stockDisponibleByStockId();
-      //for (const linea of v.efectos)
-      v.efectos.forEach((linea, i) => {
-        const cantidad = Number(linea.Cantidad);
-        if (linea.Cantidad == null || Number.isNaN(cantidad) || cantidad <= 0) {
-          errores.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' });
-        } else if (linea.StockId != null) {
-          const disponible = stock.get(Number(linea.StockId));
-          if (disponible != null && cantidad > disponible) {
-            errores.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'stock', message: `La cantidad (${cantidad}) supera el stock disponible (${disponible})` });
-          }
-        }
-      });
-      return errores;
-    }
-  */
 
   sucursalDescripcionDisplay = computed(() => {
     const tipo = this.tipoDestinoSeleccionado();

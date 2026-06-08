@@ -133,6 +133,13 @@ export class EfectoStockLineaComponent {
     });
   });
 
+  
+  private readonly autoStockStock = effect(() => {
+    const stockId = this.field().StockId().value();
+    const u = (this.ubicaciones.value() ?? []).find(x => Number(x.StockId) === Number(stockId));
+    this.field().StockStock().value.set(u?.StockStock != null ? Number(u.StockStock) : null);
+  });
+
   // Autoselección de ubicación del efecto relacionado cuando hay una sola.
   private readonly autoRelacionStockId = effect(() => {
     const lista = this.relacionUbicaciones.value() ?? [];

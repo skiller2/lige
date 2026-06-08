@@ -4,6 +4,7 @@ export interface EfectoStockLinea {
   EfectoId: number | null;
   Cantidad: number | null;
   StockId: number | null;
+  StockStock: number | null;
   EfectoIndividualId: number | null;
   Usado: boolean;
   RelacionEfectoId: number | null;
@@ -27,9 +28,10 @@ export interface ParametroformEfectoStock {
 /** Crea una línea vacía. */
 export const nuevaEfectoLinea = (): EfectoStockLinea => ({
   trackId: crypto.randomUUID(),
-  EfectoId: null, 
+  EfectoId: null,
   Cantidad: null,
-  StockId: null, 
+  StockId: null,
+  StockStock: null,
   EfectoIndividualId: null,
   Usado: false, 
   RelacionEfectoId: null, 
