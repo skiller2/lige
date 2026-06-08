@@ -190,7 +190,8 @@ export class CuentasBancariasController extends BaseController {
             AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= @0
       ) ga ON ga.GrupoActividadPersonalPersonalId= per.PersonalId
 
-      Where ((@0 >=pb.PersonalBancoDesde and @0<= isnull(pb.PersonalBancoHasta, '9999-12-31')) or @0 < pb.PersonalBancoDesde) and (${filterSql})
+      Where ((@0 >=pb.PersonalBancoDesde and @0<= isnull(pb.PersonalBancoHasta, '9999-12-31')) or @0 <= pb.PersonalBancoDesde) 
+      and (${filterSql})
       ${orderBy}
     `, [now])
   }
