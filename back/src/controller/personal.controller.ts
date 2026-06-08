@@ -2951,7 +2951,7 @@ UNION ALL
   }
 
   isCBU(cbu: string): boolean {
-    if (cbu.trim() == '')
+    if (!cbu || cbu.trim() == '')
       return true
 
     // Verifica que tenga exactamente 22 caracteres
@@ -2975,9 +2975,9 @@ UNION ALL
     const queryRunner = await getConnection(usuario);
     const PersonalId: number = Number(req.params.id);
     const BancoId: number = req.body.BancoId
-    const CBU = req.body.CBU ?? null
+    const CBU = req.body.CBU?.trim() || null
     let Desde = req.body.Desde
-    const IndNuevaCuenta = (CBU.trim() != '') ? 0 : 1
+    const IndNuevaCuenta = CBU ? 0 : 1
 
     try {
       let campos_vacios: any[] = []
@@ -2999,7 +2999,7 @@ UNION ALL
         Left JOIN Personal per ON per.PersonalId = pb.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         WHERE pb.PersonalBancoCBU = @0 AND  @1 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @1 >= pb.PersonalBancoDesde
-      `, [CBU,fechaActual])
+      `, [CBU, fechaActual])
       if (PersonalBanco.length && CBU != '' && CBU != null)
         throw new ClientException(`El CBU ingresado se encuentra registrado y vigente en una persona. (${PersonalBanco[0].ApellidoNombre} - CUIT: ${PersonalBanco[0].CUIT ? PersonalBanco[0].CUIT : ''})`);
 
