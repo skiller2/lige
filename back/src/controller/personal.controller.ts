@@ -169,6 +169,18 @@ const columns: any[] = [
     hidden: false,
   },
   {
+    id: "ActaFechaActa",
+    name: "Fecha Acta",
+    field: "ActaFechaActa",
+    type: "date",
+    fieldName: "act.ActaFechaActa",
+    searchType: "date",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
     id: "PersonalFechaBaja",
     name: "Fecha Baja",
     field: "PersonalFechaBaja",
@@ -713,9 +725,39 @@ export class PersonalController extends BaseController {
         percat.PersonalCategoriaCom,percat.CategoriaCod,
         TRIM(email.PersonalEmailEmail) AS PersonalEmailEmail,
         per.PersonalFechaNacimiento,
-        rt.telefono
+        rt.telefono,
+        act.ActaFechaActa,
+        1
 
       FROM Personal per
+
+
+LEFT JOIN(
+    SELECT
+        a.PersonalId,
+        a.ActaId,
+        b.ActaFechaActa,
+        b.ActaDescripcion,
+        a.TipoPersonalActaCodigo,
+        tip.TipoPersonalActaDescripcion
+    FROM PersonalActa a
+    JOIN Acta b ON b.ActaId = a.ActaId
+
+    JOIN (
+        SELECT
+            a.PersonalId,
+            MAX(b.ActaFechaActa) AS MaxFecha
+        FROM PersonalActa a
+        JOIN Acta b ON b.ActaId = a.ActaId
+        GROUP BY a.PersonalId
+        ) x ON x.PersonalId = a.PersonalId AND x.MaxFecha = b.ActaFechaActa
+        JOIN TipoPersonalActa tip ON tip.TipoPersonalActaCodigo = a.TipoPersonalActaCodigo 
+ ) act ON act.PersonalId=per.PersonalId 
+
+
+
+
+
       LEFT JOIN (
         SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
 		  CASE 

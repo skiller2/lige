@@ -13,6 +13,7 @@ import type { Options } from "../schemas/filtro.ts";
 import { DescuentoRetirosController } from "../liquidaciones/descuento-retiros/descuento-retiros.controller.ts";
 import { logger } from "../logger/logger.ts";
 import { Agent } from "https";
+import { Client } from "ldapts";
 
 interface DigestAuthOptions {
   username: string;
@@ -2763,7 +2764,15 @@ export class AsistenciaController extends BaseController {
       const categoriaPersonalId: number = req.body.categoriaPersonalId
       const formaLiquidacion: string = req.body.formaLiquidacion
 
-      //const acta = await this.checkActaAsociado(personalId,anio,mes,queryRunner)
+
+      const acta = await this.checkActaAsociado(personalId,anio,mes,queryRunner)
+      if (acta.length>0){
+        if (acta[0].TipoPersonalActaCodigo != 'ALT') {
+//          throw new ClientException(`No se puede cargar horas, la persona no posee Acta de Alta de Asociado`)
+        }
+      } else {
+//          throw new ClientException(`No se puede cargar horas, la persona no posee Acta `)
+      }
 
 
       if (!totalhs && personal?.id) {
@@ -3965,7 +3974,7 @@ export class AsistenciaController extends BaseController {
     SELECT TOP 1 a.ActaId, b.ActaFechaActa, b.ActaDescripcion, a.TipoPersonalActaCodigo 
       FROM PersonalActa a 
       JOIN Acta b ON b.ActaId=a.ActaId AND 
-      WHERE a.PersonalId=@0 AND ORDER BY b.ActaFechaActa DESC `, [personalId, anio, mes])
+      WHERE a.PersonalId=@0 AND b.ActaFechaActa<=EOMONTH(DATEFROMPARTS(@1,@2,1))  ORDER BY b.ActaFechaActa DESC `, [personalId, anio, mes])
 
 }
 
