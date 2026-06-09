@@ -252,6 +252,13 @@
         [disabled]="formEfectoStock().submitting() || formEfectoStock().dirty()==false || formEfectoStock().valid()==false">
         {{ 'app.btn.save' | i18n }}
       </button>
+
+      <button style="margin-right: 10px;" nz-button nzType="default" type="button"
+        [nzLoading]="formEfectoStock().submitting()"
+        [disabled]="formEfectoStock().submitting() || formEfectoStock().dirty()==false || formEfectoStock().valid()==false"
+        (click)="confirmar(true)">
+        Simular
+      </button>
     </div>
   </div>
 

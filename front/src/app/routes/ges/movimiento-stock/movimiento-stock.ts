@@ -275,7 +275,7 @@ export class MovimientoStockComponent {
   });
 
 
-  async confirmar() {
+  async confirmar(simular = false) {
     this.parametroStock.update(m => ({
       ...m,
       efectos: m.efectos.filter((row, i) => row.EfectoId),
@@ -288,7 +288,7 @@ export class MovimientoStockComponent {
       const formValue = form().value();
 
       try {
-        await firstValueFrom(this.apiService.confirmarStockEfecto(formValue));
+        await firstValueFrom(this.apiService.confirmarStockEfecto({ ...formValue, simular }));
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
