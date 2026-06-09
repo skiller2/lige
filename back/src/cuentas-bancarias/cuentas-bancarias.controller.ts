@@ -69,7 +69,7 @@ const columns: any[] = [
     fieldName: "ga.GrupoActividadId",
     searchComponent: 'inputForGrupoActividadSearch',
     searchType: "number",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -80,7 +80,7 @@ const columns: any[] = [
     type: "string",
     fieldName: "pb.PersonalBancoCBU",
     searchType: "string",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -90,8 +90,8 @@ const columns: any[] = [
     name: "Banco",
     type: "string",
     fieldName: "b.BancoDescripcion",
-    searchType: "number",
-    sortable: false,
+    searchType: "string",
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -103,7 +103,7 @@ const columns: any[] = [
     fieldName: "pb.PersonalBancoDesde",
     searchComponent: "inputForFechaSearch",
     searchType: "date",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -115,7 +115,7 @@ const columns: any[] = [
     fieldName: "pb.PersonalBancoHasta",
     searchComponent: "inputForFechaSearch",
     searchType: "date",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -129,7 +129,7 @@ const columns: any[] = [
     params: { collection: getOptionsSINO },
     // searchComponent: "inputForFechaSearch",
     searchType: "number",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
