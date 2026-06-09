@@ -39,6 +39,8 @@ export class ImporteVentaVigilanciaCarga {
   formChange$ = new BehaviorSubject('')
   filesChange$ = new BehaviorSubject('')
   uploading$ = new BehaviorSubject({ loading: false, event: null })
+  hiddenColumnIds: string[] = [];
+
 
   angularGrid!: AngularGridInstance
   gridObj!: SlickGrid
@@ -57,7 +59,12 @@ export class ImporteVentaVigilanciaCarga {
   private readonly loadingSrv = inject(LoadingService);
 
   columns$ = this.apiService.getCols('/api/importe-venta-vigilancia/cols-import').pipe(map((cols) => {
-    return cols
+
+    // Guardar IDs de columnas que tienen showGridColumn: false
+    this.hiddenColumnIds = cols
+      .filter((col: any) => col.showGridColumn === false)
+      .map((col: Column) => col.id as string);
+    return cols;
   }));
 
   effect = effect(() => {
@@ -86,6 +93,8 @@ export class ImporteVentaVigilanciaCarga {
     this.gridOptions.fullWidthRows = true
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
+    this.gridOptions.forceFitColumns = true
+
 
 
     // Escuchar cambios en ngForm.files
@@ -127,6 +136,10 @@ export class ImporteVentaVigilanciaCarga {
     //columnTotal('ImporteTotal', this.angularGrid)
     //    })
 
+    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
+    if (this.hiddenColumnIds.length > 0) {
+      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
+    }
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
 

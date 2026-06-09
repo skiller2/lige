@@ -148,7 +148,8 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    editable: false
+    editable: false,
+    showGridColumn: false
   },
   {
     name: "Rubro Objetivo",
@@ -159,7 +160,9 @@ const columnasGrilla: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    editable: false
+    editable: false,
+    showGridColumn: false
+
   },
   {
     name: "Grupo Actividad",
