@@ -10,6 +10,7 @@ import { habilitacionesController } from "../controller/controller.module.ts"
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
+import { logger } from "../logger/logger.ts";
 
 const columns: any[] = [
   {
@@ -1690,8 +1691,12 @@ export class PersonalController extends BaseController {
     let oldStudies = await queryRunner.query(`
       SELECT PersonalEstudioId, PersonalEstudioPagina1Id
       FROM PersonalEstudio
-      WHERE PersonalId IN (@0) and TipoEstudioId != 8
+      WHERE PersonalId IN (@0)
       `, [PersonalId])
+
+    const maxPersonalEstudioId = oldStudies.reduce((maxId: number, estudio: any) => {
+      return estudio.PersonalEstudioId > maxId ? estudio.PersonalEstudioId : maxId
+    }, 0)
 
     await queryRunner.query(`
       DELETE FROM PersonalEstudio WHERE PersonalId IN (@0) and TipoEstudioId != 8
@@ -1715,7 +1720,7 @@ export class PersonalController extends BaseController {
       }
 
       if (infoEstudio.PersonalEstudioId) {
-        let find = oldStudies.find((study: any) => { return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId) })
+        let find = oldStudies.find((study: any) => { return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId && study.TipoEstudioId != 8) })
         let Pagina1Id = find.PersonalEstudioPagina1Id
 
         if (!Pagina1Id && infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
@@ -1747,10 +1752,13 @@ export class PersonalController extends BaseController {
             
           )
           VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`, [
-          PersonalId, infoEstudio.PersonalEstudioId, infoEstudio.TipoEstudioId,
+          PersonalId, maxPersonalEstudioId + 1, infoEstudio.TipoEstudioId,
           2, infoEstudio.EstudioTitulo, fechaOtorgado,
           Pagina1Id, fechaVencimiento
         ])
+        await queryRunner.query(`
+         UPDATE Personal SET PersonalEstudioUltNro = @1 WHERE PersonalId = @0`, [PersonalId, maxPersonalEstudioId + 1])
+
 
         if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
           const docTitulo = infoEstudio.DocTitulo[0]
