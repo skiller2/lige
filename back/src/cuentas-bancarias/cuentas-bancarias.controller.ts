@@ -89,7 +89,7 @@ const columns: any[] = [
     field: "BancoDescripcion",
     name: "Banco",
     type: "string",
-    fieldName: "b.BancoId",
+    fieldName: "b.BancoDescripcion",
     searchType: "number",
     sortable: false,
     hidden: false,
