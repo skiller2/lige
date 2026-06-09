@@ -62,6 +62,16 @@ const columns: any[] = [
     hidden: true,
   },
   {
+    id: "sitRevCom",
+    field: "sitRevCom",
+    name: "Situacion Revista",
+    type: "string",
+    fieldName: "sitrev.sitRevCom",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
     id: "GrupoActividadDetalle",
     field: "GrupoActividadDetalle",
     name: "Grupo Actividad",
