@@ -2675,9 +2675,11 @@ export class AsistenciaController extends BaseController {
       const anio: number = req.body.year
       const mes: number = req.body.month
       const objetivoId: number = req.body.objetivoId
-
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner) && !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
+
+
+      
 
 
       //Validación de los datos ingresados
@@ -2700,8 +2702,6 @@ export class AsistenciaController extends BaseController {
         req.body.tipoAsociadoId = valCategoriaPersonal.extended.categoria.tipoId
         req.body.categoriaPersonalId = valCategoriaPersonal.extended.categoria.id
       }
-
-
 
       //Validación de Personal ya registrado
       let personal: any = null
@@ -2762,6 +2762,9 @@ export class AsistenciaController extends BaseController {
       const tipoAsociadoId: number = req.body.tipoAsociadoId
       const categoriaPersonalId: number = req.body.categoriaPersonalId
       const formaLiquidacion: string = req.body.formaLiquidacion
+
+      //const acta = await this.checkActaAsociado(personalId,anio,mes,queryRunner)
+
 
       if (!totalhs && personal?.id) {
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
@@ -3956,6 +3959,16 @@ export class AsistenciaController extends BaseController {
 
     return recordsArray
   }
+
+  async checkActaAsociado(personalId: number, anio: number, mes: number, queryRunner: QueryRunner) {
+  return await queryRunner.query(`
+    SELECT TOP 1 a.ActaId, b.ActaFechaActa, b.ActaDescripcion, a.TipoPersonalActaCodigo 
+      FROM PersonalActa a 
+      JOIN Acta b ON b.ActaId=a.ActaId AND 
+      WHERE a.PersonalId=@0 AND ORDER BY b.ActaFechaActa DESC `, [personalId, anio, mes])
+
+}
+
 
 
 }

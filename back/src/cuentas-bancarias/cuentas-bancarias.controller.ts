@@ -54,7 +54,7 @@ const columns: any[] = [
     field: "SituacionRevistaId",
     name: "Situacion Revista",
     type: "number",
-    fieldName: "sit.SituacionRevistaId",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
     searchComponent: "inputForSituacionRevistaSearch",
     searchType: "number",
     sortable: true,
