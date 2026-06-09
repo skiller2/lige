@@ -161,7 +161,7 @@ export class CuentasBancariasController extends BaseController {
         pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(pb.IndNuevaCuenta AS VARCHAR(1)) AS IndNuevaCuenta
         , CONCAT(TRIM(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, sitrev.sitRevCom, sitrev.PersonalSituacionRevistaSituacionId
         , cuit.PersonalCUITCUILCUIT, suc.SucursalDescripcion, ga.GrupoActividadId, ga.GrupoActividadDetalle,
-        mo.importe,
+        mo.importe as ImporteTranferido,
 		  1
       FROM PersonalBanco pb
       JOIN Banco b on b.BancoId=pb.PersonalBancoBancoId
