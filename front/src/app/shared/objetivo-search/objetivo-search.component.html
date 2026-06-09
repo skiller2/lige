@@ -1,7 +1,7 @@
 <nz-select #osc [ngModel]="_selected()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Descripcion, Código" nzShowSearch
   nzServerSearch (nzOnSearch)="search($event)" [disabled]="controlDisabled()">
-  @for (option of $optionsArray | async; track option) {
+  @for (option of $optionsArray | async; track option.ObjetivoId) {
     @if (($isOptionsLoading | async) == false) {
       <nz-option [nzValue]="option.ObjetivoId"
         nzLabel="{{ option.ClienteId }}/{{option.ClienteElementoDependienteId ?? '0' }} {{ option.ClienteDenominacion }} {{ option.ClienteElementoDependienteDescripcion }} ({{option.ObjetivoId}})" />

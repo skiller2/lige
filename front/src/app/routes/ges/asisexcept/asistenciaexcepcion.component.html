@@ -65,7 +65,7 @@
           </thead>
           <tbody>
             @if ($optionsMetodologia | async; as optionsMetodologia) {
-              <!-- TODO: No usar objeto -->
+              <!-- TODO: quitar objeto de track  -->
             @for (data of excep.data; track data) {
             <tr [ngClass]="{rowapro:data.PersonalArt14Autorizado=='S',rowpend:data.PersonalArt14Autorizado==''}">
               <td title="{{ data.PersonalId }}"><span nz-col>{{data.ApellidoNombre}}</span><span nz-col>
@@ -126,7 +126,7 @@
       <nz-form-control>
         <nz-select name="metodologia" [(ngModel)]="selectedMetodologiaId" nzAllowClear nzPlaceHolder="Metodologia"
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-          <!-- TODO: No usar objeto -->
+          <!-- TODO: quitar objeto de track  -->
           @for (option of optionsMetodologia; track option) {
           <nz-option [nzValue]="option" [nzLabel]="option.etiqueta + ' (' + option.descripcion + ')'"></nz-option>
           }
@@ -149,6 +149,7 @@
       <nz-form-control>
         <nz-select name="Equivalencia" ngModel nzAllowClear nzPlaceHolder="Categoria" nzShowSearch
           [nzDropdownMatchSelectWidth]="false">
+          <!-- TODO: quitar objeto de track  -->
           @for (option of $optionsCategoria | async; track option) {
           @if (option.ValorLiquidacionSucursalId == selectedSucursalId()) {
           <nz-option [nzValue]="{CategoriaPersonalId:option.CategoriaPersonalId,TipoAsociadoId:option.TipoAsociadoId}"

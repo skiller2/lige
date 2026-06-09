@@ -1,7 +1,7 @@
 <nz-select #csc [ngModel]="_selected()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Nombre Cliente"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [disabled]="controlDisabled()">
-  @for (option of $optionsArray | async; track option) {
+  @for (option of $optionsArray | async; track option.ClienteId) {
     @if (($isOptionsLoading | async) == false) {
       <nz-option [nzValue]="option.ClienteId" [nzLabel]="option.ClienteDenominacion" />
     }

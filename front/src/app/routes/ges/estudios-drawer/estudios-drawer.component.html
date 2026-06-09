@@ -54,7 +54,7 @@
           <!-- <app-curso-search formControlName="CursoHabilitacionId" ></app-curso-search>   -->
 
           <nz-select  formControlName="CursoHabilitacionId" nzPlaceHolder="Curso" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
-            @for (option of $optionsCurso | async ; track option) {
+            @for (option of $optionsCurso | async ; track option.CursoHabilitacionId) {
               <nz-option [nzValue]="option.CursoHabilitacionId" [nzLabel]="option.CursoHabilitacionDesCod" ></nz-option>
             }
           </nz-select>

@@ -1,7 +1,7 @@
 <nz-select #sss [(ngModel)]="selKey" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   (ngModelChange)="onChange($event)" nzAllowClear nzPlaceHolder="Seleccione Opción"
   nzShowSearch >
-  @for (option of collection; track option) {
+  @for (option of collection; track option.value) {
     <nz-option [nzValue]="option.value"
       [nzLabel]="option.label" />
     }

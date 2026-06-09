@@ -11,7 +11,7 @@
     }
 
     @if (!isLoading()) {
-
+<!-- TODO: quitar objeto de track  -->
       @for (param of filtrosReporte(); track param) {
         <div>
           <label>{{ param.Prompt }}</label>
@@ -22,7 +22,7 @@
                 nzPlaceHolder="Seleccione una opción"
                 [nzDropdownMatchSelectWidth]="false" nzShowSearch [(ngModel)]="param.Value"
                 >
-                @for (option of param.ValidValues; track option) {
+                @for (option of param.ValidValues; track option.Value) {
                   <nz-option
                     [nzValue]="option.Value"
                     [nzLabel]="option.Label">

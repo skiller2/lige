@@ -28,7 +28,7 @@
           <input nz-input placeholder="" formControlName="DescripcionRequirente" type="text" (focus)="searchDescRequirente()"
             [nzAutocomplete]="auto" />
             <nz-autocomplete #auto>
-              @for (option of optionsDescRequirente; track option) {
+              @for (option of optionsDescRequirente; track option.descRequirente) {
                 <nz-auto-option [nzValue]="option.descRequirente">
                   {{ option.descRequirente }}
                 </nz-auto-option>
@@ -76,6 +76,7 @@
       </nz-form-item>
       <br>
         <div formArrayName="personal">
+          <!-- TODO: quitar objeto de track  -->
           @for (control of personal().controls; track control; let i = $index) {
             <nz-form-item class="marginElement" [formGroupName]="i" nz-row [nzGutter]="24">
               <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Personal</nz-form-label>

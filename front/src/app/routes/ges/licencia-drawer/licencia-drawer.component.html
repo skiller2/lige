@@ -75,7 +75,7 @@
         <nz-form-control>
           <nz-select nzShowSearch nzAllowClear nzPlaceHolder="" name="PersonalLicenciaSePaga" ngModel
             [nzDropdownMatchSelectWidth]="false" >
-            @for (option of options; track option) {
+            @for (option of options; track option.value) {
               <nz-option [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
             }
           </nz-select>

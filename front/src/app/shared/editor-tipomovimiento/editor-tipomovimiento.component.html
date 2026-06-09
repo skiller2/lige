@@ -1,7 +1,7 @@
 <nz-select #eto [(ngModel)]="selectedId" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   (ngModelChange)="onChange($event)" nzAllowClear nzPlaceHolder="Tipo Movimiento"
   nzShowSearch >
-  @for (option of optionsArray; track option) {
+  @for (option of optionsArray; track option.tipo_movimiento_id) {
     <nz-option [nzValue]="option.tipo_movimiento_id"
       [nzLabel]="option.des_movimiento" />
     }

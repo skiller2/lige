@@ -38,6 +38,7 @@
           </nz-form-item>
           <ul  class="scrollMargin" nz-list [nzDataSource]="dataEmpleados()" nzBordered nzSize="large">
             <nz-list-header class="quantities">Cantidad : {{dataEmpleados().length}}</nz-list-header>
+            <!-- TODO: quitar objeto de track  -->
             @for (item of dataEmpleados(); track item) {
               <li nz-list-item nzNoFlex>
                 <ul nz-list-item-actions>
@@ -87,6 +88,7 @@
               <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
               <nz-form-control [nzSpan]="10">
                 @if (contratos.length==0 && ObjetivoIdForAdd>0) { <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert> }
+                <!-- TODO: quitar objeto de track  -->
                 @for (contrato of contratos; track contrato) {
                   <li>Desde {{contrato.ContratoFechaDesde | date}} @if (contrato.ContratoFechaHasta) {
                     <span
@@ -102,6 +104,7 @@
 
         <ul class="scrollMargin" nz-list [nzDataSource]="dataGrupos()" nzBordered nzSize="large">
           <nz-list-header class="quantities">Cantidad : {{dataGrupos().length}}</nz-list-header>
+          <!-- TODO: quitar objeto de track  -->
           @for (item of dataGrupos(); track item) {
             <li nz-list-item nzNoFlex>
               <ul nz-list-item-actions>

@@ -1,7 +1,7 @@
 <nz-select #isc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Inasistencia, Código"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
-  @for (option of $optionsArray | async; track option) {
+  @for (option of $optionsArray | async; track option.TipoInasistenciaId) {
     @if (($isOptionsLoading | async) == false) {
       <nz-option [nzValue]="option.TipoInasistenciaId"
         nzLabel="{{ option.TipoInasistenciaDescripcion }} ({{option.TipoInasistenciaId}})" />

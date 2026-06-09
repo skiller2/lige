@@ -42,7 +42,7 @@
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Tipo de novedad</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
         <nz-select formControlName="TipoNovedadId" nzPlaceHolder="Seleccione tipo" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100%">
-          @for (option of $optionsTipoNovedad | async; track option) {
+          @for (option of $optionsTipoNovedad | async; track option.value) {
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
           }
         </nz-select>
@@ -81,6 +81,7 @@
               </tr>
             </thead>
             <tbody>
+              <!-- TODO: quitar objeto de track  -->
               @for (item of history.data; track item) {
                 <tr>
                   <td>{{ item.usuario }}</td>

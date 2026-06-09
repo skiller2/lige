@@ -1,5 +1,6 @@
 <nz-descriptions nzBordered [nzColumn]="1" [nzSize]="'small'">
   @if (data()) {
+    <!-- TODO: quitar objeto de track  -->
     @for (key of objectKeys(data()); track key) {
       <nz-descriptions-item [nzTitle]="key">
         @if (isObject(data()[key])) {

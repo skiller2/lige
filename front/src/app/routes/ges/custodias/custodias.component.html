@@ -91,6 +91,7 @@
     <ng-container *nzDrawerContent>
       <form [formGroup]="formCusEstado">
         <div formArrayName="custodia">
+          <!-- TODO: quitar objeto de track  -->
           @for (control of custodia().controls; track control; let i = $index) {
             <div [formGroupName]="i">
               <nz-card nzType="inner" nzTitle="{{selectedCliInfo()[i]?.clienteName}}">

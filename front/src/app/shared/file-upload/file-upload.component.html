@@ -3,6 +3,7 @@
     <nz-form-control [nzMd]="24">
 
       @if(files().length > 0 ){
+        <!-- TODO: quitar objeto de track  -->
       @for (filesAdd of files() ; track filesAdd) {
 
       @if(!filesAdd.delete ){

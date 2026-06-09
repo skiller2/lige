@@ -30,7 +30,7 @@
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-select [formField]="formObjetivo.SucursalId" nzPlaceHolder="Sucursal" nzAllowClear [nzDropdownMatchSelectWidth]="false"
           style="width: 100%">
-          @for (option of sucursales(); track option) {
+          @for (option of sucursales(); track option.SucursalId) {
             <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
           }
         </nz-select>
@@ -110,7 +110,7 @@
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-select nzShowSearch [formField]="formObjetivo.DomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%">
-          @for (option of optionsLocalidad(); track option) {
+          @for (option of optionsLocalidad(); track option.LocalidadId) {
             @if (option.ProvinciaId == objetivo().DomicilioProvinciaId) {
               <nz-option [nzValue]="option.LocalidadId" [nzLabel]="option.localidadDescripcion"></nz-option>
             }
@@ -122,7 +122,7 @@
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-select nzShowSearch [formField]="formObjetivo.DomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%">
-          @for (option of optionsBarrio(); track option) {
+          @for (option of optionsBarrio(); track option.BarrioId) {
             @if (option.ProvinciaId == objetivo().DomicilioProvinciaId && option.LocalidadId ==
               objetivo().DomicilioLocalidadId ) {
               <nz-option [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion"></nz-option>
@@ -135,7 +135,7 @@
     <div class="input-container1">
       <div class="input-label">Grupo Actividad</div>
     </div>
-    
+    <!-- TODO: quitar objeto de track  -->
     @for (ip of formObjetivo.infoActividad; let i = $index; track i) {
       <nz-form-item class="marginElement">
 
@@ -211,7 +211,7 @@
     <div class="input-container1">
       <div class="input-label">Coordinador de cuenta</div>
     </div>
-
+<!-- TODO: quitar objeto de track  -->
     @for (ip of formObjetivo.infoCoordinadorCuenta; let i = $index; track i) {
       <nz-form-item class="marginElement"  [ngClass]="{'even-background': i % 2 === 0}">
 

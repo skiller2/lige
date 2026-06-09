@@ -83,7 +83,7 @@
     <div class="input-label">Productos {{formParametroVenta.infoProductos.length}}</div>
   </div>
   <div style="padding-top: 25px;">
-
+<!-- TODO: quitar objeto de track  -->
     @for (ip of formParametroVenta.infoProductos; let i = $index; track i) {
     <div [ngClass]="{'even-background': i % 2 === 0}" [style.margin-top.px]="i % 2 !== 0 ? 15 : 0">
 

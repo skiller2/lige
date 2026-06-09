@@ -1,6 +1,7 @@
 <nz-select #dsc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Direccion"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
+  <!-- TODO: quitar objeto de track  -->
   @for (option of optionsArray2(); track option) {
     @if (($isOptionsLoading | async) == false) {
       <nz-option [nzValue]="option.properties.place_id"  [nzLabel]="option.properties.formatted" />

@@ -22,7 +22,7 @@
         @case ("S") {
         <nz-select nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
             [nzDropdownMatchSelectWidth]="false" [(ngModel)]="SucursalIdWithSearch">
-            @for (option of $optionsSucursales | async; track option) {
+            @for (option of $optionsSucursales | async; track option.SucursalId) {
             <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
             }
         </nz-select>

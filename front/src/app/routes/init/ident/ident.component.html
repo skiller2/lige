@@ -10,6 +10,7 @@
       <form [formGroup]="formCli" >
         @if (collapseDisabled()) {
           <nz-collapse nzAccordion  >
+            <!-- TODO: quitar objeto de track  -->
             @for (panel of panels(); track panel) {
               <nz-collapse-panel [nzHeader]="panel.name" [nzActive]="panel.active" [nzDisabled]="true"  [ngClass]="{ 'success-panel': panel.success }">
                 <br>

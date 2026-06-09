@@ -1,6 +1,7 @@
 <nz-select #rsc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
   (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Nombre"
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)" >
+  <!-- TODO: quitar objeto de track  -->
   @for (option of $optionsArray | async; track option) {
     @if (($isOptionsLoading | async) == false) {
       <nz-option [nzValue]="option.fullName" [nzLabel]="option.fullName" />

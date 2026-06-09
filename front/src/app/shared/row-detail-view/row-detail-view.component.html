@@ -1,5 +1,5 @@
 <div nz-form>
-  @for (column of columnsDefinition; track column) {
+  @for (column of columnsDefinition; track column.id) {
     <nz-form-item>
       <nz-form-label [nzSpan]="5">{{ column.name}}</nz-form-label>
       <nz-form-control>

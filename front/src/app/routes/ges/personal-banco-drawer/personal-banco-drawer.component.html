@@ -18,7 +18,7 @@
           <nz-form-control>
             <nz-select [formField]="formPersonalBanco.BancoId" nzPlaceHolder="Banco" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-              @for (option of optionsBanco(); track option) {
+              @for (option of optionsBanco(); track option.value) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               }
             </nz-select>
@@ -73,6 +73,7 @@
               </tr>
             </thead>
             <tbody>
+              <!-- TODO: quitar objeto de track  -->
               @for (data of personalBanco.data; track data) {
                 <tr class="">
                   <td>{{ data.Descripcion }}</td>

@@ -14,7 +14,7 @@
             nzShowSearch
             nzServerSearch
             (nzOnSearch)="search($event)">
-            @for (option of $optionsArray | async; track option) {
+            @for (option of $optionsArray | async; track option.PersonalId) {
               @if (($isOptionsLoading | async) == false) {
                 <nz-option
                   [nzValue]="option.PersonalId"

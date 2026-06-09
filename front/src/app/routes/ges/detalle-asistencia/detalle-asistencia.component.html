@@ -193,6 +193,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of efectObj.data; track data) {
                 <tr class="">
                   <td>{{ data.EfectoDescripcionCompleto }}</td>
@@ -241,6 +242,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of excep.data; track data) {
                 <tr class="">
                   <td title="{{ data.PersonalId }}">
@@ -302,6 +304,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of asist.data; track data) {
                 <tr class="">
                   <td title="{{ data.PersonalId }}">
@@ -386,6 +389,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of descObj.data; track data) {
                 <tr class="">
                   <td>{{ data.DescuentoDescripcion }}</td>
@@ -433,6 +437,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of descPerObj.data; track data) {
                 <tr class="">
                   <td>{{ data.PersonalCUITCUILCUIT }}</td>
@@ -522,6 +527,7 @@
               @let personaMonotributo = $personaMonotributo | async;
 
               @if (selectedPersonalId() > 0 && personaMonotributo.length > 0) {
+              <!-- TODO: quitar objeto de track  -->
               @for (monotributo of personaMonotributo; track monotributo) {
               <nz-list-item>
                 <a app-down-file
@@ -559,6 +565,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Situación Revista</nz-form-label>
           <nz-form-control>
+            <!-- TODO: quitar objeto de track  -->
             @for (sitrevista of $sitrevista | async; track sitrevista) {
             <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
               {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
@@ -573,6 +580,7 @@
         <nz-form-item>
           <nz-form-label [nzSpan]="5">Categorías</nz-form-label>
           <nz-form-control>
+            <!-- TODO: quitar objeto de track  -->
             @for (categoria of ($listaCategoriasPer | async)?.categorias; track categoria) {
             <p title="{{ categoria.TipoAsociadoDescripcion }} {{ categoria.CategoriaPersonalDescripcion }}">
               {{ categoria.TipoAsociadoDescripcion }} {{ categoria.CategoriaPersonalDescripcion }} desde {{
@@ -597,6 +605,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of efectPer.data; track data) {
                 <tr class="">
                   <td>{{ data.EfectoDescripcionCompleto }}</td>
@@ -627,6 +636,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of excepPer.data; track data) {
                 <tr class="">
                   <td title="{{ data.ObjetivoId }}">
@@ -700,6 +710,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of asistPer.data; track data) {
                 <tr class="">
                   <td title="{{ data.ObjetivoId }}">
@@ -777,6 +788,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of art42adminPer.data; track data) {
                 <tr class="">
                   <td>{{ data.SucursalDescripcion}}</td>
@@ -819,6 +831,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of custPer.data; track data) {
                 <tr class="">
                   <td>{{ data.CustodiaCodigo }}</td>
@@ -859,6 +872,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of ingextraPer.data; track data) {
                 <tr class="">
                   <td>@if (data.tipocuenta_id=='C') {
@@ -897,6 +911,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of descPer.data; track data) {
                 <tr class="">
                   <td>{{ data.DescuentoDescripcion }}</td>
@@ -942,6 +957,7 @@
                 </tr>
               </thead>
               <tbody>
+                <!-- TODO: quitar objeto de track  -->
                 @for (data of descPer.data; track data) {
                 <tr class="">
                   <td>{{ data.DescuentoDescripcion }}</td>

@@ -1,4 +1,5 @@
 <nz-card style="max-height: 150px; overflow: auto; border:none !important;">
+  <!-- TODO: quitar objeto de track  -->
   @for (tag of localoptions.filtros; track tag) {
     @if (tag.label && tag.label !="") {
     <nz-tag [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro($index)" class="tag-ellipsis">
@@ -116,6 +117,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
       (ngModelChange)="selectedValueSucursal($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsSucursales | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.SucursalDescripcion"></nz-option>
       }
@@ -125,6 +127,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Depósito" nzShowSearch
       (ngModelChange)="selectedValueDeposito($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsDepositos | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.DepositoNombre"></nz-option>
       }
@@ -134,6 +137,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Rubro" nzShowSearch
       (ngModelChange)="selectedValueRubro($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsRubros | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.RubroDescripcion"></nz-option>
       }
@@ -143,6 +147,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Subrubro" nzShowSearch
       (ngModelChange)="selectedValueSubrubro($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsSubrubros | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.SubrubroDescripcion"></nz-option>
       }
@@ -152,7 +157,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Se paga" nzShowSearch
       (ngModelChange)="selectedValueSePaga($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsSepaga | async; track option) {
+      @for (option of $optionsSepaga | async; track option.value) {
       <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
       <!-- <nz-option nzLabel="Si" nzValue="S"></nz-option>
@@ -164,7 +169,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Inactivo" nzShowSearch
       (ngModelChange)="selectedValueInactivo($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsInactivo | async; track option) {
+      @for (option of $optionsInactivo | async; track option.value) {
       <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
     </nz-select>
@@ -173,7 +178,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Activo" nzShowSearch
       (ngModelChange)="selectedValueInactivoBoolean($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsInactivoBoolean | async; track option) {
+      @for (option of $optionsInactivoBoolean | async; track option.value) {
       <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
     </nz-select>
@@ -182,7 +187,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="SI/NO" nzShowSearch
       (ngModelChange)="selectedValueInactivo($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsActivoBoolean | async; track option) {
+      @for (option of $optionsActivoBoolean | async; track option.value) {
       <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
     </nz-select>
@@ -191,7 +196,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="SI/NO" nzShowSearch
       (ngModelChange)="selectedValueExeptuado($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsExceptuadoBoolean | async; track option) {
+      @for (option of $optionsExceptuadoBoolean | async; track option.value) {
       <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
     </nz-select>
@@ -200,7 +205,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Grupo Actividad" nzShowSearch
       (ngModelChange)="selectedValueGrupoActividad($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsGrupoActividad | async; track option) {
+      @for (option of $optionsGrupoActividad | async; track option.value) {
       <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
     </nz-select>
@@ -209,7 +214,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Comprobante" nzShowSearch
       (ngModelChange)="selectedValueComprobanteTipo($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsComprobanteTipo | async; track option) {
+      @for (option of $optionsComprobanteTipo | async; track option.ComprobanteTipoCodigo) {
       <nz-option [nzValue]="option.ComprobanteTipoCodigo" [nzLabel]="option.Descripcion"></nz-option>
       }
     </nz-select>
@@ -218,7 +223,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Nivel de Estudio" nzShowSearch
       (ngModelChange)="selectedValueNivelEstudio($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsNivelEstudio | async; track option) {
+      @for (option of $optionsNivelEstudio | async; track option.TipoEstudioId) {
       <nz-option [nzValue]="option.TipoEstudioId" [nzLabel]="option.TipoEstudioDescripcion"></nz-option>
       }
     </nz-select>
@@ -227,6 +232,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Aplica A" nzShowSearch
       (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsAplicaA | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -236,6 +242,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Estado" nzShowSearch
       (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsEstadoCust | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -245,6 +252,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Estado" nzShowSearch
       (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsEstadoPrest | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -254,6 +262,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Estado" nzShowSearch
       (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsEstadoExcepcionAsistencia | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -263,6 +272,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Descripcion" nzShowSearch
       (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsTipoPrest | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -272,6 +282,7 @@
     <nz-select [(ngModel)]="listOfSelectedValue" nzMode="multiple" nzAllowClear style="width:100%"
       nzPlaceHolder="Situacion de Revista" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
       [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsSitRevista | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -281,6 +292,7 @@
     <nz-select [(ngModel)]="listOfSelectedValue" nzMode="multiple" nzAllowClear style="width:100%"
       nzPlaceHolder="Tipo Documento" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
       [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsTipoDocumento | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -290,6 +302,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Producto" nzShowSearch
       (ngModelChange)="selectedValueProducto($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsProducto | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.TipoProductoDescripcion"></nz-option>
       }
@@ -299,7 +312,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Curso" nzShowSearch
       (ngModelChange)="selectedValueCurso($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsCurso | async; track option) {
+      @for (option of $optionsCurso | async; track option.CursoHabilitacionId) {
       <nz-option [nzValue]="option.CursoHabilitacionId" [nzLabel]="option.CursoHabilitacionDesCod"></nz-option>
       }
     </nz-select>
@@ -308,7 +321,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Compania Seguro" nzShowSearch
       (ngModelChange)="selectedValueCompaniaSeguro($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsCompaniaSeguro | async; track option) {
+      @for (option of $optionsCompaniaSeguro | async; track option.CompaniaSeguroId) {
       <nz-option [nzValue]="option.CompaniaSeguroId" [nzLabel]="option.CompaniaSeguroDescripcion"></nz-option>
       }
     </nz-select>
@@ -317,6 +330,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Seguro" nzShowSearch
       (ngModelChange)="selectedValueTipoSeguro($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsTipoSeguro | async; track option) {
       <nz-option [nzValue]="option.TipoSeguroCodigo" [nzLabel]="option.TipoSeguroNombre"></nz-option>
       }
@@ -326,7 +340,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Cuenta" nzShowSearch
       (ngModelChange)="selectedValueTipoCuenta($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsTipoCuenta | async; track option) {
+      @for (option of $optionsTipoCuenta | async; track option.tipocuenta_id) {
       <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
       }
     </nz-select>
@@ -335,6 +349,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Novedad" nzShowSearch
       (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsTipoNovedad | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -344,6 +359,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Tipo Descuento" nzShowSearch
       (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsTipoDescuento | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -353,6 +369,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Centro Capacitación" nzShowSearch
       (ngModelChange)="selectedValueCentroCapacitacion($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsCentroCapacitacion | async; track option) {
       <nz-option [nzValue]="option.CentroCapacitacionId" [nzLabel]="option.CentroCapacitacionRazonSocial"></nz-option>
       }
@@ -362,7 +379,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Modalidad Curso" nzShowSearch
       (ngModelChange)="selectedValueModalidadCurso($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
-      @for (option of $optionsModalidadCurso | async; track option) {
+      @for (option of $optionsModalidadCurso | async; track option.ModalidadCursoCodigo) {
       <nz-option [nzValue]="option.ModalidadCursoCodigo" [nzLabel]="option.ModalidadCursoModalidad"></nz-option>
       }
     </nz-select>
@@ -371,6 +388,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Estado" nzShowSearch
       (ngModelChange)="multipleSelectedValue($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsProcAutoEstado | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -380,6 +398,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Metodologías" nzShowSearch
       (ngModelChange)="selectedValueMetodologias($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsMetodologias | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.etiqueta"></nz-option>
       }
@@ -389,6 +408,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Provincia" nzShowSearch
       (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsProvincias | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.address"></nz-option>
       }
@@ -398,6 +418,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Localidad" nzShowSearch
       (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsLocalidades | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.address"></nz-option>
       }
@@ -407,6 +428,7 @@
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Barrio" nzShowSearch
       (ngModelChange)="selectedValueOptions($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsBarrios | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.address"></nz-option>
       }
@@ -416,6 +438,7 @@
     <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
       nzPlaceHolder="Lugar Habilitacion" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
       [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsLugarHabilitacion | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -425,6 +448,7 @@
     <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
       nzPlaceHolder="Habilitacion Clase" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
       [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsHabilitacionClase | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -434,6 +458,7 @@
     <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
       nzPlaceHolder="Habilitacion Estado" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
       [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsHabilitacionEstado | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }
@@ -443,6 +468,7 @@
     <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
       nzPlaceHolder="Habilitacion Estado" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
       [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
       @for (option of $optionsEventoLogClase | async; track option) {
       <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
       }

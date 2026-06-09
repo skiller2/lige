@@ -11,7 +11,7 @@
           <nz-form-control>
             <nz-select formControlName="TipoAsociadoId" nzPlaceHolder="Tipo Asociado" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" (ngModelChange)="selectedTipoAsociadoChange($event)" nzShowSearch>
-              @for (option of $optionsTipoAsociado | async; track option) {
+              @for (option of $optionsTipoAsociado | async; track option.value) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               }
             </nz-select>
@@ -23,7 +23,7 @@
           <nz-form-control>
             <nz-select formControlName="CategoriaId" nzPlaceHolder="Categoria" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-              @for (option of $optionsCategoria | async; track option) {
+              @for (option of $optionsCategoria | async; track option.value) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               }
             </nz-select>
@@ -61,6 +61,7 @@
             </tr>
           </thead>
           <tbody>
+            <!-- TODO: quitar objeto de track  -->
             @for (data of categoriaPer.data; track data) {
               <tr class="">
                 <td>{{ data.TipoAsociado }}</td>

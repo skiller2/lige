@@ -8,7 +8,7 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
           <nz-select formControlName="PersonalHabilitacionClase" nzPlaceHolder="Seleccione tipo" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" style="width: 100%">
-            @for (option of $optionsHabilitacionClase | async; track option) {
+            @for (option of $optionsHabilitacionClase | async; track option.value) {
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
@@ -25,6 +25,7 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="5">Situación Revista</nz-form-label>
         <nz-form-control>
+          <!-- TODO: quitar objeto de track  -->
           @for (sitrevista of $sitrevista | async; track sitrevista) {
             <p title="{{ sitrevista.SituacionRevistaDescripcion }}">
               {{ sitrevista.SituacionRevistaDescripcion }} desde {{ sitrevista.PersonalSituacionRevistaDesde | date}}
@@ -43,7 +44,7 @@
           <nz-select formControlName="LugarHabilitacionId" nzPlaceHolder="Seleccione lugar" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" style="width: 100%"
             (ngModelChange)="selectedLugarHabilitacionChange($event)">
-            @for (option of $optionsLugarHabilitacion | async; track option) {
+            @for (option of $optionsLugarHabilitacion | async; track option.value) {
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
@@ -55,7 +56,7 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
           <nz-select formControlName="HabilitacionCategoriaCodigos" nzPlaceHolder="Seleccione categoria" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzMode="multiple">
-            @for (option of optionsHabilitacionCategoria(); track option) {
+            @for (option of optionsHabilitacionCategoria(); track option.value) {
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
@@ -70,7 +71,7 @@
           <nz-select formControlName="GestionHabilitacionEstadoCodigo" nzPlaceHolder="Seleccione estado" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" style="width: 100%"
             (nzBlur)="formHabilitacion.patchValue({NroTramite:'',PersonalHabilitacionDesde:'',PersonalHabilitacionHasta:''})">
-            @for (option of $optionsEstadoCodigo | async; track option) {
+            @for (option of $optionsEstadoCodigo | async; track option.value) {
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
@@ -121,6 +122,7 @@
       }
 
         <div formArrayName="documentos">
+          <!-- TODO: quitar objeto de track  -->
           @for (control of documentos().controls; track control; let i = $index) {
             <div [formGroupName]="i">
               <nz-form-item class="marginElement">

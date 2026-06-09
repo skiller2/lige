@@ -197,7 +197,7 @@
                     <nz-select #sucursal="ngModel" nzSpan="15" name="SucursalId" (ngModel)="selectedCuentalId"
                       (ngModelChange)="selectedValueChange($event)" nzAllowClear nzPlaceHolder="Cuenta"
                       [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-                      @for (option of $optionsCuenta | async; track option) {
+                      @for (option of $optionsCuenta | async; track option.tipocuenta_id) {
                       <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
                       }
                     </nz-select>
@@ -213,7 +213,7 @@
                     <nz-select #sucursal="ngModel" nzSpan="15" name="MovimientoId" (ngModel)="selectedMovimientoId"
                       (ngModelChange)="selectedValueChangeMovimiento($event)" nzAllowClear nzPlaceHolder="Movimiento"
                       [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-                      @for (option of $optionsMovimiento | async; track option) {
+                      @for (option of $optionsMovimiento | async; track option.tipo_movimiento_id) {
                       <nz-option [nzValue]="option.tipo_movimiento_id" [nzLabel]="option.des_movimiento"></nz-option>
                       }
                     </nz-select>
@@ -224,6 +224,7 @@
               <nz-form-item>
                 <nz-form-control>
                   <nz-form-label [nzSpan]="5">Importaciones anteriores</nz-form-label>
+                  <!-- TODO: quitar objeto de track  -->
                   @for (movimiento of $importacionesAnteriores | async; track movimiento) {
                   <div class="containerAnteriores" nz-tooltip nzTooltipTitle={{movimiento.nombre}}>
                     <!-- <ng-container>{{movimiento.valor_random}} <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span> ,</ng-container> -->

@@ -37,6 +37,7 @@
         [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
         <thead>
           <tr>
+            <!-- TODO: quitar objeto de track  -->
             @for(column of columnsDoc$ | async; track column){
             @if(!column.hidden){
             <th>{{column.name}}</th>
@@ -46,6 +47,7 @@
           </tr>
         </thead>
         <tbody>
+          <!-- TODO: quitar objeto de track  -->
           @for (data of asistPer.data; track data) {
           <tr class="">
             <td>{{ data.DocumentoTipoDetalle }}</td>

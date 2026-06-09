@@ -43,7 +43,7 @@
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
             <nz-select formControlName="ModalidadCursoCodigo" nzPlaceHolder="Modalidad Curso" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
-              @for (option of $optionsModalidadCurso | async; track option) {
+              @for (option of $optionsModalidadCurso | async; track option.ModalidadCursoCodigo) {
                 <nz-option [nzValue]="option.ModalidadCursoCodigo" [nzLabel]="option.ModalidadCursoModalidad"></nz-option>
               }
             </nz-select>
@@ -66,7 +66,7 @@
           <nz-input-group>
             <nz-select formControlName="CentroCapacitacionId" nzPlaceHolder="Centro de Capacitación" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important"
               (nzBlur)="formCli.patchValue({CentroCapacitacionSedeId:null})" nzShowSearch>
-              @for (option of $optionsCentroCapacitacion | async; track option) {
+              @for (option of $optionsCentroCapacitacion | async; track option.CentroCapacitacionId) {
                 <nz-option [nzValue]="option.CentroCapacitacionId" [nzLabel]="option.CentroCapacitacionRazonSocial"></nz-option>
               }
             </nz-select>
@@ -79,7 +79,7 @@
         <nz-form-control [nzSpan]="18">
           <nz-input-group>
             <nz-select formControlName="CentroCapacitacionSedeId" nzPlaceHolder="Centro de Capacitación Sede" nzAllowClear [nzDropdownMatchSelectWidth]="false" style="width: 100% !important" nzShowSearch>
-              @for (option of $optionsCentroCapacitacionSede | async; track option) {
+              @for (option of $optionsCentroCapacitacionSede | async; track option.CentroCapacitacionSedeId) {
                 @if (option.CentroCapacitacionId == formCli.value.CentroCapacitacionId) {
                   <nz-option [nzValue]="option.CentroCapacitacionSedeId" [nzLabel]="option.CentroCapacitacionSedeDescripcion"></nz-option>
                 }

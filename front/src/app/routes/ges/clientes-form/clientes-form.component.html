@@ -55,6 +55,7 @@
   </div>
 
   <div formArrayName="infoDomicilio">
+    <!-- TODO: quitar objeto de track  -->
     @for (control of infoDomicilio().controls; track control; let i = $index) {
     <div [formGroupName]="i" [ngClass]="{'even-background': i % 2 !== 0}">
       <nz-form-item class="marginElement">
@@ -147,6 +148,7 @@
     <div class="input-label">Cliente Contacto</div>
   </div>
   <div formArrayName="infoClienteContacto">
+    <!-- TODO: quitar objeto de track  -->
     @for (control of infoClienteContacto().controls; track control; let i = $index) {
     <div [formGroupName]="i" [ngClass]="{'even-background': i % 2 === 0}">
       <nz-form-item class="marginElement">

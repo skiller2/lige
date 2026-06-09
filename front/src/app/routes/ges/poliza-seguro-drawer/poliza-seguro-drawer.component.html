@@ -14,7 +14,7 @@
         <nz-form-label [nzSpan]="5">Tipo</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-select formControlName="TipoSeguroCodigo"  [nzDropdownMatchSelectWidth]="false" nzPlaceHolder="Seleccione tipo de seguro" nzShowSearch>
-            @for (tiposeguro of $optionsTipoSeguro | async; track tiposeguro) {
+            @for (tiposeguro of $optionsTipoSeguro | async; track tiposeguro.TipoSeguroCodigo) {
               <nz-option [nzValue]="tiposeguro.TipoSeguroCodigo" [nzLabel]="tiposeguro.TipoSeguroNombre"></nz-option>
             }
           </nz-select>
@@ -25,7 +25,7 @@
         <nz-form-label [nzSpan]="5">Compañía</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-select formControlName="CompaniaSeguroId"  [nzDropdownMatchSelectWidth]="false"  nzPlaceHolder="Seleccione compañía" nzShowSearch>
-            @for (compania of $optionsCompaniaSeguro | async; track compania) {
+            @for (compania of $optionsCompaniaSeguro | async; track compania.CompaniaSeguroId) {
               <nz-option [nzValue]="compania.CompaniaSeguroId" [nzLabel]="compania.CompaniaSeguroDescripcion"></nz-option>
             }
           </nz-select>

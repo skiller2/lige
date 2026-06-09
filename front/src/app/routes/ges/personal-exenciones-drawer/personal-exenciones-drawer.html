@@ -10,7 +10,7 @@
             <nz-select [formField]="formParametroExencion.DocumentoTipoCodigo" nzPlaceHolder="Tipo" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
               (ngModelChange)="selectLabel($event)">
-              @for (option of optionsLabels() || []; track option) {
+              @for (option of optionsLabels() || []; track option.value) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               }
             </nz-select>
@@ -69,6 +69,7 @@
           </tr>
         </thead>
         <tbody>
+          <!-- TODO: quitar objeto de track  -->
           @for (exen of exenPer.data; track exen) {
             <tr class="">
               <td>{{ exen.PersonalExencionId }}</td>
@@ -93,6 +94,7 @@
           </tr>
         </thead>
         <tbody>
+          <!-- TODO: quitar objeto de track  -->
           @for (data of asistPer.data; track data) {
             <tr class="">
               <td>{{ data.Descripcion }}</td>
