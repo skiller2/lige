@@ -70,7 +70,7 @@ export class MovimientoStockController extends BaseController {
       const personalIdInter = Number(body.personalIdInter) ?? null;
       const observaciones   = String(body.observaciones) ?? '';
 
-      const efectos: Array<{ EfectoId: number; StockId: number; Cantidad: number; EfectoIndividualId: number | null; Usado: boolean; isDelete?: boolean }> = Array.isArray(body.efectos) ? body.efectos : [];
+      const efectos: Array<{ EfectoId: number; StockId: number; Cantidad: number; EfectoIndividualId: number | null; Usado: boolean; }> = Array.isArray(body.efectos) ? body.efectos : [];
 
       const fieldErrors: any[] = [];
 
@@ -89,7 +89,7 @@ export class MovimientoStockController extends BaseController {
       for (let i = 0; i < efectos.length; i++) {
         const linea = efectos[i];
         const n = i + 1;
-        console.log(`[confirmarMovimiento] linea ${n} -> EfectoId:`, linea.EfectoId, 'StockId:', linea.StockId, 'Cantidad:', linea.Cantidad, 'EfectoIndividualId:', linea.EfectoIndividualId, 'Usado:', linea.Usado, 'isDelete:', linea.isDelete);
+        console.log(`[confirmarMovimiento] linea ${n} -> EfectoId:`, linea.EfectoId, 'StockId:', linea.StockId, 'Cantidad:', linea.Cantidad, 'EfectoIndividualId:', linea.EfectoIndividualId, 'Usado:', linea.Usado);
         if (!linea.EfectoId) fieldErrors.push({ fieldTree: `efectos[${i}].EfectoId`, kind: 'server', message: 'Efecto obligatorio.' });
         if (!linea.StockId) fieldErrors.push({ fieldTree: `efectos[${i}].StockId`, kind: 'server', message: 'Ubicación obligatoria.' });
         if (linea.Cantidad == null || Number(linea.Cantidad) <= 0)
