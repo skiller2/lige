@@ -121,7 +121,7 @@
           <nz-form-control>
             <nz-select [formField]="formDescuentoPersonal.CuentaTipoCodigo" nzAllowClear nzPlaceHolder="Cuenta"
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-              @for (option of optionsCuenta(); track option) {
+              @for (option of optionsCuenta(); track option.tipocuenta_id) {
               <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
               }
             </nz-select>
@@ -200,6 +200,7 @@
           </tr>
         </thead>
         <tbody>
+          <!-- TODO: No usar objeto -->
           @for (data of list.data; track data) {
           <tr class="">
             <td>{{ data.tipocuenta_id }}</td>

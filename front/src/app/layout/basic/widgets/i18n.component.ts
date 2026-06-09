@@ -20,6 +20,7 @@ import { NzMenuModule } from 'ng-zorro-antd/menu';
     }
     <nz-dropdown-menu #langMenu="nzDropdownMenu">
       <ul nz-menu>
+      <!-- TODO: No usar $index -->
         @for (item of langs; track $index) {
           <li nz-menu-item [nzSelected]="item.code === curLangCode" (click)="change(item.code)">
             <span role="img" [attr.aria-label]="item.text" class="pr-xs">{{ item.abbr }}</span>

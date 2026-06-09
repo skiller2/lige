@@ -65,6 +65,7 @@
           </thead>
           <tbody>
             @if ($optionsMetodologia | async; as optionsMetodologia) {
+              <!-- TODO: No usar objeto -->
             @for (data of excep.data; track data) {
             <tr [ngClass]="{rowapro:data.PersonalArt14Autorizado=='S',rowpend:data.PersonalArt14Autorizado==''}">
               <td title="{{ data.PersonalId }}"><span nz-col>{{data.ApellidoNombre}}</span><span nz-col>
@@ -125,6 +126,7 @@
       <nz-form-control>
         <nz-select name="metodologia" [(ngModel)]="selectedMetodologiaId" nzAllowClear nzPlaceHolder="Metodologia"
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+          <!-- TODO: No usar objeto -->
           @for (option of optionsMetodologia; track option) {
           <nz-option [nzValue]="option" [nzLabel]="option.etiqueta + ' (' + option.descripcion + ')'"></nz-option>
           }

@@ -8,7 +8,7 @@
           <nz-select formControlName="tipocarga" nzPlaceHolder="" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" nzShowSearch
             (ngModelChange)="onSelectChange($event)">
-            @for (option of $optionsTable | async; track option) {
+            @for (option of $optionsTable | async; track option.value) {
               <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
             }
           </nz-select>
@@ -19,7 +19,7 @@
           <nz-form-control  [nzXs]="24" [nzSm]="24" [nzMd]="5">
             <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="onSelectChangeDescuentoId($event)">
-              @for (option of $optionsTipo | async; track option) {
+              @for (option of $optionsTipo | async; track option.value) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               }
             </nz-select>
@@ -30,7 +30,7 @@
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
             <nz-select formControlName="CuentaTipoCodigo" nzAllowClear nzPlaceHolder="Cuenta"
               [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-              @for (option of $optionsCuenta | async; track option) {
+              @for (option of $optionsCuenta | async; track option.tipocuenta_id) {
               <nz-option [nzValue]="option.tipocuenta_id" [nzLabel]="option.detalle"></nz-option>
               }
             </nz-select>
@@ -46,7 +46,7 @@
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
             <nz-select formControlName="DescuentoId" nzPlaceHolder="Descripcion" nzAllowClear
               [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="onSelectChangeDescuentoId($event)">
-              @for (option of $optionsTipo | async; track option) {
+              @for (option of $optionsTipo | async; track option.value) {
                 <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
               }
             </nz-select>

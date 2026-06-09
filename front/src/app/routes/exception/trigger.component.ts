@@ -7,6 +7,7 @@ import { _HttpClient } from '@delon/theme';
     template: `
     <div class="pt-lg">
       <nz-card>
+      <!-- TODO: No usar $index -->
         @for (t of types; track t) {
           <button (click)="go(t)" nz-button nzDanger>触发{{ t }}</button>
         }

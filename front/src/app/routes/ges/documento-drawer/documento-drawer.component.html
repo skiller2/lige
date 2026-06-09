@@ -11,7 +11,7 @@
               <nz-select [formField]="formTipoDocumento.DocumentoTipoCodigo" nzPlaceHolder="Tipo" nzAllowClear
                 [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
                 (ngModelChange)="selectLabel($event)">
-                @for (option of optionsTipos(); track option) {
+                @for (option of optionsTipos(); track option.value) {
                   <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
                 }
               </nz-select>

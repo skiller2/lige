@@ -55,7 +55,8 @@ type SearchResult = {
       />
     </nz-input-wrapper>
     <nz-autocomplete nzBackfill #auto>
-      @for (i of options; track $index) {
+          
+      @for (i of options; track i.text) {
         <nz-auto-option [nzValue]="i.text">
                     <div class="result-item" (click)="navigateToModule(i.link)">
                       <div class="result-title">{{ i.text }}</div>

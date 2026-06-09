@@ -5,6 +5,7 @@
         @if (!hasGroup() ) {
           <li nz-typography nzType="danger"><strong>Sin Grupo Actividad Vigente</strong></li>
         } @else {
+          <!-- TODO: No usar $index -->
           @for (det of list; track $index) {
             @if (det.tipo == 'Grupo') {
               <li> {{ det.tipo+': '+det.detalle }} - Desde: {{ det.desde | date}} @if (det.hasta
