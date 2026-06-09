@@ -75,7 +75,7 @@ const errorResponder = (
     data = error.extended
   } else if (error instanceof QueryFailedError) {
     if (error.message.indexOf('Violation') > 0) {
-      message = ['El registro ya existe']
+      message = ['Conflicto interno al insertar el registro (Ya existe). Avise al administrador del sistema.']
       status = 409
     }
   }
