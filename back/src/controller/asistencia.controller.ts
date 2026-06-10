@@ -2997,7 +2997,7 @@ export class AsistenciaController extends BaseController {
           }
           //Validación Situación de Revista
           
-          const situacionesOKA = [2, 5, 11, 12, 20, 26];
+          const situacionesOKA = [2, 12]; //ACTIVO y ASOCIADO - EN TRAMITE
 
           const situacion = situacionesRevista.find((row: any) => (row.desde <= fecha && row.hasta >= fecha && !situacionesOKA.includes(row.PersonalSituacionRevistaSituacionId)))
 

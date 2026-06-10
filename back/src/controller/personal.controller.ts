@@ -749,9 +749,11 @@ LEFT JOIN(
             MAX(b.ActaFechaActa) AS MaxFecha
         FROM PersonalActa a
         JOIN Acta b ON b.ActaId = a.ActaId
+        WHERE a.TipoPersonalActaCodigo IN ('ALT','BAJ')
         GROUP BY a.PersonalId
         ) x ON x.PersonalId = a.PersonalId AND x.MaxFecha = b.ActaFechaActa
-        JOIN TipoPersonalActa tip ON tip.TipoPersonalActaCodigo = a.TipoPersonalActaCodigo 
+        JOIN TipoPersonalActa tip ON tip.TipoPersonalActaCodigo = a.TipoPersonalActaCodigo
+        WHERE a.TipoPersonalActaCodigo IN ('ALT','BAJ') 
  ) act ON act.PersonalId=per.PersonalId 
 
 
