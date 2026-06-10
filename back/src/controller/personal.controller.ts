@@ -3444,11 +3444,11 @@ UNION ALL
     const personalId = Number(req.params.personalId);
     const ActaId: number = req.body.ActaId;
     const TipoActa: string = req.body.TipoActa;
-    const PersonalSituacionRevistaId: number = req.body.PersonalSituacionRevistaId;
     const PersonalActaDescripcion: string = req.body.PersonalActaDescripcion;
     const now = new Date()
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
+    const PersonalNroLegajo = req.body.PersonalNroLegajo
 
     let campos_vacios: string[] = []
     try {
@@ -3459,7 +3459,7 @@ UNION ALL
       // if (!personalId) campos_vacios.push("- Persona");
       if (!ActaId) campos_vacios.push("- Nro Acta");
       if (!TipoActa) campos_vacios.push("- Tipo");
-      // if (!PersonalActaDescripcion) campos_vacios.push("- Descripcion");
+      // if (!PersonalNroLegajo) campos_vacios.push("- Descripcion");
 
       if (campos_vacios.length) {
         campos_vacios.unshift('Debe completar los siguientes campos: ')
@@ -3477,11 +3477,16 @@ UNION ALL
         PersonalActaAudIpIng,
         PersonalActaAudFechaMod,
         PersonalActaAudUsuarioMod,
-        PersonalActaAudIpMod,
-        PersonalSituacionRevistaId
-      ) VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6, @7)
-      `, [ActaId, TipoActa, personalId, PersonalActaDescripcion, now, usuario, ip, PersonalSituacionRevistaId])
+        PersonalActaAudIpMod
+      ) VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
+      `, [ActaId, TipoActa, personalId, PersonalActaDescripcion, now, usuario, ip])
 
+      if (PersonalNroLegajo != undefined && PersonalNroLegajo != null && PersonalNroLegajo != '') {
+        await queryRunner.query(`
+          UPDATE Personal SET PersonalNroLegajo = @1
+          WHERE PersonalId = @0
+        `, [personalId, PersonalNroLegajo])
+      }
       await queryRunner.commitTransaction();
 
       this.jsonRes({}, res, 'Carga Exitosa');
