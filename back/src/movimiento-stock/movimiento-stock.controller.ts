@@ -70,23 +70,24 @@ export class MovimientoStockController extends BaseController {
       const proveedorId     = Number(body.proveedorId) || null;
       const observaciones   = String(body.observaciones ?? '');
 
-      const efectos = Array.isArray(body.efectos) ? body.efectos : [];
-
+      const efectos = body.efectos;
       const fieldErrors: any[] = [];
 
       // validaciones 
-      await this.validateForm(queryRunner, body.fecha, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, fieldErrors , efectos);
+      await this.validateForm(queryRunner, body.fecha, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, efectos,fieldErrors );
 
+      console.log("Validación exitosa. Procediendo a insertar movimiento...");
      // Insert
-     await this.insertMovimiento();
+     //const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, body.fecha, efectos);
 
+      // Simular: corre los INSERT reales pero hace rollback (no persiste, no consume el numerador).
       if (simular) {
         await this.rollbackTransaction(queryRunner);
-        return this.jsonRes({ ok: true, simulado: true }, res, 'Simulación correcta: el movimiento es válido.');
+        return this.jsonRes({ ...body, simulado: true }, res, 'Simulación correcta: el movimiento es válido.');
       }
 
       await queryRunner.commitTransaction();
-      return this.jsonRes({ ok: true }, res, "Movimiento confirmado");
+      return this.jsonRes({ ...body }, res, "Movimiento confirmado");
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
       return next(error);
@@ -95,11 +96,101 @@ export class MovimientoStockController extends BaseController {
     }
   }
 
-  private async insertMovimiento() {
+  /** INSERT en MovimientoStock + MovimientoStockDetalle. Devuelve el MovimientoStockCodigo generado. */
+  private async insertMovimiento(
+    queryRunner: any, req: any, res: any,
+    tipoDestino: string,
+    depositoId: number | null,
+     personalId: number | null, 
+     objetivoId: number | null,
+      proveedorId: number | null,
+    observaciones: string, fechaRaw: any, efectos: any[]
+  ) {
+    const usuario = res.locals.userName;
+    const ip = this.getRemoteAddress(req);
+    const fechaActual = new Date();
+    const fecha = new Date(fechaRaw);
+
+    // Código del movimiento desde GenNumerador (lo crea en 1 si no existe, o incrementa).
+    const movimientoCodigo = await BaseController.getProxNumero(queryRunner, 'MovimientoStock', usuario, ip);
+
+    // Destino: cada tipo cae en su columna. El objetivo se resuelve a Cliente + ElementoDependiente.
+    let personalIdDestino: number | null = null;
+    let proveedorIdDestino: number | null = null;
+    let clienteIdDestino: number | null = null;
+    let clienteElemDepDestino: number | null = null;
+    let depositoIdDestino: number | null = null;
+    switch (tipoDestino) {
+      case 'personal':  personalIdDestino  = personalId;  break;
+      case 'proveedor': proveedorIdDestino = proveedorId; break;
+      case 'deposito':  depositoIdDestino  = depositoId;  break;
+      case 'objetivo': {
+        const obj = await this.getObjetivoCliente(queryRunner, objetivoId);
+        clienteIdDestino = obj?.ClienteId ?? null;
+        clienteElemDepDestino = obj?.ClienteElementoDependienteId ?? null;
+        break;
+      }
+    }
+
+    await queryRunner.query(
+      `INSERT INTO MovimientoStock
+        (MovimientoStockCodigo, Fecha, PersonalIdDestino, ProveedorIdDestino, ClienteIdDestino,
+         ClienteElementoDependienteIdDestino, DepositoIdDestino, Observaciones,
+         AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)`,
+      [movimientoCodigo, fecha, personalIdDestino, proveedorIdDestino, clienteIdDestino,
+       clienteElemDepDestino, depositoIdDestino, observaciones,
+       fechaActual, fechaActual, usuario, usuario, ip, ip]
+    );
+
+    // Detalle: un INSERT por renglón. MovimientoStockDetalleCodigo incremental desde 1 en este movimiento.
+    let detalleCodigo = 0;
+    for (const linea of efectos) {
+      detalleCodigo++;
+
+      // Origen: sale del StockReal de la ubicación elegida. El objetivo se resuelve a Cliente + ElementoDependiente.
+      const stkRows = await queryRunner.query(
+        `SELECT TOP 1 DepositoId, PersonalId, ObjetivoId, ProveedorId FROM StockReal WHERE StockId = @0`,
+        [linea.StockId]
+      );
+      const stk = stkRows?.[0] ?? {};
+      let clienteIdOrigen: number | null = null;
+      let clienteElemDepOrigen: number | null = null;
+      if (stk.ObjetivoId) {
+        const obj = await this.getObjetivoCliente(queryRunner, stk.ObjetivoId);
+        clienteIdOrigen = obj?.ClienteId ?? null;
+        clienteElemDepOrigen = obj?.ClienteElementoDependienteId ?? null;
+      }
+
+      await queryRunner.query(
+        `INSERT INTO MovimientoStockDetalle
+          (MovimientoStockDetalleCodigo, EfectoId, EfectoIndividualId, Cantidad,
+           PersonalIdOrigen, DepositoIdOrigen, ProveedorIdOrigen, ClienteIdOrigen, ClienteElementoDependienteOrigen,
+           MovimientoStockCodigo, IndEfectoUsado, CantidadOrigen,
+           AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod, StockIdOrigen)
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18)`,
+        [detalleCodigo, linea.EfectoId, linea.EfectoIndividualId , linea.Cantidad,
+         stk.PersonalId, stk.DepositoId, stk.ProveedorId , clienteIdOrigen, clienteElemDepOrigen,
+         movimientoCodigo, linea.Usado ? 1 : 0, linea.Cantidad,
+         fechaActual, fechaActual, ip, ip, usuario, usuario, linea.StockId]
+      );
+    }
+
+    return movimientoCodigo;
+  }
+
+  /** Resuelve un ObjetivoId a su Cliente + ElementoDependiente (para columnas de origen/destino). */
+  private async getObjetivoCliente(queryRunner: any, objetivoId: number | null) {
+    if (!objetivoId) return null;
+    const rows = await queryRunner.query(
+      `SELECT TOP 1 ClienteId, ClienteElementoDependienteId FROM Objetivo WHERE ObjetivoId = @0`,
+      [objetivoId]
+    );
+    return rows?.[0] ?? null;
   }
 
   private async validateForm( queryRunner: any, fechaRaw: any, tipoDestino: string, depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
-    observaciones: string | null, efectos: any[],
+    observaciones: string | null, efectos: any,
     fieldErrors: any[]
   ) {
 
@@ -128,9 +219,14 @@ export class MovimientoStockController extends BaseController {
         const rows = await queryRunner.query(`SELECT TOP 1 1 AS ok FROM ${d.tabla} WHERE ${d.columna} = @0`, [d.id]);
         if (!rows?.length) fieldErrors.push({ fieldTree: d.field, kind: 'server', message: d.inexistente });
       }
+    }
+
+    // Observación obligatoria según el destino.
+    if (this.requiereObservacion(tipoDestino) && !observaciones?.trim())
+      fieldErrors.push({ fieldTree: 'observaciones', kind: 'server', message: 'La observación es obligatoria para este destino.' });
 
     // efecto
-     if (!efectos.length) throw new ClientException("Debe ingresar al menos un efecto.");
+    if (!efectos.length) throw new ClientException("Debe ingresar al menos un efecto.");
 
     //////////////////////////////////////////////////////////////////////////////////////
 
@@ -205,16 +301,8 @@ export class MovimientoStockController extends BaseController {
         if (dup?.length)
           fieldErrors.push({ fieldTree: `efectos[${i}].EfectoId`, kind: 'server', message: 'Existe más de un registro de stock para el mismo lugar (inconsistencia de datos).' });
       }
-
       if (fieldErrors.length > 0)
         throw new ClientException('Debe corregir los campos indicados.', { fieldErrors });
-
-
-    }
-
-    // Observación obligatoria según el destino.
-    if (this.requiereObservacion(tipoDestino) && !observaciones?.trim())
-      fieldErrors.push({ fieldTree: 'observaciones', kind: 'server', message: 'La observación es obligatoria para este destino.' });
   }
 
   private requiereObservacion(tipoDestino: string): boolean {

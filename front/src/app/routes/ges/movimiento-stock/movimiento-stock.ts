@@ -292,7 +292,7 @@ export class MovimientoStockComponent {
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
-      //this.parametroStock.set(this.defaultStockForm)
+      form().reset(form().value());
       return;
     });
   }
