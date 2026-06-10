@@ -4,7 +4,10 @@ import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
+import { PersonalController } from "../controller/personal.controller.ts"
 import type { QueryRunner } from "typeorm";
+import xlsx from 'node-xlsx';
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 
 const columns: any[] = [
   {
@@ -244,6 +247,168 @@ export class CuentasBancariasController extends BaseController {
 
       this.jsonRes(lista, res);
     } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
+    const periodoRequest: Date = req.body.periodo ? new Date(req.body.periodo) : null
+    const bancoIdRequest = Number(req.body.BancoId)
+    const file = req.body.files
+    const queryRunner = await getConnection(res.locals.userName);
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    const fechaActual: Date = new Date()
+    let den_documento: string = ''
+    let columnsnNotFound = []
+    let dataset: any = []
+    let idError: number = 0
+    let altaCuentasBancarias = 0
+    let result: any
+    let docFilePath: string | null = null
+    let EventoLogCodigo = 0
+
+    periodoRequest.setHours(0,0,0,0)
+    const anio = periodoRequest.getFullYear()
+    const mes = periodoRequest.getMonth()+1
+    const dia = periodoRequest.getDate()
+    try {
+      let campos_vacios: any[] = [];
+
+
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Importación xls Cuentas Bancarias ${bancoIdRequest} - ${dia}/${mes}/${anio}`,
+        { anio, mes, bancoIdRequest, usuario, ip },
+        usuario,
+        ip,
+        "PRU"
+      ))
+
+
+      if (!periodoRequest) campos_vacios.push(`- Periodo`);
+      if (!bancoIdRequest) campos_vacios.push(`- Banco`)
+
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos: ')
+        throw new ClientException(campos_vacios)
+      }
+
+      await queryRunner.startTransaction();
+
+      //Valida que el período no tenga el indicador de recibos generado
+      // const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
+      // if (checkrecibos[0]?.ind_recibos_generados == 1)
+      //   throw new ClientException(`Ya se encuentran generados los recibos para el período ${anioRequest}/${mesRequest}, no se puede hacer modificaciones`)
+
+      const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
+      const sheet1 = workSheetsFromBuffer[0];
+      const columnsName: Array<string> = sheet1.data[0]
+
+      //Tranformo el array en un objeto con claves como los elementos del array y valores como sus índices
+      const columnsXLS: any = columnsName.reduce((acc, column, index) => {
+        const normalizedColumn = String(column).trim().toLowerCase()
+        acc[normalizedColumn] = index;
+        return acc;
+      }, {} as Record<string, number>);
+
+      sheet1.data.splice(0, 1)
+
+      //Obtengo la descripcion del banco
+      const Banco: any = await queryRunner.query(`
+        SELECT BancoId, TRIM(BancoDescripcion) AS Descripcion FROM Banco WHERE BancoId IN (@0)
+      `, [bancoIdRequest])
+      const bancoDescripcion = Banco[0].Descripcion
+
+      //Validar que esten las columnas nesesarias
+      if (isNaN(columnsXLS['cuit'])) columnsnNotFound.push('- CUIT')
+      if (isNaN(columnsXLS['cbu'])) columnsnNotFound.push('- cbu')
+
+      if (columnsnNotFound.length) {
+        columnsnNotFound.unshift('Faltan las siguientes columnas:')
+        throw new ClientException(columnsnNotFound)
+      }
+
+      den_documento = `Cuentas-Bancarias-${bancoDescripcion}-${dia}-${mes}-${anio}`
+      const docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anio, mes, file[0], usuario, ip, queryRunner)
+      docFilePath = docDescuentoObjetivo?.newFilePath
+      for (const row of sheet1.data) {
+        //Finaliza cuando la fila esta vacia
+        if (
+          !row[columnsXLS['cbu']]
+          && !row[columnsXLS['cuit']]
+        ) break
+
+        //Verifica que exista el cuit del personal
+        const personalCUIT = String(row[columnsXLS['cuit']]).replace(/\D/g, "")
+
+        if (personalCUIT.length != 11) {
+          dataset.push({ id: idError++, Codigo: row[columnsXLS['cuit']], Detalle: `El CUIT no tiene el formato correcto.` })
+          continue
+        }
+        // const cliente = await queryRunner.query(`
+        //   SELECT cli.ClienteId, cli.ClienteElementoDependienteId FROM ClienteElementoDependiente cli 
+        //     LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = cli.ClienteId AND clif.ClienteFacturacionDesde <= @0 
+        //     AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0
+        //   WHERE clif.ClienteFacturacionCUIT = @1
+        // `, [fechaActual, clienteCUIT])
+
+        // if (cliente.length == 0) {
+        //   dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El CUIT no existe en la base de datos.` })
+        //   continue
+        // }
+        // if (cliente[0].ClienteId != ClienteId) {
+        //   dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El CUIT no coincide con el código del objetivo.` })
+        //   continue
+        // }
+        
+        // const otroDescuento: any = {
+        //   DescuentoId: descuentoIdRequest,
+        //   AplicaA: AplicaA,
+        //   ObjetivoId: ObjetivoId,
+        //   AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
+        //   Cuotas: CantidadCuotas,
+        //   Importe: Number((row[columnsXLS['importe total']] || "0").toString().replace(/\. /g, "").replace(",", ".")),
+        //   Detalle: row[columnsXLS['detalle']],
+        //   DocumentoId: docDescuentoObjetivo.doc_id ? docDescuentoObjetivo.doc_id : null
+        // }
+
+        // const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuario, ip)
+        altaCuentasBancarias++
+        if (result instanceof ClientException) {
+          dataset.push({ id: idError++, Codigo: row[columnsXLS['cuit']], Detalle: result.messageArr })
+          continue
+        }
+      }
+
+      if (dataset.length > 0) {
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
+      }
+
+      await queryRunner.commitTransaction();
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        { res: `Procesado correctamente`, altaCuentasBancarias },
+        usuario,
+        ip
+      );
+      this.jsonRes([], res, `XLS Recibido y procesado! Se procesaron ${altaCuentasBancarias} registros correctamente`);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+
+      if (docFilePath) await FileUploadController.deletePhysicalFile(docFilePath);
+
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error.message || error, list: JSON.stringify(dataset) },
+        usuario,
+        ip
+      );
       return next(error)
     } finally {
       await queryRunner.release();

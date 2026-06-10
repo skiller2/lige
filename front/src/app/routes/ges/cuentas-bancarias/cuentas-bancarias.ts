@@ -1,4 +1,4 @@
-import { Component, inject, model, signal, resource } from '@angular/core';
+import { Component, inject, model, signal, resource, computed } from '@angular/core';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
 import { BehaviorSubject, firstValueFrom, } from 'rxjs';
@@ -15,18 +15,20 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { BankOutline, } from '@ant-design/icons-angular/icons';
 import { PersonalBancoDrawerComponent } from '../personal-banco-drawer/personal-banco-drawer.component';
+import { CuentasBancariasImportacionMasivaComponent } from '../cuentas-bancarias-importacion-masiva/cuentas-bancarias-importacion-masiva'
 
 @Component({
     selector: 'app-cuentas-bancarias',
     templateUrl: './cuentas-bancarias.html',
     styleUrl: './cuentas-bancarias.less',
     providers: [AngularUtilService, provideNzIconsPatch([BankOutline, ])],
-    imports: [SHARED_IMPORTS, CommonModule, NzIconModule, FiltroBuilderComponent, PersonalBancoDrawerComponent],
+    imports: [SHARED_IMPORTS, CommonModule, NzIconModule, FiltroBuilderComponent
+      , PersonalBancoDrawerComponent, CuentasBancariasImportacionMasivaComponent],
 })
 export class CuentasBancariasComponent {
   angularGrid!: AngularGridInstance;
   gridOptions!: GridOption;
-  periodo = model(new Date())
+  periodo = signal(new Date())
   detailViewRowCount = 1;
   excelExportService = new ExcelExportService();
   listOptions = signal<listOptionsT>({
@@ -37,6 +39,8 @@ export class CuentasBancariasComponent {
   personalId = signal<number>(0)
   visiblePersonalBanco = model<boolean>(false)
   visibleDatosBanco = model<boolean>(false)
+  anio = computed(() => this.periodo()? this.periodo().getFullYear() : 0)
+  mes = computed(() => this.periodo()? this.periodo().getMonth()+1 : 0)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -46,7 +50,7 @@ export class CuentasBancariasComponent {
   columns = toSignal(this.apiService.getCols('/api/cuentas-bancarias/cols/'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => ({ options: this.listOptions() }),
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
       let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
