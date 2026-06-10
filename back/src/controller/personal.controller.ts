@@ -181,6 +181,18 @@ const columns: any[] = [
     hidden: false,
   },
   {
+    id: "TipoPersonalActaDescripcion",
+    name: "Tipo Acta",
+    field: "TipoPersonalActaDescripcion",
+    type: "string",
+    fieldName: "act.TipoPersonalActaDescripcion",
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+
+  {
     id: "PersonalFechaBaja",
     name: "Fecha Baja",
     field: "PersonalFechaBaja",
@@ -727,6 +739,7 @@ export class PersonalController extends BaseController {
         per.PersonalFechaNacimiento,
         rt.telefono,
         act.ActaFechaActa,
+        act.TipoPersonalActaDescripcion,
         1
 
       FROM Personal per
