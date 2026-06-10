@@ -35,7 +35,7 @@
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item class="marginElement">
+        <!-- <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Sit.Revista Asociada</nz-form-label>
           <nz-form-control>
             <nz-select formControlName="PersonalSituacionRevistaId" nzPlaceHolder="Situación Revista Asociada" nzAllowClear
@@ -45,10 +45,10 @@
               }
             </nz-select>
           </nz-form-control>
-        </nz-form-item>
+        </nz-form-item> -->
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="5">Descripcion</nz-form-label>
+          <nz-form-label [nzXs]="5">Observaciones</nz-form-label>
           <nz-form-control>
             <input nz-input placeholder="" formControlName="PersonalActaDescripcion" type="text" />
           </nz-form-control>
@@ -75,8 +75,7 @@
             <tr>
               <th nzWidth="140px">Acta</th>
               <th nzWidth="80px">Tipo</th>
-              <th>Sit.Revista Asoc.</th>
-              <th>Descripción</th>
+              <th>Observaciones</th>
               <th nzWidth="90px">Desde</th>
               <th nzWidth="90px">Hasta</th>
             </tr>
@@ -87,7 +86,6 @@
               <tr class="">
                 <td>{{ data.Acta }}</td>
                 <td>{{ data.TipoPersonalActaDescripcion }}</td>
-                <td>{{ data.SituacionRevista }}</td>
                 <td>{{ data.PersonalActaDescripcion }}</td>
                 <td>{{ data.Desde }}</td>
                 <td>{{ data.Hasta }}</td>

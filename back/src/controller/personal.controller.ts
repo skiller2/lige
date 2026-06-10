@@ -3460,7 +3460,6 @@ UNION ALL
       if (!ActaId) campos_vacios.push("- Nro Acta");
       if (!TipoActa) campos_vacios.push("- Tipo");
       // if (!PersonalActaDescripcion) campos_vacios.push("- Descripcion");
-      if (!PersonalSituacionRevistaId) campos_vacios.push("- Sit. Revista Asociada");
 
       if (campos_vacios.length) {
         campos_vacios.unshift('Debe completar los siguientes campos: ')
