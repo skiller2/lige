@@ -3973,8 +3973,10 @@ export class AsistenciaController extends BaseController {
   return await queryRunner.query(`
     SELECT TOP 1 a.ActaId, b.ActaFechaActa, b.ActaDescripcion, a.TipoPersonalActaCodigo 
       FROM PersonalActa a 
-      JOIN Acta b ON b.ActaId=a.ActaId AND 
-      WHERE a.PersonalId=@0 AND b.ActaFechaActa<=EOMONTH(DATEFROMPARTS(@1,@2,1))  ORDER BY b.ActaFechaActa DESC `, [personalId, anio, mes])
+      JOIN Acta b ON b.ActaId=a.ActaId
+      WHERE a.PersonalId=@0 AND b.ActaFechaActa<=EOMONTH(DATEFROMPARTS(@1,@2,1))  
+      ORDER BY b.ActaFechaActa DESC `, 
+    [personalId, anio, mes])
 
 }
 
