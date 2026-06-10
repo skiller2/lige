@@ -13,6 +13,7 @@ import type { Options } from "../schemas/filtro.ts";
 import { DescuentoRetirosController } from "../liquidaciones/descuento-retiros/descuento-retiros.controller.ts";
 import { logger } from "../logger/logger.ts";
 import { Agent } from "https";
+import { Client } from "ldapts";
 
 interface DigestAuthOptions {
   username: string;
@@ -2675,9 +2676,11 @@ export class AsistenciaController extends BaseController {
       const anio: number = req.body.year
       const mes: number = req.body.month
       const objetivoId: number = req.body.objetivoId
-
       if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(req.body.objetivoId), queryRunner) && !await this.hasAuthCargaDirecta(anio, mes, res, Number(req.body.objetivoId), queryRunner))
         throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
+
+
+      
 
 
       //Validación de los datos ingresados
@@ -2700,8 +2703,6 @@ export class AsistenciaController extends BaseController {
         req.body.tipoAsociadoId = valCategoriaPersonal.extended.categoria.tipoId
         req.body.categoriaPersonalId = valCategoriaPersonal.extended.categoria.id
       }
-
-
 
       //Validación de Personal ya registrado
       let personal: any = null
@@ -2762,6 +2763,17 @@ export class AsistenciaController extends BaseController {
       const tipoAsociadoId: number = req.body.tipoAsociadoId
       const categoriaPersonalId: number = req.body.categoriaPersonalId
       const formaLiquidacion: string = req.body.formaLiquidacion
+
+
+      const acta = await this.checkActaAsociado(personalId,anio,mes,queryRunner)
+      if (acta.length>0){
+        if (acta[0].TipoPersonalActaCodigo != 'ALT') {
+//          throw new ClientException(`No se puede cargar horas, la persona no posee Acta de Alta de Asociado`)
+        }
+      } else {
+//          throw new ClientException(`No se puede cargar horas, la persona no posee Acta `)
+      }
+
 
       if (!totalhs && personal?.id) {
         await this.deleteAsistencia(objetivoId, anioId, mesId, personal.id, queryRunner)
@@ -3956,6 +3968,16 @@ export class AsistenciaController extends BaseController {
 
     return recordsArray
   }
+
+  async checkActaAsociado(personalId: number, anio: number, mes: number, queryRunner: QueryRunner) {
+  return await queryRunner.query(`
+    SELECT TOP 1 a.ActaId, b.ActaFechaActa, b.ActaDescripcion, a.TipoPersonalActaCodigo 
+      FROM PersonalActa a 
+      JOIN Acta b ON b.ActaId=a.ActaId AND 
+      WHERE a.PersonalId=@0 AND b.ActaFechaActa<=EOMONTH(DATEFROMPARTS(@1,@2,1))  ORDER BY b.ActaFechaActa DESC `, [personalId, anio, mes])
+
+}
+
 
 
 }

@@ -54,12 +54,22 @@ const columns: any[] = [
     field: "SituacionRevistaId",
     name: "Situacion Revista",
     type: "number",
-    fieldName: "sit.SituacionRevistaId",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
     searchComponent: "inputForSituacionRevistaSearch",
     searchType: "number",
     sortable: true,
     searchHidden: false,
     hidden: true,
+  },
+  {
+    id: "sitRevCom",
+    field: "sitRevCom",
+    name: "Situacion Revista",
+    type: "string",
+    fieldName: "sitrev.sitRevCom",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
   },
   {
     id: "GrupoActividadDetalle",
@@ -69,7 +79,7 @@ const columns: any[] = [
     fieldName: "ga.GrupoActividadId",
     searchComponent: 'inputForGrupoActividadSearch',
     searchType: "number",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -80,7 +90,7 @@ const columns: any[] = [
     type: "string",
     fieldName: "pb.PersonalBancoCBU",
     searchType: "string",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -89,9 +99,21 @@ const columns: any[] = [
     field: "BancoDescripcion",
     name: "Banco",
     type: "string",
-    fieldName: "b.BancoId",
-    searchType: "number",
-    sortable: false,
+    fieldName: "b.BancoDescripcion",
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "ImporteTranferido",
+    field: "ImporteTranferido",
+    name: "Importe Tranferido",
+    type: "currency",
+    fieldName: "mo.importe",
+    searchComponent: "inputForNumberAdvancedSearch",
+    searchType: "numberAdvanced",
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -103,7 +125,7 @@ const columns: any[] = [
     fieldName: "pb.PersonalBancoDesde",
     searchComponent: "inputForFechaSearch",
     searchType: "date",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -115,7 +137,7 @@ const columns: any[] = [
     fieldName: "pb.PersonalBancoHasta",
     searchComponent: "inputForFechaSearch",
     searchType: "date",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -129,7 +151,7 @@ const columns: any[] = [
     params: { collection: getOptionsSINO },
     // searchComponent: "inputForFechaSearch",
     searchType: "number",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },
@@ -143,15 +165,28 @@ export class CuentasBancariasController extends BaseController {
 
   async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any) {
     const now = new Date();
+    now.setMonth(now.getMonth() - 1);
     return await queryRunner.query(`
       SELECT CONCAT(pb.PersonalId, '-',PersonalBancoId, '-', pb.PersonalBancoCBU) id,
         pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(pb.IndNuevaCuenta AS VARCHAR(1)) AS IndNuevaCuenta
         , CONCAT(TRIM(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, sitrev.sitRevCom, sitrev.PersonalSituacionRevistaSituacionId
         , cuit.PersonalCUITCUILCUIT, suc.SucursalDescripcion, ga.GrupoActividadId, ga.GrupoActividadDetalle,
-        1
+        mo.importe as ImporteTranferido,
+		  1
       FROM PersonalBanco pb
       JOIN Banco b on b.BancoId=pb.PersonalBancoBancoId
       JOIN Personal per on per.PersonalId=pb.PersonalId
+      
+      LEFT JOIN (
+		  SELECT mov.persona_id, mov.periodo_id, pe.anio, pe.mes, SUM(importe) importe  
+		  FROM lige.dbo.liqmamovimientos mov 
+		  JOIN lige.dbo.liqmaperiodo pe ON pe.periodo_id = mov.periodo_id AND pe.anio=DATEPART(YEAR, @0) AND pe.mes=DATEPART(MONTH, @0)
+		  WHERE mov.tipo_movimiento_id=11 
+		  GROUP BY mov.persona_id, mov.periodo_id, pe.anio, pe.mes
+		  
+
+		) mo ON mo.persona_id = per.PersonalId
+      
       LEFT JOIN (
         SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
           CASE 
