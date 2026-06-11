@@ -3084,9 +3084,12 @@ UNION ALL
         await queryRunner.query(`
           UPDATE PersonalBanco SET
           PersonalBancoCBU = @3,
-          IndNuevaCuenta = @4
+          IndNuevaCuenta = @4,
+          AudFechaMod = @5,
+          AudUsuarioMod = @6,
+          AudIpMod=@7
           WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
-        `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta])
+        `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta, fechaActual, usuario, ip])
       } else {
         if (PersonalBanco.length) {
           if (PersonalBanco[0].PersonalBancoDesde.getTime() > Desde.getTime())
@@ -3097,9 +3100,12 @@ UNION ALL
           Hasta.setDate(Hasta.getDate() - 1)
           await queryRunner.query(`
             UPDATE PersonalBanco SET
-            PersonalBancoHasta = @3
+            PersonalBancoHasta = @3,
+            AudFechaMod = @4,
+          AudUsuarioMod = @5,
+          AudIpMod=@6
             WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
-          `, [PersonalId, BancoId, PersonalBancoId, Hasta])
+          `, [PersonalId, BancoId, PersonalBancoId, Hasta, fechaActual, usuario, ip])
 
         }
         const Personal = await queryRunner.query(`
