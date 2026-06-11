@@ -76,9 +76,11 @@ export class MovimientoStockController extends BaseController {
       // validaciones 
       await this.validateForm(queryRunner, body.fecha, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, efectos,fieldErrors );
 
-      console.log("Validación exitosa. Procediendo a insertar movimiento...");
-     // Insert
-     //const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, body.fecha, efectos);
+      // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
+      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, body.fecha, efectos);
+
+      // Impacto en Stock: resta el origen, suma el destino (unificando duplicados) y reemplaza relaciones de efecto.
+      await this.aplicarMovimientoStock(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, efectos);
 
       // Simular: corre los INSERT reales pero hace rollback (no persiste, no consume el numerador).
       if (simular) {
@@ -177,6 +179,166 @@ export class MovimientoStockController extends BaseController {
     }
 
     return movimientoCodigo;
+  }
+
+  // Columnas de ubicación de la tabla Stock (una sola se completa por registro; el resto va NULL).
+  private static readonly STOCK_UBIC_COLS = ['DepositoId', 'PersonalId', 'ObjetivoId', 'ProveedorId', 'SucursalAreaId'];
+
+  private async aplicarMovimientoStock(
+    queryRunner: any, req: any, res: any,
+    tipoDestino: string,
+    depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
+    efectos: any[]
+  ) {
+    const usuario = res.locals.userName;
+    const ip = this.getRemoteAddress(req);
+    const fechaActual = new Date();
+
+    const destino = this.resolverUbicacionDestino(tipoDestino, depositoId, personalId, objetivoId, proveedorId);
+
+    // Agrupar la cantidad a mover por StockId de origen (un StockId define ubicación + efecto + individual).
+    const totalPorStock = new Map<number, number>();
+    for (const linea of efectos) {
+      if (!linea.StockId || linea.Cantidad == null) continue;
+      const id = Number(linea.StockId);
+      totalPorStock.set(id, (totalPorStock.get(id) ?? 0) + Number(linea.Cantidad));
+    }
+
+    for (const [stockIdOrigen, cantidad] of totalPorStock) {
+      // Lectura fresca dentro de la transacción (no se confía en el StockStock del front).
+      const origenRows = await queryRunner.query(
+        `SELECT TOP 1 StockId, EfectoId, EfectoEfectoIndividualId, StockStock FROM Stock WHERE StockId = @0`,
+        [stockIdOrigen]
+      );
+      const origen = origenRows?.[0];
+      if (!origen)
+        throw new ClientException(`No se encontró el stock de origen (StockId ${stockIdOrigen}).`);
+      if (cantidad > Number(origen.StockStock ?? 0))
+        throw new ClientException(`La cantidad a mover (${cantidad}) supera el stock disponible (${Number(origen.StockStock ?? 0)}) en la ubicación de origen.`);
+
+      // Restar al origen.
+      await queryRunner.query(`UPDATE Stock SET StockStock = StockStock - @1 WHERE StockId = @0`, [stockIdOrigen, cantidad]);
+
+      // Sumar al destino (mismo efecto/individual).
+      await this.sumarStockDestino(queryRunner, destino, origen.EfectoId, origen.EfectoEfectoIndividualId, cantidad, usuario, ip);
+    }
+
+    for (const linea of efectos) {
+      if (!linea.RelacionEfectoId) continue;
+      await this.reemplazarRelacionEfecto(queryRunner, linea, tipoDestino, depositoId, personalId, objetivoId, usuario, ip, fechaActual);
+    }
+  }
+
+  /** Mapea el tipo de destino a la columna de ubicación de Stock y su id. */
+  private resolverUbicacionDestino(
+    tipoDestino: string,
+    depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null
+  ): { columna: string; valor: number } {
+    switch (tipoDestino) {
+      case 'deposito':  return { columna: 'DepositoId',  valor: depositoId! };
+      case 'personal':  return { columna: 'PersonalId',  valor: personalId! };
+      case 'objetivo':  return { columna: 'ObjetivoId',  valor: objetivoId! };
+      case 'proveedor': return { columna: 'ProveedorId', valor: proveedorId! };
+      default: throw new ClientException('Tipo de destino inválido.');
+    }
+  }
+
+  /**
+   * Suma `cantidad` al registro de Stock del destino para el efecto+individual dados.
+   * Si no existe lo crea (StockId nuevo, SucursalId NULL). Si existe más de uno (datos
+   * inconsistentes) unifica todo en el de menor StockId y borra el resto.
+   */
+  private async sumarStockDestino(
+    queryRunner: any,
+    destino: { columna: string; valor: number },
+    efectoId: number | null, efectoIndividualId: number | null,
+    cantidad: number, usuario: string, ip: string
+  ) {
+    const otrasNull = MovimientoStockController.STOCK_UBIC_COLS
+      .filter(c => c !== destino.columna)
+      .map(c => `${c} IS NULL`)
+      .join(' AND ');
+
+    const rows = await queryRunner.query(
+      `SELECT StockId, StockStock FROM Stock
+       WHERE ${destino.columna} = @0
+         AND EfectoId = @1
+         AND ((@2 IS NULL AND EfectoEfectoIndividualId IS NULL) OR EfectoEfectoIndividualId = @2)
+         AND ${otrasNull}
+       ORDER BY StockId`,
+      [destino.valor, efectoId, efectoIndividualId]
+    );
+
+    if (!rows?.length) {
+      // No existe: alta con StockId nuevo desde el numerador.
+      const nuevoStockId = await BaseController.getProxNumero(queryRunner, 'Stock', usuario, ip);
+      await queryRunner.query(
+        `INSERT INTO Stock (StockId, ${destino.columna}, EfectoId, EfectoEfectoIndividualId, StockStock)
+         VALUES (@0, @1, @2, @3, @4)`,
+        [nuevoStockId, destino.valor, efectoId, efectoIndividualId, cantidad]
+      );
+      return;
+    }
+
+    // Unificar en el registro ganador (menor StockId): suma cantidad + el stock de los duplicados.
+    const ganadora = rows[0];
+    const resto = rows.slice(1);
+    const sumaResto = resto.reduce((acc: number, r: any) => acc + Number(r.StockStock ?? 0), 0);
+
+    await queryRunner.query(
+      `UPDATE Stock SET StockStock = StockStock + @1 WHERE StockId = @0`,
+      [ganadora.StockId, cantidad + sumaResto]
+    );
+    for (const r of resto) {
+      await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [r.StockId]);
+    }
+  }
+
+  /**
+   * Reemplaza la relación de efecto de una línea: elimina la relación previa del efecto "De"
+   * (el que se mueve) sin verificar si existe, y da de alta la nueva relación con el efecto "Con"
+   * (RelacionEfectoId). El contexto de ubicación es el destino del movimiento (EfectoRelacionEfecto
+   * solo tiene Personal/Deposito/Objetivo). Semántica De/Con según getEfectoRelaciones (efecto.controller).
+   */
+  private async reemplazarRelacionEfecto(
+    queryRunner: any, linea: any,
+    tipoDestino: string, depositoId: number | null, personalId: number | null, objetivoId: number | null,
+    usuario: string, ip: string, fechaActual: Date
+  ) {
+    const deEfectoId = linea.EfectoId;
+    const deIndividual = linea.EfectoIndividualId ?? null;
+    const conEfectoId = linea.RelacionEfectoId;
+    const conIndividual = linea.RelacionEfectoIndividualId ?? null;
+
+    const relPersonalId = tipoDestino === 'personal' ? personalId : null;
+    const relDepositoId = tipoDestino === 'deposito' ? depositoId : null;
+    const relObjetivoId = tipoDestino === 'objetivo' ? objetivoId : null;
+
+    // DELETE directo de la relación anterior (sin SELECT previo).
+    await queryRunner.query(
+      `DELETE FROM EfectoRelacionEfecto
+       WHERE EfectoRelacionDeEfectoId = @0
+         AND ((@1 IS NULL AND EfectoRelacionDeEfectoEfectoIndividualId IS NULL) OR EfectoRelacionDeEfectoEfectoIndividualId = @1)
+         AND ((@2 IS NULL AND PersonalId IS NULL) OR PersonalId = @2)
+         AND ((@3 IS NULL AND DepositoId IS NULL) OR DepositoId = @3)
+         AND ((@4 IS NULL AND ObjetivoId IS NULL) OR ObjetivoId = @4)`,
+      [deEfectoId, deIndividual, relPersonalId, relDepositoId, relObjetivoId]
+    );
+
+    // Alta de la nueva relación.
+    const relId = await BaseController.getProxNumero(queryRunner, 'EfectoRelacionEfecto', usuario, ip);
+    await queryRunner.query(
+      `INSERT INTO EfectoRelacionEfecto
+        (EfectoRelacionEfectoId, EfectoRelacionDeEfectoId, EfectoRelacionDeEfectoEfectoIndividualId,
+         EfectoRelacionConEfectoId, EfectoRelacionConEfectoEfectoIndividualId,
+         PersonalId, DepositoId, ObjetivoId,
+         EfectoRelacionEfectoAudFechaIng, EfectoRelacionEfectoAudUsuarioIng, EfectoRelacionEfectoAudIpIng,
+         EfectoRelacionEfectoAudFechaMod, EfectoRelacionEfectoAudUsuarioMod, EfectoRelacionEfectoAudIpMod)
+       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)`,
+      [relId, deEfectoId, deIndividual, conEfectoId, conIndividual,
+       relPersonalId, relDepositoId, relObjetivoId,
+       fechaActual, usuario, ip, fechaActual, usuario, ip]
+    );
   }
 
   /** Resuelve un ObjetivoId a su Cliente + ElementoDependiente (para columnas de origen/destino). */
