@@ -169,11 +169,11 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "ActaFechaActa",
-    name: "Fecha Acta",
-    field: "ActaFechaActa",
+    id: "PersonalFechaBaja",
+    name: "Fecha Baja",
+    field: "PersonalFechaBaja",
     type: "date",
-    fieldName: "act.ActaFechaActa",
+    fieldName: "ISNULL(ing.PersonalFechaBaja,'9999-12-31')",
     searchType: "date",
     searchComponent: "inputForFechaSearch",
     sortable: true,
@@ -181,11 +181,23 @@ const columns: any[] = [
     hidden: false,
   },
   {
-    id: "PersonalFechaBaja",
-    name: "Fecha Baja",
-    field: "PersonalFechaBaja",
+    id: "TipoPersonalActaDescripcion",
+    name: "Tipo Acta",
+    field: "TipoPersonalActaDescripcion",
+    type: "string",
+    fieldName: "act.TipoPersonalActaDescripcion",
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+
+  {
+    id: "ActaFechaActa",
+    name: "Fecha Acta",
+    field: "ActaFechaActa",
     type: "date",
-    fieldName: "ISNULL(ing.PersonalFechaBaja,'9999-12-31')",
+    fieldName: "act.ActaFechaActa",
     searchType: "date",
     searchComponent: "inputForFechaSearch",
     sortable: true,
@@ -727,6 +739,7 @@ export class PersonalController extends BaseController {
         per.PersonalFechaNacimiento,
         rt.telefono,
         act.ActaFechaActa,
+        act.TipoPersonalActaDescripcion,
         1
 
       FROM Personal per
@@ -749,9 +762,11 @@ LEFT JOIN(
             MAX(b.ActaFechaActa) AS MaxFecha
         FROM PersonalActa a
         JOIN Acta b ON b.ActaId = a.ActaId
+        WHERE a.TipoPersonalActaCodigo IN ('ALT','BAJ','REI')
         GROUP BY a.PersonalId
         ) x ON x.PersonalId = a.PersonalId AND x.MaxFecha = b.ActaFechaActa
-        JOIN TipoPersonalActa tip ON tip.TipoPersonalActaCodigo = a.TipoPersonalActaCodigo 
+        JOIN TipoPersonalActa tip ON tip.TipoPersonalActaCodigo = a.TipoPersonalActaCodigo
+        WHERE a.TipoPersonalActaCodigo IN ('ALT','BAJ','REI') 
  ) act ON act.PersonalId=per.PersonalId 
 
 
@@ -3069,9 +3084,12 @@ UNION ALL
         await queryRunner.query(`
           UPDATE PersonalBanco SET
           PersonalBancoCBU = @3,
-          IndNuevaCuenta = @4
+          IndNuevaCuenta = @4,
+          AudFechaMod = @5,
+          AudUsuarioMod = @6,
+          AudIpMod=@7
           WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
-        `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta])
+        `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta, fechaActual, usuario, ip])
       } else {
         if (PersonalBanco.length) {
           if (PersonalBanco[0].PersonalBancoDesde.getTime() > Desde.getTime())
@@ -3082,9 +3100,12 @@ UNION ALL
           Hasta.setDate(Hasta.getDate() - 1)
           await queryRunner.query(`
             UPDATE PersonalBanco SET
-            PersonalBancoHasta = @3
+            PersonalBancoHasta = @3,
+            AudFechaMod = @4,
+          AudUsuarioMod = @5,
+          AudIpMod=@6
             WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
-          `, [PersonalId, BancoId, PersonalBancoId, Hasta])
+          `, [PersonalId, BancoId, PersonalBancoId, Hasta, fechaActual, usuario, ip])
 
         }
         const Personal = await queryRunner.query(`
@@ -3429,11 +3450,11 @@ UNION ALL
     const personalId = Number(req.params.personalId);
     const ActaId: number = req.body.ActaId;
     const TipoActa: string = req.body.TipoActa;
-    const PersonalSituacionRevistaId: number = req.body.PersonalSituacionRevistaId;
     const PersonalActaDescripcion: string = req.body.PersonalActaDescripcion;
     const now = new Date()
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
+    const PersonalNroLegajo = req.body.PersonalNroLegajo
 
     let campos_vacios: string[] = []
     try {
@@ -3444,8 +3465,7 @@ UNION ALL
       // if (!personalId) campos_vacios.push("- Persona");
       if (!ActaId) campos_vacios.push("- Nro Acta");
       if (!TipoActa) campos_vacios.push("- Tipo");
-      // if (!PersonalActaDescripcion) campos_vacios.push("- Descripcion");
-      if (!PersonalSituacionRevistaId) campos_vacios.push("- Sit. Revista Asociada");
+      // if (!PersonalNroLegajo) campos_vacios.push("- Descripcion");
 
       if (campos_vacios.length) {
         campos_vacios.unshift('Debe completar los siguientes campos: ')
@@ -3463,11 +3483,16 @@ UNION ALL
         PersonalActaAudIpIng,
         PersonalActaAudFechaMod,
         PersonalActaAudUsuarioMod,
-        PersonalActaAudIpMod,
-        PersonalSituacionRevistaId
-      ) VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6, @7)
-      `, [ActaId, TipoActa, personalId, PersonalActaDescripcion, now, usuario, ip, PersonalSituacionRevistaId])
+        PersonalActaAudIpMod
+      ) VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
+      `, [ActaId, TipoActa, personalId, PersonalActaDescripcion, now, usuario, ip])
 
+      if (PersonalNroLegajo != undefined && PersonalNroLegajo != null && PersonalNroLegajo != '') {
+        await queryRunner.query(`
+          UPDATE Personal SET PersonalNroLegajo = @1
+          WHERE PersonalId = @0
+        `, [personalId, PersonalNroLegajo])
+      }
       await queryRunner.commitTransaction();
 
       this.jsonRes({}, res, 'Carga Exitosa');

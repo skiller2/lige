@@ -2270,6 +2270,14 @@ export class ApiService {
     );
   }
 
+  importXLSCuentasBancarias(file:any, periodo:any, BancoId:number){
+    const parameter = {file, periodo, BancoId}
+    return this.http.post<ResponseJSON<any>>(`api/cuentas-bancarias/import-xls`, parameter).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

@@ -1,0 +1,55 @@
+<nz-card class="small-margin">
+  <br>
+
+  <form>
+
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="3">Banco</nz-form-label>
+      <nz-form-control [nzMd]="5">
+        <nz-select [formField]="formCuentasBancariasImportacion.BancoId" nzPlaceHolder=""
+        nzAllowClear [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+          @for (option of optionsBanco(); track option.value) {
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="marginElement">
+      
+      <nz-form-label [nzXs]="3" class="inputText">Archivo</nz-form-label>
+      <app-file-upload [formField]="formCuentasBancariasImportacion.file" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'PRU'"
+        [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
+      
+    </nz-form-item>
+    
+  </form>
+
+  <!-- <nz-form-item>
+    <nz-form-label class="inputText">Importaciones anteriores</nz-form-label>
+    <nz-form-control>
+      @for (movimiento of importacionesAnteriores.value(); track movimiento.DocumentoId) {
+        <div class="containerAnterioresDescuentos" nz-tooltip
+          nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
+          <ng-container> -->
+            <!-- Eliminar importacion -->
+            <!-- <a (click)="openDrawerforBajaImportacion(movimiento.DocumentoId)">
+              <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
+            </a> -->
+            <!-- Descargar importacion -->
+            <!-- <a app-down-file httpUrl="/api/file-upload/downloadFile/{{movimiento.DocumentoId}}/Documento/original">
+              <span nz-icon nzType="download"></span>
+            </a>
+          </ng-container>
+          <span> ID: {{movimiento.DocumentoId}} | {{movimiento.DocumentoDenominadorDocumento}}</span>
+        </div>
+      }
+    </nz-form-control>
+  </nz-form-item> -->
+  
+  <div class="gridError container-fluid">
+    <angular-slickgrid gridId="gridImport" [columns]="columns | colsFilter" [options]="gridOptions"
+    [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
+    </angular-slickgrid>
+  </div>
+</nz-card>

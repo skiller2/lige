@@ -40,7 +40,7 @@ export class PersonalActaDrawerComponent {
     fb = inject(FormBuilder)
     formActa = this.fb.group({
         ActaId:0, TipoActa:0, PersonalActaDescripcion:'',
-        ActaFechaActa:'', PersonalSituacionRevistaId:0
+        ActaFechaActa:'', PersonalNroLegajo:''
     })
 
     optionsNroActa:any[] = []

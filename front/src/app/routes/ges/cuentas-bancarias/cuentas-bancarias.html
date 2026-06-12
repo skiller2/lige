@@ -2,16 +2,20 @@
 
   <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
     <div nz-row nzSpan="12">
-      <!-- <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
+      <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
       <nz-form-control [nzSpan]="14">
-        <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzFormat="MM/yyyy" style="width: 100%;"/>
-      </nz-form-control> -->
+        <nz-date-picker [(ngModel)]="periodo" nzFormat="dd/MM/yyyy" style="width: 100%;"/>
+      </nz-form-control>
     </div>
 
     <ul nz-menu nzMode="horizontal">
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'cuentas-bancarias', 'listado']" >Listado</a>
+      </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'cuentas-bancarias', 'importacion']" >Importación</a>
       </li>
     </ul>
 
@@ -41,6 +45,13 @@
           </div>
         </ng-template>
       }
+    </nz-tab>
+
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/cuentas-bancarias/importacion">Importación</a>
+      <ng-template nz-tab>
+        <app-cuentas-bancarias-importacion-masiva [periodo]="periodo()"></app-cuentas-bancarias-importacion-masiva>
+      </ng-template>
     </nz-tab>
 
   </nz-tabs>
