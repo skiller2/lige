@@ -39,6 +39,10 @@
         [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
         <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
       </button>
+      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="Descargar PDF"
+        [nzLoading]="descargandoPdf()" (click)="descargarPdf()">
+        <span nz-icon nzType="download" nzTheme="outline"></span>
+      </button>
     </nz-button-group>
   </div>
 

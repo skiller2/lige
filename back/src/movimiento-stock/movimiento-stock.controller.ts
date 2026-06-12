@@ -1,6 +1,10 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import { getConnection } from "../data-source.ts";
+import puppeteer from 'puppeteer';
+import path from 'path';
+import { existsSync, mkdirSync } from "node:fs";
+import { unlink } from "fs/promises";
 
 const tiposDestino = [
   { value: "deposito", label: "Depósitos" },
@@ -16,6 +20,9 @@ const tiposOrigen = [
 ];
 
 export class MovimientoStockController extends BaseController {
+
+  // Raíz de documentos (igual criterio que recibos). Los PDF de stock van en la subcarpeta 'movimiento-stock'.
+  directoryDocumentos = process.env.PATH_DOCUMENTS ? process.env.PATH_DOCUMENTS : '.';
 
   async getTiposDestino(req: Request, res: Response, next: NextFunction) {
     try {
@@ -77,7 +84,7 @@ export class MovimientoStockController extends BaseController {
       await this.validateForm(queryRunner, body.fecha, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, efectos,fieldErrors );
 
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
-      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, body.fecha, efectos);
+      await this.insertMovimiento(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, body.fecha, efectos);
 
       // Impacto en Stock: resta el origen, suma el destino (unificando duplicados) y reemplaza relaciones de efecto.
       await this.aplicarMovimientoStock(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, efectos);
@@ -339,6 +346,93 @@ export class MovimientoStockController extends BaseController {
        relPersonalId, relDepositoId, relObjetivoId,
        fechaActual, usuario, ip, fechaActual, usuario, ip]
     );
+  }
+
+  async descargarPdf(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      await queryRunner.startTransaction();
+
+      // Cuando se pase, vendrá en el body; hoy es null (botón suelto, sin movimiento de referencia).
+      const movimientoCodigo = Number(req.body?.movimientoStockCodigo) || null;
+
+      const { filesPathAbs, nombreArchivo } = await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo);
+
+      await queryRunner.commitTransaction();
+
+      res.download(filesPathAbs, nombreArchivo, (err) => {
+        if (err) return next(err);
+      });
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner);
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  private async generarDocumentoIngresoStock(
+    queryRunner: any,
+    req: any,
+    res: any,
+    movimientoCodigo: number | null
+  ): Promise<{ filesPathAbs: string; nombreArchivo: string }> {
+    const usuario = res.locals.userName;
+    const ip = this.getRemoteAddress(req);
+    const fechaActual = new Date();
+    const anio = fechaActual.getFullYear();
+    const mes = fechaActual.getMonth() + 1;
+
+    // DocumentoId nuevo desde el numerador (mismo numerador 'Documento' que usan los recibos).
+    const documentoId = await BaseController.getProxNumero(queryRunner, 'Documento', usuario, ip);
+
+    // Carpeta destino: <PATH_DOCUMENTS>/movimiento-stock. En Documento.DocumentoPath se guarda la ruta relativa.
+    const subCarpeta = 'movimiento-stock';
+    const dirAbs = path.join(this.directoryDocumentos, subCarpeta);
+    if (!existsSync(dirAbs)) mkdirSync(dirAbs, { recursive: true });
+
+    const nombreArchivo = movimientoCodigo ? `${documentoId}-${movimientoCodigo}.pdf` : `${documentoId}.pdf`;
+    const filesPathRel = `${subCarpeta}/${nombreArchivo}`;
+    const filesPathAbs = path.join(this.directoryDocumentos, filesPathRel);
+
+    // PDF vacío (una página en blanco). Cuando se defina el diseño se reemplaza el HTML.
+    const browser = await puppeteer.launch({ headless: 'new' });
+    try {
+      const page = await browser.newPage();
+      await page.setContent('<html><body></body></html>');
+      try { await unlink(filesPathAbs); } catch (error) { }
+      await page.pdf({ path: filesPathAbs, format: 'A4', printBackground: true });
+      await page.close();
+    } finally {
+      await browser.close();
+    }
+
+    await queryRunner.query(
+      `INSERT INTO Documento
+        (DocumentoId, DocumentoTipoCodigo, PersonalId, ObjetivoId,
+         DocumentoDenominadorDocumento, DocumentoNombreArchivo, DocumentoFecha, DocumentoFechaDocumentoVencimiento,
+         DocumentoPath, DocumentoDetalleDocumento, DocumentoIndividuoDescargaBot,
+         DocumentoAudFechaIng, DocumentoAudUsuarioIng, DocumentoAudIpIng,
+         DocumentoAudFechaMod, DocumentoAudUsuarioMod, DocumentoAudIpMod,
+         DocumentoClienteId, DocumentoAnio, DocumentoMes, DocumentoVersion)
+       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20)`,
+      [documentoId, 'MOVSTK', null, null,
+       movimientoCodigo, nombreArchivo, fechaActual, null,
+       filesPathRel, null, 0,
+       fechaActual, usuario, ip,
+       fechaActual, usuario, ip,
+       null, anio, mes, 0]
+    );
+
+    // Solo si hay movimiento de referencia se enlaza el documento.
+    if (movimientoCodigo) {
+      await queryRunner.query(
+        `UPDATE MovimientoStock SET DocumentoIdIngresoStock = @1 WHERE MovimientoStockCodigo = @0`,
+        [movimientoCodigo, documentoId]
+      );
+    }
+
+    return { filesPathAbs, nombreArchivo };
   }
 
   /** Resuelve un ObjetivoId a su Cliente + ElementoDependiente (para columnas de origen/destino). */

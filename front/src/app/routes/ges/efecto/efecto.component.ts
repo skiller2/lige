@@ -11,7 +11,9 @@ import { MovimientoStockComponent } from '../movimiento-stock/movimiento-stock';
 import { SettingsService } from '@delon/theme';
 import { ActivatedRoute } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { DownloadService } from '../../../services/download.service';
+import { firstValueFrom, map } from 'rxjs';
 @Component({
   selector: 'app-efecto',
   imports: [
@@ -30,6 +32,10 @@ import { map } from 'rxjs';
 export class EfectoComponent {
   private settingsService = inject(SettingsService)
   private route = inject(ActivatedRoute)
+  private http = inject(HttpClient)
+  private downloadService = inject(DownloadService)
+
+  descargandoPdf = signal(false)
 
   activeTab = toSignal(
     this.route.params.pipe(map(({ tab }) => tab || 'general')),
@@ -84,6 +90,18 @@ export class EfectoComponent {
       case 'objetivos':   this.refreshTickObjetivos.update(n => n + 1); break
       case 'deposito':    this.refreshTickDeposito.update(n => n + 1); break
       case 'proveedores': this.refreshTickProveedores.update(n => n + 1); break
+    }
+  }
+
+  // Genera el PDF de movimiento de stock en el back (lo graba en Documento) y lo descarga.
+  async descargarPdf() {
+    if (this.descargandoPdf()) return
+    this.descargandoPdf.set(true)
+    try {
+      const blob = await firstValueFrom(this.http.post('api/movimiento-stock/descargar-pdf', {}, { responseType: 'blob' }))
+      this.downloadService.downloadBlob(blob, 'movimiento-stock.pdf', 'application/pdf')
+    } finally {
+      this.descargandoPdf.set(false)
     }
   }
 }
