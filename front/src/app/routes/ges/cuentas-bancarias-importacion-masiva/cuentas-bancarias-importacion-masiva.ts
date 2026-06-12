@@ -13,7 +13,7 @@ import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-deta
 import { LoadingService } from '@delon/abc/loading';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
 import { toSignal } from '@angular/core/rxjs-interop';
-import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
+import { disabled, form, FormField } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
 
 type CuentasBancariasImportacion = {
@@ -28,7 +28,7 @@ type CuentasBancariasImportacion = {
   imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, NzUploadModule
     , FileUploadComponent, FormsModule, FormField
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
 export class CuentasBancariasImportacionMasivaComponent {
@@ -55,10 +55,10 @@ export class CuentasBancariasImportacionMasivaComponent {
     file: []
   }
   
-  readonly importacion = signal<CuentasBancariasImportacion>(this.defaultImportacion);
+  readonly importacion = signal<CuentasBancariasImportacion>({...this.defaultImportacion});
 
   readonly formCuentasBancariasImportacion = form(this.importacion, (p) => {
-    disabled(p.file, () => (p.BancoId? false : true))
+    disabled(p.file, ({valueOf}:any) => !valueOf(p.BancoId))
   })
 
   optionsBanco = toSignal(this.searchService.getBancosOptions(), { initialValue: [] })
@@ -72,7 +72,7 @@ export class CuentasBancariasImportacionMasivaComponent {
       this.gridDataImport$.next([])
       
       try {
-        // await firstValueFrom(this.apiService.importXLSImporteCuentasBancarias(file, this.periodo(), BancoId))
+        await firstValueFrom(this.apiService.importXLSCuentasBancarias(file, this.periodo(), BancoId))
         
         this.fileUploadComponent().DeleteFileByExporterror(file)
       } catch (e: any) {
@@ -132,7 +132,6 @@ export class CuentasBancariasImportacionMasivaComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
-
     // Escuchar cambios en formAltaDesc.files
     // this.formAltaDesc.get('files')?.valueChanges.subscribe(async (filesValue: any) => {
       // if (filesValue.length > 0) {

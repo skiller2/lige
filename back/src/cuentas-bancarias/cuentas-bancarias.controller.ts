@@ -162,6 +162,24 @@ const columns: any[] = [
 
 export class CuentasBancariasController extends BaseController {
 
+  isCBU(cbu: string): boolean {
+    if (!cbu || cbu.trim() == '')
+      return true
+
+    // Verifica que tenga exactamente 22 caracteres
+    if (cbu.length != 22)
+      return false
+
+    // Verifica que todos los caracteres sean números
+    for (let i = 0; i < cbu.length; i++) {
+      const char = cbu[i];
+      if (char < '0' || char > '9')
+        return false
+    }
+
+    return true
+  }
+
   async getColumnsGrid(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(columns, res)
   }
@@ -266,27 +284,21 @@ export class CuentasBancariasController extends BaseController {
     let dataset: any = []
     let idError: number = 0
     let altaCuentasBancarias = 0
-    let result: any
     let docFilePath: string | null = null
     let EventoLogCodigo = 0
-
-    periodoRequest.setHours(0,0,0,0)
-    const anio = periodoRequest.getFullYear()
-    const mes = periodoRequest.getMonth()+1
-    const dia = periodoRequest.getDate()
+    let campos_vacios: any[] = [];
+    
     try {
-      let campos_vacios: any[] = [];
-
-
       ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
-        `Importación xls Cuentas Bancarias ${bancoIdRequest} - ${dia}/${mes}/${anio}`,
-        { anio, mes, bancoIdRequest, usuario, ip },
+        `Importación xls Cuentas Bancarias ${bancoIdRequest}`,
+        { periodo:periodoRequest, BancoId:bancoIdRequest, usuario, ip },
         usuario,
         ip,
-        "PRU"
+        "JOB"
       ))
 
+      await queryRunner.startTransaction();
 
       if (!periodoRequest) campos_vacios.push(`- Periodo`);
       if (!bancoIdRequest) campos_vacios.push(`- Banco`)
@@ -296,7 +308,10 @@ export class CuentasBancariasController extends BaseController {
         throw new ClientException(campos_vacios)
       }
 
-      await queryRunner.startTransaction();
+      periodoRequest.setHours(0,0,0,0)
+      const anio = periodoRequest.getFullYear()
+      const mes = periodoRequest.getMonth()+1
+      const dia = periodoRequest.getDate()
 
       //Valida que el período no tenga el indicador de recibos generado
       // const checkrecibos = await this.getPeriodoQuery(queryRunner, anio, mes)
@@ -336,51 +351,93 @@ export class CuentasBancariasController extends BaseController {
       docFilePath = docDescuentoObjetivo?.newFilePath
       for (const row of sheet1.data) {
         //Finaliza cuando la fila esta vacia
-        if (
-          !row[columnsXLS['cbu']]
-          && !row[columnsXLS['cuit']]
-        ) break
+        if (!row[columnsXLS['cbu']] && !row[columnsXLS['cuit']]) break
+        const CBU = row[columnsXLS['cbu']]
+        let CUIT = row[columnsXLS['cuit']]
 
         //Verifica que exista el cuit del personal
-        const personalCUIT = String(row[columnsXLS['cuit']]).replace(/\D/g, "")
+        CUIT = String(CUIT).replace(/\D/g, "")
 
-        if (personalCUIT.length != 11) {
-          dataset.push({ id: idError++, Codigo: row[columnsXLS['cuit']], Detalle: `El CUIT no tiene el formato correcto.` })
+        if (CUIT.length != 11) {
+          dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `El CUIT no tiene el formato correcto.` })
           continue
         }
-        // const cliente = await queryRunner.query(`
-        //   SELECT cli.ClienteId, cli.ClienteElementoDependienteId FROM ClienteElementoDependiente cli 
-        //     LEFT JOIN ClienteFacturacion clif ON clif.ClienteId = cli.ClienteId AND clif.ClienteFacturacionDesde <= @0 
-        //     AND ISNULL(clif.ClienteFacturacionHasta, '9999-12-31') >= @0
-        //   WHERE clif.ClienteFacturacionCUIT = @1
-        // `, [fechaActual, clienteCUIT])
+        const PersonalCUITCUIL = await queryRunner.query(`
+          SELECT cuit.PersonalId, PersonalCUITCUILCUIT
+          FROM PersonalCUITCUIL cuit 
+          WHERE cuit.PersonalCUITCUILCUIT IN (@0) AND PersonalCUITCUILHasta IS NULL
+        `, [CUIT])
+        if (!PersonalCUITCUIL.length) {
+          dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `No se pudo identificar el CUIT.` })
+          continue
+        }
+        const PersonalId = CUIT[0].PersonalId
 
-        // if (cliente.length == 0) {
-        //   dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El CUIT no existe en la base de datos.` })
-        //   continue
-        // }
-        // if (cliente[0].ClienteId != ClienteId) {
-        //   dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El CUIT no coincide con el código del objetivo.` })
-        //   continue
-        // }
-        
-        // const otroDescuento: any = {
-        //   DescuentoId: descuentoIdRequest,
-        //   AplicaA: AplicaA,
-        //   ObjetivoId: ObjetivoId,
-        //   AplicaEl: new Date(anioRequest, mesRequest - 1, 1),
-        //   Cuotas: CantidadCuotas,
-        //   Importe: Number((row[columnsXLS['importe total']] || "0").toString().replace(/\. /g, "").replace(",", ".")),
-        //   Detalle: row[columnsXLS['detalle']],
-        //   DocumentoId: docDescuentoObjetivo.doc_id ? docDescuentoObjetivo.doc_id : null
-        // }
+        //Verifica el formato del CBU
+        if (!this.isCBU(CBU)) {
+          dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `El CBU debe ser de 22 digitos.` })
+          continue
+        }
 
-        // const result = await this.addObjetivoDescuento(queryRunner, otroDescuento, usuario, ip)
+        //Verifica si el CBU ya fue registrado
+        let PersonalBanco = await queryRunner.query(`
+          SELECT pb.PersonalBancoId, CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT
+          FROM PersonalBanco pb
+          Left JOIN Personal per ON per.PersonalId = pb.PersonalId
+          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+          WHERE pb.PersonalBancoCBU = @0 AND  @1 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @1 >= pb.PersonalBancoDesde
+        `, [CBU, fechaActual])
+        if (PersonalBanco.length && CBU != '' && CBU != null){
+          dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `El CBU ingresado se encuentra registrado y vigente en una persona. (${PersonalBanco[0].ApellidoNombre} - CUIT: ${PersonalBanco[0].CUIT ? PersonalBanco[0].CUIT : ''})` })
+          continue
+        }
+
+        PersonalBanco = await queryRunner.query(`
+          SELECT PersonalBancoId, PersonalBancoDesde
+          FROM PersonalBanco 
+          WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
+        `, [PersonalId, bancoIdRequest])
+
+        if (PersonalBanco.length && new Date(PersonalBanco[0].PersonalBancoDesde).getTime() == periodoRequest.getTime()) {
+          const PersonalBancoId = PersonalBanco[0].PersonalBancoId
+          await queryRunner.query(`
+            UPDATE PersonalBanco SET
+            PersonalBancoCBU = @3,
+            IndNuevaCuenta = @4
+            WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
+          `, [PersonalId, bancoIdRequest, PersonalBancoId, CBU, 1])
+        } else {
+          if (PersonalBanco.length) {
+            if (PersonalBanco[0].PersonalBancoDesde.getTime() > periodoRequest.getTime()){
+              dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `El periodo no puede ser menor a la fecha ${PersonalBanco[0].PersonalBancoDesde.getDate()}/${PersonalBanco[0].PersonalBancoDesde.getMonth() + 1}/${PersonalBanco[0].PersonalBancoDesde.getFullYear()}` })
+              continue
+            }
+
+            const PersonalBancoId = PersonalBanco[0].PersonalBancoId
+            const Hasta = new Date(periodoRequest)
+            Hasta.setDate(Hasta.getDate() - 1)
+            await queryRunner.query(`
+              UPDATE PersonalBanco SET
+              PersonalBancoHasta = @3
+              WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
+            `, [PersonalId, bancoIdRequest, PersonalBancoId, Hasta])
+
+          }
+          const Personal = await queryRunner.query(`
+            SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
+            FROM Personal 
+            WHERE PersonalId IN (@0)
+          `, [PersonalId])
+          const newPersonalBancoId = Personal[0].UltNro
+          await queryRunner.query(`
+            INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
+            AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod)
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)
+
+            UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
+          `, [PersonalId, newPersonalBancoId, bancoIdRequest, CBU, periodoRequest, 1, fechaActual, fechaActual, usuario, usuario, ip, ip])
+        }
         altaCuentasBancarias++
-        if (result instanceof ClientException) {
-          dataset.push({ id: idError++, Codigo: row[columnsXLS['cuit']], Detalle: result.messageArr })
-          continue
-        }
       }
 
       if (dataset.length > 0) {

@@ -16,12 +16,13 @@
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-
+      
       <nz-form-label [nzXs]="3" class="inputText">Archivo</nz-form-label>
       <app-file-upload [formField]="formCuentasBancariasImportacion.file" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'PRU'"
         [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
-
+      
     </nz-form-item>
+    
   </form>
 
   <!-- <nz-form-item>
@@ -46,11 +47,9 @@
     </nz-form-control>
   </nz-form-item> -->
   
-
   <div class="gridError container-fluid">
-    <angular-slickgrid gridId="gridError" [columns]="columns | colsFilter" [options]="gridOptions"
+    <angular-slickgrid gridId="gridImport" [columns]="columns | colsFilter" [options]="gridOptions"
     [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
     </angular-slickgrid>
   </div>
-
 </nz-card>

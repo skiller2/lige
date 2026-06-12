@@ -49,7 +49,9 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cuentas-bancarias/importacion">Importación</a>
-      <app-cuentas-bancarias-importacion-masiva [periodo]="periodo()"></app-cuentas-bancarias-importacion-masiva>
+      <ng-template nz-tab>
+        <app-cuentas-bancarias-importacion-masiva [periodo]="periodo()"></app-cuentas-bancarias-importacion-masiva>
+      </ng-template>
     </nz-tab>
 
   </nz-tabs>
