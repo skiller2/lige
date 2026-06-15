@@ -199,7 +199,6 @@ export class MovimientoStockController extends BaseController {
   ) {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
-    const fechaActual = new Date();
 
     const destino = this.resolverUbicacionDestino(tipoDestino, depositoId, personalId, objetivoId, proveedorId);
 
@@ -230,10 +229,13 @@ export class MovimientoStockController extends BaseController {
       await this.sumarStockDestino(queryRunner, destino, origen.EfectoId, origen.EfectoEfectoIndividualId, cantidad, usuario, ip);
     }
 
-    for (const linea of efectos) {
-      if (!linea.RelacionEfectoId) continue;
-      await this.reemplazarRelacionEfecto(queryRunner, linea, tipoDestino, depositoId, personalId, objetivoId, usuario, ip, fechaActual);
-    }
+    // RELACIONAR DESHABILITADO (por el momento no se usa): el front no envía RelacionEfectoId,
+    // así que la relación de efecto nunca se aplica. Se deja comentado para reactivar junto al front.
+    // const fechaActual = new Date();
+    // for (const linea of efectos) {
+    //   if (!linea.RelacionEfectoId) continue;
+    //   await this.reemplazarRelacionEfecto(queryRunner, linea, tipoDestino, depositoId, personalId, objetivoId, usuario, ip, fechaActual);
+    // }
   }
 
   /** Mapea el tipo de destino a la columna de ubicación de Stock y su id. */
@@ -307,6 +309,7 @@ export class MovimientoStockController extends BaseController {
    * (RelacionEfectoId). El contexto de ubicación es el destino del movimiento (EfectoRelacionEfecto
    * solo tiene Personal/Deposito/Objetivo). Semántica De/Con según getEfectoRelaciones (efecto.controller).
    */
+  /* RELACIONAR DESHABILITADO (por el momento no se usa). Se conserva para reactivar junto al front.
   private async reemplazarRelacionEfecto(
     queryRunner: any, linea: any,
     tipoDestino: string, depositoId: number | null, personalId: number | null, objetivoId: number | null,
@@ -347,6 +350,7 @@ export class MovimientoStockController extends BaseController {
        fechaActual, usuario, ip, fechaActual, usuario, ip]
     );
   }
+  */
 
   async descargarPdf(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
