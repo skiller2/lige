@@ -3,7 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import { getConnection } from "../data-source.ts";
 import puppeteer from 'puppeteer';
 import path from 'path';
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { unlink } from "fs/promises";
 
 const tiposDestino = [
@@ -84,19 +84,27 @@ export class MovimientoStockController extends BaseController {
       await this.validateForm(queryRunner, body.fecha, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, efectos,fieldErrors );
 
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
-      await this.insertMovimiento(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, body.fecha, efectos);
+      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, body.fecha, efectos);
 
       // Impacto en Stock: resta el origen, suma el destino (unificando duplicados) y reemplaza relaciones de efecto.
       await this.aplicarMovimientoStock(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, efectos);
 
+      // Documento PDF en blanco: genera el archivo en disco + registro Documento enlazado al movimiento.
+      const { filesPathAbs, nombreArchivo } = await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo);
+
+      // El PDF se devuelve en el body (base64) para que el front actualice estado y dispare la descarga
+      // en una sola respuesta (no se puede res.download + jsonRes a la vez).
+      const pdfBase64 = readFileSync(filesPathAbs).toString('base64');
+
       // Simular: corre los INSERT reales pero hace rollback (no persiste, no consume el numerador).
+      // El archivo PDF ya quedó escrito en disco y devuelto en base64, se descarga igual en ambos casos.
       if (simular) {
         await this.rollbackTransaction(queryRunner);
-        return this.jsonRes({ ...body, simulado: true }, res, 'Simulación correcta: el movimiento es válido.');
+        return this.jsonRes({ ...body, simulado: true, nombreArchivo, pdfBase64 }, res, 'Simulación correcta: el movimiento es válido.');
       }
 
       await queryRunner.commitTransaction();
-      return this.jsonRes({ ...body }, res, "Movimiento confirmado");
+      return this.jsonRes({ ...body, nombreArchivo, pdfBase64 }, res, "Movimiento confirmado");
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
       return next(error);
@@ -279,12 +287,11 @@ export class MovimientoStockController extends BaseController {
     );
 
     if (!rows?.length) {
-      // No existe: alta con StockId nuevo desde el numerador.
-      const nuevoStockId = await BaseController.getProxNumero(queryRunner, 'Stock', usuario, ip);
+      // No existe: alta nueva. StockId es IDENTITY, lo genera SQL Server (no se pasa explícito).
       await queryRunner.query(
-        `INSERT INTO Stock (StockId, ${destino.columna}, EfectoId, EfectoEfectoIndividualId, StockStock)
-         VALUES (@0, @1, @2, @3, @4)`,
-        [nuevoStockId, destino.valor, efectoId, efectoIndividualId, cantidad]
+        `INSERT INTO Stock (${destino.columna}, EfectoId, EfectoEfectoIndividualId, StockStock)
+         VALUES (@0, @1, @2, @3)`,
+        [destino.valor, efectoId, efectoIndividualId, cantidad]
       );
       return;
     }
