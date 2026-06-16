@@ -717,7 +717,8 @@ export class PersonalController extends BaseController {
     return await queryRunner.query(`
     
       SELECT
-        CONCAT(per.PersonalId,'-',sitrev.PersonalSituacionRevistaSituacionId) id,
+        ROW_NUMBER() OVER (ORDER BY per.PersonalId, sitrev.PersonalSituacionRevistaSituacionId) AS id,
+        -- CONCAT(per.PersonalId,'-',sitrev.PersonalSituacionRevistaSituacionId) id,
         per.PersonalId,
         cuit.PersonalCUITCUILCUIT,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
