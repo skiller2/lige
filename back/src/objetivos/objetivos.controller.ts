@@ -96,11 +96,12 @@ const listaColumnas: any[] = [
     },
     {
         name: "Grupo Actividad",
-        type: "string",
+        type: "number",
         id: "GrupoActividadId",
         field: "GrupoActividadId",
         fieldName: " gap.GrupoActividadId",
         searchComponent: "inputForGrupoActividadSearch",
+        searchType: "number",
         sortable: true,
         hidden: true,
         searchHidden: false

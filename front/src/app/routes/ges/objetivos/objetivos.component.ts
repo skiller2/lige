@@ -130,7 +130,8 @@ export class ObjetivosComponent {
     const dateToday = new Date();
     this.startFilters.set([
       { index: 'ContratoFechaDesde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
-      { index: 'ContratoFechaHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }]);
+      { index: 'ContratoFechaHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }
+    ]);
 
     this.settingsService.setLayout('collapsed', true)
   }
@@ -163,7 +164,6 @@ export class ObjetivosComponent {
     }
 
   }
-
 
   getGridData(): void {
     this.gridData.reload()
@@ -219,9 +219,13 @@ export class ObjetivosComponent {
     }, 1000)
 
     this.route.queryParams.subscribe(params => {
+      console.log('params: ', params);
       const filter = this.startFilters()
       if (params['LugarHabilitacionDescripcionList'] == '') {
         filter.push({ index: 'LugarHabilitacionDescripcionList', condition: 'AND', operator: '=', value: null, closeable: true })
+      }
+      if (params['GrupoActividadId'] == '0') {
+        filter.push({ index: 'GrupoActividadId', condition: 'AND', operator: '=', value: null, closeable: true })
       }
 
       this.startFilters.set(filter)
