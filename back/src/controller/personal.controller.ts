@@ -3473,7 +3473,13 @@ UNION ALL
         throw new ClientException(campos_vacios)
       }
 
-      await queryRunner.query(`
+      // busco par personalid + actaid
+
+      const result = await queryRunner.query(`Select PersonalId, ActaId
+          from PersonalActa where PersonalId = @0 and ActaId = @1`, [personalId, ActaId])
+
+      if (!result.length) {
+        await queryRunner.query(`
       INSERT INTO PersonalActa (
         ActaId,
         TipoPersonalActaCodigo,
@@ -3487,6 +3493,18 @@ UNION ALL
         PersonalActaAudIpMod
       ) VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
       `, [ActaId, TipoActa, personalId, PersonalActaDescripcion, now, usuario, ip])
+      } else {
+        await queryRunner.query(`
+        UPDATE PersonalActa SET
+          TipoPersonalActaCodigo = @2,
+          PersonalActaDescripcion = @3,
+          PersonalActaAudFechaMod = @4,
+          PersonalActaAudUsuarioMod = @5,
+          PersonalActaAudIpMod = @6
+        WHERE PersonalId = @0 and ActaId = @1
+        `, [personalId, ActaId, TipoActa, PersonalActaDescripcion, now, usuario, ip])
+      }
+
 
       if (PersonalNroLegajo != undefined && PersonalNroLegajo != null && PersonalNroLegajo != '') {
         await queryRunner.query(`
