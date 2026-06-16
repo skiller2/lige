@@ -1,0 +1,18 @@
+<nz-select #asc [ngModel]="_selected()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+  style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Número de Acta o Descripción"
+  nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [disabled]="controlDisabled()" (nzBlur)="onBlur()">
+  @for (option of $optionsArray | async; track option.ActaId) {
+  @if (($isOptionsLoading | async) == false) {
+  <nz-option [nzValue]="option.ActaId" [nzLabel]="option.label" />
+  }
+  }
+  @if (extendedOption.ActaId > 0) {
+  <nz-option [nzValue]="extendedOption.ActaId" [nzLabel]="extendedOption.label" />
+  }
+  @if ($isOptionsLoading | async) {
+  <nz-option nzDisabled nzCustomContent>
+    <span nz-icon nzType="loading" class="loading-icon"></span>
+    Cargando datos...
+  </nz-option>
+  }
+</nz-select>

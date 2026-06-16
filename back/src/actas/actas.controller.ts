@@ -373,6 +373,65 @@ export class ActasController extends BaseController {
     }
   }
 
+  async search(req: any, res: Response, next: NextFunction) {
+    const { fieldName, value } = req.body;
+    const queryRunner = await getConnection(res.locals.userName);
+    const params: any[] = [];
+    const filters: string[] = [];
+
+    try {
+      const rawValue = value === null || value === undefined ? '' : String(value).trim();
+
+      switch (fieldName) {
+        case 'ActaId':
+          if (Number(rawValue) > 0) {
+            params.push(Number(rawValue));
+            filters.push(`ActaId = @${params.length - 1}`);
+          }
+          break;
+        case 'ActaNroActa':
+          if (rawValue.length > 0) {
+            params.push(`%${rawValue}%`);
+            filters.push(`CAST(ActaNroActa AS VARCHAR(30)) LIKE @${params.length - 1}`);
+          }
+          break;
+        case 'ActaDescripcion':
+          rawValue.split(/[\s,.]+/).forEach((element: string) => {
+            const term = element.trim();
+            if (term.length > 1) {
+              params.push(`%${term}%`);
+              filters.push(`(TRIM(ActaDescripcion) LIKE @${params.length - 1} OR CAST(ActaNroActa AS VARCHAR(30)) LIKE @${params.length - 1})`);
+            }
+          });
+          break;
+        default:
+          break;
+      }
+
+      if (!filters.length) {
+        this.jsonRes({ recordsArray: [] }, res);
+        return;
+      }
+
+      const records = await queryRunner.query(`
+        SELECT ActaId,
+          ActaNroActa,
+          ActaDescripcion,
+          ActaFechaActa,
+          CONCAT(ActaNroActa, ' - ', TRIM(ActaDescripcion)) label
+        FROM Acta
+        WHERE ${filters.join(' AND ')}
+        ORDER BY ActaFechaActa DESC
+      `, params);
+
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   async getNrosActas(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     try {

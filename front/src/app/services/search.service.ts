@@ -2224,6 +2224,27 @@ export class SearchService {
     );
   }
 
+  getActaFromName(fieldName: string, values: string): Observable<any[]> {
+    if (!values || values == '') {
+      return of([]);
+    }
+    return this.http
+      .post<ResponseJSON<any>>('api/actas/search', {
+        fieldName: fieldName,
+        value: values,
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+           
+          return of([]);
+        })
+      );
+  }
+
   getSitRevsitaAsocByPersonalId(PersonalId: number): Observable<any> {
     if (!PersonalId) return of([]);
     return this.http.get<ResponseJSON<any>>(`api/personal/sitrevistaaso/options/${PersonalId}`).pipe(

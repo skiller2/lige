@@ -7,12 +7,7 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Nro Acta</nz-form-label>
           <nz-form-control>
-            <nz-select formControlName="ActaId" nzPlaceHolder="Nro Acta" nzAllowClear
-              [nzDropdownMatchSelectWidth]="false" nzShowSearch (ngModelChange)="selectedNroActaChange($event)">
-              @for (option of optionsNroActa || []; track option.value) {
-                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-              }
-            </nz-select>
+            <app-acta-search formControlName="ActaId" (valueExtendedChange)="selectedActaChange($event)" />
           </nz-form-control>
         </nz-form-item>
 

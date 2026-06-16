@@ -16,6 +16,10 @@ actasRouter.get(`/nro-acta-options`, [authMiddleware.verifyToken], (req, res, ne
   actasController.getNrosActas(req, res, next);
 });
 
+actasRouter.post(`/search`, [authMiddleware.verifyToken], (req, res, next) => {
+  actasController.search(req, res, next);
+});
+
 actasRouter.post(`/list`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'gPersonal', 'gPersonalCon'])], (req, res, next) => {
   actasController.getGridList(req, res, next)
 });

@@ -10,12 +10,13 @@ import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { SettingsService, _HttpClient } from '@delon/theme';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FormBuilder, FormArray } from '@angular/forms';
+import { ActaSearchComponent } from '../../../shared/acta-search/acta-search.component';
 
 @Component({
     selector: 'app-personal-acta-drawer',
     templateUrl: './personal-acta-drawer.component.html',
     styleUrl: './personal-acta-drawer.component.less',
-    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule],
+    imports: [...SHARED_IMPORTS, CommonModule, NzAffixModule, ActaSearchComponent],
     providers: [AngularUtilService]
 })
   
@@ -43,7 +44,6 @@ export class PersonalActaDrawerComponent {
         ActaFechaActa:'', PersonalNroLegajo:''
     })
 
-    optionsNroActa:any[] = []
     $optionsTipoActa = this.searchService.getTipoPersonalActaOptions();
     $optionsSitRevsitaAsoc = this.selectedPersonalIdChange$.pipe(
         debounceTime(500),
@@ -77,7 +77,6 @@ export class PersonalActaDrawerComponent {
     async ngOnInit(){
         this.periodo.set(new Date())
         this.selectedPersonalIdChange$.next('');
-        this.optionsNroActa = await firstValueFrom(this.searchService.getNroActaOptions())
     }
 
     ngOnDestroy(): void {
@@ -99,10 +98,11 @@ export class PersonalActaDrawerComponent {
         this.isLoading.set(false)
     }
 
-    selectedNroActaChange(event: any):void{
-        let acta = this.optionsNroActa.find(acta => acta.value == event)
+    selectedActaChange(acta: any):void{
         if (acta?.ActaFechaActa) {
             this.formActa.get('ActaFechaActa')?.setValue(acta.ActaFechaActa)
+        } else {
+            this.formActa.get('ActaFechaActa')?.setValue('')
         }
     }
 
