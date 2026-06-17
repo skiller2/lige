@@ -73,6 +73,7 @@ export class MovimientoStockController extends BaseController {
       const tipoDestino     = String(body.tipoDestino ?? '');
       const depositoId      = Number(body.depositoId) || null;
       const personalId      = Number(body.personalId) || null;
+      const personalIdInter      = Number(body.personalIdInter) || null;
       const objetivoId      = Number(body.objetivoId) || null;
       const proveedorId     = Number(body.proveedorId) || null;
       const observaciones   = String(body.observaciones ?? '');
@@ -81,7 +82,7 @@ export class MovimientoStockController extends BaseController {
       const fieldErrors: any[] = [];
 
       // validaciones 
-      await this.validateForm(queryRunner, body.fecha, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, efectos,fieldErrors );
+      await this.validateForm(queryRunner, body.fecha, tipoDestino, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, efectos,fieldErrors );
 
       const fecha = new Date(body.fecha)
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
@@ -208,7 +209,6 @@ export class MovimientoStockController extends BaseController {
   ) {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
-
     const destino = this.resolverUbicacionDestino(tipoDestino, depositoId, personalId, objetivoId, proveedorId);
 
     // Agrupar la cantidad a mover por StockId de origen (un StockId define ubicación + efecto + individual).
@@ -457,7 +457,7 @@ export class MovimientoStockController extends BaseController {
     return rows?.[0] ?? null;
   }
 
-  private async validateForm( queryRunner: any, fechaRaw: any, tipoDestino: string, depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
+  private async validateForm( queryRunner: any, fechaRaw: any, tipoDestino: string, depositoId: number | null, personalId: number | null, personalIdInter: number | null, objetivoId: number | null, proveedorId: number | null,
     observaciones: string | null, efectos: any,
     fieldErrors: any[]
   ) {
