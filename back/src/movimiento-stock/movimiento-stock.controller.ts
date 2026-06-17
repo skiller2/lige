@@ -70,7 +70,6 @@ export class MovimientoStockController extends BaseController {
 
       const body = req.body ?? {};
       const simular = body.simular === true;
-      const tipoDestino = String(body.tipoDestino ?? '');
       const depositoId = Number(body.depositoId) || null;
       const personalId = Number(body.personalId) || null;
       const personalIdInter = Number(body.personalIdInter) || null;
@@ -79,18 +78,17 @@ export class MovimientoStockController extends BaseController {
       const observaciones = String(body.observaciones ?? '');
 
       const efectos = body.efectos;
-      const fieldErrors: any[] = [];
 
       // validaciones 
-      await this.validateForm(queryRunner, body.fecha, tipoDestino, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, efectos, fieldErrors);
+      await this.validateForm(queryRunner, body.fecha, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, efectos);
 
       const fecha = new Date(body.fecha)
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
 
-      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, tipoDestino, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, fecha, efectos);
+      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, fecha, efectos);
 
-      // Impacto en Stock: resta el origen, suma el destino (unificando duplicados) y reemplaza relaciones de efecto.
-      await this.aplicarMovimientoStock(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, efectos);
+      // Impacto en Stock: resta el origen, suma el destino
+      await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, efectos);
 
       // Documento PDF en blanco: genera el archivo en disco + registro Documento enlazado al movimiento.
       const { filesPathAbs, nombreArchivo } = await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo);
@@ -119,7 +117,6 @@ export class MovimientoStockController extends BaseController {
   /** INSERT en MovimientoStock + MovimientoStockDetalle. Devuelve el MovimientoStockCodigo generado. */
   private async insertMovimiento(
     queryRunner: any, req: any, res: any,
-    tipoDestino: string,
     depositoId: number | null,
     personalId: number | null,
     personalIdIntermediario: number | null,
@@ -135,21 +132,13 @@ export class MovimientoStockController extends BaseController {
     const movimientoCodigo = await BaseController.getProxNumero(queryRunner, 'MovimientoStock', usuario, ip);
 
     // Destino: cada tipo cae en su columna. El objetivo se resuelve a Cliente + ElementoDependiente.
-    let personalIdDestino: number | null = null;
-    let proveedorIdDestino: number | null = null;
     let clienteIdDestino: number | null = null;
     let clienteElemDepDestino: number | null = null;
-    let depositoIdDestino: number | null = null;
-    switch (tipoDestino) {
-      case 'personal': personalIdDestino = personalId; break;
-      case 'proveedor': proveedorIdDestino = proveedorId; break;
-      case 'deposito': depositoIdDestino = depositoId; break;
-      case 'objetivo': {
+  
+    if (objetivoId){
         const obj = await this.getObjetivoCliente(queryRunner, objetivoId);
         clienteIdDestino = obj?.ClienteId ?? null;
         clienteElemDepDestino = obj?.ClienteElementoDependienteId ?? null;
-        break;
-      }
     }
 
     await queryRunner.query(
@@ -158,8 +147,8 @@ export class MovimientoStockController extends BaseController {
          ClienteElementoDependienteIdDestino, DepositoIdDestino, Observaciones,
          AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
        VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14)`,
-      [movimientoCodigo, fecha, personalIdDestino, personalIdIntermediario, proveedorIdDestino, clienteIdDestino,
-        clienteElemDepDestino, depositoIdDestino, observaciones,
+      [movimientoCodigo, fecha, personalId, personalIdIntermediario, proveedorId, clienteIdDestino,
+        clienteElemDepDestino, depositoId, observaciones,
         fechaActual, fechaActual, usuario, usuario, ip, ip]
     );
 
@@ -203,6 +192,63 @@ export class MovimientoStockController extends BaseController {
   private static readonly STOCK_UBIC_COLS = ['DepositoId', 'PersonalId', 'ObjetivoId', 'ProveedorId', 'SucursalAreaId'];
 
   private async aplicarMovimientoStock(
+    queryRunner: any, req: any, res: any,
+    depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
+    efectos: any[]
+
+  ) {
+    const usuario = res.locals.userName;
+    const ip = this.getRemoteAddress(req);
+    for (const efecto of efectos) {
+      const EfectoId = Number(efecto.EfectoId)
+      const EfectoEfectoIndividualId = efecto.EfectoEfectoIndividualId
+      const Cantidad = efecto.Cantidad
+      const StockId = efecto.StockId
+      const resStock = await queryRunner.query(
+        `SELECT StockId, EfectoId, EfectoEfectoIndividualId, StockStock FROM Stock WHERE StockId = @0 AND EfectoId=@1 
+          AND (EfectoEfectoIndividualId = @2 OR (@2 IS NULL AND EfectoEfectoIndividualId IS NULL))`,
+        [StockId, EfectoId, EfectoEfectoIndividualId]
+      );
+      console.log("stock", resStock)
+      const CantidadActual = resStock[0]?.StockStock || 0
+
+      // Restar al origen.
+      if (Cantidad > CantidadActual)
+        throw new ClientException(`La cantidad a mover (${Cantidad}) supera el stock disponible (${CantidadActual}) en la ubicación de origen.`);
+      else if (Cantidad == CantidadActual) {
+        await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [StockId]);
+      } else {
+        await queryRunner.query(`UPDATE Stock SET StockStock = StockStock - @1 WHERE StockId = @0`, [StockId, Cantidad]);
+      }
+      // Suma en destino.
+      const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6 WHERE 
+            ( DepositoId = @0 OR (@0 IS NULL AND DepositoId IS NULL)) 
+        AND ( PersonalId = @1 OR (@1 IS NULL AND PersonalId IS NULL))
+        AND ( ObjetivoId = @2 OR (@2 IS NULL AND ObjetivoId IS NULL))
+        AND ( ProveedorId = @3 OR (@3 IS NULL AND ProveedorId IS NULL))
+        AND EfectoId = @4
+        AND ( EfectoEfectoIndividualId = @5 OR (@5 IS NULL AND EfectoEfectoIndividualId IS NULL))
+        SELECT @@ROWCOUNT as affected
+`,
+        [depositoId, personalId, objetivoId, proveedorId, EfectoId, EfectoEfectoIndividualId, Cantidad])
+
+      const cantRegistros = ressuma[0]?.affected ?? 0;
+      if (cantRegistros == 0) {
+        await queryRunner.query(
+          `INSERT INTO Stock (DepositoId,PersonalId,ObjetivoId,ProveedorId, EfectoId, EfectoEfectoIndividualId, StockStock)
+          VALUES (@0, @1, @2, @3,@4,@5,@6)`,
+          [depositoId, personalId, objetivoId, proveedorId, EfectoId, EfectoEfectoIndividualId, Cantidad]
+        );
+
+      } else if (cantRegistros > 1) {
+        throw new ClientException('La ubicación destino tiene mas de un registro de stock para el efecto');
+      }
+    }
+  }
+
+
+
+  private async aplicarMovimientoStock_old(
     queryRunner: any, req: any, res: any,
     tipoDestino: string,
     depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
@@ -458,41 +504,38 @@ export class MovimientoStockController extends BaseController {
     return rows?.[0] ?? null;
   }
 
-  private async validateForm(queryRunner: any, fechaRaw: any, tipoDestino: string, depositoId: number | null, personalId: number | null, personalIdInter: number | null, objetivoId: number | null, proveedorId: number | null,
-    observaciones: string | null, efectos: any,
-    fieldErrors: any[]
+  private async validateForm(queryRunner: any, fechaRaw: any, depositoId: number | null, personalId: number | null, personalIdInter: number | null, objetivoId: number | null, proveedorId: number | null,
+    observaciones: string | null, efectos: any
   ) {
-
-    // Fecha
+    let fieldErrors = []
     const fecha = new Date(fechaRaw);
     if (!fechaRaw || isNaN(fecha.getTime()))
       fieldErrors.push({ fieldTree: 'fecha', kind: 'server', message: 'La fecha es obligatoria.' });
 
-    // Tipo de destino obligatorio
-    const tiposValidos = ['deposito', 'personal', 'objetivo', 'proveedor'];
-    if (!tiposValidos.includes(tipoDestino))
+    if (depositoId == null && personalId == null && objetivoId == null && proveedorId == null)
       fieldErrors.push({ fieldTree: 'tipoDestino', kind: 'server', message: 'El tipo de destino es obligatorio.' });
 
-    // El destino debe existir (id presente + registro en BD).
-    const destinos = {
-      deposito: { id: depositoId, tabla: 'Deposito', columna: 'DepositoId', field: 'depositoId', obligatorio: 'El depósito es obligatorio.', inexistente: 'El depósito no existe.' },
-      personal: { id: personalId, tabla: 'Personal', columna: 'PersonalId', field: 'personalId', obligatorio: 'La persona es obligatoria.', inexistente: 'La persona no existe.' },
-      objetivo: { id: objetivoId, tabla: 'Objetivo', columna: 'ObjetivoId', field: 'objetivoId', obligatorio: 'El objetivo es obligatorio.', inexistente: 'El objetivo no existe.' },
-      proveedor: { id: proveedorId, tabla: 'Proveedor', columna: 'ProveedorId', field: 'proveedorId', obligatorio: 'El proveedor es obligatorio.', inexistente: 'El proveedor no existe.' },
-    };
-    const d = destinos[tipoDestino];
-    if (d) {
-      if (!d.id) {
-        fieldErrors.push({ fieldTree: d.field, kind: 'server', message: d.obligatorio });
-      } else {
-        const rows = await queryRunner.query(`SELECT TOP 1 1 AS ok FROM ${d.tabla} WHERE ${d.columna} = @0`, [d.id]);
-        if (!rows?.length) fieldErrors.push({ fieldTree: d.field, kind: 'server', message: d.inexistente });
-      }
+    const countDestino = (depositoId != null ? 1 : 0) + (personalId != null ? 1 : 0) + (objetivoId != null ? 1 : 0) + (proveedorId != null ? 1 : 0);
+
+    if (countDestino !== 1) {
+      fieldErrors.push({
+        fieldTree: 'tipoDestino',
+        kind: 'server',
+        message: 'Debe informar solo un tipo de destino.'
+      });
     }
 
     // Observación obligatoria según el destino.
-    if (this.requiereObservacion(tipoDestino) && !observaciones?.trim())
-      fieldErrors.push({ fieldTree: 'observaciones', kind: 'server', message: 'La observación es obligatoria para este destino.' });
+    if (!observaciones?.trim() && depositoId) {
+          const deposito = await queryRunner.query(
+          `SELECT dep.IndRequiereObservacion FROM Deposito dep
+             WHERE dep.DepositoId = @0`,
+          [depositoId]
+        );
+        const IndRequiereObservacion = (deposito[0]?.IndRequiereObservacion ==1)?1:0
+        if (IndRequiereObservacion)
+          fieldErrors.push({ fieldTree: 'observaciones', kind: 'server', message: 'La observación es obligatoria para este destino.' });
+    }
 
     // efecto
     if (!efectos.length) throw new ClientException("Debe ingresar al menos un efecto.");
@@ -572,11 +615,6 @@ export class MovimientoStockController extends BaseController {
     }
     if (fieldErrors.length > 0)
       throw new ClientException('Debe solucionar los errores indicados en el formulario', { fieldErrors });
-  }
-
-  private requiereObservacion(tipoDestino: string): boolean {
-    const destinosConObservacion: string[] = [];
-    return destinosConObservacion.includes(tipoDestino);
   }
 
   async getObjetivoInfo(req: any, res: Response, next: NextFunction) {
