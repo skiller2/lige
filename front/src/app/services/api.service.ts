@@ -2263,6 +2263,10 @@ export class ApiService {
   }
 
   getCuentasBancarias(filters: any) {
+    if (!filters.periodo) {
+      this.notification.warning('Advertencia', `Por favor, ingrese el periodo para visualizar los datos.`);
+      return of([]);
+    }
     const parameter = filters
     return this.http.post<ResponseJSON<any>>(`api/cuentas-bancarias/list`, parameter).pipe(
       map(res => res.data),

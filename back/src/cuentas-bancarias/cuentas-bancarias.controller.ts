@@ -184,9 +184,7 @@ export class CuentasBancariasController extends BaseController {
     return this.jsonRes(columns, res)
   }
 
-  async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any) {
-    const now = new Date();
-    now.setMonth(now.getMonth() - 1);
+  async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any, periodo:Date, sitRevistaPeriodo:Date, liqmaperiodo:Date) {
     return await queryRunner.query(`
       SELECT CONCAT(pb.PersonalId, '-',PersonalBancoId, '-', pb.PersonalBancoCBU) id,
         pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(pb.IndNuevaCuenta AS VARCHAR(1)) AS IndNuevaCuenta
@@ -199,14 +197,13 @@ export class CuentasBancariasController extends BaseController {
       JOIN Personal per on per.PersonalId=pb.PersonalId
       
       LEFT JOIN (
-		  SELECT mov.persona_id, mov.periodo_id, pe.anio, pe.mes, SUM(importe) importe  
-		  FROM lige.dbo.liqmamovimientos mov 
-		  JOIN lige.dbo.liqmaperiodo pe ON pe.periodo_id = mov.periodo_id AND pe.anio=DATEPART(YEAR, @0) AND pe.mes=DATEPART(MONTH, @0)
-		  WHERE mov.tipo_movimiento_id=11 
-		  GROUP BY mov.persona_id, mov.periodo_id, pe.anio, pe.mes
+        SELECT mov.persona_id, mov.periodo_id, pe.anio, pe.mes, SUM(importe) importe  
+        FROM lige.dbo.liqmamovimientos mov 
+        JOIN lige.dbo.liqmaperiodo pe ON pe.periodo_id = mov.periodo_id AND pe.anio=DATEPART(YEAR, @2) AND pe.mes=DATEPART(MONTH, @2)
+        WHERE mov.tipo_movimiento_id=11 
+        GROUP BY mov.persona_id, mov.periodo_id, pe.anio, pe.mes
 		  
-
-		) mo ON mo.persona_id = per.PersonalId
+		  ) mo ON mo.persona_id = per.PersonalId
       
       LEFT JOIN (
         SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
@@ -222,36 +219,36 @@ export class CuentasBancariasController extends BaseController {
           END AS sitRevCom
         FROM PersonalSituacionRevista p
         JOIN SituacionRevista s
-        ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= @0 AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >=@0
+        ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= @1 AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= @1
       ) sitrev ON sitrev.PersonalId = per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
       LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
       LEFT JOIN (
-          SELECT 
-            gap.GrupoActividadPersonalPersonalId,
-            ga.GrupoActividadNumero, ga.GrupoActividadId,gap.GrupoActividadPersonalDesde,gap.GrupoActividadPersonalHasta,
+        SELECT 
+          gap.GrupoActividadPersonalPersonalId,
+          ga.GrupoActividadNumero, ga.GrupoActividadId,gap.GrupoActividadPersonalDesde,gap.GrupoActividadPersonalHasta,
 
-            CASE 
-                WHEN ga.GrupoActividadId IS NOT NULL THEN  
-                    CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
-                            FORMAT(gap.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
-                            CASE WHEN gap.GrupoActividadPersonalHasta IS NULL THEN 'Actualidad' 
-                                ELSE FORMAT(gap.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
-                            END, ')'
-                    )
-                ELSE '' 
-            END AS GrupoActividadDetalle
-          FROM GrupoActividadPersonal gap
-          LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
-          WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= @0
-            AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= @0
-      ) ga ON ga.GrupoActividadPersonalPersonalId= per.PersonalId
+          CASE 
+              WHEN ga.GrupoActividadId IS NOT NULL THEN  
+                  CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
+                          FORMAT(gap.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+                          CASE WHEN gap.GrupoActividadPersonalHasta IS NULL THEN 'Actualidad' 
+                              ELSE FORMAT(gap.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
+                          END, ')'
+                  )
+              ELSE '' 
+          END AS GrupoActividadDetalle
+        FROM GrupoActividadPersonal gap
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+        WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= @0
+          AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= @0
+      ) ga ON ga.GrupoActividadPersonalPersonalId = per.PersonalId
 
-      Where ((@0 >=pb.PersonalBancoDesde and @0<= isnull(pb.PersonalBancoHasta, '9999-12-31')) or @0 <= pb.PersonalBancoDesde) 
-      and (${filterSql})
+      WHERE ((@0 >= pb.PersonalBancoDesde AND @0 <= ISNULL(pb.PersonalBancoHasta, '9999-12-31')) OR @0 <= pb.PersonalBancoDesde) 
+      AND (${filterSql})
       ${orderBy}
-    `, [now])
+    `, [periodo, sitRevistaPeriodo, liqmaperiodo])
   }
 
   async getCuentasBancarias(req: any, res: Response, next: NextFunction) {
@@ -260,8 +257,11 @@ export class CuentasBancariasController extends BaseController {
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
       const filterSql = filtrosToSql(options.filtros, columns);
       const orderBy = orderToSQL(options.sort)
+      const periodo = new Date(req.body.periodo)
+      const sitRevistaPeriodo = new Date(req.body.sitRevistaPeriodo)
+      const liqmaperiodo = new Date(req.body.liqmaperiodo)
 
-      const lista: any[] = await this.getCuentasBancariasQuery(queryRunner, filterSql, orderBy)
+      const lista:any[] = await this.getCuentasBancariasQuery(queryRunner, filterSql, orderBy, periodo, sitRevistaPeriodo, liqmaperiodo)
 
       this.jsonRes(lista, res);
     } catch (error) {

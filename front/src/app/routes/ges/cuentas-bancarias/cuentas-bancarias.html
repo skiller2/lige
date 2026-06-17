@@ -1,11 +1,27 @@
 <nz-card class="small-margin">
+  <div nz-row nzSpan="24" style="margin-top: 5px;">
+      <nz-form-label [nzMd]="2">Periodo</nz-form-label>
+      <nz-form-control [nzMd]="3">
+        <nz-date-picker [(ngModel)]="periodo" nzFormat="dd/MM/yyyy" />
+      </nz-form-control>
+      @if (tabIndex() == 0) {
+      <nz-form-label [nzMd]="3">Situación revista</nz-form-label>
+      <nz-form-control [nzMd]="3">
+        <nz-date-picker nzMode="month" [(ngModel)]="periodoSR" nzFormat="MM/yyyy" />
+      </nz-form-control>
+      <nz-form-label [nzMd]="3">Importe transferido</nz-form-label>
+      <nz-form-control [nzMd]="3">
+        <nz-date-picker [(ngModel)]="periodoIT" nzFormat="dd/MM/yyyy" />
+      </nz-form-control>
+      }
+    </div>
 
   <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
     <div nz-row nzSpan="12">
-      <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
-      <nz-form-control [nzSpan]="14">
+      <!-- <nz-form-label [nzSpan]="3">Periodo</nz-form-label>
+      <nz-form-control [nzSpan]="5">
         <nz-date-picker [(ngModel)]="periodo" nzFormat="dd/MM/yyyy" style="width: 100%;"/>
-      </nz-form-control>
+      </nz-form-control> -->
     </div>
 
     <ul nz-menu nzMode="horizontal">
@@ -30,7 +46,7 @@
     </nz-button-group>
   </div>
 
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cuentas-bancarias/listado">Listado</a>
 

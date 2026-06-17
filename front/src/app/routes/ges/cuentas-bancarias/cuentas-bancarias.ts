@@ -26,9 +26,12 @@ import { CuentasBancariasImportacionMasivaComponent } from '../cuentas-bancarias
       , PersonalBancoDrawerComponent, CuentasBancariasImportacionMasivaComponent],
 })
 export class CuentasBancariasComponent {
+  periodo = signal<Date>(new Date())
+  periodoSR = signal<Date>(new Date())
+  periodoIT = signal<Date>(new Date())
+  tabIndex = signal<number>(0)
   angularGrid!: AngularGridInstance;
   gridOptions!: GridOption;
-  periodo = signal(new Date())
   detailViewRowCount = 1;
   excelExportService = new ExcelExportService();
   listOptions = signal<listOptionsT>({
@@ -50,12 +53,17 @@ export class CuentasBancariasComponent {
   columns = toSignal(this.apiService.getCols('/api/cuentas-bancarias/cols/'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes() }),
+    params: () => ({ options: this.listOptions(), periodo: this.periodo(), sitRevistaPeriodo: this.periodoSR(), liqmaperiodo: this.periodoIT()  }),
     loader: async ({ params }) => {
       let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
-        response = await firstValueFrom(this.apiService.getCuentasBancarias({options: params.options}));
+        response = await firstValueFrom(this.apiService.getCuentasBancarias({
+          options: params.options, 
+          periodo: params.periodo, 
+          sitRevistaPeriodo: params.sitRevistaPeriodo, 
+          liqmaperiodo: params.liqmaperiodo
+        }));
       } catch (_e) { }
       this.loadingSrv.close()
 
@@ -81,13 +89,7 @@ export class CuentasBancariasComponent {
     this.angularGrid = angularGrid
     angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(angularGrid, 'PersonalCUITCUILCUIT')
-      // columnTotal('ImporteFactura', angularGrid)
-      // columnTotal('CantidadHorasExcedente', angularGrid)
-      // columnTotal('ImporteHorasExcedente', angularGrid)
-      // columnTotal('CantidadKmExcedente', angularGrid)
-      // columnTotal('ImporteKmExcedente', angularGrid)
-      // columnTotal('CantidadModulos', angularGrid)
-      // columnTotal('ImportePeaje', angularGrid)
+      // columnTotal('ImporteTranferido', angularGrid)
 
     })
     if (this.apiService.isMobile())
