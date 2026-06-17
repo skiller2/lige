@@ -1125,8 +1125,8 @@ export class GestionDescuentosController extends BaseController {
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
-            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta');
-            if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador de Cuenta. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta' && resp.AplicaDescuentos === 1);
+            if (!tieneCoordinadorVigente) throw new ClientException(`El Objetivo no tiene Coordinador de Cuenta con indicador "Aplica descuentos" en el período ${mes}/${anio}.`)
             break;
         }
 
@@ -1884,8 +1884,8 @@ FROM cte
         break;
       case 'CO':
         const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
-        const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta');
-        if (!tieneCoordinadorVigente) throw new ClientException(`No se puede aplicar el descuento al Coordinador de Cuenta. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`)
+        const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta' && resp.AplicaDescuentos === 1);
+        if (!tieneCoordinadorVigente) throw new ClientException(`El Objetivo no tiene Coordinador de Cuenta con indicador "Aplica descuentos" en el período ${mes}/${anio}.`)
         break;
     }
     const hoy: Date = new Date()
@@ -2564,10 +2564,9 @@ FROM cte
                 break;
               case 'CO':
                 const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anioRequest, mesRequest, queryRunner);
-                const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta');
-
+                const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta' && resp.AplicaDescuentos === 1);
                 if (!tieneCoordinadorVigente) {
-                  dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El objetivo no tiene Coordinador de Cuenta vigente para el período indicado.` })
+                  dataset.push({ id: idError++, Codigo: row[columnsXLS['código objetivo']], Detalle: `El objetivo no tiene Coordinador de Cuenta con indicador "Aplica descuentos" en el período indicado.` })
                   continue
                 }
               case 'NO':
@@ -2688,6 +2687,8 @@ FROM cte
         break;
       case 'P':
         if (!formInputs.PersonalId) campos_vacios.push(`- Personal`)
+        if (!formInputs.CuentaTipoCodigo) campos_vacios.push(`- Tipo de Cuenta`)
+
         break;
       default:
         campos_vacios.push(`- Descuento A`)
@@ -2718,8 +2719,6 @@ FROM cte
         campos_vacios.push(`- Porcentaje de descuento (debe ser 50 o 100)`)
       }
     }
-
-    if (!formInputs.CuentaTipoCodigo ) campos_vacios.push(`- Tipo de Cuenta`)
 
     if (campos_vacios.length) {
       campos_vacios.unshift('Debe completar los siguientes campos: ')
@@ -2862,9 +2861,9 @@ FROM cte
             break;
           case 'CO':
             const objetivoResponsables = await ObjetivoController.getObjetivoResponsables(ObjetivoId, anio, mes, queryRunner);
-            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta');
+            const tieneCoordinadorVigente = objetivoResponsables.some((resp) => resp.tipo === 'Coo. Cuenta' && resp.AplicaDescuentos === 1);
             if (!tieneCoordinadorVigente) {
-              row.errorMessage = `No se puede aplicar el descuento al Coordinador de Cuenta. El Objetivo no tiene coordinador vigente en el período ${mes}/${anio}.`
+              row.errorMessage = `El Objetivo no tiene Coordinador de Cuenta con indicador "Aplica descuentos" en el período ${mes}/${anio}.`
               row.isfull = 2
             }
             break;

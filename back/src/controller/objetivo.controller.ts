@@ -149,19 +149,20 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
   static async getObjetivoResponsables(objetivoId: number, anio: number, mes: number, queryRunner: QueryRunner) {
     return queryRunner
       .query(
-        `SELECT 1 AS ord, obj.ObjetivoId as id, 'Grupo' tipo,
-          ga.GrupoActividadId, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadObjetivoDesde AS desde , gap.GrupoActividadObjetivoHasta hasta, '' as Telefonos,
+        `
+SELECT 1 AS ord, obj.ObjetivoId as id, 'Grupo' tipo,
+          ga.GrupoActividadId, CONCAT (ga.GrupoActividadNumero, ' ',ga.GrupoActividadDetalle) AS detalle, gap.GrupoActividadObjetivoDesde AS desde , gap.GrupoActividadObjetivoHasta hasta, '' as Telefonos,0 AplicaDescuentos,0 SeDescuentaTelefono,
           1
         FROM Objetivo obj 
         JOIN GrupoActividadObjetivo gap ON gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND EOMONTh(DATEFROMPARTS(@1,@2,1)) >=   gap.GrupoActividadObjetivoDesde  AND DATEFROMPARTS(@1,@2,1) <  ISNULL(gap.GrupoActividadObjetivoHasta,'9999-12-31') 
         JOIN GrupoActividad ga ON ga.GrupoActividadId=gap.GrupoActividadId
         WHERE  obj.ObjetivoId = @0
 
-        UNION
+UNION
 
         SELECT 4, obj.ObjetivoId, 'Coo. Cuenta' tipo,
             per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, opj.ObjetivoPersonalJerarquicoDesde, opj.ObjetivoPersonalJerarquicoHasta,
-          STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos,
+          STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos, isnull(opj.ObjetivoPersonalJerarquicoDescuentos,0) AplicaDescuentos,isnull(opj.ObjetivoPersonalJerarquicoSeDescuentaTelefono,0) SeDescuentaTelefono,
           1
                   
         FROM Objetivo obj 
@@ -177,13 +178,13 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
             per.PersonalApellido, 
             per.PersonalNombre, 
             opj.ObjetivoPersonalJerarquicoDesde, 
-            opj.ObjetivoPersonalJerarquicoHasta
+            opj.ObjetivoPersonalJerarquicoHasta, opj.ObjetivoPersonalJerarquicoDescuentos ,opj.ObjetivoPersonalJerarquicoSeDescuentaTelefono
 
-        UNION
+UNION
 
         SELECT 2, obj.ObjetivoId, 'Coo. Zona' tipo,
         per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta, 
-        STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos,
+        STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos, 0 AplicaDescuentos,0 SeDescuentaTelefono,
         1
                   
         FROM Objetivo obj 
@@ -197,11 +198,11 @@ LEFT JOIN NexoDomicilio nexdom ON nexdom.ClienteElementoDependienteId = eledep.C
         WHERE  obj.ObjetivoId = @0
         GROUP BY  obj.ObjetivoId, per.PersonalId, per.PersonalApellido, per.PersonalNombre, gaj.GrupoActividadJerarquicoDesde, gaj.GrupoActividadJerarquicoHasta
 
-        UNION
+UNION
 
         SELECT 3, obj.ObjetivoId, 'Administrador' tipo,
         per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta, 
-        STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos,
+        STRING_AGG(TRIM(tel.PersonalTelefonoNro), ', ') AS Telefonos, 0 AplicaDescuentos,0 SeDescuentaTelefono,
 
         1          
         FROM Objetivo obj 
