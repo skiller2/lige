@@ -571,7 +571,7 @@ export class MovimientoStockController extends BaseController {
         fieldErrors.push({ fieldTree: `efectos[${i}].EfectoId`, kind: 'server', message: 'Existe más de un registro de stock para el mismo lugar (inconsistencia de datos).' });
     }
     if (fieldErrors.length > 0)
-      throw new ClientException('Debe corregir los campos indicados.', { fieldErrors });
+      throw new ClientException('Debe solucionar los errores indicados en el formulario', { fieldErrors });
   }
 
   private requiereObservacion(tipoDestino: string): boolean {
