@@ -360,7 +360,7 @@ export class MovimientoStockController extends BaseController {
   }
   */
 
-  async descargarPdf(req: any, res: Response, next: NextFunction) {
+  async descargarComprobante(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.startTransaction();

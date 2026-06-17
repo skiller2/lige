@@ -25,5 +25,5 @@ movimientoStockRouter.post("/confirmar", [authMiddleware.verifyToken, authMiddle
 });
 
 movimientoStockRouter.post("/comprobante", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  movimientoStockController.descargarPdf(req, res, next);
+  movimientoStockController.descargarComprobante(req, res, next);
 });
