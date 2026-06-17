@@ -213,9 +213,10 @@ const columnsActasPersonal: any[] = [
     fieldName: 'pa.TipoPersonalActaCodigo',
     type: 'string',
     searchType: 'string',
+    searchComponent: "inputForTipoPersonalActaSearch",
     sortable: true,
     hidden: true,
-    searchHidden: true
+    searchHidden: false
   },
   {
     id: 'TipoPersonalActaDescripcion', name: 'Tipo Acta', field: 'TipoPersonalActaDescripcion',
@@ -224,7 +225,7 @@ const columnsActasPersonal: any[] = [
     searchType: 'string',
     sortable: true,
     hidden: false,
-    searchHidden: false,
+    searchHidden: true,
     maxWidth: 120,
     minWidth: 80,
   },
