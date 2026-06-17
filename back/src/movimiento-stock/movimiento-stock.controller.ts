@@ -439,7 +439,7 @@ export class MovimientoStockController extends BaseController {
     // Solo si hay movimiento de referencia se enlaza el documento.
     if (movimientoCodigo) {
       await queryRunner.query(
-        `UPDATE MovimientoStock SET DocumentoIdIngresoStock = @1 WHERE MovimientoStockCodigo = @0`,
+        `UPDATE MovimientoStock SET MovimientoStockDocumentoId = @1 WHERE MovimientoStockCodigo = @0`,
         [movimientoCodigo, documentoId]
       );
     }
