@@ -98,7 +98,7 @@ export class EfectoComponent {
     if (this.descargandoPdf()) return
     this.descargandoPdf.set(true)
     try {
-      const blob = await firstValueFrom(this.http.post('api/movimiento-stock/descargar-pdf', {}, { responseType: 'blob' }))
+      const blob = await firstValueFrom(this.http.post('api/movimiento-stock/comprobante', {}, { responseType: 'blob' }))
       this.downloadService.downloadBlob(blob, 'movimiento-stock.pdf', 'application/pdf')
     } finally {
       this.descargandoPdf.set(false)

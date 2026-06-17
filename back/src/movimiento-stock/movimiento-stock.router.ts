@@ -24,6 +24,6 @@ movimientoStockRouter.post("/confirmar", [authMiddleware.verifyToken, authMiddle
   movimientoStockController.confirmarMovimiento(req, res, next);
 });
 
-movimientoStockRouter.post("/descargar-pdf", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+movimientoStockRouter.post("/comprobante", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   movimientoStockController.descargarPdf(req, res, next);
 });
