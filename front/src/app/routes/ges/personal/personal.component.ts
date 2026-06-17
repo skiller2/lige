@@ -1,5 +1,5 @@
-import { Component, viewChild, inject, signal, model, computed, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { Component, viewChild, inject, signal, model, computed, ViewEncapsulation, ChangeDetectionStrategy, resource } from '@angular/core';
+import { BehaviorSubject, debounceTime, map, switchMap, firstValueFrom } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -24,7 +24,7 @@ import { PersonalActaDrawerComponent } from '../personal-acta-drawer/personal-ac
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
 import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalExencionesDrawerComponent } from '../personal-exenciones-drawer/personal-exenciones-drawer';
-
+import { toSignal } from '@angular/core/rxjs-interop';
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline, FolderViewOutline} from '@ant-design/icons-angular/icons';
@@ -56,11 +56,11 @@ export class PersonalComponent {
   gridDataInsert: any[] = [];
   detailViewRowCount = 1;
   excelExportService = new ExcelExportService();
-  listPersonal$ = new BehaviorSubject('');
-  listOptions: listOptionsT = {
+  // listPersonal$ = new BehaviorSubject('');
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  });
   startFilters = signal<Selections[]>([])
 
   private angularUtilService = inject(AngularUtilService)
@@ -88,7 +88,7 @@ export class PersonalComponent {
   childPerDetalleDrawer = viewChild.required<PersonalFormComponent>('perDetalle')
   childPerDocumentosDrawer = viewChild.required<PersonalDocumentosDrawerComponent>('docDrawer')
 
-  columns$ = this.apiService.getCols('/api/personal/cols').pipe(
+  columns = toSignal(this.apiService.getCols('/api/personal/cols').pipe(
     map((cols) => {
       // Guardar IDs de columnas que tienen showGridColumn: false
       this.hiddenColumnIds = cols
@@ -96,15 +96,17 @@ export class PersonalComponent {
         .map((col: Column) => col.id as string);
       return cols;
     })
-  )
-  gridData$ = this.listPersonal$.pipe(
-    debounceTime(500),
+  ), { initialValue: [] as Column[] })
 
-    switchMap(() => {
-      return this.searchService.getPersonalList({ options: this.listOptions })
-        .pipe(map(data => { return data }))
-    })
-  )
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      const res = await firstValueFrom(this.searchService.getPersonalList({ options: params.options })
+        .pipe(map(data => { return data })));
+      return res;
+    },
+    defaultValue: []
+  });
 
   async ngOnInit() {
     const date: Date = new Date()
@@ -157,15 +159,6 @@ export class PersonalComponent {
     } else {
       this.personalId.set(0)
     }
-  }
-
-  listOptionsChange(options: any) {
-    this.listOptions = options;
-    this.listPersonal$.next('');
-  }
-
-  getGridData(): void {
-    this.listPersonal$.next('');
   }
 
   openDrawerforConsultHistory(): void {

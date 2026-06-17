@@ -3,7 +3,7 @@
     <ul nz-menu nzMode="horizontal">
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'personal','listado']" (click)="getGridData()">Listado</a>
+        <a [routerLink]="['/', 'ges', 'personal','listado']" (click)="gridData.reload()">Listado</a>
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
@@ -11,6 +11,10 @@
       </li>
     </ul>
     <nz-button-group nz-button nzButtonGroup>
+      <!-- btn  reload -->
+      <button nz-button nzType="default" (click)="gridData.reload()"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"><span nz-icon nzType="reload"
+      nzTheme="outline"></span></button>
       <!-- btn  add -->
       <button nz-button nzType="default" [routerLink]="['/', 'ges', 'personal','carga']" (click)="perAlta.newRecord()"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus"
@@ -81,13 +85,13 @@
     <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/listado">Listado</a>
-      @if ((columns$|async); as columnas) {
+      @if (columns().length) {
         <ng-template nz-tab>
-          <shared-filtro-builder  [fieldsToSelect]="columnas" [startFilters]="startFilters()"
-            (optionsChange)="listOptionsChange($event)" />
+          <shared-filtro-builder  [fieldsToSelect]="columns()" [startFilters]="startFilters()"
+            [(options)]="listOptions" />
             <div class="gridContainer container-fluid">
-              <angular-slickgrid gridId="grid" class="" [columns]="columnas | colsFilter"
-                [options]="gridOptions" [dataset]="(gridData$ | async) || []"
+              <angular-slickgrid gridId="grid" class="" [columns]="columns() | colsFilter"
+                [options]="gridOptions" [dataset]="gridData.value()"
                 (onAngularGridCreated)="angularGridReady($event)"
                 (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
               </angular-slickgrid>
