@@ -35,8 +35,6 @@ export class EfectoComponent {
   private http = inject(HttpClient)
   private downloadService = inject(DownloadService)
 
-  descargandoPdf = signal(false)
-
   activeTab = toSignal(
     this.route.params.pipe(map(({ tab }) => tab || 'general')),
     { initialValue: 'general' }
@@ -93,15 +91,4 @@ export class EfectoComponent {
     }
   }
 
-  // Genera el PDF de movimiento de stock en el back (lo graba en Documento) y lo descarga.
-  async descargarPdf() {
-    if (this.descargandoPdf()) return
-    this.descargandoPdf.set(true)
-    try {
-      const blob = await firstValueFrom(this.http.post('api/movimiento-stock/comprobante', {}, { responseType: 'blob' }))
-      this.downloadService.downloadBlob(blob, 'movimiento-stock.pdf', 'application/pdf')
-    } finally {
-      this.descargandoPdf.set(false)
-    }
-  }
 }

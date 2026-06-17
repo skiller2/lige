@@ -39,8 +39,9 @@
         [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
         <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
       </button>
-      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="Descargar PDF"
-        [nzLoading]="descargandoPdf()" (click)="descargarPdf()">
+      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="Descargar Comprobante"
+        app-down-file [httpMethod]="'POST'" [httpBody]="{}" httpUrl="api/movimiento-stock/comprobante"
+        >
         <span nz-icon nzType="download" nzTheme="outline"></span>
       </button>
     </nz-button-group>
