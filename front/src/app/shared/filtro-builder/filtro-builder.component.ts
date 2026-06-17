@@ -37,6 +37,7 @@ import { NumberAdvancedSearchComponent } from '../number-advanced-search/number-
 import { PeriodoSearchComponent } from '../periodo-search/periodo-search';
 import { AsyncPipe } from '@angular/common';
 import { AbstractExpandedDecoder } from '@zxing/library';
+import { TipoPersonalActaSearchComponent } from '../tipo-personal-acta-search/tipo-personal-acta-search.component';
 
 type listOptionsT = {
   filtros: any[],
@@ -56,7 +57,8 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   selector: 'shared-filtro-builder',
   imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
     ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent, EfectoSearchComponent, EfectoIndividualSearchComponent,
-    TipoAsociadoCategoriaSearchComponent, TipoAsociadoSearchComponent, RequirenteSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent, AsyncPipe
+    TipoAsociadoCategoriaSearchComponent, TipoAsociadoSearchComponent, RequirenteSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent,
+    TipoPersonalActaSearchComponent, AsyncPipe
   ],
   templateUrl: './filtro-builder.component.html',
   styles: [],
@@ -769,6 +771,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       const res = await firstValueFrom(this.searchService.getGrupoActividad('GrupoActividadId', value))
       if (res && res.length > 0) label = res[0].GrupoActividadDetalle
       else label = 'Vacio'
+    }
+
+    if (fieldObj.searchComponent == 'inputForTipoPersonalActaSearch') {
+      const options = await firstValueFrom(this.searchService.getTipoPersonalActaOptions())
+      const option = (options ?? []).find((tipo: any) => tipo.value === value)
+      if (option) label = option.label
     }
 
     if (fieldObj.searchComponent == 'inputForActivo' || fieldObj.searchComponent =='inputForExceptuadoSearch' ) {
