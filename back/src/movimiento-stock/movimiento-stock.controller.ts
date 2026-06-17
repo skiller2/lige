@@ -83,8 +83,10 @@ export class MovimientoStockController extends BaseController {
       // validaciones 
       await this.validateForm(queryRunner, body.fecha, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, efectos,fieldErrors );
 
+      const fecha = new Date(body.fecha)
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
-      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, body.fecha, efectos);
+
+      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, observaciones, fecha, efectos);
 
       // Impacto en Stock: resta el origen, suma el destino (unificando duplicados) y reemplaza relaciones de efecto.
       await this.aplicarMovimientoStock(queryRunner, req, res, tipoDestino, depositoId, personalId, objetivoId, proveedorId, efectos);
@@ -121,12 +123,11 @@ export class MovimientoStockController extends BaseController {
      personalId: number | null, 
      objetivoId: number | null,
       proveedorId: number | null,
-    observaciones: string, fechaRaw: any, efectos: any[]
+    observaciones: string, fecha: Date, efectos: any[]
   ) {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
     const fechaActual = new Date();
-    const fecha = new Date(fechaRaw);
 
     // Código del movimiento desde GenNumerador (lo crea en 1 si no existe, o incrementa).
     const movimientoCodigo = await BaseController.getProxNumero(queryRunner, 'MovimientoStock', usuario, ip);
