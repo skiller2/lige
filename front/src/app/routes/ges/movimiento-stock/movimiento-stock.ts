@@ -282,6 +282,33 @@ export class MovimientoStockComponent {
       ...m,
       efectos: m.efectos.filter((row, i) => row.EfectoId),
     }));
+
+    switch (this.parametroStock().tipoDestino) {
+      case 'personal':
+        this.parametroStock.update(m => ({
+          ...m, depositoId:null, objetivoId:null,proveedorId:null
+        }))
+        break
+      case 'deposito':
+        this.parametroStock.update(m => ({
+          ...m, personalId:null,objetivoId:null,proveedorId:null
+        }))
+        break
+      case 'objetivo':
+        this.parametroStock.update(m => ({
+          ...m, depositoId:null, personalId:null,proveedorId:null
+        }))
+        break
+      case 'proveedor':
+        this.parametroStock.update(m => ({
+          ...m, depositoId:null, personalId:null,objetivoId:null
+        }))
+        break
+      default:
+        break
+    }
+    this.parametroStock().tipoDestino
+
     if (this.parametroStock().efectos.length == 0)
       this.addEfectoLinea(null)
 
@@ -299,7 +326,9 @@ export class MovimientoStockComponent {
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
-      form().reset(form().value());
+      if (!simular){
+        form().reset(form().value())
+      }
       return;
     });
   }
