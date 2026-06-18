@@ -76,7 +76,6 @@ export class MovimientoStockController extends BaseController {
       const objetivoId = Number(body.objetivoId) || null;
       const proveedorId = Number(body.proveedorId) || null;
       const observaciones = String(body.observaciones ?? '');
-
       const efectos = body.efectos;
 
       // validaciones 
@@ -435,6 +434,9 @@ export class MovimientoStockController extends BaseController {
     observaciones: string | null, efectos: any
   ) {
     let fieldErrors = []
+
+
+
     const fecha = new Date(fechaRaw);
     if (!fechaRaw || isNaN(fecha.getTime()))
       fieldErrors.push({ fieldTree: 'fecha', kind: 'server', message: 'La fecha es obligatoria.' });
@@ -452,8 +454,17 @@ export class MovimientoStockController extends BaseController {
       });
     }
 
+    if (personalIdInter && personalIdInter==personalId){
+      fieldErrors.push({
+        fieldTree: 'personalIdInter',
+        kind: 'server',
+        message: 'El intermediario no puede ser igual a la persona seleccionada'
+      });
+
+    }
+
     // Observación obligatoria según el destino.
-    if (!observaciones?.trim() && depositoId) {
+    if (!observaciones.trim() && depositoId) {
       const deposito = await queryRunner.query(
         `SELECT dep.IndRequiereObservacion FROM Deposito dep
              WHERE dep.DepositoId = @0`,
@@ -470,7 +481,7 @@ export class MovimientoStockController extends BaseController {
     //////////////////////////////////////////////////////////////////////////////////////
 
     // --- Por renglón: requeridos, "Usado" y datos de StockReal (cacheados por StockId) ---
-    const stockInfoById = new Map<number, any>();
+    //const stockInfoById = new Map<number, any>();
 
     for (const [i, linea] of efectos.entries()) {
       if (!linea.EfectoId) fieldErrors.push({ fieldTree: `efectos[${i}].EfectoId`, kind: 'server', message: 'Efecto obligatorio.' });
@@ -482,23 +493,19 @@ export class MovimientoStockController extends BaseController {
       if (linea.Usado)
         fieldErrors.push({ fieldTree: `efectos[${i}].Usado`, kind: 'server', message: 'Pendiente de desarrollo.' });
 
-      if (!linea.StockId) continue;
-
-      if (!stockInfoById.has(Number(linea.StockId))) {
-        const rows = await queryRunner.query(
-          `SELECT TOP 1 stk.StockId, stk.StockStock, stk.EfectoId, stk.EfectoEfectoIndividualId,
+      const rows = await queryRunner.query(
+        `SELECT TOP 1 stk.StockId, stk.StockStock, stk.EfectoId, stk.EfectoEfectoIndividualId,
                     stk.DepositoId, stk.PersonalId, stk.ObjetivoId, stk.ProveedorId
              FROM StockReal stk
              WHERE stk.StockId = @0`,
-          [linea.StockId]
-        );
-        stockInfoById.set(Number(linea.StockId), rows?.[0] ?? null);
-      }
-      const row = stockInfoById.get(Number(linea.StockId));
-      if (!row) {
+        [linea.StockId]
+      );
+
+      if (rows.length==0) {
         fieldErrors.push({ fieldTree: `efectos[${i}].StockId`, kind: 'server', message: 'La ubicación no existe.' });
         continue;
       }
+      const row = rows[0]
       if (linea.EfectoId && Number(row.EfectoId) !== Number(linea.EfectoId))
         fieldErrors.push({ fieldTree: `efectos[${i}].StockId`, kind: 'server', message: 'La ubicación no corresponde al efecto seleccionado.' });
     }
