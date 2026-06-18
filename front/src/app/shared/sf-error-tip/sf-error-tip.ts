@@ -89,15 +89,13 @@ export class SfErrorTipDirective {
       const shouldShow =
         mode === 'always' ||
         (mode === 'touched' && state?.touched()) ||
-        (mode === 'dirty' && state?.dirty());
-
-
+        (mode === 'dirty' && state?.dirty()|| state.errors().length);
 
       const errs: readonly ValidationError[] =
         state.invalid() ? state.errors() ?? [] : [];
 
       let message: string | undefined = undefined;
-
+    
 
       if (shouldShow && errs.length) {
         const map = this.errorMap();
@@ -124,6 +122,7 @@ export class SfErrorTipDirective {
 
       host.nzValidateStatus = shouldShow && errs.length ? 'error' : '';
       // nzErrorTip: string | TemplateRef | undefined (nunca null)
+
 
       // Forzamos chequeo (OnPush)
       this.cdr.markForCheck();
