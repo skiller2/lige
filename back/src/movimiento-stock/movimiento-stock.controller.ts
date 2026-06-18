@@ -216,7 +216,9 @@ export class MovimientoStockController extends BaseController {
       if (Cantidad > CantidadActual)
         throw new ClientException(`La cantidad a mover (${Cantidad}) supera el stock disponible (${CantidadActual}) en la ubicación de origen.`);
       else if (Cantidad == CantidadActual) {
-        await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [StockId]);
+        //TODO: no lo borro porque tiene registros relacionados
+        //await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [StockId]);
+        await queryRunner.query(`UPDATE Stock SET StockStock = StockStock - @1 WHERE StockId = @0`, [StockId, Cantidad]);
       } else {
         await queryRunner.query(`UPDATE Stock SET StockStock = StockStock - @1 WHERE StockId = @0`, [StockId, Cantidad]);
       }
