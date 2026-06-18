@@ -340,9 +340,7 @@ export class MovimientoStockComponent {
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
-      if (!simular){
-        form().reset(form().value())
-      }
+      form().reset(form().value())
       return;
     });
   }

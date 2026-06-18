@@ -199,7 +199,7 @@ export class MovimientoStockController extends BaseController {
     let fieldErrors = []
     for (const [index, efecto] of efectos.entries()) {
       const EfectoId = Number(efecto.EfectoId)
-      const EfectoEfectoIndividualId = efecto.EfectoEfectoIndividualId
+      const EfectoEfectoIndividualId = efecto.EfectoIndividualId ?? null
       const Cantidad = efecto.Cantidad
       const StockId = efecto.StockId
       const usado = efecto.Usado
