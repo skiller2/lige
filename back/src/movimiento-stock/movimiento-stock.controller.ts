@@ -142,11 +142,11 @@ export class MovimientoStockController extends BaseController {
 
     await queryRunner.query(
       `INSERT INTO MovimientoStock
-        (MovimientoStockCodigo, Fecha, PersonalIdDestino, PersonalIdIntermediario, ProveedorIdDestino, ClienteIdDestino,
+        (MovimientoStockCodigo, Fecha, PersonalIdDestino, ProveedorIdDestino, ClienteIdDestino,
          ClienteElementoDependienteIdDestino, DepositoIdDestino, Observaciones,
          AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
-       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14)`,
-      [movimientoCodigo, fecha, personalId, personalIdIntermediario, proveedorId, clienteIdDestino,
+       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)`,
+      [movimientoCodigo, fecha, personalId, proveedorId, clienteIdDestino,
         clienteElemDepDestino, depositoId, observaciones,
         fechaActual, fechaActual, usuario, usuario, ip, ip]
     );
