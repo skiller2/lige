@@ -250,6 +250,7 @@ export class MovimientoStockController extends BaseController {
       }
 
       if (usado) {
+        fieldErrors.push({ fieldTree: `efectos[${index}].Usado`, kind: 'server', message: 'Pendiente de desarrollo.' });
         //TODO: Cambia EfectoId o EfectoEfectoIndividualId y le agrega el indicador de usado.  Por ahí tiene que crear un nuevo EfectoId si no tiene ninguno como usado.
       }
       // Suma en destino.
@@ -500,9 +501,6 @@ export class MovimientoStockController extends BaseController {
       if (linea.Cantidad == null || Number(linea.Cantidad) <= 0)
         fieldErrors.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'server', message: 'La cantidad debe ser mayor a 0.' });
 
-      // "Usado" tildado: pendiente de desarrollo.
-      if (linea.Usado)
-        fieldErrors.push({ fieldTree: `efectos[${i}].Usado`, kind: 'server', message: 'Pendiente de desarrollo.' });
 
       const rows = await queryRunner.query(
         `SELECT TOP 1 stk.StockId, stk.StockStock, stk.EfectoId, stk.EfectoEfectoIndividualId,
