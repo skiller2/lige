@@ -467,7 +467,7 @@ export class MovimientoStockController extends BaseController {
     }
 
     // El intermediario no puede ser la misma persona seleccionada como destino.
-    if (personalIdInter && personalId && Number(personalIdInter) === Number(personalId)) {
+    if (personalIdInter && (personalIdInter===personalId)) {
       fieldErrors.push({
         fieldTree: 'personalIdInter',
         kind: 'server',
