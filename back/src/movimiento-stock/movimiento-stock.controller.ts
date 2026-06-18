@@ -224,9 +224,9 @@ export class MovimientoStockController extends BaseController {
         [StockId, EfectoId, EfectoEfectoIndividualId]
       );
       if (resStock.length > 1) {
-        fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `Existe más de un registro de stock para el mismo lugar (inconsistencia de datos)` });
+        fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `La ubicación de origen tiene mas de un registro de stock (inconsistencia de datos)` });
       } else if (resStock[0]?.StockStock != StockId) {
-        fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `La ubicación no es válida para el Efecto (inconsistencia de datos)` });
+        fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `La ubicación no es válida para el Efecto (inconsistencia de datos)` });
       }
 
       if ((resStock[0]?.PersonalId && resStock[0]?.PersonalId == personalId) ||
@@ -274,9 +274,7 @@ export class MovimientoStockController extends BaseController {
         );
 
       } else if (cantRegistros > 1) {
-        fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `La ubicación destino tiene mas de un registro de stock para el efecto (inconsistencia de datos)` });
-
-        //        throw new ClientException('La ubicación destino tiene mas de un registro de stock para el efecto (inconsistencia de datos)');
+        fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `La ubicación destino tiene mas de un registro de stock para el efecto (inconsistencia de datos)` });
       }
     }
 
