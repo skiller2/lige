@@ -243,9 +243,7 @@ export class MovimientoStockController extends BaseController {
       if (Cantidad > CantidadActual) {
         fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `La cantidad excede el stock ${CantidadActual}` });
       } else if (Cantidad == CantidadActual) {
-        //TODO: no lo borro porque tiene registros relacionados
-        //await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [StockId]);
-        await queryRunner.query(`UPDATE Stock SET StockStock = @1 WHERE StockId = @0`, [StockId, CantidadActual - Cantidad]);
+        await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [StockId]);
       } else {
         await queryRunner.query(`UPDATE Stock SET StockStock = @1 WHERE StockId = @0`, [StockId, CantidadActual - Cantidad]);
       }
