@@ -204,6 +204,7 @@ export class MovimientoStockController extends BaseController {
       const EfectoEfectoIndividualId = efecto.EfectoEfectoIndividualId
       const Cantidad = efecto.Cantidad
       const StockId = efecto.StockId
+      const usado = efecto.Usado
       const resStock = await queryRunner.query(
         `SELECT StockId, EfectoId, EfectoEfectoIndividualId, StockStock FROM Stock WHERE StockId = @0 AND EfectoId=@1 
           AND (EfectoEfectoIndividualId = @2 OR (@2 IS NULL AND EfectoEfectoIndividualId IS NULL))`,
@@ -221,6 +222,10 @@ export class MovimientoStockController extends BaseController {
         await queryRunner.query(`UPDATE Stock SET StockStock = StockStock - @1 WHERE StockId = @0`, [StockId, Cantidad]);
       } else {
         await queryRunner.query(`UPDATE Stock SET StockStock = StockStock - @1 WHERE StockId = @0`, [StockId, Cantidad]);
+      }
+
+      if (usado) {
+        //TODO: Cambia EfectoId o EfectoEfectoIndividualId y le agrega el indicador de usado.  Por ahí tiene que crear un nuevo EfectoId si no tiene ninguno como usado.
       }
       // Suma en destino.
       const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6 WHERE 
