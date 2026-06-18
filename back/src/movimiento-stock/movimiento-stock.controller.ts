@@ -1,4 +1,5 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
+import { FileUploadController } from "../controller/file-upload.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import { getConnection } from "../data-source.ts";
 import puppeteer from 'puppeteer';
@@ -21,7 +22,8 @@ const tiposOrigen = [
 
 export class MovimientoStockController extends BaseController {
 
-  // Raíz de documentos (igual criterio que recibos). Los PDF de stock van en la subcarpeta 'movimiento-stock'.
+  // Raíz de documentos (igual criterio que recibos). La subcarpeta destino la define el
+  // DocumentoTipo 'MOVSTK' a través de FileUploadController.handleDOCUpload.
   directoryDocumentos = process.env.PATH_DOCUMENTS ? process.env.PATH_DOCUMENTS : '.';
 
   async getTiposDestino(req: Request, res: Response, next: NextFunction) {
@@ -89,19 +91,19 @@ export class MovimientoStockController extends BaseController {
       // Impacto en Stock: resta el origen, suma el destino
       await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, efectos);
 
+      // Simular: corre los INSERT reales pero hace rollback (no persiste, no consume el numerador).
+      // No se genera el PDF (ni archivo ni descarga): la simulación solo valida que el movimiento es válido.
+      if (simular) {
+        await this.rollbackTransaction(queryRunner);
+        return this.jsonRes({ ...body, simulado: true }, res, 'Simulación correcta: el movimiento es válido.');
+      }
+
       // Documento PDF en blanco: genera el archivo en disco + registro Documento enlazado al movimiento.
       const { filesPathAbs, nombreArchivo } = await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo);
 
       // El PDF se devuelve en el body (base64) para que el front actualice estado y dispare la descarga
       // en una sola respuesta (no se puede res.download + jsonRes a la vez).
       const pdfBase64 = readFileSync(filesPathAbs).toString('base64');
-
-      // Simular: corre los INSERT reales pero hace rollback (no persiste, no consume el numerador).
-      // El archivo PDF ya quedó escrito en disco y devuelto en base64, se descarga igual en ambos casos.
-      if (simular) {
-        await this.rollbackTransaction(queryRunner);
-        return this.jsonRes({ ...body, simulado: true, nombreArchivo, pdfBase64 }, res, 'Simulación correcta: el movimiento es válido.');
-      }
 
       await queryRunner.commitTransaction();
       return this.jsonRes({ ...body, nombreArchivo, pdfBase64 }, res, "Movimiento confirmado");
@@ -364,54 +366,68 @@ export class MovimientoStockController extends BaseController {
     const anio = fechaActual.getFullYear();
     const mes = fechaActual.getMonth() + 1;
 
-    // DocumentoId nuevo desde el numerador (mismo numerador 'Documento' que usan los recibos).
-    const documentoId = await BaseController.getProxNumero(queryRunner, 'Documento', usuario, ip);
+    // El alta del Documento (numerador, INSERT, copia del archivo y ruta según DocumentoTipo) la
+    // centraliza FileUploadController.handleDOCUpload. Acá solo generamos el PDF en la carpeta
+    // temporal para que esa función lo tome como si fuera un archivo subido.
+    const tempCarpeta = path.join(this.directoryDocumentos, 'temp');
+    if (!existsSync(tempCarpeta)) mkdirSync(tempCarpeta, { recursive: true });
 
-    // Carpeta destino: <PATH_DOCUMENTS>/movimiento-stock. En Documento.DocumentoPath se guarda la ruta relativa.
-    const subCarpeta = 'movimiento-stock';
-    const dirAbs = path.join(this.directoryDocumentos, subCarpeta);
-    if (!existsSync(dirAbs)) mkdirSync(dirAbs, { recursive: true });
-
-    const nombreArchivo = movimientoCodigo ? `${documentoId}-${movimientoCodigo}.pdf` : `${documentoId}.pdf`;
-    const filesPathRel = `${subCarpeta}/${nombreArchivo}`;
-    const filesPathAbs = path.join(this.directoryDocumentos, filesPathRel);
+    const tempfilename = `movstk-${movimientoCodigo ?? 'sin-mov'}-${fechaActual.getTime()}.pdf`;
+    const tempPathAbs = path.join(tempCarpeta, tempfilename);
 
     // PDF vacío (una página en blanco). Cuando se defina el diseño se reemplaza el HTML.
     const browser = await puppeteer.launch({ headless: 'new' });
     try {
       const page = await browser.newPage();
       await page.setContent('<html><body></body></html>');
-      try { await unlink(filesPathAbs); } catch (error) { }
-      await page.pdf({ path: filesPathAbs, format: 'A4', printBackground: true });
+      try { await unlink(tempPathAbs); } catch (error) { }
+      await page.pdf({ path: tempPathAbs, format: 'A4', printBackground: true });
       await page.close();
     } finally {
       await browser.close();
     }
 
-    await queryRunner.query(
-      `INSERT INTO Documento
-        (DocumentoId, DocumentoTipoCodigo, PersonalId, ObjetivoId,
-         DocumentoDenominadorDocumento, DocumentoNombreArchivo, DocumentoFecha, DocumentoFechaDocumentoVencimiento,
-         DocumentoPath, DocumentoDetalleDocumento, DocumentoIndividuoDescargaBot,
-         DocumentoAudFechaIng, DocumentoAudUsuarioIng, DocumentoAudIpIng,
-         DocumentoAudFechaMod, DocumentoAudUsuarioMod, DocumentoAudIpMod,
-         DocumentoClienteId, DocumentoAnio, DocumentoMes, DocumentoVersion)
-       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20)`,
-      [documentoId, 'MOVSTK', null, null,
-        movimientoCodigo, nombreArchivo, fechaActual, null,
-        filesPathRel, null, 0,
-        fechaActual, usuario, ip,
-        fechaActual, usuario, ip,
-        null, anio, mes, 0]
+    // Denominador del documento: el código de movimiento cuando existe.
+    const denDocumento = movimientoCodigo ? `${movimientoCodigo}` : 'ingreso';
+
+    // Objeto "file" mínimo que espera handleDOCUpload (mismo shape que un upload real).
+    const file = {
+      tableForSearch: 'Documento',
+      doctipo_id: 'MOVSTK',
+      ind_descarga_bot: 0,
+      tempfilename,
+      mimetype: 'application/pdf',
+    };
+
+    const { doc_id, newFilePath } = await FileUploadController.handleDOCUpload(
+      null,          // personal_id
+      null,          // objetivo_id
+      null,          // cliente_id
+      0,             // doc_id (0 => alta de un nuevo documento)
+      fechaActual,   // fecha
+      null,          // fec_doc_ven
+      denDocumento,  // den_documento
+      anio,
+      mes,
+      file,
+      usuario,
+      ip,
+      queryRunner
     );
+
+    // Limpia el archivo temporal una vez copiado a su ubicación definitiva.
+    try { await unlink(tempPathAbs); } catch (error) { }
 
     // Solo si hay movimiento de referencia se enlaza el documento.
     if (movimientoCodigo) {
       await queryRunner.query(
         `UPDATE MovimientoStock SET MovimientoStockDocumentoId = @1 WHERE MovimientoStockCodigo = @0`,
-        [movimientoCodigo, documentoId]
+        [movimientoCodigo, doc_id]
       );
     }
+
+    const filesPathAbs = path.join(this.directoryDocumentos, newFilePath);
+    const nombreArchivo = path.basename(newFilePath);
 
     return { filesPathAbs, nombreArchivo };
   }
@@ -450,13 +466,13 @@ export class MovimientoStockController extends BaseController {
       });
     }
 
-    if (personalIdInter && personalIdInter==personalId){
+    // El intermediario no puede ser la misma persona seleccionada como destino.
+    if (personalIdInter && personalId && Number(personalIdInter) === Number(personalId)) {
       fieldErrors.push({
         fieldTree: 'personalIdInter',
         kind: 'server',
         message: 'El intermediario no puede ser igual a la persona seleccionada'
       });
-
     }
 
     // Observación obligatoria según el destino.

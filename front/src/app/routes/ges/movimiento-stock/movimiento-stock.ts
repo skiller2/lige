@@ -175,6 +175,20 @@ export class MovimientoStockComponent {
     this.parametroStock.update(s => ({ ...s, efectos: [nuevaEfectoLinea()] }));
   }
 
+  // Resetea solo la sección Destino: tipo de destino, su selección, intermediario y observaciones.
+  limpiarDestino(): void {
+    this.parametroStock.update(s => ({
+      ...s,
+      tipoDestino: '',
+      depositoId: null,
+      personalId: null,
+      objetivoId: null,
+      proveedorId: null,
+      personalIdInter: null,
+      observaciones: '',
+    }));
+  }
+
   // Reemplaza las líneas de Origen con una por cada efecto en stock de la persona / objetivo elegido.
   async cargarEfectosDePersona(personalId: number | string | null): Promise<void> {
     const id = Number(personalId);
