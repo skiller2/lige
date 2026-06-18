@@ -134,11 +134,11 @@ export class MovimientoStockController extends BaseController {
     // Destino: cada tipo cae en su columna. El objetivo se resuelve a Cliente + ElementoDependiente.
     let clienteIdDestino: number | null = null;
     let clienteElemDepDestino: number | null = null;
-  
-    if (objetivoId){
-        const obj = await this.getObjetivoCliente(queryRunner, objetivoId);
-        clienteIdDestino = obj?.ClienteId ?? null;
-        clienteElemDepDestino = obj?.ClienteElementoDependienteId ?? null;
+
+    if (objetivoId) {
+      const obj = await this.getObjetivoCliente(queryRunner, objetivoId);
+      clienteIdDestino = obj?.ClienteId ?? null;
+      clienteElemDepDestino = obj?.ClienteElementoDependienteId ?? null;
     }
 
     await queryRunner.query(
@@ -188,9 +188,6 @@ export class MovimientoStockController extends BaseController {
     return movimientoCodigo;
   }
 
-  // Columnas de ubicación de la tabla Stock (una sola se completa por registro; el resto va NULL).
-  private static readonly STOCK_UBIC_COLS = ['DepositoId', 'PersonalId', 'ObjetivoId', 'ProveedorId', 'SucursalAreaId'];
-
   private async aplicarMovimientoStock(
     queryRunner: any, req: any, res: any,
     depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
@@ -199,29 +196,59 @@ export class MovimientoStockController extends BaseController {
   ) {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
-    for (const efecto of efectos) {
+    let fieldErrors = []
+    for (const [index, efecto] of efectos.entries()) {
       const EfectoId = Number(efecto.EfectoId)
       const EfectoEfectoIndividualId = efecto.EfectoEfectoIndividualId
       const Cantidad = efecto.Cantidad
       const StockId = efecto.StockId
       const usado = efecto.Usado
       const resStock = await queryRunner.query(
-        `SELECT StockId, EfectoId, EfectoEfectoIndividualId, StockStock FROM Stock WHERE StockId = @0 AND EfectoId=@1 
-          AND (EfectoEfectoIndividualId = @2 OR (@2 IS NULL AND EfectoEfectoIndividualId IS NULL))`,
+        `SELECT stk.StockId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.PersonalId, stk.DepositoId, stk.ObjetivoId, stk.ProveedorId 
+            FROM Stock stk
+
+            LEFT JOIN Stock stk1 
+              ON (
+                (stk1.PersonalId = stk.PersonalId OR (stk1.PersonalId IS NULL AND stk.PersonalId IS NULL))
+                AND (stk1.DepositoId = stk.DepositoId OR (stk1.DepositoId IS NULL AND stk.DepositoId IS NULL))
+                AND (stk1.ObjetivoId = stk.ObjetivoId OR (stk1.ObjetivoId IS NULL AND stk.ObjetivoId IS NULL))
+                AND (stk1.ProveedorId = stk.ProveedorId OR (stk1.ProveedorId IS NULL AND stk.ProveedorId IS NULL))
+                AND stk1.EfectoId = stk.EfectoId
+                AND (
+                  stk1.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId
+                  OR (stk1.EfectoEfectoIndividualId IS NULL AND stk.EfectoEfectoIndividualId IS NULL)
+                )
+              )
+            WHERE stk1.StockId = @0 AND stk1.EfectoId=@1
+          AND (stk1.EfectoEfectoIndividualId = @2 OR (@2 IS NULL AND stk1.EfectoEfectoIndividualId IS NULL))
+        `,
         [StockId, EfectoId, EfectoEfectoIndividualId]
       );
-      console.log("stock", resStock)
+      if (resStock.length > 1) {
+        fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `Existe más de un registro de stock para el mismo lugar (inconsistencia de datos)` });
+      } else if (resStock[0]?.StockStock != StockId) {
+        fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `La ubicación no es válida para el Efecto (inconsistencia de datos)` });
+      }
+
+      if ((resStock[0]?.PersonalId && resStock[0]?.PersonalId == personalId) ||
+        (resStock[0]?.DepositoId && resStock[0]?.DepositoId == depositoId) ||
+        (resStock[0]?.ProveedorId && resStock[0]?.ProveedorId == proveedorId) ||
+        (resStock[0]?.ObjetivoId && resStock[0]?.ObjetivoId == objetivoId)
+      ) {
+        fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `Lugar destino es igual al origen` });
+      }
+
       const CantidadActual = resStock[0]?.StockStock || 0
 
       // Restar al origen.
-      if (Cantidad > CantidadActual)
-        throw new ClientException(`La cantidad a mover (${Cantidad}) supera el stock disponible (${CantidadActual}) en la ubicación de origen.`);
-      else if (Cantidad == CantidadActual) {
+      if (Cantidad > CantidadActual) {
+        fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `La cantidad excede el stock ${CantidadActual}` });
+      } else if (Cantidad == CantidadActual) {
         //TODO: no lo borro porque tiene registros relacionados
         //await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [StockId]);
-        await queryRunner.query(`UPDATE Stock SET StockStock = StockStock - @1 WHERE StockId = @0`, [StockId, Cantidad]);
+        await queryRunner.query(`UPDATE Stock SET StockStock = @1 WHERE StockId = @0`, [StockId, CantidadActual - Cantidad]);
       } else {
-        await queryRunner.query(`UPDATE Stock SET StockStock = StockStock - @1 WHERE StockId = @0`, [StockId, Cantidad]);
+        await queryRunner.query(`UPDATE Stock SET StockStock = @1 WHERE StockId = @0`, [StockId, CantidadActual - Cantidad]);
       }
 
       if (usado) {
@@ -248,121 +275,14 @@ export class MovimientoStockController extends BaseController {
         );
 
       } else if (cantRegistros > 1) {
-        throw new ClientException('La ubicación destino tiene mas de un registro de stock para el efecto');
+        fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `La ubicación destino tiene mas de un registro de stock para el efecto (inconsistencia de datos)` });
+
+        //        throw new ClientException('La ubicación destino tiene mas de un registro de stock para el efecto (inconsistencia de datos)');
       }
     }
-  }
 
-
-
-  private async aplicarMovimientoStock_old(
-    queryRunner: any, req: any, res: any,
-    tipoDestino: string,
-    depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
-    efectos: any[]
-  ) {
-    const usuario = res.locals.userName;
-    const ip = this.getRemoteAddress(req);
-    const destino = this.resolverUbicacionDestino(tipoDestino, depositoId, personalId, objetivoId, proveedorId);
-
-    // Agrupar la cantidad a mover por StockId de origen (un StockId define ubicación + efecto + individual).
-    const totalPorStock = new Map<number, number>();
-    for (const linea of efectos) {
-      if (!linea.StockId || linea.Cantidad == null) continue;
-      const id = Number(linea.StockId);
-      totalPorStock.set(id, (totalPorStock.get(id) ?? 0) + Number(linea.Cantidad));
-    }
-
-    for (const [stockIdOrigen, cantidad] of totalPorStock) {
-      // Lectura fresca dentro de la transacción (no se confía en el StockStock del front).
-      const origenRows = await queryRunner.query(
-        `SELECT TOP 1 StockId, EfectoId, EfectoEfectoIndividualId, StockStock FROM Stock WHERE StockId = @0`,
-        [stockIdOrigen]
-      );
-      const origen = origenRows?.[0];
-      if (!origen)
-        throw new ClientException(`No se encontró el stock de origen (StockId ${stockIdOrigen}).`);
-      if (cantidad > Number(origen.StockStock ?? 0))
-        throw new ClientException(`La cantidad a mover (${cantidad}) supera el stock disponible (${Number(origen.StockStock ?? 0)}) en la ubicación de origen.`);
-
-      // Restar al origen.
-      await queryRunner.query(`UPDATE Stock SET StockStock = StockStock - @1 WHERE StockId = @0`, [stockIdOrigen, cantidad]);
-
-      // Sumar al destino (mismo efecto/individual).
-      await this.sumarStockDestino(queryRunner, destino, origen.EfectoId, origen.EfectoEfectoIndividualId, cantidad, usuario, ip);
-    }
-
-    // RELACIONAR DESHABILITADO (por el momento no se usa): el front no envía RelacionEfectoId,
-    // así que la relación de efecto nunca se aplica. Se deja comentado para reactivar junto al front.
-    // const fechaActual = new Date();
-    // for (const linea of efectos) {
-    //   if (!linea.RelacionEfectoId) continue;
-    //   await this.reemplazarRelacionEfecto(queryRunner, linea, tipoDestino, depositoId, personalId, objetivoId, usuario, ip, fechaActual);
-    // }
-  }
-
-  /** Mapea el tipo de destino a la columna de ubicación de Stock y su id. */
-  private resolverUbicacionDestino(
-    tipoDestino: string,
-    depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null
-  ): { columna: string; valor: number } {
-    switch (tipoDestino) {
-      case 'deposito': return { columna: 'DepositoId', valor: depositoId! };
-      case 'personal': return { columna: 'PersonalId', valor: personalId! };
-      case 'objetivo': return { columna: 'ObjetivoId', valor: objetivoId! };
-      case 'proveedor': return { columna: 'ProveedorId', valor: proveedorId! };
-      default: throw new ClientException('Tipo de destino inválido.');
-    }
-  }
-
-  /**
-   * Suma `cantidad` al registro de Stock del destino para el efecto+individual dados.
-   * Si no existe lo crea (StockId nuevo, SucursalId NULL). Si existe más de uno (datos
-   * inconsistentes) unifica todo en el de menor StockId y borra el resto.
-   */
-  private async sumarStockDestino(
-    queryRunner: any,
-    destino: { columna: string; valor: number },
-    efectoId: number | null, efectoIndividualId: number | null,
-    cantidad: number, usuario: string, ip: string
-  ) {
-    const otrasNull = MovimientoStockController.STOCK_UBIC_COLS
-      .filter(c => c !== destino.columna)
-      .map(c => `${c} IS NULL`)
-      .join(' AND ');
-
-    const rows = await queryRunner.query(
-      `SELECT StockId, StockStock FROM Stock
-       WHERE ${destino.columna} = @0
-         AND EfectoId = @1
-         AND ((@2 IS NULL AND EfectoEfectoIndividualId IS NULL) OR EfectoEfectoIndividualId = @2)
-         AND ${otrasNull}
-       ORDER BY StockId`,
-      [destino.valor, efectoId, efectoIndividualId]
-    );
-
-    if (!rows?.length) {
-      // No existe: alta nueva. StockId es IDENTITY, lo genera SQL Server (no se pasa explícito).
-      await queryRunner.query(
-        `INSERT INTO Stock (${destino.columna}, EfectoId, EfectoEfectoIndividualId, StockStock)
-         VALUES (@0, @1, @2, @3)`,
-        [destino.valor, efectoId, efectoIndividualId, cantidad]
-      );
-      return;
-    }
-
-    // Unificar en el registro ganador (menor StockId): suma cantidad + el stock de los duplicados.
-    const ganadora = rows[0];
-    const resto = rows.slice(1);
-    const sumaResto = resto.reduce((acc: number, r: any) => acc + Number(r.StockStock ?? 0), 0);
-
-    await queryRunner.query(
-      `UPDATE Stock SET StockStock = StockStock + @1 WHERE StockId = @0`,
-      [ganadora.StockId, cantidad + sumaResto]
-    );
-    for (const r of resto) {
-      await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [r.StockId]);
-    }
+    if (fieldErrors.length > 0)
+      throw new ClientException('Debe solucionar los errores indicados en el formulario', { fieldErrors });
   }
 
   /**
@@ -534,14 +454,14 @@ export class MovimientoStockController extends BaseController {
 
     // Observación obligatoria según el destino.
     if (!observaciones?.trim() && depositoId) {
-          const deposito = await queryRunner.query(
-          `SELECT dep.IndRequiereObservacion FROM Deposito dep
+      const deposito = await queryRunner.query(
+        `SELECT dep.IndRequiereObservacion FROM Deposito dep
              WHERE dep.DepositoId = @0`,
-          [depositoId]
-        );
-        const IndRequiereObservacion = (deposito[0]?.IndRequiereObservacion ==1)?1:0
-        if (IndRequiereObservacion)
-          fieldErrors.push({ fieldTree: 'observaciones', kind: 'server', message: 'La observación es obligatoria para este destino.' });
+        [depositoId]
+      );
+      const IndRequiereObservacion = (deposito[0]?.IndRequiereObservacion == 1) ? 1 : 0
+      if (IndRequiereObservacion)
+        fieldErrors.push({ fieldTree: 'observaciones', kind: 'server', message: 'La observación es obligatoria para este destino.' });
     }
 
     // efecto
@@ -583,6 +503,8 @@ export class MovimientoStockController extends BaseController {
         fieldErrors.push({ fieldTree: `efectos[${i}].StockId`, kind: 'server', message: 'La ubicación no corresponde al efecto seleccionado.' });
     }
 
+
+    /*
     // --- Cantidades de stock: sumar Cantidad por StockId (mismo efecto+individual+lugar) y comparar contra el disponible ---
     const sumaPorStockId = new Map<number, { total: number; indices: number[] }>();
     for (const [i, linea] of efectos.entries()) {
@@ -608,6 +530,7 @@ export class MovimientoStockController extends BaseController {
       const key = `${linea.EfectoId}|${linea.EfectoIndividualId ?? 'null'}`;
       if (efectosChequeados.has(key)) continue;
       efectosChequeados.add(key);
+      
       const dup = await queryRunner.query(
         `SELECT TOP 1 1 AS dup
            FROM StockReal stk
@@ -620,6 +543,8 @@ export class MovimientoStockController extends BaseController {
       if (dup?.length)
         fieldErrors.push({ fieldTree: `efectos[${i}].EfectoId`, kind: 'server', message: 'Existe más de un registro de stock para el mismo lugar (inconsistencia de datos).' });
     }
+    */
+
     if (fieldErrors.length > 0)
       throw new ClientException('Debe solucionar los errores indicados en el formulario', { fieldErrors });
   }
