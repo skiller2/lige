@@ -175,12 +175,12 @@ export class MovimientoStockController extends BaseController {
           (MovimientoStockDetalleCodigo, EfectoId, EfectoIndividualId, Cantidad,
            PersonalIdOrigen, DepositoIdOrigen, ProveedorIdOrigen, ClienteIdOrigen, ClienteElementoDependienteOrigen,
            MovimientoStockCodigo, IndEfectoUsado, CantidadOrigen,
-           AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod, StockIdOrigen)
-         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18)`,
+           AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17)`,
         [detalleCodigo, linea.EfectoId, linea.EfectoIndividualId, linea.Cantidad,
           stk.PersonalId, stk.DepositoId, stk.ProveedorId, clienteIdOrigen, clienteElemDepOrigen,
           movimientoCodigo, linea.Usado ? 1 : 0, linea.Cantidad,
-          fechaActual, fechaActual, ip, ip, usuario, usuario, linea.StockId]
+          fechaActual, fechaActual, ip, ip, usuario, usuario]
       );
     }
 
