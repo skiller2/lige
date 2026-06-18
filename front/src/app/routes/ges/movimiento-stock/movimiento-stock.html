@@ -1,8 +1,15 @@
 <!--<p>DEBUG Formulario: {{parametroStock()|json}}</p> -->
 <form style="margin-top: 30px;" (ngSubmit)="confirmar()">
 
-    <nz-divider nzText="Destino" style="margin-bottom: 40px;">
-  </nz-divider>
+  <nz-divider [nzText]="destinoLabel" style="margin-bottom: 40px;"></nz-divider>
+  <ng-template #destinoLabel>
+    <span style="margin-right: 8px;">Destino</span>
+    <button nz-button nzType="default" type="button"
+      (click)="limpiarDestino()"
+      nz-tooltip nzTooltipTitle="Limpiar Destino">
+      <span nz-icon nzType="delete" nzTheme="outline"></span>
+    </button>
+  </ng-template>
 
   <div nz-row [nzGutter]="15">
         <!-- <nz-form-control [nzSpan]="16" nzHasFeedback sfErrorTip="form">
