@@ -1,9 +1,8 @@
-import { afterNextRender, ChangeDetectionStrategy, Component, computed, effect, inject, resource, signal, viewChildren } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, resource, signal, viewChild, viewChildren } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
-import { DownloadService } from '../../../services/download.service';
 import { CommonModule } from '@angular/common';
 import { applyEach, form, FormField, required, submit, validate } from '@angular/forms/signals';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
@@ -26,7 +25,11 @@ export type { EfectoStockLinea, ParametroformEfectoStock } from './movimiento-st
 export class MovimientoStockComponent {
   private searchService = inject(SearchService);
   private apiService = inject(ApiService);
-  private downloadService = inject(DownloadService);
+
+  // Código del último movimiento confirmado: habilita el botón de descarga y alimenta el httpBody
+  // de la petición única a POST /comprobante (botón manual + descarga tras confirmar).
+  readonly comprobanteCodigo = signal<number | null>(null);
+  private readonly descargarComprobanteBtn = viewChild('descargarComprobante', { read: ElementRef });
 
   private readonly STORAGE_KEY = 'movimiento-stock-form';
 
@@ -332,10 +335,14 @@ export class MovimientoStockComponent {
 
       try {
         const res = await firstValueFrom(this.apiService.confirmarStockEfecto({ ...formValue, simular }));
-        const { pdfBase64, nombreArchivo } = res?.data ?? {};
-        if (pdfBase64) {
-          const bytes = Uint8Array.from(atob(pdfBase64), c => c.charCodeAt(0));
-          this.downloadService.downloadBlob(bytes, nombreArchivo ?? 'movimiento-stock.pdf', 'application/pdf');
+        if (!simular) {
+          const movimientoStockCodigo = res?.data?.movimientoStockCodigo ?? null;
+          if (movimientoStockCodigo) {
+            // Dispara la MISMA descarga que el botón manual (POST /comprobante vía app-down-file).
+            // Se setea el código y se clickea el botón en el próximo tick para que el binding del httpBody quede actualizado.
+            this.comprobanteCodigo.set(movimientoStockCodigo);
+            setTimeout(() => this.descargarComprobanteBtn()?.nativeElement.click(), 0);
+          }
         }
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);

@@ -106,15 +106,10 @@ export class MovimientoStockController extends BaseController {
         return this.jsonRes({ ...body, simulado: true }, res, 'Simulación correcta: el movimiento es válido.');
       }
 
-      // Documento PDF en blanco: genera el archivo en disco + registro Documento enlazado al movimiento.
-      const { filesPathAbs, nombreArchivo } = await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo);
-
-      // El PDF se devuelve en el body (base64) para que el front actualice estado y dispare la descarga
-      // en una sola respuesta (no se puede res.download + jsonRes a la vez).
-      const pdfBase64 = readFileSync(filesPathAbs).toString('base64');
-
+      // El comprobante NO se genera acá: la descarga es una petición única a POST /comprobante
+      // (la dispara el front tras confirmar y también el botón de descarga manual).
       await queryRunner.commitTransaction();
-      return this.jsonRes({ ...body, nombreArchivo, pdfBase64 }, res, "Movimiento confirmado");
+      return this.jsonRes({ ...body, movimientoStockCodigo: movimientoCodigo }, res, "Movimiento confirmado");
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
       return next(error);
@@ -344,10 +339,19 @@ export class MovimientoStockController extends BaseController {
     try {
       await queryRunner.startTransaction();
 
-      // Cuando se pase, vendrá en el body; hoy es null (botón suelto, sin movimiento de referencia).
       const movimientoCodigo = Number(req.body?.movimientoStockCodigo) || null;
 
-      const { filesPathAbs, nombreArchivo } = await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo);
+      // Idempotente: si el movimiento ya tiene comprobante generado se reutiliza ese archivo;
+      // si no, se genera (y queda enlazado al movimiento). Así descargas repetidas no duplican Documentos.
+      let filesPathAbs: string;
+      let nombreArchivo: string;
+      const existente = movimientoCodigo ? await this.getComprobanteExistente(queryRunner, movimientoCodigo) : null;
+      if (existente) {
+        filesPathAbs = path.join(this.directoryDocumentos, existente.DocumentoPath);
+        nombreArchivo = existente.DocumentoNombreArchivo || path.basename(existente.DocumentoPath);
+      } else {
+        ({ filesPathAbs, nombreArchivo } = await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo));
+      }
 
       await queryRunner.commitTransaction();
 
@@ -360,6 +364,17 @@ export class MovimientoStockController extends BaseController {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  // Devuelve el Documento ya enlazado al movimiento (si existe), para reutilizarlo en la descarga.
+  private async getComprobanteExistente(queryRunner: any, movimientoCodigo: number) {
+    const rows = await queryRunner.query(`
+      SELECT TOP 1 doc.DocumentoId, doc.DocumentoPath, doc.DocumentoNombreArchivo
+      FROM MovimientoStock mov
+      JOIN Documento doc ON doc.DocumentoId = mov.MovimientoStockDocumentoId
+      WHERE mov.MovimientoStockCodigo = @0 AND mov.MovimientoStockDocumentoId IS NOT NULL
+    `, [movimientoCodigo]);
+    return rows?.[0] ?? null;
   }
 
   private async generarDocumentoIngresoStock(
