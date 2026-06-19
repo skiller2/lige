@@ -346,10 +346,14 @@ export class MovimientoStockController extends BaseController {
       let filesPathAbs: string;
       let nombreArchivo: string;
       const existente = movimientoCodigo ? await this.getComprobanteExistente(queryRunner, movimientoCodigo) : null;
-      if (existente) {
-        filesPathAbs = path.join(this.directoryDocumentos, existente.DocumentoPath);
+      const rutaExistente = existente ? path.join(this.directoryDocumentos, existente.DocumentoPath) : '';
+      if (existente && existsSync(rutaExistente)) {
+        // Reutiliza el comprobante ya generado (idempotente).
+        filesPathAbs = rutaExistente;
         nombreArchivo = existente.DocumentoNombreArchivo || path.basename(existente.DocumentoPath);
       } else {
+        // No hay comprobante previo, o el archivo físico no existe (registro huérfano): se (re)genera
+        // con la plantilla actual y queda enlazado al movimiento.
         ({ filesPathAbs, nombreArchivo } = await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo));
       }
 

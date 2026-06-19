@@ -39,9 +39,16 @@
         [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
         <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
       </button>
-      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="Descargar Comprobante"
-        app-down-file [httpMethod]="'POST'" [httpBody]="{}" httpUrl="api/movimiento-stock/comprobante"
-        >
+      <!-- TEST: comprobante fijo 1 para probar la descarga. Volver a comprobanteCodigo() luego.
+       
+        [httpBody]="{ movimientoStockCodigo: comprobanteCodigo() }"                                                    
+       httpUrl="api/movimiento-stock/comprobante"                                                                     
+       [disabled]="!comprobanteCodigo()">     -->
+      <button #descargarComprobante nz-button nzType="default" type="button" nz-tooltip
+        nzTooltipTitle="Descargar Comprobante"
+        app-down-file [httpMethod]="'POST'"
+        [httpBody]="{ movimientoStockCodigo: 3 }"
+        httpUrl="api/movimiento-stock/comprobante">
         <span nz-icon nzType="download" nzTheme="outline"></span>
       </button>
     </nz-button-group>
@@ -74,9 +81,9 @@
     </div>
   }
   @if (visitedTabs().has('movimiento')) {
-    
-      <app-movimiento-stock />
-    
+
+      <app-movimiento-stock (confirmado)="onComprobanteConfirmado()" />
+
   }
   
 

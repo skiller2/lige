@@ -1,5 +1,5 @@
 
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { TablePersonalEfectoComponent } from '../table-personal-efecto/table-personal-efecto.component';
@@ -34,6 +34,18 @@ export class EfectoComponent {
   private route = inject(ActivatedRoute)
   private http = inject(HttpClient)
   private downloadService = inject(DownloadService)
+
+  // El formulario de movimiento se embebe (tab "movimiento"); de ahí sale el código del comprobante.
+  private readonly movimientoStock = viewChild(MovimientoStockComponent)
+  private readonly descargarComprobanteBtn = viewChild('descargarComprobante', { read: ElementRef })
+
+  // Código que alimenta y habilita el botón de descarga (POST /comprobante).
+  readonly comprobanteCodigo = computed(() => this.movimientoStock()?.comprobanteCodigo() ?? null)
+
+  // Al confirmar el movimiento, el hijo emite y acá disparamos la descarga.
+  onComprobanteConfirmado() {
+    this.descargarComprobanteBtn()?.nativeElement.click()
+  }
 
   activeTab = toSignal(
     this.route.params.pipe(map(({ tab }) => tab || 'general')),

@@ -1,4 +1,4 @@
-import { afterNextRender, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, resource, signal, viewChild, viewChildren } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, effect, inject, output, resource, signal, viewChildren } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { SearchService } from '../../../services/search.service';
@@ -26,10 +26,12 @@ export class MovimientoStockComponent {
   private searchService = inject(SearchService);
   private apiService = inject(ApiService);
 
-  // Código del último movimiento confirmado: habilita el botón de descarga y alimenta el httpBody
-  // de la petición única a POST /comprobante (botón manual + descarga tras confirmar).
+  // Código del último movimiento confirmado: lo lee el padre (EfectoComponent) para habilitar y
+  // alimentar el botón de descarga (POST /comprobante).
   readonly comprobanteCodigo = signal<number | null>(null);
-  private readonly descargarComprobanteBtn = viewChild('descargarComprobante', { read: ElementRef });
+
+  // Se emite tras confirmar con éxito (con el código ya seteado): el padre dispara la descarga.
+  readonly confirmado = output<void>();
 
   private readonly STORAGE_KEY = 'movimiento-stock-form';
 
@@ -338,10 +340,10 @@ export class MovimientoStockComponent {
         if (!simular) {
           const movimientoStockCodigo = res?.data?.movimientoStockCodigo ?? null;
           if (movimientoStockCodigo) {
-            // Dispara la MISMA descarga que el botón manual (POST /comprobante vía app-down-file).
-            // Se setea el código y se clickea el botón en el próximo tick para que el binding del httpBody quede actualizado.
+            // Setea el código y avisa al padre en el próximo tick (CD ya actualizó el httpBody del
+            // botón): el padre clickea el botón de descarga (POST /comprobante).
             this.comprobanteCodigo.set(movimientoStockCodigo);
-            setTimeout(() => this.descargarComprobanteBtn()?.nativeElement.click(), 0);
+            setTimeout(() => this.confirmado.emit(), 0);
           }
         }
       } catch (e: any) {
