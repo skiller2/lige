@@ -1,0 +1,60 @@
+<nz-card class="small-margin">
+  <form nz-form ngForm>
+
+    <br>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Código de Movimiento</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <input nz-input name="movimientoStockCodigo" ngModel />
+        <h4 style="font-size: 11px !important">*Código de un movimiento existente, usado solo para la descarga de prueba.</h4>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Cabecera</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <textarea rows="3" nz-input name="header" ngModel></textarea>
+        <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Logo:
+          (imgBase64) N° Movimiento: (movimientoCodigo) Fecha: (fechaFormateada) </h4>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Cuerpo</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <textarea rows="3" nz-input name="body" ngModel></textarea>
+        <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Origen:
+          (origen) Destino: (destino) Observaciones: (observaciones) Detalle de efectos: (textefectos)
+          N° Movimiento: (movimientoCodigo) Fecha: (fechaFormateada) </h4>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="3">Pie</nz-form-label>
+      <nz-form-control [nzSpan]="19">
+        <textarea rows="3" nz-input name="footer" ngModel></textarea>
+        <h4 style="font-size: 11px !important">*IMPORTANTE: variables necesarias en el HTML - Fecha impresión:
+          (fechaImpresion) Usuario: (usuario) Numero Pag: (pageNumber) Cant. Pags: (totalPages) </h4>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+        <button nz-popconfirm nzType="primary" nz-button app-down-file [httpMethod]="'POST'"
+          [httpBody]="ngForm().value" httpUrl="api/movimiento-stock/prueba">
+          Descarga Comprobante Prueba
+        </button>
+
+        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar guardar cambios?" nz-button
+          (nzOnConfirm)="save()">
+          {{ 'app.btn.save' | i18n }}
+        </button>
+        <button nz-popconfirm nzType="primary" nzPopconfirmTitle="Confirmar cargar configuración anterior?" nz-button
+          (nzOnConfirm)="load(true)">
+          Cargar config Previa
+        </button>
+
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</nz-card>

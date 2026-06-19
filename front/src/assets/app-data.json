@@ -271,6 +271,11 @@
               "icon": "anticon-profile"
             },
             {
+              "text": "Comprobante Stock",
+              "link": "/config/comprobante",
+              "icon": "anticon-profile"
+            },
+            {
               "text": "Novedad",
               "link": "/config/novedad",
               "icon": "anticon-profile"

@@ -27,3 +27,15 @@ movimientoStockRouter.post("/confirmar", [authMiddleware.verifyToken, authMiddle
 movimientoStockRouter.post("/comprobante", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   movimientoStockController.descargarComprobante(req, res, next);
 });
+
+movimientoStockRouter.post("/config", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  movimientoStockController.setComprobanteConfig(req, res, next);
+});
+
+movimientoStockRouter.get("/config{/:prev}", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  movimientoStockController.getComprobanteConfig(req, res, next);
+});
+
+movimientoStockRouter.post("/prueba", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  movimientoStockController.downloadComprobantePrueba(req, res, next);
+});

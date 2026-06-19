@@ -1261,6 +1261,20 @@ export class ApiService {
     )
   }
 
+  setComprobanteStock(parameter: any) {
+    return this.http.post<ResponseJSON<any>>('/api/movimiento-stock/config', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  getValuesComprobanteStock(prev: boolean) {
+    let parameter = ""
+    return this.http.get<ResponseJSON<any>>(`/api/movimiento-stock/config/${prev}`, parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([])),
+    )
+  }
+
   getFacturas(ComprobanteNro: any, FacturacionCodigo: string[]) {
 
     return this.http.get<ResponseJSON<any>>(`/api/facturacion/facturas/${ComprobanteNro}/${FacturacionCodigo}`).pipe(

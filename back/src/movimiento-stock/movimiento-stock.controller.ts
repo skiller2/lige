@@ -4,7 +4,7 @@ import type { NextFunction, Request, Response } from "express";
 import { getConnection } from "../data-source.ts";
 import puppeteer from 'puppeteer';
 import path from 'path';
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import { unlink } from "fs/promises";
 
 const tiposDestino = [
@@ -22,9 +22,17 @@ const tiposOrigen = [
 
 export class MovimientoStockController extends BaseController {
 
-  // Raíz de documentos (igual criterio que recibos). La subcarpeta destino la define el
-  // DocumentoTipo 'MOVSTK' a través de FileUploadController.handleDOCUpload.
+
   directoryDocumentos = process.env.PATH_DOCUMENTS ? process.env.PATH_DOCUMENTS : '.';
+
+  PathComprobanteTemplate = {
+    header: `${this.directoryDocumentos}/config/comprobante-stock/comprobante-stock-header.html`,
+    body: `${this.directoryDocumentos}/config/comprobante-stock/comprobante-stock-body.html`,
+    footer: `${this.directoryDocumentos}/config/comprobante-stock/comprobante-stock-footer.html`,
+    headerDef: './assets/comprobante-stock/comprobante-stock-header.def.html',
+    bodyDef: './assets/comprobante-stock/comprobante-stock-body.def.html',
+    footerDef: './assets/comprobante-stock/comprobante-stock-footer.def.html',
+  };
 
   async getTiposDestino(req: Request, res: Response, next: NextFunction) {
     try {
@@ -375,17 +383,9 @@ export class MovimientoStockController extends BaseController {
     const tempfilename = `movstk-${movimientoCodigo ?? 'sin-mov'}-${fechaActual.getTime()}.pdf`;
     const tempPathAbs = path.join(tempCarpeta, tempfilename);
 
-    // PDF vacío (una página en blanco). Cuando se defina el diseño se reemplaza el HTML.
-    const browser = await puppeteer.launch({ headless: 'new' });
-    try {
-      const page = await browser.newPage();
-      await page.setContent('<html><body></body></html>');
-      try { await unlink(tempPathAbs); } catch (error) { }
-      await page.pdf({ path: tempPathAbs, format: 'A4', printBackground: true });
-      await page.close();
-    } finally {
-      await browser.close();
-    }
+    // Renderiza el comprobante con la plantilla configurada (config/comprobante-stock) y los
+    // datos del movimiento recién generado.
+    await this.renderComprobantePdf(queryRunner, tempPathAbs, movimientoCodigo, usuario);
 
     // Denominador del documento: el código de movimiento cuando existe.
     const denDocumento = movimientoCodigo ? `${movimientoCodigo}` : 'ingreso';
@@ -610,6 +610,217 @@ export class MovimientoStockController extends BaseController {
         GrupoActividadDetalle: grupoRows[0]?.GrupoActividadDetalle ?? null,
         SucursalDescripcion: sucursalRows[0]?.SucursalDescripcion ?? null,
       }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // ----- Configuración de la plantilla del comprobante (config/comprobante-stock) -----
+
+  // Guarda las plantillas editadas; conserva la versión previa con sufijo .old (igual que recibos/novedades).
+  async setComprobanteConfig(req: Request, res: Response, next: NextFunction) {
+    const header = req.body.header;
+    const body = req.body.body;
+    const footer = req.body.footer;
+
+    try {
+      if (body == "")
+        throw new ClientException(`El cuerpo no puede estar vacio`);
+
+      if (header == "")
+        throw new ClientException(`La cabecera no puede estar vacia`);
+
+      try {
+        renameSync(this.PathComprobanteTemplate.header, this.PathComprobanteTemplate.header + '.old');
+        renameSync(this.PathComprobanteTemplate.body, this.PathComprobanteTemplate.body + '.old');
+        renameSync(this.PathComprobanteTemplate.footer, this.PathComprobanteTemplate.footer + '.old');
+      } catch (_e) { }
+
+      mkdirSync(path.dirname(this.PathComprobanteTemplate.header), { recursive: true });
+      writeFileSync(this.PathComprobanteTemplate.header, header);
+      writeFileSync(this.PathComprobanteTemplate.body, body);
+      writeFileSync(this.PathComprobanteTemplate.footer, footer);
+
+      this.jsonRes([], res, `Se guardo el nuevo formato de comprobante`);
+    } catch (error) {
+      return next(error);
+    } finally {
+    }
+  }
+
+  // Devuelve las plantillas (raw, sin reemplazo de variables) para mostrarlas en el editor.
+  // prev=true devuelve la versión .old (la anterior a la última guardada).
+  async getComprobanteConfig(req: Request, res: Response, next: NextFunction) {
+    const prev: boolean = (req.params.prev === 'true');
+    try {
+      const htmlContent = await this.getComprobanteHtmlContentGeneral(new Date(), '', '', '', true, prev);
+      this.jsonRes({ header: htmlContent.header, body: htmlContent.body, footer: htmlContent.footer }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+    }
+  }
+
+  // Resuelve las tres partes de la plantilla. Si raw=false reemplaza las variables independientes
+  // del movimiento (logo, fecha). Las variables que dependen del movimiento las reemplaza createPdf.
+  async getComprobanteHtmlContentGeneral(fecha: Date, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
+    const imgBuffer = readFileSync(`./assets/logo-lince-full.svg`);
+    const imgBase64 = imgBuffer.toString('base64');
+
+    header = (header) ? header : (existsSync(this.PathComprobanteTemplate.header) ? readFileSync(this.PathComprobanteTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.headerDef, 'utf-8'));
+    body = (body) ? body : (existsSync(this.PathComprobanteTemplate.body) ? readFileSync(this.PathComprobanteTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.bodyDef, 'utf-8'));
+    footer = (footer) ? footer : (existsSync(this.PathComprobanteTemplate.footer) ? readFileSync(this.PathComprobanteTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.footerDef, 'utf-8'));
+
+    if (!raw) {
+      header = header.replace(/\${imgBase64}/g, imgBase64);
+      header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fecha));
+    }
+    return { header, body, footer };
+  }
+
+  // Cabecera del movimiento + nombre del destino resuelto (depósito/persona/proveedor/objetivo).
+  private async getMovimientoCabecera(queryRunner: any, movimientoCodigo: number) {
+    const rows = await queryRunner.query(`
+      SELECT TOP 1 mov.MovimientoStockCodigo, mov.Fecha, mov.Observaciones,
+        COALESCE(
+          TRIM(depd.DepositoNombre),
+          CONCAT(TRIM(perd.PersonalApellido), ', ', TRIM(perd.PersonalNombre)),
+          TRIM(prod.ProveedorRazonSocial),
+          IIF(mov.ClienteIdDestino IS NULL, NULL,
+            CONCAT(mov.ClienteIdDestino, IIF(mov.ClienteElementoDependienteIdDestino IS NULL, '', CONCAT('/', mov.ClienteElementoDependienteIdDestino)),
+              IIF(eled.ClienteElementoDependienteDescripcion IS NULL, '', CONCAT(' ', TRIM(eled.ClienteElementoDependienteDescripcion)))))
+        ) AS Destino
+      FROM MovimientoStock mov
+      LEFT JOIN Deposito depd ON depd.DepositoId = mov.DepositoIdDestino
+      LEFT JOIN Personal perd ON perd.PersonalId = mov.PersonalIdDestino
+      LEFT JOIN Proveedor prod ON prod.ProveedorId = mov.ProveedorIdDestino
+      LEFT JOIN ClienteElementoDependiente eled ON eled.ClienteId = mov.ClienteIdDestino AND eled.ClienteElementoDependienteId = mov.ClienteElementoDependienteIdDestino
+      WHERE mov.MovimientoStockCodigo = @0
+    `, [movimientoCodigo]);
+    return rows?.[0] ?? null;
+  }
+
+  // Detalle del movimiento: descripción del efecto, origen resuelto y cantidad.
+  private async getMovimientoDetalle(queryRunner: any, movimientoCodigo: number) {
+    return queryRunner.query(`
+      SELECT det.MovimientoStockDetalleCodigo, det.Cantidad,
+        CONCAT(TRIM(efe.EfectoDescripcion),
+          IIF(efeind.EfectoEfectoIndividualDescripcion IS NULL, '', CONCAT(' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion)))) AS EfectoDescripcionCompleto,
+        COALESCE(
+          TRIM(depo.DepositoNombre),
+          CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre)),
+          TRIM(proo.ProveedorRazonSocial),
+          IIF(det.ClienteIdOrigen IS NULL, NULL,
+            CONCAT(det.ClienteIdOrigen, IIF(det.ClienteElementoDependienteOrigen IS NULL, '', CONCAT('/', det.ClienteElementoDependienteOrigen))))
+        ) AS Origen
+      FROM MovimientoStockDetalle det
+      LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = det.EfectoId
+      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = det.EfectoId AND efeind.EfectoEfectoIndividualId = det.EfectoIndividualId
+      LEFT JOIN Deposito depo ON depo.DepositoId = det.DepositoIdOrigen
+      LEFT JOIN Personal pero ON pero.PersonalId = det.PersonalIdOrigen
+      LEFT JOIN Proveedor proo ON proo.ProveedorId = det.ProveedorIdOrigen
+      WHERE det.MovimientoStockCodigo = @0
+      ORDER BY det.MovimientoStockDetalleCodigo
+    `, [movimientoCodigo]);
+  }
+
+  // Genera el PDF del comprobante a partir de la plantilla configurada y los datos del movimiento.
+  // Si no hay movimiento de referencia (botón suelto) las variables quedan vacías.
+  private async renderComprobantePdf(
+    queryRunner: any,
+    filePathAbs: string,
+    movimientoCodigo: number | null,
+    usuario: string = "",
+    header: string = "",
+    body: string = "",
+    footer: string = "",
+    waterMark: string = ""
+  ) {
+    const cabecera = movimientoCodigo ? await this.getMovimientoCabecera(queryRunner, movimientoCodigo) : null;
+    const detalle = movimientoCodigo ? await this.getMovimientoDetalle(queryRunner, movimientoCodigo) : [];
+
+    const fecha = cabecera?.Fecha ? new Date(cabecera.Fecha) : new Date();
+    const content = await this.getComprobanteHtmlContentGeneral(fecha, header, body, footer);
+
+    // Origen del movimiento: distintos orígenes del detalle (puede variar por renglón).
+    const origenes = [...new Set((detalle ?? []).map((d: any) => d.Origen).filter(Boolean))];
+    const origen = origenes.join(' / ') || 'Sin especificar';
+    const destino = cabecera?.Destino || 'Sin especificar';
+    const observaciones = cabecera?.Observaciones || '';
+
+    let textefectos = '';
+    for (const linea of detalle ?? []) {
+      textefectos += `<tr><td>${linea.EfectoDescripcionCompleto ?? ''}</td><td>${linea.Origen ?? ''}</td><td class="cant">${linea.Cantidad}</td></tr>`;
+    }
+
+    let headerContent = content.header.replace(/\${movimientoCodigo}/g, movimientoCodigo ? movimientoCodigo.toString() : '');
+
+    // Pie: fecha de impresión (ahora) y usuario que genera el comprobante.
+    let footerContent = content.footer.replace(/\${fechaImpresion}/g, this.dateOutputFormat(new Date()));
+    footerContent = footerContent.replace(/\${usuario}/g, usuario || '');
+
+    let htmlContent = content.body;
+    htmlContent = htmlContent.replace(/\${origen}/g, origen);
+    htmlContent = htmlContent.replace(/\${destino}/g, destino);
+    htmlContent = htmlContent.replace(/\${observaciones}/g, observaciones);
+    htmlContent = htmlContent.replace(/\${textefectos}/g, textefectos);
+    htmlContent = htmlContent.replace(/\${movimientoCodigo}/g, movimientoCodigo ? movimientoCodigo.toString() : '');
+    htmlContent = htmlContent.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fecha));
+
+    const browser = await puppeteer.launch({ headless: 'new' });
+    try {
+      const page = await browser.newPage();
+      await page.setContent(htmlContent + waterMark);
+      try { await unlink(filePathAbs); } catch (error) { }
+      await page.pdf({
+        path: filePathAbs,
+        margin: { top: '80px', right: '0px', bottom: '50px', left: '0px' },
+        printBackground: true,
+        format: 'A4',
+        displayHeaderFooter: true,
+        headerTemplate: headerContent,
+        footerTemplate: footerContent,
+      });
+      await page.close();
+    } finally {
+      await browser.close();
+    }
+  }
+
+  // Descarga un comprobante de prueba con marca de agua, renderizando la plantilla recibida
+  // (sin guardar) usando los datos de un movimiento existente.
+  async downloadComprobantePrueba(req: Request, res: Response, next: NextFunction) {
+    const header = req.body.header;
+    const body = req.body.body;
+    const footer = req.body.footer;
+    const movimientoCodigo = Number(req.body.movimientoStockCodigo);
+    const queryRunner = await getConnection(res.locals.userName);
+    const fechaActual = new Date();
+    let filePath = "";
+
+    try {
+      if (!movimientoCodigo)
+        throw new ClientException(`Debe indicar un código de movimiento`);
+
+      const cabecera = await this.getMovimientoCabecera(queryRunner, movimientoCodigo);
+      if (!cabecera)
+        throw new ClientException(`Movimiento no encontrado`);
+
+      const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
+                        opacity: 0.6;">PRUEBA</div>`;
+
+      const tempCarpeta = path.join(this.directoryDocumentos, 'temp');
+      if (!existsSync(tempCarpeta)) mkdirSync(tempCarpeta, { recursive: true });
+      filePath = path.join(tempCarpeta, `comprobante-test-${movimientoCodigo}-${fechaActual.getTime()}.pdf`);
+
+      await this.renderComprobantePdf(queryRunner, filePath, movimientoCodigo, res.locals.userName, header, body, footer, waterMark);
+
+      res.download(filePath, `ComprobanteTest-${movimientoCodigo}.pdf`, async (err) => {
+        try { await unlink(filePath); } catch (error) { }
+        if (err) return next(err);
+      });
     } catch (error) {
       return next(error);
     } finally {

@@ -10,6 +10,10 @@ export const ConfigRoutes: Routes = [
     loadComponent: () => import('./recibo/recibo.component').then(c => c.ReciboComponent),
   },
   {
+    path: 'comprobante',
+    loadComponent: () => import('./comprobante-stock/comprobante-stock.component').then(c => c.ComprobanteStockComponent),
+  },
+  {
     path: 'novedad',
     loadComponent: () => import('./novedad/novedad').then(c => c.NovedadComponent),
   },

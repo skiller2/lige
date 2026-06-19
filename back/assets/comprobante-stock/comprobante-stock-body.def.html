@@ -1,0 +1,92 @@
+<html>
+
+<head>
+  <style>
+    body {
+      padding: 0 30px;
+      position: relative;
+    }
+
+    td {
+      padding: 0px 1px;
+    }
+
+    .datos {
+      width: 100%;
+      font-size: 14px;
+    }
+
+    .subtitle {
+      padding: 4px 1px 0px;
+      background-color: #AAAAAA;
+      font-size: 14px;
+    }
+
+    .tb-detalle {
+      width: 100%;
+      font-size: 12px;
+      border-collapse: collapse;
+    }
+
+    .tb-detalle th {
+      background-color: #DDDDDD;
+      text-align: left;
+      padding: 2px 4px;
+      border-bottom: 1px solid #777;
+    }
+
+    .tb-detalle td {
+      padding: 2px 4px;
+      border-bottom: 1px solid #DDD;
+    }
+
+    .tb-detalle td.cant {
+      text-align: right;
+      width: 6em;
+    }
+  </style>
+</head>
+
+<body>
+  <table class="datos" align="center" rules="none">
+    <tbody>
+      <tr>
+        <td colspan="2" class="subtitle">DATOS DEL MOVIMIENTO</td>
+      </tr>
+      <tr>
+        <td style="width: 20%;">ORIGEN</td>
+        <td>${origen}</td>
+      </tr>
+      <tr>
+        <td>DESTINO</td>
+        <td>${destino}</td>
+      </tr>
+      <tr>
+        <td>OBSERVACIONES</td>
+        <td>${observaciones}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <br>
+
+  <table class="datos" align="center" rules="none">
+    <tbody>
+      <tr>
+        <td class="subtitle">DETALLE DE EFECTOS</td>
+      </tr>
+    </tbody>
+  </table>
+  <table class="tb-detalle">
+    <thead>
+      <tr>
+        <th>Efecto</th>
+        <th>Origen</th>
+        <th style="text-align: right;">Cantidad</th>
+      </tr>
+    </thead>
+    <tbody>${textefectos}</tbody>
+  </table>
+</body>
+
+</html>
