@@ -296,7 +296,7 @@ export class CuentasBancariasController extends BaseController {
         { periodo:periodoRequest, BancoId:bancoIdRequest, usuario, ip },
         usuario,
         ip,
-        "JOB"
+        "LIQ"
       ))
 
       await queryRunner.startTransaction();

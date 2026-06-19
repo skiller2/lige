@@ -41,7 +41,7 @@
 
         <nz-form-item>
           <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-            <button nzType="primary" nz-button (click)="save()" [nzLoading]="isLoading1()" 
+            <button nzType="primary" nz-button [nzLoading]="formPersonalBanco().submitting()" 
               [disabled]="formPersonalBanco().submitting() || formPersonalBanco().dirty()==false">
               {{ 'app.btn.save' | i18n }}
             </button>

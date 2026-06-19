@@ -33,7 +33,6 @@ export interface PersonalBanco {
 export class PersonalBancoDrawerComponent {
     PersonalId = input(0)
     PersonalNombre = signal<string>("")
-    isLoading1 = signal(false);
     isLoading2 = signal(false);
     visibleBanco = model<boolean>(false)
     placement: NzDrawerPlacement = 'left';
@@ -103,19 +102,17 @@ export class PersonalBancoDrawerComponent {
 
     async save() {
         await submit(this.formPersonalBanco, async (form) => {
-            this.isLoading1.set(true)
             const values: PersonalBanco = form().value()
             try {
                 await firstValueFrom(this.apiService.setPersonalBanco(values))
                 this.onAddorUpdate.emit()
+                if (this.PersonalId()) {
+                    this.listaBancoPer.reload()
+                } else {
+                    this.visibleBanco.set(false)
+                }
             } catch (e) {
 
-            }
-            this.isLoading1.set(false)
-            if (this.PersonalId()) {
-                this.listaBancoPer.reload()
-            } else {
-                this.visibleBanco.set(false)
             }
         })
     }
