@@ -33,7 +33,6 @@ export class CuentasBancariasAltaDrawerComponent {
 
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
-    private destroy$ = new Subject();
 
     private readonly defaultCuentasBancariasForm: CuentasBancarias = { 
         BancoId: 0, 
@@ -47,11 +46,6 @@ export class CuentasBancariasAltaDrawerComponent {
     optionsBanco = toSignal(this.searchService.getBancosOptions())
 
     async ngOnInit(){
-    }
-
-    ngOnDestroy(): void {
-        this.destroy$.next('');
-        this.destroy$.complete();
     }
 
     async save() {
