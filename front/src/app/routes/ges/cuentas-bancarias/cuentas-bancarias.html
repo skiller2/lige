@@ -1,42 +1,41 @@
 <nz-card class="small-margin">
   <div nz-row nzSpan="24" style="margin-top: 5px;">
-      <nz-form-label [nzMd]="2">Periodo</nz-form-label>
-      <nz-form-control [nzMd]="3">
-        <nz-date-picker [(ngModel)]="periodo" nzFormat="dd/MM/yyyy" />
-      </nz-form-control>
-      @if (tabIndex() == 0) {
-      <nz-form-label [nzMd]="3">Situación revista</nz-form-label>
-      <nz-form-control [nzMd]="3">
-        <nz-date-picker nzMode="month" [(ngModel)]="periodoSR" nzFormat="MM/yyyy" />
-      </nz-form-control>
-      <nz-form-label [nzMd]="3">Importe transferido</nz-form-label>
-      <nz-form-control [nzMd]="3">
-        <nz-date-picker [(ngModel)]="periodoIT" nzFormat="dd/MM/yyyy" />
-      </nz-form-control>
-      }
-    </div>
+    <nz-form-label [nzMd]="2">Periodo</nz-form-label>
+    <nz-form-control [nzMd]="3">
+      <nz-date-picker [(ngModel)]="periodo" nzFormat="MM/yyyy" />
+    </nz-form-control>
+    @if (tabIndex() == 0) {
+    <nz-form-label [nzMd]="3">Situación revista</nz-form-label>
+    <nz-form-control [nzMd]="3">
+      <nz-date-picker [(ngModel)]="periodoSR" nzFormat="dd/MM/yyyy" />
+    </nz-form-control>
+    <nz-form-label [nzMd]="3">Importe transferido</nz-form-label>
+    <nz-form-control [nzMd]="3">
+      <nz-date-picker [(ngModel)]="periodoIT" nzFormat="dd/MM/yyyy" />
+    </nz-form-control>
+    }
+  </div>
 
   <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
     <div nz-row nzSpan="12">
-      <!-- <nz-form-label [nzSpan]="3">Periodo</nz-form-label>
-      <nz-form-control [nzSpan]="5">
-        <nz-date-picker [(ngModel)]="periodo" nzFormat="dd/MM/yyyy" style="width: 100%;"/>
-      </nz-form-control> -->
     </div>
 
     <ul nz-menu nzMode="horizontal">
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'cuentas-bancarias', 'listado']" >Listado</a>
+        <a [routerLink]="['/', 'ges', 'cuentas-bancarias', 'listado']">Listado</a>
       </li>
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
-        <a [routerLink]="['/', 'ges', 'cuentas-bancarias', 'importacion']" >Importación</a>
+        <a [routerLink]="['/', 'ges', 'cuentas-bancarias', 'importacion']">Importación</a>
       </li>
     </ul>
 
     <nz-button-group nz-button nzButtonGroup>
-      <!-- btn cargar datos bancarios -->
+      <!-- btn cargar cuantas bancarias -->
+      <button nz-button nzType="default" (click)="openDrawerforNewsCuentasBancarias()" nz-tooltip
+        nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+      <!-- btn cargar datos bancarios de la persona -->
       <button nz-button nzType="default" (click)="openDrawerforNewPersonalBanco()" nz-tooltip
         nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
       <!-- btn datos bancarios -->
@@ -51,15 +50,15 @@
       <a nz-tab-link routerLink="/ges/cuentas-bancarias/listado">Listado</a>
 
       @if (columns().length) {
-        <ng-template nz-tab>
-          <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" [startFilters]="startFilters()" />
-          <div class="gridListContainer container-fluid">
-            <angular-slickgrid gridId="grid" [columns]="columns() | colsFilter" [options]="gridOptions"
-              [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event.detail)"
-              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
-            </angular-slickgrid>
-          </div>
-        </ng-template>
+      <ng-template nz-tab>
+        <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" [startFilters]="startFilters()" />
+        <div class="gridListContainer container-fluid">
+          <angular-slickgrid gridId="grid" [columns]="columns() | colsFilter" [options]="gridOptions"
+            [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event.detail)"
+            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+          </angular-slickgrid>
+        </div>
+      </ng-template>
       }
     </nz-tab>
 
@@ -73,5 +72,9 @@
   </nz-tabs>
 </nz-card>
 
-<app-personal-banco-drawer [(visibleBanco)]="visiblePersonalBanco" (onAddorUpdate)="onAddorUpdate($event)"></app-personal-banco-drawer>
-<app-personal-banco-drawer [(visibleBanco)]="visibleDatosBanco" [PersonalId]="personalId()" (onAddorUpdate)="onAddorUpdate($event)"></app-personal-banco-drawer>
+<app-cuentas-bancarias-alta-drawer [(visible)]="visibleCuentasBancariasAlta" 
+  (onAddorUpdate)="onAddorUpdate($event)"></app-cuentas-bancarias-alta-drawer>
+<app-personal-banco-drawer [(visibleBanco)]="visiblePersonalBanco"
+  (onAddorUpdate)="onAddorUpdate($event)"></app-personal-banco-drawer>
+<app-personal-banco-drawer [(visibleBanco)]="visibleDatosBanco" [PersonalId]="personalId()"
+  (onAddorUpdate)="onAddorUpdate($event)"></app-personal-banco-drawer>

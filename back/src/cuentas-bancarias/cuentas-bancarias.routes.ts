@@ -15,3 +15,7 @@ cuentasBancariasRouter.post("/list", [authMiddleware.verifyToken, authMiddleware
 cuentasBancariasRouter.post("/import-xls", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     cuentasBancariasController.handleXLSUpload(req, res, next);
 });
+
+cuentasBancariasRouter.post("/add", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  cuentasBancariasController.addCuentasBancarias(req, res, next);
+});

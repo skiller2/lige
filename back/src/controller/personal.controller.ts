@@ -3035,6 +3035,68 @@ UNION ALL
     return true
   }
 
+  static async setPersonalBancoQuerys(
+    queryRunner:any, 
+    PersonalId:number, 
+    BancoId:number,
+    Desde:Date,
+    CBU:string, 
+    IndNuevaCuenta:number, 
+    AudFecha, 
+    usuario:string, 
+    ip:string
+  ){
+    let PersonalBanco = await queryRunner.query(`
+      SELECT PersonalBancoId, PersonalBancoDesde
+      FROM PersonalBanco 
+      WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
+    `, [PersonalId, BancoId])
+
+    if (PersonalBanco.length && new Date(PersonalBanco[0].PersonalBancoDesde).getTime() == Desde.getTime()) {
+      const PersonalBancoId = PersonalBanco[0].PersonalBancoId
+      await queryRunner.query(`
+        UPDATE PersonalBanco SET
+        PersonalBancoCBU = @3,
+        IndNuevaCuenta = @4,
+        AudFechaMod = @5,
+        AudUsuarioMod = @6,
+        AudIpMod= @7
+        WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
+      `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta, AudFecha, usuario, ip])
+    } else {
+      if (PersonalBanco.length) {
+        if (PersonalBanco[0].PersonalBancoDesde.getTime() > Desde.getTime())
+          throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${PersonalBanco[0].PersonalBancoDesde.getDate()}/${PersonalBanco[0].PersonalBancoDesde.getMonth() + 1}/${PersonalBanco[0].PersonalBancoDesde.getFullYear()}`)
+
+        const PersonalBancoId = PersonalBanco[0].PersonalBancoId
+        const Hasta = new Date(Desde)
+        Hasta.setDate(Hasta.getDate() - 1)
+        await queryRunner.query(`
+          UPDATE PersonalBanco SET
+          PersonalBancoHasta = @3,
+          AudFechaMod = @4,
+          AudUsuarioMod = @5,
+          AudIpMod=@6
+          WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
+        `, [PersonalId, BancoId, PersonalBancoId, Hasta, AudFecha, usuario, ip])
+
+      }
+      const Personal = await queryRunner.query(`
+        SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
+        FROM Personal 
+        WHERE PersonalId IN (@0)
+      `, [PersonalId])
+      const newPersonalBancoId = Personal[0].UltNro
+      await queryRunner.query(`
+        INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
+        AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
+
+        UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
+      `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, IndNuevaCuenta, AudFecha, usuario, ip])
+    }
+  }
+
   async setPersonalBanco(req: any, res: Response, next: NextFunction) {
     const fechaActual = new Date()
     const ip = this.getRemoteAddress(req)
@@ -3075,55 +3137,57 @@ UNION ALL
       Desde = new Date(Desde)
       Desde.setHours(0, 0, 0, 0)
 
-      PersonalBanco = await queryRunner.query(`
-        SELECT PersonalBancoId, PersonalBancoDesde
-        FROM PersonalBanco 
-        WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
-      `, [PersonalId, BancoId])
+      await PersonalController.setPersonalBancoQuerys(queryRunner,PersonalId,BancoId,Desde,CBU,IndNuevaCuenta,fechaActual,usuario,ip)
 
-      if (PersonalBanco.length && new Date(PersonalBanco[0].PersonalBancoDesde).getTime() == Desde.getTime()) {
-        const PersonalBancoId = PersonalBanco[0].PersonalBancoId
-        await queryRunner.query(`
-          UPDATE PersonalBanco SET
-          PersonalBancoCBU = @3,
-          IndNuevaCuenta = @4,
-          AudFechaMod = @5,
-          AudUsuarioMod = @6,
-          AudIpMod=@7
-          WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
-        `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta, fechaActual, usuario, ip])
-      } else {
-        if (PersonalBanco.length) {
-          if (PersonalBanco[0].PersonalBancoDesde.getTime() > Desde.getTime())
-            throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${PersonalBanco[0].PersonalBancoDesde.getDate()}/${PersonalBanco[0].PersonalBancoDesde.getMonth() + 1}/${PersonalBanco[0].PersonalBancoDesde.getFullYear()}`)
+      // PersonalBanco = await queryRunner.query(`
+      //   SELECT PersonalBancoId, PersonalBancoDesde
+      //   FROM PersonalBanco 
+      //   WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
+      // `, [PersonalId, BancoId])
 
-          const PersonalBancoId = PersonalBanco[0].PersonalBancoId
-          const Hasta = new Date(Desde)
-          Hasta.setDate(Hasta.getDate() - 1)
-          await queryRunner.query(`
-            UPDATE PersonalBanco SET
-            PersonalBancoHasta = @3,
-            AudFechaMod = @4,
-          AudUsuarioMod = @5,
-          AudIpMod=@6
-            WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
-          `, [PersonalId, BancoId, PersonalBancoId, Hasta, fechaActual, usuario, ip])
+      // if (PersonalBanco.length && new Date(PersonalBanco[0].PersonalBancoDesde).getTime() == Desde.getTime()) {
+      //   const PersonalBancoId = PersonalBanco[0].PersonalBancoId
+      //   await queryRunner.query(`
+      //     UPDATE PersonalBanco SET
+      //     PersonalBancoCBU = @3,
+      //     IndNuevaCuenta = @4,
+      //     AudFechaMod = @5,
+      //     AudUsuarioMod = @6,
+      //     AudIpMod=@7
+      //     WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
+      //   `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta, fechaActual, usuario, ip])
+      // } else {
+      //   if (PersonalBanco.length) {
+      //     if (PersonalBanco[0].PersonalBancoDesde.getTime() > Desde.getTime())
+      //       throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${PersonalBanco[0].PersonalBancoDesde.getDate()}/${PersonalBanco[0].PersonalBancoDesde.getMonth() + 1}/${PersonalBanco[0].PersonalBancoDesde.getFullYear()}`)
 
-        }
-        const Personal = await queryRunner.query(`
-          SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
-          FROM Personal 
-          WHERE PersonalId IN (@0)
-        `, [PersonalId])
-        const newPersonalBancoId = Personal[0].UltNro
-        await queryRunner.query(`
-          INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
-          AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod)
-          VALUES (@0, @1, @2, @3, @4,@5, @6,@7,@8,@9,@10,@11)
+      //     const PersonalBancoId = PersonalBanco[0].PersonalBancoId
+      //     const Hasta = new Date(Desde)
+      //     Hasta.setDate(Hasta.getDate() - 1)
+      //     await queryRunner.query(`
+      //       UPDATE PersonalBanco SET
+      //       PersonalBancoHasta = @3,
+      //       AudFechaMod = @4,
+      //     AudUsuarioMod = @5,
+      //     AudIpMod=@6
+      //       WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
+      //     `, [PersonalId, BancoId, PersonalBancoId, Hasta, fechaActual, usuario, ip])
 
-          UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
-        `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, IndNuevaCuenta, fechaActual, fechaActual, usuario, usuario, ip, ip])
-      }
+      //   }
+      //   const Personal = await queryRunner.query(`
+      //     SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
+      //     FROM Personal 
+      //     WHERE PersonalId IN (@0)
+      //   `, [PersonalId])
+      //   const newPersonalBancoId = Personal[0].UltNro
+      //   await queryRunner.query(`
+      //     INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
+      //     AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod)
+      //     VALUES (@0, @1, @2, @3, @4,@5, @6,@7,@8,@9,@10,@11)
+
+      //     UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
+      //   `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, IndNuevaCuenta, fechaActual, fechaActual, usuario, usuario, ip, ip])
+      // }
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
