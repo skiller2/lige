@@ -16,6 +16,7 @@ import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { BankOutline, } from '@ant-design/icons-angular/icons';
 import { PersonalBancoDrawerComponent } from '../personal-banco-drawer/personal-banco-drawer.component';
 import { CuentasBancariasImportacionMasivaComponent } from '../cuentas-bancarias-importacion-masiva/cuentas-bancarias-importacion-masiva'
+import { CuentasBancariasAltaDrawerComponent } from '../cuentas-bancarias-alta-drawer/cuentas-bancarias-alta-drawer'
 
 @Component({
     selector: 'app-cuentas-bancarias',
@@ -23,7 +24,8 @@ import { CuentasBancariasImportacionMasivaComponent } from '../cuentas-bancarias
     styleUrl: './cuentas-bancarias.less',
     providers: [AngularUtilService, provideNzIconsPatch([BankOutline, ])],
     imports: [SHARED_IMPORTS, CommonModule, NzIconModule, FiltroBuilderComponent
-      , PersonalBancoDrawerComponent, CuentasBancariasImportacionMasivaComponent],
+      , PersonalBancoDrawerComponent, CuentasBancariasImportacionMasivaComponent
+      , CuentasBancariasAltaDrawerComponent],
 })
 export class CuentasBancariasComponent {
   periodo = signal<Date>(new Date())
@@ -42,6 +44,7 @@ export class CuentasBancariasComponent {
   personalId = signal<number>(0)
   visiblePersonalBanco = model<boolean>(false)
   visibleDatosBanco = model<boolean>(false)
+  visibleCuentasBancariasAlta = model<boolean>(false)
   anio = computed(() => this.periodo()? this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo()? this.periodo().getMonth()+1 : 0)
 
@@ -53,7 +56,7 @@ export class CuentasBancariasComponent {
   columns = toSignal(this.apiService.getCols('/api/cuentas-bancarias/cols/'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), periodo: this.periodo(), sitRevistaPeriodo: this.periodoSR(), liqmaperiodo: this.periodoIT()  }),
+    params: () => ({ options: this.listOptions(), periodo: this.periodo(), sitRevistaPeriodo: this.periodoSR(), liqmaperiodo: this.periodoIT() }),
     loader: async ({ params }) => {
       let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
@@ -117,6 +120,10 @@ export class CuentasBancariasComponent {
 
   openDrawerforNewPersonalBanco(): void {
     this.visiblePersonalBanco.set(true)
+  }
+
+  openDrawerforNewsCuentasBancarias(): void {
+    this.visibleCuentasBancariasAlta.set(true)
   }
   
 }

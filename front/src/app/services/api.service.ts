@@ -2282,6 +2282,14 @@ export class ApiService {
     );
   }
 
+  addCuentasBancarias(values: any) {
+    console.log('values:',values);
+    
+    return this.http.post<ResponseJSON<any>>(`/api/cuentas-bancarias/add`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

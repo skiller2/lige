@@ -275,6 +275,7 @@ export class CuentasBancariasController extends BaseController {
     const periodoRequest: Date = req.body.periodo ? new Date(req.body.periodo) : null
     const bancoIdRequest = Number(req.body.BancoId)
     const file = req.body.files
+    const IndNuevaCuenta = 1
     const queryRunner = await getConnection(res.locals.userName);
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
@@ -392,51 +393,8 @@ export class CuentasBancariasController extends BaseController {
           continue
         }
 
-        PersonalBanco = await queryRunner.query(`
-          SELECT PersonalBancoId, PersonalBancoDesde
-          FROM PersonalBanco 
-          WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
-        `, [PersonalId, bancoIdRequest])
+        await PersonalController.setPersonalBancoQuerys(queryRunner, PersonalId, bancoIdRequest, periodoRequest, CBU, IndNuevaCuenta, fechaActual, usuario, ip)
 
-        if (PersonalBanco.length && new Date(PersonalBanco[0].PersonalBancoDesde).getTime() == periodoRequest.getTime()) {
-          const PersonalBancoId = PersonalBanco[0].PersonalBancoId
-          await queryRunner.query(`
-            UPDATE PersonalBanco SET
-            PersonalBancoCBU = @3,
-            IndNuevaCuenta = @4
-            WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
-          `, [PersonalId, bancoIdRequest, PersonalBancoId, CBU, 1])
-        } else {
-          if (PersonalBanco.length) {
-            if (PersonalBanco[0].PersonalBancoDesde.getTime() > periodoRequest.getTime()){
-              dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `El periodo no puede ser menor a la fecha ${PersonalBanco[0].PersonalBancoDesde.getDate()}/${PersonalBanco[0].PersonalBancoDesde.getMonth() + 1}/${PersonalBanco[0].PersonalBancoDesde.getFullYear()}` })
-              continue
-            }
-
-            const PersonalBancoId = PersonalBanco[0].PersonalBancoId
-            const Hasta = new Date(periodoRequest)
-            Hasta.setDate(Hasta.getDate() - 1)
-            await queryRunner.query(`
-              UPDATE PersonalBanco SET
-              PersonalBancoHasta = @3
-              WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
-            `, [PersonalId, bancoIdRequest, PersonalBancoId, Hasta])
-
-          }
-          const Personal = await queryRunner.query(`
-            SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
-            FROM Personal 
-            WHERE PersonalId IN (@0)
-          `, [PersonalId])
-          const newPersonalBancoId = Personal[0].UltNro
-          await queryRunner.query(`
-            INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
-            AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod)
-            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)
-
-            UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
-          `, [PersonalId, newPersonalBancoId, bancoIdRequest, CBU, periodoRequest, 1, fechaActual, fechaActual, usuario, usuario, ip, ip])
-        }
         altaCuentasBancarias++
       }
 
@@ -469,6 +427,66 @@ export class CuentasBancariasController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  async addCuentasBancarias(req: any, res: Response, next: NextFunction) {
+    const fechaActual = new Date()
+    const ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
+    const queryRunner = await getConnection(usuario);
+    const CUITs:string = req.body.CUITs
+    const BancoId:number = req.body.BancoId
+    let Desde = req.body.Desde
+    const IndNuevaCuenta:number = 1
+    let errors:any[] = []
+
+    try {
+      let campos_vacios: any[] = []
+      await queryRunner.startTransaction()
+
+      if (!BancoId) campos_vacios.push(`- Banco`);
+      if (!Desde) campos_vacios.push(`- Desde`);
+      if (!(CUITs?.length)) campos_vacios.push(`- CBUs`);
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos:')
+        throw new ClientException(campos_vacios);
+      }
+      Desde = new Date(Desde)
+      Desde.setHours(0, 0, 0, 0)
+      const arrayCUITs:any[] = CUITs.split(/\D+/).filter(Boolean);
+
+      for (const CUIT of arrayCUITs) {
+
+        if (CUIT.length != 11) {
+          errors.push(`El CUIT ${CUIT} no tiene el formato correcto.`)
+          continue
+        }
+        const PersonalCUITCUIL = await queryRunner.query(`
+          SELECT cuit.PersonalId, PersonalCUITCUILCUIT
+          FROM PersonalCUITCUIL cuit 
+          WHERE cuit.PersonalCUITCUILCUIT IN (@0) AND PersonalCUITCUILHasta IS NULL
+        `, [CUIT])
+        if (!PersonalCUITCUIL.length) {
+          errors.push(`No se pudo identificar el CUIT ${CUIT}.`)
+          continue
+        }
+        const PersonalId = PersonalCUITCUIL[0].PersonalId
+        
+        await PersonalController.setPersonalBancoQuerys(queryRunner, PersonalId, BancoId, Desde, '', IndNuevaCuenta, fechaActual, usuario, ip)
+      }
+
+      if (errors.length) {
+        throw new ClientException(errors)
+      }
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 
