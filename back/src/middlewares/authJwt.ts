@@ -5,7 +5,7 @@ import { logger } from "../logger/logger.ts";
 //import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {
   catchError = (err: any, res: any) => {
-     
+
 
     //if (err instanceof TokenExpiredError) {
     //  return res.status(401).send({ message: "Unauthorized! Access Token was expired!" });
@@ -138,7 +138,7 @@ export class AuthMiddleware {
         if (PersonalId < 1) return next()
 
         const grupos = res.locals.GrupoActividad //|| await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
-        
+
         if (!grupos || grupos.length == 0) return next()
         const GrupoActividadIdList = grupos.map((grupo: any) => grupo.GrupoActividadId)
 
@@ -181,8 +181,8 @@ export class AuthMiddleware {
       const mes = Number(req.body.mes);
       const opcionGrupoActividad = req.body.options.filtros
 
-       
-       
+
+
 
       if (PersonalId < 1) return res.status(403).json({ msg: `No se especifico PersonalId` })
       if (!anio || !mes) return res.status(403).json({ msg: `No se especifico anio o mes` })
@@ -191,7 +191,7 @@ export class AuthMiddleware {
       const queryRunner = await getConnection(res.locals.userName)
 
       const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
-       
+
       if (grupos.length > 0) {
         for (const row of grupos) {
           if (row.GrupoActividadId == GrupoActividadId) {
@@ -200,7 +200,7 @@ export class AuthMiddleware {
           }
         }
       }
-       
+
       return res.status(403).json({ msg: `No tiene permiso para acceder al grupo de actividad ${GrupoActividadId}` })
     }
   }
@@ -209,7 +209,7 @@ export class AuthMiddleware {
   hasAuthByDocId = () => {
     return async (req, res, next) => {
       const queryRunner = await getConnection(res.locals.userName);
-  
+
       try {
 
         const stmActual = new Date();
@@ -223,7 +223,7 @@ export class AuthMiddleware {
         const path = req?.route?.path
 
         if (!documentId && !documentType && !tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
-        if (!tableForSearch) return res.status(403).json({ msg: "Documento Requerido. No se ha adjuntado ningún documento." })
+        if (!tableForSearch) return res.status(403).json({ msg: "No se ha adjuntado ningún documento." })
         let Documento = null;
         switch (tableForSearch) {
           case 'docgeneral':
