@@ -4,14 +4,14 @@
 
     <nz-card nzType="inner" nzTitle="Agregar Nuevo Datos Bancarios" >
       <form (ngSubmit)="save()">
-        @if (!PersonalId()){
+        <!-- @if (!PersonalId()){ -->
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Personal</nz-form-label>
           <nz-form-control>
             <app-personal-search [formField]="formPersonalBanco.PersonalId" [anio]="anio()" [mes]="mes()"/>
           </nz-form-control>
         </nz-form-item>
-        }
+        <!-- } -->
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Banco</nz-form-label>
@@ -51,40 +51,36 @@
       </form>
     </nz-card>
 
-    @if (PersonalId()) {
+    @if (listaBancoPer.value().length) {
       <nz-form-control style="text-align: right; margin-right: 25px;">
-        <button nzType="default" nz-button (click)="unsubscribeCBUs()" [nzLoading]="isLoading2()" nz-tooltip nzTooltipTitle="Finalizar todos los CBUs vigentes.">
+        <button nzType="default" nz-button (click)="unsubscribeCBUs()" [nzLoading]="isLoading()" nz-tooltip nzTooltipTitle="Finalizar todos los CBUs vigentes.">
           Finalizar CBUs
         </button>
       </nz-form-control>
-    }
-    <br>
-
-      @if (listaBancoPer.value().length ) {
-        <nz-form-control>
-          <nz-table #personalBanco [nzData]="listaBancoPer.value()" nzSize="small" [nzPageSize]="100000000"
-            [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
-            <thead>
-              <tr>
-                <th nzWidth="230px">Banco</th>
-                <th>CBU</th>
-                <th nzWidth="110px">Desde</th>
-                <th nzWidth="110px">Hasta</th>
+      <br>
+      <nz-form-control>
+        <nz-table #personalBanco [nzData]="listaBancoPer.value()" nzSize="small" [nzPageSize]="100000000"
+          [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
+          <thead>
+            <tr>
+              <th nzWidth="230px">Banco</th>
+              <th>CBU</th>
+              <th nzWidth="110px">Desde</th>
+              <th nzWidth="110px">Hasta</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (data of personalBanco.data; track data.id) {
+              <tr class="">
+                <td>{{ data.Descripcion }}</td>
+                <td>{{ data.CBU }}</td>
+                <td>{{ data.Desde }}</td>
+                <td>{{ data.Hasta }}</td>
               </tr>
-            </thead>
-            <tbody>
-              <!-- TODO: quitar objeto de track  -->
-              @for (data of personalBanco.data; track data) {
-                <tr class="">
-                  <td>{{ data.Descripcion }}</td>
-                  <td>{{ data.CBU }}</td>
-                  <td>{{ data.Desde }}</td>
-                  <td>{{ data.Hasta }}</td>
-                </tr>
-              }
-            </tbody>
-          </nz-table>
-        </nz-form-control>
-      }
+            }
+          </tbody>
+        </nz-table>
+      </nz-form-control>
+    }
     </ng-container>
   </nz-drawer>

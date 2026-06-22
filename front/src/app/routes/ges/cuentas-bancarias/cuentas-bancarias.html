@@ -36,10 +36,7 @@
       <button nz-button nzType="default" (click)="openDrawerforNewsCuentasBancarias()" nz-tooltip
         nzTooltipTitle="{{ 'app.cuentasBancarias.altaMasiva' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
       <!-- btn cargar datos bancarios de la persona -->
-      <button nz-button nzType="default" (click)="openDrawerforNewPersonalBanco()" nz-tooltip
-        nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-      <!-- btn datos bancarios -->
-      <button nz-button nzType="default" (click)="openDrawerforConsultBanco()" [disabled]="personalId() == 0" nz-tooltip
+      <button nz-button nzType="default" (click)="openDrawerforPersonalBanco()" nz-tooltip
         nzTooltipTitle="{{ 'app.icon.bank' | i18n }}"><span nz-icon nzType="bank" nzTheme="outline"></span></button>
 
     </nz-button-group>
@@ -74,7 +71,5 @@
 
 <app-cuentas-bancarias-alta-drawer [(visible)]="visibleCuentasBancariasAlta" 
   (onAddorUpdate)="onAddorUpdate($event)"></app-cuentas-bancarias-alta-drawer>
-<app-personal-banco-drawer [(visibleBanco)]="visiblePersonalBanco"
-  (onAddorUpdate)="onAddorUpdate($event)"></app-personal-banco-drawer>
-<app-personal-banco-drawer [(visibleBanco)]="visibleDatosBanco" [PersonalId]="personalId()"
+<app-personal-banco-drawer [(visibleBanco)]="visiblePersonalBanco" [PersonalId]="personalId()"
   (onAddorUpdate)="onAddorUpdate($event)"></app-personal-banco-drawer>
