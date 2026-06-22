@@ -320,7 +320,7 @@ export class ValorHoraController extends BaseController {
       ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
         `Aumento masivo de valores hora`,
-        { anio, mes, tipo, valor, tipoAsociadoId },
+        { 'Periodo': `${mes}/${anio}`, 'Tipo de Aumento': tipo, 'Valor': valor, 'Tipo de Asociado': tipoAsociadoId },
         usuario,
         ip,
         "LIQ"
