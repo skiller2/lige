@@ -806,10 +806,9 @@ export class ApiService {
     }
     const parameter = { options }
     return this.http.post<ResponseJSON<any>>('/api/documento/list', parameter).pipe(
-      map((res: { data: any; }) => res.data),
+      map(res => res.data),
       catchError(() => of([]))
     );
-
   }
 
   getFacturacion(options: any) {

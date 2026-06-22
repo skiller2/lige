@@ -78,7 +78,7 @@
           </nz-form-item>
         </div>
     
-        <!--      Corregido: validación para mimetype -->
+        <!-- Corregido: validación para mimetype -->
         @if (tipoDocumento().archivo.length > 0 && tipoDocumento().archivo[0]?.mimetype?.includes('image')) {
         <div nz-col nzFlex="350px" class="app-foto-container">
           <app-image-loader class="image-content" [src]="tipoDocumento().archivo[0]?.url" />
@@ -101,12 +101,12 @@
       <nz-form-item>
         <nz-form-control style="display: flex; justify-content: center; align-items: center; margin-top: 5px;">
           <button type="submit" nzType="primary" nz-button
-            [nzLoading]="isLoading()"
+            [nzLoading]="formTipoDocumento().submitting()"
             [disabled]="formTipoDocumento().submitting() || formTipoDocumento().dirty()==false || formTipoDocumento().valid()==false">
             {{ 'app.btn.save' | i18n }}
           </button>
           @if (tipoDocumento().DocumentoId && !docId()) {
-            <button type="button" nzType="primary" nz-button (click)="resetForm()">
+            <button type="button" nzType="primary" nz-button (click)="formTipoDocumento().reset()">
               {{ 'app.btn.clear.form' | i18n }}
             </button>
           }

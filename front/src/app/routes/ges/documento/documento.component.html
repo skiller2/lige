@@ -33,13 +33,17 @@
     </ul>
 
     <nz-button-group nz-button nzButtonGroup>
+      <!-- btn add documento -->
       <button nz-button nzType="default" (click)="openDrawerforAlta()" nz-tooltip
         nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-      <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="docId() == 0" nz-tooltip
+      <!-- btn update documento -->
+        <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="docId() == 0" nz-tooltip
         nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-      <button nz-button nzType="default" (click)="openDrawerforDetalle()" [disabled]="docId() == 0" nz-tooltip
+      <!-- btn detalle documento -->
+        <button nz-button nzType="default" (click)="openDrawerforDetalle()" [disabled]="docId() == 0" nz-tooltip
         nzTooltipTitle="{{ 'app.detail' | i18n }}"><span nz-icon nzType="file" nzTheme="outline"></span></button>
-      <button nz-button nzType="default" [disabled]="docId() == 0" nz-tooltip [nzLoading]="loadingDelete()"
+      <!-- btn delete documento -->
+        <button nz-button nzType="default" [disabled]="docId() == 0" nz-tooltip [nzLoading]="loadingDelete()"
         nz-popconfirm nzPopconfirmTitle="Esta seguro que quiere eliminar este Documento?"
         (nzOnConfirm)="deleteDocumento()" nzTooltipTitle="{{ 'app.icon.delete' | i18n }}"><span nz-icon nzType="delete"
           nzTheme="outline"></span></button>
@@ -51,14 +55,13 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/documento/list">Documentos</a>
       <ng-template nz-tab>
-        @if(columns$ | async; as columnas) {
+        @if(columns().length) {
 
-        <shared-filtro-builder [startFilters]="startFilters()" [fieldsToSelect]="columnas"
-          (optionsChange)="listOptionsChange($event)" />
+        <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" [startFilters]="startFilters()" />
 
         <div class="gridContainer container-fluid">
-          <angular-slickgrid gridId="gridOPA" class="" [columns]="columnas | colsFilter"
-            [options]="gridOptions" [dataset]="(gridData$ | async) || []"
+          <angular-slickgrid gridId="gridOPA" class="" [columns]="columns() | colsFilter"
+            [options]="gridOptions" [dataset]="gridData.value()"
             (onAngularGridCreated)="angularGridReady($event)"
             (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
           </angular-slickgrid>

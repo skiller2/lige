@@ -49,7 +49,6 @@ export class DocumentoDrawerComponent {
   randNum = signal<number>(0);
 
   onAddorUpdate = output()
-  isLoading = signal(false);
   token = signal<string>('');
   periodo = signal<any>({ anio: 0, mes: 0 })
   placement: NzDrawerPlacement = 'left';
@@ -70,8 +69,8 @@ export class DocumentoDrawerComponent {
     }
   })
 
-  docId = model<number>(0);
-  disabled = model<boolean>(false);
+  docId = input<number>(0);
+  disabled = input<boolean>(false);
   prevFiles = signal<any[]>([]);
   Date: any;
 
@@ -99,12 +98,12 @@ export class DocumentoDrawerComponent {
     
     if (this.docId()) {
       let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
-      this.tipoDocumento.update(m => ({
-        ...m, 
+      this.tipoDocumento.set({
+        ...this.tipoDocumentoDefault, 
         ...infoDoc,
-      }));
-      setTimeout(() => { this.formTipoDocumento().reset() }, 400);
+      });
     }
+    setTimeout(() => { this.formTipoDocumento().reset() }, 400);
   })
 
   optionsTipos = toSignal(this.searchService.getDocumentoTipoOptions(), { initialValue: [] });
@@ -125,7 +124,6 @@ export class DocumentoDrawerComponent {
 
   async save() {
     await submit(this.formTipoDocumento, async (form) => {
-      this.isLoading.set(true)
       const values:any = form().value()
       let docId = 0
       try {
@@ -138,7 +136,7 @@ export class DocumentoDrawerComponent {
             docId = res.data.DocumentoId
             this.tipoDocumento.update(m => ({
               ...m, 
-              DocumentoId: res.data.DocumentoId
+              DocumentoId: docId
             }));
           }
         }
@@ -151,7 +149,6 @@ export class DocumentoDrawerComponent {
       } catch (e) {
 
       }
-      this.isLoading.set(false)
     })
   }
 
@@ -161,24 +158,6 @@ export class DocumentoDrawerComponent {
   //   this.prevFiles.set([...copia])
   //   this.randNum.set(Math.random())
   // }
-
-  // async load() {
-  //   if (this.docId()) {
-  //     let infoDoc = await firstValueFrom(this.searchService.getDocumentoById(this.docId()))
-  //     
-  //     this.formTipoDocumento.reset(infoDoc)
-  //     this.formTipoDocumento.markAsUntouched()
-  //     this.formTipoDocumento.markAsPristine()
-  //   }
-  //   if (this.disabled())
-  //     this.formTipoDocumento.disable()
-  //   else
-  //     this.formTipoDocumento.enable()
-  // }
-
-  resetForm() {
-    setTimeout(() => { this.formTipoDocumento().reset() }, 400);
-  }
 
   selectLabel(val: any) {
     const tipoDoc = val
