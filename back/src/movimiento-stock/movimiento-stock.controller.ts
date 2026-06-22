@@ -334,36 +334,27 @@ export class MovimientoStockController extends BaseController {
   }
   */
 
+  // El comprobante se arma directamente con los datos del formulario (parametroStock) que llegan en
+  // el body; por ahora NO se consulta la base por movimientoStockCodigo ni se guarda un Documento.
   async descargarComprobante(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      await queryRunner.startTransaction();
+      const form = req.body ?? {};
 
-      const movimientoCodigo = Number(req.body?.movimientoStockCodigo) || null;
+      const tempCarpeta = path.join(this.directoryDocumentos, 'temp');
+      if (!existsSync(tempCarpeta)) mkdirSync(tempCarpeta, { recursive: true });
 
-      // Idempotente: si el movimiento ya tiene comprobante generado se reutiliza ese archivo;
-      // si no, se genera (y queda enlazado al movimiento). Así descargas repetidas no duplican Documentos.
-      let filesPathAbs: string;
-      let nombreArchivo: string;
-      const existente = movimientoCodigo ? await this.getComprobanteExistente(queryRunner, movimientoCodigo) : null;
-      const rutaExistente = existente ? path.join(this.directoryDocumentos, existente.DocumentoPath) : '';
-      if (existente && existsSync(rutaExistente)) {
-        // Reutiliza el comprobante ya generado (idempotente).
-        filesPathAbs = rutaExistente;
-        nombreArchivo = existente.DocumentoNombreArchivo || path.basename(existente.DocumentoPath);
-      } else {
-        // No hay comprobante previo, o el archivo físico no existe (registro huérfano): se (re)genera
-        // con la plantilla actual y queda enlazado al movimiento.
-        ({ filesPathAbs, nombreArchivo } = await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo));
-      }
+      const fechaActual = new Date();
+      const tempfilename = `comprobante-form-${fechaActual.getTime()}.pdf`;
+      const tempPathAbs = path.join(tempCarpeta, tempfilename);
 
-      await queryRunner.commitTransaction();
+      await this.renderComprobantePdfFromForm(queryRunner, tempPathAbs, form, res.locals.userName);
 
-      res.download(filesPathAbs, nombreArchivo, (err) => {
+      res.download(tempPathAbs, 'Comprobante.pdf', async (err) => {
+        try { await unlink(tempPathAbs); } catch (error) { }
         if (err) return next(err);
       });
     } catch (error) {
-      await this.rollbackTransaction(queryRunner);
       return next(error);
     } finally {
       await queryRunner.release();
@@ -774,20 +765,192 @@ export class MovimientoStockController extends BaseController {
       textefectos += `<tr><td>${linea.EfectoDescripcionCompleto ?? ''}</td><td>${linea.Origen ?? ''}</td><td class="cant">${linea.Cantidad}</td></tr>`;
     }
 
-    let headerContent = content.header.replace(/\${movimientoCodigo}/g, movimientoCodigo ? movimientoCodigo.toString() : '');
+    const vars = {
+      movimientoCodigo: movimientoCodigo ? movimientoCodigo.toString() : '',
+      fechaFormateada: this.dateOutputFormat(fecha),
+      origen,
+      destino,
+      tipoDestino: '',
+      intermediario: '',
+      observaciones,
+      textefectos,
+    };
 
-    // Pie: fecha de impresión (ahora) y usuario que genera el comprobante.
-    let footerContent = content.footer.replace(/\${fechaImpresion}/g, this.dateOutputFormat(new Date()));
-    footerContent = footerContent.replace(/\${usuario}/g, usuario || '');
+    const headerContent = this.aplicarVariablesComprobante(content.header, vars);
+    const footerContent = this.aplicarVariablesPie(content.footer, usuario);
+    const htmlContent = this.aplicarVariablesComprobante(content.body, vars);
 
-    let htmlContent = content.body;
-    htmlContent = htmlContent.replace(/\${origen}/g, origen);
-    htmlContent = htmlContent.replace(/\${destino}/g, destino);
-    htmlContent = htmlContent.replace(/\${observaciones}/g, observaciones);
-    htmlContent = htmlContent.replace(/\${textefectos}/g, textefectos);
-    htmlContent = htmlContent.replace(/\${movimientoCodigo}/g, movimientoCodigo ? movimientoCodigo.toString() : '');
-    htmlContent = htmlContent.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fecha));
+    await this.comprobanteHtmlToPdf(filePathAbs, htmlContent, headerContent, footerContent, waterMark);
+  }
 
+  // Genera el PDF del comprobante con los datos del formulario (parametroStock) recibido en el body.
+  // El form solo trae IDs en los campos tipo select (destino, intermediario, efectos): acá se
+  // resuelven a su texto con lookups por ID (no se consulta el movimiento por código).
+  private async renderComprobantePdfFromForm(
+    queryRunner: any,
+    filePathAbs: string,
+    form: any,
+    usuario: string = ""
+  ) {
+    const fecha = form?.fecha ? new Date(form.fecha) : new Date();
+    const content = await this.getComprobanteHtmlContentGeneral(fecha);
+
+    const tipoDestino = form?.tipoDestino ?? '';
+    const tipoDestinoLabel = tiposDestino.find(t => t.value === tipoDestino)?.label ?? tipoDestino;
+
+    const destino = await this.resolverDestinoLabel(queryRunner, tipoDestino, form);
+    const intermediario = await this.resolverPersonalNombre(queryRunner, form?.personalIdInter);
+    const observaciones = form?.observaciones ?? '';
+    const textefectos = await this.resolverEfectoLineas(queryRunner, form?.efectos);
+
+    const vars = {
+      movimientoCodigo: '',
+      fechaFormateada: this.dateOutputFormat(fecha),
+      origen: '',
+      destino,
+      tipoDestino: tipoDestinoLabel,
+      intermediario,
+      observaciones,
+      textefectos,
+    };
+
+    const headerContent = this.aplicarVariablesComprobante(content.header, vars);
+    const footerContent = this.aplicarVariablesPie(content.footer, usuario);
+    const htmlContent = this.aplicarVariablesComprobante(content.body, vars);
+
+    await this.comprobanteHtmlToPdf(filePathAbs, htmlContent, headerContent, footerContent);
+  }
+
+  // ----- Resolución de IDs del formulario a su texto (para el comprobante) -----
+
+  // Nombre del destino según el tipo elegido (depósito / persona / objetivo / proveedor).
+  private async resolverDestinoLabel(queryRunner: any, tipoDestino: string, form: any): Promise<string> {
+    try {
+      switch (tipoDestino) {
+        case 'deposito': {
+          if (form?.depositoId == null) return '';
+          const r = await queryRunner.query(`SELECT TOP 1 TRIM(DepositoNombre) AS nombre FROM Deposito WHERE DepositoId = @0`, [form.depositoId]);
+          return r?.[0]?.nombre ?? String(form.depositoId);
+        }
+        case 'personal':
+          return this.resolverPersonalNombre(queryRunner, form?.personalId);
+        case 'proveedor': {
+          if (form?.proveedorId == null) return '';
+          const r = await queryRunner.query(`SELECT TOP 1 TRIM(ProveedorRazonSocial) AS nombre FROM Proveedor WHERE ProveedorId = @0`, [form.proveedorId]);
+          return r?.[0]?.nombre ?? String(form.proveedorId);
+        }
+        case 'objetivo': {
+          if (form?.objetivoId == null || form.objetivoId === '') return '';
+          const r = await queryRunner.query(`
+            SELECT TOP 1 CONCAT(cli.ClienteId, '/', ele.ClienteElementoDependienteId, ' ', TRIM(ele.ClienteElementoDependienteDescripcion)) AS nombre
+            FROM Objetivo obj
+            LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND ele.ClienteId = obj.ClienteId
+            LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+            WHERE obj.ObjetivoId = @0
+          `, [Number(form.objetivoId)]);
+          return r?.[0]?.nombre ?? String(form.objetivoId);
+        }
+        default:
+          return '';
+      }
+    } catch (error) {
+      return '';
+    }
+  }
+
+  // "Apellido, Nombre" de una persona por su ID (destino o intermediario).
+  private async resolverPersonalNombre(queryRunner: any, personalId: any): Promise<string> {
+    if (personalId == null || personalId === '') return '';
+    try {
+      const r = await queryRunner.query(`SELECT TOP 1 CONCAT(TRIM(PersonalApellido), ', ', TRIM(PersonalNombre)) AS nombre FROM Personal WHERE PersonalId = @0`, [personalId]);
+      return r?.[0]?.nombre ?? String(personalId);
+    } catch (error) {
+      return String(personalId);
+    }
+  }
+
+  // Filas <tr> del detalle: descripción del efecto, ubicación de origen y cantidad (todo resuelto).
+  private async resolverEfectoLineas(queryRunner: any, efectos: any[]): Promise<string> {
+    let html = '';
+    for (const linea of (efectos ?? [])) {
+      if (linea?.EfectoId == null) continue;
+      const efecto = await this.resolverEfectoDescripcion(queryRunner, linea.EfectoId, linea.EfectoIndividualId);
+      const origen = await this.resolverUbicacionLabel(queryRunner, linea.StockId);
+      html += `<tr><td>${efecto}</td><td>${origen}</td><td class="cant">${linea.Cantidad ?? ''}</td></tr>`;
+    }
+    return html;
+  }
+
+  // Descripción del efecto (con su individual si corresponde): "Efecto - Individual".
+  private async resolverEfectoDescripcion(queryRunner: any, efectoId: any, individualId: any): Promise<string> {
+    try {
+      const r = await queryRunner.query(`
+        SELECT TOP 1 CONCAT(TRIM(efe.EfectoDescripcion),
+          IIF(efeind.EfectoEfectoIndividualDescripcion IS NULL, '', CONCAT(' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion)))) AS descripcion
+        FROM EfectoDescripcion efe
+        LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = efe.EfectoId AND efeind.EfectoEfectoIndividualId = @1
+        WHERE efe.EfectoId = @0
+      `, [efectoId, individualId ?? null]);
+      return r?.[0]?.descripcion ?? String(efectoId);
+    } catch (error) {
+      return String(efectoId);
+    }
+  }
+
+  // Etiqueta de la ubicación (origen) a partir del StockId: depósito / persona / objetivo / proveedor.
+  private async resolverUbicacionLabel(queryRunner: any, stockId: any): Promise<string> {
+    if (stockId == null) return '';
+    try {
+      const r = await queryRunner.query(`
+        SELECT TOP 1 COALESCE(
+          CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)),
+          CONCAT(cli.ClienteId, '/', ele.ClienteElementoDependienteId, ' ', TRIM(ele.ClienteElementoDependienteDescripcion)),
+          TRIM(pro.ProveedorRazonSocial),
+          TRIM(dep.DepositoNombre)
+        ) AS label
+        FROM StockReal stk
+        LEFT JOIN Personal per ON per.PersonalId = stk.PersonalId
+        LEFT JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
+        LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND ele.ClienteId = obj.ClienteId
+        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        LEFT JOIN Proveedor pro ON pro.ProveedorId = stk.ProveedorId
+        LEFT JOIN Deposito dep ON dep.DepositoId = stk.DepositoId
+        WHERE stk.StockId = @0
+      `, [stockId]);
+      return r?.[0]?.label ?? String(stockId);
+    } catch (error) {
+      return String(stockId);
+    }
+  }
+
+  // Reemplaza todas las variables del header/body del comprobante. Cualquier placeholder no provisto
+  // queda en '' para que no se filtre el literal ${...} al PDF.
+  private aplicarVariablesComprobante(tpl: string, vars: Record<string, string>): string {
+    return tpl
+      .replace(/\${movimientoCodigo}/g, vars.movimientoCodigo ?? '')
+      .replace(/\${fechaFormateada}/g, vars.fechaFormateada ?? '')
+      .replace(/\${origen}/g, vars.origen ?? '')
+      .replace(/\${destino}/g, vars.destino ?? '')
+      .replace(/\${tipoDestino}/g, vars.tipoDestino ?? '')
+      .replace(/\${intermediario}/g, vars.intermediario ?? '')
+      .replace(/\${observaciones}/g, vars.observaciones ?? '')
+      .replace(/\${textefectos}/g, vars.textefectos ?? '');
+  }
+
+  // Pie: fecha de impresión (ahora) y usuario que genera el comprobante.
+  private aplicarVariablesPie(footer: string, usuario: string): string {
+    return footer
+      .replace(/\${fechaImpresion}/g, this.dateOutputFormat(new Date()))
+      .replace(/\${usuario}/g, usuario || '');
+  }
+
+  private async comprobanteHtmlToPdf(
+    filePathAbs: string,
+    htmlContent: string,
+    headerContent: string,
+    footerContent: string,
+    waterMark: string = ""
+  ) {
     const browser = await puppeteer.launch({ headless: 'new' });
     try {
       const page = await browser.newPage();

@@ -39,15 +39,12 @@
         [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
         <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
       </button>
-      <!-- TEST: comprobante fijo 1 para probar la descarga. Volver a comprobanteCodigo() luego.
-       
-        [httpBody]="{ movimientoStockCodigo: comprobanteCodigo() }"                                                    
-       httpUrl="api/movimiento-stock/comprobante"                                                                     
-       [disabled]="!comprobanteCodigo()">     -->
+      <!-- El comprobante se arma con los datos actuales del formulario (parametroStock), que el
+           hijo expone y el padre manda como body. No se consulta la base por movimientoStockCodigo. -->
       <button #descargarComprobante nz-button nzType="default" type="button" nz-tooltip
         nzTooltipTitle="Descargar Comprobante"
         app-down-file [httpMethod]="'POST'"
-        [httpBody]="{ movimientoStockCodigo: 3 }"
+        [httpBody]="comprobanteBody()"
         httpUrl="api/movimiento-stock/comprobante">
         <span nz-icon nzType="download" nzTheme="outline"></span>
       </button>
