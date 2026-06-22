@@ -335,23 +335,30 @@ export class MovimientoStockController extends BaseController {
   }
   */
 
-  // El comprobante se arma directamente con los datos del formulario (parametroStock) que llegan en
-  // el body; por ahora NO se consulta la base por movimientoStockCodigo ni se guarda un Documento.
+  // El comprobante se arma a partir del movimiento ya guardado (movimientoStockCodigo): se leen
+  // cabecera + detalle de la base y se usa la plantilla configurada (igual que la descarga de prueba
+  // de config, pero sin marca de agua ni plantilla custom).
   async descargarComprobante(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      const form = req.body ?? {};
+      const movimientoCodigo = Number(req.body?.movimientoStockCodigo);
+      if (!movimientoCodigo)
+        throw new ClientException(`Debe indicar un código de movimiento`);
+
+      const cabecera = await this.getMovimientoCabecera(queryRunner, movimientoCodigo);
+      if (!cabecera)
+        throw new ClientException(`Movimiento no encontrado`);
 
       const tempCarpeta = path.join(this.directoryDocumentos, 'temp');
       if (!existsSync(tempCarpeta)) mkdirSync(tempCarpeta, { recursive: true });
 
       const fechaActual = new Date();
-      const tempfilename = `comprobante-form-${fechaActual.getTime()}.pdf`;
+      const tempfilename = `comprobante-${movimientoCodigo}-${fechaActual.getTime()}.pdf`;
       const tempPathAbs = path.join(tempCarpeta, tempfilename);
 
-      await this.renderComprobantePdfFromForm(queryRunner, tempPathAbs, form, res.locals.userName);
+      await this.renderComprobantePdf(queryRunner, tempPathAbs, movimientoCodigo, res.locals.userName);
 
-      res.download(tempPathAbs, 'Comprobante.pdf', async (err) => {
+      res.download(tempPathAbs, `Comprobante-${movimientoCodigo}.pdf`, async (err) => {
         try { await unlink(tempPathAbs); } catch (error) { }
         if (err) return next(err);
       });
