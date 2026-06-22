@@ -43,7 +43,6 @@ export class CuentasBancariasComponent {
   startFilters = signal<Selections[]>([])
   personalId = signal<number>(0)
   visiblePersonalBanco = model<boolean>(false)
-  visibleDatosBanco = model<boolean>(false)
   visibleCuentasBancariasAlta = model<boolean>(false)
   anio = computed(() => this.periodo()? this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo()? this.periodo().getMonth()+1 : 0)
@@ -114,11 +113,7 @@ export class CuentasBancariasComponent {
     this.gridData.reload()
   }
 
-  openDrawerforConsultBanco(): void {
-    this.visibleDatosBanco.set(true)
-  }
-
-  openDrawerforNewPersonalBanco(): void {
+  openDrawerforPersonalBanco(): void {
     this.visiblePersonalBanco.set(true)
   }
 

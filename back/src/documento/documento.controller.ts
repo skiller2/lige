@@ -425,7 +425,7 @@ export class DocumentoController extends BaseController {
     const now = new Date()
     try {
       await queryRunner.startTransaction()
-      const valsTipoDocumento = this.valsTipoDocumento(req.body)
+      const valsTipoDocumento = await this.valsTipoDocumento(req.body, queryRunner)
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
@@ -584,6 +584,13 @@ export class DocumentoController extends BaseController {
 
     try {
       await queryRunner.startTransaction()
+
+      const doc = await queryRunner.query(`
+          SELECT doc.DocumentoTipoCodigo, doc.PersonalId, doc.ObjetivoId, doc.DocumentoClienteId, doc.DocumentoIndividuoDescargaBot
+          FROM Documento doc
+          WHERE doc.DocumentoId IN (@0)
+        `, [doc_id])
+
       //Validaciones
       const telefonos = await queryRunner.query(`
         SELECT Telefono
@@ -592,11 +599,6 @@ export class DocumentoController extends BaseController {
         `, [doc_id])
 
       if (telefonos.length) {
-        const doc = await queryRunner.query(`
-          SELECT DocumentoTipoCodigo, PersonalId, ObjetivoId, DocumentoClienteId, DocumentoIndividuoDescargaBot
-          FROM Documento
-          WHERE DocumentoId IN (@0)
-        `, [doc_id])
 
         if (doc[0].DocumentoTipoCodigo != doctipo_id
           || doc[0].PersonalId != persona_id
@@ -615,7 +617,7 @@ export class DocumentoController extends BaseController {
         }
       }
 
-      const valsTipoDocumento = this.valsTipoDocumento(req.body)
+      const valsTipoDocumento = await this.valsTipoDocumento(req.body, queryRunner)
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
@@ -645,33 +647,48 @@ export class DocumentoController extends BaseController {
     }
   }
 
-  private valsTipoDocumento(tipoDocumento: any) {
+  private async valsTipoDocumento(tipoDocumento: any, queryRunner: any) {
     const doctipo_id: string = tipoDocumento.DocumentoTipoCodigo
     const den_documento: string = tipoDocumento.DocumentoDenominadorDocumento
     const persona_id: number = tipoDocumento.PersonalId
     const cliente_id: number = tipoDocumento.DocumentoClienteId
     const objetivo_id: number = tipoDocumento.ObjetivoId
     const fecha: Date = tipoDocumento.Documentofecha ? new Date(tipoDocumento.Documentofecha) : tipoDocumento.Documentofecha
-    const fec_doc_ven: Date = tipoDocumento.DocumentoFechaDocumentoVencimiento ? new Date(tipoDocumento.DocumentoFechaDocumentoVencimiento) : tipoDocumento.DocumentoFechaDocumentoVencimiento
 
-    const documentoTipoInvalidos = ['POLSEG', 'NOV', 'EST', 'IMPVENV', 'LIC', 'MONOT', 'TEL', 'DES', 'PRO', 'HABPERCABA', 'HABPERPRO']
-    if (documentoTipoInvalidos.includes(doctipo_id)) return new ClientException(`No se puede ingresar/modificar el registro. Se debera hacer desde el modulo correspondiente. Tipo seleccionado: ${doctipo_id}.`)
-
-    const docTipoPersonalRequerido = ['CLU', 'REC', 'LIC', 'DOCIDEDOR', 'DOCIDEFRE', 'EST', 'FOR152', 'FOR184', 'FOTO', 'HABPERCABA', 'HABPERPRO', 'MONOT', 'PERANT', 'PERREI', 'PERSAN', 'PREELE', 'PREHIS', 'PRELAB', 'PREPSI', 'PRERAD', 'PRESUB']
-    const docTipoClienteRequerido = ['CLI', 'HABEMPCABA', 'HABEMPPRO']
-    const docTipoObjetivoRequerido = ['OBJ', 'DECOBJFOR', 'HABOBJCABA', 'HABOBJPBA', 'HABOBJPRE']
+    const valDocTipo = await queryRunner.query(`
+      SELECT PersonalIdRequerido, ClienteIdRequerido, ClienteElementoDependienteIdRequerido, RequiereValidacionesAdicionales FROM DocumentoTipo WHERE DocumentoTipoCodigo = @0
+    `, [doctipo_id])
 
     let campos_vacios: any[] = []
 
     if (!doctipo_id) campos_vacios.push(`- Tipo de documento`)
     if (!den_documento) campos_vacios.push(`- Denominación de documento`)
 
-    if (docTipoPersonalRequerido.includes(doctipo_id) && !Number.isInteger(persona_id)) campos_vacios.push(`- Persona`)
-    if (docTipoClienteRequerido.includes(doctipo_id) && !Number.isInteger(cliente_id)) campos_vacios.push(`- Cliente`)
-    if (docTipoObjetivoRequerido.includes(doctipo_id) && !Number.isInteger(objetivo_id)) campos_vacios.push(`- Objetivo`)
-    if (!fecha) campos_vacios.push(`- Desde`)
-    // if (!fec_doc_ven) campos_vacios.push(`- Hasta`)
+    if (valDocTipo.length > 0) {
 
+      if (valDocTipo[0].RequiereValidacionesAdicionales) return new ClientException(`No se puede ingresar/modificar el registro. Se debera hacer desde el modulo correspondiente. Tipo seleccionado: ${doctipo_id}.`)
+
+      const requeridos: string[] = [];
+      let cumpleAlMenosUno = false;
+
+      if (valDocTipo[0].PersonalIdRequerido) {
+        requeridos.push('Persona');
+        if (persona_id) cumpleAlMenosUno = true;
+      }
+      if (valDocTipo[0].ClienteIdRequerido) {
+        requeridos.push('Cliente');
+        if (cliente_id) cumpleAlMenosUno = true;
+      }
+      if (valDocTipo[0].ClienteElementoDependienteIdRequerido) {
+        requeridos.push('Objetivo');
+        if (objetivo_id) cumpleAlMenosUno = true;
+      }
+
+      if (requeridos.length > 0 && !cumpleAlMenosUno) {
+        campos_vacios.push(`- ${requeridos.join(' ó ')}`);
+      }
+    }
+    if (!fecha) campos_vacios.push(`- Desde`)
 
     if (campos_vacios.length) {
       campos_vacios.unshift('Debe completar los siguientes campos: ')

@@ -87,6 +87,17 @@ export class ParametrosVentaController extends BaseController {
             searchHidden: true
         },
         {
+            name: "Sucursal Objetivo",
+            type: "string",
+            id: "SucursalDescripcion",
+            field: "SucursalDescripcion",
+            fieldName: "suc.SucursalId",
+            searchComponent: "inputForSucursalSearch",
+            sortable: true,
+            hidden: false,
+            searchHidden: false
+        },
+        {
             name: "Periodo Aplica Desde",
             type: "string",
             id: "FormatPeriodoDesdeAplica",
@@ -374,7 +385,7 @@ export class ParametrosVentaController extends BaseController {
         try {
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const objetivo = await this.ObjetivoInfoFromId(ClienteId, ClienteElementoDependienteId,queryRunner)
+            const objetivo = await this.ObjetivoInfoFromId(ClienteId, ClienteElementoDependienteId, queryRunner)
             return this.jsonRes(objetivo, res);
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
@@ -397,7 +408,7 @@ export class ParametrosVentaController extends BaseController {
             await queryRunner.startTransaction()
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
-            const objetivoInfo = await this.ObjetivoInfoFromId(ParametroVenta.ClienteId, ParametroVenta.ClienteElementoDependienteId,queryRunner)
+            const objetivoInfo = await this.ObjetivoInfoFromId(ParametroVenta.ClienteId, ParametroVenta.ClienteElementoDependienteId, queryRunner)
 
             const PeriodoDesdeAplica = new Date(ParametroVenta.PeriodoDesdeAplica)
             PeriodoDesdeAplica.setDate(1)
@@ -447,7 +458,7 @@ export class ParametrosVentaController extends BaseController {
                     AudUsuarioMod,
                     AudIpMod) VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18)`,
                 [ParametroVenta.ClienteId,
-                    ParametroVenta.ClienteElementoDependienteId,
+                ParametroVenta.ClienteElementoDependienteId,
                     PeriodoDesdeAplica,
                     null,
                     null,
@@ -533,32 +544,32 @@ export class ParametrosVentaController extends BaseController {
 
     async FormValidations(ParametroVenta: any, queryRunner: any) {
         let fieldErrors: any[] = [];
-       
+
         if (!ParametroVenta.ClienteElementoDependienteId)
             fieldErrors.push({ fieldTree: 'ObjetivoId', kind: 'server', message: 'Debe completar el campo Objetivo' })
 
         if (!ParametroVenta.PeriodoDesdeAplica)
-                fieldErrors.push({ fieldTree: 'PeriodoDesdeAplica', kind: 'server', message: 'Debe completar el campo Período' })
+            fieldErrors.push({ fieldTree: 'PeriodoDesdeAplica', kind: 'server', message: 'Debe completar el campo Período' })
 
         if (!ParametroVenta.PeriodoFacturacion)
             fieldErrors.push({ fieldTree: 'PeriodoFacturacion', kind: 'server', message: 'Debe completar el campo Período Facturación' })
-        
+
         if (ParametroVenta.GeneracionFacturaReqCliente) {
             ParametroVenta.GeneracionFacturaDia = null;
             ParametroVenta.GeneracionFacturaDiaComplemento = null;
         } else {
-            if (!ParametroVenta.GeneracionFacturaDia) 
+            if (!ParametroVenta.GeneracionFacturaDia)
                 fieldErrors.push({ fieldTree: 'GeneracionFacturaDia', kind: 'server', message: 'Debe completar el campo Día de Generación Factura' })
-    
+
 
             const generacionDia = Number(ParametroVenta.GeneracionFacturaDia);
             if (!Number.isInteger(generacionDia) || generacionDia < 1 || generacionDia > 31)
                 fieldErrors.push({ fieldTree: 'GeneracionFacturaDia', kind: 'server', message: 'El Día de Generación Factura debe ser un número entero sin decimales entre 1 y 31' });
-            
+
 
             if (ParametroVenta.GeneracionFacturaDiaComplemento != null && ParametroVenta.GeneracionFacturaDiaComplemento !== '') {
                 const generacionDiaComplemento = Number(ParametroVenta.GeneracionFacturaDiaComplemento);
-                if (!Number.isInteger(generacionDiaComplemento) || generacionDiaComplemento < 1 || generacionDiaComplemento > 31) 
+                if (!Number.isInteger(generacionDiaComplemento) || generacionDiaComplemento < 1 || generacionDiaComplemento > 31)
                     fieldErrors.push({ fieldTree: 'GeneracionFacturaDiaComplemento', kind: 'server', message: 'El Día de Generación Factura (Complemento) debe ser un número entero sin decimales entre 1 y 31' });
             }
         }
@@ -567,23 +578,23 @@ export class ParametrosVentaController extends BaseController {
             if (producto.ProductoCodigo) {
 
                 if (!producto.TipoImporte)
-                        fieldErrors.push({ fieldTree: `infoProductos[${index}].TipoImporte`, kind: 'server', message: 'Debe completar el campo Tipo Importe' })
+                    fieldErrors.push({ fieldTree: `infoProductos[${index}].TipoImporte`, kind: 'server', message: 'Debe completar el campo Tipo Importe' })
 
-                if (!producto.TipoCantidad) 
+                if (!producto.TipoCantidad)
                     fieldErrors.push({ fieldTree: `infoProductos[${index}].TipoCantidad`, kind: 'server', message: 'Debe completar el campo Tipo Cantidad' });
-                
-                
+
+
 
                 if (producto.TipoImporte === 'F' && !producto.ImporteUnitario)
                     fieldErrors.push({ fieldTree: `infoProductos[${index}].ImporteUnitario`, kind: 'server', message: 'Debe completar el campo Importe Unitario' });
-                
 
 
-                if (producto.TipoCantidad === 'F' && !producto.CantidadHoras) 
+
+                if (producto.TipoCantidad === 'F' && !producto.CantidadHoras)
                     fieldErrors.push({ fieldTree: `infoProductos[${index}].CantidadHoras`, kind: 'server', message: 'Debe completar el campo Cantidad' });
-                
 
-                if (!producto.CantidadReferencia) 
+
+                if (!producto.CantidadReferencia)
                     fieldErrors.push({ fieldTree: `infoProductos[${index}].CantidadReferencia`, kind: 'server', message: 'Debe completar el campo Cantidad Referencia' });
             }
         }
@@ -607,7 +618,7 @@ export class ParametrosVentaController extends BaseController {
     }
 
 
-    async ObjetivoInfoFromId(ClienteId: number, ClienteElementoDependienteId: number, queryRunner:QueryRunner) {
+    async ObjetivoInfoFromId(ClienteId: number, ClienteElementoDependienteId: number, queryRunner: QueryRunner) {
         try {
             const result = await queryRunner.query(
                 `SELECT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
@@ -799,7 +810,7 @@ export class ParametrosVentaController extends BaseController {
             if (!PeriodoDesdeAplica) {
                 throw new ClientException("error al obtener el periodo desde aplica")
             }
-            if (!ClienteId || !ClienteElementoDependienteId) 
+            if (!ClienteId || !ClienteElementoDependienteId)
                 throw new ClientException("error al obtener el objetivo")
 
             //validaciones

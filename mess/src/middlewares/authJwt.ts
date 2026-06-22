@@ -1,12 +1,12 @@
 import jwt from "jsonwebtoken";
-import { BaseController} from "../controller/base.controller.ts";
+import { BaseController } from "../controller/base.controller.ts";
 import { performance } from "node:perf_hooks";
 import { dbServer } from "../index.ts";
 
 //import { TokenExpiredError } from "jsonwebtoken";
 export class AuthMiddleware {
   catchError = (err: any, res: any) => {
-     
+
 
     //if (err instanceof TokenExpiredError) {
     //  return res.status(401).send({ message: "Unauthorized! Access Token was expired!" });
@@ -79,10 +79,10 @@ export class AuthMiddleware {
       }
 
       // se agregan las excepciones si cuenta con los sigueintes permisos
-      if (res.locals?.verifyGrupoActividad 
-          || res.locals?.hasAuthObjetivo 
-          || res.locals?.authResp) return next()
-      
+      if (res.locals?.verifyGrupoActividad
+        || res.locals?.hasAuthObjetivo
+        || res.locals?.authResp) return next()
+
 
       const stopTime = performance.now()
       return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
@@ -139,8 +139,8 @@ export class AuthMiddleware {
       if (PersonalId < 1) {
         return next()
       }
-              const usuario = BaseController.getUser(res)
-        const queryRunner = await dbServer.connection(usuario);
+      const usuario = BaseController.getUser(res)
+      const queryRunner = await dbServer.connection(usuario);
 
 
       const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
@@ -179,18 +179,18 @@ export class AuthMiddleware {
       const mes = Number(req.body.mes);
       const opcionGrupoActividad = req.body.options.filtros
 
-       
-       
+
+
 
       if (PersonalId < 1) return res.status(403).json({ msg: `No se especifico PersonalId` })
       if (!anio || !mes) return res.status(403).json({ msg: `No se especifico anio o mes` })
       // if (!GrupoActividadId) return res.status(403).json({ msg: `No se especifico GrupoActividadId` })
-        const usuario = BaseController.getUser(res)
-        const queryRunner = await dbServer.connection(usuario);
+      const usuario = BaseController.getUser(res)
+      const queryRunner = await dbServer.connection(usuario);
 
 
       const grupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
-       
+
       if (grupos.length > 0) {
         for (const row of grupos) {
           if (row.GrupoActividadId == GrupoActividadId) {
@@ -199,16 +199,16 @@ export class AuthMiddleware {
           }
         }
       }
-       
+
       return res.status(403).json({ msg: `No tiene permiso para acceder al grupo de actividad ${GrupoActividadId}` })
     }
   }
 
 
   hasAuthByDocId = () => {
-    return async (req, res, next) => {        
+    return async (req, res, next) => {
       const usuario = BaseController.getUser(res)
-        const queryRunner = await dbServer.connection(usuario);
+      const queryRunner = await dbServer.connection(usuario);
 
 
       try {
@@ -224,21 +224,21 @@ export class AuthMiddleware {
 
         const path = req.route.path
 
-         
 
-         
-         
-         
-         
-         
-         
-         
-         
-         
-         
+
+
+
+
+
+
+
+
+
+
+
 
         if (!documentId && !documentType && !tableForSearch) return res.status(403).json({ msg: "No se ha proporcionado un documento o tipo de documento para verificar permisos." })
-        if (!tableForSearch) return res.status(403).json({ msg: "Documento Requerido. No se ha adjuntado ningún documento." })
+        if (!tableForSearch) return res.status(403).json({ msg: "No se ha adjuntado ningún documento." })
         let Documento = null;
         switch (tableForSearch) {
           case 'docgeneral':
@@ -487,8 +487,8 @@ export class AuthMiddleware {
     const grupos = GrupoActividad.map((grupo: any) => grupo.GrupoActividadId)
 
     if (grupos.length === 0) return next()
-        const usuario = BaseController.getUser(res)
-        const queryRunner = await dbServer.connection(usuario);
+    const usuario = BaseController.getUser(res)
+    const queryRunner = await dbServer.connection(usuario);
 
     try {
       // Verificar que el objetivo pertenezca a alguno de los grupos de actividad del usuario

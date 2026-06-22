@@ -12,7 +12,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { FormBuilder, FormArray } from '@angular/forms';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { form, FormField, required, submit } from '@angular/forms/signals';
+import { form, FormField, required, submit, disabled } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
 
 export interface PersonalBanco {
@@ -33,14 +33,13 @@ export interface PersonalBanco {
 export class PersonalBancoDrawerComponent {
     PersonalId = input(0)
     PersonalNombre = signal<string>("")
-    isLoading2 = signal(false);
+    isLoading = signal(false);
     visibleBanco = model<boolean>(false)
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
 
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
-    private destroy$ = new Subject();
 
     private readonly defaultPersonalBancoForm: PersonalBanco = { 
         PersonalId: 0,
@@ -50,7 +49,9 @@ export class PersonalBancoDrawerComponent {
     }
     
     readonly personalBanco = signal<PersonalBanco>(this.defaultPersonalBancoForm)
-    readonly formPersonalBanco = form(this.personalBanco)
+    readonly formPersonalBanco = form(this.personalBanco, (p) => {
+        disabled(p.PersonalId, () => this.PersonalId()? true : false)
+    })
 
     effect = effect(async () => {
         if (!this.visibleBanco()) return
@@ -59,10 +60,11 @@ export class PersonalBancoDrawerComponent {
     // this.personalBanco().Desde
     anio = computed(() => (this.personalBanco().Desde)? this.personalBanco().Desde!.getFullYear(): 0);
     mes = computed(() => (this.personalBanco().Desde)? (this.personalBanco().Desde!.getMonth()+1): 0);
+    formPersonalId = computed(() => this.personalBanco().PersonalId);
 
     optionsBanco = toSignal(this.searchService.getBancosOptions())
     listaBancoPer = resource({
-        params: () => ({ PersonalId: this.PersonalId() }),
+        params: () => ({ PersonalId: this.formPersonalId() }),
         loader: async ({ params }) => {
         let response = []
         try {
@@ -77,6 +79,7 @@ export class PersonalBancoDrawerComponent {
                 params.PersonalId
             ).pipe(map(data => {
                 data.map((obj:any) =>{
+                    obj.id = `${params.PersonalId}-${obj.PersonalBancoId}`
                     let inicio = new Date(obj.Desde)
                     let fin = obj.Hasta? new Date(obj.Hasta) : null
                     obj.Desde = `${inicio.getDate()}/${inicio.getMonth()+1}/${inicio.getFullYear()}`
@@ -95,22 +98,16 @@ export class PersonalBancoDrawerComponent {
     async ngOnInit(){
     }
 
-    ngOnDestroy(): void {
-        this.destroy$.next('');
-        this.destroy$.complete();
-    }
 
     async save() {
         await submit(this.formPersonalBanco, async (form) => {
             const values: PersonalBanco = form().value()
             try {
-                await firstValueFrom(this.apiService.setPersonalBanco(values))
+                const res = await firstValueFrom(this.apiService.setPersonalBanco(values))
+                
+                this.listaBancoPer.reload()
+                
                 this.onAddorUpdate.emit()
-                if (this.PersonalId()) {
-                    this.listaBancoPer.reload()
-                } else {
-                    this.visibleBanco.set(false)
-                }
             } catch (e) {
 
             }
@@ -118,15 +115,15 @@ export class PersonalBancoDrawerComponent {
     }
 
     async unsubscribeCBUs() {
-        this.isLoading2.set(true)
+        this.isLoading.set(true)
         try {
-            await firstValueFrom(this.apiService.unsubscribeCBUs(this.PersonalId()))
+            await firstValueFrom(this.apiService.unsubscribeCBUs(this.formPersonalId()))
             this.listaBancoPer.reload()
             this.onAddorUpdate.emit()
         } catch (e) {
 
         }
-        this.isLoading2.set(false)
+        this.isLoading.set(false)
     }
 
 }
