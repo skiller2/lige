@@ -1,5 +1,6 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
+import { ObjetivoController } from "../controller/objetivo.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import { getConnection } from "../data-source.ts";
 import puppeteer from 'puppeteer';
@@ -803,6 +804,9 @@ export class MovimientoStockController extends BaseController {
     const observaciones = form?.observaciones ?? '';
     const textefectos = await this.resolverEfectoLineas(queryRunner, form?.efectos);
 
+    
+    const filasDestino = await this.resolverFilasDestino(queryRunner, tipoDestino, form, fecha);
+
     const vars = {
       movimientoCodigo: '',
       fechaFormateada: this.dateOutputFormat(fecha),
@@ -811,6 +815,7 @@ export class MovimientoStockController extends BaseController {
       tipoDestino: tipoDestinoLabel,
       intermediario,
       observaciones,
+      filasDestino,
       textefectos,
     };
 
@@ -869,6 +874,99 @@ export class MovimientoStockController extends BaseController {
     }
   }
 
+  // Filas <tr> extra del destino para el comprobante, según su tipo. Vacío para depósito/proveedor.
+  private async resolverFilasDestino(queryRunner: any, tipoDestino: string, form: any, fecha: Date): Promise<string> {
+    if (tipoDestino === 'personal') return this.resolverFilasPersona(queryRunner, form?.personalId, fecha);
+    if (tipoDestino === 'objetivo') return this.resolverFilasObjetivo(queryRunner, form?.objetivoId, fecha);
+    return '';
+  }
+
+  // Filas <tr> de la persona destino: situación revista y grupo actividad
+  // (mismas consultas que las pantallas de personal). Devuelve '' si no hay persona.
+  private async resolverFilasPersona(queryRunner: any, personalId: any, fecha: Date): Promise<string> {
+    if (personalId == null || personalId === '') return '';
+    const anio = fecha.getFullYear();
+    const mes = fecha.getMonth() + 1;
+    const situacionRevista = await this.resolverSituacionRevista(queryRunner, personalId, anio, mes);
+    const grupoActividad = await this.resolverGrupoActividad(queryRunner, personalId, anio, mes);
+    return `<tr><td>SITUACIÓN REVISTA</td><td>${situacionRevista || '—'}</td></tr>`
+      + `<tr><td>GRUPO ACTIVIDAD</td><td>${grupoActividad || 'Sin Grupo Actividad Vigente'}</td></tr>`;
+  }
+
+  // Filas <tr> del objetivo destino: grupo actividad y contrato (mismas consultas que el form de movimiento).
+  private async resolverFilasObjetivo(queryRunner: any, objetivoId: any, fecha: Date): Promise<string> {
+    const id = Number(objetivoId);
+    if (!id) return '';
+    const anio = fecha.getFullYear();
+    const mes = fecha.getMonth() + 1;
+
+    const responsables = await ObjetivoController.getObjetivoResponsables(id, anio, mes, queryRunner).catch(() => []);
+    const grupoActividad = (responsables ?? [])
+      .filter((r: any) => r.tipo === 'Grupo')
+      .map((r: any) => {
+        const detalle = (r.detalle ?? '').trim();
+        const desde = this.dateOutputFormat(r.desde);
+        const hasta = r.hasta ? ` Hasta: ${this.dateOutputFormat(r.hasta)}` : '';
+        return `${detalle} (Desde: ${desde}${hasta})`;
+      })
+      .join('<br>');
+
+    const contratos = await ObjetivoController.getObjetivoContratos(id, anio, mes, queryRunner).catch(() => []);
+    const contrato = (contratos ?? [])
+      .map((c: any) => {
+        const desde = this.dateOutputFormat(c.ContratoFechaDesde);
+        return c.ContratoFechaHasta ? `${desde} - ${this.dateOutputFormat(c.ContratoFechaHasta)}` : `Desde ${desde}`;
+      })
+      .join('<br>');
+
+    return `<tr><td>GRUPO ACTIVIDAD</td><td>${grupoActividad || 'Sin Grupo Actividad Vigente'}</td></tr>`
+      + `<tr><td>CONTRATO</td><td>${contrato || 'Sin contrato'}</td></tr>`;
+  }
+
+  // Situación de revista vigente de la persona en el mes (como getPersonalSitRevista).
+  private async resolverSituacionRevista(queryRunner: any, personalId: any, anio: number, mes: number): Promise<string> {
+    try {
+      const rows = await queryRunner.query(`
+        SELECT DISTINCT sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta, sit.SituacionRevistaDescripcion,
+          ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') hastafull
+        FROM Personal per
+        JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND ((DATEPART(YEAR,sitrev.PersonalSituacionRevistaDesde)=@1 AND DATEPART(MONTH, sitrev.PersonalSituacionRevistaDesde)=@2) OR (DATEPART(YEAR,sitrev.PersonalSituacionRevistaHasta)=@1 AND DATEPART(MONTH, sitrev.PersonalSituacionRevistaHasta)=@2) OR (sitrev.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND ISNULL(sitrev.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)))
+        LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+        WHERE per.PersonalId=@0
+        ORDER BY sitrev.PersonalSituacionRevistaDesde, hastafull
+      `, [personalId, anio, mes]);
+      return (rows ?? []).map((r: any) => {
+        const desc = (r.SituacionRevistaDescripcion ?? '').trim();
+        const desde = this.dateOutputFormat(r.PersonalSituacionRevistaDesde);
+        const hasta = r.PersonalSituacionRevistaHasta ? ` - ${this.dateOutputFormat(r.PersonalSituacionRevistaHasta)}` : '';
+        return `${desc} (${desde}${hasta})`;
+      }).join('<br>');
+    } catch (error) {
+      return '';
+    }
+  }
+
+  // Grupo(s) de actividad vigentes de la persona en el mes (filas "Grupo" de getPersonalResponsables).
+  private async resolverGrupoActividad(queryRunner: any, personalId: any, anio: number, mes: number): Promise<string> {
+    try {
+      const rows = await queryRunner.query(`
+        SELECT CONCAT(ga.GrupoActividadNumero, ' ', ga.GrupoActividadDetalle) AS detalle,
+          gap.GrupoActividadPersonalDesde AS desde, gap.GrupoActividadPersonalHasta AS hasta
+        FROM GrupoActividadPersonal gap
+        JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+        WHERE gap.GrupoActividadPersonalPersonalId=@0 AND EOMONTH(DATEFROMPARTS(@1,@2,1)) > gap.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(gap.GrupoActividadPersonalHasta, '9999-12-31')
+      `, [personalId, anio, mes]);
+      return (rows ?? []).map((r: any) => {
+        const detalle = (r.detalle ?? '').trim();
+        const desde = this.dateOutputFormat(r.desde);
+        const hasta = r.hasta ? ` Hasta: ${this.dateOutputFormat(r.hasta)}` : '';
+        return `${detalle} (Desde: ${desde}${hasta})`;
+      }).join('<br>');
+    } catch (error) {
+      return '';
+    }
+  }
+
   // Filas <tr> del detalle: descripción del efecto, ubicación de origen y cantidad (todo resuelto).
   private async resolverEfectoLineas(queryRunner: any, efectos: any[]): Promise<string> {
     let html = '';
@@ -903,8 +1001,8 @@ export class MovimientoStockController extends BaseController {
     try {
       const r = await queryRunner.query(`
         SELECT TOP 1 COALESCE(
-          CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)),
-          CONCAT(cli.ClienteId, '/', ele.ClienteElementoDependienteId, ' ', TRIM(ele.ClienteElementoDependienteDescripcion)),
+          IIF(per.PersonalId IS NULL, NULL, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre))),
+          IIF(ele.ClienteElementoDependienteId IS NULL, NULL, CONCAT(cli.ClienteId, '/', ele.ClienteElementoDependienteId, ' ', TRIM(ele.ClienteElementoDependienteDescripcion))),
           TRIM(pro.ProveedorRazonSocial),
           TRIM(dep.DepositoNombre)
         ) AS label
@@ -934,6 +1032,7 @@ export class MovimientoStockController extends BaseController {
       .replace(/\${tipoDestino}/g, vars.tipoDestino ?? '')
       .replace(/\${intermediario}/g, vars.intermediario ?? '')
       .replace(/\${observaciones}/g, vars.observaciones ?? '')
+      .replace(/\${filasDestino}/g, vars.filasDestino ?? '')
       .replace(/\${textefectos}/g, vars.textefectos ?? '');
   }
 

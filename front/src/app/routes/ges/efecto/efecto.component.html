@@ -32,6 +32,7 @@
     <nz-button-group nz-button nz-buttonGroup>
       <!-- Recarga de grilla -->
       <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
+        [disabled]="activeTab() === 'movimiento'"
         (click)="reloadGrid()">
         <span nz-icon nzType="reload" nzTheme="outline"></span>
       </button>
@@ -43,6 +44,7 @@
            hijo expone y el padre manda como body. No se consulta la base por movimientoStockCodigo. -->
       <button #descargarComprobante nz-button nzType="default" type="button" nz-tooltip
         nzTooltipTitle="Descargar Comprobante"
+        [disabled]="activeTab() !== 'movimiento'"
         app-down-file [httpMethod]="'POST'"
         [httpBody]="comprobanteBody()"
         httpUrl="api/movimiento-stock/comprobante">
