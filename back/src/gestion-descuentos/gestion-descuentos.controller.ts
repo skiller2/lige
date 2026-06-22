@@ -1030,6 +1030,8 @@ export class GestionDescuentosController extends BaseController {
 
     if (mensaje.length > 0) throw new ClientException(mensaje)
 
+    // todo: agregar validacion sobre 'aplica a'. En caso de que exista en ObjetivoDescuentoAplica, validar el 'aplica a' contra ese registro. De no encontrar registro asociado, crear uno.
+
     const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
     const importeCuota = Number((importeCalculado / Number(Cuotas)).toFixed(2))
 
