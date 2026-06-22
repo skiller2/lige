@@ -4,6 +4,7 @@ import { getConnection } from "../data-source.ts";
 import { recibosController } from "../controller/controller.module.ts";
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { logger } from "../logger/logger.ts";
 
 export class ValorHoraController extends BaseController {
 
@@ -299,17 +300,33 @@ export class ValorHoraController extends BaseController {
   }
 
   async aumentarValores(req: Request, res: Response, next: NextFunction) {
-    const { anio, mes, tipo, valor } = req.body;
-    if (!anio || !mes || !tipo || valor == null) return next(new ClientException("Datos incompletos"));
+    const { anio, mes, tipo, valor, tipoAsociadoId } = req.body;
+    if (!anio || !mes || !tipo || valor == null || !tipoAsociadoId) return next(new ClientException("Datos incompletos"));
     if (!['porcentaje', 'fijo'].includes(tipo)) return next(new ClientException("Tipo debe ser 'porcentaje' o 'fijo'"));
     if (!valor || Number(valor) == 0) return next(new ClientException("El valor debe ser distinto de 0"));
-    let usuario = res.locals.userName
-    let ip = this.getRemoteAddress(req)
-    let fechaActual = new Date()
+    const tipoAsociadoIds = String(tipoAsociadoId).split(';').map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0);
+    if (tipoAsociadoIds.length === 0) return next(new ClientException("Debe indicar un tipo de asociado válido"));
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+    const fechaActual = new Date()
+    let cantRegistrosActualizados = 0;
+    let EventoLogCodigo = 0
 
-    const queryRunner = await getConnection(res.locals.userName);
+
+    logger.info("req.body", req.body)
+    logger.info("tipoAsociadoIds", tipoAsociadoIds)
+    const queryRunner = await getConnection(usuario);
     try {
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Aumento masivo de valores hora`,
+        { anio, mes, tipo, valor, tipoAsociadoId },
+        usuario,
+        ip,
+        "LIQ"
+      ));
       await queryRunner.startTransaction();
+
 
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
 
@@ -320,19 +337,21 @@ export class ValorHoraController extends BaseController {
         throw new ClientException(`No se puede modificar los Importes del período ${mes}/${anio}, los recibos se encuentran generados para ese período.`)
 
 
+      const tipoAsociadoPlaceholders = tipoAsociadoIds.map((_, index) => `@${index + 2}`).join(', ');
       const registros = await queryRunner.query(`
         SELECT vl.ValorLiquidacionSucursalId, vl.ValorLiquidacionTipoAsociadoId, vl.ValorLiquidacionCategoriaPersonalId, vl.ValorLiquidacionHoraNormal, vl.ValorLiquidacionDesde,
           CONCAT(TRIM(ta.TipoAsociadoDescripcion), ' - ', TRIM(cp.CategoriaPersonalDescripcion)) AS Categoria, s.SucursalDescripcion
         FROM ValorLiquidacion vl
         LEFT JOIN TipoAsociado ta ON ta.TipoAsociadoId = vl.ValorLiquidacionTipoAsociadoId
-        LEFT JOIN CategoriaPersonal cp ON cp.CategoriaPersonalId = vl.ValorLiquidacionCategoriaPersonalId AND vl.ValorLiquidacionTipoAsociadoId = cp.TipoAsociadoId
+        JOIN CategoriaPersonal cp ON cp.CategoriaPersonalId = vl.ValorLiquidacionCategoriaPersonalId AND vl.ValorLiquidacionTipoAsociadoId = cp.TipoAsociadoId and ISNULL(cp.CategoriaPersonalInactivo,0) = 0
         LEFT JOIN Sucursal s ON s.SucursalId = vl.ValorLiquidacionSucursalId
         WHERE vl.ValorLiquidacionDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1))
-          AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)`,
-        [anio, mes]
+          AND ISNULL(vl.ValorLiquidacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+          AND vl.ValorLiquidacionTipoAsociadoId IN (${tipoAsociadoPlaceholders})`,
+        [anio, mes, ...tipoAsociadoIds]
       );
 
-      if (registros.length === 0) throw new ClientException(`No se encontraron registros para el período ${mes}/${anio}.`)
+      if (registros.length === 0) throw new ClientException(`No se encontraron registros para el período ${mes}/${anio} y el tipo de asociado seleccionado.`)
 
       for (const reg of registros) {
         let nuevoValor = Number(reg.ValorLiquidacionHoraNormal);
@@ -361,6 +380,7 @@ export class ValorHoraController extends BaseController {
 
         try {
           await this.setValorHora(queryRunner, paramsSet, usuario, ip, fechaActual);
+          cantRegistrosActualizados++;
         } catch (e: any) {
           if (e instanceof ClientWarning) {
             continue; // Si el valor es idéntico, simplemente saltamos la actualización de este registro
@@ -370,9 +390,29 @@ export class ValorHoraController extends BaseController {
       }
 
       await queryRunner.commitTransaction();
-      this.jsonRes({ success: true }, res, "Modificación de valores aplicada exitosamente");
+
+      let resMsg = `Modificación de valores aplicada exitosamente. Se actualizaron ${cantRegistrosActualizados} registros.`
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: resMsg,
+        },
+        usuario,
+        ip
+      );
+      this.jsonRes({ success: true }, res, resMsg);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+
       return next(error);
     } finally {
       await queryRunner.release();
