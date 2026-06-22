@@ -274,7 +274,7 @@ export class CuentasBancariasController extends BaseController {
   async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
     const periodoRequest: Date = req.body.periodo ? new Date(req.body.periodo) : null
     const bancoIdRequest = Number(req.body.BancoId)
-    const file = req.body.files
+    const file = req.body.file
     const IndNuevaCuenta = 1
     const queryRunner = await getConnection(res.locals.userName);
     const usuario = res.locals.userName
@@ -340,7 +340,7 @@ export class CuentasBancariasController extends BaseController {
 
       //Validar que esten las columnas nesesarias
       if (isNaN(columnsXLS['cuit'])) columnsnNotFound.push('- CUIT')
-      if (isNaN(columnsXLS['cbu'])) columnsnNotFound.push('- cbu')
+      if (isNaN(columnsXLS['cbu'])) columnsnNotFound.push('- CBU')
 
       if (columnsnNotFound.length) {
         columnsnNotFound.unshift('Faltan las siguientes columnas:')
