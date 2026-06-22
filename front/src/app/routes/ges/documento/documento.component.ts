@@ -1,4 +1,4 @@
-import { Component, inject, model, signal, viewChild } from '@angular/core';
+import { Component, inject, model, signal, viewChild, resource } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import {
   BehaviorSubject,
@@ -24,6 +24,7 @@ import { TableHistorialDescargasComponent } from '../table-historial-descargas/t
 import { ReporteComponent } from '../../../shared/reporte/reporte.component'
 import { LoadingService } from '@delon/abc/loading';
 import { Selections } from '../../../shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 type listOptionsT = {
   filtros: any[],
@@ -36,7 +37,6 @@ export class CustomDescargaComprobanteComponent {
   anio: any
   mes: any
 }
-
 
 @Component({
   selector: 'documento',
@@ -51,75 +51,50 @@ export class CustomDescargaComprobanteComponent {
   providers: [AngularUtilService]
 })
 export class DocumentoComponent {
-  startFilters = signal<Selections[]>([])
-
-  constructor(
-    private settingService: SettingsService,
-    public apiService: ApiService,
-    private angularUtilService: AngularUtilService,
-    public searchService: SearchService
-  ) { }
-
-  formChange$ = new BehaviorSubject('');
-  tableLoading$ = new BehaviorSubject(false);
-  columnDefinitions: Column[] = [];
-
-  columns$ = this.apiService.getCols('/api/documento/cols').pipe(map((cols) => {
-    return cols
-  }));
-
-  excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
+  columnDefinitions: Column[] = [];
+  excelExportService = new ExcelExportService()
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
-  // periodo = signal({anio:0, mes:0})
   docId = signal<number>(0)
-  visibleAlta = model<boolean>(false)
-  visibleEdit = model<boolean>(false)
-  visibleDetalle = model<boolean>(false)
-  refresh = signal(0)
+  visibleAlta = signal<boolean>(false)
+  visibleEdit = signal<boolean>(false)
+  visibleDetalle = signal<boolean>(false)
   loadingDelete = signal<boolean>(false)
-  private readonly loadingSrv = inject(LoadingService);
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
     extra: null
-  }
+  })
+  startFilters = signal<Selections[]>([])
+
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
+  private readonly loadingSrv = inject(LoadingService)
 
   childHistorialDescargas = viewChild.required<TableHistorialDescargasComponent>('historialDescargas')
   childListaPendientes = viewChild.required<TablePendientesDescargasComponent>('listPendientes')
 
-  onAddorUpdate(_e: any) {
-    this.formChanged('')
-  }
+  columns = toSignal(this.apiService.getCols('/api/documento/cols'), { initialValue: [] as Column[] });
 
-  listOptionsChange(options: any) {
-    this.listOptions = options;
-    this.formChange$.next('')
-  }
-
-  gridData$ = this.formChange$.pipe(
-    debounceTime(500),
-    switchMap(() => {
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
-      return this.apiService
-        .getDocumentos(
-          this.listOptions
-        )
-        .pipe(
-          map(data => {
-            return data.list
-          }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => {
-            this.tableLoading$.next(false)
-            this.loadingSrv.close()
-          } })
-        );
-    })
-  )
+      try {
+        response = await firstValueFrom(this.apiService.getDocumentos(params.options));
+      } catch (_e) { }
+      this.loadingSrv.close()
+
+      return response.list || [];
+    },
+
+    defaultValue: []
+  });
 
   ngOnInit() {
     this.columnDefinitions = [
@@ -166,11 +141,8 @@ export class DocumentoComponent {
     }, 1);
   }
 
-  formChanged(_event: any) {
-    this.listOptionsChange(this.listOptions)
-  }
-
-  ngOnDestroy() {
+  onAddorUpdate(_e: any) {
+    this.gridData.reload()
   }
 
   angularGridReady(angularGrid: any) {
@@ -237,7 +209,7 @@ export class DocumentoComponent {
       if (id != null) {
         await firstValueFrom(this.apiService.deleteDocumento(id, 'documento'));
         // Emito cambio para refrescar la lista, el grid, etc.
-        this.formChange$.next('');
+        this.gridData.reload()
       }
     } catch (error) {
     } finally {

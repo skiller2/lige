@@ -1,7 +1,7 @@
 <nz-card class="small-margin">
   <div style="display: flex; justify-content: space-between; align-items: center;">
     <nz-form-control>
-      <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzPlaceHolder="Periodo"/>
+      <nz-date-picker nzMode="month" [(ngModel)]="periodo" nzPlaceHolder="Periodo" />
     </nz-form-control>
     <nz-button-group nz-button nzButtonGroup style="display: flex;">
       <button type="button" nz-button nzType="default" (click)="gridData.reload()" [disabled]="gridData.isLoading()">
@@ -27,12 +27,14 @@
     <ng-container *nzModalContent>
       <div style="display: flex; flex-direction: column; gap: 16px;">
         <nz-form-item style="margin-bottom: 0;">
-            <b>Aumento aplicado sobre valores del {{ getCalculatedPeriodDay() }}</b>
-          </nz-form-item>
+          <b>Aumento aplicado sobre valores del {{ getCalculatedPeriodDay() }}</b>
+        </nz-form-item>
+
         <nz-form-item style="margin-bottom: 0;">
           <nz-form-label>Modificación por</nz-form-label>
           <nz-form-control>
-            <nz-radio-group [ngModel]="aumentoTipo()" (ngModelChange)="aumentoTipo.set($event); aumentoValor = undefined;">
+            <nz-radio-group [ngModel]="aumentoTipo()"
+              (ngModelChange)="aumentoTipo.set($event); aumentoValor = undefined;">
               <label nz-radio nzValue="porcentaje">Porcentaje</label>
               <label nz-radio nzValue="fijo">Monto fijo</label>
             </nz-radio-group>
@@ -59,14 +61,20 @@
             </nz-date-picker>
           </nz-form-control>
         </nz-form-item>
+        <nz-form-item style="margin-bottom: 0;">
+          <nz-form-label>Categorías a aplicar</nz-form-label>
+          <nz-form-control>
+            <app-tipo-asociado-search style="width: 100%;" [(ngModel)]="aumentoTipoAsociadoId"
+              [ngModelOptions]="{ standalone: true }" />
+          </nz-form-control>
+        </nz-form-item>
       </div>
     </ng-container>
   </nz-modal>
 
   @if (columns().length) {
   <div nz-tab>
-    <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions"
-      [startFilters]="startFilters()" />
+    <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" [startFilters]="startFilters()" />
     <div class="gridContainer container-fluid">
       <angular-slickgrid gridId="gridEdit" [columns]="columns() | colsFilter" [options]="gridOptionsEdit"
         [dataset]="gridData.value()||[]" (onAngularGridCreated)="angularGridReadyEdit($event)"

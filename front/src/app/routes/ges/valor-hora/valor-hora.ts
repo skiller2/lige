@@ -15,6 +15,7 @@ import { Selections } from '../../../shared/schemas/filtro';
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { TipoAsociadoSearchComponent } from '../../../shared/tipo-asociado-search/tipo-asociado-search';
 
 @Component({
   selector: 'app-precios-productos',
@@ -22,7 +23,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
   imports: [
     ...SHARED_IMPORTS,
     CommonModule,
-    FiltroBuilderComponent
+    FiltroBuilderComponent,
+    TipoAsociadoSearchComponent
   ],
   templateUrl: './valor-hora.html',
   styleUrl: './valor-hora.scss'
@@ -60,6 +62,7 @@ export class ValorHoraComponent {
   aumentoLoading = false
   aumentoTipo = signal<string>('porcentaje')
   aumentoValor: number | undefined = undefined
+  aumentoTipoAsociadoId: string | undefined = undefined
   aumentoPeriodo = signal<Date>(new Date())
   recibosGenerados = signal<boolean>(false)
 
@@ -80,6 +83,7 @@ export class ValorHoraComponent {
   async abrirAumentoModal() {
     this.aumentoTipo.set('porcentaje');
     this.aumentoValor = undefined;
+    this.aumentoTipoAsociadoId = undefined;
     this.aumentoPeriodo.set(this.periodo());
     this.showAumentoModal = true;
   }
@@ -93,14 +97,19 @@ export class ValorHoraComponent {
       this.messageSrv.warning('Seleccione un período');
       return;
     }
+    if (!this.aumentoTipoAsociadoId) {
+      this.messageSrv.warning('Seleccione un tipo de asociado');
+      return;
+    }
     const anio = this.aumentoPeriodo().getFullYear();
     const mes = this.aumentoPeriodo().getMonth() + 1;
     this.aumentoLoading = true;
     try {
-      await firstValueFrom(this.apiService.aumentarValorHora({ anio, mes, tipo: this.aumentoTipo(), valor: this.aumentoValor }));
+      await firstValueFrom(this.apiService.aumentarValorHora({ anio, mes, tipo: this.aumentoTipo(), valor: this.aumentoValor, tipoAsociadoId: this.aumentoTipoAsociadoId }));
       // this.messageSrv.success('Aumento aplicado correctamente');
       this.showAumentoModal = false;
       this.aumentoValor = undefined;
+      this.aumentoTipoAsociadoId = undefined;
       this.gridData.reload()
     } catch (e) {
       // error handled by api service

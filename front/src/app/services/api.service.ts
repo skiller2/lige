@@ -806,10 +806,9 @@ export class ApiService {
     }
     const parameter = { options }
     return this.http.post<ResponseJSON<any>>('/api/documento/list', parameter).pipe(
-      map((res: { data: any; }) => res.data),
+      map(res => res.data),
       catchError(() => of([]))
     );
-
   }
 
   getFacturacion(options: any) {
@@ -1749,7 +1748,7 @@ export class ApiService {
 
   }
 
-  importXLSImporteVentaTelefonia(files: any, anio: number, mes: number, fecha: Date, totaldeclarado: number, simulacion:boolean) {
+  importXLSImporteVentaTelefonia(files: any, anio: number, mes: number, fecha: Date, totaldeclarado: number, simulacion: boolean) {
     const parameter = { files, anio, mes, fecha, totaldeclarado, simulacion }
     return this.http.post<ResponseJSON<any>>(`api/telefonia/import-xls-telefonia`, parameter)
       .pipe(
@@ -2238,7 +2237,7 @@ export class ApiService {
   }
   private readonly tokenService = inject(DA_SERVICE_TOKEN);
   private injector = inject(Injector);
-  
+
   async fastFetch<T>(url: string): Promise<T> {
 
     const res = await fetch(url, {
@@ -2247,7 +2246,7 @@ export class ApiService {
 
     if (!res.ok) {
 
-      if (res.status === 401 ||res.status === 403) {
+      if (res.status === 401 || res.status === 403) {
         toLogin(this.injector)
       }
 
@@ -2270,7 +2269,7 @@ export class ApiService {
 
   }
 
-  aumentarValorHora(params: { anio: number, mes: number, tipo: string, valor: number }) {
+  aumentarValorHora(params: { anio: number, mes: number, tipo: string, valor: number, tipoAsociadoId: string | number }) {
     return this.http.post<ResponseJSON<any>>('/api/valor-hora/aumentar', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     );
@@ -2288,8 +2287,8 @@ export class ApiService {
     );
   }
 
-  importXLSCuentasBancarias(file:any, periodo:any, BancoId:number){
-    const parameter = {file, periodo, BancoId}
+  importXLSCuentasBancarias(file: any, periodo: any, BancoId: number) {
+    const parameter = { file, periodo, BancoId }
     return this.http.post<ResponseJSON<any>>(`api/cuentas-bancarias/import-xls`, parameter).pipe(
       map(res => res.data),
       catchError(() => of([]))

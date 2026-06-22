@@ -433,10 +433,8 @@ export class DocumentoController extends BaseController {
       const uploadResult = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, null, fecha, fec_doc_ven, den_documento, null, null, archivos[0], usuario, ip, queryRunner)
       const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
 
-
-
       await queryRunner.commitTransaction()
-      this.jsonRes({ doc_id }, res, 'Carga Exitosa');
+      this.jsonRes({ DocumentoId: doc_id }, res, 'Carga Exitosa');
     } catch (error) {
       this.rollbackTransaction(queryRunner)
       return next(error)
