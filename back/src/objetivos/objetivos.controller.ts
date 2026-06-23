@@ -1384,8 +1384,12 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             await this.ObjetivoRubro(queryRunner, Obj.rubrosCliente, Obj.ClienteId, Obj.ClienteElementoDependienteId)
             await this.ObjetivoDocRequerido(queryRunner, Obj.docsRequerido, Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
-            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCoordinador, 'C', Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
-            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoLince, 'L', Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip)
+
+            // DESCUENTOS A APLICAR
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCoordinador, 'CO', Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip) // A COORDINADOR
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoLince, 'NO', Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip) // A LINCE
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCliente, 'CL', Obj.ClienteId, Obj.ClienteElementoDependienteId, usuario, ip) // A CLIENTE
+
 
             await this.setObjetivoHabilitacionNecesaria(queryRunner, ObjetivoId, Obj.habilitacion, usuario, ip)
 
@@ -1723,14 +1727,16 @@ export class ObjetivosController extends BaseController {
         }
 
         //Descuentos
-        if (form.descuentoCoordinador.length != 0 || form.descuentoLince.length != 0) {
-            if (form.descuentoCoordinador.length > 1 || form.descuentoLince.length > 1)
-                throw new ClientException(`Solo se puede selecionar 1 descuento a Coordinador y Lince`)
+        const descC = form.descuentoCoordinador || [];
+        const descL = form.descuentoLince || [];
+        const descCli = form.descuentoCliente || [];
 
+        const intersectCL = descC.some((v: any) => descL.includes(v));
+        const intersectCCli = descC.some((v: any) => descCli.includes(v));
+        const intersectLCli = descL.some((v: any) => descCli.includes(v));
 
-            if (form.descuentoCoordinador.length && form.descuentoLince.length && (form.descuentoCoordinador[0] == form.descuentoLince[0])) {
-                throw new ClientException(`Los descuentos a Coordinador y Lince deben de ser diferentes`)
-            }
+        if (intersectCL || intersectCCli || intersectLCli) {
+            throw new ClientException(`No se puede asignar un mismo descuento 'a aplicar' a más de uno a la vez (Coordinador, Lince o Cliente).`);
         }
 
 

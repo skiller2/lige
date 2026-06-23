@@ -926,7 +926,7 @@ LEFT JOIN(
         CONCAT(TRIM(tip.TipoAsociadoDescripcion), ' - ', TRIM(cat.CategoriaPersonalDescripcion)) label
         FROM CategoriaPersonal cat
         JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId
-        WHERE (cat.CategoriaPersonalInactivo = 0 OR cat.CategoriaPersonalInactivo IS NULL)
+        WHERE ISNULL(cat.CategoriaPersonalInactivo, 0) = 0
         ORDER BY tip.TipoAsociadoDescripcion, cat.CategoriaPersonalDescripcion`)
 
       this.jsonRes(options, res);
@@ -2732,7 +2732,7 @@ UNION ALL
       const options = await queryRunner.query(`
         SELECT catper.CategoriaPersonalId value, TRIM(catper.CategoriaPersonalDescripcion) label
         FROM CategoriaPersonal catper
-        WHERE catper.TipoAsociadoId IN (@0) AND catper.CategoriaPersonalInactivo IS NULL
+        WHERE catper.TipoAsociadoId IN (@0) AND isnull(catper.CategoriaPersonalInactivo, 0) = 0
         `, [tipoAsociado]
       )
 
@@ -3036,23 +3036,23 @@ UNION ALL
   }
 
   static async setPersonalBancoQuerys(
-    queryRunner:any, 
-    PersonalId:number, 
-    BancoId:number,
-    Desde:Date,
-    CBU:string, 
-    IndNuevaCuenta:number, 
-    AudFecha, 
-    usuario:string, 
-    ip:string
-  ){
-    let PersonalBanco:any = await queryRunner.query(`
+    queryRunner: any,
+    PersonalId: number,
+    BancoId: number,
+    Desde: Date,
+    CBU: string,
+    IndNuevaCuenta: number,
+    AudFecha,
+    usuario: string,
+    ip: string
+  ) {
+    let PersonalBanco: any = await queryRunner.query(`
       SELECT PersonalBancoId, PersonalBancoDesde, IndNuevaCuenta, PersonalBancoCBU
       FROM PersonalBanco 
       WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
     `, [PersonalId, BancoId])
 
-    const lastReg:any = PersonalBanco[0]
+    const lastReg: any = PersonalBanco[0]
 
     if (lastReg && (new Date(lastReg.PersonalBancoDesde).getTime() == Desde.getTime() || (lastReg.IndNuevaCuenta == 1 && lastReg.PersonalBancoCBU.length == 0))) {
       const PersonalBancoId = lastReg.PersonalBancoId
@@ -3067,12 +3067,12 @@ UNION ALL
       `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta, AudFecha, usuario, ip])
     } else {
       if (lastReg) {
-        if (lastReg.PersonalBancoDesde.getTime() > Desde.getTime()){
-          const Desde:Date = new Date(lastReg.PersonalBancoDesde)
+        if (lastReg.PersonalBancoDesde.getTime() > Desde.getTime()) {
+          const Desde: Date = new Date(lastReg.PersonalBancoDesde)
           throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${Desde.getDate()}/${Desde.getMonth() + 1}/${Desde.getFullYear()}`)
         }
-        const PersonalBancoId:number = lastReg.PersonalBancoId
-        const Hasta:Date = new Date(Desde)
+        const PersonalBancoId: number = lastReg.PersonalBancoId
+        const Hasta: Date = new Date(Desde)
         Hasta.setDate(Hasta.getDate() - 1)
         await queryRunner.query(`
           UPDATE PersonalBanco SET
@@ -3084,12 +3084,12 @@ UNION ALL
         `, [PersonalId, BancoId, PersonalBancoId, Hasta, AudFecha, usuario, ip])
 
       }
-      const Personal:any = await queryRunner.query(`
+      const Personal: any = await queryRunner.query(`
         SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
         FROM Personal 
         WHERE PersonalId IN (@0)
       `, [PersonalId])
-      const newPersonalBancoId:number = Personal[0].UltNro
+      const newPersonalBancoId: number = Personal[0].UltNro
       await queryRunner.query(`
         INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
         AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
@@ -3140,7 +3140,7 @@ UNION ALL
       Desde = new Date(Desde)
       Desde.setHours(0, 0, 0, 0)
 
-      await PersonalController.setPersonalBancoQuerys(queryRunner,PersonalId,BancoId,Desde,CBU,IndNuevaCuenta,fechaActual,usuario,ip)
+      await PersonalController.setPersonalBancoQuerys(queryRunner, PersonalId, BancoId, Desde, CBU, IndNuevaCuenta, fechaActual, usuario, ip)
 
       // PersonalBanco = await queryRunner.query(`
       //   SELECT PersonalBancoId, PersonalBancoDesde

@@ -11,7 +11,7 @@ import { SearchService } from '../../../services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzSelectModule } from 'ng-zorro-antd/select';
-import  { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { Router } from '@angular/router';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { TableObjetivoDocumentoComponent } from '../../../routes/ges/table-objetivo-documentos/table-objetivo-documentos';
@@ -22,7 +22,7 @@ export interface CoordinadorCuenta {
   ObjetivoId: number,
   PersonalId: number,
   ObjetivoPersonalJerarquicoId: number,
-  ObjetivoPersonalJerarquicoComision: string, 
+  ObjetivoPersonalJerarquicoComision: string,
   ObjetivoPersonalJerarquicoDescuentos: boolean,
   ObjetivoPersonalJerarquicoSeDescuentaTelefono: boolean,
   DescuentoRetiros: boolean,
@@ -54,12 +54,13 @@ export interface Objetivo {
   DomicilioFulllAdress: string,
   DomicilioDomNro: number, DomicilioCodigoPostal: number, DomicilioDomLugar: string,
   DomicilioProvinciaId: number, DomicilioLocalidadId: number, DomicilioBarrioId: number,
-  infoCoordinadorCuenta: CoordinadorCuenta[], 
-  rubrosCliente: any[],  
+  infoCoordinadorCuenta: CoordinadorCuenta[],
+  rubrosCliente: any[],
   docsRequerido: any[],
-  infoActividad: Actividad[], 
-  descuentoCoordinador: number[], 
+  infoActividad: Actividad[],
+  descuentoCoordinador: number[],
   descuentoLince: number[],
+  descuentoCliente: number[],
   estado: number,
   files: any[],
   codigo: string,
@@ -73,34 +74,34 @@ export interface Objetivo {
 }
 
 @Component({
-    selector: 'app-objetivos-form',
-    templateUrl: './objetivos-form.component.html',
-    styleUrl: './objetivos-form.component.less',
-    encapsulation: ViewEncapsulation.None,
-    providers: [AngularUtilService],
-    imports: [
-        SHARED_IMPORTS,
-        CommonModule,
-        PersonalSearchComponent,
-        ClienteSearchComponent,
-        NzAutocompleteModule,
-        NzSelectModule,
-        FileUploadComponent,
-        GrupoActividadSearchComponent,
-        NzCheckboxModule,
-        DetallePersonaComponent,
-        TableObjetivoDocumentoComponent,
-        FormField
-    ],
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-objetivos-form',
+  templateUrl: './objetivos-form.component.html',
+  styleUrl: './objetivos-form.component.less',
+  encapsulation: ViewEncapsulation.None,
+  providers: [AngularUtilService],
+  imports: [
+    SHARED_IMPORTS,
+    CommonModule,
+    PersonalSearchComponent,
+    ClienteSearchComponent,
+    NzAutocompleteModule,
+    NzSelectModule,
+    FileUploadComponent,
+    GrupoActividadSearchComponent,
+    NzCheckboxModule,
+    DetallePersonaComponent,
+    TableObjetivoDocumentoComponent,
+    FormField
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 
 export class ObjetivosFormComponent {
-  
+
   visibleDrawer = signal(false)
   periodo = signal({ year: 0, month: 0 })
-//  visibleDrawer: boolean = false
+  //  visibleDrawer: boolean = false
   ObjetivoId = input(0)
   ClienteId = input(0)
   ClienteElementoDependienteId = input(0)
@@ -116,23 +117,23 @@ export class ObjetivosFormComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private router = inject(Router);
-  private readonly coordinadorCuentaDefault: CoordinadorCuenta = { 
-    ObjetivoId:0,
-    PersonalId:0,
-    ObjetivoPersonalJerarquicoId:0,
-    ObjetivoPersonalJerarquicoComision: '', 
+  private readonly coordinadorCuentaDefault: CoordinadorCuenta = {
+    ObjetivoId: 0,
+    PersonalId: 0,
+    ObjetivoPersonalJerarquicoId: 0,
+    ObjetivoPersonalJerarquicoComision: '',
     ObjetivoPersonalJerarquicoDescuentos: false,
     ObjetivoPersonalJerarquicoSeDescuentaTelefono: false,
     DescuentoRetiros: false,
   }
-  private readonly actividadDefault: Actividad = { 
+  private readonly actividadDefault: Actividad = {
     GrupoActividadObjetivoId: 0,
     GrupoActividadId: 0,
     GrupoActividadOriginal: 0,
     GrupoActividadObjetivoDesde: null,
     GrupoActividadObjetivoDesdeOriginal: ''
   }
-  private readonly objetivoDefault: Objetivo = { 
+  private readonly objetivoDefault: Objetivo = {
     id: 0,
     ClienteId: 0,
     clienteOld: 0,
@@ -147,15 +148,16 @@ export class ObjetivosFormComponent {
     ClienteElementoDependienteContratoUltNro: 0,
     RubroUltNro: 0,
     DomicilioId: 0, DomicilioDomCalle: "",
-    DomicilioFulllAdress:"",
+    DomicilioFulllAdress: "",
     DomicilioDomNro: NaN, DomicilioCodigoPostal: NaN, DomicilioDomLugar: '',
-    DomicilioProvinciaId: 0,DomicilioLocalidadId: 0, DomicilioBarrioId: 0,
-    infoCoordinadorCuenta: [structuredClone(this.coordinadorCuentaDefault)], 
-    rubrosCliente: [],  
+    DomicilioProvinciaId: 0, DomicilioLocalidadId: 0, DomicilioBarrioId: 0,
+    infoCoordinadorCuenta: [structuredClone(this.coordinadorCuentaDefault)],
+    rubrosCliente: [],
     docsRequerido: [],
-    infoActividad: [structuredClone(this.actividadDefault)], 
+    infoActividad: [structuredClone(this.actividadDefault)],
     descuentoCoordinador: [],
-    descuentoLince: [], 
+    descuentoLince: [],
+    descuentoCliente: [],
     estado: 0,
     files: [],
     codigo: "",
@@ -171,14 +173,14 @@ export class ObjetivosFormComponent {
   readonly objetivo = signal<Objetivo>(this.objetivoDefault);
   readonly formObjetivo = form(this.objetivo, (p) => {
     disabled(p, () => this.readonly()),
-    disabled(p.codigo, () => true),
-    applyEach(p.infoActividad, (infoActividad) => {
-      disabled(infoActividad.GrupoActividadId, () => (this.ObjetivoId()? true : false))
-    });
+      disabled(p.codigo, () => true),
+      applyEach(p.infoActividad, (infoActividad) => {
+        disabled(infoActividad.GrupoActividadId, () => (this.ObjetivoId() ? true : false))
+      });
   })
 
   childDocsGrid = viewChild.required<TableObjetivoDocumentoComponent>('docsGrid')
- 
+
   optionsProvincia = toSignal(this.searchService.getProvincia(), { initialValue: [] });
   optionsLocalidad = toSignal(this.searchService.getLocalidad(), { initialValue: [] });
   optionsBarrio = toSignal(this.searchService.getBarrio(), { initialValue: [] });
@@ -245,26 +247,26 @@ export class ObjetivosFormComponent {
 
   async newRecord() {
     if (!this.formObjetivo().dirty()) {
-    
+
       this.formObjetivo().reset()
     }
   }
 
   async viewRecord() {
-      if (this.ObjetivoId()) 
-        await this.load()
-   }
+    if (this.ObjetivoId())
+      await this.load()
+  }
 
 
 
   async load() {
 
-    let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(),this.ClienteId(),this.ClienteElementoDependienteId()))
-     
-    
+    let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(), this.ClienteId(), this.ClienteElementoDependienteId()))
+
+
     // this.infoCoordinadorCuenta().clear()
     // this.infoActividad().clear()
-     
+
     if (!infoObjetivo.infoCoordinadorCuenta.length) {
       infoObjetivo.infoCoordinadorCuenta = [{ ...this.coordinadorCuentaDefault }]
     }
@@ -277,17 +279,17 @@ export class ObjetivosFormComponent {
 
     // if(infoObjetivo.infoCoordinadorCuenta.length == 0){
     //   this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-     
+
     // }  
 
     // infoObjetivo?.infoActividad.forEach((obj: any) => {
     //   this.infoActividad().push(this.fb.group({ ...this.objActividad }))
     // });
-    
+
     // if(infoObjetivo.infoActividad.length == 0){
     //   this.infoActividad().push(this.fb.group({ ...this.objActividad }))
     // }
-    
+
     // if (this.formObj.disabled){
     //   this.infoCoordinadorCuenta().disable()
     //   this.infoActividad().disable()
@@ -299,10 +301,10 @@ export class ObjetivosFormComponent {
     this.objetivo.update(m => ({
       ...m,
       ...infoObjetivo,
-      DireccionModificada:false,
-      FechaModificada:false,
-      ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
-      ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
+      DireccionModificada: false,
+      FechaModificada: false,
+      ContratoFechaDesdeOLD: infoObjetivo.ContratoFechaDesde,
+      ContratoFechaHastaOLD: infoObjetivo.ContratoFechaHasta,
       codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
       GrupoActividadId: infoObjetivo.infoActividad[0].GrupoActividadId,
       clienteOld: this.ClienteId(),
@@ -336,13 +338,13 @@ export class ObjetivosFormComponent {
         if (value.id) { //UPDATE
           let CordinadorCuenta = value.infoCoordinadorCuenta
 
-          if( CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonalId) === '')
-            value.infoCoordinadorCuenta = []   
-          
+          if (CordinadorCuenta.length === 1 && !CordinadorCuenta[0]?.ObjetivoId && String(CordinadorCuenta[0]?.PersonalId) === '')
+            value.infoCoordinadorCuenta = []
+
 
           let result = await firstValueFrom(this.apiService.updateObjetivo(value, this.objetivo().id))
           //this.formObj.reset(result.data)
-           
+
           this.objetivo.update(m => ({
             ...m,
             infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
@@ -358,7 +360,7 @@ export class ObjetivosFormComponent {
           //   clienteOld: result.data.ClienteId,
           //   DomicilioId: result.data.DomicilioId
           // });
-        
+
           //this.edit.set(false)
 
         } else { //INSERT (nuevo registro)
@@ -376,16 +378,16 @@ export class ObjetivosFormComponent {
           this.objetivo.update(m => ({
             ...m,
             ...infoObjetivo,
-            DireccionModificada:false,
-            FechaModificada:false,
-            ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
-            ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
+            DireccionModificada: false,
+            FechaModificada: false,
+            ContratoFechaDesdeOLD: infoObjetivo.ContratoFechaDesde,
+            ContratoFechaHastaOLD: infoObjetivo.ContratoFechaHasta,
             codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
             GrupoActividadId: infoObjetivo.infoActividad[0].GrupoActividadId,
             clienteOld: infoObjetivo.ClienteId,
             GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico?.[0]?.GrupoActividadJerarquicoPersonalId ?? 0
           }));
-          
+
           // this.formObj.reset(infoObjetivo)
           // this.formObj.patchValue({
           //   DireccionModificada:false,
@@ -397,7 +399,7 @@ export class ObjetivosFormComponent {
           //   clienteOld: infoObjetivo.ClienteId,
           //   GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
           // });
-          
+
           //this.addNew.set(true)
           // this.mostrarDocs.set(true)
         }
@@ -405,10 +407,10 @@ export class ObjetivosFormComponent {
         if (this.mostrarDocs()) {
           this.childDocsGrid().refreshGrid()
         }
-        
+
         this.onAddorUpdate.emit()
       } catch (e) {
-          
+
       }
       this.isLoading.set(false)
     })
@@ -448,7 +450,7 @@ export class ObjetivosFormComponent {
   }
 
   closeDrawer(): void {
-    this.visibleDrawer.set( false)
+    this.visibleDrawer.set(false)
   }
 
 }
