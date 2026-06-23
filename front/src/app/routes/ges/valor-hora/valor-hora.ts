@@ -460,7 +460,7 @@ export class ValorHoraComponent {
     if (column.id === 'CategoriaPersonalId') {
       const tipoAsociadoId = item?.ValorLiquidacionTipoAsociadoId
       if (!tipoAsociadoId) {
-        this.messageSrv.warning('Seleccione primero un Tipo Asociado')
+        this.messageSrv.warning('Seleccione primero un Tipo de Categoría')
         e.stopImmediatePropagation()
         return false
       }
