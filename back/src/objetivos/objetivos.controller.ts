@@ -1811,6 +1811,8 @@ export class ObjetivosController extends BaseController {
             await this.deleteClienteElementoDependienteDocRequeridoQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteHabilitacionNecesariaObjetivoQuery(queryRunner, Number(ObjetivoId))
 
+            // todo: agregar eliminar datos de ObjetivoSucursal y ObjetivoDescuentoAplica
+
             await this.deleteObjetivoQuery(queryRunner, Number(ObjetivoId), Number(ClienteId))
             await this.deleteClienteElementoDependienteQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
 
