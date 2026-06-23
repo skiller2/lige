@@ -926,7 +926,7 @@ LEFT JOIN(
         CONCAT(TRIM(tip.TipoAsociadoDescripcion), ' - ', TRIM(cat.CategoriaPersonalDescripcion)) label
         FROM CategoriaPersonal cat
         JOIN TipoAsociado tip ON tip.TipoAsociadoId = cat.TipoAsociadoId
-        WHERE (cat.CategoriaPersonalInactivo = 0 OR cat.CategoriaPersonalInactivo IS NULL)
+        WHERE ISNULL(cat.CategoriaPersonalInactivo, 0) = 0
         ORDER BY tip.TipoAsociadoDescripcion, cat.CategoriaPersonalDescripcion`)
 
       this.jsonRes(options, res);
