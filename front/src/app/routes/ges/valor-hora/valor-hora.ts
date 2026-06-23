@@ -98,7 +98,7 @@ export class ValorHoraComponent {
       return;
     }
     if (!this.aumentoTipoAsociadoId) {
-      this.messageSrv.warning('Seleccione un tipo de asociado');
+      this.messageSrv.warning('Seleccione un tipo de categoría');
       return;
     }
     const anio = this.aumentoPeriodo().getFullYear();
@@ -413,11 +413,11 @@ export class ValorHoraComponent {
 
 
       if (
-        (!item.ValorLiquidacionSucursalId  ||
-        !item.ValorLiquidacionTipoAsociadoId ||
-        !item.ValorLiquidacionCategoriaPersonalId  ||
-        !item.ValorLiquidacionHoraNormal) && (
-          item.ValorLiquidacionSucursalId || item.ValorLiquidacionTipoAsociadoId || item.ValorLiquidacionCategoriaPersonalId || item.ValorLiquidacionHoraNormal  
+        (!item.ValorLiquidacionSucursalId ||
+          !item.ValorLiquidacionTipoAsociadoId ||
+          !item.ValorLiquidacionCategoriaPersonalId ||
+          !item.ValorLiquidacionHoraNormal) && (
+          item.ValorLiquidacionSucursalId || item.ValorLiquidacionTipoAsociadoId || item.ValorLiquidacionCategoriaPersonalId || item.ValorLiquidacionHoraNormal
         )
 
       ) {
