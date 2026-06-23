@@ -40,11 +40,11 @@
         [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
         <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
       </button>
-      <!-- El comprobante se arma desde el movimiento ya guardado (movimientoStockCodigo): el hijo lo
-           expone tras confirmar y el padre lo manda como body. El backend lo lee de la base. -->
+      <!-- El comprobante se arma por id si hay un movimiento confirmado, o con los datos del form
+           (parametroStock) si todavía no se guardó. El backend decide según lo recibido. -->
       <button #descargarComprobante nz-button nzType="default" type="button" nz-tooltip
         nzTooltipTitle="Descargar Comprobante"
-        [disabled]="activeTab() !== 'movimiento' || !comprobanteCodigo()"
+        [disabled]="activeTab() !== 'movimiento'"
         app-down-file [httpMethod]="'POST'"
         [httpBody]="comprobanteBody()"
         httpUrl="api/movimiento-stock/comprobante">
