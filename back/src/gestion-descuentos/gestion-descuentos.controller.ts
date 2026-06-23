@@ -1007,6 +1007,7 @@ export class GestionDescuentosController extends BaseController {
     let EfectoIndividualId = objDescuento.EfectoIndividualId
     let Cantidad = objDescuento.Cantidad
     let PorcentajeDescuento = Number(objDescuento.PorcentajeDescuento) ?? 100
+    const hoy = new Date()
 
     const importeVariable = Number((Number(objDescuento.Importe)).toFixed(2))
 
@@ -1030,14 +1031,27 @@ export class GestionDescuentosController extends BaseController {
 
     if (mensaje.length > 0) throw new ClientException(mensaje)
 
-    // todo: agregar validacion sobre 'aplica a'. En caso de que exista en ObjetivoDescuentoAplica, validar el 'aplica a' contra ese registro. De no encontrar registro asociado, crear uno.
+    const ClienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
+
+    // validacion sobre 'aplica a'. En caso de que exista en ObjetivoDescuentoAplica, validar el 'aplica a' contra ese registro. De no encontrar registro asociado, crear uno.
+    const ObjetivoDescuentoAplica = queryRunner.query(`SELECT DescuentoId,AplicaA FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND DescuentoId = @2 AND AplicaA = @3`, [ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, ObjetivoDescuentoDescuentoId, AplicaA])
+    if (ObjetivoDescuentoAplica.length == 0) {
+      await queryRunner.query(`
+        INSERT INTO ObjetivoDescuentoAplica (
+        DescuentoId, ClienteId,ClienteElementoDependienteId,AplicaA,AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudUsuarioMod,AudIpMod)
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
+      `, [ObjetivoDescuentoDescuentoId, ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, AplicaA, hoy, usuario, ip, hoy, usuario, ip])
+    } else if (ObjetivoDescuentoAplica[0].AplicaA != AplicaA) {
+      throw new ClientException(`El "Aplica a" es distinto al registrado ("${ObjetivoDescuentoAplica[0].AplicaA}")`)
+    }
+
+
 
     const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
     const importeCuota = Number((importeCalculado / Number(Cuotas)).toFixed(2))
 
     const Objetivo = await queryRunner.query(`SELECT ISNULL(ObjetivoDescuentoUltNro, 0) AS ObjetivoDescuentoUltNro FROM Objetivo WHERE ObjetivoId IN (@0)`, [ObjetivoId])
     const ObjetivoDescuentoId = Objetivo[0].ObjetivoDescuentoUltNro + 1
-    const hoy = new Date()
 
     await queryRunner.query(`
       INSERT INTO ObjetivoDescuento (
@@ -1825,6 +1839,7 @@ FROM cte
     let PorcentajeDescuento = Number(otroDescuento.PorcentajeDescuento) ?? 100
     const importeVariable = Number((Number(otroDescuento.Importe)).toFixed(2))
 
+    const hoy: Date = new Date()
 
     if (oldObjetivoId != ObjetivoId) throw new ClientException(`No se puede modificar el objetivo.`)
 
@@ -1848,6 +1863,21 @@ FROM cte
     }
 
     if (mensaje.length > 0) throw new ClientException(mensaje)
+
+    const ClienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
+
+    // validacion sobre 'aplica a'. En caso de que exista en ObjetivoDescuentoAplica, validar el 'aplica a' contra ese registro. De no encontrar registro asociado, crear uno.
+    const ObjetivoDescuentoAplica = queryRunner.query(`SELECT DescuentoId,AplicaA FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND DescuentoId = @2 AND AplicaA = @3`, [ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, DescuentoId, AplicaA])
+    if (ObjetivoDescuentoAplica.length == 0) {
+      await queryRunner.query(`
+        INSERT INTO ObjetivoDescuentoAplica (
+        DescuentoId, ClienteId,ClienteElementoDependienteId,AplicaA,AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudUsuarioMod,AudIpMod)
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
+      `, [DescuentoId, ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, AplicaA, hoy, usuario, ip, hoy, usuario, ip])
+    } else if (ObjetivoDescuentoAplica[0].AplicaA != AplicaA) {
+      throw new ClientException(`El "Aplica a" es distinto al registrado ("${ObjetivoDescuentoAplica[0].AplicaA}")`)
+    }
+
 
     const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
     const importeCuota = Number((importeCalculado / Number(Cuotas)).toFixed(2))
@@ -1890,7 +1920,6 @@ FROM cte
         if (!tieneCoordinadorVigente) throw new ClientException(`El Objetivo no tiene Coordinador de Cuenta con indicador "Aplica descuentos" en el período ${mes}/${anio}.`)
         break;
     }
-    const hoy: Date = new Date()
     await queryRunner.query(`
       UPDATE ObjetivoDescuento SET
       ObjetivoDescuentoDescuentoId = @2, ObjetivoDescuentoAnoAplica = @3
@@ -2152,13 +2181,15 @@ FROM cte
       , od.EfectoIndividualId
       , od.Cantidad
       , od.PorcentajeDescuento
-      , CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto
+      , CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoEfectoIndividualDescripcion, ' )' ) EfectoDescripcionCompleto
+      , ap.AplicaA ObjetivoDescuentoAplica
       FROM ObjetivoDescuento od
       LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = od.EfectoId
       LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = od.EfectoId AND efeind.EfectoEfectoIndividualId = od.EfectoIndividualId
+      LEFT JOIN Objetivo obj on obj.ObjetivoId = od.ObjetivoId
+      LEFT JOIN ObjetivoDescuentoAplica ap on ap.ClienteId = obj.ClienteId and ap.ClienteElementoDependienteId=obj.ClienteElementoDependienteId
       WHERE od.ObjetivoDescuentoId = @0 AND od.ObjetivoId = @1
       `, [DescuentoId, ObjetivoId])
-      // throw new ClientException(`DEBUG.`)
 
       await queryRunner.commitTransaction()
       return this.jsonRes(descuento[0], res);
