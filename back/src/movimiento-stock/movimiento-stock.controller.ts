@@ -15,6 +15,13 @@ const tiposDestino = [
   { value: "proveedor", label: "Proveedores" },
 ];
 
+const tipoDestinoSingular: Record<string, string> = {
+  deposito: "DEPOSITO",
+  personal: "PERSONA",
+  objetivo: "OBJETIVO",
+  proveedor: "PROVEEDOR",
+};
+
 // Orígenes válidos para precargar las líneas de movimiento (buscador suelto bajo "Origen").
 const tiposOrigen = [
   { value: "persona", label: "Persona" },
@@ -342,23 +349,31 @@ export class MovimientoStockController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     try {
       const movimientoCodigo = Number(req.body?.movimientoStockCodigo);
-      if (!movimientoCodigo)
-        throw new ClientException(`Debe indicar un código de movimiento`);
-
-      const cabecera = await this.getMovimientoCabecera(queryRunner, movimientoCodigo);
-      if (!cabecera)
-        throw new ClientException(`Movimiento no encontrado`);
+      const form = req.body?.form;
 
       const tempCarpeta = path.join(this.directoryDocumentos, 'temp');
       if (!existsSync(tempCarpeta)) mkdirSync(tempCarpeta, { recursive: true });
-
       const fechaActual = new Date();
-      const tempfilename = `comprobante-${movimientoCodigo}-${fechaActual.getTime()}.pdf`;
-      const tempPathAbs = path.join(tempCarpeta, tempfilename);
 
-      await this.renderComprobantePdf(queryRunner, tempPathAbs, movimientoCodigo, res.locals.userName);
+      // Si hay un movimiento ya guardado, el PDF se arma leyéndolo de la base (por id).
+      const cabecera = movimientoCodigo ? await this.getMovimientoCabecera(queryRunner, movimientoCodigo) : null;
 
-      res.download(tempPathAbs, `Comprobante-${movimientoCodigo}.pdf`, async (err) => {
+      let tempPathAbs: string;
+      let nombreDescarga: string;
+      if (movimientoCodigo && cabecera) {
+        tempPathAbs = path.join(tempCarpeta, `comprobante-${movimientoCodigo}-${fechaActual.getTime()}.pdf`);
+        nombreDescarga = `Comprobante-${movimientoCodigo}.pdf`;
+        await this.renderComprobantePdf(queryRunner, tempPathAbs, movimientoCodigo, res.locals.userName);
+      } else {
+        // Sin movimiento guardado: se arma con los datos del formulario recibido del front.
+        if (!form)
+          throw new ClientException(`No hay datos para generar el comprobante`);
+        tempPathAbs = path.join(tempCarpeta, `comprobante-form-${fechaActual.getTime()}.pdf`);
+        nombreDescarga = `Comprobante.pdf`;
+        await this.renderComprobantePdfFromForm(queryRunner, tempPathAbs, form, res.locals.userName);
+      }
+
+      res.download(tempPathAbs, nombreDescarga, async (err) => {
         try { await unlink(tempPathAbs); } catch (error) { }
         if (err) return next(err);
       });
@@ -702,9 +717,16 @@ export class MovimientoStockController extends BaseController {
   private async getMovimientoCabecera(queryRunner: any, movimientoCodigo: number) {
     const rows = await queryRunner.query(`
       SELECT TOP 1 mov.MovimientoStockCodigo, mov.Fecha, mov.Observaciones,
+        CASE
+          WHEN mov.DepositoIdDestino IS NOT NULL THEN 'Depósito'
+          WHEN mov.PersonalIdDestino IS NOT NULL THEN 'Persona'
+          WHEN mov.ProveedorIdDestino IS NOT NULL THEN 'Proveedor'
+          WHEN mov.ClienteIdDestino IS NOT NULL THEN 'Objetivo'
+          ELSE ''
+        END AS TipoDestino,
         COALESCE(
           TRIM(depd.DepositoNombre),
-          CONCAT(TRIM(perd.PersonalApellido), ', ', TRIM(perd.PersonalNombre)),
+          IIF(mov.PersonalIdDestino IS NULL, NULL, CONCAT(TRIM(perd.PersonalApellido), ', ', TRIM(perd.PersonalNombre))),
           TRIM(prod.ProveedorRazonSocial),
           IIF(mov.ClienteIdDestino IS NULL, NULL,
             CONCAT(mov.ClienteIdDestino, IIF(mov.ClienteElementoDependienteIdDestino IS NULL, '', CONCAT('/', mov.ClienteElementoDependienteIdDestino)),
@@ -723,12 +745,12 @@ export class MovimientoStockController extends BaseController {
   // Detalle del movimiento: descripción del efecto, origen resuelto y cantidad.
   private async getMovimientoDetalle(queryRunner: any, movimientoCodigo: number) {
     return queryRunner.query(`
-      SELECT det.MovimientoStockDetalleCodigo, det.Cantidad,
+      SELECT det.MovimientoStockDetalleCodigo, det.Cantidad, det.IndEfectoUsado,
         CONCAT(TRIM(efe.EfectoDescripcion),
           IIF(efeind.EfectoEfectoIndividualDescripcion IS NULL, '', CONCAT(' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion)))) AS EfectoDescripcionCompleto,
         COALESCE(
           TRIM(depo.DepositoNombre),
-          CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre)),
+          IIF(det.PersonalIdOrigen IS NULL, NULL, CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre))),
           TRIM(proo.ProveedorRazonSocial),
           IIF(det.ClienteIdOrigen IS NULL, NULL,
             CONCAT(det.ClienteIdOrigen, IIF(det.ClienteElementoDependienteOrigen IS NULL, '', CONCAT('/', det.ClienteElementoDependienteOrigen))))
@@ -765,13 +787,21 @@ export class MovimientoStockController extends BaseController {
     // Origen del movimiento: distintos orígenes del detalle (puede variar por renglón).
     const origenes = [...new Set((detalle ?? []).map((d: any) => d.Origen).filter(Boolean))];
     const origen = origenes.join(' / ') || 'Sin especificar';
-    const destino = cabecera?.Destino || 'Sin especificar';
+    const destinoNombre = cabecera?.Destino || 'Sin especificar';
+    const tipoDestino = cabecera?.TipoDestino || '';
+    // "Tipo - Nombre" (ej: "Persona - Francesco"); si no hay tipo, solo el nombre.
+    const destino = tipoDestino ? `${tipoDestino} - ${destinoNombre}` : destinoNombre;
     const observaciones = cabecera?.Observaciones || '';
 
     let textefectos = '';
+    let totalCantidad = 0;
     for (const linea of detalle ?? []) {
-      textefectos += `<tr><td>${linea.EfectoDescripcionCompleto ?? ''}</td><td>${linea.Origen ?? ''}</td><td class="cant">${linea.Cantidad}</td></tr>`;
+      // Solo si el detalle quedó marcado como usado (IndEfectoUsado): leyenda chica debajo del efecto.
+      const usado = linea.IndEfectoUsado ? `<br><span style="font-size: 9px; color: #666;">convertido a usado</span>` : '';
+      totalCantidad += Number(linea.Cantidad) || 0;
+      textefectos += `<tr><td>${linea.EfectoDescripcionCompleto ?? ''}${usado}</td><td>${linea.Origen ?? ''}</td><td class="cant">${linea.Cantidad}</td></tr>`;
     }
+    if (textefectos) textefectos += this.filaTotalEfectos(totalCantidad);
 
     const vars = {
       movimientoCodigo: movimientoCodigo ? movimientoCodigo.toString() : '',
@@ -806,7 +836,10 @@ export class MovimientoStockController extends BaseController {
     const tipoDestino = form?.tipoDestino ?? '';
     const tipoDestinoLabel = tiposDestino.find(t => t.value === tipoDestino)?.label ?? tipoDestino;
 
-    const destino = await this.resolverDestinoLabel(queryRunner, tipoDestino, form);
+    const destinoNombre = await this.resolverDestinoLabel(queryRunner, tipoDestino, form);
+    // "Tipo - Nombre" (ej: "Objetivo - Coto"); si no hay tipo, solo el nombre.
+    const tipoSingular = tipoDestinoSingular[tipoDestino] ?? '';
+    const destino = (tipoSingular && destinoNombre) ? `${tipoSingular} - ${destinoNombre}` : destinoNombre;
     const intermediario = await this.resolverPersonalNombre(queryRunner, form?.personalIdInter);
     const observaciones = form?.observaciones ?? '';
     const textefectos = await this.resolverEfectoLineas(queryRunner, form?.efectos);
@@ -815,7 +848,8 @@ export class MovimientoStockController extends BaseController {
     const filasDestino = await this.resolverFilasDestino(queryRunner, tipoDestino, form, fecha);
 
     const vars = {
-      movimientoCodigo: '',
+      // Sin movimiento guardado todavía: el N° de comprobante va en ceros.
+      movimientoCodigo: '00000',
       fechaFormateada: this.dateOutputFormat(fecha),
       origen: '',
       destino,
@@ -977,13 +1011,24 @@ export class MovimientoStockController extends BaseController {
   // Filas <tr> del detalle: descripción del efecto, ubicación de origen y cantidad (todo resuelto).
   private async resolverEfectoLineas(queryRunner: any, efectos: any[]): Promise<string> {
     let html = '';
+    let total = 0;
     for (const linea of (efectos ?? [])) {
       if (linea?.EfectoId == null) continue;
       const efecto = await this.resolverEfectoDescripcion(queryRunner, linea.EfectoId, linea.EfectoIndividualId);
       const origen = await this.resolverUbicacionLabel(queryRunner, linea.StockId);
-      html += `<tr><td>${efecto}</td><td>${origen}</td><td class="cant">${linea.Cantidad ?? ''}</td></tr>`;
+      // Solo si la línea está marcada "Usado": leyenda chica debajo del efecto.
+      const usado = linea?.Usado ? `<br><span style="font-size: 9px; color: #666;">convertido a usado</span>` : '';
+      total += Number(linea.Cantidad) || 0;
+      html += `<tr><td>${efecto}${usado}</td><td>${origen}</td><td class="cant">${linea.Cantidad ?? ''}</td></tr>`;
     }
+    if (html) html += this.filaTotalEfectos(total);
     return html;
+  }
+
+  // Fila final con el total de la columna Cantidad para la tabla de efectos (ORIGEN).
+  private filaTotalEfectos(total: number): string {
+    return `<tr><td colspan="2" style="text-align: right; font-weight: bold; border-top: 1px solid #777;">TOTAL:</td>`
+      + `<td class="cant" style="font-weight: bold; border-top: 1px solid #777;">${total}</td></tr>`;
   }
 
   // Descripción del efecto (con su individual si corresponde): "Efecto - Individual".
@@ -1089,8 +1134,8 @@ export class MovimientoStockController extends BaseController {
     let filePath = "";
 
     try {
-      if (!movimientoCodigo)
-        throw new ClientException(`Debe indicar un código de movimiento`);
+      //if (!movimientoCodigo)
+       // throw new ClientException(`Debe indicar un código de movimiento`);
 
       const cabecera = await this.getMovimientoCabecera(queryRunner, movimientoCodigo);
       if (!cabecera)

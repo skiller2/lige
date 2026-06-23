@@ -42,9 +42,12 @@ export class EfectoComponent {
   // Código que alimenta y habilita el botón de descarga (POST /comprobante).
   readonly comprobanteCodigo = computed(() => this.movimientoStock()?.comprobanteCodigo() ?? null)
 
-  // Body que se manda al generar el comprobante: el código del movimiento ya guardado. El PDF se
-  // arma en el backend leyendo ese movimiento de la base (misma vía que la descarga de prueba).
-  readonly comprobanteBody = computed(() => ({ movimientoStockCodigo: this.comprobanteCodigo() }))
+  // Body que se manda al generar el comprobante. Si ya hay un movimiento confirmado, el backend lo
+  // arma leyéndolo de la base (por id); si no, lo arma con los datos del form (parametroStock).
+  readonly comprobanteBody = computed(() => ({
+    movimientoStockCodigo: this.comprobanteCodigo(),
+    form: this.movimientoStock()?.parametroStock() ?? null,
+  }))
 
   // Al confirmar el movimiento, el hijo emite y acá disparamos la descarga.
   onComprobanteConfirmado() {
