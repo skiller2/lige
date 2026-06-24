@@ -734,8 +734,9 @@ export class ObjetivosController extends BaseController {
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const grupoactividadjerarquico = await this.getGrupoActividadJerarquico(queryRunner, grupoactividad[0]?.GrupoActividadId)
             const habilitacion = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
-            const descuentoCoordinador = await this.getDescuentoAplicaQuery(queryRunner, 'C', ClienteId, ClienteElementoDependienteId)
-            const descuentoLince = await this.getDescuentoAplicaQuery(queryRunner, 'L', ClienteId, ClienteElementoDependienteId)
+            const descuentoCoordinador = await this.getDescuentoAplicaQuery(queryRunner, 'CO', ClienteId, ClienteElementoDependienteId)
+            const descuentoLince = await this.getDescuentoAplicaQuery(queryRunner, 'NO', ClienteId, ClienteElementoDependienteId)
+            const descuentoCliente = await this.getDescuentoAplicaQuery(queryRunner, 'CL', ClienteId, ClienteElementoDependienteId)
 
             if (!facturacion) {
                 infObjetivo = { ...infObjetivo[0], ...domiclio[0] };
@@ -751,6 +752,7 @@ export class ObjetivosController extends BaseController {
             infObjetivo.habilitacion = habilitacion
             infObjetivo.descuentoCoordinador = descuentoCoordinador
             infObjetivo.descuentoLince = descuentoLince
+            infObjetivo.descuentoCliente = descuentoCliente
 
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
@@ -1951,8 +1953,9 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             await this.ObjetivoRubro(queryRunner, Obj.rubrosCliente, Obj.ClienteId, ClienteElementoDependienteUltNro)
             await this.ObjetivoDocRequerido(queryRunner, Obj.docsRequerido, Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
-            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCoordinador, 'C', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
-            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoLince, 'L', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCoordinador, 'CO', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoLince, 'NO', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCliente, 'CL', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
 
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 
