@@ -330,7 +330,75 @@ const columns: any[] = [
     hidden: false,
   },
 ]
-
+const inconsColumns: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    type: "number",
+    fieldName: "per.PersonalId",
+    sortable: true,
+    searchHidden: true,
+    hidden: true,
+  },
+  {
+    id: "PersonalId",
+    name: "Apellido Nombre",
+    field: "PersonalId",
+    type: "string",
+    fieldName: "per.PersonalId",
+    searchComponent: "inputForPersonalSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: "PersonalCUITCUILCUIT",
+    name: "CUIT",
+    field: "PersonalCUITCUILCUIT",
+    type: "string",
+    fieldName: "cuit.PersonalCUITCUILCUIT",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: "PersonalFechaIngreso",
+    name: "Fecha Ingreso",
+    field: "PersonalFechaIngreso",
+    type: "date",
+    fieldName: "ISNULL(ing.PersonalFechaIngreso,'9999-12-31')",
+    searchType: "date",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: "PersonalFechaBaja",
+    name: "Fecha Baja",
+    field: "PersonalFechaBaja",
+    type: "date",
+    fieldName: "ISNULL(ing.PersonalFechaBaja,'9999-12-31')",
+    searchType: "date",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: "inconsistencias",
+    name: "Inconsistencias",
+    field: "inconsistencias",
+    type: "string",
+    fieldName: "inconsistencias",
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+]
 
 export class PersonalController extends BaseController {
   private listSitRev = process.env.SITREV_AUTOMATIC ? process.env.SITREV_AUTOMATIC : '9,10,16,18,23,28'
@@ -714,6 +782,10 @@ export class PersonalController extends BaseController {
     return this.jsonRes(columns, res)
   }
 
+  async getInconsistenciasGridColumns(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(inconsColumns, res)
+  }
+
   private async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
     return await queryRunner.query(`
     
@@ -871,6 +943,106 @@ LEFT JOIN(
       const orderBy = orderToSQL(options.sort)
 
       const lista: any[] = await this.listPersonalQuery(queryRunner, filterSql, orderBy)
+
+      await queryRunner.commitTransaction()
+      this.jsonRes(lista, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  private async listInconsistenciasQuery(queryRunner: any, filterSql: any, orderBy: any) {
+    return await queryRunner.query(`
+      SELECT
+        per.PersonalId AS id,
+        cuit.PersonalCUITCUILCUIT,
+        CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+        ing.PersonalFechaIngreso, ing.PersonalFechaBaja,
+        'No tiene Acta de ALTA o REINCORPORACIÓN' AS inconsistencias
+      FROM Personal per
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+      LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId = per.PersonalId
+      LEFT JOIN (
+        SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
+        CASE 
+          WHEN p.PersonalSituacionRevistaId IS NOT NULL THEN  
+            CONCAT(
+              TRIM(s.SituacionRevistaDescripcion), ' (Desde: ', 
+              FORMAT(p.PersonalSituacionRevistaDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+              CASE 
+                WHEN p.PersonalSituacionRevistaHasta IS NULL THEN '' 
+                ELSE FORMAT(p.PersonalSituacionRevistaHasta, 'dd/MM/yyyy') 
+              END,
+              ')'
+            )
+          ELSE '' 
+        END AS sitRevCom
+        FROM PersonalSituacionRevista p
+        JOIN SituacionRevista s ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
+			) sitrev ON sitrev.PersonalId = per.PersonalId
+      LEFT JOIN(
+        SELECT
+          a.PersonalId,
+          a.ActaId,
+          b.ActaFechaActa,
+          b.ActaDescripcion,
+          a.TipoPersonalActaCodigo,
+          tip.TipoPersonalActaDescripcion
+        FROM PersonalActa a
+        JOIN Acta b ON b.ActaId = a.ActaId
+        JOIN (
+          SELECT
+            a.PersonalId,
+            MAX(b.ActaFechaActa) AS MaxFecha
+          FROM PersonalActa a
+          JOIN Acta b ON b.ActaId = a.ActaId
+          GROUP BY a.PersonalId
+        ) x ON x.PersonalId = a.PersonalId AND x.MaxFecha = b.ActaFechaActa
+        JOIN TipoPersonalActa tip ON tip.TipoPersonalActaCodigo = a.TipoPersonalActaCodigo
+      ) act ON act.PersonalId = per.PersonalId 
+      WHERE sitrev.PersonalSituacionRevistaSituacionId IN (2,10) AND act.TipoPersonalActaCodigo NOT IN ('ALT','REI')
+      AND (${filterSql})
+
+      /*UNION ALL
+
+      SELECT
+        per.PersonalId AS id,
+        cuit.PersonalCUITCUILCUIT,
+        CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+        ing.PersonalFechaIngreso, ing.PersonalFechaBaja
+      FROM Personal per
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+      LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId = per.PersonalId
+      WHERE (${filterSql})
+
+      UNION ALL
+
+      SELECT
+        per.PersonalId AS id,
+        cuit.PersonalCUITCUILCUIT,
+        CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+        ing.PersonalFechaIngreso, ing.PersonalFechaBaja
+      FROM Personal per
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+      LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId = per.PersonalId
+      WHERE (${filterSql})
+      ${orderBy}*/
+    `)
+  }
+
+  async getInconsistenciasGridList(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      await queryRunner.startTransaction()
+
+      const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+      const filterSql = filtrosToSql(options.filtros, columns);
+      const orderBy = orderToSQL(options.sort)
+
+      const lista: any[] = await this.listInconsistenciasQuery(queryRunner, filterSql, orderBy)
 
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);

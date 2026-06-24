@@ -22,6 +22,7 @@ import { PersonalCategoriaDrawerComponent } from '../personal-categoria-drawer/p
 import { PersonalBancoDrawerComponent } from '../personal-banco-drawer/personal-banco-drawer.component'
 import { PersonalActaDrawerComponent } from '../personal-acta-drawer/personal-acta-drawer.component'
 import { DetallePersonaComponent } from "../detalle-persona/detalle-persona.component";
+import { PersonalInconsistenciasComponent } from "../personal-inconsistencias/personal-inconsistencias";
 import { ActivatedRoute, Router } from '@angular/router';
 import { PersonalExencionesDrawerComponent } from '../personal-exenciones-drawer/personal-exenciones-drawer';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -41,7 +42,7 @@ import { Selections } from '../../../shared/schemas/filtro';
     PersonalObjetivoDrawerComponent, PersonalCustodiasDrawerComponent, PersonalDomicilioDrawerComponent,
     PersonalSituacionRevistaDrawerComponent, PersonalResponsableDrawerComponent, PersonalDocumentosDrawerComponent,
     DetallePersonaComponent, PersonalCategoriaDrawerComponent, PersonalBancoDrawerComponent, PersonalActaDrawerComponent,
-    PersonalExencionesDrawerComponent
+    PersonalExencionesDrawerComponent, PersonalInconsistenciasComponent
   ],
   providers: [AngularUtilService, ExcelExportService, provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline, HomeOutline, EyeOutline, ContainerOutline, FolderViewOutline])],
   changeDetection: ChangeDetectionStrategy.OnPush
