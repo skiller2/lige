@@ -1692,15 +1692,21 @@ export class ObjetivosController extends BaseController {
 
         // Coordinador de cuenta
 
-        for (const obj of form.infoCoordinadorCuenta) {
-            if (!obj.PersonalId && (obj.ObjetivoPersonalJerarquicoComision || obj.ObjetivoPersonalJerarquicoDescuentos)) {
-                throw new ClientException(`- Persona en Coordinador de cuenta.`)
+        const coordinadores = form.infoCoordinadorCuenta || []
+        const coordinadoresConPersona = coordinadores.filter((obj: any) => !!obj.PersonalId)
+
+        for (const obj of coordinadores) {
+            const tienePersona = !!obj.PersonalId
+            const comision = Number(obj.ObjetivoPersonalJerarquicoComision)
+
+            if (!tienePersona && (obj.ObjetivoPersonalJerarquicoComision || obj.ObjetivoPersonalJerarquicoDescuentos || obj.ObjetivoPersonalJerarquicoSeDescuentaTelefono || obj.DescuentoRetiros)) {
+                throw new ClientException(`Debe seleccionar una Persona en Coordinador de cuenta.`)
             }
 
+            if (tienePersona && (!Number.isFinite(comision) || comision <= 0)) {
+                throw new ClientException(`Debe ingresar una Comisión mayor a 0 para el Coordinador de cuenta.`)
+            }
         }
-
-        logger.info('infoCoordinadorCuenta.length: ', form.infoCoordinadorCuenta.length)
-        logger.info('infoCoordinadorCuenta: ', JSON.stringify(form.infoCoordinadorCuenta))
 
         //Grupo Actividad
         // for (const obj of form.infoActividad) {
@@ -1741,8 +1747,8 @@ export class ObjetivosController extends BaseController {
         const intersectCCli = descC.some((v: any) => descCli.includes(v));
         const intersectLCli = descL.some((v: any) => descCli.includes(v));
 
-        if (descC > 0 && form.infoCoordinadorCuenta.length < 0) {
-            throw new ClientException(`Debe seleccionar al menos un Coordinador de cuenta para el descuento.`);
+        if (descC.length > 0 && coordinadoresConPersona.length === 0) {
+            throw new ClientException(`Debe seleccionar al menos un Coordinador de cuenta para aplicar un descuento 'A Coordinador'.`);
         }
         if (intersectCL || intersectCCli || intersectLCli) {
             throw new ClientException(`No se puede asignar un mismo descuento 'a aplicar' a más de uno a la vez (Coordinador, Lince o Cliente).`);
