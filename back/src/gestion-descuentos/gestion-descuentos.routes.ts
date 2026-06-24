@@ -78,6 +78,10 @@ gestionDescuentosRouter.get("/aplicaa/options", [authMiddleware.verifyToken,auth
     gestionDescuentosController.getAplicaAOptions(req, res, next);
 });
 
+gestionDescuentosRouter.get("/objetivo-descuento-aplica/:objetivoId/:descuentoId", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+    gestionDescuentosController.getObjetivoDescuentoAplica(req, res, next);
+});
+
 gestionDescuentosRouter.get("/importaciones_anteriores/:anio/:mes", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones', 'gLogistica'])], (req, res, next) => {
     gestionDescuentosController.getImportacionesDescuentosAnteriores(req, res, next);
 });

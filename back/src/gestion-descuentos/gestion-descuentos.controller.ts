@@ -833,6 +833,18 @@ export class GestionDescuentosController extends BaseController {
           FROM Descuento`)
   }
 
+  private async getObjetivoDescuentoAplicaQuery(queryRunner: any, ObjetivoId: number, DescuentoId: number) {
+    return await queryRunner.query(`
+      SELECT ap.DescuentoId, ap.AplicaA
+      FROM Objetivo obj
+      INNER JOIN ObjetivoDescuentoAplica ap
+        ON ap.ClienteId = obj.ClienteId
+        AND ap.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+      WHERE obj.ObjetivoId = @0
+        AND ap.DescuentoId = @1
+    `, [ObjetivoId, DescuentoId])
+  }
+
   async getTiposDescuentos(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     try {
@@ -1034,7 +1046,7 @@ export class GestionDescuentosController extends BaseController {
     const ClienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
 
     // validacion sobre 'aplica a'. En caso de que exista en ObjetivoDescuentoAplica, validar el 'aplica a' contra ese registro. De no encontrar registro asociado, crear uno.
-    const ObjetivoDescuentoAplica = queryRunner.query(`SELECT DescuentoId,AplicaA FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND DescuentoId = @2 AND AplicaA = @3`, [ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, ObjetivoDescuentoDescuentoId, AplicaA])
+    const ObjetivoDescuentoAplica = await queryRunner.query(`SELECT DescuentoId,AplicaA FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND DescuentoId = @2`, [ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, ObjetivoDescuentoDescuentoId])
     if (ObjetivoDescuentoAplica.length == 0) {
       await queryRunner.query(`
         INSERT INTO ObjetivoDescuentoAplica (
@@ -1867,7 +1879,7 @@ FROM cte
     const ClienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
 
     // validacion sobre 'aplica a'. En caso de que exista en ObjetivoDescuentoAplica, validar el 'aplica a' contra ese registro. De no encontrar registro asociado, crear uno.
-    const ObjetivoDescuentoAplica = queryRunner.query(`SELECT DescuentoId,AplicaA FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND DescuentoId = @2 AND AplicaA = @3`, [ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, DescuentoId, AplicaA])
+    const ObjetivoDescuentoAplica = await queryRunner.query(`SELECT DescuentoId,AplicaA FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND DescuentoId = @2`, [ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, DescuentoId])
     if (ObjetivoDescuentoAplica.length == 0) {
       await queryRunner.query(`
         INSERT INTO ObjetivoDescuentoAplica (
@@ -2187,7 +2199,7 @@ FROM cte
       LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = od.EfectoId
       LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = od.EfectoId AND efeind.EfectoEfectoIndividualId = od.EfectoIndividualId
       LEFT JOIN Objetivo obj on obj.ObjetivoId = od.ObjetivoId
-      LEFT JOIN ObjetivoDescuentoAplica ap on ap.ClienteId = obj.ClienteId and ap.ClienteElementoDependienteId=obj.ClienteElementoDependienteId
+      LEFT JOIN ObjetivoDescuentoAplica ap on ap.ClienteId = obj.ClienteId and ap.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and ap.DescuentoId = od.ObjetivoDescuentoDescuentoId
       WHERE od.ObjetivoDescuentoId = @0 AND od.ObjetivoId = @1
       `, [DescuentoId, ObjetivoId])
 
@@ -2195,6 +2207,25 @@ FROM cte
       return this.jsonRes(descuento[0], res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+
+  async getObjetivoDescuentoAplica(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    const ObjetivoId = Number(req.params.objetivoId)
+    const DescuentoId = Number(req.params.descuentoId)
+    try {
+      if (!ObjetivoId || !DescuentoId) {
+        return this.jsonRes(null, res);
+      }
+
+      const objetivoDescuentoAplica = await this.getObjetivoDescuentoAplicaQuery(queryRunner, ObjetivoId, DescuentoId)
+      return this.jsonRes(objetivoDescuentoAplica[0] ?? null, res);
+    } catch (error) {
       return next(error)
     } finally {
       await queryRunner.release()
