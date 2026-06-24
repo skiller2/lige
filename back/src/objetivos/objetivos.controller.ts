@@ -5,6 +5,7 @@ import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtro
 import { FileUploadController } from "../controller/file-upload.controller.ts"
 import type { QueryRunner } from "typeorm";
 import { personalController } from "../controller/controller.module.ts";
+import { logger } from "../logger/logger.ts";
 
 const getOptions: any[] = [
     { label: 'Si', value: 'True' },
@@ -1690,11 +1691,14 @@ export class ObjetivosController extends BaseController {
         // Coordinador de cuenta
 
         for (const obj of form.infoCoordinadorCuenta) {
-            if (!obj.PersonalId && obj.ObjetivoPersonalJerarquicoComision && obj.ObjetivoPersonalJerarquicoDescuentos) {
+            if (!obj.PersonalId && (obj.ObjetivoPersonalJerarquicoComision || obj.ObjetivoPersonalJerarquicoDescuentos)) {
                 throw new ClientException(`- Persona en Coordinador de cuenta.`)
             }
 
         }
+
+        logger.info('infoCoordinadorCuenta.length: ', form.infoCoordinadorCuenta.length)
+        logger.info('infoCoordinadorCuenta: ', JSON.stringify(form.infoCoordinadorCuenta))
 
         //Grupo Actividad
         // for (const obj of form.infoActividad) {
@@ -1735,6 +1739,9 @@ export class ObjetivosController extends BaseController {
         const intersectCCli = descC.some((v: any) => descCli.includes(v));
         const intersectLCli = descL.some((v: any) => descCli.includes(v));
 
+        if (descC > 0 && form.infoCoordinadorCuenta.length < 0) {
+            throw new ClientException(`Debe seleccionar al menos un Coordinador de cuenta para el descuento.`);
+        }
         if (intersectCL || intersectCCli || intersectLCli) {
             throw new ClientException(`No se puede asignar un mismo descuento 'a aplicar' a más de uno a la vez (Coordinador, Lince o Cliente).`);
         }
