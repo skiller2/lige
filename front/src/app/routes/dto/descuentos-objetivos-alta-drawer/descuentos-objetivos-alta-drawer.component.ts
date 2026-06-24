@@ -1,5 +1,5 @@
 import { Component, inject, signal, model, computed, ViewEncapsulation, input, effect, output, untracked, resource } from '@angular/core';
-import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom, Observable, forkJoin } from 'rxjs';
+import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom, Observable, forkJoin, of } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -75,10 +75,13 @@ export class DescuentosObjetivosAltaDrawerComponent {
     }
 
     readonly descuentoObjetivo = signal<FormDesc>(this.descuentoObjetivoDefault);
+    readonly objetivoDescuentoAplicaReadonly = signal(false);
+    private readonly ultimoObjetivoDescuentoAplicaObjetivoId = signal(0);
+    private readonly ultimoObjetivoDescuentoAplicaDescuentoId = signal(0);
 
     readonly formDescuentoObjetivo = form(this.descuentoObjetivo, (p) => {
         disabled(p.AplicaEl, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
-        disabled(p.AplicaA, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
+        disabled(p.AplicaA, () => this.crudAccion() === 'R' || this.crudAccion() === 'D' || this.objetivoDescuentoAplicaReadonly())
         disabled(p.DescuentoId, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
         disabled(p.ObjetivoId, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
         disabled(p.Cuotas, () => this.crudAccion() === 'R' || this.crudAccion() === 'D')
@@ -105,7 +108,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
         if (ObjetivoDescuentoId && objetivoId) {
             void this.loadDescuentoObjetivo();
-        }else {
+        } else {
             untracked(() => queueMicrotask(() => this.resetForm()));
         }
     });
@@ -144,7 +147,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
         }
     })
 
-    lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleto: string,  Importe: string } | null>(null)
+    lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleto: string, Importe: string } | null>(null)
 
     importeTotal = computed(() => {
         const s = this.descuentoObjetivo();
@@ -175,6 +178,8 @@ export class DescuentosObjetivosAltaDrawerComponent {
         infoDesc.EfectoKey = { EfectoId: infoDesc.EfectoId ?? null, EfectoIndividualId: infoDesc.EfectoIndividualId ?? null, StockId: infoDesc.StockId ?? null, Importe: infoDesc.Importe ?? '' }
 
         this.descuentoObjetivo.set(infoDesc)
+        this.ultimoObjetivoDescuentoAplicaObjetivoId.set(infoDesc.ObjetivoId)
+        this.ultimoObjetivoDescuentoAplicaDescuentoId.set(infoDesc.DescuentoId)
 
         if (infoDesc.EfectoId)
             this.lastEfecto.set({ EfectoId: infoDesc.EfectoId, EfectoIndividualId: infoDesc.EfectoIndividualId, EfectoDescripcionCompleto: infoDesc.EfectoDescripcionCompleto, Importe: infoDesc.Importe })
@@ -190,11 +195,13 @@ export class DescuentosObjetivosAltaDrawerComponent {
     optionsAplicaA = toSignal(this.searchService.getDecuentosAplicaAOptions(), { initialValue: [] });
     optionsTipo = toSignal(this.searchService.getDecuentosTipoOptions(), { initialValue: [] });
     objetivoDetalle = resource({
-        params: () => ({ ObjetivoId: this.inputObjetivoId(), anio: this.anio(), mes: this.mes() }),
+        params: () => ({ ObjetivoId: this.inputObjetivoId(), anio: this.anio(), mes: this.mes(), DescuentoId: this.DescuentoId() }),
         loader: async ({ params }) => {
 
             if (params.ObjetivoId && params.anio && params.mes) {
-                return await firstValueFrom(this.getObjetivoDetalle(params.ObjetivoId, params.anio, params.mes))
+                const detalle = await firstValueFrom(this.getObjetivoDetalle(params.ObjetivoId, params.anio, params.mes, params.DescuentoId))
+                untracked(() => this.applyObjetivoDescuentoAplica(detalle.objetivoDescuentoAplica, params.ObjetivoId, params.DescuentoId))
+                return detalle
             }
         }
     })
@@ -217,7 +224,7 @@ export class DescuentosObjetivosAltaDrawerComponent {
 
     async save() {
         await submit(this.formDescuentoObjetivo, async (form) => {
-            let values = form().value()
+            let values = { ...(form().value() as FormDesc), AplicaA: this.descuentoObjetivo().AplicaA }
             try {
                 if (values.id) {
                     await firstValueFrom(this.apiService.updateDescuento(values))
@@ -239,20 +246,40 @@ export class DescuentosObjetivosAltaDrawerComponent {
     resetForm() {
         this.descuentoObjetivo.set(this.descuentoObjetivoDefault)
         this.lastEfecto.set(null)
+        this.objetivoDescuentoAplicaReadonly.set(false)
+        this.ultimoObjetivoDescuentoAplicaObjetivoId.set(0)
+        this.ultimoObjetivoDescuentoAplicaDescuentoId.set(0)
 
         this.formDescuentoObjetivo().reset()
     }
 
-    getObjetivoDetalle(objetivoId: number, anio: number, mes: number): Observable<any> {
+    private applyObjetivoDescuentoAplica(objetivoDescuentoAplica: any, objetivoId: number, descuentoId: number) {
+        const ultimoObjetivoId = this.ultimoObjetivoDescuentoAplicaObjetivoId();
+        const ultimoDescuentoId = this.ultimoObjetivoDescuentoAplicaDescuentoId();
+        const cambioBusqueda = ultimoObjetivoId !== objetivoId || ultimoDescuentoId !== descuentoId;
+        const aplicaA = objetivoDescuentoAplica?.AplicaA ?? '';
+
+        this.objetivoDescuentoAplicaReadonly.set(!!aplicaA);
+        this.descuentoObjetivo.update((state) => {
+            if (aplicaA) return { ...state, AplicaA: aplicaA };
+            if (ultimoObjetivoId && cambioBusqueda) return { ...state, AplicaA: '' };
+            return state;
+        })
+        this.ultimoObjetivoDescuentoAplicaObjetivoId.set(objetivoId);
+        this.ultimoObjetivoDescuentoAplicaDescuentoId.set(descuentoId);
+    }
+
+    getObjetivoDetalle(objetivoId: number, anio: number, mes: number, descuentoId: number): Observable<any> {
         // this.loadingSrv.open({ type: 'spin', text: '' })
         return forkJoin([
             this.searchService.getObjetivoResponsables(objetivoId, anio, mes),
             this.searchService.getObjetivoContratos(objetivoId, anio, mes),
             this.searchService.getAsistenciaPeriodo(objetivoId, anio, mes),
+            descuentoId ? this.searchService.getObjetivoDescuentoAplica(objetivoId, descuentoId) : of(null),
         ]).pipe(
             map((data: any[]) => {
                 this.loadingSrv.close()
-                return { responsable: data[0], contratos: data[1], periodo: data[2] };
+                return { responsable: data[0], contratos: data[1], periodo: data[2], objetivoDescuentoAplica: data[3] };
             })
         );
     }
