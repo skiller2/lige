@@ -1054,7 +1054,8 @@ export class GestionDescuentosController extends BaseController {
         VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
       `, [ObjetivoDescuentoDescuentoId, ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, AplicaA, hoy, usuario, ip, hoy, usuario, ip])
     } else if (ObjetivoDescuentoAplica[0].AplicaA != AplicaA) {
-      throw new ClientException(`El "Aplica a" es distinto al registrado ("${ObjetivoDescuentoAplica[0].AplicaA}")`)
+      const aplicaALabel = aplicaAOptions.find((opt: any) => opt.value === ObjetivoDescuentoAplica[0].AplicaA.trim())?.label
+      throw new ClientException(`El "Aplica a" es distinto al registrado ("${aplicaALabel}")`)
     }
 
 
@@ -1887,7 +1888,8 @@ FROM cte
         VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
       `, [DescuentoId, ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, AplicaA, hoy, usuario, ip, hoy, usuario, ip])
     } else if (ObjetivoDescuentoAplica[0].AplicaA != AplicaA) {
-      throw new ClientException(`El "Aplica a" es distinto al registrado ("${ObjetivoDescuentoAplica[0].AplicaA}")`)
+      const aplicaALabel = aplicaAOptions.find((opt: any) => opt.value === ObjetivoDescuentoAplica[0].AplicaA.trim())?.label
+      throw new ClientException(`El "Aplica a" es distinto al registrado ("${aplicaALabel}")`)
     }
 
 
