@@ -127,6 +127,20 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
+    id: "ApellidosNombres",
+    name: "Coordinador Cuenta",
+    field: "ApellidosNombres",
+    type: "string",
+    fieldName: "cc.ApellidosNombres",
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+    editable: false,
+    showGridColumn: false
+
+  },
+  {
     name: "Dir. Provincia",
     type: "number",
     id: "DomicilioProvinciaId",
@@ -438,7 +452,8 @@ export class ImporteVentaVigilanciaController extends BaseController {
     try {
 
       const listCargaLicenciaHistory = await queryRunner.query(`
-        SELECT DISTINCT
+        
+  SELECT DISTINCT
           @1 anio,
           @2 mes,
           CONCAT(obj.ClienteId,'-' ,ISNULL(obj.ClienteElementoDependienteId,0),'-',@1,'-',@2) as id, 
@@ -460,7 +475,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
           objdom.DomicilioProvinciaId, objdom.ProvinciaDescripcion,
           rubros.RubroClienteDescripciones AS RubroClienteDescripcion, rubros.RubroClienteIds AS RubroClienteId,
-
+          cc.ApellidosNombres, cc.ObjetivoPersonalJerarquicoIds,
           1
         FROM Objetivo obj 
         LEFT JOIN ObjetivoImporteVenta ven ON ven.ClienteId =  obj.ClienteId AND ven.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND  ven.Anio = @1 AND ven.Mes = @2
@@ -623,6 +638,15 @@ LEFT JOIN (
                 objru.ClienteElementoDependienteId
         ) rubros ON rubros.ClienteId = obj.ClienteId
         AND rubros.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+
+        outer APPLY (SELECT
+                STRING_AGG( poj.PersonalId,', ') AS ObjetivoPersonalJerarquicoIds,
+                STRING_AGG( CONCAT(TRIM(poj.PersonalApellido), ', ', TRIM(poj.PersonalNombre)), '; ') AS ApellidosNombres
+
+                FROM ObjetivoPersonalJerarquico oj
+                Left join Personal poj on poj.PersonalId=oj.ObjetivoPersonalJerarquicoPersonalId
+
+                WHERE obj.ObjetivoId=oj.ObjetivoId  and ObjetivoPersonalJerarquicoDesde <= datefromparts(@1,@2,1) AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= datefromparts(@1,@2,1)) cc
 
         WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
         AND (${filterSql})
