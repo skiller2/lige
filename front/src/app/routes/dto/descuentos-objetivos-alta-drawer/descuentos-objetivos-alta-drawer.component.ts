@@ -147,6 +147,20 @@ export class DescuentosObjetivosAltaDrawerComponent {
         }
     })
 
+    aplicaAEffect = effect(() => {
+        const objetivoId = this.inputObjetivoId()
+        const descuentoId = this.DescuentoId()
+
+        if (objetivoId && descuentoId) return
+
+        untracked(() => {
+            this.objetivoDescuentoAplicaReadonly.set(false)
+            this.ultimoObjetivoDescuentoAplicaObjetivoId.set(0)
+            this.ultimoObjetivoDescuentoAplicaDescuentoId.set(0)
+            this.descuentoObjetivo.update((state) => ({ ...state, AplicaA: '' }))
+        })
+    })
+
     lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleto: string, Importe: string } | null>(null)
 
     importeTotal = computed(() => {
@@ -234,6 +248,11 @@ export class DescuentosObjetivosAltaDrawerComponent {
                         this.descuentoObjetivo.update((state) => {
                             return { ...state, id: res.data.id, oldObjetivoId: values.ObjetivoId }
                         })
+                }
+                if (values.ObjetivoId && values.DescuentoId && values.AplicaA) {
+                    this.objetivoDescuentoAplicaReadonly.set(true)
+                    this.ultimoObjetivoDescuentoAplicaObjetivoId.set(values.ObjetivoId)
+                    this.ultimoObjetivoDescuentoAplicaDescuentoId.set(values.DescuentoId)
                 }
                 this.onAddorUpdate.emit()
                 form().reset()
