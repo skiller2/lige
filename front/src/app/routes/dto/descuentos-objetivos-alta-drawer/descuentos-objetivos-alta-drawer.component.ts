@@ -138,10 +138,10 @@ export class DescuentosObjetivosAltaDrawerComponent {
             })
         }
 
-        if (this.effectoKey()) {
+        if (this.isEfecto() && this.effectoKey()?.EfectoId) {
             untracked(() => {
                 this.descuentoObjetivo.update((state) => {
-                    return { ...state, EfectoId: this.descuentoObjetivo().EfectoKey.EfectoId, EfectoIndividualId: this.descuentoObjetivo().EfectoKey.EfectoIndividualId ?? null, Importe: this.descuentoObjetivo().EfectoKey.Importe ?? '' }
+                    return { ...state, EfectoId: state.EfectoKey.EfectoId, EfectoIndividualId: state.EfectoKey.EfectoIndividualId ?? null, Importe: state.EfectoKey.Importe ?? '' }
                 })
             })
         }
