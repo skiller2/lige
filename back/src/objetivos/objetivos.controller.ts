@@ -1693,7 +1693,7 @@ export class ObjetivosController extends BaseController {
         // Coordinador de cuenta
 
         const coordinadores = form.infoCoordinadorCuenta || []
-        const coordinadoresConPersona = coordinadores.filter((obj: any) => !!obj.PersonalId)
+        const coordinadoresConAplicaDescuento = coordinadores.filter((obj: any) => !!obj.PersonalId && !!obj.ObjetivoPersonalJerarquicoDescuentos)
 
         for (const obj of coordinadores) {
             const tienePersona = !!obj.PersonalId
@@ -1747,8 +1747,8 @@ export class ObjetivosController extends BaseController {
         const intersectCCli = descC.some((v: any) => descCli.includes(v));
         const intersectLCli = descL.some((v: any) => descCli.includes(v));
 
-        if (descC.length > 0 && coordinadoresConPersona.length === 0) {
-            throw new ClientException(`Debe seleccionar al menos un Coordinador de cuenta para aplicar un descuento 'A Coordinador'.`);
+        if (descC.length > 0 && coordinadoresConAplicaDescuento.length === 0) {
+            throw new ClientException(`Debe agregar al menos un Coordinador de cuenta con indicador "Se aplica descuento" para aplicar un descuento 'A Coordinador'.`);
         }
         if (intersectCL || intersectCCli || intersectLCli) {
             throw new ClientException(`No se puede asignar un mismo descuento 'a aplicar' a más de uno a la vez (Coordinador, Lince o Cliente).`);
