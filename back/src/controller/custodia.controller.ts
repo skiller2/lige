@@ -58,6 +58,18 @@ const columnsObjCustodia: any[] = [
         searchHidden: false
     },
     {
+        name: "CUIT Cliente",
+        type: "string",
+        id: "ClienteFacturacionCUIT",
+        field: "ClienteFacturacionCUIT",
+        fieldName: "fac.ClienteFacturacionCUIT",
+        sortable: true,
+        hidden: false,
+        searchHidden: false,
+        minWidth: 100,
+        maxWidth: 100
+    },
+    {
         id: 'DescripcionRequirente', name: 'Solicitado por', field: 'DescripcionRequirente',
         fieldName: "obj.DescripcionRequirente",
         sortable: true,
@@ -646,7 +658,9 @@ export class CustodiaController extends BaseController {
                     100 - (ISNULL(regveh.COSTO,0) + ISNULL(regper.COSTO,0)) * 100 / obj.ImporteFactura,
                     0
                 ) AS diferencia,
-                regper.HorasTrabajadas
+                regper.HorasTrabajadas,
+                fac.ClienteFacturacionCUIT,
+            1
             FROM Custodia obj
             JOIN Personal per 
                 ON per.PersonalId = obj.ResponsableId
@@ -671,6 +685,10 @@ export class CustodiaController extends BaseController {
                 ON regper.CustodiaCodigo = obj.CustodiaCodigo
             LEFT JOIN PersonalCustodia percus 
                 ON percus.CustodiaCodigo = obj.CustodiaCodigo
+
+                LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 
+            AND fac.ClienteFacturacionDesde <= DATEFROMPARTS(@0,@1,1)
+            AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
 
             WHERE (${condition})
             AND (${search}) AND (${filterSql}) 
