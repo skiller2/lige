@@ -102,10 +102,10 @@ export class MovimientoStockController extends BaseController {
       const fecha = new Date(body.fecha)
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
 
-      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, observaciones, fecha, efectos);
+      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, observaciones, fecha, efectos, personalIdInter);
 
-      // Impacto en Stock: resta el origen, suma el destino
-      await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, efectos);
+      // Impacto en Stock: resta el origen, suma el destino (el intermediario si existe)
+      await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, efectos, personalIdInter);
 
       // Simular: corre los INSERT reales pero hace rollback (no persiste, no consume el numerador).
       // No se genera el PDF (ni archivo ni descarga): la simulación solo valida que el movimiento es válido.
@@ -133,7 +133,8 @@ export class MovimientoStockController extends BaseController {
     personalId: number | null,
     objetivoId: number | null,
     proveedorId: number | null,
-    observaciones: string, fecha: Date, efectos: any[]
+    observaciones: string, fecha: Date, efectos: any[],
+    personalIdInter: number | null = null
   ) {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
@@ -152,16 +153,38 @@ export class MovimientoStockController extends BaseController {
       clienteElemDepDestino = obj?.ClienteElementoDependienteId ?? null;
     }
 
+    // Con intermediario, el destino "visible" del MovimientoStock pasa a ser el intermediario (persona)
+    // y el destino final real se guarda aparte en MovimientoStockPendiente.
+    const conInter = personalIdInter != null;
+    const movPersonalIdDestino = conInter ? personalIdInter : personalId;
+    const movProveedorIdDestino = conInter ? null : proveedorId;
+    const movClienteIdDestino = conInter ? null : clienteIdDestino;
+    const movClienteElemDepDestino = conInter ? null : clienteElemDepDestino;
+    const movDepositoIdDestino = conInter ? null : depositoId;
+
     await queryRunner.query(
       `INSERT INTO MovimientoStock
         (MovimientoStockCodigo, Fecha, PersonalIdDestino, ProveedorIdDestino, ClienteIdDestino,
          ClienteElementoDependienteIdDestino, DepositoIdDestino, Observaciones,
          AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
        VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)`,
-      [movimientoCodigo, fecha, personalId, proveedorId, clienteIdDestino,
-        clienteElemDepDestino, depositoId, observaciones,
+      [movimientoCodigo, fecha, movPersonalIdDestino, movProveedorIdDestino, movClienteIdDestino,
+        movClienteElemDepDestino, movDepositoIdDestino, observaciones,
         fechaActual, fechaActual, usuario, usuario, ip, ip]
     );
+
+    if (conInter) {
+      await queryRunner.query(
+        `INSERT INTO MovimientoStockPendiente
+          (MovimientoStockCodigo, PersonalIdDestino, ProveedorIdDestino, ClienteIdDestino,
+           ClienteElementoDependienteIdDestino, DepositoIdDestino, DetalleJson,
+           AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12)`,
+        [movimientoCodigo, personalId, proveedorId, clienteIdDestino,
+          clienteElemDepDestino, depositoId, JSON.stringify(efectos ?? []),
+          fechaActual, fechaActual, ip, ip, usuario, usuario]
+      );
+    }
 
     // Detalle: un INSERT por renglón. MovimientoStockDetalleCodigo incremental desde 1 en este movimiento.
     let detalleCodigo = 0;
@@ -202,12 +225,19 @@ export class MovimientoStockController extends BaseController {
   private async aplicarMovimientoStock(
     queryRunner: any, req: any, res: any,
     depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
-    efectos: any[]
-
+    efectos: any[],
+    personalIdInter: number | null = null
   ) {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
     let fieldErrors = []
+
+    // Con intermediario, el stock entra al intermediario (lo tiene físicamente hasta resolver el pendiente).
+    const conInter = personalIdInter != null;
+    const destDepositoId = conInter ? null : depositoId;
+    const destPersonalId = conInter ? personalIdInter : personalId;
+    const destObjetivoId = conInter ? null : objetivoId;
+    const destProveedorId = conInter ? null : proveedorId;
     for (const [index, efecto] of efectos.entries()) {
       const EfectoId = Number(efecto.EfectoId)
       const EfectoEfectoIndividualId = efecto.EfectoIndividualId ?? null
@@ -241,10 +271,10 @@ export class MovimientoStockController extends BaseController {
         fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `La ubicación no es válida para el Efecto (inconsistencia de datos)` });
       }
 
-      if ((resStock[0]?.PersonalId && resStock[0]?.PersonalId == personalId) ||
-        (resStock[0]?.DepositoId && resStock[0]?.DepositoId == depositoId) ||
-        (resStock[0]?.ProveedorId && resStock[0]?.ProveedorId == proveedorId) ||
-        (resStock[0]?.ObjetivoId && resStock[0]?.ObjetivoId == objetivoId)
+      if ((resStock[0]?.PersonalId && resStock[0]?.PersonalId == destPersonalId) ||
+        (resStock[0]?.DepositoId && resStock[0]?.DepositoId == destDepositoId) ||
+        (resStock[0]?.ProveedorId && resStock[0]?.ProveedorId == destProveedorId) ||
+        (resStock[0]?.ObjetivoId && resStock[0]?.ObjetivoId == destObjetivoId)
       ) {
         fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `Lugar destino es igual al origen` });
       }
@@ -265,8 +295,8 @@ export class MovimientoStockController extends BaseController {
         //TODO: Cambia EfectoId o EfectoEfectoIndividualId y le agrega el indicador de usado.  Por ahí tiene que crear un nuevo EfectoId si no tiene ninguno como usado.
       }
       // Suma en destino.
-      const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6 WHERE 
-            ( DepositoId = @0 OR (@0 IS NULL AND DepositoId IS NULL)) 
+      const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6 WHERE
+            ( DepositoId = @0 OR (@0 IS NULL AND DepositoId IS NULL))
         AND ( PersonalId = @1 OR (@1 IS NULL AND PersonalId IS NULL))
         AND ( ObjetivoId = @2 OR (@2 IS NULL AND ObjetivoId IS NULL))
         AND ( ProveedorId = @3 OR (@3 IS NULL AND ProveedorId IS NULL))
@@ -274,14 +304,14 @@ export class MovimientoStockController extends BaseController {
         AND ( EfectoEfectoIndividualId = @5 OR (@5 IS NULL AND EfectoEfectoIndividualId IS NULL))
         SELECT @@ROWCOUNT as affected
 `,
-        [depositoId, personalId, objetivoId, proveedorId, EfectoId, EfectoEfectoIndividualId, Cantidad])
+        [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoId, EfectoEfectoIndividualId, Cantidad])
 
       const cantRegistros = ressuma[0]?.affected ?? 0;
       if (cantRegistros == 0) {
         await queryRunner.query(
           `INSERT INTO Stock (DepositoId,PersonalId,ObjetivoId,ProveedorId, EfectoId, EfectoEfectoIndividualId, StockStock)
           VALUES (@0, @1, @2, @3,@4,@5,@6)`,
-          [depositoId, personalId, objetivoId, proveedorId, EfectoId, EfectoEfectoIndividualId, Cantidad]
+          [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoId, EfectoEfectoIndividualId, Cantidad]
         );
 
       } else if (cantRegistros > 1) {
