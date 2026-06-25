@@ -2181,6 +2181,16 @@ export class SearchService {
     );
   }
 
+  getObjetivoDescuentoAplica(ObjetivoId: number, DescuentoId: number) {
+    if (!ObjetivoId || !DescuentoId) {
+      return of(null);
+    }
+    return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/objetivo-descuento-aplica/${ObjetivoId}/${DescuentoId}`).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
   getDescuentoTableOptions() {
     return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/tables`).pipe(
       map(res => res.data),

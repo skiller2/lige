@@ -9,6 +9,10 @@
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'personal','detalle']">Detalle</a>
       </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'personal','inconsistencia']">Inconsistencias</a>
+      </li>
     </ul>
     <nz-button-group nz-button nzButtonGroup>
       <!-- btn  reload -->
@@ -108,13 +112,15 @@
         <a nz-tab-link routerLink="/ges/personal/editar">Editar</a>
         @defer (when personalId()){
         <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
-
-      }
-
+        }
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/detalle">Detalle</a>
       <app-personal-form #perDetalle [personalId]="personalId()" [readonly]="true"></app-personal-form>
+    </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/personal/inconsistencia">Inconsistencias</a>
+      <app-personal-inconsistencias></app-personal-inconsistencias>
     </nz-tab>
   </nz-tabs>
 

@@ -347,7 +347,7 @@ export class ObjetivosFormComponent {
 
           this.objetivo.update(m => ({
             ...m,
-            infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
+            infoCoordinadorCuenta: result.data.infoCoordinadorCuenta?.length ? result.data.infoCoordinadorCuenta : [{ ...this.coordinadorCuentaDefault }],
             infoActividad: result.data.infoActividad,
             codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
             clienteOld: result.data.ClienteId,

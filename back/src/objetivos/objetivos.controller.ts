@@ -5,6 +5,7 @@ import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtro
 import { FileUploadController } from "../controller/file-upload.controller.ts"
 import type { QueryRunner } from "typeorm";
 import { personalController } from "../controller/controller.module.ts";
+import { logger } from "../logger/logger.ts";
 
 const getOptions: any[] = [
     { label: 'Si', value: 'True' },
@@ -733,8 +734,9 @@ export class ObjetivosController extends BaseController {
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const grupoactividadjerarquico = await this.getGrupoActividadJerarquico(queryRunner, grupoactividad[0]?.GrupoActividadId)
             const habilitacion = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
-            const descuentoCoordinador = await this.getDescuentoAplicaQuery(queryRunner, 'C', ClienteId, ClienteElementoDependienteId)
-            const descuentoLince = await this.getDescuentoAplicaQuery(queryRunner, 'L', ClienteId, ClienteElementoDependienteId)
+            const descuentoCoordinador = await this.getDescuentoAplicaQuery(queryRunner, 'CO', ClienteId, ClienteElementoDependienteId)
+            const descuentoLince = await this.getDescuentoAplicaQuery(queryRunner, 'NO', ClienteId, ClienteElementoDependienteId)
+            const descuentoCliente = await this.getDescuentoAplicaQuery(queryRunner, 'CL', ClienteId, ClienteElementoDependienteId)
 
             if (!facturacion) {
                 infObjetivo = { ...infObjetivo[0], ...domiclio[0] };
@@ -750,6 +752,7 @@ export class ObjetivosController extends BaseController {
             infObjetivo.habilitacion = habilitacion
             infObjetivo.descuentoCoordinador = descuentoCoordinador
             infObjetivo.descuentoLince = descuentoLince
+            infObjetivo.descuentoCliente = descuentoCliente
 
             await queryRunner.commitTransaction()
             return this.jsonRes(infObjetivo, res)
@@ -1689,11 +1692,20 @@ export class ObjetivosController extends BaseController {
 
         // Coordinador de cuenta
 
-        for (const obj of form.infoCoordinadorCuenta) {
-            if (!obj.PersonalId && obj.ObjetivoPersonalJerarquicoComision && obj.ObjetivoPersonalJerarquicoDescuentos) {
-                throw new ClientException(`- Persona en Coordinador de cuenta.`)
+        const coordinadores = form.infoCoordinadorCuenta || []
+        const coordinadoresConPersona = coordinadores.filter((obj: any) => !!obj.PersonalId)
+
+        for (const obj of coordinadores) {
+            const tienePersona = !!obj.PersonalId
+            const comision = Number(obj.ObjetivoPersonalJerarquicoComision)
+
+            if (!tienePersona && (obj.ObjetivoPersonalJerarquicoComision || obj.ObjetivoPersonalJerarquicoDescuentos || obj.ObjetivoPersonalJerarquicoSeDescuentaTelefono || obj.DescuentoRetiros)) {
+                throw new ClientException(`Debe seleccionar una Persona en Coordinador de cuenta.`)
             }
 
+            if (tienePersona && (!Number.isFinite(comision) || comision <= 0)) {
+                throw new ClientException(`Debe ingresar una Comisión mayor a 0 para el Coordinador de cuenta.`)
+            }
         }
 
         //Grupo Actividad
@@ -1735,6 +1747,9 @@ export class ObjetivosController extends BaseController {
         const intersectCCli = descC.some((v: any) => descCli.includes(v));
         const intersectLCli = descL.some((v: any) => descCli.includes(v));
 
+        if (descC.length > 0 && coordinadoresConPersona.length === 0) {
+            throw new ClientException(`Debe seleccionar al menos un Coordinador de cuenta para aplicar un descuento 'A Coordinador'.`);
+        }
         if (intersectCL || intersectCCli || intersectLCli) {
             throw new ClientException(`No se puede asignar un mismo descuento 'a aplicar' a más de uno a la vez (Coordinador, Lince o Cliente).`);
         }
@@ -1810,6 +1825,8 @@ export class ObjetivosController extends BaseController {
             await this.deleteClienteEleDepRubroQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteClienteElementoDependienteDocRequeridoQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
             await this.deleteHabilitacionNecesariaObjetivoQuery(queryRunner, Number(ObjetivoId))
+
+            // todo: agregar eliminar datos de ObjetivoSucursal y ObjetivoDescuentoAplica
 
             await this.deleteObjetivoQuery(queryRunner, Number(ObjetivoId), Number(ClienteId))
             await this.deleteClienteElementoDependienteQuery(queryRunner, Number(ClienteId), Number(ClienteElementoDependienteId))
@@ -1942,8 +1959,9 @@ export class ObjetivosController extends BaseController {
             ObjObjetivoNew.infoCoordinadorCuenta = await this.ObjetivoCoordinador(queryRunner, Obj.infoCoordinadorCuenta, ObjetivoId)
             await this.ObjetivoRubro(queryRunner, Obj.rubrosCliente, Obj.ClienteId, ClienteElementoDependienteUltNro)
             await this.ObjetivoDocRequerido(queryRunner, Obj.docsRequerido, Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
-            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCoordinador, 'C', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
-            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoLince, 'L', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCoordinador, 'CO', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoLince, 'NO', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
+            await this.setObjetivoDescuentoAplica(queryRunner, Obj.descuentoCliente, 'CL', Obj.ClienteId, ClienteElementoDependienteUltNro, usuario, ip)
 
             //await this.updateMaxClienteElementoDependiente(queryRunner,Obj.ClienteId,Obj.ClienteElementoDependienteId,MaxObjetivoPersonalJerarquicoId, maxRubro)
 

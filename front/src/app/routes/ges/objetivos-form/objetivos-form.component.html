@@ -110,7 +110,8 @@
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-select nzShowSearch [formField]="formObjetivo.DomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%">
-          @for (option of optionsLocalidad(); track option.LocalidadId) {
+          @for (option of optionsLocalidad(); track option.PaisId + '-' + option.ProvinciaId + '-' + option.LocalidadId)
+          {
           @if (option.ProvinciaId == objetivo().DomicilioProvinciaId) {
           <nz-option [nzValue]="option.LocalidadId" [nzLabel]="option.localidadDescripcion"></nz-option>
           }
@@ -122,7 +123,8 @@
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
         <nz-select nzShowSearch [formField]="formObjetivo.DomicilioBarrioId" nzPlaceHolder="Barrio" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%">
-          @for (option of optionsBarrio(); track option.BarrioId) {
+          @for (option of optionsBarrio(); track option.PaisId + '-' + option.ProvinciaId + '-' + option.LocalidadId +
+          '-' + option.BarrioId) {
           @if (option.ProvinciaId == objetivo().DomicilioProvinciaId && option.LocalidadId ==
           objetivo().DomicilioLocalidadId ) {
           <nz-option [nzValue]="option.BarrioId" [nzLabel]="option.BarrioDescripcion"></nz-option>
@@ -359,6 +361,4 @@
     </nz-form-control>
   </nz-form-item>
   }
-
-  <!-- {{objetivo() | json}} -->
 </form>
