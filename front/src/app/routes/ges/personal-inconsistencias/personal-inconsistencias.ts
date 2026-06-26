@@ -3,6 +3,7 @@ import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectio
 import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
+import { SearchService } from '../../../services/search.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { firstValueFrom } from 'rxjs';
@@ -44,7 +45,8 @@ export class PersonalInconsistenciasComponent {
     periodo = input<any>(null)
     personalId = signal<number>(0)
 
-    private apiService =inject(ApiService)
+    private apiService = inject(ApiService)
+    private searchService = inject(SearchService)
     private angularUtilService= inject(AngularUtilService)
 
     private readonly loadingSrv = inject(LoadingService)
@@ -58,7 +60,7 @@ export class PersonalInconsistenciasComponent {
             let response:any[] = []
             this.loadingSrv.open({ type: 'spin', text: '' })
             try {
-                // response = await firstValueFrom(this.apiService.getDescuentosPersonal(params.options, params.anio, params.mes));
+                response = await firstValueFrom(this.searchService.getPersonalInconsistencias({ options: params.options }));
             } catch (_e) { }
             this.loadingSrv.close()
 
@@ -90,7 +92,7 @@ export class PersonalInconsistenciasComponent {
     async angularGridReady(angularGrid: any) {
         this.angularGrid = angularGrid.detail
         this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-            // totalRecords(this.angularGrid, 'tipocuenta_id')
+            totalRecords(this.angularGrid, 'ApellidoNombre')
             // columnTotal('importe', this.angularGrid)
             // columnTotal('cuotanro', this.angularGrid)
             // columnTotal('cantcuotas', this.angularGrid)

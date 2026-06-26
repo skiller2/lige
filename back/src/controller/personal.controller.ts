@@ -336,15 +336,15 @@ const inconsColumns: any[] = [
     name: "id",
     field: "id",
     type: "number",
-    fieldName: "per.PersonalId",
+    fieldName: "",
     sortable: true,
     searchHidden: true,
     hidden: true,
   },
   {
-    id: "PersonalId",
+    id: "ApellidoNombre",
     name: "Apellido Nombre",
-    field: "PersonalId",
+    field: "ApellidoNombre",
     type: "string",
     fieldName: "per.PersonalId",
     searchComponent: "inputForPersonalSearch",
@@ -954,19 +954,45 @@ LEFT JOIN(
     }
   }
 
-  private async listInconsistenciasQuery(queryRunner: any, filterSql: any, orderBy: any) {
+  private async inconsistenciasListQuery(queryRunner: any, filterSql: any, orderBy: any) {
     return await queryRunner.query(`
       SELECT
-        per.PersonalId AS id,
+        ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
+        per.PersonalId,
         cuit.PersonalCUITCUILCUIT,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         ing.PersonalFechaIngreso, ing.PersonalFechaBaja,
-        'No tiene Acta de ALTA o REINCORPORACIÓN' AS inconsistencias
+        CASE
+          WHEN (sitrev.PersonalSituacionRevistaSituacionId = 3 AND act.TipoPersonalActaCodigo NOT IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaDesde >= DATEADD(YEAR, -5, GETDATE())) THEN
+            'No tiene Acta de BAJA'
+          WHEN (sitrev.PersonalSituacionRevistaSituacionId IN (2,10) AND act.TipoPersonalActaCodigo NOT IN ('ALT','REI')) THEN
+            'No tiene Acta de ALTA o REINCORPORACIÓN'
+          WHEN (ing.PersonalFechaIngreso > act.ActaFechaActa AND act.TipoPersonalActaCodigo IN ('ALT','REI')) THEN
+            'Fecha de Ingreso es mayor a la fecha del Acta de ALTA o REINCORPORACIÓN'
+          WHEN (act.TipoPersonalActaCodigo IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaDesde != act.ActaFechaActa) THEN
+            'Fecha de Baja es diferente a la fecha del Acta de BAJA'
+          WHEN (act.TipoPersonalActaCodigo IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaSituacionId != 3) THEN
+            'Tiene Acta de BAJA y no Situación de Revista BAJA'
+          WHEN (act.TipoPersonalActaCodigo IN ('ALT') AND sitrev.PersonalSituacionRevistaSituacionId IN (3,12,15,17,21,27)) THEN
+            'Tiene Acta de ALTA y Situación de Revista en ASOCIADO - EN TRAMITE, BAJA o POSTULANTE *'
+          WHEN (per.PersonalNroLegajo IS NOT NULL AND act.ActaId IS NULL) THEN
+            'Tiene Nro de Asociado y no tiene Acta cargada'
+          WHEN (per.PersonalNroLegajo IS NULL AND act.ActaId IS NOT NULL) THEN
+            'No tiene Nro de Asociado y tiene Acta cargada'
+          WHEN (perdom.NexoDomicilioId IS NULL AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10)) THEN
+            'No tiene Domicilio cargado y tiene Situación de Revista en ACTIVO o LICENCIA'
+          WHEN (bot.PersonalId IS NULL AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12) AND sitrev.PersonalSituacionRevistaDesde <= DATEADD(MONTH, -2, GETDATE())) THEN
+            'Tiene mas de 2 meses activo y No se encuentra registrado por el bot'
+          WHEN (ing.PersonalFechaIngreso IS NULL AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN
+            'Se encuentra ACTIVO sin fecha de Ingreso'
+          ELSE 'Error al buscar Inconsistencias'
+        END AS inconsistencias
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
       LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId = per.PersonalId
+      LEFT JOIN BotRegTelefonoPersonal bot ON bot.PersonalId = per.PersonalId
       LEFT JOIN (
-        SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
+        SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion, p.PersonalSituacionRevistaDesde,
         CASE 
           WHEN p.PersonalSituacionRevistaId IS NOT NULL THEN  
             CONCAT(
@@ -1002,34 +1028,28 @@ LEFT JOIN(
           GROUP BY a.PersonalId
         ) x ON x.PersonalId = a.PersonalId AND x.MaxFecha = b.ActaFechaActa
         JOIN TipoPersonalActa tip ON tip.TipoPersonalActaCodigo = a.TipoPersonalActaCodigo
-      ) act ON act.PersonalId = per.PersonalId 
-      WHERE sitrev.PersonalSituacionRevistaSituacionId IN (2,10) AND act.TipoPersonalActaCodigo NOT IN ('ALT','REI')
+      ) act ON act.PersonalId = per.PersonalId
+      LEFT JOIN (
+        SELECT 
+          nexdom.NexoDomicilioId, nexdom.PersonalId,
+          dom.DomicilioCodigoPostal, dom.DomicilioPaisId,dom.DomicilioProvinciaId, dom.DomicilioLocalidadId, dom.DomicilioBarrioId
+        FROM NexoDomicilio nexdom
+        LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
+        WHERE nexdom.NexoDomicilioActual = 1
+      ) AS perdom ON perdom.PersonalId = per.PersonalId
+      WHERE ( (sitrev.PersonalSituacionRevistaSituacionId IN (2,10) AND act.TipoPersonalActaCodigo NOT IN ('ALT','REI'))
+      OR (sitrev.PersonalSituacionRevistaSituacionId = 3 AND act.TipoPersonalActaCodigo NOT IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaDesde >= DATEADD(YEAR, -5, GETDATE()))
+      OR (ing.PersonalFechaIngreso > act.ActaFechaActa AND act.TipoPersonalActaCodigo IN ('ALT','REI'))
+      OR (act.TipoPersonalActaCodigo IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaDesde != act.ActaFechaActa)
+      OR (act.TipoPersonalActaCodigo IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaSituacionId != 3)
+      OR (act.TipoPersonalActaCodigo IN ('ALT') AND sitrev.PersonalSituacionRevistaSituacionId IN (3,12,15,17,21,27))
+      OR (per.PersonalNroLegajo IS NOT NULL AND act.ActaId IS NULL)
+      OR (per.PersonalNroLegajo IS NULL AND act.ActaId IS NOT NULL)
+      OR (perdom.NexoDomicilioId IS NULL AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10))
+      OR (bot.PersonalId IS NULL AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12) AND sitrev.PersonalSituacionRevistaDesde <= DATEADD(MONTH, -2, GETDATE()))
+      OR (ing.PersonalFechaIngreso IS NULL AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) )
       AND (${filterSql})
-
-      /*UNION ALL
-
-      SELECT
-        per.PersonalId AS id,
-        cuit.PersonalCUITCUILCUIT,
-        CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-        ing.PersonalFechaIngreso, ing.PersonalFechaBaja
-      FROM Personal per
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-      LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId = per.PersonalId
-      WHERE (${filterSql})
-
-      UNION ALL
-
-      SELECT
-        per.PersonalId AS id,
-        cuit.PersonalCUITCUILCUIT,
-        CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-        ing.PersonalFechaIngreso, ing.PersonalFechaBaja
-      FROM Personal per
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-      LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId = per.PersonalId
-      WHERE (${filterSql})
-      ${orderBy}*/
+      ${orderBy}
     `)
   }
 
@@ -1042,7 +1062,7 @@ LEFT JOIN(
       const filterSql = filtrosToSql(options.filtros, columns);
       const orderBy = orderToSQL(options.sort)
 
-      const lista: any[] = await this.listInconsistenciasQuery(queryRunner, filterSql, orderBy)
+      const lista: any[] = await this.inconsistenciasListQuery(queryRunner, filterSql, orderBy)
 
       await queryRunner.commitTransaction()
       this.jsonRes(lista, res);

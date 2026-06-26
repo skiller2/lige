@@ -15,6 +15,7 @@
       </li>
     </ul>
     <nz-button-group nz-button nzButtonGroup>
+      @if(tabIndex() == 1){
       <!-- btn  reload -->
       <button nz-button nzType="default" (click)="gridData.reload()"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"><span nz-icon nzType="reload"
@@ -73,6 +74,7 @@
       <button nz-button nzType="default" (click)="openDrawerforConsultSitRevista()" [disabled]="personalId() == 0"
         nz-tooltip nzTooltipTitle="{{ 'app.state' | i18n }}"><span nz-icon nzType="info-circle"
       nzTheme="outline"></span></button>
+      }
       </nz-button-group>
   </div>
       <!-- <form nz-form #formAsist="ngForm" class="">
@@ -85,7 +87,7 @@
         </nz-form-item>
       </form> -->
 
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" (nzSelectChange)="onTabsetChange($event)">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex" (nzSelectChange)="onTabsetChange($event)">
     <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/listado">Listado</a>
@@ -93,26 +95,26 @@
         <ng-template nz-tab>
           <shared-filtro-builder  [fieldsToSelect]="columns()" [startFilters]="startFilters()"
             [(options)]="listOptions" />
-            <div class="gridContainer container-fluid">
-              <angular-slickgrid gridId="grid" class="" [columns]="columns() | colsFilter"
-                [options]="gridOptions" [dataset]="gridData.value()"
-                (onAngularGridCreated)="angularGridReady($event)"
-                (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
-              </angular-slickgrid>
-            </div>
-          </ng-template>
-        }
-      </nz-tab>
+          <div class="gridContainer container-fluid">
+            <angular-slickgrid gridId="grid" class="" [columns]="columns() | colsFilter"
+              [options]="gridOptions" [dataset]="gridData.value()"
+              (onAngularGridCreated)="angularGridReady($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+            </angular-slickgrid>
+          </div>
+        </ng-template>
+      }
+    </nz-tab>
 
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/personal/carga">Carga</a>
-        <app-personal-form #perAlta></app-personal-form>
-      </nz-tab>
-      <nz-tab>
-        <a nz-tab-link routerLink="/ges/personal/editar">Editar</a>
-        @defer (when personalId()){
-        <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
-        }
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/personal/carga">Carga</a>
+      <app-personal-form #perAlta></app-personal-form>
+    </nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/personal/editar">Editar</a>
+      @defer (when personalId()){
+      <app-personal-form #perForm [personalId]="personalId()"></app-personal-form>
+      }
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/detalle">Detalle</a>
@@ -120,7 +122,9 @@
     </nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/inconsistencia">Inconsistencias</a>
+      @defer (when tabIndex() == 5){
       <app-personal-inconsistencias></app-personal-inconsistencias>
+      }
     </nz-tab>
   </nz-tabs>
 

@@ -71,6 +71,7 @@ export class PersonalComponent {
   personalId = signal(0)
   anio = signal(0)
   mes = signal(0)
+  tabIndex = signal(0)
   visibleHistorial = model<boolean>(false)
   visibleObjetivo = model<boolean>(false)
   visibleCustodias = model<boolean>(false)
