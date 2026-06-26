@@ -7,6 +7,7 @@ import { TableObjetivosEfectoComponent } from '../table-objetivos-efecto/table-o
 import { TableDepositoEfectoComponent } from '../table-deposito-efecto/table-deposito-efecto';
 import { TableProveedoresEfectoComponent } from '../table-proveedores-efecto/table-proveedores-efecto';
 import { TableMovimientosEfectoComponent } from '../table-movimientos-efecto/table-movimientos-efecto';
+import { TableMovimientosEfectoDetalleComponent } from '../table-movimientos-efecto/table-movimientos-efecto-detalle';
 import { TableEfectoGeneralComponent } from '../table-efecto-general/table-efecto-general';
 import { MovimientoStockComponent } from '../movimiento-stock/movimiento-stock';
 import { SettingsService } from '@delon/theme';
@@ -25,6 +26,7 @@ import { firstValueFrom, map } from 'rxjs';
     TableDepositoEfectoComponent,
     TableProveedoresEfectoComponent,
     TableMovimientosEfectoComponent,
+    TableMovimientosEfectoDetalleComponent,
     TableEfectoGeneralComponent,
     MovimientoStockComponent,
   ],
@@ -53,6 +55,19 @@ export class EfectoComponent {
     if (this.activeTab() === 'movimientos') return this.comprobanteCodigo() === null
     return true
   })
+
+  // Drawer con el detalle de efectos del movimiento seleccionado en la grilla.
+  readonly detalleVisible = signal(false)
+
+  // El botón de detalle solo se habilita en la tab movimientos con una fila seleccionada.
+  readonly detalleMovimientoDeshabilitado = computed(() =>
+    this.activeTab() !== 'movimientos' || this.movimientoComprobanteCodigo() === null
+  )
+
+  abrirDetalleMovimiento() {
+    if (this.detalleMovimientoDeshabilitado()) return
+    this.detalleVisible.set(true)
+  }
 
   // Body que se manda al generar el comprobante. Si ya hay un movimiento confirmado, el backend lo
   // arma leyéndolo de la base (por id); si no, lo arma con los datos del form (parametroStock).

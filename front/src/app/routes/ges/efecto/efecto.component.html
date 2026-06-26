@@ -44,8 +44,6 @@
         [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
         <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
       </button>
-      <!-- El comprobante se arma por id si hay un movimiento confirmado, o con los datos del form
-           (parametroStock) si todavía no se guardó. El backend decide según lo recibido. -->
       <button #descargarComprobante nz-button nzType="default" type="button" nz-tooltip
         nzTooltipTitle="Descargar Comprobante"
         [disabled]="descargaComprobanteDeshabilitada()"
@@ -53,6 +51,13 @@
         [httpBody]="comprobanteBody()"
         httpUrl="api/movimiento-stock/comprobante">
         <span nz-icon nzType="download" nzTheme="outline"></span>
+      </button>
+      
+      <button nz-button nzType="default" type="button" nz-tooltip
+        nzTooltipTitle="Detalle de efectos"
+        [disabled]="detalleMovimientoDeshabilitado()"
+        (click)="abrirDetalleMovimiento()">
+        <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
       </button>
     </nz-button-group>
   </div>
@@ -94,7 +99,11 @@
       <app-movimiento-stock (confirmado)="onComprobanteConfirmado()" />
 
   }
-  
+
 
 
 </nz-card>
+
+<app-table-movimientos-efecto-detalle
+  [movimientoStockCodigo]="movimientoComprobanteCodigo()"
+  [(visible)]="detalleVisible" />

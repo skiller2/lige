@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { firstValueFrom } from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Column } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
@@ -31,7 +31,6 @@ export class TableMovimientosEfectoComponent {
   refreshGrid = input<number>(0);
   comprobanteSelected = output<number | null>();
   private angularGrid!: AngularGridInstance;
-  private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
   gridOptions!: GridOption;
   private excelExportService = new ExcelExportService();
@@ -91,17 +90,21 @@ export class TableMovimientosEfectoComponent {
 
   angularGridReady(angularGrid: any): void {
     this.angularGrid = angularGrid.detail;
-    this.gridObj = angularGrid.detail.slickGrid;
 
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
       columnTotal('CantidadEfectos', this.angularGrid)
     });
+  }
 
-    this.gridObj.onClick.subscribe((_e: any, args: any) => {
-      const item = this.angularGrid.dataView.getItem(args.row)
+  handleSelectedRowsChanged(e: any): void {
+    const rows: number[] = e.detail.args.rows ?? []
+    if (rows.length === 1) {
+     const item = this.angularGrid.dataView.getItem(rows[0])
       this.comprobanteSelected.emit(item?.MovimientoStockCodigo ?? null)
-    });
+    } else {
+      this.comprobanteSelected.emit(null)
+    }
   }
 
   exportGrid(): void {

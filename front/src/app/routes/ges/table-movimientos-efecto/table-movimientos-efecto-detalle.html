@@ -1,0 +1,37 @@
+<nz-drawer
+  [nzVisible]="visible()"
+  nzTitle="Detalle de efectos"
+  [nzWidth]="640"
+  (nzOnClose)="close()">
+  <ng-container *nzDrawerContent>
+    <div style="margin-bottom: 8px;">
+      Cantidad total: <strong>{{ cantidadTotal() }}</strong>
+    </div>
+    <nz-table
+      #detalleTable
+      [nzData]="detalle.value()"
+      [nzLoading]="detalle.isLoading()"
+      nzSize="small"
+      [nzShowPagination]="false"
+      [nzFrontPagination]="false">
+      <thead>
+        <tr>
+          <th>Efecto</th>
+          <th>Origen</th>
+          <th nzAlign="right">Cantidad</th>
+          <th nzAlign="center">Usado</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of detalleTable.data; track item.MovimientoStockDetalleCodigo) {
+          <tr>
+            <td>{{ item.EfectoDescripcionCompleto }}</td>
+            <td>{{ item.Origen }}</td>
+            <td nzAlign="right">{{ item.Cantidad }}</td>
+            <td nzAlign="center">{{ item.IndEfectoUsado ? 'Sí' : 'No' }}</td>
+          </tr>
+        }
+      </tbody>
+    </nz-table>
+  </ng-container>
+</nz-drawer>

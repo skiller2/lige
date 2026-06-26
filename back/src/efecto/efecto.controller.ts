@@ -1751,4 +1751,42 @@ export class EfectoController extends BaseController {
       WHERE ${filterSql} `)
   }
 
+  // Detalle de efectos de un movimiento (MovimientoStockDetalle): descripción del efecto, origen
+  // resuelto, cantidad y si el efecto está usado. Alimenta el drawer de detalle de la grilla.
+  async getEfectoMovimientoDetalle(req: any, res: Response, next: NextFunction) {
+    const movimientoCodigo = Number(req.params.codigo);
+    if (!movimientoCodigo) {
+      this.jsonRes([], res);
+      return;
+    }
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const list = await queryRunner.query(`
+        SELECT det.MovimientoStockDetalleCodigo, det.Cantidad, det.IndEfectoUsado,
+          CONCAT(TRIM(efe.EfectoDescripcion),
+            IIF(efeind.EfectoEfectoIndividualDescripcion IS NULL, '', CONCAT(' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion)))) AS EfectoDescripcionCompleto,
+          COALESCE(
+            TRIM(depo.DepositoNombre),
+            IIF(det.PersonalIdOrigen IS NULL, NULL, CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre))),
+            TRIM(proo.ProveedorRazonSocial),
+            IIF(det.ClienteIdOrigen IS NULL, NULL,
+              CONCAT(det.ClienteIdOrigen, IIF(det.ClienteElementoDependienteOrigen IS NULL, '', CONCAT('/', det.ClienteElementoDependienteOrigen))))
+          ) AS Origen
+        FROM MovimientoStockDetalle det
+        LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = det.EfectoId
+        LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = det.EfectoId AND efeind.EfectoEfectoIndividualId = det.EfectoIndividualId
+        LEFT JOIN Deposito depo ON depo.DepositoId = det.DepositoIdOrigen
+        LEFT JOIN Personal pero ON pero.PersonalId = det.PersonalIdOrigen
+        LEFT JOIN Proveedor proo ON proo.ProveedorId = det.ProveedorIdOrigen
+        WHERE det.MovimientoStockCodigo = @0
+        ORDER BY det.MovimientoStockDetalleCodigo
+      `, [movimientoCodigo]);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
 }

@@ -52,6 +52,9 @@ efectoRouter.get("/colsMovimientos", [authMiddleware.verifyToken,authMiddleware.
 efectoRouter.post("/getEfectoMovimientos", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
   efectoController.getEfectoMovimientos(req, res, next);
 });
+efectoRouter.get("/movimientoDetalle/:codigo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+  efectoController.getEfectoMovimientoDetalle(req, res, next);
+});
 
 efectoRouter.post("/searchEfecto", authMiddleware.verifyToken, (req, res, next) => {efectoController.searchEfecto(req, res, next);
 });
