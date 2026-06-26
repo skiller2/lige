@@ -26,6 +26,10 @@
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'efecto', 'proveedores']">Proveedores</a>
       </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'efecto', 'movimientos']">Movimientos</a>
+      </li>
 
     </ul>
 
@@ -77,6 +81,11 @@
   @if (visitedTabs().has('proveedores')) {
     <div [hidden]="activeTab() !== 'proveedores'">
       <app-table-proveedores-efecto [refreshGrid]="refreshTickProveedores()" [proveedorIdFilter]="proveedorIdFilter()" />
+    </div>
+  }
+  @if (visitedTabs().has('movimientos')) {
+    <div [hidden]="activeTab() !== 'movimientos'">
+      <app-table-movimientos-efecto [refreshGrid]="refreshTickMovimientos()" />
     </div>
   }
   @if (visitedTabs().has('movimiento')) {

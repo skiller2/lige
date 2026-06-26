@@ -2368,6 +2368,15 @@ export class SearchService {
     );
   }
 
+  getEfectoMovimientos(listOptions: any) {
+    return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoMovimientos`, { listOptions }).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        return of([]);
+      })
+    );
+  }
+
   getStockEfectoTiposDestino() {
      return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/tipos-destino`).pipe(
       map(res => res.data),

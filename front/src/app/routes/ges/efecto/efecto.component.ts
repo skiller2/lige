@@ -6,6 +6,7 @@ import { TablePersonalEfectoComponent } from '../table-personal-efecto/table-per
 import { TableObjetivosEfectoComponent } from '../table-objetivos-efecto/table-objetivos-efecto.component';
 import { TableDepositoEfectoComponent } from '../table-deposito-efecto/table-deposito-efecto';
 import { TableProveedoresEfectoComponent } from '../table-proveedores-efecto/table-proveedores-efecto';
+import { TableMovimientosEfectoComponent } from '../table-movimientos-efecto/table-movimientos-efecto';
 import { TableEfectoGeneralComponent } from '../table-efecto-general/table-efecto-general';
 import { MovimientoStockComponent } from '../movimiento-stock/movimiento-stock';
 import { SettingsService } from '@delon/theme';
@@ -23,6 +24,7 @@ import { firstValueFrom, map } from 'rxjs';
     TableObjetivosEfectoComponent,
     TableDepositoEfectoComponent,
     TableProveedoresEfectoComponent,
+    TableMovimientosEfectoComponent,
     TableEfectoGeneralComponent,
     MovimientoStockComponent,
   ],
@@ -84,6 +86,7 @@ export class EfectoComponent {
   refreshTickObjetivos = signal(0)
   refreshTickDeposito = signal(0)
   refreshTickProveedores = signal(0)
+  refreshTickMovimientos = signal(0)
 
   visitedTabs = signal<Set<string>>(new Set())
 
@@ -107,6 +110,7 @@ export class EfectoComponent {
       case 'objetivos':   this.refreshTickObjetivos.update(n => n + 1); break
       case 'deposito':    this.refreshTickDeposito.update(n => n + 1); break
       case 'proveedores': this.refreshTickProveedores.update(n => n + 1); break
+      case 'movimientos': this.refreshTickMovimientos.update(n => n + 1); break
     }
   }
 

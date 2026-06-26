@@ -167,6 +167,15 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsHabilitacionEstado = this.searchService.getEstadosHabilitaciones();
   $optionsEventoLogClase = this.searchService.getEventoLogClaseOptions();
 
+  // Opciones fijas para filtrar el tipo de destino de un movimiento de stock.
+  // Los value deben coincidir exactamente con el CASE del backend (incluido el acento de 'Depósito').
+  optionsDestinoTipo = [
+    { value: 'Persona', label: 'Persona' },
+    { value: 'Depósito', label: 'Depósito' },
+    { value: 'Objetivo', label: 'Objetivo' },
+    { value: 'Proveedor', label: 'Proveedor' },
+  ];
+
   ngOnInit(): void {
   }
 

@@ -1,0 +1,18 @@
+<nz-card class="small-margin">
+  <ng-container>
+
+    @if(columns().length; as columnas) {
+      <shared-filtro-builder [fieldsToSelect]="columns()" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+
+      <div class="gridContainerEfectoMovimientos container-fluid">
+        <angular-slickgrid
+          gridId="gridEfectoMovimientos"
+          [columns]="columns() | colsFilter"
+          [options]="gridOptions"
+          [dataset]="gridData.value()"
+          (onAngularGridCreated)="angularGridReady($event)">
+        </angular-slickgrid>
+      </div>
+    }
+  </ng-container>
+</nz-card>
