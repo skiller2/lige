@@ -261,7 +261,7 @@ const columnsObjCustodia: any[] = [
         searchComponent: "inputForEstadoCustSearch",
         searchType: "number",
         //maxWidth: 110,
-        minWidth: 70,
+        minWidth: 100,
     },
     {
         id: "ApellidoNombre", name: "Apellido Nombre", field: "ApellidoNombre",
@@ -281,16 +281,17 @@ const columnsObjCustodia: any[] = [
         searchType: "string",
         sortable: true,
         hidden: true,
-        searchHidden: false
+        searchHidden: false,
     },
     {
-        id: "NumeroFactura", name: "Num Factura", field: "Num NumeroFactura",
+        id: "NumeroFactura", name: "Número Factura", field: "NumeroFactura",
         type: "number",
         fieldName: "obj.NumeroFactura",
         searchType: "number",
         sortable: true,
-        hidden: true,
-        searchHidden: false
+        hidden: false,
+        searchHidden: false,
+        minWidth: 100,
     },
 ]
 
@@ -653,6 +654,7 @@ export class CustodiaController extends BaseController {
                 obj.CantidadHorasExcedente,
                 obj.ImporteModulo,
                 obj.CantidadModulos,
+                obj.NumeroFactura,
                 IIF(
                     obj.ImporteFactura > 0,
                     100 - (ISNULL(regveh.COSTO,0) + ISNULL(regper.COSTO,0)) * 100 / obj.ImporteFactura,
