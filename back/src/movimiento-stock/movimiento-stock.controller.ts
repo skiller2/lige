@@ -878,8 +878,9 @@ export class MovimientoStockController extends BaseController {
     const filasDestino = await this.resolverFilasDestino(queryRunner, tipoDestino, form, fecha);
 
     const vars = {
-      // Sin movimiento guardado todavía: el N° de comprobante va en ceros.
+      // Sin movimiento guardado todavía: el N° de comprobante va en ceros y se marca como PRUEBA.
       movimientoCodigo: '00000',
+      pruebaDisplay: 'block',
       fechaFormateada: this.dateOutputFormat(fecha),
       origen: '',
       destino,
@@ -1107,6 +1108,8 @@ export class MovimientoStockController extends BaseController {
   // queda en '' para que no se filtre el literal ${...} al PDF.
   private aplicarVariablesComprobante(tpl: string, vars: Record<string, string>): string {
     return tpl
+      // 'block' muestra la marca PRUEBA en el header; 'none' (default) la oculta en el comprobante real.
+      .replace(/\${pruebaDisplay}/g, vars.pruebaDisplay ?? 'none')
       .replace(/\${movimientoCodigo}/g, vars.movimientoCodigo ?? '')
       .replace(/\${fechaFormateada}/g, vars.fechaFormateada ?? '')
       .replace(/\${origen}/g, vars.origen ?? '')
