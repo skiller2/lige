@@ -1,4 +1,4 @@
-import { Component, inject, input, resource, signal } from '@angular/core';
+import { Component, inject, input, output, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { firstValueFrom } from 'rxjs';
@@ -29,6 +29,7 @@ import { LoadingService } from '@delon/abc/loading';
 export class TableMovimientosEfectoComponent {
 
   refreshGrid = input<number>(0);
+  comprobanteSelected = output<number | null>();
   private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
@@ -95,6 +96,11 @@ export class TableMovimientosEfectoComponent {
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
       columnTotal('CantidadEfectos', this.angularGrid)
+    });
+
+    this.gridObj.onClick.subscribe((_e: any, args: any) => {
+      const item = this.angularGrid.dataView.getItem(args.row)
+      this.comprobanteSelected.emit(item?.MovimientoStockCodigo ?? null)
     });
   }
 

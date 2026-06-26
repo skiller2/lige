@@ -48,7 +48,7 @@
            (parametroStock) si todavía no se guardó. El backend decide según lo recibido. -->
       <button #descargarComprobante nz-button nzType="default" type="button" nz-tooltip
         nzTooltipTitle="Descargar Comprobante"
-        [disabled]="activeTab() !== 'movimiento'"
+        [disabled]="descargaComprobanteDeshabilitada()"
         app-down-file [httpMethod]="'POST'"
         [httpBody]="comprobanteBody()"
         httpUrl="api/movimiento-stock/comprobante">
@@ -85,7 +85,8 @@
   }
   @if (visitedTabs().has('movimientos')) {
     <div [hidden]="activeTab() !== 'movimientos'">
-      <app-table-movimientos-efecto [refreshGrid]="refreshTickMovimientos()" />
+      <app-table-movimientos-efecto [refreshGrid]="refreshTickMovimientos()"
+        (comprobanteSelected)="movimientoComprobanteCodigo.set($event)" />
     </div>
   }
   @if (visitedTabs().has('movimiento')) {

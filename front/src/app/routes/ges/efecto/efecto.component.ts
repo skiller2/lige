@@ -41,8 +41,18 @@ export class EfectoComponent {
   private readonly movimientoStock = viewChild(MovimientoStockComponent)
   private readonly descargarComprobanteBtn = viewChild('descargarComprobante', { read: ElementRef })
 
-  // Código que alimenta y habilita el botón de descarga (POST /comprobante).
-  readonly comprobanteCodigo = computed(() => this.movimientoStock()?.comprobanteCodigo() ?? null)
+  readonly movimientoComprobanteCodigo = signal<number | null>(null)
+
+ readonly comprobanteCodigo = computed(() =>
+    this.activeTab() === 'movimientos'
+      ? this.movimientoComprobanteCodigo()
+      : this.movimientoStock()?.comprobanteCodigo() ?? null
+  )
+
+  readonly descargaComprobanteDeshabilitada = computed(() => {
+    if (this.activeTab() === 'movimientos') return this.comprobanteCodigo() === null
+    return true
+  })
 
   // Body que se manda al generar el comprobante. Si ya hay un movimiento confirmado, el backend lo
   // arma leyéndolo de la base (por id); si no, lo arma con los datos del form (parametroStock).
