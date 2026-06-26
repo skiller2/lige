@@ -2685,4 +2685,12 @@ export class SearchService {
     );
   }
 
+  getPersonalInconsistencias(filters: any) {
+    return this.http.post<ResponseJSON<any>>(`api/personal/inconsistencias-list`, filters)
+      .pipe(
+        map(res => res.data),
+        catchError(() => of([]))
+      );
+  }
+
 }
