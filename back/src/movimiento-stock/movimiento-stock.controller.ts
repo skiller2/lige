@@ -747,6 +747,7 @@ export class MovimientoStockController extends BaseController {
   private async getMovimientoCabecera(queryRunner: any, movimientoCodigo: number) {
     const rows = await queryRunner.query(`
       SELECT TOP 1 mov.MovimientoStockCodigo, mov.Fecha, mov.Observaciones,
+        mov.PersonalIdDestino, mov.ClienteIdDestino, mov.ClienteElementoDependienteIdDestino,
         CASE
           WHEN mov.DepositoIdDestino IS NOT NULL THEN 'Depósito'
           WHEN mov.PersonalIdDestino IS NOT NULL THEN 'Persona'
@@ -833,6 +834,16 @@ export class MovimientoStockController extends BaseController {
     }
     if (textefectos) textefectos += this.filaTotalEfectos(totalCantidad);
 
+    // Filas extra del destino del movimiento guardado (mismas consultas que el form): persona →
+    // situación revista + grupo actividad; objetivo → grupo actividad + contrato.
+    let filasDestino = '';
+    if (cabecera?.PersonalIdDestino != null) {
+      filasDestino = await this.resolverFilasPersona(queryRunner, cabecera.PersonalIdDestino, fecha);
+    } else if (cabecera?.ClienteIdDestino != null) {
+      const objetivoId = await this.resolverObjetivoId(queryRunner, cabecera.ClienteIdDestino, cabecera.ClienteElementoDependienteIdDestino);
+      if (objetivoId) filasDestino = await this.resolverFilasObjetivo(queryRunner, objetivoId, fecha);
+    }
+
     const vars = {
       movimientoCodigo: movimientoCodigo ? movimientoCodigo.toString() : '',
       fechaFormateada: this.dateOutputFormat(fecha),
@@ -841,6 +852,7 @@ export class MovimientoStockController extends BaseController {
       tipoDestino: '',
       intermediario: '',
       observaciones,
+      filasDestino,
       textefectos,
     };
 
@@ -963,6 +975,22 @@ export class MovimientoStockController extends BaseController {
     const grupoActividad = await this.resolverGrupoActividad(queryRunner, personalId, anio, mes);
     return `<tr><td>SITUACIÓN REVISTA</td><td>${situacionRevista || '—'}</td></tr>`
       + `<tr><td>GRUPO ACTIVIDAD</td><td>${grupoActividad || 'Sin Grupo Actividad Vigente'}</td></tr>`;
+  }
+
+  // ObjetivoId a partir del destino del movimiento guardado (Cliente + ElementoDependiente), ya que
+  // MovimientoStock guarda esos IDs y no el ObjetivoId.
+  private async resolverObjetivoId(queryRunner: any, clienteId: any, clienteElementoDependienteId: any): Promise<number | null> {
+    if (clienteId == null) return null;
+    try {
+      const r = await queryRunner.query(`
+        SELECT TOP 1 ObjetivoId FROM Objetivo
+        WHERE ClienteId = @0
+          AND (ClienteElementoDependienteId = @1 OR (@1 IS NULL AND ClienteElementoDependienteId IS NULL))
+      `, [clienteId, clienteElementoDependienteId ?? null]);
+      return r?.[0]?.ObjetivoId ?? null;
+    } catch (error) {
+      return null;
+    }
   }
 
   // Filas <tr> del objetivo destino: grupo actividad y contrato (mismas consultas que el form de movimiento).
