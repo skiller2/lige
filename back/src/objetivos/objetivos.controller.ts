@@ -661,7 +661,7 @@ outer APPLY (SELECT
     FROM ObjetivoPersonalJerarquico oj
     Left join Personal poj on poj.PersonalId=oj.ObjetivoPersonalJerarquicoPersonalId
 
-    WHERE obj.ObjetivoId=oj.ObjetivoId  and ObjetivoPersonalJerarquicoDesde <= EOMONTH(datefromparts(@0,@1,1)) AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= datefromparts(@0,@1,1)) cc
+    WHERE obj.ObjetivoId=oj.ObjetivoId  and ObjetivoPersonalJerarquicoDesde <= @2 AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= @2) cc
                 WHERE ${filterSql} ${orderBy}`, [anio, mes, fechaActual])
 
             this.jsonRes(

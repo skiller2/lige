@@ -645,7 +645,7 @@ LEFT JOIN (
     FROM ObjetivoPersonalJerarquico oj
     Left join Personal poj on poj.PersonalId=oj.ObjetivoPersonalJerarquicoPersonalId
 
-    WHERE obj.ObjetivoId=oj.ObjetivoId  and ObjetivoPersonalJerarquicoDesde <= EOMONTH(datefromparts(@1,@2,1)) AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= datefromparts(@1,@2,1)) cc
+    WHERE obj.ObjetivoId=oj.ObjetivoId  and ObjetivoPersonalJerarquicoDesde <= EOMONTH(datefromparts(@1,@2,1)) AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= EOMONTH(datefromparts(@1,@2,1))) cc
                 
         WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
         AND (${filterSql})
