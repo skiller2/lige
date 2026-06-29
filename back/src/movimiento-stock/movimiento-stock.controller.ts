@@ -819,8 +819,10 @@ export class MovimientoStockController extends BaseController {
     const origenes = [...new Set((detalle ?? []).map((d: any) => d.Origen).filter(Boolean))];
     const origen = origenes.join(' / ') || 'Sin especificar';
     const destinoNombre = cabecera?.Destino || 'Sin especificar';
-    const tipoDestino = cabecera?.TipoDestino || '';
-    // "Tipo - Nombre" (ej: "Persona - Francesco"); si no hay tipo, solo el nombre.
+    // Tipo de destino en singular y mayúsculas (DEPOSITO/PERSONA/OBJETIVO/PROVEEDOR), igual que el borrador.
+    const tipoDestinoMap: Record<string, string> = { 'Depósito': 'DEPOSITO', 'Persona': 'PERSONA', 'Proveedor': 'PROVEEDOR', 'Objetivo': 'OBJETIVO' };
+    const tipoDestino = tipoDestinoMap[cabecera?.TipoDestino] ?? (cabecera?.TipoDestino || '');
+    // "Tipo - Nombre" (ej: "PERSONA - Francesco"); si no hay tipo, solo el nombre.
     const destino = tipoDestino ? `${tipoDestino} - ${destinoNombre}` : destinoNombre;
     const observaciones = cabecera?.Observaciones || '';
 
@@ -845,11 +847,12 @@ export class MovimientoStockController extends BaseController {
     }
 
     const vars = {
-      movimientoCodigo: movimientoCodigo ? movimientoCodigo.toString() : '',
+      numeroComprobante: movimientoCodigo ? `N°: ${movimientoCodigo}` : '',
       fechaFormateada: this.dateOutputFormat(fecha),
       origen,
       destino,
-      tipoDestino: '',
+      destinoNombre,
+      tipoDestino,
       intermediario: '',
       observaciones,
       filasDestino,
@@ -876,7 +879,6 @@ export class MovimientoStockController extends BaseController {
     const content = await this.getComprobanteHtmlContentGeneral(fecha);
 
     const tipoDestino = form?.tipoDestino ?? '';
-    const tipoDestinoLabel = tiposDestino.find(t => t.value === tipoDestino)?.label ?? tipoDestino;
 
     const destinoNombre = await this.resolverDestinoLabel(queryRunner, tipoDestino, form);
     // "Tipo - Nombre" (ej: "Objetivo - Coto"); si no hay tipo, solo el nombre.
@@ -890,13 +892,13 @@ export class MovimientoStockController extends BaseController {
     const filasDestino = await this.resolverFilasDestino(queryRunner, tipoDestino, form, fecha);
 
     const vars = {
-      // Sin movimiento guardado todavía: el N° de comprobante va en ceros y se marca como PRUEBA.
-      movimientoCodigo: '00000',
-      pruebaDisplay: 'block',
+      // Borrador (sin movimiento guardado): en vez del N° se muestra "BORRADOR".
+      numeroComprobante: 'BORRADOR',
       fechaFormateada: this.dateOutputFormat(fecha),
       origen: '',
       destino,
-      tipoDestino: tipoDestinoLabel,
+      destinoNombre,
+      tipoDestino: tipoSingular,
       intermediario,
       observaciones,
       filasDestino,
@@ -907,7 +909,11 @@ export class MovimientoStockController extends BaseController {
     const footerContent = this.aplicarVariablesPie(content.footer, usuario);
     const htmlContent = this.aplicarVariablesComprobante(content.body, vars);
 
-    await this.comprobanteHtmlToPdf(filePathAbs, htmlContent, headerContent, footerContent);
+    // Borrador descargado desde movimiento stock: marca de agua diagonal "BORRADOR" en gris claro,
+    // detrás de todo el contenido (z-index negativo).
+    const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: -1; font-size:130px; color: #cccccc; transform:rotate(-60deg); opacity: 0.5;">BORRADOR</div>`;
+
+    await this.comprobanteHtmlToPdf(filePathAbs, htmlContent, headerContent, footerContent, waterMark);
   }
 
   // ----- Resolución de IDs del formulario a su texto (para el comprobante) -----
@@ -1136,12 +1142,13 @@ export class MovimientoStockController extends BaseController {
   // queda en '' para que no se filtre el literal ${...} al PDF.
   private aplicarVariablesComprobante(tpl: string, vars: Record<string, string>): string {
     return tpl
-      // 'block' muestra la marca PRUEBA en el header; 'none' (default) la oculta en el comprobante real.
-      .replace(/\${pruebaDisplay}/g, vars.pruebaDisplay ?? 'none')
+      // Texto del N°: "N°: 111" en el comprobante real, "BORRADOR" en el de prueba.
+      .replace(/\${numeroComprobante}/g, vars.numeroComprobante ?? '')
       .replace(/\${movimientoCodigo}/g, vars.movimientoCodigo ?? '')
       .replace(/\${fechaFormateada}/g, vars.fechaFormateada ?? '')
       .replace(/\${origen}/g, vars.origen ?? '')
       .replace(/\${destino}/g, vars.destino ?? '')
+      .replace(/\${destinoNombre}/g, vars.destinoNombre ?? '')
       .replace(/\${tipoDestino}/g, vars.tipoDestino ?? '')
       .replace(/\${intermediario}/g, vars.intermediario ?? '')
       .replace(/\${observaciones}/g, vars.observaciones ?? '')
