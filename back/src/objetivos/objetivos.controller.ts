@@ -1693,7 +1693,9 @@ export class ObjetivosController extends BaseController {
         // Coordinador de cuenta
 
         const coordinadores = form.infoCoordinadorCuenta || []
-        const coordinadoresConAplicaDescuento = coordinadores.filter((obj: any) => !!obj.PersonalId && !!obj.ObjetivoPersonalJerarquicoDescuentos)
+        let cantAplicaDescuento = 0
+        let cantDescuentoTelefonia = 0
+        let cantDescuentoRetiros = 0
 
         for (const obj of coordinadores) {
             const tienePersona = !!obj.PersonalId
@@ -1706,6 +1708,24 @@ export class ObjetivosController extends BaseController {
             if (tienePersona && (!Number.isFinite(comision) || comision <= 0)) {
                 throw new ClientException(`Debe ingresar una Comisión mayor a 0 para el Coordinador de cuenta.`)
             }
+
+            if (!tienePersona) continue
+
+            cantAplicaDescuento += obj.ObjetivoPersonalJerarquicoDescuentos ? 1 : 0
+            cantDescuentoTelefonia += obj.ObjetivoPersonalJerarquicoSeDescuentaTelefono ? 1 : 0
+            cantDescuentoRetiros += obj.DescuentoRetiros ? 1 : 0
+        }
+
+        if (cantAplicaDescuento > 1) {
+            throw new ClientException(`Solo puede haber un Coordinador de cuenta con "Se aplica descuento".`)
+        }
+
+        if (cantDescuentoTelefonia > 1) {
+            throw new ClientException(`Solo puede haber un Coordinador de cuenta con "Descuento Telefonia".`)
+        }
+
+        if (cantDescuentoRetiros > 1) {
+            throw new ClientException(`Solo puede haber un Coordinador de cuenta con "Descuento Retiros".`)
         }
 
         //Grupo Actividad
@@ -1747,7 +1767,7 @@ export class ObjetivosController extends BaseController {
         const intersectCCli = descC.some((v: any) => descCli.includes(v));
         const intersectLCli = descL.some((v: any) => descCli.includes(v));
 
-        if (descC.length > 0 && coordinadoresConAplicaDescuento.length === 0) {
+        if (descC.length > 0 && cantAplicaDescuento === 0) {
             throw new ClientException(`Debe agregar al menos un Coordinador de cuenta con indicador "Se aplica descuento" para aplicar un descuento 'A Coordinador'.`);
         }
         if (intersectCL || intersectCCli || intersectLCli) {
