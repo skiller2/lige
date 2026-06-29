@@ -127,11 +127,11 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    id: "ApellidosNombres",
+    id: "CoordinadorCuenta",
     name: "Coordinador Cuenta",
-    field: "ApellidosNombres",
+    field: "CoordinadorCuenta",
     type: "string",
-    fieldName: "cc.ApellidosNombres",
+    fieldName: "cc.CoordinadorCuenta",
     searchType: "string",
     sortable: true,
     searchHidden: false,
@@ -475,7 +475,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
           ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0) AS TotalAFacturar,
           objdom.DomicilioProvinciaId, objdom.ProvinciaDescripcion,
           rubros.RubroClienteDescripciones AS RubroClienteDescripcion, rubros.RubroClienteIds AS RubroClienteId,
-          cc.ApellidosNombres, cc.ObjetivoPersonalJerarquicoIds,
+          cc.CoordinadorCuenta,cc.CoordinadorCuentaIds,
           1
         FROM Objetivo obj 
         LEFT JOIN ObjetivoImporteVenta ven ON ven.ClienteId =  obj.ClienteId AND ven.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND  ven.Anio = @1 AND ven.Mes = @2
@@ -640,14 +640,13 @@ LEFT JOIN (
         AND rubros.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
 
         outer APPLY (SELECT
-                STRING_AGG( poj.PersonalId,', ') AS ObjetivoPersonalJerarquicoIds,
-                STRING_AGG( CONCAT(TRIM(poj.PersonalApellido), ', ', TRIM(poj.PersonalNombre)), '; ') AS ApellidosNombres
+    STRING_AGG( poj.PersonalId,', ') AS CoordinadorCuentaIds,
+    STRING_AGG( CONCAT(TRIM(poj.PersonalApellido), ', ', TRIM(poj.PersonalNombre), ' (', oj.ObjetivoPersonalJerarquicoComision,'%)' ), '; ') AS CoordinadorCuenta
+    FROM ObjetivoPersonalJerarquico oj
+    Left join Personal poj on poj.PersonalId=oj.ObjetivoPersonalJerarquicoPersonalId
 
-                FROM ObjetivoPersonalJerarquico oj
-                Left join Personal poj on poj.PersonalId=oj.ObjetivoPersonalJerarquicoPersonalId
-
-                WHERE obj.ObjetivoId=oj.ObjetivoId  and ObjetivoPersonalJerarquicoDesde <= datefromparts(@1,@2,1) AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= datefromparts(@1,@2,1)) cc
-
+    WHERE obj.ObjetivoId=oj.ObjetivoId  and ObjetivoPersonalJerarquicoDesde <= EOMONTH(datefromparts(@1,@2,1)) AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= datefromparts(@1,@2,1)) cc
+                
         WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
         AND (${filterSql})
         ${orderBy}
