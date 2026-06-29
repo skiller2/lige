@@ -291,6 +291,11 @@
              "link": "/ges/valor-hora"
             }
           ]
+        },
+        {
+          "text": "INAES",
+          "link": "/ges/inaes",
+          "icon": "anticon-profile"
         }
       ]
     }

@@ -210,6 +210,10 @@ export const GesRoutes: Routes = [
     path: 'cuentas-bancarias/:tab',
     loadComponent: () => import('./cuentas-bancarias/cuentas-bancarias').then(c => c.CuentasBancariasComponent),
   },
-
+  { path: 'inaes', redirectTo: 'inaes/altas-bajas' },
+  {
+    path: 'inaes/:tab',
+    loadComponent: () => import('./inaes/inaes').then(c => c.INAESComponent),
+  },
   
 ];
