@@ -257,6 +257,8 @@ const listaColumnas: any[] = [
         hidden: false,
         searchHidden: false,
         sortable: true,
+        showGridColumn: false
+
     },
     {
         name: "Coordinador de Cuenta",
