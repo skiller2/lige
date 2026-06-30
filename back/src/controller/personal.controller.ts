@@ -364,6 +364,72 @@ const inconsColumns: any[] = [
     hidden: false,
   },
   {
+    name: "Sucursal Persona",
+    type: "string",
+    id: "SucursalDescripcion",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    name: "Grupo Actividad",
+    type: "string",
+    id: "GrupoActividadDetalle",
+    field: "GrupoActividadDetalle",
+    fieldName: "ga.GrupoActividadDetalle",
+    sortable: true,
+    searchHidden: true
+  },
+  {
+    name: "Grupo Actividad",
+    type: "number",
+    id: "GrupoActividadId",
+    field: "GrupoActividadId",
+    fieldName: "ga.GrupoActividadId",
+    searchComponent: 'inputForGrupoActividadSearch',
+    sortable: false,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    id: "SituacionRevistaId",
+    name: "Situacion Revista",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+    searchComponent: "inputForSituacionRevistaSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
+    id: "sitRevCom",
+    name: "Situación Revista",
+    field: "sitRevCom",
+    type: "string",
+    fieldName: "sitrev.sitRevCom",
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: "PersonalSituacionRevistaDesde",
+    name: "Fecha desde Situación",
+    field: "PersonalSituacionRevistaDesde",
+    type: "date",
+    fieldName: "sitrev.PersonalSituacionRevistaDesde",
+    searchType: "date",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
     id: "PersonalFechaIngreso",
     name: "Fecha Ingreso",
     field: "PersonalFechaIngreso",
@@ -395,8 +461,9 @@ const inconsColumns: any[] = [
     fieldName: "inconsistencias",
     searchType: "string",
     sortable: true,
-    searchHidden: true,
+    searchHidden: false,
     hidden: false,
+    minWidth: 200
   },
 ]
 
@@ -956,12 +1023,15 @@ LEFT JOIN(
 
   private async inconsistenciasListQuery(queryRunner: any, filterSql: any, orderBy: any) {
     return await queryRunner.query(`
-      SELECT
+     SELECT
         ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
         per.PersonalId,
         cuit.PersonalCUITCUILCUIT,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         ing.PersonalFechaIngreso, ing.PersonalFechaBaja,
+        sitrev.sitRevCom,sitrev.PersonalSituacionRevistaSituacionId,sitrev.PersonalSituacionRevistaDesde,
+           ga.GrupoActividadNumero, ga.GrupoActividadId,
+        ga.GrupoActividadDetalle, suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
         CASE
           WHEN (sitrev.PersonalSituacionRevistaSituacionId = 3 AND act.TipoPersonalActaCodigo NOT IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaDesde >= DATEADD(YEAR, -5, GETDATE())) THEN
             'No tiene Acta de BAJA'
@@ -1037,6 +1107,31 @@ LEFT JOIN(
         LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
         WHERE nexdom.NexoDomicilioActual = 1
       ) AS perdom ON perdom.PersonalId = per.PersonalId
+
+      LEFT JOIN (
+					SELECT 
+						gap.GrupoActividadPersonalPersonalId,
+						ga.GrupoActividadNumero, ga.GrupoActividadId,gap.GrupoActividadPersonalDesde,gap.GrupoActividadPersonalHasta,
+
+						CASE 
+							WHEN ga.GrupoActividadId IS NOT NULL THEN  
+								CONCAT(TRIM(ga.GrupoActividadDetalle), ' (Desde: ', 
+									   FORMAT(gap.GrupoActividadPersonalDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
+									   CASE WHEN gap.GrupoActividadPersonalHasta IS NULL THEN 'Actualidad' 
+											ELSE FORMAT(gap.GrupoActividadPersonalHasta, 'dd/MM/yyyy') 
+									   END, ')'
+								)
+							ELSE '' 
+						END AS GrupoActividadDetalle
+					FROM GrupoActividadPersonal gap
+					LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gap.GrupoActividadId
+					WHERE CAST(gap.GrupoActividadPersonalDesde AS DATE) <= CAST(GETDATE() AS DATE)
+					  AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
+				) ga ON ga.GrupoActividadPersonalPersonalId= per.PersonalId
+
+        LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
+        LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+
       WHERE ( (sitrev.PersonalSituacionRevistaSituacionId IN (2,10) AND act.TipoPersonalActaCodigo NOT IN ('ALT','REI'))
       OR (sitrev.PersonalSituacionRevistaSituacionId = 3 AND act.TipoPersonalActaCodigo NOT IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaDesde >= DATEADD(YEAR, -5, GETDATE()))
       OR (ing.PersonalFechaIngreso > act.ActaFechaActa AND act.TipoPersonalActaCodigo IN ('ALT','REI'))
