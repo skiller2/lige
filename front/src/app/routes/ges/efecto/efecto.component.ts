@@ -85,9 +85,11 @@ export class EfectoComponent {
     this.descargarComprobanteBtn()?.nativeElement.click()
   }
 
-  // Al guardar sin "fijar", el form vuelve a la solapa de movimientos.
+  // Al guardar sin "fijar", el form vuelve a la solapa de movimientos, filtrada por el código del
+  // movimiento recién agregado (el hijo todavía lo conserva en comprobanteCodigo al emitir).
   onVolverAMovimientos() {
-    this.router.navigate(['/', 'ges', 'efecto', 'movimientos'])
+    const codigo = this.movimientoStock()?.comprobanteCodigo() ?? null
+    this.router.navigate(['/', 'ges', 'efecto', 'movimientos', codigo ? { MovimientoStockCodigo: codigo } : {}])
   }
 
   activeTab = toSignal(
@@ -112,6 +114,11 @@ export class EfectoComponent {
 
   depositoIdFilter = toSignal(
     this.route.params.pipe(map(params => Number(params['DepositoId']) || 0)),
+    { initialValue: 0 }
+  )
+
+  movimientoIdFilter = toSignal(
+    this.route.params.pipe(map(params => Number(params['MovimientoStockCodigo']) || 0)),
     { initialValue: 0 }
   )
 

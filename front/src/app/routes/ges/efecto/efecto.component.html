@@ -91,6 +91,7 @@
   @if (visitedTabs().has('movimientos')) {
     <div [hidden]="activeTab() !== 'movimientos'">
       <app-table-movimientos-efecto [refreshGrid]="refreshTickMovimientos()"
+        [movimientoCodigoFilter]="movimientoIdFilter()"
         (comprobanteSelected)="movimientoComprobanteCodigo.set($event)" />
     </div>
   }

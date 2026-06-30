@@ -1,4 +1,4 @@
-import { Component, inject, input, output, resource, signal } from '@angular/core';
+import { Component, effect, inject, input, output, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { firstValueFrom } from 'rxjs';
@@ -29,6 +29,7 @@ import { LoadingService } from '@delon/abc/loading';
 export class TableMovimientosEfectoComponent {
 
   refreshGrid = input<number>(0);
+  movimientoCodigoFilter = input<number>(0);
   comprobanteSelected = output<number | null>();
   private angularGrid!: AngularGridInstance;
   private readonly detailViewRowCount = 9;
@@ -40,11 +41,24 @@ export class TableMovimientosEfectoComponent {
   })
   filtersReady = signal(false)
   startFilters = signal<Selections[]>([])
+  filtroVisible = signal(true)
 
   private readonly loadingSrv = inject(LoadingService)
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
+
+  // Al volver del alta de un movimiento, la grilla queda filtrada por el código recién agregado.
+  private applyMovimientoFilter = effect(() => {
+    const id = this.movimientoCodigoFilter()
+    if (id > 0) {
+      this.startFilters.set([
+        { index: 'MovimientoStockCodigo', condition: 'AND', operator: '=', value: String(id), closeable: true },
+      ])
+      this.filtroVisible.set(false)
+      setTimeout(() => this.filtroVisible.set(true))
+    }
+  })
 
   columns = toSignal(this.apiService.getCols('/api/efecto/colsMovimientos'), { initialValue: [] as Column[] })
 
