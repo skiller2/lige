@@ -11,7 +11,7 @@ import { TableMovimientosEfectoDetalleComponent } from '../table-movimientos-efe
 import { TableEfectoGeneralComponent } from '../table-efecto-general/table-efecto-general';
 import { MovimientoStockComponent } from '../movimiento-stock/movimiento-stock';
 import { SettingsService } from '@delon/theme';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { DownloadService } from '../../../services/download.service';
@@ -36,6 +36,7 @@ import { firstValueFrom, map } from 'rxjs';
 export class EfectoComponent {
   private settingsService = inject(SettingsService)
   private route = inject(ActivatedRoute)
+  private router = inject(Router)
   private http = inject(HttpClient)
   private downloadService = inject(DownloadService)
 
@@ -82,6 +83,11 @@ export class EfectoComponent {
   // Al confirmar el movimiento, el hijo emite y acá disparamos la descarga.
   onComprobanteConfirmado() {
     this.descargarComprobanteBtn()?.nativeElement.click()
+  }
+
+  // Al guardar sin "fijar", el form vuelve a la solapa de movimientos.
+  onVolverAMovimientos() {
+    this.router.navigate(['/', 'ges', 'efecto', 'movimientos'])
   }
 
   activeTab = toSignal(

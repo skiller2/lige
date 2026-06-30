@@ -257,6 +257,8 @@
   "app.listado": "Listado",
   "app.icon.autorizar": "Autorizar",
   "app.icon.condiciones-venta-link": "Descripcion Objetivo Condicion de Venta Link",
+  "app.check.clear.form": "Borrar formulario al guardar",
+  "app.limpiar.destino": "Limpiar Destino",
   "To install this WEB app on your device, tap the \"Menu\" button": "Para instalar esta aplicación web en su dispositivo, presione el botón \"Menu\"",
   "and then \"Add to home screen\" button": "y luego el botón \"Agregar a la pantalla de inicio\""
 }

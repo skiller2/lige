@@ -10,8 +10,13 @@
     <span style="margin-right: 8px;">Destino</span>
     <button nz-button nzType="default" type="button"
       (click)="limpiarDestino()"
-      nz-tooltip nzTooltipTitle="Limpiar Destino">
+      nz-tooltip nzTooltipTitle="{{ 'app.limpiar.destino' | i18n }}">
       <span nz-icon nzType="delete" nzTheme="outline"></span>
+    </button>
+     <button nz-button [nzType]="fijar() ? 'primary' : 'default'" type="button"
+      (click)="toggleFijar()"
+      nz-tooltip nzTooltipTitle="Mantener los datos al guardar">
+      <span nz-icon nzType="pushpin" nzTheme="outline"></span>
     </button>
   </ng-template>
 

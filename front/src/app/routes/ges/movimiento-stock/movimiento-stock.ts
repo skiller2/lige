@@ -12,12 +12,13 @@ import { ProveedorSearchComponent } from '../../../shared/proveedor-search/prove
 import { ViewResponsableComponent } from '../../../shared/view-responsable/view-responsable.component';
 import { EfectoStockLineaComponent } from './efecto-stock-linea/efecto-stock-linea';
 import { EfectoStockLinea, ParametroformEfectoStock, nuevaEfectoLinea } from './movimiento-stock.types';
+import { I18nPipe } from '@delon/theme';
 
 export type { EfectoStockLinea, ParametroformEfectoStock } from './movimiento-stock.types';
 
 @Component({
   selector: 'app-movimiento-stock',
-  imports: [...SHARED_IMPORTS, CommonModule, FormField, PersonalSearchComponent, TipoDestinoSearchComponent, ObjetivoSearchComponent, ProveedorSearchComponent, ViewResponsableComponent, EfectoStockLineaComponent],
+  imports: [...SHARED_IMPORTS, I18nPipe, CommonModule, FormField, PersonalSearchComponent, TipoDestinoSearchComponent, ObjetivoSearchComponent, ProveedorSearchComponent, ViewResponsableComponent, EfectoStockLineaComponent],
   templateUrl: './movimiento-stock.html',
   styleUrl: './movimiento-stock.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,6 +33,13 @@ export class MovimientoStockComponent {
 
   // Se emite tras confirmar con éxito (con el código ya seteado): el padre dispara la descarga.
   readonly confirmado = output<void>();
+
+  // Se emite al guardar sin "fijar": el padre navega a la solapa de movimientos.
+  readonly volverAMovimientos = output<void>();
+
+  // "Fijar" (pin): si está activo, al guardar NO se limpian los datos ni se cambia de solapa.
+  // Se persiste junto al formulario en localStorage (ver effect persistir / ngOnInit).
+  readonly fijar = signal(false);
 
   private readonly STORAGE_KEY = 'movimiento-stock-form';
 
@@ -50,7 +58,7 @@ export class MovimientoStockComponent {
   readonly parametroStock = signal<ParametroformEfectoStock>(this.defaultStockForm);
 
   private readonly persistir = effect(() => {
-    const value = this.parametroStock();
+    const value = { ...this.parametroStock(), fijar: this.fijar() };
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(value));
     } catch { /* localStorage lleno o no disponible: se ignora */ }
@@ -78,8 +86,12 @@ export class MovimientoStockComponent {
 
 
   ngOnInit(): void {
-    const form = this.cargarDesdeStorage()
-    if (form) {
+    const stored = this.cargarDesdeStorage()
+    if (stored) {
+      // El estado del pin "fijar" viaja dentro del mismo objeto persistido.
+      const { fijar, ...form } = stored as any
+      if (typeof fijar === 'boolean') this.fijar.set(fijar)
+
       const normalizado = this.normalizarForm(form);
 
       this.parametroStock.update(s => ({ ...s, ...normalizado }))
@@ -349,8 +361,19 @@ export class MovimientoStockComponent {
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
-      if (!simular)
-        form().reset()
+      if (!simular) {
+        if (!this.fijar()) {
+          // Sin "fijar": se limpia el formulario (modelo + estado) y se vuelve a la solapa de
+          // movimientos (después de disparar la descarga del comprobante). Se resetea el signal del
+          // modelo explícitamente porque el componente no se destruye al navegar.
+          form().reset()
+          this.parametroStock.set({ ...this.defaultStockForm, efectos: [nuevaEfectoLinea()], fecha: new Date() })
+          this.cargadoDesdeBusqueda.set(false)
+          this.limpiarStorage()
+          setTimeout(() => this.volverAMovimientos.emit(), 0)
+        }
+        // Con "fijar" activo se mantienen los datos para cargar otro movimiento similar.
+      }
       return;
     });
   }
@@ -395,5 +418,10 @@ export class MovimientoStockComponent {
     }
 
   }
+
+  toggleFijar(): void {
+    this.fijar.update(v => !v)
+  }
+
 
 }
