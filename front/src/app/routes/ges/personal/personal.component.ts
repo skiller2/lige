@@ -1,4 +1,4 @@
-import { Component, viewChild, inject, signal, model, computed, ViewEncapsulation, ChangeDetectionStrategy, resource } from '@angular/core';
+import { Component, viewChild, inject, signal, model, computed, effect, ChangeDetectionStrategy, resource } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, firstValueFrom } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
@@ -110,6 +110,19 @@ export class PersonalComponent {
     defaultValue: []
   });
 
+  readonly queryParams = toSignal(this.route.paramMap);
+
+  queryParamsEffect = effect(() => {
+    const params = this.queryParams();
+    if (!params || params.keys.length < 1) {
+      return;
+    }
+    if (this.queryParams()?.get('PersonalId')){
+      const PersonalId = this.queryParams()?.get('PersonalId')
+      this.startFilters.set([{ index:'ApellidoNombre', condition:'AND', operator:'=', value: PersonalId, closeable: true }])
+    }
+  });
+
   async ngOnInit() {
     const date: Date = new Date()
     this.anio.set(date.getFullYear())
@@ -126,16 +139,7 @@ export class PersonalComponent {
     ])
   }
 
-  ngAfterViewInit(): void {
-    
-    const PersonalId = Number(this.route.snapshot.paramMap.get('PersonalId'))
-
-    setTimeout(() => {
-      if (PersonalId > 0) {
-        this.startFilters.set([ {index:'ApellidoNombre', condition:'AND', operator:'=', value: String(PersonalId), closeable: true} ]);
-      }
-    }, 1000)
-  }
+  ngAfterViewInit(): void {}
 
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
