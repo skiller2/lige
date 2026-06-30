@@ -687,10 +687,7 @@ export class CustodiaController extends BaseController {
                 ON regper.CustodiaCodigo = obj.CustodiaCodigo
             LEFT JOIN PersonalCustodia percus 
                 ON percus.CustodiaCodigo = obj.CustodiaCodigo
-
-                LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId 
-            AND fac.ClienteFacturacionDesde <= DATEFROMPARTS(@0,@1,1)
-            AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+            LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId AND fac.ClienteFacturacionId= (SELECT MAX(facmax.ClienteFacturacionId) FROM ClienteFacturacion facmax WHERE facmax.ClienteId = cli.ClienteId)
 
             WHERE (${condition})
             AND (${search}) AND (${filterSql}) 
