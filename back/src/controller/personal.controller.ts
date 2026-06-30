@@ -461,8 +461,9 @@ const inconsColumns: any[] = [
     fieldName: "inconsistencias",
     searchType: "string",
     sortable: true,
-    searchHidden: true,
+    searchHidden: false,
     hidden: false,
+    minWidth: 200
   },
 ]
 
