@@ -96,7 +96,7 @@
   }
   @if (visitedTabs().has('movimiento')) {
 
-      <app-movimiento-stock (confirmado)="onComprobanteConfirmado()" />
+      <app-movimiento-stock (confirmado)="onComprobanteConfirmado()" (volverAMovimientos)="onVolverAMovimientos()" />
 
   }
 
