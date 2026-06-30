@@ -114,8 +114,8 @@ export class MovimientoStockController extends BaseController {
         return this.jsonRes({ ...body, simulado: true }, res, 'Simulación correcta: el movimiento es válido.');
       }
 
-      // El comprobante NO se genera acá: la descarga es una petición única a POST /comprobante
-      // (la dispara el front tras confirmar y también el botón de descarga manual).
+      await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo);
+
       await queryRunner.commitTransaction();
       return this.jsonRes({ ...body, movimientoStockCodigo: movimientoCodigo }, res, "Movimiento confirmado");
     } catch (error) {
@@ -381,29 +381,34 @@ export class MovimientoStockController extends BaseController {
       const movimientoCodigo = Number(req.body?.movimientoStockCodigo);
       const form = req.body?.form;
 
-      const tempCarpeta = path.join(this.directoryDocumentos, 'temp');
-      if (!existsSync(tempCarpeta)) mkdirSync(tempCarpeta, { recursive: true });
-      const fechaActual = new Date();
+      // Movimiento ya guardado (selección en la grilla / descarga tras confirmar): se sirve el
+      // comprobante PERSISTIDO en Documento (generado al confirmar). No se regenera; si no está
+      // archivado se devuelve error.
+      if (movimientoCodigo) {
+        const doc = await this.getComprobanteExistente(queryRunner, movimientoCodigo);
+        if (!doc)
+          throw new ClientException(`No se encontró el comprobante del movimiento ${movimientoCodigo}`);
 
-      // Si hay un movimiento ya guardado, el PDF se arma leyéndolo de la base (por id).
-      const cabecera = movimientoCodigo ? await this.getMovimientoCabecera(queryRunner, movimientoCodigo) : null;
+        const finalurl = path.join(this.directoryDocumentos, doc.DocumentoPath);
+        if (!existsSync(finalurl))
+          throw new ClientException(`Archivo ${doc.DocumentoNombreArchivo} no localizado`);
 
-      let tempPathAbs: string;
-      let nombreDescarga: string;
-      if (movimientoCodigo && cabecera) {
-        tempPathAbs = path.join(tempCarpeta, `comprobante-${movimientoCodigo}-${fechaActual.getTime()}.pdf`);
-        nombreDescarga = `Comprobante-${movimientoCodigo}.pdf`;
-        await this.renderComprobantePdf(queryRunner, tempPathAbs, movimientoCodigo, res.locals.userName);
-      } else {
-        // Sin movimiento guardado: se arma con los datos del formulario recibido del front.
-        if (!form)
-          throw new ClientException(`No hay datos para generar el comprobante`);
-        tempPathAbs = path.join(tempCarpeta, `comprobante-form-${fechaActual.getTime()}.pdf`);
-        nombreDescarga = `Comprobante.pdf`;
-        await this.renderComprobantePdfFromForm(queryRunner, tempPathAbs, form, res.locals.userName);
+        return res.download(finalurl, doc.DocumentoNombreArchivo, (err) => {
+          if (err) return next(err);
+        });
       }
 
-      res.download(tempPathAbs, nombreDescarga, async (err) => {
+      // Sin movimiento guardado (borrador desde el form): se arma al vuelo con los datos del
+      // formulario recibido y se descarta tras la descarga.
+      if (!form)
+        throw new ClientException(`No hay datos para generar el comprobante`);
+
+      const tempCarpeta = path.join(this.directoryDocumentos, 'temp');
+      if (!existsSync(tempCarpeta)) mkdirSync(tempCarpeta, { recursive: true });
+      const tempPathAbs = path.join(tempCarpeta, `comprobante-form-${new Date().getTime()}.pdf`);
+      await this.renderComprobantePdfFromForm(queryRunner, tempPathAbs, form, res.locals.userName);
+
+      res.download(tempPathAbs, `Comprobante.pdf`, async (err) => {
         try { await unlink(tempPathAbs); } catch (error) { }
         if (err) return next(err);
       });
