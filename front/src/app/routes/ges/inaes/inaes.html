@@ -1,0 +1,58 @@
+<nz-card class="small-margin">
+  <div nz-row>
+    <div nz-col nzSpan="12">
+      <nz-form-control>
+        <!-- <nz-date-picker nzMode="month" [(ngModel)]="periodo" /> -->
+      </nz-form-control>
+    </div>
+
+    <div nz-col nzSpan="12" style="display: flex;flex-direction: row-reverse;">
+      <nz-button-group nz-button nzButtonGroup style="text-align: right;">
+        <!-- <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="edit"
+                nzTheme="outline" ></span></button> -->
+      </nz-button-group>
+    </div>
+  </div>
+
+  <div nz-row class="contentStyle">
+    <div nz-col nzSpan="13" class="listStyle">
+      <ul nz-menu nzMode="horizontal" style="display: flex;">
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'inaes','altas-bajas']" >Altas y Bajas</a>
+        </li>
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'inaes','recibos']">Recibos</a>
+        </li>
+      </ul>
+    </div>
+  
+  </div>
+
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tab></nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/inaes/altas-bajas">Altas y Bajas</a>
+      <ng-template nz-tab>
+        @if (columns().length) {
+          <shared-filtro-builder  [fieldsToSelect]="columns()" [startFilters]="startFilters()"
+            [(options)]="listOptions" />
+          <div class="gridContainer container-fluid">
+            <angular-slickgrid gridId="gridINAES" class="" [columns]="columns() | colsFilter"
+              [options]="gridOptions" [dataset]="gridData.value()"
+              (onAngularGridCreated)="angularGridReady($event)">
+            </angular-slickgrid>
+          </div>
+        }
+      </ng-template>
+    </nz-tab>
+
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/inaes/recibos">Recibos</a>
+      <ng-template nz-tab>
+      </ng-template>
+    </nz-tab>
+
+  </nz-tabs>
+</nz-card>
