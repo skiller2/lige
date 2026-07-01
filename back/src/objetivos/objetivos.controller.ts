@@ -1696,9 +1696,9 @@ outer APPLY (SELECT
             throw new ClientException(`- Dirección Calle.`)
         }
 
-        if (!form.DomicilioDomNro) {
-            throw new ClientException(`- Nro.`)
-        }
+        // if (!form.DomicilioDomNro) {
+        //     throw new ClientException(`- Nro.`)
+        // }
 
         if (form.DomicilioDomNro.length > 5) {
             throw new ClientException(`El campo Domicilio Nro NO puede ser mayor a 5 digitos.`)
