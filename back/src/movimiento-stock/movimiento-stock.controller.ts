@@ -917,55 +917,7 @@ export class MovimientoStockController extends BaseController {
   // Genera el PDF del comprobante con los datos del formulario (parametroStock) recibido en el body.
   // El form solo trae IDs en los campos tipo select (destino, intermediario, efectos): acá se
   // resuelven a su texto con lookups por ID (no se consulta el movimiento por código).
-  /*
-
-  private async renderComprobantePdfFromForm(
-    queryRunner: any,
-    filePathAbs: string,
-    form: any,
-    usuario: string = ""
-  ) {
-    const fecha = form?.fecha ? new Date(form.fecha) : new Date();
-    const content = await this.getComprobanteHtmlContentGeneral(fecha);
-
-    const tipoDestino = form?.tipoDestino ?? '';
-
-    const destinoNombre = await this.resolverDestinoLabel(queryRunner, tipoDestino, form);
-    // "Tipo - Nombre" (ej: "Objetivo - Coto"); si no hay tipo, solo el nombre.
-    const tipoSingular = tipoDestinoSingular[tipoDestino] ?? '';
-    const destino = (tipoSingular && destinoNombre) ? `${tipoSingular} - ${destinoNombre}` : destinoNombre;
-    const intermediario = await this.resolverPersonalNombre(queryRunner, form?.personalIdInter);
-    const observaciones = form?.observaciones ?? '';
-    const textefectos = await this.resolverEfectoLineas(queryRunner, form?.efectos);
-
-
-    const filasDestino = await this.resolverFilasDestino(queryRunner, tipoDestino, form, fecha);
-
-    const vars = {
-      // Borrador (sin movimiento guardado): en vez del N° se muestra "BORRADOR".
-      numeroComprobante: 'BORRADOR',
-      fechaFormateada: this.dateOutputFormat(fecha),
-      origen: '',
-      destino,
-      destinoNombre,
-      tipoDestino: tipoSingular,
-      intermediario,
-      observaciones,
-      filasDestino,
-      textefectos,
-    };
-
-    const headerContent = this.aplicarVariablesComprobante(content.header, vars);
-    const footerContent = this.aplicarVariablesPie(content.footer, usuario);
-    const htmlContent = this.aplicarVariablesComprobante(content.body, vars);
-
-    // Borrador descargado desde movimiento stock: marca de agua diagonal "BORRADOR" en gris claro,
-    // detrás de todo el contenido (z-index negativo).
-    const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: -1; font-size:130px; color: #cccccc; transform:rotate(-60deg); opacity: 0.5;">BORRADOR</div>`;
-
-    await this.comprobanteHtmlToPdf(filePathAbs, htmlContent, headerContent, footerContent, waterMark);
-  }
-*/
+  
   // ----- Resolución de IDs del formulario a su texto (para el comprobante) -----
 
   // Nombre del destino según el tipo elegido (depósito / persona / objetivo / proveedor).
