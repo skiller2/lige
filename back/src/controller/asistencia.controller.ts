@@ -476,6 +476,8 @@ export class AsistenciaController extends BaseController {
         throw new ClientException('Horas a facturar debe ser mayor a 0', cabecera[0].TotalHoras)
       }
 
+      if (cabecera[0].ObjetivoAsistenciaAnoMesHasta != null || cabecera[0].ObjetivoAsistenciaAnoMesDesde != null) 
+        throw new ClientException('El objetivo ya se encuentra cerrado o no fue abierto')
 
       // if (cabecera[0].ImporteHora < 1 && cabecera[0].ImporteFijo < 1) {
       //   throw new ClientException('Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
