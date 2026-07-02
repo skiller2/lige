@@ -536,7 +536,7 @@ export class MovimientoStockController extends BaseController {
     }
 
     // El intermediario no puede ser la misma persona seleccionada como destino.
-    if (personalIdInter && (personalIdInter===personalId)) {
+    if (personalIdInter && (personalIdInter === personalId)) {
       fieldErrors.push({
         fieldTree: 'personalIdInter',
         kind: 'server',
@@ -579,7 +579,7 @@ export class MovimientoStockController extends BaseController {
         [linea.StockId]
       );
 
-      if (rows.length==0) {
+      if (rows.length == 0) {
         fieldErrors.push({ fieldTree: `efectos[${i}].StockId`, kind: 'server', message: 'La ubicación no existe.' });
         continue;
       }
@@ -783,8 +783,7 @@ export class MovimientoStockController extends BaseController {
   private async getMovimientoDetalle(queryRunner: any, movimientoCodigo: number) {
     return queryRunner.query(`
       SELECT det.MovimientoStockDetalleCodigo, det.Cantidad, det.IndEfectoUsado,
-        CONCAT(TRIM(efe.EfectoDescripcion),
-          IIF(efeind.EfectoEfectoIndividualDescripcion IS NULL, '', CONCAT(' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion)))) AS EfectoDescripcionCompleto,
+          CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
         COALESCE(
           TRIM(depo.DepositoNombre),
           IIF(det.PersonalIdOrigen IS NULL, NULL, CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre))),
@@ -894,7 +893,7 @@ export class MovimientoStockController extends BaseController {
     const observaciones = form?.observaciones ?? '';
     const textefectos = await this.resolverEfectoLineas(queryRunner, form?.efectos);
 
-    
+
     const filasDestino = await this.resolverFilasDestino(queryRunner, tipoDestino, form, fecha);
 
     const vars = {
@@ -1209,7 +1208,7 @@ export class MovimientoStockController extends BaseController {
 
     try {
       //if (!movimientoCodigo)
-       // throw new ClientException(`Debe indicar un código de movimiento`);
+      // throw new ClientException(`Debe indicar un código de movimiento`);
 
       const cabecera = await this.getMovimientoCabecera(queryRunner, movimientoCodigo);
       if (!cabecera)
