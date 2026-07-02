@@ -817,7 +817,6 @@ export class MovimientoStockController extends BaseController {
     footer: string = "",
     waterMark: string = "",
   ) {
-    let cabecera = null;
     let content = null;
     let vars = null;
     const prev = false
@@ -827,8 +826,8 @@ export class MovimientoStockController extends BaseController {
 
 
     if (movimientoCodigo) {
-      cabecera = movimientoCodigo ? await this.getMovimientoCabecera(queryRunner, movimientoCodigo) : null;
-      const detalle = movimientoCodigo ? await this.getMovimientoDetalle(queryRunner, movimientoCodigo) : [];
+      const cabecera = await this.getMovimientoCabecera(queryRunner, movimientoCodigo)
+      const detalle = await this.getMovimientoDetalle(queryRunner, movimientoCodigo)
 
       const fecha = cabecera?.Fecha ? new Date(cabecera.Fecha) : new Date();
       content = await this.getComprobanteHtmlContentGeneral(fecha, header, body, footer);
@@ -1151,13 +1150,14 @@ export class MovimientoStockController extends BaseController {
   private async resolverEfectoDescripcion(queryRunner: any, efectoId: any, individualId: any): Promise<string> {
     try {
       const r = await queryRunner.query(`
-        SELECT TOP 1 CONCAT(TRIM(efe.EfectoDescripcion),
-          IIF(efeind.EfectoEfectoIndividualDescripcion IS NULL, '', CONCAT(' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion)))) AS descripcion
+        SELECT TOP 1 
+                  CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
+        1
         FROM EfectoDescripcion efe
         LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = efe.EfectoId AND efeind.EfectoEfectoIndividualId = @1
         WHERE efe.EfectoId = @0
       `, [efectoId, individualId ?? null]);
-      return r?.[0]?.descripcion ?? String(efectoId);
+      return r?.[0]?.EfectoDescripcionCompleto ?? String(efectoId);
     } catch (error) {
       return String(efectoId);
     }
