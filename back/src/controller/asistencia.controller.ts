@@ -347,6 +347,10 @@ export class AsistenciaController extends BaseController {
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
+    if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null && cabecera[0].ObjetivoAsistenciaAnoMesDesde != null) 
+      throw new ClientException(`Ya se encuentra abierto el objetivo para la carga en  ${anio}/${mes}`)
+
+
     let fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
     const usuario = res.locals.userName
