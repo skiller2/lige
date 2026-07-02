@@ -224,6 +224,10 @@ export class AsistenciaController extends BaseController {
 
       await queryRunner.startTransaction()
 
+      const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
+      if (valObjetivo instanceof ClientException)
+        throw valObjetivo
+
       const objetivo = await queryRunner.query(
         `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
        FROM Objetivo obj 
@@ -2680,7 +2684,7 @@ export class AsistenciaController extends BaseController {
         throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
 
 
-      
+
 
 
       //Validación de los datos ingresados
@@ -2765,13 +2769,13 @@ export class AsistenciaController extends BaseController {
       const formaLiquidacion: string = req.body.formaLiquidacion
 
 
-      const acta = await this.checkActaAsociado(personalId,anio,mes,queryRunner)
-      if (acta.length>0){
+      const acta = await this.checkActaAsociado(personalId, anio, mes, queryRunner)
+      if (acta.length > 0) {
         if (acta[0].TipoPersonalActaCodigo != 'ALT') {
-//          throw new ClientException(`No se puede cargar horas, la persona no posee Acta de Alta de Asociado`)
+          //          throw new ClientException(`No se puede cargar horas, la persona no posee Acta de Alta de Asociado`)
         }
       } else {
-//          throw new ClientException(`No se puede cargar horas, la persona no posee Acta `)
+        //          throw new ClientException(`No se puede cargar horas, la persona no posee Acta `)
       }
 
 
@@ -2996,7 +3000,7 @@ export class AsistenciaController extends BaseController {
             errores.push(`La persona no se encuentra de licencia. dia:${numdia}`)
           }
           //Validación Situación de Revista
-          
+
           const situacionesOKA = [2, 12]; //ACTIVO y ASOCIADO - EN TRAMITE
 
           const situacion = situacionesRevista.find((row: any) => (row.desde <= fecha && row.hasta >= fecha && !situacionesOKA.includes(row.PersonalSituacionRevistaSituacionId)))
@@ -3911,16 +3915,16 @@ export class AsistenciaController extends BaseController {
     const password = process.env.CA_PASSWORD
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-/*
-    const agent = new Agent({
-      checkServerIdentity: (host, cert) => {
-        // Ignorar totalmente la validación del certificado
-        return undefined;
-      }
-    });
-    const initialResponse = await fetch(url, { method: 'POST', dispatcher: agent as any,  body: JSON.stringify({ validateStatus: () => true }), })
-  
-*/
+    /*
+        const agent = new Agent({
+          checkServerIdentity: (host, cert) => {
+            // Ignorar totalmente la validación del certificado
+            return undefined;
+          }
+        });
+        const initialResponse = await fetch(url, { method: 'POST', dispatcher: agent as any,  body: JSON.stringify({ validateStatus: () => true }), })
+      
+    */
     const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
     const authHeader = initialResponse.headers.get('www-authenticate')
     let authOptions = AsistenciaController.createDigestAuthOptions(authHeader, username, password, url)
@@ -3970,15 +3974,15 @@ export class AsistenciaController extends BaseController {
   }
 
   async checkActaAsociado(personalId: number, anio: number, mes: number, queryRunner: QueryRunner) {
-  return await queryRunner.query(`
+    return await queryRunner.query(`
     SELECT TOP 1 a.ActaId, b.ActaFechaActa, b.ActaDescripcion, a.TipoPersonalActaCodigo 
       FROM PersonalActa a 
       JOIN Acta b ON b.ActaId=a.ActaId
       WHERE a.PersonalId=@0 AND b.ActaFechaActa<=EOMONTH(DATEFROMPARTS(@1,@2,1))  
-      ORDER BY b.ActaFechaActa DESC `, 
-    [personalId, anio, mes])
+      ORDER BY b.ActaFechaActa DESC `,
+      [personalId, anio, mes])
 
-}
+  }
 
 
 
