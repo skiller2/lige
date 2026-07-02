@@ -246,11 +246,12 @@ export class MovimientoStockController extends BaseController {
       const usado = efecto.Usado
       const resStock = await queryRunner.query(
         `SELECT stk.StockId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.PersonalId, stk.DepositoId, stk.ObjetivoId, stk.ProveedorId 
-            FROM Stock stk
+            FROM StockReal stk
 
-            LEFT JOIN Stock stk1 
+            LEFT JOIN StockReal stk1 
               ON (
                 (stk1.PersonalId = stk.PersonalId OR (stk1.PersonalId IS NULL AND stk.PersonalId IS NULL))
+                AND stk1.StockStock > 0
                 AND (stk1.DepositoId = stk.DepositoId OR (stk1.DepositoId IS NULL AND stk.DepositoId IS NULL))
                 AND (stk1.ObjetivoId = stk.ObjetivoId OR (stk1.ObjetivoId IS NULL AND stk.ObjetivoId IS NULL))
                 AND (stk1.ProveedorId = stk.ProveedorId OR (stk1.ProveedorId IS NULL AND stk.ProveedorId IS NULL))
@@ -260,7 +261,7 @@ export class MovimientoStockController extends BaseController {
                   OR (stk1.EfectoEfectoIndividualId IS NULL AND stk.EfectoEfectoIndividualId IS NULL)
                 )
               )
-            WHERE stk1.StockId = @0 AND stk1.EfectoId=@1
+            WHERE stk1.StockId = @0 AND stk1.EfectoId=@1 AND stk1.StockStock > 0
           AND (stk1.EfectoEfectoIndividualId = @2 OR (@2 IS NULL AND stk1.EfectoEfectoIndividualId IS NULL))
         `,
         [StockId, EfectoId, EfectoEfectoIndividualId]
