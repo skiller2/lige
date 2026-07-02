@@ -730,8 +730,8 @@ export class GestionDescuentosController extends BaseController {
         , perdes.FechaAnulacion
         , DATEFROMPARTS(perdes.anio, perdes.mes, 1) AS periodo
         , FORMAT(DATEFROMPARTS(perdes.anio, perdes.mes, 1), 'yyyy/MM') AS periodoDisplay,
-        suc.SucursalDescripcion
-
+        suc.SucursalDescripcion,
+        tipdes.IndOcultarImporteTotal
       FROM VistaPersonalDescuento perdes
       LEFT JOIN Personal per ON per.PersonalId = perdes.PersonalId
       LEFT JOIN Descuento tipdes on tipdes.DescuentoId=perdes.DescuentoId

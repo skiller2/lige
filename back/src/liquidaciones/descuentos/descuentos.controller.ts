@@ -102,10 +102,12 @@ export class DescuentosController extends BaseController {
         //        if (row.desmovimiento == null || row.desmovimiento.trim() == '')
         //          throw new ClientException(`Sin descripción para el registro con id ${row.id} ${row.DescuentoDescripcion} ${row.ApellidoNombre} `,row)
 
-
-
-        if (row.cantcuotas > 1)
-          detalle += ` cuota ${row.cuotanro}/${row.cantcuotas}, total $ ${row.importetotal} `
+        if (row.cantcuotas > 1){
+          if (row.IndOcultarImporteTotal!==1)
+            detalle += ` cuota ${row.cuotanro}/${row.cantcuotas}, total $ ${row.importetotal} `
+          else 
+            detalle += ` cuota ${row.cuotanro}/${row.cantcuotas} `
+        }
 
         if (row.PersonalId == null || row.PersonalId == 0)
           throw new ClientException(`PersonalId no válido para el registro con id ${row.id} `, row)
