@@ -67,7 +67,7 @@ export interface ParametroPersonalForm {
   docDorsoId: number; docDorso: any[]|null;
   docFrenteId: number; docFrente: any[]|null;
   domicilio: Domicilio;
-  PaisId: number; ProvinciaId: number; LocalidadId: number;
+  LugarNacimiento: string;
   PersonalEmailId: number; Email:string;
   telefonos: Telefono[];
   estudios: Estudio[];
@@ -122,7 +122,7 @@ export class PersonalFormComponent {
     FechaNacimiento:'', NacionalidadId:0, Sexo:'', EstadoCivilId:0,
     FotoId:0, Foto:[], docDorsoId:0, docDorso:[], docFrenteId: 0, docFrente:[],
     domicilio:   {...this.objDomicilio},
-    PaisId:0, ProvinciaId:0, LocalidadId:0, //Lugar de nacimiento
+    LugarNacimiento: '', //Lugar de nacimiento
     PersonalEmailId:0, Email:'', //Email
     telefonos:   [structuredClone(this.objTelefono)],
     estudios:    [structuredClone(this.objEstudio)],
@@ -220,31 +220,7 @@ export class PersonalFormComponent {
     }
   });
 
-  optionsProvincia = resource({
-    params: () => this.parametroPersonal().PaisId,
 
-    loader: async ({ params: PaisId }) => {
-      if (!PaisId) {
-        return [];
-      }
-      return await firstValueFrom(this.searchService.getProvinciasByPais(PaisId))
-    }
-  });
-
-  optionsLocalidad = resource({
-    params: () => ({
-      PaisId: this.parametroPersonal().PaisId,
-      ProvinciaId: this.parametroPersonal().ProvinciaId,
-    }),
-
-    loader: async ({ params }) => {
-      if (!params.PaisId || !params.ProvinciaId) {
-        return [];
-      }
-      return await firstValueFrom(this.searchService.getLocalidadesByProvincia(params.PaisId, params.ProvinciaId))
-      
-    }
-  });
 
   optionsMarcaVehiculo = resource({
     params: () => ({
@@ -278,14 +254,10 @@ export class PersonalFormComponent {
 
   effect = effect(() => {
     let objDomicilio:any = {}
-    let objLugarNacimiento:any = {}
     const domPaisId = this.parametroPersonal().domicilio.PaisId
     const domProvinciaId = this.parametroPersonal().domicilio.ProvinciaId
     const domLocalidadId = this.parametroPersonal().domicilio.LocalidadId
     const domBarrioId = this.parametroPersonal().domicilio.BarrioId
-    const lugNacPaisId = this.parametroPersonal().PaisId
-    const lugNacProvinciaId = this.parametroPersonal().ProvinciaId
-    const lugNacLocalidadId = this.parametroPersonal().LocalidadId
     if (this.enableSelectReset()) {
       
       if (!domLocalidadId && domBarrioId){
@@ -298,19 +270,11 @@ export class PersonalFormComponent {
         objDomicilio.LocalidadId = 0
         objDomicilio.BarrioId = 0
       }
-
-      if (!lugNacProvinciaId && lugNacLocalidadId){
-        objLugarNacimiento.LocalidadId = 0
-      } else if (!lugNacPaisId && (lugNacProvinciaId || lugNacLocalidadId)){
-        objLugarNacimiento.ProvinciaId = 0
-        objLugarNacimiento.LocalidadId = 0
-      }
       
-      if (Object.keys(objDomicilio).length || Object.keys(objLugarNacimiento).length) {
+      if (Object.keys(objDomicilio).length) {
         this.parametroPersonal.update(m => ({
           ...m, 
-          domicilio: { ...m.domicilio, ...objDomicilio},
-          ...objLugarNacimiento
+          domicilio: { ...m.domicilio, ...objDomicilio}
         }));
       }
       

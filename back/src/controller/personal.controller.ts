@@ -1240,9 +1240,7 @@ LEFT JOIN(
     const Sexo: string = infoPersonal.Sexo
     const EstadoCivilId: number = infoPersonal.EstadoCivilId
     const LeyNro: number = infoPersonal.LeyNro
-    const PaisId: number = infoPersonal.PaisId ? infoPersonal.PaisId : null
-    const ProvinciaId: number = infoPersonal.ProvinciaId ? infoPersonal.ProvinciaId : null
-    const LocalidadId: number = infoPersonal.LocalidadId ? infoPersonal.LocalidadId : null
+    const LugarNacimiento: string = infoPersonal.LugarNacimiento ? infoPersonal.LugarNacimiento : null
     const LugarFisicoLegajoId: number = !infoPersonal.LugarFisicoLegajoId ? null : infoPersonal.LugarFisicoLegajoId
 
     //Vehiculo
@@ -1304,9 +1302,7 @@ LEFT JOIN(
         PersonalLeyNro,
         EstadoCivilId,
         PersonalSexo,
-        PersonalPaisId,
-        PersonalProvinciaId,
-        PersonalLocalidadId,
+        LugarNacimiento,
         PersonalAudFechaIng,
         PersonalAudUsuarioIng,
         PersonalAudIpIng,
@@ -1320,8 +1316,8 @@ LEFT JOIN(
         Cilindrada,
         LugarFisicoLegajoId
       )
-      VALUES (@0,@1,@2,@3,@4,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15,@16,@17
-        ,@18,@19,@20,@18,@19,@20,@21,@22,@23,@24,@25,@26)
+      VALUES (@0,@1,@2,@3,@4,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15
+        ,@16,@17,@18,@16,@17,@18,@19,@20,@21,@22,@23,@24)
       
       SELECT MAX(PersonalId) id FROM Personal
       `, [
@@ -1340,9 +1336,7 @@ LEFT JOIN(
       LeyNro,
       EstadoCivilId,
       Sexo,
-      PaisId,
-      ProvinciaId,
-      LocalidadId,
+      LugarNacimiento,
       now,
       usuario,
       ip,
@@ -1851,7 +1845,7 @@ LEFT JOIN(
       SELECT PersonalNroLegajo NroLegajo, TRIM(PersonalApellido) Apellido, TRIM(PersonalNombre) Nombre,
       PersonalFechaNacimiento FechaNacimiento,
       PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId, PersonalLeyNro LeyNro,
-      EstadoCivilId, PersonalSexo Sexo, PersonalPaisId PaisId, PersonalProvinciaId ProvinciaId, PersonalLocalidadId LocalidadId,
+      EstadoCivilId, PersonalSexo Sexo, LugarNacimiento,
       TipoVehiculoId, VehiculoMarcaId, VehiculoMarcaModeloId, PersonalVehiculoPatente, Cilindrada,
       LugarFisicoLegajoId
       FROM Personal
@@ -1877,9 +1871,7 @@ LEFT JOIN(
     let FechaNacimiento: Date = infoPersonal.FechaNacimiento ? new Date(infoPersonal.FechaNacimiento) : null
     const CUIT: number = infoPersonal.CUIT
     const LeyNro: number = infoPersonal.LeyNro
-    const PaisId: number = infoPersonal.PaisId ? infoPersonal.PaisId : null
-    const ProvinciaId: number = infoPersonal.ProvinciaId ? infoPersonal.ProvinciaId : null
-    const LocalidadId: number = infoPersonal.LocalidadId ? infoPersonal.LocalidadId : null
+    const LugarNacimiento: string = infoPersonal.LugarNacimiento ? infoPersonal.LugarNacimiento : null
     const LugarFisicoLegajoId: number = !infoPersonal.LugarFisicoLegajoId ? null : infoPersonal.LugarFisicoLegajoId
 
     //Vehiculo
@@ -1913,21 +1905,19 @@ LEFT JOIN(
         PersonalLeyNro = @9,
         EstadoCivilId = @10,
         PersonalSexo = @11,
-        PersonalPaisId = @12,
-        PersonalProvinciaId = @13,
-        PersonalLocalidadId = @14,
-        PersonalAudFechaMod = @15,
-        PersonalAudUsuarioMod = @16,
-        PersonalAudIpMod = @17,
-        TipoVehiculoId = @18,
-        VehiculoMarcaId = @19,
-        VehiculoMarcaModeloId = @20,
-        PersonalVehiculoPatente = @21,
-        Cilindrada = @22,
-        LugarFisicoLegajoId = @23
+        LugarNacimiento = @12,
+        PersonalAudFechaMod = @13,
+        PersonalAudUsuarioMod = @14,
+        PersonalAudIpMod = @15,
+        TipoVehiculoId = @16,
+        VehiculoMarcaId = @17,
+        VehiculoMarcaModeloId = @18,
+        PersonalVehiculoPatente = @19,
+        Cilindrada = @20,
+        LugarFisicoLegajoId = @21
       WHERE PersonalId = @0
       `, [PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaNacimiento, NacionalidadId,
-      SucursalId, ApellidoNombreDNILegajo, LeyNro, EstadoCivilId, Sexo, PaisId, ProvinciaId, LocalidadId,
+      SucursalId, ApellidoNombreDNILegajo, LeyNro, EstadoCivilId, Sexo, LugarNacimiento,
       now, usuario, ip,
       TipoVehiculoId, VehiculoMarcaId, VehiculoMarcaModeloId, PersonalVehiculoPatente, Cilindrada, //Vehiculo
       LugarFisicoLegajoId
@@ -2318,8 +2308,8 @@ LEFT JOIN(
       SELECT per.PersonalId ,TRIM(per.PersonalNombre) Nombre, TRIM(per.PersonalApellido) Apellido, per.PersonalNroLegajo NroLegajo,
       cuit.PersonalCUITCUILCUIT CUIT, per.PersonalFechaNacimiento FechaNacimiento,
       per.PersonalSuActualSucursalPrincipalId SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion, nac.NacionalidadId,
-      TRIM(nac.NacionalidadDescripcion), per.PersonalSexo Sexo, per.EstadoCivilId, PersonalPaisId PaisId, PersonalProvinciaId ProvinciaId,
-      PersonalLocalidadId LocalidadId, email.PersonalEmailEmail Email, email.PersonalEmailId,
+      TRIM(nac.NacionalidadDescripcion), per.PersonalSexo Sexo, per.EstadoCivilId, LugarNacimiento,
+      email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
       per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
       per.PersonalLeyNro LeyNro,
@@ -2760,13 +2750,8 @@ LEFT JOIN(
     }
 
     //Validaciones de Lugar de nacimiento
-    const algunIncomleto = personalForm.PaisId || personalForm.ProvinciaId || personalForm.LocalidadId;
-    const todosCompletos = personalForm.PaisId && personalForm.ProvinciaId && personalForm.LocalidadId;
-    if (algunIncomleto && !todosCompletos) {
-      campos_vacios.push('Sección - Lugar de nacimiento:')
-      if (!personalForm.PaisId) campos_vacios.push('- Pais')
-      if (!personalForm.ProvinciaId) campos_vacios.push('- Provincia')
-      if (!personalForm.LocalidadId) campos_vacios.push('- Localidad')
+    if (!personalForm.LugarNacimiento) {
+      campos_vacios.push(`- Lugar de nacimiento`)
     }
 
     if (campos_vacios.length) {
