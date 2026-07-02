@@ -85,6 +85,13 @@
     </nz-form-item>
 
     <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Lugar de Nacimiento</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10">
+        <input nz-input placeholder="" [formField]="formParametroPersonal.LugarNacimiento" type="text" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="marginElement">
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">DNI - Frente</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9" [nzLg]="9">
@@ -189,49 +196,10 @@
       </nz-form-control>
     </nz-form-item>
 
-
-    <div class="input-container1">
-      <div class="input-label">Lugar de nacimiento</div>
-    </div>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Pais</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
-        <nz-select [formField]="formParametroPersonal.PaisId" nzPlaceHolder="" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
-          @for (option of optionsPais(); track option.value) {
-          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Provincia</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
-        <nz-select [formField]="formParametroPersonal.ProvinciaId" nzPlaceHolder="" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
-          @for (option of optionsProvincia.value(); track option.value) {
-          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Localidad</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
-        <nz-select [formField]="formParametroPersonal.LocalidadId" nzPlaceHolder="" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
-          @for (option of optionsLocalidad.value(); track option.value) {
-          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-    </nz-form-item>
-
     <div class="input-container1">
       <div class="input-label">Telefonos</div>
     </div>
-<!-- TODO: quitar objeto de track  -->
+    <!-- TODO: quitar objeto de track  -->
     @for (ip of formParametroPersonal.telefonos; let i = $index; track i) {
     <nz-form-item class="marginElement">
 
@@ -271,7 +239,7 @@
     <div class="input-container1">
       <div class="input-label">Estudios</div>
     </div>
-<!-- TODO: quitar objeto de track  -->
+    <!-- TODO: quitar objeto de track  -->
     @for (ip of formParametroPersonal.estudios; let i = $index; track i) {
     <nz-form-item class="marginElement">
 
@@ -332,7 +300,7 @@
     <div class="input-container1">
       <div class="input-label">Familiares</div>
     </div>
-<!-- TODO: quitar objeto de track  -->
+    <!-- TODO: quitar objeto de track  -->
     @for (ip of formParametroPersonal.familiares; let i = $index; track i) {
     <nz-form-item class="marginElement">
 
@@ -377,7 +345,7 @@
     <div class="input-container1">
       <div class="input-label">Beneficiario</div>
     </div>
-<!-- TODO: quitar objeto de track  -->
+    <!-- TODO: quitar objeto de track  -->
     @for (ip of formParametroPersonal.beneficiarios; let i = $index; track i) {
     <nz-form-item class="marginElement">
 
