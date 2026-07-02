@@ -1675,15 +1675,15 @@ outer APPLY (SELECT
 
         //Validaciones de campos incompletos
         if (!form.ClienteId) {
-            throw new ClientException(`- Cliente.`)
+            msgError.push('- Cliente.')
         }
 
         if (!form.Descripcion) {
-            throw new ClientException(`-  Descripcion.`)
+            msgError.push('-  Descripcion.')
         }
 
         if (!form.SucursalId) {
-            throw new ClientException(`- Sucursal.`)
+            msgError.push('- Sucursal.')
         }
 
         // if(!form.ContratoFechaHasta) {
@@ -1693,31 +1693,38 @@ outer APPLY (SELECT
         //Domicilio
 
         if (!form.DomicilioDomCalle) {
-            throw new ClientException(`- Dirección Calle.`)
+            msgError.push('- Dirección Calle.')
         }
 
-        if (!form.DomicilioDomNro) {
-            throw new ClientException(`- Nro.`)
-        }
+        // if (!form.DomicilioDomNro) {
+        //     throw new ClientException(`- Nro.`)
+        // }
 
-        if (form.DomicilioDomNro.length > 5) {
+        const domicilioDomNro = String(form.DomicilioDomNro ?? '').trim()
+        if (domicilioDomNro.length > 5) {
             throw new ClientException(`El campo Domicilio Nro NO puede ser mayor a 5 digitos.`)
         }
 
-        if (!form.DomicilioCodigoPostal) {
-            throw new ClientException(`- Cod Postal.`)
+        const domicilioCodigoPostal = String(form.DomicilioCodigoPostal ?? '').trim()
+        if (!domicilioCodigoPostal) {
+            msgError.push(`- Cod Postal.`)
         }
 
-        if (form.DomicilioCodigoPostal.length > 8) {
+        if (domicilioCodigoPostal.length > 8) {
             throw new ClientException(`El campo Cod Postal NO puede ser mayor a 8 digitos.`)
         }
 
         if (!form.DomicilioProvinciaId) {
-            throw new ClientException(`- Provincia.`)
+            msgError.push(`- Provincia.`)
         }
 
         if (!form.DomicilioLocalidadId) {
-            throw new ClientException(`- Localidad.`)
+            msgError.push(`- Localidad.`)
+        }
+
+        if (msgError.length) {
+            msgError.unshift('Debe completar los siguientes campos: ')
+            throw new ClientException(msgError)
         }
 
         // Coordinador de cuenta
@@ -1779,10 +1786,6 @@ outer APPLY (SELECT
         //     }
         // }
 
-        if (msgError.length) {
-            msgError.unshift('Debe completar los siguientes campos: ')
-            throw new ClientException(msgError)
-        }
         //Validaciones de datos minimos
         // Rubro
         if (!form.rubrosCliente || !form.rubrosCliente.length) {
