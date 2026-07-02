@@ -100,6 +100,10 @@ export class MovimientoStockController extends BaseController {
       await this.validateForm(queryRunner, body.fecha, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, efectos);
 
       const fecha = new Date(body.fecha)
+
+      // Resuelve/crea los efectos "usados" de destino (setea linea.EfectoIdDestino) antes de registrar.
+      await this.resolverEfectosUsados(queryRunner, efectos);
+
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
 
       const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, observaciones, fecha, efectos, personalIdInter);
@@ -212,7 +216,7 @@ export class MovimientoStockController extends BaseController {
            MovimientoStockCodigo, IndEfectoUsado, CantidadOrigen,
            AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod)
          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17)`,
-        [detalleCodigo, linea.EfectoId, linea.EfectoIndividualId, linea.Cantidad,
+        [detalleCodigo, (linea.EfectoIdDestino ?? linea.EfectoId), linea.EfectoIndividualId, linea.Cantidad,
           stk.PersonalId, stk.DepositoId, stk.ProveedorId, clienteIdOrigen, clienteElemDepOrigen,
           movimientoCodigo, linea.Usado ? 1 : 0, linea.Cantidad,
           fechaActual, fechaActual, ip, ip, usuario, usuario]
@@ -220,6 +224,106 @@ export class MovimientoStockController extends BaseController {
     }
 
     return movimientoCodigo;
+  }
+
+  /**
+   * Para cada renglón marcado como Usado, resuelve el EfectoId "usado" de destino:
+   *  - CON efecto individual (ítem único): valida contra MovimientoStockDetalle, no se replica.
+   *  - SIN efecto individual: reutiliza la réplica usada existente o crea una nueva (solo la fila Efecto).
+   * Setea linea.EfectoIdDestino y acumula errores. "Usado" = existe MovimientoStockDetalle
+   * con esa combinación EfectoId + EfectoIndividualId e IndEfectoUsado = 1.
+   */
+  private async resolverEfectosUsados(queryRunner: any, efectos: any[]) {
+    const fieldErrors: any[] = [];
+
+    for (const [index, linea] of efectos.entries()) {
+      // Por defecto el destino es el mismo efecto (renglones no usados, o caso A sin réplica).
+      linea.EfectoIdDestino = Number(linea.EfectoId);
+      if (!linea.Usado) continue;
+
+      const EfectoId = Number(linea.EfectoId);
+      const EfectoIndividualId = linea.EfectoIndividualId ?? null;
+
+      // ¿La combinación de origen ya figura como usada?
+      const yaUsado = await queryRunner.query(
+        `SELECT COUNT(*) AS cant FROM MovimientoStockDetalle
+          WHERE EfectoId = @0
+            AND (EfectoIndividualId = @1 OR (@1 IS NULL AND EfectoIndividualId IS NULL))
+            AND IndEfectoUsado = 1`,
+        [EfectoId, EfectoIndividualId]);
+      const cantUsado = Number(yaUsado[0]?.cant ?? 0);
+
+      // CASO A: efecto con efecto individual (ítem único, no se replica).
+      if (EfectoIndividualId != null) {
+        if (cantUsado === 1)
+          fieldErrors.push({ fieldTree: `efectos[${index}].Usado`, kind: 'server', message: 'El efecto ya se encuentra usado.' });
+        else if (cantUsado > 1)
+          fieldErrors.push({ fieldTree: `efectos[${index}].Usado`, kind: 'server', message: 'Existe más de un registro usado para el efecto individual (inconsistencia de datos).' });
+        // cantUsado === 0 → OK, destino = mismo efecto individual.
+        continue;
+      }
+
+      // CASO B: efecto sin efecto individual.
+      // No se puede volver a "usar" un efecto que ya está usado (ej. mover la propia réplica).
+      if (cantUsado > 0) {
+        fieldErrors.push({ fieldTree: `efectos[${index}].Usado`, kind: 'server', message: 'El efecto ya se encuentra usado.' });
+        continue;
+      }
+
+      // Datos del efecto original (para comparar / replicar).
+      const origRows = await queryRunner.query(
+        `SELECT TOP 1 EfectoDescripcion, RubroId, SubrubroId,
+                EfectoUnidadMedidaPrincipalId, EfectoUnidadMedidaReferenciaId,
+                EfectoStockMaximo, EfectoStockIntermedio, EfectoStockMinimo
+           FROM Efecto WHERE EfectoId = @0`, [EfectoId]);
+      const orig = origRows[0];
+      if (!orig) {
+        fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: 'El efecto no existe.' });
+        continue;
+      }
+
+      // Efectos idénticos (misma descripción + rubro + subrubro), distintos del original,
+      // con la cantidad de registros usados de cada uno.
+      const identicos = await queryRunner.query(
+        `SELECT e.EfectoId,
+                (SELECT COUNT(*) FROM MovimientoStockDetalle d
+                   WHERE d.EfectoId = e.EfectoId AND d.EfectoIndividualId IS NULL AND d.IndEfectoUsado = 1) AS UsadoCount
+           FROM Efecto e
+          WHERE e.EfectoId <> @0
+            AND e.EfectoDescripcion = @1 AND e.RubroId = @2 AND e.SubrubroId = @3`,
+        [EfectoId, orig.EfectoDescripcion, orig.RubroId, orig.SubrubroId]);
+
+      // Más de un efecto idéntico (con o sin usado) → inconsistencia.
+      if (identicos.length > 1) {
+        fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: 'Existe más de un efecto idéntico (inconsistencia de datos).' });
+        continue;
+      }
+
+      // Existe exactamente una réplica usada → es el destino de la transformación.
+      if (identicos.length === 1 && Number(identicos[0].UsadoCount) > 0) {
+        linea.EfectoIdDestino = Number(identicos[0].EfectoId);
+        continue;
+      }
+
+      // No existe réplica usada → crear una nueva (solo la fila Efecto).
+      // EfectoId es columna IDENTITY: lo genera SQL Server y se recupera con OUTPUT.
+      const insEfecto = await queryRunner.query(
+        `INSERT INTO Efecto
+           (EfectoDescripcion, RubroId, SubrubroId,
+            EfectoUnidadMedidaPrincipalId, EfectoUnidadMedidaReferenciaId,
+            EfectoStockMaximo, EfectoStockIntermedio, EfectoStockMinimo,
+            EfectoEfectoTransformacionEfectoId)
+         OUTPUT INSERTED.EfectoId AS EfectoId
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8)`,
+        [orig.EfectoDescripcion, orig.RubroId, orig.SubrubroId,
+          orig.EfectoUnidadMedidaPrincipalId, orig.EfectoUnidadMedidaReferenciaId,
+          orig.EfectoStockMaximo, orig.EfectoStockIntermedio, orig.EfectoStockMinimo,
+          EfectoId]); // backlink al original
+      linea.EfectoIdDestino = Number(insEfecto[0].EfectoId);
+    }
+
+    if (fieldErrors.length > 0)
+      throw new ClientException('Debe solucionar los errores indicados en el formulario', { fieldErrors });
   }
 
   private async aplicarMovimientoStock(
@@ -243,7 +347,8 @@ export class MovimientoStockController extends BaseController {
       const EfectoEfectoIndividualId = efecto.EfectoIndividualId ?? null
       const Cantidad = efecto.Cantidad
       const StockId = efecto.StockId
-      const usado = efecto.Usado
+      // Destino de la suma: la réplica "usada" resuelta en resolverEfectosUsados, o el mismo efecto.
+      const EfectoIdDestino = Number(efecto.EfectoIdDestino ?? efecto.EfectoId)
       const resStock = await queryRunner.query(
         `SELECT stk.StockId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.PersonalId, stk.DepositoId, stk.ObjetivoId, stk.ProveedorId 
             FROM StockReal stk
@@ -291,10 +396,6 @@ export class MovimientoStockController extends BaseController {
         await queryRunner.query(`UPDATE Stock SET StockStock = @1 WHERE StockId = @0`, [StockId, CantidadActual - Cantidad]);
       }
 
-      if (usado) {
-        fieldErrors.push({ fieldTree: `efectos[${index}].Usado`, kind: 'server', message: 'Pendiente de desarrollo.' });
-        //TODO: Cambia EfectoId o EfectoEfectoIndividualId y le agrega el indicador de usado.  Por ahí tiene que crear un nuevo EfectoId si no tiene ninguno como usado.
-      }
       // Suma en destino.
       const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6 WHERE
             ( DepositoId = @0 OR (@0 IS NULL AND DepositoId IS NULL))
@@ -305,14 +406,14 @@ export class MovimientoStockController extends BaseController {
         AND ( EfectoEfectoIndividualId = @5 OR (@5 IS NULL AND EfectoEfectoIndividualId IS NULL))
         SELECT @@ROWCOUNT as affected
 `,
-        [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoId, EfectoEfectoIndividualId, Cantidad])
+        [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoIdDestino, EfectoEfectoIndividualId, Cantidad])
 
       const cantRegistros = ressuma[0]?.affected ?? 0;
       if (cantRegistros == 0) {
         await queryRunner.query(
           `INSERT INTO Stock (DepositoId,PersonalId,ObjetivoId,ProveedorId, EfectoId, EfectoEfectoIndividualId, StockStock)
           VALUES (@0, @1, @2, @3,@4,@5,@6)`,
-          [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoId, EfectoEfectoIndividualId, Cantidad]
+          [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoIdDestino, EfectoEfectoIndividualId, Cantidad]
         );
 
       } else if (cantRegistros > 1) {
@@ -917,55 +1018,7 @@ export class MovimientoStockController extends BaseController {
   // Genera el PDF del comprobante con los datos del formulario (parametroStock) recibido en el body.
   // El form solo trae IDs en los campos tipo select (destino, intermediario, efectos): acá se
   // resuelven a su texto con lookups por ID (no se consulta el movimiento por código).
-  /*
-
-  private async renderComprobantePdfFromForm(
-    queryRunner: any,
-    filePathAbs: string,
-    form: any,
-    usuario: string = ""
-  ) {
-    const fecha = form?.fecha ? new Date(form.fecha) : new Date();
-    const content = await this.getComprobanteHtmlContentGeneral(fecha);
-
-    const tipoDestino = form?.tipoDestino ?? '';
-
-    const destinoNombre = await this.resolverDestinoLabel(queryRunner, tipoDestino, form);
-    // "Tipo - Nombre" (ej: "Objetivo - Coto"); si no hay tipo, solo el nombre.
-    const tipoSingular = tipoDestinoSingular[tipoDestino] ?? '';
-    const destino = (tipoSingular && destinoNombre) ? `${tipoSingular} - ${destinoNombre}` : destinoNombre;
-    const intermediario = await this.resolverPersonalNombre(queryRunner, form?.personalIdInter);
-    const observaciones = form?.observaciones ?? '';
-    const textefectos = await this.resolverEfectoLineas(queryRunner, form?.efectos);
-
-
-    const filasDestino = await this.resolverFilasDestino(queryRunner, tipoDestino, form, fecha);
-
-    const vars = {
-      // Borrador (sin movimiento guardado): en vez del N° se muestra "BORRADOR".
-      numeroComprobante: 'BORRADOR',
-      fechaFormateada: this.dateOutputFormat(fecha),
-      origen: '',
-      destino,
-      destinoNombre,
-      tipoDestino: tipoSingular,
-      intermediario,
-      observaciones,
-      filasDestino,
-      textefectos,
-    };
-
-    const headerContent = this.aplicarVariablesComprobante(content.header, vars);
-    const footerContent = this.aplicarVariablesPie(content.footer, usuario);
-    const htmlContent = this.aplicarVariablesComprobante(content.body, vars);
-
-    // Borrador descargado desde movimiento stock: marca de agua diagonal "BORRADOR" en gris claro,
-    // detrás de todo el contenido (z-index negativo).
-    const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: -1; font-size:130px; color: #cccccc; transform:rotate(-60deg); opacity: 0.5;">BORRADOR</div>`;
-
-    await this.comprobanteHtmlToPdf(filePathAbs, htmlContent, headerContent, footerContent, waterMark);
-  }
-*/
+  
   // ----- Resolución de IDs del formulario a su texto (para el comprobante) -----
 
   // Nombre del destino según el tipo elegido (depósito / persona / objetivo / proveedor).
