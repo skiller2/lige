@@ -288,16 +288,6 @@ export class AsistenciaController extends BaseController {
       await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req, res)
 
       // registro de apertura de planilla 
-      const AperturaAsistenciaLogId = await BaseController.getProxNumero(queryRunner, `AperturaAsistenciaLog`, usuario, ip)
-      const clienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
-
-      const ClienteId = clienteElementoDependiente.ClienteId
-      const ClienteElementoDependienteId = clienteElementoDependiente.ClienteElementoDependienteId
-
-      await queryRunner.query(`INSERT INTO AperturaAsistenciaLog (AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, Anio, Mes, TipoMovimiento, AudFechaIng,AudUsuarioIng,AudIpIng,PlanillaAsistenciaJson, ExepcionAsistenciaJson)
-      VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)
-      `, [AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, anio, mes, 'AP', fechaActual, usuario, ip, null, null]
-      );
 
 
       await queryRunner.commitTransaction();
@@ -357,6 +347,11 @@ export class AsistenciaController extends BaseController {
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
+    let fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+
     let ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoId
 
     if (cabecera[0].ObjetivoAsistenciaAnoAno == null) {
@@ -375,8 +370,6 @@ export class AsistenciaController extends BaseController {
     if (cabecera[0].ObjetivoAsistenciaAnoMesMes == null) { //Da de alta el mes para el objetivo
       const ano = await queryRunner.query(`SELECT ObjetivoAsistenciaAnoMesUltNro FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId =@1 `, [ObjetivoId, ObjetivoAsistenciaAnoUltNro])
       const ObjetivoAsistenciaAnoMesUltNro = Number(ano[0].ObjetivoAsistenciaAnoMesUltNro) + 1
-      let fechaActual = new Date()
-      fechaActual.setHours(0, 0, 0, 0)
 
       await queryRunner.query(
         `INSERT ObjetivoAsistenciaAnoMes (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaAnoMesMes, ObjetivoAsistenciaAnoMesMeses, ObjetivoAsistenciaAnoMesDesde, ObjetivoAsistenciaAnoMesHasta,
@@ -410,6 +403,18 @@ export class AsistenciaController extends BaseController {
           `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
       );
     }
+
+    const AperturaAsistenciaLogId = await BaseController.getProxNumero(queryRunner, `AperturaAsistenciaLog`, usuario, ip)
+    const clienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
+
+    const ClienteId = clienteElementoDependiente.ClienteId
+    const ClienteElementoDependienteId = clienteElementoDependiente.ClienteElementoDependienteId
+
+    await queryRunner.query(`INSERT INTO AperturaAsistenciaLog (AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, Anio, Mes, TipoMovimiento, AudFechaIng,AudUsuarioIng,AudIpIng,PlanillaAsistenciaJson, ExepcionAsistenciaJson)
+    VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)
+    `, [AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, anio, mes, 'AP', fechaActual, usuario, ip, null, null]
+    );
+
     cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
     return cabecera[0]
 
