@@ -224,6 +224,10 @@ export class AsistenciaController extends BaseController {
 
       await queryRunner.startTransaction()
 
+      const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
+      if (valObjetivo instanceof ClientException)
+        throw valObjetivo
+
       const objetivo = await queryRunner.query(
         `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
        FROM Objetivo obj 
@@ -284,16 +288,6 @@ export class AsistenciaController extends BaseController {
       await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req, res)
 
       // registro de apertura de planilla 
-      const AperturaAsistenciaLogId = await BaseController.getProxNumero(queryRunner, `AperturaAsistenciaLog`, usuario, ip)
-      const clienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
-
-      const ClienteId = clienteElementoDependiente.ClienteId
-      const ClienteElementoDependienteId = clienteElementoDependiente.ClienteElementoDependienteId
-
-      await queryRunner.query(`INSERT INTO AperturaAsistenciaLog (AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, Anio, Mes, TipoMovimiento, AudFechaIng,AudUsuarioIng,AudIpIng,PlanillaAsistenciaJson, ExepcionAsistenciaJson)
-      VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)
-      `, [AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, anio, mes, 'AP', fechaActual, usuario, ip, null, null]
-      );
 
 
       await queryRunner.commitTransaction();
@@ -344,7 +338,7 @@ export class AsistenciaController extends BaseController {
 
     const contratos = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
     if (contratos.length == 0)
-      throw new ClientException(`No tiene contrato vigente para el período ${anio}/${mes}`)
+      throw new ClientException(`El objetivo ${cabecera[0].ObjetivoCodigo} no tiene contrato vigente para el período ${anio}/${mes}`)
 
     const checkrecibos = await queryRunner.query(
       `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [, anio, mes]
@@ -352,6 +346,14 @@ export class AsistenciaController extends BaseController {
 
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
+
+    if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null && cabecera[0].ObjetivoAsistenciaAnoMesDesde != null)
+      return cabecera[0]
+
+    let fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
+    const usuario = this.getUser(res)
+    const ip = this.getRemoteAddress(req)
 
     let ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoId
 
@@ -371,8 +373,6 @@ export class AsistenciaController extends BaseController {
     if (cabecera[0].ObjetivoAsistenciaAnoMesMes == null) { //Da de alta el mes para el objetivo
       const ano = await queryRunner.query(`SELECT ObjetivoAsistenciaAnoMesUltNro FROM ObjetivoAsistenciaAno WHERE ObjetivoId = @0 AND ObjetivoAsistenciaAnoId =@1 `, [ObjetivoId, ObjetivoAsistenciaAnoUltNro])
       const ObjetivoAsistenciaAnoMesUltNro = Number(ano[0].ObjetivoAsistenciaAnoMesUltNro) + 1
-      let fechaActual = new Date()
-      fechaActual.setHours(0, 0, 0, 0)
 
       await queryRunner.query(
         `INSERT ObjetivoAsistenciaAnoMes (ObjetivoAsistenciaAnoMesId, ObjetivoAsistenciaAnoId, ObjetivoId, ObjetivoAsistenciaAnoMesMes, ObjetivoAsistenciaAnoMesMeses, ObjetivoAsistenciaAnoMesDesde, ObjetivoAsistenciaAnoMesHasta,
@@ -406,6 +406,18 @@ export class AsistenciaController extends BaseController {
           `, [cabecera[0].ObjetivoId, cabecera[0].ObjetivoAsistenciaAnoId, cabecera[0].ObjetivoAsistenciaAnoMesId]
       );
     }
+
+    const AperturaAsistenciaLogId = await BaseController.getProxNumero(queryRunner, `AperturaAsistenciaLog`, usuario, ip)
+    const clienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
+
+    const ClienteId = clienteElementoDependiente.ClienteId
+    const ClienteElementoDependienteId = clienteElementoDependiente.ClienteElementoDependienteId
+
+    await queryRunner.query(`INSERT INTO AperturaAsistenciaLog (AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, Anio, Mes, TipoMovimiento, AudFechaIng,AudUsuarioIng,AudIpIng,PlanillaAsistenciaJson, ExepcionAsistenciaJson)
+    VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10)
+    `, [AperturaAsistenciaLogId, ClienteId, ClienteElementoDependienteId, anio, mes, 'AP', fechaActual, usuario, ip, null, null]
+    );
+
     cabecera = await AsistenciaController.getObjetivoAsistenciaCabecera(anio, mes, ObjetivoId, queryRunner)
     return cabecera[0]
 
@@ -463,6 +475,9 @@ export class AsistenciaController extends BaseController {
         throw new ClientException('Horas a facturar debe ser mayor a 0', cabecera[0].TotalHoras)
       }
 
+      console.log('cabecera', cabecera[0])
+      if (cabecera[0].ObjetivoAsistenciaAnoMesDesde != null && cabecera[0].ObjetivoAsistenciaAnoMesHasta != null)
+        throw new ClientException('El objetivo ya se encuentra cerrado o no fue abierto')
 
       // if (cabecera[0].ImporteHora < 1 && cabecera[0].ImporteFijo < 1) {
       //   throw new ClientException('Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
@@ -2680,7 +2695,7 @@ export class AsistenciaController extends BaseController {
         throw new ClientException(`No tiene permisos para grabar/modificar asistencia`)
 
 
-      
+
 
 
       //Validación de los datos ingresados
@@ -2765,13 +2780,13 @@ export class AsistenciaController extends BaseController {
       const formaLiquidacion: string = req.body.formaLiquidacion
 
 
-      const acta = await this.checkActaAsociado(personalId,anio,mes,queryRunner)
-      if (acta.length>0){
+      const acta = await this.checkActaAsociado(personalId, anio, mes, queryRunner)
+      if (acta.length > 0) {
         if (acta[0].TipoPersonalActaCodigo != 'ALT') {
-//          throw new ClientException(`No se puede cargar horas, la persona no posee Acta de Alta de Asociado`)
+          //          throw new ClientException(`No se puede cargar horas, la persona no posee Acta de Alta de Asociado`)
         }
       } else {
-//          throw new ClientException(`No se puede cargar horas, la persona no posee Acta `)
+        //          throw new ClientException(`No se puede cargar horas, la persona no posee Acta `)
       }
 
 
@@ -2996,7 +3011,7 @@ export class AsistenciaController extends BaseController {
             errores.push(`La persona no se encuentra de licencia. dia:${numdia}`)
           }
           //Validación Situación de Revista
-          
+
           const situacionesOKA = [2, 12]; //ACTIVO y ASOCIADO - EN TRAMITE
 
           const situacion = situacionesRevista.find((row: any) => (row.desde <= fecha && row.hasta >= fecha && !situacionesOKA.includes(row.PersonalSituacionRevistaSituacionId)))
@@ -3300,7 +3315,7 @@ export class AsistenciaController extends BaseController {
           const ObjetivoId = objetivo[0]?.ObjetivoId
           if (!ObjetivoId)
             throw new ClientException(`Objetivo no localizado ${ClienteId}/${ClienteElementoDependienteId}`,)
-          const cabecera = await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, null, null)
+          const cabecera = await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req, res)
 
           if (!cabecera.ObjetivoAsistenciaAnoMesId || !cabecera.ObjetivoAsistenciaAnoId)
             throw new ClientException(`Error habilitando período ${mes}/${anio} para la carga del objetivo ${ObjetivoId}`, cabecera)
@@ -3911,16 +3926,16 @@ export class AsistenciaController extends BaseController {
     const password = process.env.CA_PASSWORD
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-/*
-    const agent = new Agent({
-      checkServerIdentity: (host, cert) => {
-        // Ignorar totalmente la validación del certificado
-        return undefined;
-      }
-    });
-    const initialResponse = await fetch(url, { method: 'POST', dispatcher: agent as any,  body: JSON.stringify({ validateStatus: () => true }), })
-  
-*/
+    /*
+        const agent = new Agent({
+          checkServerIdentity: (host, cert) => {
+            // Ignorar totalmente la validación del certificado
+            return undefined;
+          }
+        });
+        const initialResponse = await fetch(url, { method: 'POST', dispatcher: agent as any,  body: JSON.stringify({ validateStatus: () => true }), })
+      
+    */
     const initialResponse = await fetch(url, { method: 'POST', body: JSON.stringify({ validateStatus: () => true }), })
     const authHeader = initialResponse.headers.get('www-authenticate')
     let authOptions = AsistenciaController.createDigestAuthOptions(authHeader, username, password, url)
@@ -3970,15 +3985,15 @@ export class AsistenciaController extends BaseController {
   }
 
   async checkActaAsociado(personalId: number, anio: number, mes: number, queryRunner: QueryRunner) {
-  return await queryRunner.query(`
+    return await queryRunner.query(`
     SELECT TOP 1 a.ActaId, b.ActaFechaActa, b.ActaDescripcion, a.TipoPersonalActaCodigo 
       FROM PersonalActa a 
       JOIN Acta b ON b.ActaId=a.ActaId
       WHERE a.PersonalId=@0 AND b.ActaFechaActa<=EOMONTH(DATEFROMPARTS(@1,@2,1))  
-      ORDER BY b.ActaFechaActa DESC `, 
-    [personalId, anio, mes])
+      ORDER BY b.ActaFechaActa DESC `,
+      [personalId, anio, mes])
 
-}
+  }
 
 
 
