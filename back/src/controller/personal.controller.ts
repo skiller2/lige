@@ -1241,7 +1241,6 @@ LEFT JOIN(
     const EstadoCivilId: number = infoPersonal.EstadoCivilId
     const LeyNro: number = infoPersonal.LeyNro
     const LugarNacimiento: string = infoPersonal.LugarNacimiento ? infoPersonal.LugarNacimiento : null
-    const LugarFisicoLegajoId: number = !infoPersonal.LugarFisicoLegajoId ? null : infoPersonal.LugarFisicoLegajoId
 
     //Vehiculo
     let TipoVehiculoId = infoPersonal.TipoVehiculoId
@@ -1313,11 +1312,10 @@ LEFT JOIN(
         VehiculoMarcaId,
         VehiculoMarcaModeloId,
         PersonalVehiculoPatente,
-        Cilindrada,
-        LugarFisicoLegajoId
+        Cilindrada
       )
       VALUES (@0,@1,@2,@3,@4,@7,@8,@9,@9,@10,@11,@12,@13,@14,@15
-        ,@16,@17,@18,@16,@17,@18,@19,@20,@21,@22,@23,@24)
+        ,@16,@17,@18,@16,@17,@18,@19,@20,@21,@22,@23)
       
       SELECT MAX(PersonalId) id FROM Personal
       `, [
@@ -1344,8 +1342,7 @@ LEFT JOIN(
       VehiculoMarcaId,
       VehiculoMarcaModeloId,
       PersonalVehiculoPatente,
-      Cilindrada,
-      LugarFisicoLegajoId
+      Cilindrada
     ])
 
     let PersonalId = newId[0].id
@@ -1419,6 +1416,129 @@ LEFT JOIN(
     }
   }
 
+  private async setPersonalUbicacionLegajo(queryRunner: any, PersonalId: number, infoPersonal: any) {
+    const LugarFisicoLegajoId: number | null = infoPersonal.LugarFisicoLegajoId ? Number(infoPersonal.LugarFisicoLegajoId) : null
+
+    if (!LugarFisicoLegajoId) return
+
+    if (!infoPersonal.LugarFisicoLegajoDesde) {
+      throw new ClientException('Debe completar Fecha desde para la Ubicacion legajo.')
+    }
+
+    const nuevaDesde = new Date(infoPersonal.LugarFisicoLegajoDesde)
+    if (Number.isNaN(nuevaDesde.getTime())) {
+      throw new ClientException('La Fecha desde de la Ubicacion legajo no es valida.')
+    }
+    nuevaDesde.setHours(0, 0, 0, 0)
+
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
+    if (nuevaDesde.getTime() > hoy.getTime()) {
+      throw new ClientException('La Fecha desde de la Ubicacion legajo no puede ser mayor al dia de hoy.')
+    }
+
+    const registrosExistentes = await queryRunner.query(`
+      SELECT PersonalUbicacionLegajoId,
+        LugarFisicoLegajoId,
+        PersonalUbicacionLegajoDesde,
+        PersonalUbicacionLegajoHasta
+      FROM PersonalUbicacionLegajo
+      WHERE PersonalId = @0
+      ORDER BY PersonalUbicacionLegajoDesde ASC, PersonalUbicacionLegajoId ASC
+    `, [PersonalId])
+
+    if (!registrosExistentes.length) {
+      await this.addPersonalUbicacionLegajo(queryRunner, PersonalId, LugarFisicoLegajoId, nuevaDesde, null)
+      return
+    }
+
+    const registroMismoDesde = registrosExistentes.find((registro: any) => {
+      const desde = new Date(registro.PersonalUbicacionLegajoDesde)
+      desde.setHours(0, 0, 0, 0)
+      return desde.getTime() === nuevaDesde.getTime()
+    })
+
+    if (registroMismoDesde) {
+      if (Number(registroMismoDesde.LugarFisicoLegajoId) === LugarFisicoLegajoId) {
+        return
+      }
+
+      await queryRunner.query(`
+        UPDATE PersonalUbicacionLegajo SET
+          LugarFisicoLegajoId = @2
+        WHERE PersonalId = @0 AND PersonalUbicacionLegajoId = @1
+      `, [PersonalId, registroMismoDesde.PersonalUbicacionLegajoId, LugarFisicoLegajoId])
+      return
+    }
+
+    const pasados = registrosExistentes.filter((registro: any) => {
+      const desde = new Date(registro.PersonalUbicacionLegajoDesde)
+      desde.setHours(0, 0, 0, 0)
+      return desde.getTime() < nuevaDesde.getTime()
+    })
+    const futuros = registrosExistentes.filter((registro: any) => {
+      const desde = new Date(registro.PersonalUbicacionLegajoDesde)
+      desde.setHours(0, 0, 0, 0)
+      return desde.getTime() > nuevaDesde.getTime()
+    })
+
+    const registroAnterior = pasados[pasados.length - 1]
+    const registroSiguiente = futuros[0]
+
+    if (registroAnterior) {
+      const anteriorHasta = registroAnterior.PersonalUbicacionLegajoHasta ? new Date(registroAnterior.PersonalUbicacionLegajoHasta) : new Date('9999-12-31')
+      anteriorHasta.setHours(0, 0, 0, 0)
+
+      if (nuevaDesde.getTime() <= anteriorHasta.getTime()) {
+        if (Number(registroAnterior.LugarFisicoLegajoId) === LugarFisicoLegajoId) {
+          return
+        }
+
+        const nuevoHastaAnterior = new Date(nuevaDesde)
+        nuevoHastaAnterior.setDate(nuevoHastaAnterior.getDate() - 1)
+
+        await queryRunner.query(`
+          UPDATE PersonalUbicacionLegajo SET
+            PersonalUbicacionLegajoHasta = @2
+          WHERE PersonalId = @0 AND PersonalUbicacionLegajoId = @1
+        `, [PersonalId, registroAnterior.PersonalUbicacionLegajoId, nuevoHastaAnterior])
+      }
+    }
+
+    let nuevoHasta: Date | null = null
+    if (registroSiguiente) {
+      nuevoHasta = new Date(registroSiguiente.PersonalUbicacionLegajoDesde)
+      nuevoHasta.setHours(0, 0, 0, 0)
+      nuevoHasta.setDate(nuevoHasta.getDate() - 1)
+    }
+
+    await this.addPersonalUbicacionLegajo(queryRunner, PersonalId, LugarFisicoLegajoId, nuevaDesde, nuevoHasta)
+  }
+
+  private async addPersonalUbicacionLegajo(queryRunner: any, PersonalId: number, LugarFisicoLegajoId: number, Desde: Date, Hasta: Date | null) {
+    const PersonalUbicacionLegajo = await queryRunner.query(`
+      SELECT ISNULL(PersonalUbicacionLegajoUltNro, 0) + 1 AS newPersonalUbicacionLegajoId
+      FROM Personal
+      WHERE PersonalId = @0
+    `, [PersonalId])
+
+    await queryRunner.query(`
+      INSERT INTO PersonalUbicacionLegajo (
+        PersonalUbicacionLegajoId,
+        PersonalId,
+        PersonalUbicacionLegajoDesde,
+        PersonalUbicacionLegajoHasta,
+        LugarFisicoLegajoId
+      )
+      VALUES (@0, @1, @2, @3, @4)
+
+      UPDATE Personal SET
+        PersonalUbicacionLegajoUltNro = @0
+      WHERE PersonalId = @1
+    `, [PersonalUbicacionLegajo[0].newPersonalUbicacionLegajoId, PersonalId, Desde, Hasta, LugarFisicoLegajoId])
+
+  }
+
   async addPersonal(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     const CUIT: number = req.body.CUIT
@@ -1466,6 +1586,8 @@ LEFT JOIN(
 
 
       await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
+
+      await this.setPersonalUbicacionLegajo(queryRunner, PersonalId, req.body)
 
       //Telefonos
       for (const telefono of telefonos) {
@@ -1846,8 +1968,7 @@ LEFT JOIN(
       PersonalFechaNacimiento FechaNacimiento,
       PersonalNacionalidadId NacionalidadId, PersonalSuActualSucursalPrincipalId SucursalId, PersonalLeyNro LeyNro,
       EstadoCivilId, PersonalSexo Sexo, LugarNacimiento,
-      TipoVehiculoId, VehiculoMarcaId, VehiculoMarcaModeloId, PersonalVehiculoPatente, Cilindrada,
-      LugarFisicoLegajoId
+      TipoVehiculoId, VehiculoMarcaId, VehiculoMarcaModeloId, PersonalVehiculoPatente, Cilindrada
       FROM Personal
       WHERE PersonalId = @0
       `, [PersonalId])
@@ -1872,7 +1993,6 @@ LEFT JOIN(
     const CUIT: number = infoPersonal.CUIT
     const LeyNro: number = infoPersonal.LeyNro
     const LugarNacimiento: string = infoPersonal.LugarNacimiento ? infoPersonal.LugarNacimiento : null
-    const LugarFisicoLegajoId: number = !infoPersonal.LugarFisicoLegajoId ? null : infoPersonal.LugarFisicoLegajoId
 
     //Vehiculo
     let TipoVehiculoId = infoPersonal.TipoVehiculoId
@@ -1913,14 +2033,12 @@ LEFT JOIN(
         VehiculoMarcaId = @17,
         VehiculoMarcaModeloId = @18,
         PersonalVehiculoPatente = @19,
-        Cilindrada = @20,
-        LugarFisicoLegajoId = @21
+        Cilindrada = @20
       WHERE PersonalId = @0
       `, [PersonalId, NroLegajo, Apellido, Nombre, fullname, FechaNacimiento, NacionalidadId,
       SucursalId, ApellidoNombreDNILegajo, LeyNro, EstadoCivilId, Sexo, LugarNacimiento,
       now, usuario, ip,
-      TipoVehiculoId, VehiculoMarcaId, VehiculoMarcaModeloId, PersonalVehiculoPatente, Cilindrada, //Vehiculo
-      LugarFisicoLegajoId
+      TipoVehiculoId, VehiculoMarcaId, VehiculoMarcaModeloId, PersonalVehiculoPatente, Cilindrada //Vehiculo
     ])
   }
 
@@ -2253,6 +2371,8 @@ LEFT JOIN(
 
       await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
 
+      await this.setPersonalUbicacionLegajo(queryRunner, PersonalId, req.body)
+
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
       )
@@ -2314,7 +2434,7 @@ LEFT JOIN(
       per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
       per.PersonalLeyNro LeyNro,
       per.TipoVehiculoId, per.VehiculoMarcaId, per.VehiculoMarcaModeloId, TRIM(per.PersonalVehiculoPatente) AS PersonalVehiculoPatente, TRIM(per.Cilindrada) AS Cilindrada,
-      per.LugarFisicoLegajoId
+      ubleg.LugarFisicoLegajoId, ubleg.PersonalUbicacionLegajoDesde LugarFisicoLegajoDesde
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
@@ -2324,6 +2444,14 @@ LEFT JOIN(
       LEFT JOIN PersonalEmail email ON email.PersonalId = per.PersonalId AND email.PersonalEmailInactivo IN (0)
       LEFT JOIN PersonalSituacionRevista sit ON sit.PersonalId = per.PersonalId AND sit.PersonalSituacionRevistaId = (SELECT MAX (sitmax.PersonalSituacionRevistaId) FROM PersonalSituacionRevista sitmax WHERE sitmax.PersonalId = per.PersonalId AND sitmax.PersonalSituacionRevistaDesde <= @1 AND ISNULL(sitmax.PersonalSituacionRevistaHasta,'9999-12-31') >= @1)
       LEFT JOIN PersonalDocumento doc ON doc.PersonalId = per.PersonalId AND doc.PersonalDocumentoId = (SELECT MAX (docmax.PersonalDocumentoId) FROM PersonalDocumento docmax WHERE docmax.PersonalId = per.PersonalId) 
+      LEFT JOIN PersonalUbicacionLegajo ubleg ON ubleg.PersonalId = per.PersonalId AND ubleg.PersonalUbicacionLegajoId = (
+        SELECT TOP 1 ubmax.PersonalUbicacionLegajoId
+        FROM PersonalUbicacionLegajo ubmax
+        WHERE ubmax.PersonalId = per.PersonalId
+          AND ubmax.PersonalUbicacionLegajoDesde <= @1
+          AND ISNULL(ubmax.PersonalUbicacionLegajoHasta, '9999-12-31') >= @1
+        ORDER BY ubmax.PersonalUbicacionLegajoDesde DESC, ubmax.PersonalUbicacionLegajoId DESC
+      )
       WHERE per.PersonalId = @0
       `, [personalId, new Date()]
     )
