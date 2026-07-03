@@ -4448,6 +4448,33 @@ UNION ALL
     }
   }
 
+  async getHistoryPersonalUbicacionLegajo(req: any, res: Response, next: NextFunction) {
+    const PersonalId = Number(req.params.personalId)
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const history = await queryRunner.query(`
+        SELECT
+          pul.PersonalUbicacionLegajoId id,
+          TRIM(lfl.LugarFisicoLegajoDescripcion) LugarFisicoLegajoDescripcion,
+          CONVERT(VARCHAR(10), pul.PersonalUbicacionLegajoDesde, 103) PersonalUbicacionLegajoDesde,
+          CASE
+            WHEN pul.PersonalUbicacionLegajoHasta IS NULL THEN ''
+            ELSE CONVERT(VARCHAR(10), pul.PersonalUbicacionLegajoHasta, 103)
+          END PersonalUbicacionLegajoHasta
+        FROM PersonalUbicacionLegajo pul
+        LEFT JOIN LugarFisicoLegajo lfl ON lfl.LugarFisicoLegajoId = pul.LugarFisicoLegajoId
+        WHERE pul.PersonalId = @0
+        ORDER BY pul.PersonalUbicacionLegajoDesde asc
+      `, [PersonalId])
+
+      this.jsonRes(history, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   async getDatosBotByPersonalId(req: any, res: Response, next: NextFunction) {
     const PersonalId = Number(req.params.personalId)
     const queryRunner = await getConnection(res.locals.userName);

@@ -175,6 +175,10 @@ personalRouter.get(`${base}/historial/sitrevista/:personalId`, [authMiddleware.v
   personalController.getHistoryPersonalSitRevista(req, res, next);
 });
 
+personalRouter.get(`${base}/historial/ubicacion-legajo/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`, `gPersonalCon`])], (req, res, next) => {
+  personalController.getHistoryPersonalUbicacionLegajo(req, res, next);
+});
+
 personalRouter.get(`${base}/historial/banco/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`, `Liquidaciones Consultas`])], (req, res, next) => {
   personalController.getHistoryPersonalBanco(req, res, next);
 });

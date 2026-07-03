@@ -1838,6 +1838,17 @@ export class SearchService {
     );
   }
 
+  getHistoriaUbicacionLegajoPersona(id: number): Observable<any> {
+    if (!id) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/personal/historial/ubicacion-legajo/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+
+        return of([]);
+      })
+    );
+  }
+
   getSitRevistaNoOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/personal/sitrevista/no-options`).pipe(
       map(res => res.data),

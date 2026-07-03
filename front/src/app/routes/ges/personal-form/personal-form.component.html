@@ -517,8 +517,39 @@
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha desde</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
-        <nz-date-picker [formField]="formParametroPersonal.LugarFisicoLegajoDesde" nzFormat="dd/MM/yyyy"></nz-date-picker>
+        <nz-date-picker [formField]="formParametroPersonal.LugarFisicoLegajoDesde"
+          nzFormat="dd/MM/yyyy"></nz-date-picker>
       </nz-form-control>
+
+      @if (personalId()) {
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" style="text-align: right;">
+        <button nz-button nzType="default" type="button" nz-popover nzPopoverTrigger="click"
+          nzPopoverTitle="Historial de Ubicacion legajo" [nzPopoverContent]="ubicacionLegajoHistoryTemplate"
+          (click)="loadUbicacionLegajoHistory()">
+          <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
+        </button>
+        <ng-template #ubicacionLegajoHistoryTemplate>
+          <nz-table #ubicacionLegajoHistoryTable [nzData]="ubicacionLegajoHistory()" [nzShowPagination]="false">
+            <thead>
+              <tr>
+                <th>Ubicación</th>
+                <th>Desde</th>
+                <th>Hasta</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of ubicacionLegajoHistoryTable.data; track item.id) {
+              <tr>
+                <td>{{ item.LugarFisicoLegajoDescripcion }}</td>
+                <td>{{ item.PersonalUbicacionLegajoDesde }}</td>
+                <td>{{ item.PersonalUbicacionLegajoHasta }}</td>
+              </tr>
+              }
+            </tbody>
+          </nz-table>
+        </ng-template>
+      </nz-form-control>
+      }
     </nz-form-item>
 
   </fieldset>

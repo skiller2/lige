@@ -101,6 +101,7 @@ export class PersonalFormComponent {
   periodo = signal({ anio: 0, mes: 0 })
   enableSelectReset = signal<boolean>(true)
   private lastLugarFisicoLegajoId: number | null | undefined = undefined;
+  ubicacionLegajoHistory = signal<any[]>([])
   personalId = model<number>(0);
   readonly = input<boolean>(false);
   urlUpload = '/api/personal/upload'
@@ -381,6 +382,11 @@ export class PersonalFormComponent {
       }
       this.isLoading.set(false)
     })
+  }
+
+  async loadUbicacionLegajoHistory() {
+    const history = await firstValueFrom(this.searchService.getHistoriaUbicacionLegajoPersona(this.personalId()))
+    this.ubicacionLegajoHistory.set(history)
   }
 
   addTelefono(e?: MouseEvent): void {
