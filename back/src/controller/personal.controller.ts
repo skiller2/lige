@@ -1416,8 +1416,9 @@ LEFT JOIN(
     }
   }
 
-  private async setPersonalUbicacionLegajo(queryRunner: any, PersonalId: number, infoPersonal: any) {
+  private async setPersonalUbicacionLegajo(queryRunner: any, PersonalId: number, infoPersonal: any, usuario: string, ip: string) {
     const LugarFisicoLegajoId: number | null = infoPersonal.LugarFisicoLegajoId ? Number(infoPersonal.LugarFisicoLegajoId) : null
+    const AudNow = new Date()
 
     if (!LugarFisicoLegajoId) return
 
@@ -1450,7 +1451,7 @@ LEFT JOIN(
     `, [PersonalId])
 
     if (!registrosExistentes.length) {
-      await this.addPersonalUbicacionLegajo(queryRunner, PersonalId, LugarFisicoLegajoId, nuevaDesde, null)
+      await this.addPersonalUbicacionLegajo(queryRunner, PersonalId, LugarFisicoLegajoId, nuevaDesde, null, usuario, ip, AudNow)
       return
     }
 
@@ -1467,9 +1468,12 @@ LEFT JOIN(
 
       await queryRunner.query(`
         UPDATE PersonalUbicacionLegajo SET
-          LugarFisicoLegajoId = @2
+          LugarFisicoLegajoId = @2,
+          AudUsuarioMod = @3,
+          AudIpMod = @4,
+          AudFechaMod = @5
         WHERE PersonalId = @0 AND PersonalUbicacionLegajoId = @1
-      `, [PersonalId, registroMismoDesde.PersonalUbicacionLegajoId, LugarFisicoLegajoId])
+      `, [PersonalId, registroMismoDesde.PersonalUbicacionLegajoId, LugarFisicoLegajoId, usuario, ip, AudNow])
       return
     }
 
@@ -1501,9 +1505,12 @@ LEFT JOIN(
 
         await queryRunner.query(`
           UPDATE PersonalUbicacionLegajo SET
-            PersonalUbicacionLegajoHasta = @2
+            PersonalUbicacionLegajoHasta = @2,
+            AudUsuarioMod = @3,
+            AudIpMod = @4,
+            AudFechaMod = @5
           WHERE PersonalId = @0 AND PersonalUbicacionLegajoId = @1
-        `, [PersonalId, registroAnterior.PersonalUbicacionLegajoId, nuevoHastaAnterior])
+        `, [PersonalId, registroAnterior.PersonalUbicacionLegajoId, nuevoHastaAnterior, usuario, ip, AudNow])
       }
     }
 
@@ -1515,10 +1522,10 @@ LEFT JOIN(
       throw new ClientException(`Existe un registro de ubicacion legajo con fecha desde ${registroSiguiente.PersonalUbicacionLegajoDesde.toLocaleDateString('es-AR')} (${registroSiguiente.LugarFisicoLegajoDescripcion}) el cual es posterior a la fecha desde que se esta ingresando (${nuevaDesde.toLocaleDateString('es-AR')}).`)
     }
 
-    await this.addPersonalUbicacionLegajo(queryRunner, PersonalId, LugarFisicoLegajoId, nuevaDesde, nuevoHasta)
+    await this.addPersonalUbicacionLegajo(queryRunner, PersonalId, LugarFisicoLegajoId, nuevaDesde, nuevoHasta, usuario, ip, AudNow)
   }
 
-  private async addPersonalUbicacionLegajo(queryRunner: any, PersonalId: number, LugarFisicoLegajoId: number, Desde: Date, Hasta: Date | null) {
+  private async addPersonalUbicacionLegajo(queryRunner: any, PersonalId: number, LugarFisicoLegajoId: number, Desde: Date, Hasta: Date | null, usuario: string, ip: string, AudNow: Date) {
     const PersonalUbicacionLegajo = await queryRunner.query(`
       SELECT ISNULL(PersonalUbicacionLegajoUltNro, 0) + 1 AS newPersonalUbicacionLegajoId
       FROM Personal
@@ -1531,14 +1538,22 @@ LEFT JOIN(
         PersonalId,
         PersonalUbicacionLegajoDesde,
         PersonalUbicacionLegajoHasta,
-        LugarFisicoLegajoId
+        LugarFisicoLegajoId,
+
+        AudUsuarioIng,
+        AudIpIng,
+        AudFechaIng,
+        AudUsuarioMod,
+        AudIpMod,
+        AudFechaMod
       )
-      VALUES (@0, @1, @2, @3, @4)
+      VALUES (@0, @1, @2, @3, @4
+      , @5, @6, @7,@5, @6, @7)
 
       UPDATE Personal SET
         PersonalUbicacionLegajoUltNro = @0
       WHERE PersonalId = @1
-    `, [PersonalUbicacionLegajo[0].newPersonalUbicacionLegajoId, PersonalId, Desde, Hasta, LugarFisicoLegajoId])
+    `, [PersonalUbicacionLegajo[0].newPersonalUbicacionLegajoId, PersonalId, Desde, Hasta, LugarFisicoLegajoId, usuario, ip, AudNow])
 
   }
 
@@ -1590,7 +1605,7 @@ LEFT JOIN(
 
       await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
 
-      await this.setPersonalUbicacionLegajo(queryRunner, PersonalId, req.body)
+      await this.setPersonalUbicacionLegajo(queryRunner, PersonalId, req.body, usuario, ip)
 
       //Telefonos
       for (const telefono of telefonos) {
@@ -2374,7 +2389,7 @@ LEFT JOIN(
 
       await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
 
-      await this.setPersonalUbicacionLegajo(queryRunner, PersonalId, req.body)
+      await this.setPersonalUbicacionLegajo(queryRunner, PersonalId, req.body, usuario, ip)
 
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
