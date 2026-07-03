@@ -1117,6 +1117,16 @@ const listaColumnasMovimientos: any[] = [
     sortable: false,
     hidden: true,
     searchHidden: false,
+  }, {
+    id: "EfectoId",
+    name: "Efecto",
+    field: "EfectoId",
+    fieldName: "m.MovimientoStockCodigo",
+    type: "number",
+    searchComponent: "inputForEfectoSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
   },
 ]
 
@@ -1701,7 +1711,12 @@ export class EfectoController extends BaseController {
   }
 
   private getEfectoMovimientosQuery(queryRunner: any, listOptions: any) {
-    const filterSql = filtrosToSql(listOptions.filtros, listaColumnasMovimientos)
+    // El efecto no es columna de la grilla se saca del filtrosToSql y se
+    // resuelve como EXISTS sobre MovimientoStockDetalle.
+    const filtros = listOptions?.filtros ?? []
+    const efectoId = Number(filtros.find((f: any) => f?.index === 'EfectoId')?.valor?.[0]?.EfectoId)
+    const filterSql = filtrosToSql(filtros.filter((f: any) => f?.index !== 'EfectoId'), listaColumnasMovimientos)
+    const efectoSql = efectoId ? ` AND EXISTS (SELECT 1 FROM MovimientoStockDetalle det WHERE det.MovimientoStockCodigo = m.MovimientoStockCodigo AND det.EfectoId = ${efectoId})` : ''
     return queryRunner.query(`
       SELECT ROW_NUMBER() OVER (ORDER BY m.MovimientoStockCodigo DESC) AS id,
           m.MovimientoStockCodigo,
@@ -1748,7 +1763,7 @@ export class EfectoController extends BaseController {
       LEFT JOIN ClienteElementoDependiente eled ON eled.ClienteId = m.ClienteIdDest AND eled.ClienteElementoDependienteId = m.ClienteElemDepDest
       LEFT JOIN Sucursal sucobj ON sucobj.SucursalId = eled.ClienteElementoDependienteSucursalId
       LEFT JOIN Personal peri ON peri.PersonalId = m.IntermediarioPersonalId
-      WHERE ${filterSql} `)
+      WHERE ${filterSql}${efectoSql} `)
   }
 
   // Detalle de efectos de un movimiento (MovimientoStockDetalle): descripción del efecto, origen
