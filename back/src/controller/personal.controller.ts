@@ -1438,13 +1438,15 @@ LEFT JOIN(
     }
 
     const registrosExistentes = await queryRunner.query(`
-      SELECT PersonalUbicacionLegajoId,
-        LugarFisicoLegajoId,
-        PersonalUbicacionLegajoDesde,
-        PersonalUbicacionLegajoHasta
-      FROM PersonalUbicacionLegajo
-      WHERE PersonalId = @0
-      ORDER BY PersonalUbicacionLegajoDesde ASC, PersonalUbicacionLegajoId ASC
+      SELECT pul.PersonalUbicacionLegajoId,
+        pul.LugarFisicoLegajoId,
+        pul.PersonalUbicacionLegajoDesde,
+        pul.PersonalUbicacionLegajoHasta,
+        TRIM(lfl.LugarFisicoLegajoDescripcion) as LugarFisicoLegajoDescripcion
+      FROM PersonalUbicacionLegajo pul
+      left join LugarFisicoLegajo lfl on lfl.LugarFisicoLegajoId = pul.LugarFisicoLegajoId
+      WHERE pul.PersonalId = @0
+      ORDER BY pul.PersonalUbicacionLegajoDesde ASC, pul.PersonalUbicacionLegajoId ASC
     `, [PersonalId])
 
     if (!registrosExistentes.length) {
@@ -1507,9 +1509,10 @@ LEFT JOIN(
 
     let nuevoHasta: Date | null = null
     if (registroSiguiente) {
-      nuevoHasta = new Date(registroSiguiente.PersonalUbicacionLegajoDesde)
-      nuevoHasta.setHours(0, 0, 0, 0)
-      nuevoHasta.setDate(nuevoHasta.getDate() - 1)
+      // nuevoHasta = new Date(registroSiguiente.PersonalUbicacionLegajoDesde)
+      // nuevoHasta.setHours(0, 0, 0, 0)
+      // nuevoHasta.setDate(nuevoHasta.getDate() - 1)
+      throw new ClientException(`Existe un registro de ubicacion legajo con fecha desde ${registroSiguiente.PersonalUbicacionLegajoDesde.toLocaleDateString('es-AR')} (${registroSiguiente.LugarFisicoLegajoDescripcion}) el cual es posterior a la fecha desde que se esta ingresando (${nuevaDesde.toLocaleDateString('es-AR')}).`)
     }
 
     await this.addPersonalUbicacionLegajo(queryRunner, PersonalId, LugarFisicoLegajoId, nuevaDesde, nuevoHasta)
