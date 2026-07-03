@@ -338,7 +338,7 @@ export class AsistenciaController extends BaseController {
 
     const contratos = await ObjetivoController.getObjetivoContratos(ObjetivoId, anio, mes, queryRunner)
     if (contratos.length == 0)
-      throw new ClientException(`No tiene contrato vigente para el período ${anio}/${mes}`)
+      throw new ClientException(`El objetivo ${cabecera[0].ObjetivoCodigo} no tiene contrato vigente para el período ${anio}/${mes}`)
 
     const checkrecibos = await queryRunner.query(
       `SELECT per.ind_recibos_generados FROM lige.dbo.liqmaperiodo per WHERE per.anio=@1 AND per.mes=@2`, [, anio, mes]
@@ -347,13 +347,12 @@ export class AsistenciaController extends BaseController {
     if (checkrecibos[0]?.ind_recibos_generados == 1)
       throw new ClientException(`Ya se encuentran generados los recibos para el período ${anio}/${mes}, no se puede hacer modificaciones`)
 
-    if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null && cabecera[0].ObjetivoAsistenciaAnoMesDesde != null) 
-      throw new ClientException(`Ya se encuentra abierto el objetivo para la carga en  ${anio}/${mes}`)
-
+    if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null && cabecera[0].ObjetivoAsistenciaAnoMesDesde != null)
+      return cabecera[0]
 
     let fechaActual = new Date()
     fechaActual.setHours(0, 0, 0, 0)
-    const usuario = res.locals.userName
+    const usuario = this.getUser(res)
     const ip = this.getRemoteAddress(req)
 
     let ObjetivoAsistenciaAnoUltNro = cabecera[0].ObjetivoAsistenciaAnoId
@@ -477,7 +476,7 @@ export class AsistenciaController extends BaseController {
       }
 
       console.log('cabecera', cabecera[0])
-      if (cabecera[0].ObjetivoAsistenciaAnoMesDesde != null && cabecera[0].ObjetivoAsistenciaAnoMesHasta != null) 
+      if (cabecera[0].ObjetivoAsistenciaAnoMesDesde != null && cabecera[0].ObjetivoAsistenciaAnoMesHasta != null)
         throw new ClientException('El objetivo ya se encuentra cerrado o no fue abierto')
 
       // if (cabecera[0].ImporteHora < 1 && cabecera[0].ImporteFijo < 1) {
@@ -3316,7 +3315,7 @@ export class AsistenciaController extends BaseController {
           const ObjetivoId = objetivo[0]?.ObjetivoId
           if (!ObjetivoId)
             throw new ClientException(`Objetivo no localizado ${ClienteId}/${ClienteElementoDependienteId}`,)
-          const cabecera = await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, null, null)
+          const cabecera = await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req, res)
 
           if (!cabecera.ObjetivoAsistenciaAnoMesId || !cabecera.ObjetivoAsistenciaAnoId)
             throw new ClientException(`Error habilitando período ${mes}/${anio} para la carga del objetivo ${ObjetivoId}`, cabecera)
