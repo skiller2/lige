@@ -149,8 +149,9 @@ export class MovimientoStockComponent {
         if (v == null || (v as any) === '') return null; // el vacío se valida al confirmar
         const n = Number(v);
         if (Number.isNaN(n) || n <= 0) return { kind: 'cantidad', message: 'La cantidad debe ser mayor a 0' };
+        // En Ingreso de Stock no se valida contra el stock del origen (el proveedor es la fuente).
         const disp = ctx.valueOf(linea!.StockStock);
-        if (disp != null && n > Number(disp)) return { kind: 'stock', message: `La cantidad (${n}) supera el stock disponible (${disp})` };
+        if (!this.IndIngresoStock() && disp != null && n > Number(disp)) return { kind: 'stock', message: `La cantidad (${n}) supera el stock disponible (${disp})` };
         return null;
         
       });
