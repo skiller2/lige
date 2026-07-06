@@ -1280,12 +1280,40 @@ export class EfectoController extends BaseController {
     const individualId = individualIdRaw === undefined || individualIdRaw === '' || individualIdRaw === 'null'
       ? null
       : Number(individualIdRaw);
+    const ingresoStock = req.query.ingresoStock === 'true' || req.query.ingresoStock === '1';
     if (!efectoId) {
       this.jsonRes([], res);
       return;
     }
     const queryRunner = await getConnection(res.locals.userName);
     try {
+
+      if (ingresoStock) {
+        const proveedores = await queryRunner.query(`
+          SELECT
+            COALESCE(stk.StockId, -pro.ProveedorId) AS StockId,
+            'proveedor' AS Tipo,
+            NULL AS PersonalId,
+            NULL AS ObjetivoId,
+            pro.ProveedorId,
+            NULL AS DepositoId,
+            NULL AS PersonalApellidoNombre,
+            NULL AS ObjetivoDescripcion,
+            TRIM(pro.ProveedorRazonSocial) AS ProveedorRazonSocial,
+            NULL AS DepositoNombre,
+            NULL AS DepositoSucursalId,
+            TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
+            stk.StockStock
+          FROM Proveedor pro
+          LEFT JOIN Sucursal suc ON suc.SucursalId = pro.ProveedorSucursalId
+          LEFT JOIN StockReal stk ON stk.ProveedorId = pro.ProveedorId AND stk.EfectoId = @0
+            AND ((@1 IS NULL AND stk.EfectoEfectoIndividualId IS NULL) OR stk.EfectoEfectoIndividualId = @1)
+          ORDER BY pro.ProveedorRazonSocial
+        `, [efectoId, individualId]);
+        this.jsonRes(proveedores, res);
+        return;
+      }
+
       const list = await queryRunner.query(`
         SELECT
           stk.StockId,

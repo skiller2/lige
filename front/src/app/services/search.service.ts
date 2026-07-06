@@ -2582,9 +2582,11 @@ export class SearchService {
     );
   }
 
-  getEfectoUbicaciones(efectoId: number, individualId: number | null = null): Observable<EfectoUbicacion[]> {
+  getEfectoUbicaciones(efectoId: number, individualId: number | null = null, ingresoStock = false): Observable<EfectoUbicacion[]> {
     if (!efectoId) return of([]);
-    const params = individualId != null ? { individualId: String(individualId) } : {};
+    const params: Record<string, string> = individualId != null ? { individualId: String(individualId) } : {};
+    // Ingreso de Stock: el back devuelve solo proveedores como ubicaciones de origen.
+    if (ingresoStock) params['ingresoStock'] = '1';
     return this.http.get<ResponseJSON<any>>(`api/efecto/ubicaciones/${efectoId}`, params).pipe(
       map(res => res.data ?? []),
       catchError(() => of([]))

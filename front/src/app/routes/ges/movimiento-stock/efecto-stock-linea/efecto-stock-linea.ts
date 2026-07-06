@@ -32,6 +32,8 @@ export class EfectoStockLineaComponent {
   readonly field = model.required<FieldTree<EfectoStockLinea>>();
   /** Descripción de la sucursal del destino, para autoseleccionar el depósito que coincide. */
   readonly sucursalDestino = input<string | null>(null);
+  /** Ingreso de Stock: las ubicaciones de origen se limitan a proveedores (sin validar stock). */
+  readonly IndIngresoStock = input<boolean>(false);
 
 
   /** El bloque "Relacionado con" está visible. */
@@ -46,10 +48,10 @@ export class EfectoStockLineaComponent {
   // El individualId sale del propio form (no del buscador), así una línea precargada con su
   // EfectoIndividualId carga la ubicación correcta sin depender del evento del buscador.
   readonly ubicaciones = resource({
-    params: () => ({ efectoId: this.field().EfectoId().value(), individualId: this.field().EfectoIndividualId().value() }),
+    params: () => ({ efectoId: this.field().EfectoId().value(), individualId: this.field().EfectoIndividualId().value(), ingreso: this.IndIngresoStock() }),
     loader: async ({ params }) =>
       params.efectoId
-        ? (await firstValueFrom(this.search.getEfectoUbicaciones(params.efectoId, params.individualId))) ?? []
+        ? (await firstValueFrom(this.search.getEfectoUbicaciones(params.efectoId, params.individualId, params.ingreso))) ?? []
         : [],
   });
 

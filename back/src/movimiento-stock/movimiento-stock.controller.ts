@@ -97,14 +97,8 @@ export class MovimientoStockController extends BaseController {
       const efectos = body.efectos;
       const indIngresoStock = body.IndIngresoStock === true;
 
-      // TEST: verificacion de que se entra por Ingreso de Stock.
-      if (indIngresoStock) {
-        const fieldErrors: any[] = [];
-        throw new ClientException('test', { fieldErrors });
-      }
-
       // validaciones
-      await this.validateForm(queryRunner, body.fecha, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, efectos);
+      await this.validateForm(queryRunner, body.fecha, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, efectos, indIngresoStock);
 
       const fecha = new Date(body.fecha)
 
@@ -113,10 +107,10 @@ export class MovimientoStockController extends BaseController {
 
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
 
-      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, observaciones, fecha, efectos, personalIdInter);
+      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, observaciones, fecha, efectos, personalIdInter, indIngresoStock);
 
       // Impacto en Stock: resta el origen, suma el destino (el intermediario si existe)
-      await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, efectos, personalIdInter);
+      await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, efectos, personalIdInter, indIngresoStock);
 
       // Simular: corre los INSERT reales pero hace rollback (no persiste, no consume el numerador).
       // No se genera el PDF (ni archivo ni descarga): la simulación solo valida que el movimiento es válido.
@@ -145,7 +139,8 @@ export class MovimientoStockController extends BaseController {
     objetivoId: number | null,
     proveedorId: number | null,
     observaciones: string, fecha: Date, efectos: any[],
-    personalIdInter: number | null = null
+    personalIdInter: number | null = null,
+    indIngresoStock: boolean = false
   ) {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
@@ -176,11 +171,11 @@ export class MovimientoStockController extends BaseController {
     await queryRunner.query(
       `INSERT INTO MovimientoStock
         (MovimientoStockCodigo, Fecha, PersonalIdDestino, ProveedorIdDestino, ClienteIdDestino,
-         ClienteElementoDependienteIdDestino, DepositoIdDestino, Observaciones,
+         ClienteElementoDependienteIdDestino, DepositoIdDestino, Observaciones, IndIngresoStock,
          AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
-       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)`,
+       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14)`,
       [movimientoCodigo, fecha, movPersonalIdDestino, movProveedorIdDestino, movClienteIdDestino,
-        movClienteElemDepDestino, movDepositoIdDestino, observaciones,
+        movClienteElemDepDestino, movDepositoIdDestino, observaciones, indIngresoStock ? 1 : 0,
         fechaActual, fechaActual, usuario, usuario, ip, ip]
     );
 
@@ -203,11 +198,18 @@ export class MovimientoStockController extends BaseController {
       detalleCodigo++;
 
       // Origen: sale del StockReal de la ubicación elegida. El objetivo se resuelve a Cliente + ElementoDependiente.
-      const stkRows = await queryRunner.query(
-        `SELECT TOP 1 DepositoId, PersonalId, ObjetivoId, ProveedorId FROM StockReal WHERE StockId = @0`,
-        [linea.StockId]
-      );
-      const stk = stkRows?.[0] ?? {};
+      // En Ingreso de Stock el origen es un proveedor: si la ubicación es sintética (StockId negativo,
+      // proveedor sin fila en StockReal) se decodifica el ProveedorId; si es positiva sale de StockReal.
+      let stk: any;
+      if (indIngresoStock && Number(linea.StockId) < 0) {
+        stk = { PersonalId: null, DepositoId: null, ObjetivoId: null, ProveedorId: -Number(linea.StockId) };
+      } else {
+        const stkRows = await queryRunner.query(
+          `SELECT TOP 1 DepositoId, PersonalId, ObjetivoId, ProveedorId FROM StockReal WHERE StockId = @0`,
+          [linea.StockId]
+        );
+        stk = stkRows?.[0] ?? {};
+      }
       let clienteIdOrigen: number | null = null;
       let clienteElemDepOrigen: number | null = null;
       if (stk.ObjetivoId) {
@@ -337,7 +339,8 @@ export class MovimientoStockController extends BaseController {
     queryRunner: any, req: any, res: any,
     depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
     efectos: any[],
-    personalIdInter: number | null = null
+    personalIdInter: number | null = null,
+    indIngresoStock: boolean = false
   ) {
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
@@ -356,6 +359,8 @@ export class MovimientoStockController extends BaseController {
       const StockId = efecto.StockId
       // Destino de la suma: la réplica "usada" resuelta en resolverEfectosUsados, o el mismo efecto.
       const EfectoIdDestino = Number(efecto.EfectoIdDestino ?? efecto.EfectoId)
+
+      if (!indIngresoStock) {
       const resStock = await queryRunner.query(
         `SELECT stk.StockId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.PersonalId, stk.DepositoId, stk.ObjetivoId, stk.ProveedorId 
             FROM StockReal stk
@@ -396,12 +401,13 @@ export class MovimientoStockController extends BaseController {
 
       // Restar al origen.
       if (Cantidad > CantidadActual) {
-        fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `La cantidad excede el stock ${CantidadActual}` });
-      } else if (Cantidad == CantidadActual) {
-        await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [StockId]);
-      } else {
-        await queryRunner.query(`UPDATE Stock SET StockStock = @1 WHERE StockId = @0`, [StockId, CantidadActual - Cantidad]);
-      }
+          fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `La cantidad excede el stock ${CantidadActual}` });
+        } else if (Cantidad == CantidadActual) {
+          await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [StockId]);
+        } else {
+          await queryRunner.query(`UPDATE Stock SET StockStock = @1 WHERE StockId = @0`, [StockId, CantidadActual - Cantidad]);
+        }
+      } 
 
       // Suma en destino.
       const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6 WHERE
@@ -622,7 +628,7 @@ export class MovimientoStockController extends BaseController {
   }
 
   private async validateForm(queryRunner: any, fechaRaw: any, depositoId: number | null, personalId: number | null, personalIdInter: number | null, objetivoId: number | null, proveedorId: number | null,
-    observaciones: string | null, efectos: any
+    observaciones: string | null, efectos: any, indIngresoStock: boolean = false
   ) {
     let fieldErrors = []
 
@@ -680,6 +686,7 @@ export class MovimientoStockController extends BaseController {
       if (linea.Cantidad == null || Number(linea.Cantidad) <= 0)
         fieldErrors.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'server', message: 'La cantidad debe ser mayor a 0.' });
 
+      if (indIngresoStock) continue;
 
       const rows = await queryRunner.query(
         `SELECT TOP 1 stk.StockId, stk.StockStock, stk.EfectoId, stk.EfectoEfectoIndividualId,
