@@ -456,9 +456,9 @@ export class AuthMiddleware {
   }
 
   hasAuthObjetivo = async (req: any, res: any, next: any) => {
-    const PersonalId = res.locals.PersonalId
-    const GrupoActividad = res.locals.GrupoActividad
-    const ObjetivoId = req.params.ObjetivoId || req.body.ObjetivoId || req.query.ObjetivoId
+    const PersonalId = res.locals?.PersonalId
+    const GrupoActividad = res.locals?.GrupoActividad
+    const ObjetivoId = req.params?.ObjetivoId || req.body?.ObjetivoId || req.query?.ObjetivoId
 
     if (PersonalId < 1) return next()
     // res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." })
