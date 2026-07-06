@@ -1689,6 +1689,16 @@ export class SearchService {
     );
   }
 
+  getPersonalSexoOptions(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/personal/sexo/options`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+         
+        return of([]);
+      })
+    );
+  }
+
   getCategoriaPersonalOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/personal/categoria-personal/options`).pipe(
       map(res => res.data),

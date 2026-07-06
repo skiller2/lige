@@ -12,6 +12,12 @@ import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
 import { logger } from "../logger/logger.ts";
 
+
+const PersonalSexoOptions: any[] = [
+  { value: 'M', label: 'Masculino' },
+  { value: 'F', label: 'Femenino' },
+  { value: null, label: 'Sin asignar' },
+]
 const columns: any[] = [
   {
     id: "id",
@@ -329,6 +335,21 @@ const columns: any[] = [
     searchHidden: true,
     hidden: false,
   },
+  {
+    name: "Sexo",
+    type: "string",
+    id: "PersonalSexo",
+    field: "PersonalSexo",
+    fieldName: "per.PersonalSexo",
+    formatter: 'collectionFormatter',
+    params: { collection: PersonalSexoOptions },
+    searchComponent: "inputForPersonalSexoSearch",
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+    showGridColumn: false
+  },
 ]
 const inconsColumns: any[] = [
   {
@@ -469,6 +490,15 @@ const inconsColumns: any[] = [
 
 export class PersonalController extends BaseController {
   private listSitRev = process.env.SITREV_AUTOMATIC ? process.env.SITREV_AUTOMATIC : '9,10,16,18,23,28'
+
+  getPersonalSexoOptions(req: any, res: Response, next: NextFunction) {
+    try {
+      this.jsonRes(PersonalSexoOptions, res)
+    } catch (error) {
+      return next(error)
+    }
+  }
+
   async getPersonalMonotributo(req: any, res: Response, next: NextFunction) {
     const personalId = req.params.personalId;
     const anio = req.params.anio;
@@ -881,6 +911,7 @@ export class PersonalController extends BaseController {
         rt.telefono,
         act.ActaFechaActa,
         act.TipoPersonalActaDescripcion,
+        per.PersonalSexo,
         1
 
       FROM Personal per

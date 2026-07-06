@@ -121,6 +121,10 @@ personalRouter.get(`${base}/tipo-documento/options`, authMiddleware.verifyToken,
   personalController.getTipoDocumento(req, res, next)
 });
 
+personalRouter.get(`${base}/sexo/options`, authMiddleware.verifyToken, (req, res, next) => {
+  personalController.getPersonalSexoOptions(req, res, next)
+});
+
 personalRouter.get(`${base}/ubicacion-legajo/options`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.getLugarFisicoLegajo(req, res, next)
 });

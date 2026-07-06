@@ -271,6 +271,15 @@
       }
     </nz-select>
     }
+    @if (selections.field.searchComponent=='inputForPersonalSexoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Sexo" nzShowSearch
+      (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsPersonalSexo | async; track option.value) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+      }
+    </nz-select>
+    }
     @if (selections.field.searchComponent=='inputForExcepcionAsistenciaAprobadoSearch') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Estado" nzShowSearch
       (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
