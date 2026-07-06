@@ -100,6 +100,8 @@ export class PersonalFormComponent {
   panelAbiertos = signal<boolean[]>([false, false, false])
   periodo = signal({ anio: 0, mes: 0 })
   enableSelectReset = signal<boolean>(true)
+  private lastLugarFisicoLegajoId: number | null | undefined = undefined;
+  ubicacionLegajoHistory = signal<any[]>([])
   personalId = model<number>(0);
   readonly = input<boolean>(false);
   urlUpload = '/api/personal/upload'
@@ -256,6 +258,9 @@ export class PersonalFormComponent {
 
   effect = effect(() => {
     let objDomicilio: any = {}
+    const currentLugarFisicoLegajoId = this.parametroPersonal().LugarFisicoLegajoId || null
+    const previousLugarFisicoLegajoId = this.lastLugarFisicoLegajoId
+    this.lastLugarFisicoLegajoId = currentLugarFisicoLegajoId
     const domPaisId = this.parametroPersonal().domicilio.PaisId
     const domProvinciaId = this.parametroPersonal().domicilio.ProvinciaId
     const domLocalidadId = this.parametroPersonal().domicilio.LocalidadId
@@ -277,6 +282,17 @@ export class PersonalFormComponent {
         this.parametroPersonal.update(m => ({
           ...m,
           domicilio: { ...m.domicilio, ...objDomicilio }
+        }));
+      }
+
+      if (
+        previousLugarFisicoLegajoId !== undefined &&
+        previousLugarFisicoLegajoId !== currentLugarFisicoLegajoId &&
+        this.parametroPersonal().LugarFisicoLegajoDesde
+      ) {
+        this.parametroPersonal.update(m => ({
+          ...m,
+          LugarFisicoLegajoDesde: '',
         }));
       }
 
@@ -322,7 +338,14 @@ export class PersonalFormComponent {
         TipoVehiculoId: 3 // Forzar siempre valor 3
       }))
 
-      setTimeout(() => { this.formParametroPersonal().reset() }, 400);
+      this.lastLugarFisicoLegajoId = infoPersonal.LugarFisicoLegajoId || null;
+
+      setTimeout(() => {
+        this.formParametroPersonal().reset()
+        this.lastLugarFisicoLegajoId = this.parametroPersonal().LugarFisicoLegajoId || null;
+        this.enableSelectReset.set(true)
+      }, 100);
+      return;
     }
 
     this.enableSelectReset.set(true)
@@ -359,6 +382,11 @@ export class PersonalFormComponent {
       }
       this.isLoading.set(false)
     })
+  }
+
+  async loadUbicacionLegajoHistory() {
+    const history = await firstValueFrom(this.searchService.getHistoriaUbicacionLegajoPersona(this.personalId()))
+    this.ubicacionLegajoHistory.set(history)
   }
 
   addTelefono(e?: MouseEvent): void {

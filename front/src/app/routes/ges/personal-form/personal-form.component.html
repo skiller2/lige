@@ -482,6 +482,62 @@
     </ng-container>
 
     <div class="input-container1">
+      <div class="input-label">Legajo Físico</div>
+    </div>
+
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Ubicación</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9">
+        <nz-select [formField]="formParametroPersonal.LugarFisicoLegajoId" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+          @for (option of optionsUbicacionLegajo(); track option.value) {
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha desde</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
+        <nz-date-picker [formField]="formParametroPersonal.LugarFisicoLegajoDesde"
+          nzFormat="dd/MM/yyyy"></nz-date-picker>
+      </nz-form-control>
+
+      @if (personalId()) {
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" style="text-align: right;">
+        <span nz-tooltip nzTooltipTitle="Historial de Ubicación">
+          <button nz-button nzType="default" type="button" nz-popover nzPopoverTrigger="click"
+            nzPopoverPlacement="topRight" [nzPopoverContent]="ubicacionLegajoHistoryTemplate"
+            (click)="loadUbicacionLegajoHistory()">
+            <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
+          </button>
+        </span>
+        <ng-template #ubicacionLegajoHistoryTemplate>
+          <div class="ubicacion-legajo-history-popover">
+            <nz-table #ubicacionLegajoHistoryTable [nzData]="ubicacionLegajoHistory()" [nzShowPagination]="false">
+              <thead>
+                <tr>
+                  <th>Ubicación</th>
+                  <th>Desde</th>
+                  <th>Hasta</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of ubicacionLegajoHistoryTable.data; track item.id) {
+                <tr>
+                  <td>{{ item.LugarFisicoLegajoDescripcion }}</td>
+                  <td>{{ item.PersonalUbicacionLegajoDesde }}</td>
+                  <td>{{ item.PersonalUbicacionLegajoHasta }}</td>
+                </tr>
+                }
+              </tbody>
+            </nz-table>
+          </div>
+        </ng-template>
+      </nz-form-control>
+      }
+    </nz-form-item>
+
+    <div class="input-container1">
       <div class="input-label">Otros</div>
     </div>
     <nz-form-item class="marginElement">
@@ -500,24 +556,6 @@
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Ley / R.I. Nro</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
         <input nz-input placeholder="" [formField]="formParametroPersonal.LeyNro" type="number" />
-      </nz-form-control>
-    </nz-form-item>
-
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Ubicación legajo</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9">
-        <nz-select [formField]="formParametroPersonal.LugarFisicoLegajoId" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-          @for (option of optionsUbicacionLegajo(); track option.value) {
-          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha desde</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
-        <nz-date-picker [formField]="formParametroPersonal.LugarFisicoLegajoDesde" nzFormat="dd/MM/yyyy"></nz-date-picker>
       </nz-form-control>
     </nz-form-item>
 

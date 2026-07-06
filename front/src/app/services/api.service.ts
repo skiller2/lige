@@ -2307,11 +2307,11 @@ export class ApiService {
 
   // INAES
   getINAESAltasBajas(parameters: any) {
-    const { options } = parameters
-    if (!options.filtros.length) {
-      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
-      return of([]);
-    }
+    // const { options } = parameters
+    // if (!options.filtros.length) {
+    //   this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+    //   return of([]);
+    // }
     return this.http.post<ResponseJSON<any>>(`api/inaes/altas-bajas`, parameters).pipe(
       map(res => res.data),
       catchError(() => of([]))

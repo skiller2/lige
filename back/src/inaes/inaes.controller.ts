@@ -1,12 +1,15 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
-import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
+// import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
-import { FileUploadController } from "../controller/file-upload.controller.ts";
+// import { FileUploadController } from "../controller/file-upload.controller.ts";
 import type { QueryRunner } from "typeorm";
 import xlsx from 'node-xlsx';
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import type { TextItem } from "pdfjs-dist/types/src/display/api.d.ts";
+import { logger } from "../logger/logger.ts";
 
 const getOptionsSexo: any[] = [
   { label: 'Masculino', value: 'M' },
@@ -265,7 +268,7 @@ export class InaesController extends BaseController {
         30643445510 AS CUITEntidad,
         ing.PersonalFechaIngreso,
         cuit.PersonalCUITCUILCUIT,
-        'Humano' AS TipoPersona,
+        'Humana' AS TipoPersona,
         'COOP DE TRABAJO LINCE SEGURIDAD LTDA' AS RazonSocial,
         TRIM(per.PersonalApellido) AS Apellido,
         TRIM(per.PersonalNombre) AS Nombre,
@@ -358,22 +361,61 @@ export class InaesController extends BaseController {
   
   async getAltasBajas(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
+    const files:any[] = req.body.files
     try {
       await queryRunner.startTransaction()
+      if (!files.length) throw new ClientException("Debes de ingrese un archivo");
+      const data = await this.FileData(files[0].tempfilename)
+      // logger.info('data: ', data);
 
-      const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
-      const filterSql = filtrosToSql(options.filtros, columns);
-      const orderBy = orderToSQL(options.sort)
+      // const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+      // const filterSql = filtrosToSql(options.filtros, columns);
+      // const orderBy = orderToSQL(options.sort)
 
-      const lista: any[] = await this.getAltasBajasQuery(queryRunner, filterSql, orderBy)
+      // const lista: any[] = await this.getAltasBajasQuery(queryRunner, filterSql, orderBy)
 
       await queryRunner.commitTransaction()
-      this.jsonRes(lista, res);
+      this.jsonRes([], res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
     }
+  }
+
+  async FileData(tempfilename: any) {
+
+    let detalle_documento = ''
+    const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${tempfilename}`)
+    const document = await loadingTask.promise;//Error
+    for (let pagenum = 1; pagenum <= 1; pagenum++) {
+      const page = await document.getPage(pagenum);
+      const textContent = await page.getTextContent();
+      //CABEZERA
+      // logger.info('items0: ', textContent.items[0]);
+      // logger.info('items1: ', textContent.items[1]);
+      // logger.info('items2: ', textContent.items[2]);
+      // logger.info('items3: ', textContent.items[3]);
+      // logger.info('items4: ', textContent.items[4]);
+      // logger.info('items5: ', textContent.items[5]);
+      // logger.info('items6: ', textContent.items[6]);
+      // logger.info('items7: ', textContent.items[7]);
+      // logger.info('items8: ', textContent.items[8]);
+      // logger.info('items9: ', textContent.items[9]);
+      // logger.info('items10: ', textContent.items[10]);
+      // logger.info('items11: ', textContent.items[11]);
+      // logger.info('items12: ', textContent.items[12]);
+      // logger.info('items13: ', textContent.items[13]);
+      // logger.info('items14: ', textContent.items[14]);
+
+      textContent.items.forEach((item: TextItem, index:number) => {
+        if (item.str == ' ') detalle_documento += ','
+        else detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
+      });
+    }
+
+    return detalle_documento
+
   }
 }
