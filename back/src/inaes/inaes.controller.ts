@@ -365,17 +365,45 @@ export class InaesController extends BaseController {
     try {
       await queryRunner.startTransaction()
       if (!files.length) throw new ClientException("Debes de ingrese un archivo");
-      const data = await this.FileData(files[0].tempfilename)
-      // logger.info('data: ', data);
+      const dataString:string = await this.INAESFileData(files[0].tempfilename)
+      const cols:string[] = ['CUIT-CUIL-CDI','Apellido Nombre/ Razon Social','FechaNac./Insc.','F. Ingreso','Legajo','Domicilio','Localidad','Provincia','C.P.','Mail','Telefono','Capital Suscripto','Capital Integrado']
+      
+      const { arrayHeaders, arrayBody } = dataString.split(';').reduce(
+        (acc, string) => {
+          if (!string.length) return acc
+          if (string.includes(":")) acc.arrayHeaders.push(string);
+          else if (!cols.includes(string)) acc.arrayBody.push(string)
+          return acc;
+        },
+        {
+          arrayHeaders: [] as string[],
+          arrayBody: [] as string[],
+        }
+      );
 
-      // const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
-      // const filterSql = filtrosToSql(options.filtros, columns);
-      // const orderBy = orderToSQL(options.sort)
-
-      // const lista: any[] = await this.getAltasBajasQuery(queryRunner, filterSql, orderBy)
+      let lista:any[] = []
+      for (let index = 0; index < arrayBody.length; index+=13) {
+        lista.push({
+          id: ((index/13)+1),
+          CUITEntidad:0,
+          PersonalCUITCUILCUIT: arrayBody[index],
+          ApellidoNombre: arrayBody[index+1],
+          PersonalFechaNacimiento: arrayBody[index+2],
+          PersonalFechaIngreso: arrayBody[index+3],
+          PersonalNroLegajo: arrayBody[index+4],
+          Domicilio: arrayBody[index+5],
+          LocalidadDescripcion: arrayBody[index+6],
+          ProvinciaDescripcion: arrayBody[index+7],
+          DomicilioCodigoPostal: arrayBody[index+8],
+          PersonalEmailEmail: arrayBody[index+9],
+          Telefonos: arrayBody[index+10],
+          CapitalSuscripto: arrayBody[index+11],
+          CapitalIntegrado: arrayBody[index+12],
+        })
+      }
 
       await queryRunner.commitTransaction()
-      this.jsonRes([], res);
+      this.jsonRes(lista, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -384,35 +412,28 @@ export class InaesController extends BaseController {
     }
   }
 
-  async FileData(tempfilename: any) {
+  async INAESFileData(tempfilename: any) {
 
     let detalle_documento = ''
     const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${tempfilename}`)
     const document = await loadingTask.promise;//Error
-    for (let pagenum = 1; pagenum <= 1; pagenum++) {
+    for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
       const page = await document.getPage(pagenum);
       const textContent = await page.getTextContent();
-      //CABEZERA
-      // logger.info('items0: ', textContent.items[0]);
-      // logger.info('items1: ', textContent.items[1]);
-      // logger.info('items2: ', textContent.items[2]);
-      // logger.info('items3: ', textContent.items[3]);
-      // logger.info('items4: ', textContent.items[4]);
-      // logger.info('items5: ', textContent.items[5]);
-      // logger.info('items6: ', textContent.items[6]);
-      // logger.info('items7: ', textContent.items[7]);
-      // logger.info('items8: ', textContent.items[8]);
-      // logger.info('items9: ', textContent.items[9]);
-      // logger.info('items10: ', textContent.items[10]);
-      // logger.info('items11: ', textContent.items[11]);
-      // logger.info('items12: ', textContent.items[12]);
-      // logger.info('items13: ', textContent.items[13]);
-      // logger.info('items14: ', textContent.items[14]);
 
-      textContent.items.forEach((item: TextItem, index:number) => {
-        if (item.str == ' ') detalle_documento += ','
-        else detalle_documento += item.str + ((item.hasEOL) ? '\n' : '')
-      });
+      for (let index = 0; index < textContent.items.length-6; index++) { // Para no recorrer el Pie de Pagina -6
+        const item:any = textContent.items[index];
+        if (item.str == '' || item.str == ' '){
+          detalle_documento += ';'
+          continue
+        } if (item.hasEOL && index+1 < textContent.items.length){
+          const itemSig:any = textContent.items[index+1];
+          let diff:number = itemSig.transform[4] - item.transform[4]
+          detalle_documento += item.str + ((diff != item.transform[1])? ';' : '')
+        } else detalle_documento += item.str
+        // logger.info(`items[${index}]: `, textContent.items[index])
+      }
+
     }
 
     return detalle_documento
