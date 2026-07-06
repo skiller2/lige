@@ -63,7 +63,6 @@ export class INAESComponent {
         this.gridDataImport.set([])
         const res = await firstValueFrom(this.apiService.getINAESAltasBajas({ options: this.listOptions(), files: this.files()})
         .pipe(map(data => { return data })));
-        console.log('res: ',res);
         this.gridDataImport.set(res)
 
       //   try {
