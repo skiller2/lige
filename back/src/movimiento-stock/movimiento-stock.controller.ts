@@ -95,8 +95,15 @@ export class MovimientoStockController extends BaseController {
       const proveedorId = Number(body.proveedorId) || null;
       const observaciones = String(body.observaciones ?? '');
       const efectos = body.efectos;
+      const indIngresoStock = body.IndIngresoStock === true;
 
-      // validaciones 
+      // TEST: verificacion de que se entra por Ingreso de Stock.
+      if (indIngresoStock) {
+        const fieldErrors: any[] = [];
+        throw new ClientException('test', { fieldErrors });
+      }
+
+      // validaciones
       await this.validateForm(queryRunner, body.fecha, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, efectos);
 
       const fecha = new Date(body.fecha)

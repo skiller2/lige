@@ -24,6 +24,10 @@ movimientoStockRouter.post("/confirmar", [authMiddleware.verifyToken, authMiddle
   movimientoStockController.confirmarMovimiento(req, res, next);
 });
 
+movimientoStockRouter.post("/confirmarIngreso", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  movimientoStockController.confirmarMovimiento(req, res, next);
+});
+
 movimientoStockRouter.post("/comprobante", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   movimientoStockController.descargarComprobante(req, res, next);
 });

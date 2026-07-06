@@ -1,4 +1,4 @@
-import { afterNextRender, ChangeDetectionStrategy, Component, computed, effect, inject, output, resource, signal, viewChildren } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, effect, inject, input, output, resource, signal, viewChildren } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { SearchService } from '../../../services/search.service';
@@ -36,6 +36,9 @@ export class MovimientoStockComponent {
 
   // Se emite al guardar sin "fijar": el padre navega a la solapa de movimientos.
   readonly volverAMovimientos = output<void>();
+
+  // Modo "Ingreso de Stock": lo pasa el padre en la solapa ingreso-stock. Cambia la ruta de guardado.
+  readonly IndIngresoStock = input<boolean>(false);
 
   // "Fijar" (pin): si está activo, al guardar NO se limpian los datos ni se cambia de solapa.
   // Se persiste junto al formulario en localStorage (ver effect persistir / ngOnInit).
@@ -348,7 +351,13 @@ export class MovimientoStockComponent {
       const formValue = form().value();
 
       try {
-        const res = await firstValueFrom(this.apiService.confirmarStockEfecto({ ...formValue, simular }));
+        // En modo Ingreso de Stock se guarda por la ruta nueva (confirmarIngresoStockEfecto).
+        const payload = { ...formValue, simular, IndIngresoStock: this.IndIngresoStock() };
+        const res = await firstValueFrom(
+          this.IndIngresoStock()
+            ? this.apiService.confirmarIngresoStockEfecto(payload)
+            : this.apiService.confirmarStockEfecto(payload)
+        );
         if (!simular) {
           const movimientoStockCodigo = res?.data?.movimientoStockCodigo ?? null;
           if (movimientoStockCodigo) {

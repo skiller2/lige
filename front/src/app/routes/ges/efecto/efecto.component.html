@@ -59,6 +59,12 @@
         (click)="abrirDetalleMovimiento()">
         <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
       </button>
+
+      <button nz-button nzType="default" nz-tooltip
+        nzTooltipTitle="Ingreso de Stock"
+        [routerLink]="['/', 'ges', 'efecto', 'ingreso-stock']">
+        <nz-icon nzType="plus" nzTheme="outline" />
+      </button>
     </nz-button-group>
   </div>
 
@@ -95,9 +101,14 @@
         (comprobanteSelected)="movimientoComprobanteCodigo.set($event)" />
     </div>
   }
-  @if (visitedTabs().has('movimiento')) {
+  @if (activeTab() === 'movimiento') {
 
       <app-movimiento-stock (confirmado)="onComprobanteConfirmado()" (volverAMovimientos)="onVolverAMovimientos()" />
+
+  }
+  @if (activeTab() === 'ingreso-stock') {
+
+      <app-movimiento-stock [IndIngresoStock]="true" (confirmado)="onComprobanteConfirmado()" (volverAMovimientos)="onVolverAMovimientos()" />
 
   }
 
