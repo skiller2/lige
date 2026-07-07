@@ -64,7 +64,6 @@ export class TablePersonalEfectoComponent {
   gridData = resource({
     params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
     loader: async ({ params }) => {
-      if (!params.options?.filtros?.length) return []
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
         const response = await firstValueFrom(this.searchService.getEfectoPersonal(params.options))
