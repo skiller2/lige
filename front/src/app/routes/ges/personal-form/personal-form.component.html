@@ -505,11 +505,11 @@
       @if (personalId()) {
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" style="text-align: right;">
         <span nz-tooltip nzTooltipTitle="Historial de Ubicación">
-          <button nz-button nzType="default" type="button" nz-popover nzPopoverTrigger="click"
-            nzPopoverPlacement="topRight" [nzPopoverContent]="ubicacionLegajoHistoryTemplate"
+          <a nz-button nzType="default" nz-popover nzPopoverTrigger="click" nzPopoverPlacement="topRight"
+            nzPopoverTitle="Historial de Ubicación" [nzPopoverContent]="ubicacionLegajoHistoryTemplate"
             (click)="loadUbicacionLegajoHistory()">
             <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
-          </button>
+          </a>
         </span>
         <ng-template #ubicacionLegajoHistoryTemplate>
           <div class="ubicacion-legajo-history-popover">
