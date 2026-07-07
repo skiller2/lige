@@ -1172,7 +1172,7 @@ export class EfectoController extends BaseController {
     queryRunner
       .query((query += " 1=1"))
       .then(async (records) => {
-      await queryRunner.release()
+        await queryRunner.release()
         this.jsonRes({ recordsArray: records }, res);
       })
       .catch((error) => {
@@ -1226,9 +1226,9 @@ export class EfectoController extends BaseController {
   async getEfectoRelaciones(req: any, res: Response, next: NextFunction) {
     const efectoId = Number(req.params.id);
     const individualIdRaw = req.query?.individualId;
-    const individualId =  individualIdRaw === undefined || individualIdRaw === '' || individualIdRaw === 'null'
-        ? null
-        : Number(individualIdRaw);
+    const individualId = individualIdRaw === undefined || individualIdRaw === '' || individualIdRaw === 'null'
+      ? null
+      : Number(individualIdRaw);
     if (!efectoId) {
       this.jsonRes([], res);
       return;
@@ -1379,7 +1379,6 @@ export class EfectoController extends BaseController {
   }
 
   private async efectobyPersonalIdQuery(queryRunner: any, personalId: number) {
-    console.log('estoy...........................')
     const listOptions = {
       filtros: [
         {
@@ -1444,7 +1443,7 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
-    }finally {
+    } finally {
       await queryRunner.release()
     }
   }
@@ -1458,7 +1457,7 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
-    }finally {
+    } finally {
       await queryRunner.release()
     }
   }
@@ -1472,7 +1471,7 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
-    }finally {
+    } finally {
       await queryRunner.release()
     }
   }
@@ -1506,7 +1505,7 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
-    }finally {
+    } finally {
       await queryRunner.release()
     }
   }
@@ -1583,7 +1582,7 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
-    }finally {
+    } finally {
       await queryRunner.release()
     }
   }
@@ -1625,7 +1624,7 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
-    }finally {
+    } finally {
       await queryRunner.release()
     }
   }
@@ -1638,7 +1637,7 @@ export class EfectoController extends BaseController {
       this.jsonRes(list, res);
     } catch (error) {
       return next(error)
-    }finally {
+    } finally {
       await queryRunner.release()
     }
   }
