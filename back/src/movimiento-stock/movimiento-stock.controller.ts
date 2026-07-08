@@ -711,6 +711,15 @@ export class MovimientoStockController extends BaseController {
       });
     }
 
+    // En Ingreso de Stock no corresponde intermediario.
+    if (indIngresoStock && personalIdInter != null) {
+      fieldErrors.push({
+        fieldTree: 'personalIdInter',
+        kind: 'server',
+        message: 'El Ingreso de Stock no puede tener intermediario.'
+      });
+    }
+
     // Observación obligatoria según el destino.
     if (!observaciones.trim() && depositoId) {
       const deposito = await queryRunner.query(
@@ -920,7 +929,7 @@ export class MovimientoStockController extends BaseController {
   // Cabecera del movimiento + nombre del destino resuelto (depósito/persona/proveedor/objetivo).
   private async getMovimientoCabecera(queryRunner: any, movimientoCodigo: number) {
     const rows = await queryRunner.query(`
-      SELECT TOP 1 mov.MovimientoStockCodigo, mov.Fecha, mov.Observaciones,
+      SELECT TOP 1 mov.MovimientoStockCodigo, mov.Fecha, mov.Observaciones, mov.IndIngresoStock,
         mov.PersonalIdDestino, mov.ClienteIdDestino, mov.ClienteElementoDependienteIdDestino,
         ${tipoDestinoCaseSql} AS TipoDestino,
         COALESCE(
@@ -1025,6 +1034,7 @@ export class MovimientoStockController extends BaseController {
 
       vars = {
         numeroComprobante: movimientoCodigo ? `N°: ${movimientoCodigo}` : '',
+        tituloComprobante: this.tituloComprobante(cabecera?.IndIngresoStock),
         fechaFormateada: this.dateOutputFormat(fecha),
         origen,
         destino,
@@ -1055,6 +1065,7 @@ export class MovimientoStockController extends BaseController {
       vars = {
         // Borrador (sin movimiento guardado): en vez del N° se muestra "BORRADOR".
         numeroComprobante: 'BORRADOR',
+        tituloComprobante: this.tituloComprobante(form.IndIngresoStock),
         fechaFormateada: this.dateOutputFormat(fecha),
         origen: '',
         destino,
@@ -1278,6 +1289,19 @@ export class MovimientoStockController extends BaseController {
   // Etiqueta de la ubicación (origen) a partir del StockId: depósito / persona / objetivo / proveedor.
   private async resolverUbicacionLabel(queryRunner: any, stockId: any): Promise<string> {
     if (stockId == null) return '';
+    // Ingreso de Stock: la ubicación es sintética (StockId negativo = -ProveedorId, proveedor sin
+    // fila en StockReal). Se decodifica el ProveedorId y se resuelve su razón social.
+    if (Number(stockId) < 0) {
+      try {
+        const p = await queryRunner.query(
+          `SELECT TOP 1 TRIM(ProveedorRazonSocial) AS label FROM Proveedor WHERE ProveedorId = @0`,
+          [-Number(stockId)]
+        );
+        return p?.[0]?.label ?? String(stockId);
+      } catch (error) {
+        return String(stockId);
+      }
+    }
     try {
       const r = await queryRunner.query(`
         SELECT TOP 1 COALESCE(
@@ -1301,10 +1325,20 @@ export class MovimientoStockController extends BaseController {
     }
   }
 
+  // Título del comprobante según el tipo de movimiento: "Ingreso de Stock" vs "Movimiento de Stock".
+  private tituloComprobante(indIngresoStock: any): string {
+    const esIngreso = indIngresoStock === true || indIngresoStock === 1 || indIngresoStock === '1';
+    return esIngreso ? 'COMPROBANTE DE INGRESO DE STOCK' : 'COMPROBANTE DE MOVIMIENTO DE STOCK';
+  }
+
   // Reemplaza todas las variables del header/body del comprobante. Cualquier placeholder no provisto
   // queda en '' para que no se filtre el literal ${...} al PDF.
   private aplicarVariablesComprobante(tpl: string, vars: Record<string, string>): string {
     return tpl
+      // Título del comprobante (Movimiento / Ingreso de Stock). Se reemplaza también el literal
+      // heredado para plantillas viejas que aún no tienen el placeholder ${tituloComprobante}.
+      .replace(/\${tituloComprobante}/g, vars.tituloComprobante ?? '')
+      .replace(/COMPROBANTE DE MOVIMIENTO DE STOCK/g, vars.tituloComprobante ?? 'COMPROBANTE DE MOVIMIENTO DE STOCK')
       // Texto del N°: "N°: 111" en el comprobante real, "BORRADOR" en el de prueba.
       .replace(/\${numeroComprobante}/g, vars.numeroComprobante ?? '')
       .replace(/\${movimientoCodigo}/g, vars.movimientoCodigo ?? '')
