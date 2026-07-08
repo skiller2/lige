@@ -1186,12 +1186,19 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(`api/adelantos`, adelanto).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
-  confirmarStockEfecto(payload: any) {
-    return this.http.post<ResponseJSON<any>>(`api/movimiento-stock/confirmar`, payload).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
-  }
-
-   confirmarIngresoStockEfecto(payload: any) {
-    return this.http.post<ResponseJSON<any>>(`api/movimiento-stock/confirmarIngreso`, payload).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
+  confirmarStockEfecto(payload: any, tipo: string) {// 'I' | 'M'
+    let url = ''
+    switch (tipo) {
+      case 'I':
+        url = "api/movimiento-stock/confirmarIngreso"
+        break;
+      case 'M':
+        url = "api/movimiento-stock/confirmar"
+        break;
+      default:
+        return of(null);
+    }
+    return this.http.post<ResponseJSON<any>>(url, payload).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
   delAdelanto(adelanto: { PersonalId: string; monto: number, anio: number, mes: number }) {

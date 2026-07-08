@@ -354,11 +354,8 @@ export class MovimientoStockComponent {
       try {
         // En modo Ingreso de Stock se guarda por la ruta nueva (confirmarIngresoStockEfecto).
         const payload = { ...formValue, simular, IndIngresoStock: this.IndIngresoStock() };
-        const res = await firstValueFrom(
-          this.IndIngresoStock()
-            ? this.apiService.confirmarIngresoStockEfecto(payload)
-            : this.apiService.confirmarStockEfecto(payload)
-        );
+        const res = await firstValueFrom(this.apiService.confirmarStockEfecto(payload, this.IndIngresoStock() ? 'I' : 'M'));
+
         if (!simular) {
           const movimientoStockCodigo = res?.data?.movimientoStockCodigo ?? null;
           if (movimientoStockCodigo) {
