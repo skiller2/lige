@@ -1806,15 +1806,29 @@ export class EfectoController extends BaseController {
     try {
       const list = await queryRunner.query(`
         SELECT det.MovimientoStockDetalleCodigo, det.Cantidad, det.IndEfectoUsado,
-          CONCAT(TRIM(efe.EfectoDescripcion),
-            IIF(efeind.EfectoEfectoIndividualDescripcion IS NULL, '', CONCAT(' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion)))) AS EfectoDescripcionCompleto,
-          COALESCE(
-            TRIM(depo.DepositoNombre),
-            IIF(det.PersonalIdOrigen IS NULL, NULL, CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre))),
-            TRIM(proo.ProveedorRazonSocial),
-            IIF(det.ClienteIdOrigen IS NULL, NULL,
-              CONCAT(det.ClienteIdOrigen, IIF(det.ClienteElementoDependienteOrigen IS NULL, '', CONCAT('/', det.ClienteElementoDependienteOrigen))))
-          ) AS Origen
+          CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) AS EfectoDescripcionCompleto,
+          LTRIM(CONCAT(
+            CASE
+              WHEN det.DepositoIdOrigen IS NOT NULL THEN 'Depósito'
+              WHEN det.PersonalIdOrigen IS NOT NULL THEN 'Persona'
+              WHEN det.ProveedorIdOrigen IS NOT NULL THEN 'Proveedor'
+              WHEN det.ClienteIdOrigen IS NOT NULL THEN 'Objetivo'
+              ELSE ''
+            END,
+            IIF(COALESCE(
+              TRIM(depo.DepositoNombre),
+              IIF(det.PersonalIdOrigen IS NULL, NULL, CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre))),
+              TRIM(proo.ProveedorRazonSocial),
+              IIF(det.ClienteIdOrigen IS NULL, NULL,
+                CONCAT(det.ClienteIdOrigen, IIF(det.ClienteElementoDependienteOrigen IS NULL, '', CONCAT('/', det.ClienteElementoDependienteOrigen))))
+            ) IS NULL, '', CONCAT(': ', COALESCE(
+              TRIM(depo.DepositoNombre),
+              IIF(det.PersonalIdOrigen IS NULL, NULL, CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre))),
+              TRIM(proo.ProveedorRazonSocial),
+              IIF(det.ClienteIdOrigen IS NULL, NULL,
+                CONCAT(det.ClienteIdOrigen, IIF(det.ClienteElementoDependienteOrigen IS NULL, '', CONCAT('/', det.ClienteElementoDependienteOrigen))))
+            )))
+          )) AS Origen
         FROM MovimientoStockDetalle det
         LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = det.EfectoId
         LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = det.EfectoId AND efeind.EfectoEfectoIndividualId = det.EfectoIndividualId
