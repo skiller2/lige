@@ -15,11 +15,13 @@
       </li>
     </ul>
     <nz-button-group nz-button nzButtonGroup>
-      @if(tabIndex() == 1){
+      @if(tabIndex() == 1 || tabIndex() == 5){
       <!-- btn  reload -->
-      <button nz-button nzType="default" (click)="gridData.reload()"
+      <button nz-button nzType="default" (click)="refreshGrid()"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"><span nz-icon nzType="reload"
       nzTheme="outline"></span></button>
+      }
+      @if(tabIndex() == 1){
       <!-- btn  add -->
       <button nz-button nzType="default" [routerLink]="['/', 'ges', 'personal','carga']" (click)="perAlta.newRecord()"
         nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus"
@@ -123,7 +125,7 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/inconsistencia">Inconsistencias</a>
       @defer (when tabIndex() == 5){
-      <app-personal-inconsistencias></app-personal-inconsistencias>
+      <app-personal-inconsistencias #incTable></app-personal-inconsistencias>
       }
     </nz-tab>
   </nz-tabs>

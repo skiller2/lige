@@ -35,6 +35,8 @@
             <span class="nro-recibo-value">
               {{ ultimoNroRecibo().DocumentoDenominadorDocumento ?? ultimoNroRecibo().DocumentoId ?? '-' }}
             </span>
+            @if (!PersonalBanco().length) { <li>Sin datos bancarios</li>}
+            @else { <li>{{PersonalBanco()}}</li> }
           </div>
         }
 
