@@ -8,25 +8,27 @@ import path from 'path';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import { unlink } from "fs/promises";
 
-const tiposDestino = [
-  { value: "deposito", label: "Depósitos" },
-  { value: "personal", label: "Personas" },
-  { value: "objetivo", label: "Objetivos" },
-  { value: "proveedor", label: "Proveedores" },
+const tiposMovimiento = [
+  { value: "deposito", label: "Depósito", destinoIdColumn: "DepositoIdDestino" },
+  { value: "personal", label: "Persona", destinoIdColumn: "PersonalIdDestino", origen: "persona" },
+  { value: "objetivo", label: "Objetivo", destinoIdColumn: "ClienteIdDestino", origen: "objetivo" },
+  { value: "proveedor", label: "Proveedor", destinoIdColumn: "ProveedorIdDestino" },
 ];
 
-const tipoDestinoSingular: Record<string, string> = {
-  deposito: "DEPOSITO",
-  personal: "PERSONA",
-  objetivo: "OBJETIVO",
-  proveedor: "PROVEEDOR",
-};
+const tiposDestino = tiposMovimiento.map(({ value, label }) => ({ value, label }));
+
+const tipoDestinoSingular: Record<string, string> = Object.fromEntries(
+  tiposMovimiento.map((t) => [t.value, t.label]),
+);
 
 // Orígenes válidos para precargar las líneas de movimiento (buscador suelto bajo "Origen").
-const tiposOrigen = [
-  { value: "persona", label: "Persona" },
-  { value: "objetivo", label: "Objetivo" },
-];
+const tiposOrigen = tiposMovimiento.filter((t) => t.origen).map((t) => ({ value: t.origen!, label: t.label }));
+
+// CASE que resuelve el TipoDestino de un movimiento según la columna de destino informada.
+const tipoDestinoCaseSql = `CASE
+          ${tiposMovimiento.map((t) => `WHEN mov.${t.destinoIdColumn} IS NOT NULL THEN '${t.label}'`).join("\n          ")}
+          ELSE ''
+        END`;
 
 export class MovimientoStockController extends BaseController {
 
@@ -871,13 +873,7 @@ export class MovimientoStockController extends BaseController {
     const rows = await queryRunner.query(`
       SELECT TOP 1 mov.MovimientoStockCodigo, mov.Fecha, mov.Observaciones,
         mov.PersonalIdDestino, mov.ClienteIdDestino, mov.ClienteElementoDependienteIdDestino,
-        CASE
-          WHEN mov.DepositoIdDestino IS NOT NULL THEN 'Depósito'
-          WHEN mov.PersonalIdDestino IS NOT NULL THEN 'Persona'
-          WHEN mov.ProveedorIdDestino IS NOT NULL THEN 'Proveedor'
-          WHEN mov.ClienteIdDestino IS NOT NULL THEN 'Objetivo'
-          ELSE ''
-        END AS TipoDestino,
+        ${tipoDestinoCaseSql} AS TipoDestino,
         COALESCE(
           TRIM(depd.DepositoNombre),
           IIF(mov.PersonalIdDestino IS NULL, NULL, CONCAT(TRIM(perd.PersonalApellido), ', ', TRIM(perd.PersonalNombre))),
