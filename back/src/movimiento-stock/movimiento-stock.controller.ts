@@ -105,7 +105,7 @@ export class MovimientoStockController extends BaseController {
       const fecha = new Date(body.fecha)
 
       // Resuelve/crea los efectos "usados" de destino (setea linea.EfectoIdDestino) antes de registrar.
-      await this.resolverEfectosUsados(queryRunner, efectos);
+      // await this.resolverEfectosUsados(queryRunner, efectos); Se resuelve dentro de aplicarMovimientoStock
 
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
 
@@ -327,8 +327,8 @@ export class MovimientoStockController extends BaseController {
          OUTPUT INSERTED.EfectoId AS EfectoId
          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8)`,
         [orig.EfectoDescripcion, orig.RubroId, orig.SubrubroId,
-          orig.EfectoUnidadMedidaPrincipalId, orig.EfectoUnidadMedidaReferenciaId,
-          orig.EfectoStockMaximo, orig.EfectoStockIntermedio, orig.EfectoStockMinimo,
+        orig.EfectoUnidadMedidaPrincipalId, orig.EfectoUnidadMedidaReferenciaId,
+        orig.EfectoStockMaximo, orig.EfectoStockIntermedio, orig.EfectoStockMinimo,
           EfectoId]); // backlink al original
       linea.EfectoIdDestino = Number(insEfecto[0].EfectoId);
     }
@@ -363,8 +363,8 @@ export class MovimientoStockController extends BaseController {
       const EfectoIdDestino = Number(efecto.EfectoIdDestino ?? efecto.EfectoId)
 
       if (!indIngresoStock) {
-      const resStock = await queryRunner.query(
-        `SELECT stk.StockId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.PersonalId, stk.DepositoId, stk.ObjetivoId, stk.ProveedorId 
+        const resStock = await queryRunner.query(
+          `SELECT stk.StockId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.PersonalId, stk.DepositoId, stk.ObjetivoId, stk.ProveedorId 
             FROM StockReal stk
 
             LEFT JOIN StockReal stk1 
@@ -383,35 +383,84 @@ export class MovimientoStockController extends BaseController {
             WHERE stk1.StockId = @0 AND stk1.EfectoId=@1 AND stk1.StockStock > 0
           AND (stk1.EfectoEfectoIndividualId = @2 OR (@2 IS NULL AND stk1.EfectoEfectoIndividualId IS NULL))
         `,
-        [StockId, EfectoId, EfectoEfectoIndividualId]
-      );
-      if (resStock.length > 1) {
-        fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `La ubicación de origen tiene mas de un registro de stock (inconsistencia de datos)` });
-      } else if (Number(resStock[0]?.StockId) !== Number(StockId)) {
-        fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `La ubicación no es válida para el Efecto (inconsistencia de datos)` });
-      }
+          [StockId, EfectoId, EfectoEfectoIndividualId]
+        );
+        if (resStock.length > 1) {
+          fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `La ubicación de origen tiene mas de un registro de stock (inconsistencia de datos)` });
+        } else if (Number(resStock[0]?.StockId) !== Number(StockId)) {
+          fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `La ubicación no es válida para el Efecto (inconsistencia de datos)` });
+        }
 
-      if ((resStock[0]?.PersonalId && resStock[0]?.PersonalId == destPersonalId) ||
-        (resStock[0]?.DepositoId && resStock[0]?.DepositoId == destDepositoId) ||
-        (resStock[0]?.ProveedorId && resStock[0]?.ProveedorId == destProveedorId) ||
-        (resStock[0]?.ObjetivoId && resStock[0]?.ObjetivoId == destObjetivoId)
-      ) {
-        fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `Lugar destino es igual al origen` });
-      }
+        if ((resStock[0]?.PersonalId && resStock[0]?.PersonalId == destPersonalId) ||
+          (resStock[0]?.DepositoId && resStock[0]?.DepositoId == destDepositoId) ||
+          (resStock[0]?.ProveedorId && resStock[0]?.ProveedorId == destProveedorId) ||
+          (resStock[0]?.ObjetivoId && resStock[0]?.ObjetivoId == destObjetivoId)
+        ) {
+          fieldErrors.push({ fieldTree: `efectos[${index}].StockId`, kind: 'server', message: `Lugar destino es igual al origen` });
+        }
 
-      const CantidadActual = resStock[0]?.StockStock || 0
+        const CantidadActual = resStock[0]?.StockStock || 0
 
-      // Restar al origen.
-      if (Cantidad > CantidadActual) {
+        // Restar al origen.
+        if (Cantidad > CantidadActual) {
           fieldErrors.push({ fieldTree: `efectos[${index}].Cantidad`, kind: 'server', message: `La cantidad excede el stock ${CantidadActual}` });
         } else if (Cantidad == CantidadActual) {
           await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [StockId]);
         } else {
           await queryRunner.query(`UPDATE Stock SET StockStock = @1 WHERE StockId = @0`, [StockId, CantidadActual - Cantidad]);
         }
-      } 
+      }
 
-      // Suma en destino.
+      // Validaciones de transformacion a usado
+      if (efecto.usado) {
+        // valido si es efecto o efecto+efectoindividual
+        if (EfectoEfectoIndividualId == null) {
+          // si es efecto: veo de que este creado el efecto identico con atributo de usado
+          // todo: pendiente de optimizar query
+
+          await queryRunner.query(`
+                WITH Datos AS (
+                    SELECT
+                        e.EfectoId,
+                        e.EfectoDescripcion,
+                        STRING_AGG(
+                            CONCAT(
+                                ea.EfectoAtributoAtributoId,
+                                ':',
+                                ea.EfectoAtributoValorId
+                            ),
+                            '|'
+                        ) WITHIN GROUP (
+                            ORDER BY
+                                ea.EfectoAtributoAtributoId,
+                                ea.EfectoAtributoValorId
+                        ) AS locura
+                    FROM Efecto e
+                    LEFT JOIN EfectoAtributo ea
+                        ON ea.EfectoId = e.EfectoId
+                      AND ea.EfectoAtributoAtributoId <> 11
+                    GROUP BY
+                        e.EfectoId,
+                        e.EfectoDescripcion
+                )
+                SELECT d2.*, ea.EfectoAtributoValorId
+                FROM Datos d1
+                JOIN Datos d2
+                    ON d2.EfectoDescripcion = d1.EfectoDescripcion
+                  AND d2.locura = d1.locura
+                left join EfectoAtributo ea on ea.EfectoId = d2.EfectoId and ea.EfectoAtributoAtributoId = 11
+                WHERE d1.EfectoId = @0 `, [EfectoId])
+          // tengo que cambiar el efectoid de destino y corroborar si en tabla stock cuenta con el registro de destino+ efectoid
+
+        }
+
+
+        // si es efecto+efectoindividual: a ese efectoindividual le agrego el atributo de usado si no lo tiene
+
+
+      }
+
+      // Suma en destino. Caso de no ser efecto usado
       const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6 WHERE
             ( DepositoId = @0 OR (@0 IS NULL AND DepositoId IS NULL))
         AND ( PersonalId = @1 OR (@1 IS NULL AND PersonalId IS NULL))
@@ -1028,7 +1077,7 @@ export class MovimientoStockController extends BaseController {
   // Genera el PDF del comprobante con los datos del formulario (parametroStock) recibido en el body.
   // El form solo trae IDs en los campos tipo select (destino, intermediario, efectos): acá se
   // resuelven a su texto con lookups por ID (no se consulta el movimiento por código).
-  
+
   // ----- Resolución de IDs del formulario a su texto (para el comprobante) -----
 
   // Nombre del destino según el tipo elegido (depósito / persona / objetivo / proveedor).
