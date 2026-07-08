@@ -44,6 +44,7 @@
         [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
         <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
       </button>
+      @if (activeTab() !== 'ingreso-stock') {
       <button #descargarComprobante nz-button nzType="default" type="button" nz-tooltip
         nzTooltipTitle="Descargar Comprobante"
         [disabled]="descargaComprobanteDeshabilitada()"
@@ -52,6 +53,7 @@
         httpUrl="api/movimiento-stock/comprobante">
         <span nz-icon nzType="download" nzTheme="outline"></span>
       </button>
+      }
       
       <button nz-button nzType="default" type="button" nz-tooltip
         nzTooltipTitle="Detalle de efectos"

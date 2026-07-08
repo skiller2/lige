@@ -75,10 +75,13 @@ export class EfectoComponent {
 
   // Body que se manda al generar el comprobante. Si ya hay un movimiento confirmado, el backend lo
   // arma leyéndolo de la base (por id); si no, lo arma con los datos del form (parametroStock).
-  readonly comprobanteBody = computed(() => ({
-    movimientoStockCodigo: this.comprobanteCodigo(),
-    form: this.movimientoStock()?.parametroStock() ?? null,
-  }))
+  readonly comprobanteBody = computed(() => {
+    const comp = this.movimientoStock()
+    return {
+      movimientoStockCodigo: this.comprobanteCodigo(),
+      form: comp ? { ...comp.parametroStock(), IndIngresoStock: comp.IndIngresoStock() } : null,
+    }
+  })
 
   // Al confirmar el movimiento, el hijo emite y acá disparamos la descarga.
   onComprobanteConfirmado() {

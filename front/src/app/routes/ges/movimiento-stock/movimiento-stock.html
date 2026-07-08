@@ -182,6 +182,7 @@
     </div>
 
   
+    @if (!IndIngresoStock()) {
     <div nz-row [nzGutter]="15">
       <div nz-col [nzSpan]="8">
         <nz-form-item>
@@ -193,17 +194,20 @@
         </nz-form-item>
       </div>
     </div>
+    }
   
 
   <nz-divider [nzText]="origenLabel" style="margin-bottom: 10px;"></nz-divider>
   <ng-template #origenLabel>
     <span style="margin-right: 8px;">Origen</span>
-    <button nz-button nzType="default" type="button"
-      nz-popconfirm [nzPopconfirmTitle]="buscadorTpl" [nzPopconfirmShowArrow]="false"
-       nzOkText="Confirmar" (nzOnConfirm)="confirmarBusqueda()"
-      nz-tooltip nzTooltipTitle="{{ 'app.buscador.personas.objetivos' | i18n }}">
-      <span nz-icon nzType="user" nzTheme="outline"></span>
-    </button>
+    @if (!IndIngresoStock()) {
+      <button nz-button nzType="default" type="button"
+        nz-popconfirm [nzPopconfirmTitle]="buscadorTpl" [nzPopconfirmShowArrow]="false"
+         nzOkText="Confirmar" (nzOnConfirm)="confirmarBusqueda()"
+        nz-tooltip nzTooltipTitle="{{ 'app.buscador.personas.objetivos' | i18n }}">
+        <span nz-icon nzType="user" nzTheme="outline"></span>
+      </button>
+    }
 
     <button nz-button nzType="default" type="button" style="margin-left: 6px;"
       (click)="limpiarOrigen()"

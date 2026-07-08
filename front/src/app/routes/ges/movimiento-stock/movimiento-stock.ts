@@ -44,7 +44,9 @@ export class MovimientoStockComponent {
   // Se persiste junto al formulario en localStorage (ver effect persistir / ngOnInit).
   readonly fijar = signal(false);
 
-  private readonly STORAGE_KEY = 'movimiento-stock-form';
+  private get STORAGE_KEY(): string {
+    return this.IndIngresoStock() ? 'ingreso-stock-form' : 'movimiento-stock-form';
+  }
 
   private readonly defaultStockForm: ParametroformEfectoStock = {
     fecha: null,
