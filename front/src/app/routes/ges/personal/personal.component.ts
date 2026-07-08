@@ -68,10 +68,10 @@ export class PersonalComponent {
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
 
-  personalId = signal(0)
+  personalId = signal<number>(0)
   anio = signal(0)
   mes = signal(0)
-  tabIndex = signal(0)
+  tabIndex = signal<number>(0)
   visibleHistorial = model<boolean>(false)
   visibleObjetivo = model<boolean>(false)
   visibleCustodias = model<boolean>(false)
@@ -89,6 +89,7 @@ export class PersonalComponent {
   childPerFormDrawer = viewChild.required<PersonalFormComponent>('perForm')
   childPerDetalleDrawer = viewChild.required<PersonalFormComponent>('perDetalle')
   childPerDocumentosDrawer = viewChild.required<PersonalDocumentosDrawerComponent>('docDrawer')
+  childPerInconsistenciasTable = viewChild.required<PersonalInconsistenciasComponent>('incTable')
 
   columns = toSignal(this.apiService.getCols('/api/personal/cols').pipe(
     map((cols) => {
@@ -230,6 +231,19 @@ export class PersonalComponent {
         this.childPerFormDrawer().load()
         break;
       case 2:
+        break;
+      default:
+        break;
+    }
+  }
+
+  refreshGrid(){
+    switch (this.tabIndex()) {
+      case 1: //DETALLE
+        this.gridData.reload()
+        break
+      case 5: //EDIT
+        this.childPerInconsistenciasTable().onAddorUpdate('')
         break;
       default:
         break;

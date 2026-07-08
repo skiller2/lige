@@ -66,64 +66,64 @@ export class PersonalInconsistenciasComponent {
   , { initialValue: [] as Column[] })
 
   gridData = resource({
-      params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), reload: this.reload() }),
-      loader: async ({ params }) => {
-          let response:any[] = []
-          this.loadingSrv.open({ type: 'spin', text: '' })
-          try {
-              response = await firstValueFrom(this.searchService.getPersonalInconsistencias({ options: params.options }));
-          } catch (_e) { }
-          this.loadingSrv.close()
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes: this.mes(), reload: this.reload() }),
+    loader: async ({ params }) => {
+      let response:any[] = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+          response = await firstValueFrom(this.searchService.getPersonalInconsistencias({ options: params.options }));
+      } catch (_e) { }
+      this.loadingSrv.close()
 
-          return response || [];
-      },
+      return response || [];
+    },
 
-      defaultValue: []
+    defaultValue: []
   });
 
 
   async ngOnInit() {
 
-      this.gridOptions = this.apiService.getDefaultGridOptions('.gridInconsistencias', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
-      this.gridOptions.enableRowDetailView = false
-      this.gridOptions.enableAutoSizeColumns = true
-      this.gridOptions.fullWidthRows = true
-      this.gridOptions.showFooterRow = true
-      this.gridOptions.createFooterRow = true
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridInconsistencias', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions.enableRowDetailView = false
+    this.gridOptions.enableAutoSizeColumns = true
+    this.gridOptions.fullWidthRows = true
+    this.gridOptions.showFooterRow = true
+    this.gridOptions.createFooterRow = true
 
   }
 
   handleSelectedRowsChanged(e: any): void {
-      if (e.detail.args.changedSelectedRows.length == 1) {
-      } else {
-          this.personalId.set(0)
-      }
+    if (e.detail.args.changedSelectedRows.length == 1) {
+    } else {
+      this.personalId.set(0)
+    }
   }
 
   async angularGridReady(angularGrid: any) {
-      this.angularGrid = angularGrid.detail
-      this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-          totalRecords(this.angularGrid, 'ApellidoNombre')
-          // columnTotal('importe', this.angularGrid)
-          // columnTotal('cuotanro', this.angularGrid)
-          // columnTotal('cantcuotas', this.angularGrid)
-          // columnTotal('importetotal', this.angularGrid)
-      })
-      if (this.apiService.isMobile())
-          this.angularGrid.gridService.hideColumnByIds([])
+    this.angularGrid = angularGrid.detail
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGrid, 'ApellidoNombre')
+      // columnTotal('importe', this.angularGrid)
+      // columnTotal('cuotanro', this.angularGrid)
+      // columnTotal('cantcuotas', this.angularGrid)
+      // columnTotal('importetotal', this.angularGrid)
+    })
+    if (this.apiService.isMobile())
+      this.angularGrid.gridService.hideColumnByIds([])
   }
 
   onAddorUpdate(_e: any) {
-      this.gridData.reload()
+    this.gridData.reload()
   }
 
   renderApellidoNombreComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
-      const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
 
-      let PersonalId = dataContext.PersonalId
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/personal/listado', params: { PersonalId: PersonalId }, detail: cellNode.innerText })
-      componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
+    let PersonalId = dataContext.PersonalId
+    Object.assign(componentOutput.componentRef.instance, { item: dataContext, link: '/ges/personal/listado', params: { PersonalId: PersonalId }, detail: cellNode.innerText })
+    componentOutput.componentRef.instance.detail = dataContext[colDef.field as string]
 
-      cellNode.replaceChildren(componentOutput.domElement)
+    cellNode.replaceChildren(componentOutput.domElement)
   }
 }
