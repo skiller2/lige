@@ -26,6 +26,7 @@ export class DatosBotDrawerComponent {
 
   isVisible = linkedSignal(() => this.visible());
   PersonalNombre = signal<string>('');
+  PersonalBanco = signal<string>('');
 
   private searchService = inject(SearchService);
 
@@ -47,7 +48,11 @@ export class DatosBotDrawerComponent {
 
     if (this.personalId()) {
       const personal = await firstValueFrom(this.searchService.getPersonalById(this.personalId()))
+      const banco = await firstValueFrom(this.searchService.getCuentasBancoPersona(this.personalId()))
+      
       this.PersonalNombre.set(personal.PersonalApellido + ', ' + personal.PersonalNombre)
+      if (banco && banco.length) this.PersonalBanco.set(banco[0].BancoDescripcion + ' CBU ' + banco[0].PersonalBancoCBU)
+      else this.PersonalBanco.set('')
 
       let infoBot = await firstValueFrom(this.searchService.getDatosBotByPersonalId(this.personalId()))
       this.datosBot.update(m => ({
