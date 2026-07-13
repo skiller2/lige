@@ -10,7 +10,8 @@
           [columns]="columns() | colsFilter"
           [options]="gridOptions"
           [dataset]="gridData.value()"
-          (onAngularGridCreated)="angularGridReady($event)">
+          (onAngularGridCreated)="angularGridReady($event)"
+          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
         </angular-slickgrid>
       </div>
     }

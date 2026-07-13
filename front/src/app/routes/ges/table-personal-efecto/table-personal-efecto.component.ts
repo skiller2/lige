@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, resource, signal } from '@angular/core';
+import { Component, effect, inject, input, output, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
@@ -31,6 +31,7 @@ export class TablePersonalEfectoComponent {
 
   refreshGrid = input<number>(0);
   personalIdFilter = input<number>(0);
+  efectoSelected = output<{ EfectoId: number; EfectoIndividualId: number | null; EfectoDescripcionCompleto: string } | null>();
   private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
@@ -110,6 +111,18 @@ export class TablePersonalEfectoComponent {
       columnTotal('StockStock', this.angularGrid)
     });
 
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+    const rows: number[] = e.detail.args.rows ?? []
+    const item = rows.length === 1 ? this.angularGrid.dataView.getItem(rows[0]) : null
+    this.efectoSelected.emit(item
+      ? {
+          EfectoId: item.EfectoId,
+          EfectoIndividualId: item.EfectoEfectoIndividualId ?? item.EfectoIndividualId ?? null,
+          EfectoDescripcionCompleto: item.EfectoDescripcionCompleto,
+        }
+      : null)
   }
 
   exportGrid(): void {

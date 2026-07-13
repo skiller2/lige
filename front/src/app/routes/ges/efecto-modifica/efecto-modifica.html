@@ -1,0 +1,14 @@
+<nz-card class="small-margin">
+  @if (efectoId()) {
+    <h3>{{ titulo() }}</h3>
+    <p><strong>Efecto ID:</strong> {{ efectoId() }}</p>
+    <p><strong>Efecto Individual ID:</strong> {{ efectoIndividualId() || '-' }}</p>
+    <p><strong>Modo:</strong> {{ esConsulta() ? 'Consulta (solo lectura)' : 'Modificación' }}</p>
+    <p style="margin-top: 12px; color: rgba(0,0,0,0.45);">
+      Formulario de edición del efecto pendiente de definir.
+    </p>
+  } @else {
+    <p>Seleccione un efecto en una grilla (General, Personal, Objetivos, Depósitos o Proveedores)
+      y presione Consultar o Modificar.</p>
+  }
+</nz-card>

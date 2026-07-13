@@ -40,6 +40,20 @@
         (click)="reloadGrid()">
         <span nz-icon nzType="reload" nzTheme="outline"></span>
       </button>
+      <!-- Consultar efecto (solo lectura). Habilitado con un efecto seleccionado en la grilla activa. -->
+      <button nz-button nzType="default" type="button" nz-tooltip
+        nzTooltipTitle="Consultar efecto"
+        [disabled]="modificaEfectoDeshabilitado()"
+        (click)="abrirModifica('consulta')">
+        <span nz-icon nzType="eye" nzTheme="outline"></span>
+      </button>
+      <!-- Modificar efecto. Habilitado con un efecto seleccionado en la grilla activa. -->
+      <button nz-button nzType="default" type="button" nz-tooltip
+        nzTooltipTitle="Modificar efecto"
+        [disabled]="modificaEfectoDeshabilitado()"
+        (click)="abrirModifica('modifica')">
+        <span nz-icon nzType="edit" nzTheme="outline"></span>
+      </button>
         <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.stock' | i18n }}"
         [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
         <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
@@ -73,28 +87,39 @@
 
   @if (visitedTabs().has('general')) {
     <div [hidden]="activeTab() !== 'general'">
-      <app-table-efecto-general [refreshGrid]="refreshTickGeneral()" />
+      <app-table-efecto-general [refreshGrid]="refreshTickGeneral()"
+        (efectoSelected)="efectoSeleccionado.set($event)" />
     </div>
   }
   @if (visitedTabs().has('personal')) {
     <div [hidden]="activeTab() !== 'personal'">
-      <app-table-personal-efecto [refreshGrid]="refreshTickPersonal()" [personalIdFilter]="personalIdFilter()" />
+      <app-table-personal-efecto [refreshGrid]="refreshTickPersonal()" [personalIdFilter]="personalIdFilter()"
+        (efectoSelected)="efectoSeleccionado.set($event)" />
     </div>
   }
   @if (visitedTabs().has('objetivos')) {
     <div [hidden]="activeTab() !== 'objetivos'">
-      <app-table-objetivos-efecto [refreshGrid]="refreshTickObjetivos()" [objetivoIdFilter]="objetivoIdFilter()" />
+      <app-table-objetivos-efecto [refreshGrid]="refreshTickObjetivos()" [objetivoIdFilter]="objetivoIdFilter()"
+        (efectoSelected)="efectoSeleccionado.set($event)" />
     </div>
   }
   @if (visitedTabs().has('deposito')) {
     <div [hidden]="activeTab() !== 'deposito'">
-      <app-table-deposito-efecto [refreshGrid]="refreshTickDeposito()" [depositoIdFilter]="depositoIdFilter()" />
+      <app-table-deposito-efecto [refreshGrid]="refreshTickDeposito()" [depositoIdFilter]="depositoIdFilter()"
+        (efectoSelected)="efectoSeleccionado.set($event)" />
     </div>
   }
   @if (visitedTabs().has('proveedores')) {
     <div [hidden]="activeTab() !== 'proveedores'">
-      <app-table-proveedores-efecto [refreshGrid]="refreshTickProveedores()" [proveedorIdFilter]="proveedorIdFilter()" />
+      <app-table-proveedores-efecto [refreshGrid]="refreshTickProveedores()" [proveedorIdFilter]="proveedorIdFilter()"
+        (efectoSelected)="efectoSeleccionado.set($event)" />
     </div>
+  }
+  @if (activeTab() === 'modifica') {
+    <app-efecto-modifica
+      [efectoId]="efectoModificaId()"
+      [efectoIndividualId]="efectoModificaIndividualId()"
+      [modo]="modoModifica()" />
   }
   @if (visitedTabs().has('movimientos')) {
     <div [hidden]="activeTab() !== 'movimientos'">

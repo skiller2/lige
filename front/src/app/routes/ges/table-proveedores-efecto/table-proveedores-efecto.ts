@@ -1,4 +1,4 @@
-import { Component, effect, inject, input, resource, signal } from '@angular/core';
+import { Component, effect, inject, input, output, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { listOptionsT, SHARED_IMPORTS } from '@shared';
 import { firstValueFrom } from 'rxjs';
@@ -30,6 +30,8 @@ export class TableProveedoresEfectoComponent {
 
   refreshGrid = input<number>(0);
   proveedorIdFilter = input<number>(0);
+  // Efecto seleccionado en la grilla (o null). Lo consume el padre para los botones consultar/modificar.
+  efectoSelected = output<{ EfectoId: number; EfectoIndividualId: number | null; EfectoDescripcionCompleto: string } | null>();
   private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
@@ -114,6 +116,18 @@ export class TableProveedoresEfectoComponent {
       totalRecords(this.angularGrid);
       columnTotal('StockStock', this.angularGrid)
     });
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+    const rows: number[] = e.detail.args.rows ?? []
+    const item = rows.length === 1 ? this.angularGrid.dataView.getItem(rows[0]) : null
+    this.efectoSelected.emit(item
+      ? {
+          EfectoId: item.EfectoId,
+          EfectoIndividualId: item.EfectoEfectoIndividualId ?? item.EfectoIndividualId ?? null,
+          EfectoDescripcionCompleto: item.EfectoDescripcionCompleto,
+        }
+      : null)
   }
 
   exportGrid(): void {
