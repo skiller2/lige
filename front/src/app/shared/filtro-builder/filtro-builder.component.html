@@ -117,6 +117,10 @@
     <app-requirente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
       [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
     }
+    <!-- @if (selections.field.searchComponent=='inputForCUITsSearchByINAESFile') {
+    <app-inaes-cuits-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
+      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
+    } -->
     @if (selections.field.searchComponent=='inputForSucursalSearch') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
       (ngModelChange)="selectedValueSucursal($event)" [nzDropdownMatchSelectWidth]="false"

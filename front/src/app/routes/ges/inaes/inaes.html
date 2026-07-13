@@ -37,8 +37,8 @@
       <ng-template nz-tab>
         @if (columns().length) {
           <div nz-row nzJustify="space-between" nzAlign="middle">
-              <!-- <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()" [(options)]="listOptions" /> -->
-            <div nz-col nzFlex="400px">
+            <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()" [(options)]="listOptions" />
+            <!-- <div nz-col nzFlex="400px">
               <nz-form-item>
                 <nz-form-label [nzSpan]="5" class="inputText">Archivo</nz-form-label>
                 <nz-form-control [nzSpan]="19">
@@ -46,23 +46,23 @@
                     [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
                 </nz-form-control>
               </nz-form-item>
-            </div>
+            </div> -->
             <div nz-col style="display: flex;">
               <nz-button-group nz-button nz-buttonGroup style="align-items: flex-end;">
                 <!-- Descarga Alta -->
-                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" >
+                <!-- <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" >
                   <span nz-icon nzType="plus" nzTheme="outline"></span>
-                </button>
+                </button> -->
                 <!-- Descarga Baja -->
-                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" >
+                <!-- <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" >
                   <span nz-icon nzType="edit" nzTheme="outline"></span>
-                </button>
+                </button> -->
               </nz-button-group>
             </div>
           </div>
           <div class="gridContainer container-fluid">
             <angular-slickgrid gridId="gridINAES" class="" [columns]="columns() | colsFilter"
-              [options]="gridOptions" [dataset]="gridDataImport()"
+              [options]="gridOptions" [dataset]="gridData.value()"
               (onAngularGridCreated)="angularGridReady($event)">
             </angular-slickgrid>
           </div>

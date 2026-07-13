@@ -8,8 +8,8 @@ import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-deta
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
-// import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
+// import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { Router } from '@angular/router';
 import { LoadingService } from '@delon/abc/loading';
 
@@ -19,7 +19,7 @@ import { LoadingService } from '@delon/abc/loading';
     styleUrl: './inaes.less',
     // encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService, ExcelExportService],
-    imports: [SHARED_IMPORTS, FileUploadComponent],
+    imports: [SHARED_IMPORTS, FiltroBuilderComponent],
 })
 export class INAESComponent {
   angularGrid!: AngularGridInstance;
@@ -33,7 +33,7 @@ export class INAESComponent {
   });
   startFilters = signal<Selections[]>([])
   files = signal<any[]>([])
-  fileUploadComponent = viewChild.required(FileUploadComponent);
+  // fileUploadComponent = viewChild.required(FileUploadComponent);
 
   readonly router = inject(Router)
   private apiService = inject(ApiService)
@@ -42,49 +42,49 @@ export class INAESComponent {
 
   columns = toSignal(this.apiService.getCols('/api/inaes/cols'), { initialValue: [] as Column[] })
 
-  // gridData = resource({
-  //   params: () => ({ options: this.listOptions() }),
-  //   loader: async ({ params }) => {
-  //     const res = await firstValueFrom(this.apiService.getINAESAltasBajas({ options: params.options })
-  //       .pipe(map(data => { return data })));
-  //     return res;
-  //   },
-  //   defaultValue: []
-  // });
-
-  effect1 = effect(async () => {
-    if(!this.files().length) {
-      this.gridDataImport.set([])
-      return
-    }
-    // console.log('files: ', this.files());
-    this.loadingSrv.open({ type: 'spin', text: '' })
-    try {
-        this.gridDataImport.set([])
-        const res = await firstValueFrom(this.apiService.getINAESAltasBajas({ options: this.listOptions(), files: this.files()})
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      const res = await firstValueFrom(this.apiService.getINAESAltasBajas({ options: params.options })
         .pipe(map(data => { return data })));
-        this.gridDataImport.set(res)
+      return res;
+    },
+    defaultValue: []
+  });
 
-      //   try {
-      //     await firstValueFrom(this.apiService.importXLSImporteVenta(filesValue, this.anio(), this.mes()))
-      //     this.formChange$.next('changed');
-      //     this.fileUploadComponent().DeleteFileByExporterror(filesValue)
-      //   } catch (e: any) {
-      //     this.fileUploadComponent().DeleteFileByExporterror(filesValue)
-      //     if (e.error?.data?.list) {
-      //       this.gridDataImport.set(e.error.data.list)
-      //     }
-      //     this.uploading$.next({ loading: false, event: null })
-      //   }
+  // effect1 = effect(async () => {
+  //   if(!this.files().length) {
+  //     this.gridDataImport.set([])
+  //     return
+  //   }
+  //   // console.log('files: ', this.files());
+  //   this.loadingSrv.open({ type: 'spin', text: '' })
+  //   try {
+  //       this.gridDataImport.set([])
+  //       const res = await firstValueFrom(this.apiService.getINAESAltasBajas({ options: this.listOptions(), files: this.files()})
+  //       .pipe(map(data => { return data })));
+  //       this.gridDataImport.set(res)
+
+  //     //   try {
+  //     //     await firstValueFrom(this.apiService.importXLSImporteVenta(filesValue, this.anio(), this.mes()))
+  //     //     this.formChange$.next('changed');
+  //     //     this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+  //     //   } catch (e: any) {
+  //     //     this.fileUploadComponent().DeleteFileByExporterror(filesValue)
+  //     //     if (e.error?.data?.list) {
+  //     //       this.gridDataImport.set(e.error.data.list)
+  //     //     }
+  //     //     this.uploading$.next({ loading: false, event: null })
+  //     //   }
       
-    } catch (error) {
+  //   } catch (error) {
       
-    }
-    this.loadingSrv.close()
+  //   }
+  //   this.loadingSrv.close()
     
-    // this.gridDataImport.set([])
-    // const fileUploadComponent = this.fileUploadComponent().files
-  })
+  //   // this.gridDataImport.set([])
+  //   // const fileUploadComponent = this.fileUploadComponent().files
+  // })
 
   async ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
