@@ -117,16 +117,17 @@
       }
 
       <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="5">Cuotas</nz-form-label>
-        <nz-form-control [nzMd]="6">
-          <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Cuotas" type="number" />
-        </nz-form-control>
-
-        <nz-form-label [nzXs]="5">{{ isEfecto() ? "Importe Unitario" : "Importe Total" }}</nz-form-label>
+         <nz-form-label [nzXs]="5">{{ isEfecto() ? "Importe Unitario" : "Importe Total" }}</nz-form-label>
         <nz-form-control [nzMd]="7">
           <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Importe" type="text" appDotToComma
             mask="separator.2" />
         </nz-form-control>
+        
+        <nz-form-label [nzXs]="5">Cuotas</nz-form-label>
+        <nz-form-control [nzMd]="6">
+          <input nz-input placeholder="" [formField]="formDescuentoObjetivo.Cuotas" type="number" />
+        </nz-form-control>
+               
       </nz-form-item>
 
       <nz-form-item class="marginElement">
