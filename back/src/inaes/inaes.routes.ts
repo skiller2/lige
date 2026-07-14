@@ -8,6 +8,10 @@ inaesRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['
   inaesController.getColumnsGrid(req, res, next);
 });
 
-inaesRouter.post('/altas-bajas', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], async (req, res, next) => {
+inaesRouter.post('/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], async (req, res, next) => {
     await inaesController.getAltasBajas(req, res, next)
+})
+
+inaesRouter.post('/cuits/from-file', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], async (req, res, next) => {
+    await inaesController.getCUITsByINAESFile(req, res, next)
 })

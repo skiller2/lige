@@ -2319,7 +2319,14 @@ export class ApiService {
       this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/inaes/altas-bajas`, parameters).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/inaes/list`, parameters).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
+  getCUITsFromINAESFile(parameters: any) {
+    return this.http.post<ResponseJSON<any>>(`api/inaes/cuits/from-file`, parameters).pipe(
       map(res => res.data),
       catchError(() => of([]))
     );

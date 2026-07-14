@@ -38,6 +38,7 @@ import { PeriodoSearchComponent } from '../periodo-search/periodo-search';
 import { AsyncPipe } from '@angular/common';
 import { AbstractExpandedDecoder } from '@zxing/library';
 import { TipoPersonalActaSearchComponent } from '../tipo-personal-acta-search/tipo-personal-acta-search.component';
+import { NzUploadModule } from 'ng-zorro-antd/upload';
 
 type listOptionsT = {
   filtros: any[],
@@ -58,7 +59,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
     ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent, EfectoSearchComponent, EfectoIndividualSearchComponent,
     TipoAsociadoCategoriaSearchComponent, TipoAsociadoSearchComponent, RequirenteSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent,
-    TipoPersonalActaSearchComponent, AsyncPipe
+    TipoPersonalActaSearchComponent, AsyncPipe, NzUploadModule
   ],
   templateUrl: './filtro-builder.component.html',
   styles: [],
@@ -108,6 +109,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   //operatorsToSelect = ['LIKE', '>', '<', '>=', '<=', '!=', '<>', '='];
   @Output() optionsChange = new EventEmitter<Options>();
   formChange$ = new BehaviorSubject('');
+  uploading$ = new BehaviorSubject({ loading: false, event: null });
 
   private loggingEffect = effect(() => {
     if (this.fieldsToSelect() && this.startFilters()) {
@@ -802,6 +804,46 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     this.selections = { field: fieldObj, condition, operator, value, label, closeable, originIdx: null, inicial }
     this.handleInputConfirm(null)
+  }
+
+  async uploadChange(event: any) {
+    switch (event.type) {
+      case 'start':
+        this.uploading$.next({ loading: true, event })
+        break;
+      case 'progress':
+        //debugger
+        break;
+      case 'error':
+        const Error = event.file.error
+        if (Error.error.data?.list) {
+        }
+        this.uploading$.next({ loading: false, event })
+        break;
+      case 'success':
+        const Response = event.file.response
+        
+        if (Response.data.length) {
+          try {
+            let res:any
+            switch (this.selections.field.searchComponent) {
+              case 'inputForCUITsSearchFromINAESFile':
+                res = await firstValueFrom(this.apiService.getCUITsFromINAESFile({file: Response.data}))
+                let value = res.cuits.join(";")
+                this.selections = { ...this.selections, condition:'AND', operator:'=', value, label: value, closeable: true, originIdx: null, inicial: false }
+                break;
+              default:
+                break;
+            }
+          } catch (error) {}
+        }
+        this.uploading$.next({ loading: false, event })
+        this.apiService.response(Response)
+        this.handleInputConfirm(null)
+        break
+      default:
+        break;
+    }
   }
 
 }
