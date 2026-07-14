@@ -44,6 +44,63 @@
           <input nz-input formControlName="StockStock" />
         </nz-form-control>
       </nz-form-item>
+
+      <!-- Efecto relacionado (solo lectura). Se muestra si el efecto tiene relación. -->
+      @if ((relaciones.value() ?? []).length) {
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">Relacionado con</nz-form-label>
+          <nz-form-control [nzSpan]="14">
+            @for (rel of relaciones.value(); track rel.EfectoRelacionEfectoId) {
+              <div>{{ rel.DescripcionCon }}</div>
+            }
+          </nz-form-control>
+        </nz-form-item>
+      }
+
+      <!-- Bloque de efecto individual: descripción + atributos de ingreso. -->
+      @if (esIndividual()) {
+        <nz-divider nzText="Efecto individual" nzOrientation="center"></nz-divider>
+
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">Descripción individual</nz-form-label>
+          <nz-form-control [nzSpan]="14">
+            <input nz-input formControlName="EfectoEfectoIndividualDescripcion" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <div formArrayName="atributos">
+          <nz-form-item>
+            <nz-form-label [nzSpan]="6">Atributos</nz-form-label>
+            <nz-form-control [nzSpan]="14">
+              @for (grp of atributos.controls; track grp) {
+                <div [formGroupName]="$index" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                  <nz-select formControlName="EfectoAtributoAtributoIngresoId"
+                    nzShowSearch nzAllowClear nzPlaceHolder="Atributo" [nzDropdownMatchSelectWidth]="false" style="min-width: 200px;">
+                    @for (op of atributosOpciones.value() ?? []; track op.AtributoId) {
+                      <nz-option [nzValue]="op.AtributoId" [nzLabel]="op.AtributoDescripcion"></nz-option>
+                    }
+                  </nz-select>
+                  <input nz-input formControlName="EfectoAtributoIngresoValor" placeholder="Valor" />
+                  @if (!esConsulta()) {
+                    <button nz-button nzType="default" nzDanger nzSize="large" type="button" nz-tooltip nzTooltipTitle="Eliminar atributo"
+                      style="min-width: 56px;" (click)="quitarAtributo($index)">
+                      <span nz-icon nzType="delete" nzTheme="outline"></span>
+                    </button>
+                  }
+                </div>
+              }
+              @if (!(atributos.controls.length)) {
+                <p style="color: rgba(0,0,0,0.45);">Sin atributos.</p>
+              }
+              @if (!esConsulta()) {
+                <button nz-button nzType="dashed" type="button" (click)="agregarAtributo()">
+                  <span nz-icon nzType="plus" nzTheme="outline"></span> Agregar atributo
+                </button>
+              }
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      }
     </form>
 
     @if (esConsulta()) {

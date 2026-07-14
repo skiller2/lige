@@ -1845,4 +1845,54 @@ export class EfectoController extends BaseController {
     }
   }
 
+  // Opciones para el Select de Atributo del form de modificar/consultar efecto.
+  async getAtributos(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const list = await queryRunner.query(`
+        SELECT AtributoId, TRIM(AtributoDescripcion) AS AtributoDescripcion
+        FROM Atributo
+        ORDER BY AtributoDescripcion
+      `);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // Atributos de ingreso (EfectoEfectoIndividualAtributoIngreso) de un efecto individual.
+  // EfectoAtributoAtributoIngresoId es la FK al Atributo (valor del Select).
+  async getEfectoIndividualAtributos(req: any, res: Response, next: NextFunction) {
+    const efectoId = Number(req.params.id);
+    const individualIdRaw = req.query?.individualId;
+    const individualId = individualIdRaw === undefined || individualIdRaw === '' || individualIdRaw === 'null'
+      ? null
+      : Number(individualIdRaw);
+    if (!efectoId || individualId == null) {
+      this.jsonRes([], res);
+      return;
+    }
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const list = await queryRunner.query(`
+        SELECT
+          efeatr.EfectoEfectoIndividualAtributoIngresoId,
+          efeatr.EfectoAtributoAtributoIngresoId,
+          TRIM(efeatr.EfectoAtributoIngresoValor) AS EfectoAtributoIngresoValor,
+          TRIM(atr.AtributoDescripcion) AS AtributoDescripcion
+        FROM EfectoEfectoIndividualAtributoIngreso efeatr
+        LEFT JOIN Atributo atr ON atr.AtributoId = efeatr.EfectoAtributoAtributoIngresoId
+        WHERE efeatr.EfectoId = @0 AND efeatr.EfectoEfectoIndividualId = @1
+        ORDER BY efeatr.EfectoEfectoIndividualAtributoIngresoId
+      `, [efectoId, individualId]);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
 }

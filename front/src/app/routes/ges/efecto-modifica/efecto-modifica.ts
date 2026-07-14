@@ -1,18 +1,14 @@
-import { Component, computed, effect, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input, resource } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
+import { firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
+import { EfectoIndividualAtributo } from '../../../shared/schemas/efecto.schemas';
 
-// Pantalla de modificar/consultar un efecto (ruta ges/efecto/modifica).
-// Recibe por input la fila del efecto seleccionado en la grilla de la solapa activa y el modo:
-//   - 'consulta' -> solo lectura
-//   - 'modifica' -> edición
-// El formulario se precarga con los datos de la fila (Rubro/Subrubro/Stock/Descripción).
-// NOTA: el guardado contra el backend queda pendiente (hoy el maestro de Efecto no expone UPDATE).
 @Component({
   selector: 'app-efecto-modifica',
   imports: [SHARED_IMPORTS, CommonModule, ReactiveFormsModule, NzFormModule, NzInputModule, NzSelectModule],
@@ -24,48 +20,97 @@ export class EfectoModificaComponent {
   readonly modo = input<string>('consulta');
 
   private fb = inject(FormBuilder);
-  private searchService = inject(SearchService);
+  private search = inject(SearchService);
 
   // Opciones de los selects: observable directo + async pipe, igual que el filtro-builder.
-  readonly $optionsRubros = this.searchService.getRubros();
-  readonly $optionsSubrubros = this.searchService.getSubrubros();
+  readonly $optionsRubros = this.search.getRubros();
+  readonly $optionsSubrubros = this.search.getSubrubros();
 
   readonly esConsulta = computed(() => this.modo() !== 'modifica');
   readonly titulo = computed(() => (this.esConsulta() ? 'Consultar efecto' : 'Modificar efecto'));
 
-  readonly formEfecto = this.fb.group({
-    EfectoId: [{ value: null as number | null, disabled: true }],
-    EfectoDescripcionCompleto: [''],
-    RubroId: [null as number | null],
-    SubrubroId: [null as number | null],
-    StockStock: [{ value: null as number | null, disabled: true }],
+  readonly efectoId = computed(() => this.efecto()?.EfectoId ?? null);
+  readonly individualId = computed(() => this.efecto()?.EfectoEfectoIndividualId ?? null);
+  readonly esIndividual = computed(() => this.individualId() != null);
+
+  // Opciones del Select de Atributo (una sola carga).
+  readonly atributosOpciones = resource({
+    loader: async () => (await firstValueFrom(this.search.getAtributos())) ?? [],
   });
 
-  constructor() {
-    // Carga el formulario según el efecto seleccionado en la grilla.
-    effect(() => {
-      const ef = this.efecto();
-      this.formEfecto.reset({
-        EfectoId: ef?.EfectoId ?? null,
-        EfectoDescripcionCompleto: ef?.EfectoDescripcionCompleto ?? '',
-        RubroId: ef?.RubroId ?? null,
-        SubrubroId: ef?.SubrubroId ?? null,
-        StockStock: ef?.StockStock ?? null,
-      });
-    });
+  // Efecto relacionado (solo mostrar). DescripcionCon = el efecto del "otro lado" de la relación.
+  readonly relaciones = resource({
+    params: () => ({ efectoId: this.efectoId(), individualId: this.individualId() }),
+    loader: async ({ params }) =>
+      params.efectoId
+        ? (await firstValueFrom(this.search.getEfectoRelaciones(params.efectoId, params.individualId))) ?? []
+        : [],
+  });
 
-    // Modo consulta -> solo lectura; modifica -> editable.
-    effect(() => {
-      this.modo();
-      this.aplicarModo();
+  // Filas de atributo ingreso del efecto individual.
+  readonly atributosIngreso = resource({
+    params: () => ({ efectoId: this.efectoId(), individualId: this.individualId() }),
+    loader: async ({ params }) =>
+      params.efectoId && params.individualId != null
+        ? (await firstValueFrom(this.search.getEfectoIndividualAtributos(params.efectoId, params.individualId))) ?? []
+        : [],
+  });
+
+  readonly formEfecto = this.fb.group({
+    EfectoId: [{ value: null as number | null, disabled: true }],
+    EfectoDescripcionCompleto: [{ value: '', disabled: true }],
+    RubroId: [{ value: null as number | null, disabled: true }],
+    SubrubroId: [{ value: null as number | null, disabled: true }],
+    StockStock: [{ value: null as number | null, disabled: true }],
+    EfectoEfectoIndividualDescripcion: [{ value: '', disabled: true }],
+    atributos: this.fb.array([] as FormGroup[]),
+  });
+
+  get atributos(): FormArray {
+    return this.formEfecto.get('atributos') as FormArray;
+  }
+
+  // El disabled se fija al construir el control. El FormArray se reconstruye entero al cambiar de modo
+  // y el @for trackea por referencia de grupo, así cada rebuild genera controles y DOM nuevos que
+  // toman el disabled correcto (evita que el ValueAccessor quede "pegado" al control anterior).
+  private nuevoAtributo(row: EfectoIndividualAtributo | null, disabled: boolean): FormGroup {
+    return this.fb.group({
+      EfectoEfectoIndividualAtributoIngresoId: [row?.EfectoEfectoIndividualAtributoIngresoId ?? null],
+      EfectoAtributoAtributoIngresoId: [{ value: row?.EfectoAtributoAtributoIngresoId ?? null, disabled }],
+      EfectoAtributoIngresoValor: [{ value: row?.EfectoAtributoIngresoValor ?? '', disabled }],
     });
   }
 
-  private aplicarModo(): void {
-    if (this.esConsulta()) this.formEfecto.disable();
-    else this.formEfecto.enable();
-    // EfectoId y Stock son siempre de solo lectura.
-    this.formEfecto.get('EfectoId')?.disable();
-    this.formEfecto.get('StockStock')?.disable();
+  agregarAtributo(): void {
+    if (this.esConsulta()) return;
+    this.atributos.push(this.nuevoAtributo(null, false));
+  }
+
+  quitarAtributo(index: number): void {
+    if (this.esConsulta()) return;
+    this.atributos.removeAt(index);
+  }
+
+  constructor() {
+    // Único punto de armado: recompone valores y estado disabled de todos los controles cada vez que
+    // cambia el efecto, el modo o las filas de atributos. Cada control se (re)setea con su disabled
+    // definitivo, de modo que el modo queda siempre reflejado.
+    effect(() => {
+      const ef = this.efecto();
+      const consulta = this.esConsulta();
+      const rows = this.atributosIngreso.value() ?? [];
+
+      // Campos base: valor + disabled según modo. EfectoId siempre bloqueado.
+      this.formEfecto.get('EfectoId')!.reset({ value: ef?.EfectoId ?? null, disabled: true });
+      this.formEfecto.get('EfectoDescripcionCompleto')!.reset({ value: ef?.EfectoDescripcionCompleto ?? '', disabled: consulta });
+      this.formEfecto.get('RubroId')!.reset({ value: ef?.RubroId ?? null, disabled: consulta });
+      this.formEfecto.get('SubrubroId')!.reset({ value: ef?.SubrubroId ?? null, disabled: consulta });
+      this.formEfecto.get('StockStock')!.reset({ value: ef?.StockStock ?? null, disabled: consulta });
+      this.formEfecto.get('EfectoEfectoIndividualDescripcion')!.reset({ value: ef?.EfectoEfectoIndividualDescripcion ?? '', disabled: consulta });
+
+      // Atributos: se reconstruyen con el disabled correcto al crearse.
+      this.atributos.clear();
+      for (const row of rows) this.atributos.push(this.nuevoAtributo(row, consulta));
+    });
   }
 }

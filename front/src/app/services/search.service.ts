@@ -15,7 +15,7 @@ import {
 import { SearchGrup, ResponseBySearchGrup } from '../shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente, SearchClient } from '../shared/schemas/cliente.schemas';
 import { ResponseBySearchAdministrador, SearchAdmind } from '../shared/schemas/administrador.schemas';
-import { EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual } from '../shared/schemas/efecto.schemas';
+import { Atributo, EfectoIndividualAtributo, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual } from '../shared/schemas/efecto.schemas';
 import { ResponseBySearchTipoAsociadoCategoria, SearchTipoAsociadoCategoria } from '../shared/schemas/tipo-asociado-categoria.schemas';
 import { ResponseBySearchRubro, SearchRubro } from '../shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from '../shared/schemas/seguro.schemas';
@@ -2588,6 +2588,23 @@ export class SearchService {
     // Ingreso de Stock: el back devuelve solo proveedores como ubicaciones de origen.
     if (ingresoStock) params['ingresoStock'] = '1';
     return this.http.get<ResponseJSON<any>>(`api/efecto/ubicaciones/${efectoId}`, params).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  // Opciones del Select de Atributo (form modificar/consultar efecto).
+  getAtributos(): Observable<Atributo[]> {
+    return this.http.get<ResponseJSON<Atributo[]>>(`api/efecto/atributos`).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  // Atributos de ingreso de un efecto individual (EfectoEfectoIndividualAtributoIngreso).
+  getEfectoIndividualAtributos(efectoId: number, individualId: number | null): Observable<EfectoIndividualAtributo[]> {
+    if (!efectoId || individualId == null) return of([]);
+    return this.http.get<ResponseJSON<EfectoIndividualAtributo[]>>(`api/efecto/individual-atributos/${efectoId}`, { individualId: String(individualId) }).pipe(
       map(res => res.data ?? []),
       catchError(() => of([]))
     );

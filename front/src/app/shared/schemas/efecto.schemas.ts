@@ -24,3 +24,15 @@ export interface EfectoRelacionEfecto {
     DescripcionDe: string;
     DescripcionCon: string;
 }
+
+export interface Atributo {
+    AtributoId: number;
+    AtributoDescripcion: string;
+}
+
+export interface EfectoIndividualAtributo {
+    EfectoEfectoIndividualAtributoIngresoId: number;
+    EfectoAtributoAtributoIngresoId: number;
+    EfectoAtributoIngresoValor: string;
+    AtributoDescripcion: string;
+}
