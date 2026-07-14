@@ -104,7 +104,7 @@ export class DescuentosController extends BaseController {
 
         if (row.cantcuotas > 1){
           if (row.IndOcultarImporteTotal!=1)
-            detalle += ` cuota ${row.cuotanro}/${row.cantcuotas}, total $ ${row.importetotal} `
+            detalle += ` cuota ${row.cuotanro}/${row.cantcuotas}, total $ ${this.currencyPipe.format(row.importetotal)} `
           else 
             detalle += ` cuota ${row.cuotanro}/${row.cantcuotas} `
         }
