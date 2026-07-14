@@ -83,7 +83,7 @@ const columns: any[] = [
     type: "string",
     fieldName: "cuit.PersonalCUITCUILCUIT",
     searchType: "number",
-    searchComponent: "inputForCUITSearchByINAESFile",
+    searchComponent: "inputForCUITsSearchFromINAESFile",
     sortable: true,
     searchHidden: false,
     hidden: false,
@@ -165,9 +165,10 @@ const columns: any[] = [
     id: 'ProvinciaDescripcion', 
     name: 'Provincia',
     field: 'ProvinciaDescripcion',
-    fieldName: "perdom.ProvinciaDescripcion",
+    fieldName: "perdom.ProvinciaId",
     type: 'string',
-    searchType: "string",
+    searchComponent: "inputForProvinciasSearch",
+    searchType: "number",
     sortable: true,
     searchHidden: false,
     hidden: false,
@@ -176,9 +177,10 @@ const columns: any[] = [
     id: 'LocalidadDescripcion', 
     name: 'Localidad',
     field: 'LocalidadDescripcion',
-    fieldName: "perdom.LocalidadDescripcion",
+    fieldName: "perdom.LocalidadId",
     type: 'string',
-    searchType: "string",
+    searchComponent: "inputForLocalidadesSearch",
+    searchType: "number",
     sortable: true,
     searchHidden: false,
     hidden: false,
@@ -350,16 +352,16 @@ export class InaesController extends BaseController {
           CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')),NULLIF(CONCAT('C', TRIM(dom.DomicilioCodigoPostal)), 'C'),
           NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domCompleto,
           CONCAT(TRIM(dom.DomicilioDomCalle), ' ', TRIM(dom.DomicilioDomNro)) AS Domicilio,
-          prov.ProvinciaDescripcion,
-          loc.LocalidadDescripcion,
+          prov.ProvinciaId, prov.ProvinciaDescripcion,
+          loc.LocalidadId, loc.LocalidadDescripcion,
           dom.DomicilioCodigoPostal
         FROM Personal per
         LEFT JOIN NexoDomicilio nexdom ON nexdom.PersonalId = per.PersonalId AND nexdom.NexoDomicilioActual = 1
         LEFT JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
         LEFT JOIN Pais pais ON pais.PaisId = dom.DomicilioPaisId
         LEFT JOIN Provincia prov ON prov.PaisId = pais.PaisId AND prov.ProvinciaId = dom.DomicilioProvinciaId
-        LEFT JOIN Localidad loc ON loc.PaisId = pais.PaisId AND loc.ProvinciaId = prov.ProvinciaId  AND loc.LocalidadId=dom.DomicilioLocalidadId 
-        LEFT JOIN Barrio bar ON bar.PaisId = pais.PaisId AND prov.ProvinciaId = bar.ProvinciaId AND loc.LocalidadId=bar.LocalidadId AND dom.DomicilioBarrioId=bar.BarrioId
+        LEFT JOIN Localidad loc ON loc.PaisId = pais.PaisId AND loc.ProvinciaId = prov.ProvinciaId  AND loc.LocalidadId = dom.DomicilioLocalidadId 
+        LEFT JOIN Barrio bar ON bar.PaisId = pais.PaisId AND prov.ProvinciaId = bar.ProvinciaId AND loc.LocalidadId = bar.LocalidadId AND dom.DomicilioBarrioId = bar.BarrioId
       ) AS perdom ON perdom.PersonalId = per.PersonalId
 
       LEFT JOIN PersonalEmail email on email.PersonalId=per.PersonalId AND email.PersonalEmailInactivo=0
@@ -388,14 +390,14 @@ export class InaesController extends BaseController {
 
   async getCUITsByINAESFile(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
-    const files:any[] = req.body.files
+    const file:any[] = req.body.file
     try {
       await queryRunner.startTransaction()
-      if (!files.length) throw new ClientException("Debes de ingresar un archivo");
-      const CUITs:string[] = await this.getCUITsByFile(files[0].tempfilename)
+      if (!file.length) throw new ClientException("Debes de ingresar un archivo");
+      const CUITs:string[] = await this.getCUITsByFile(file[0].tempfilename)
 
       await queryRunner.commitTransaction()
-      this.jsonRes(CUITs, res);
+      this.jsonRes({cuits: CUITs, length: CUITs.length}, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)

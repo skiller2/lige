@@ -117,10 +117,12 @@
     <app-requirente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
       [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
     }
-    <!-- @if (selections.field.searchComponent=='inputForCUITsSearchByINAESFile') {
-    <app-inaes-cuits-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
-      [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
-    } -->
+    @if (selections.field.searchComponent=='inputForCUITsSearchFromINAESFile') {
+    <nz-upload nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
+      (nzChange)="uploadChange($event)">
+      <button nz-button><nz-icon nzType="upload" />Leer CUITs de Archivo PDF INAES</button>
+    </nz-upload>
+    }
     @if (selections.field.searchComponent=='inputForSucursalSearch') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
       (ngModelChange)="selectedValueSucursal($event)" [nzDropdownMatchSelectWidth]="false"
@@ -502,6 +504,8 @@
     }
   </div>
   }
-  <button nz-button (click)="handleInputConfirm()">+</button>
+  <!-- <div nz-col [nzXs]="1" [nzSm]="1" [nzMd]="1" [nzLg]="1"> -->
+    <button nz-button (click)="handleInputConfirm()">+</button>
+  <!-- </div> -->
   }
 </nz-card>
