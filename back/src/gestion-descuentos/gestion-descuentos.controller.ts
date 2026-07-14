@@ -1004,6 +1004,25 @@ export class GestionDescuentosController extends BaseController {
     return PersonalOtroDescuentoId
   }
 
+  private async validateObjetivoDescuentoAplica(queryRunner: any, ObjetivoId: number, DescuentoId: number, AplicaA: string, usuario: string, ip: string, hoy: Date) {
+
+    const ClienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
+
+    // validacion sobre 'aplica a'. En caso de que exista en ObjetivoDescuentoAplica, validar el 'aplica a' contra ese registro. De no encontrar registro asociado, crear uno.
+    const ObjetivoDescuentoAplica = await queryRunner.query(`SELECT DescuentoId,AplicaA FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND DescuentoId = @2`, [ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, DescuentoId])
+    if (ObjetivoDescuentoAplica.length == 0) {
+      await queryRunner.query(`
+        INSERT INTO ObjetivoDescuentoAplica (
+        DescuentoId, ClienteId,ClienteElementoDependienteId,AplicaA,
+        AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudUsuarioMod,AudIpMod)
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
+      `, [DescuentoId, ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, AplicaA, hoy, usuario, ip, hoy, usuario, ip])
+    } else if (ObjetivoDescuentoAplica[0].AplicaA != AplicaA) {
+      const aplicaALabel = aplicaAOptions.find((opt: any) => opt.value === ObjetivoDescuentoAplica[0].AplicaA.trim())?.label
+      throw new ClientException(`El "Aplica a" es distinto al registrado en el objetivo ${ClienteElementoDependiente.ClienteId}/${ClienteElementoDependiente.ClienteElementoDependienteId} ("${aplicaALabel}").`)
+    }
+  }
+
   private async addObjetivoDescuento(queryRunner: any, objDescuento: any, usuario: string, ip: string) {
     const AplicaA: string = objDescuento.AplicaA
     const ObjetivoDescuentoDescuentoId: number = objDescuento.DescuentoId
@@ -1043,22 +1062,7 @@ export class GestionDescuentosController extends BaseController {
 
     if (mensaje.length > 0) throw new ClientException(mensaje)
 
-    const ClienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
-
-    // validacion sobre 'aplica a'. En caso de que exista en ObjetivoDescuentoAplica, validar el 'aplica a' contra ese registro. De no encontrar registro asociado, crear uno.
-    const ObjetivoDescuentoAplica = await queryRunner.query(`SELECT DescuentoId,AplicaA FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND DescuentoId = @2`, [ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, ObjetivoDescuentoDescuentoId])
-    if (ObjetivoDescuentoAplica.length == 0) {
-      await queryRunner.query(`
-        INSERT INTO ObjetivoDescuentoAplica (
-        DescuentoId, ClienteId,ClienteElementoDependienteId,AplicaA,AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudUsuarioMod,AudIpMod)
-        VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
-      `, [ObjetivoDescuentoDescuentoId, ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, AplicaA, hoy, usuario, ip, hoy, usuario, ip])
-    } else if (ObjetivoDescuentoAplica[0].AplicaA != AplicaA) {
-      const aplicaALabel = aplicaAOptions.find((opt: any) => opt.value === ObjetivoDescuentoAplica[0].AplicaA.trim())?.label
-      throw new ClientException(`El "Aplica a" es distinto al registrado ("${aplicaALabel}")`)
-    }
-
-
+    await this.validateObjetivoDescuentoAplica(queryRunner, ObjetivoId, ObjetivoDescuentoDescuentoId, AplicaA, usuario, ip, hoy)
 
     const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
     const importeCuota = Number((importeCalculado / Number(Cuotas)).toFixed(2))
@@ -1877,21 +1881,7 @@ FROM cte
 
     if (mensaje.length > 0) throw new ClientException(mensaje)
 
-    const ClienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
-
-    // validacion sobre 'aplica a'. En caso de que exista en ObjetivoDescuentoAplica, validar el 'aplica a' contra ese registro. De no encontrar registro asociado, crear uno.
-    const ObjetivoDescuentoAplica = await queryRunner.query(`SELECT DescuentoId,AplicaA FROM ObjetivoDescuentoAplica WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1 AND DescuentoId = @2`, [ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, DescuentoId])
-    if (ObjetivoDescuentoAplica.length == 0) {
-      await queryRunner.query(`
-        INSERT INTO ObjetivoDescuentoAplica (
-        DescuentoId, ClienteId,ClienteElementoDependienteId,AplicaA,AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudUsuarioMod,AudIpMod)
-        VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
-      `, [DescuentoId, ClienteElementoDependiente.ClienteId, ClienteElementoDependiente.ClienteElementoDependienteId, AplicaA, hoy, usuario, ip, hoy, usuario, ip])
-    } else if (ObjetivoDescuentoAplica[0].AplicaA != AplicaA) {
-      const aplicaALabel = aplicaAOptions.find((opt: any) => opt.value === ObjetivoDescuentoAplica[0].AplicaA.trim())?.label
-      throw new ClientException(`El "Aplica a" es distinto al registrado ("${aplicaALabel}")`)
-    }
-
+    await this.validateObjetivoDescuentoAplica(queryRunner, ObjetivoId, DescuentoId, AplicaA, usuario, ip, hoy)
 
     const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
     const importeCuota = Number((importeCalculado / Number(Cuotas)).toFixed(2))
@@ -2970,7 +2960,7 @@ FROM cte
         }
 
         if (row.isfull == 1) {
-          await this.addObjetivoDescuento(queryRunner, Descuento, null, ip)
+          await this.addObjetivoDescuento(queryRunner, Descuento, usuario, ip)
         } else {
           dataset.push(row)
         }
@@ -2982,7 +2972,7 @@ FROM cte
 
 
       await queryRunner.commitTransaction();
-      this.jsonRes({ list: result }, res, `Se procesaron ${req.body[1].gridDataInsert.length} registros `);
+      this.jsonRes({ list: result }, res, `Registros procesados correctamente: ${req.body[1].gridDataInsert.length}.`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)

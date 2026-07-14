@@ -7,6 +7,7 @@ import puppeteer from 'puppeteer';
 import path from 'path';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import { unlink } from "fs/promises";
+import { findColumnByIndex } from "../impuestos-afip/comprobantes-utils/lista.ts";
 
 const tiposMovimiento = [
   { value: "deposito", label: "Depósito", destinoIdColumn: "DepositoIdDestino" },
@@ -359,8 +360,6 @@ export class MovimientoStockController extends BaseController {
       const EfectoEfectoIndividualId = efecto.EfectoIndividualId ?? null
       const Cantidad = efecto.Cantidad
       const StockId = efecto.StockId
-      // Destino de la suma: la réplica "usada" resuelta en resolverEfectosUsados, o el mismo efecto.
-      const EfectoIdDestino = Number(efecto.EfectoIdDestino ?? efecto.EfectoId)
 
       if (!indIngresoStock) {
         const resStock = await queryRunner.query(
@@ -414,15 +413,21 @@ export class MovimientoStockController extends BaseController {
       // Validaciones de transformacion a usado
       if (efecto.usado) {
         // valido si es efecto o efecto+efectoindividual
-        if (EfectoEfectoIndividualId == null) {
-          // si es efecto: veo de que este creado el efecto identico con atributo de usado
-          // todo: pendiente de optimizar query
+        if (EfectoEfectoIndividualId != null) {
+          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `No se puede transformar a usado los Efectos con Efecto Individual asociado.` });
+          continue;
+        }
 
-          await queryRunner.query(`
-                WITH Datos AS (
+        // si es efecto: veo de que este creado el efecto identico con atributo de usado
+        // todo: pendiente de optimizar query
+        const resEfectosIdenticos = await queryRunner.query(`
+              WITH Datos AS (
                     SELECT
                         e.EfectoId,
                         e.EfectoDescripcion,
+                        e.RubroId,
+                        e.SubrubroId,
+                        e.EfectoUnidadMedidaPrincipalId,
                         STRING_AGG(
                             CONCAT(
                                 ea.EfectoAtributoAtributoId,
@@ -441,7 +446,10 @@ export class MovimientoStockController extends BaseController {
                       AND ea.EfectoAtributoAtributoId <> 11
                     GROUP BY
                         e.EfectoId,
-                        e.EfectoDescripcion
+                        e.EfectoDescripcion,
+                         e.RubroId,
+                        e.SubrubroId,
+                        e.EfectoUnidadMedidaPrincipalId
                 )
                 SELECT d2.*, ea.EfectoAtributoValorId
                 FROM Datos d1
@@ -449,16 +457,69 @@ export class MovimientoStockController extends BaseController {
                     ON d2.EfectoDescripcion = d1.EfectoDescripcion
                   AND d2.locura = d1.locura
                 left join EfectoAtributo ea on ea.EfectoId = d2.EfectoId and ea.EfectoAtributoAtributoId = 11
-                WHERE d1.EfectoId = @0 `, [EfectoId])
-          // tengo que cambiar el efectoid de destino y corroborar si en tabla stock cuenta con el registro de destino+ efectoid
+                WHERE d1.EfectoId = @1`, [EfectoId])
 
+        // de traer mas de 2 efectos identicos, es inconsistencia de datos
+        if (resEfectosIdenticos.length > 2) {
+          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `Existen más de dos efectos (inconsistencia de datos).` });
+          continue;
         }
 
+        // si el efecto que se esta usando, ya tiene el efecto usado, no hacer nada, ya que el efecto usado ya esta creado y no hay que crear otro
+        const resEfecto = resEfectosIdenticos.find((efecto: any) => efecto.EfectoId == EfectoId) // evaluar nombre de variable, ya que resEfectoIdentico es un array y resEfecto es un objeto
 
-        // si es efecto+efectoindividual: a ese efectoindividual le agrego el atributo de usado si no lo tiene
+        if (!resEfecto) {
+          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `No se encontro el efecto (inconsistencia de datos).` });
+          continue;
+        }
 
+        // el efecto obtenido es el nuevo
+        if (resEfecto?.EfectoAtributoValorId != 2) {
+          const efectoUsadoId = resEfectosIdenticos.find(e => e.EfectoAtributoValorId == 2);
 
+          // Consulto si es el efecto usado, si no lo es, creo el efecto usado y le agrego el atributo de usado
+          if (!efectoUsadoId) {
+            // busco los atributos del efecto original y los copio al nuevo efecto usado
+            const resAtributos = await queryRunner.query(`
+              SELECT EfectoAtributoAtributoId, EfectoAtributoValorId
+              FROM EfectoAtributo
+              WHERE EfectoId = @0 AND EfectoAtributoAtributoId <> 11
+            `, [EfectoId]);
+
+            // creo el efecto usado y cambio el efectoid de destino al nuevo efecto usado
+            // creo el efecto usado
+            const resNuevoEfecto = await queryRunner.query(`
+              INSERT INTO Efecto (EfectoDescripcion, RubroId,SubrubroId,EfectoUnidadMedidaPrincipalId)
+              VALUES (@0, @1, @2, @3)
+              
+              SELECT SCOPE_IDENTITY() AS EfectoId
+            `, [resEfectosIdenticos[0].EfectoDescripcion, resEfectosIdenticos[0].RubroId, resEfectosIdenticos[0].SubrubroId, resEfectosIdenticos[0].EfectoUnidadMedidaPrincipalId]);
+
+            // agrego el atributo al efecto usado
+            for (const atributo of resAtributos) {
+              await queryRunner.query(`
+                INSERT INTO EfectoAtributo (EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId)
+                VALUES (@0, @1, @2)
+              `, [resNuevoEfecto[0].EfectoId, atributo.EfectoAtributoAtributoId, atributo.EfectoAtributoValorId]);
+            }
+
+            // agrego el atributo de usado al efecto usado
+            await queryRunner.query(`
+              INSERT INTO EfectoAtributo (EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId)
+              VALUES (@0, 11, 2)
+            `, [resNuevoEfecto[0].EfectoId]);
+
+            // cambio el efectoid de destino al nuevo efecto usado
+            efecto.EfectoIdDestino = resNuevoEfecto[0].EfectoId;
+
+          } else {
+            efecto.EfectoIdDestino = efectoUsadoId.EfectoId;
+          }
+
+        }
       }
+
+      const EfectoIdDestino = Number(efecto.EfectoIdDestino ?? efecto.EfectoId) // de tener indicador de usado, se modifica el efectoId de destino al efecto usado
 
       // Suma en destino. Caso de no ser efecto usado
       const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6 WHERE
@@ -784,7 +845,7 @@ export class MovimientoStockController extends BaseController {
         for (const i of acc.indices)
           fieldErrors.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'server', message: `La cantidad total (${acc.total}) para esta ubicación supera el stock disponible (${disponible}).` });
     }
-
+  
     // --- Validar que no exista más de un StockId para el mismo lugar (por efecto/individual) ---
     const efectosChequeados = new Set<string>();
     for (const [i, linea] of efectos.entries()) {

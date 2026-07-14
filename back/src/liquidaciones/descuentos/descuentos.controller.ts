@@ -103,11 +103,12 @@ export class DescuentosController extends BaseController {
         //          throw new ClientException(`Sin descripción para el registro con id ${row.id} ${row.DescuentoDescripcion} ${row.ApellidoNombre} `,row)
 
         if (row.cantcuotas > 1){
-          if (row.IndOcultarImporteTotal!==1)
-            detalle += ` cuota ${row.cuotanro}/${row.cantcuotas}, total $ ${row.importetotal} `
+          if (row.IndOcultarImporteTotal!=1)
+            detalle += ` cuota ${row.cuotanro}/${row.cantcuotas}, total $ ${this.currencyPipe.format(row.importetotal)} `
           else 
             detalle += ` cuota ${row.cuotanro}/${row.cantcuotas} `
         }
+
 
         if (row.PersonalId == null || row.PersonalId == 0)
           throw new ClientException(`PersonalId no válido para el registro con id ${row.id} `, row)
@@ -135,7 +136,6 @@ export class DescuentosController extends BaseController {
 
         }
       }
-
       await queryRunner.commitTransaction();
       await this.eventoLogFin(
         queryRunner,
