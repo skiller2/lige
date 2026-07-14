@@ -1004,8 +1004,7 @@ export class GestionDescuentosController extends BaseController {
     return PersonalOtroDescuentoId
   }
 
-  private async validateObjetivoDescuentoAplica(queryRunner: any, ObjetivoId: number, DescuentoId: number, AplicaA: string, usuario: string, ip: string) {
-    const hoy = new Date()
+  private async validateObjetivoDescuentoAplica(queryRunner: any, ObjetivoId: number, DescuentoId: number, AplicaA: string, usuario: string, ip: string, hoy: Date) {
 
     const ClienteElementoDependiente = await this.getClienteElementoDependienteByObjetivoId(queryRunner, ObjetivoId)
 
@@ -1063,7 +1062,7 @@ export class GestionDescuentosController extends BaseController {
 
     if (mensaje.length > 0) throw new ClientException(mensaje)
 
-    await this.validateObjetivoDescuentoAplica(queryRunner, ObjetivoId, ObjetivoDescuentoDescuentoId, AplicaA, usuario, ip)
+    await this.validateObjetivoDescuentoAplica(queryRunner, ObjetivoId, ObjetivoDescuentoDescuentoId, AplicaA, usuario, ip, hoy)
 
     const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
     const importeCuota = Number((importeCalculado / Number(Cuotas)).toFixed(2))
@@ -1882,7 +1881,7 @@ FROM cte
 
     if (mensaje.length > 0) throw new ClientException(mensaje)
 
-    await this.validateObjetivoDescuentoAplica(queryRunner, ObjetivoId, DescuentoId, AplicaA, usuario, ip)
+    await this.validateObjetivoDescuentoAplica(queryRunner, ObjetivoId, DescuentoId, AplicaA, usuario, ip, hoy)
 
     const importeCalculado = Number(((importeVariable * Cantidad) * (PorcentajeDescuento / 100)).toFixed(2))
     const importeCuota = Number((importeCalculado / Number(Cuotas)).toFixed(2))
