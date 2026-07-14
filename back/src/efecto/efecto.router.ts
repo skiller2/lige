@@ -77,3 +77,7 @@ efectoRouter.get("/atributos", [authMiddleware.verifyToken, authMiddleware.hasGr
 efectoRouter.get("/individual-atributos/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   efectoController.getEfectoIndividualAtributos(req, res, next);
 });
+
+efectoRouter.post("/modificacion", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  efectoController.guardarEfectoModifica(req, res, next);
+});

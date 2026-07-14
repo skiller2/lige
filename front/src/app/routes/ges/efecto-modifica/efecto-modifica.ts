@@ -7,6 +7,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
+import { ApiService } from '../../../services/api.service';
 import { EfectoIndividualAtributo } from '../../../shared/schemas/efecto.schemas';
 
 @Component({
@@ -21,13 +22,13 @@ export class EfectoModificaComponent {
 
   private fb = inject(FormBuilder);
   private search = inject(SearchService);
+  private apiService = inject(ApiService);
 
   // Opciones de los selects: observable directo + async pipe, igual que el filtro-builder.
   readonly $optionsRubros = this.search.getRubros();
   readonly $optionsSubrubros = this.search.getSubrubros();
 
   readonly esConsulta = computed(() => this.modo() !== 'modifica');
-  readonly titulo = computed(() => (this.esConsulta() ? 'Consultar efecto' : 'Modificar efecto'));
 
   readonly efectoId = computed(() => this.efecto()?.EfectoId ?? null);
   readonly individualId = computed(() => this.efecto()?.EfectoEfectoIndividualId ?? null);
@@ -89,6 +90,17 @@ export class EfectoModificaComponent {
   quitarAtributo(index: number): void {
     if (this.esConsulta()) return;
     this.atributos.removeAt(index);
+  }
+
+  async guardar(): Promise<void> {
+    if (this.esConsulta()) return;
+    const values = {
+      ...this.formEfecto.getRawValue(),
+      EfectoEfectoIndividualId: this.individualId(),
+    };
+    console.log('enviando al backend:', values);
+    const res = await firstValueFrom(this.apiService.guardarEfectoModifica(values));
+    console.log('respuesta del backend:', res);
   }
 
   constructor() {

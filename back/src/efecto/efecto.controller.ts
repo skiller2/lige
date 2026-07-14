@@ -1895,4 +1895,14 @@ export class EfectoController extends BaseController {
     }
   }
 
+  async guardarEfectoModifica(req: any, res: Response, next: NextFunction) {
+    try {
+      console.log('Efecto modificacion - ');
+      console.log(JSON.stringify(req.body, null, 2));
+      this.jsonRes({ ok: true }, res, 'Efecto guardado');
+    } catch (error) {
+      return next(error);
+    }
+  }
+
 }

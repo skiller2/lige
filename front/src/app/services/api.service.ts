@@ -1201,6 +1201,13 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(url, payload).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
+  // Guardado del form de modificar efecto. La notificación sale sola vía response() (usa res.msg).
+  guardarEfectoModifica(payload: any) {
+    return this.http.post<ResponseJSON<any>>('api/efecto/modificacion', payload).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    );
+  }
+
   delAdelanto(adelanto: { PersonalId: string; monto: number, anio: number, mes: number }) {
     return this.http
       .delete<ResponseJSON<any>>(`api/adelantos/${adelanto.PersonalId}`, adelanto)

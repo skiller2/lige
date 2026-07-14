@@ -1,6 +1,5 @@
 <nz-card class="small-margin">
   @if (efecto()) {
-    <h3>{{ titulo() }}</h3>
     <form nz-form [formGroup]="formEfecto" nzLayout="horizontal">
       <nz-form-item>
         <nz-form-label [nzSpan]="6">Efecto ID</nz-form-label>
@@ -106,7 +105,9 @@
     @if (esConsulta()) {
       <p style="color: rgba(0,0,0,0.45);">Modo consulta (solo lectura).</p>
     } @else {
-      <p style="color: rgba(0,0,0,0.45);">Modo modificación — el guardado en backend queda pendiente.</p>
+      <div style="text-align: center;">
+        <button nz-button nzType="primary" type="button" (click)="guardar()">Guardar</button>
+      </div>
     }
   } @else {
     <p>Seleccione un efecto en una grilla (General, Personal, Objetivos, Depósitos o Proveedores)
