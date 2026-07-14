@@ -49,14 +49,16 @@
             </div> -->
             <div nz-col style="display: flex;">
               <nz-button-group nz-button nz-buttonGroup style="align-items: flex-end;">
-                <!-- Descarga Alta -->
-                <!-- <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}" >
-                  <span nz-icon nzType="plus" nzTheme="outline"></span>
-                </button> -->
+                <!-- Descarga Altas -->
+                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas' | i18n }}"
+                  (click)="exportGrid('altas')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
+                  <span nz-icon nzType="file" nzTheme="outline"></span>
+                </button>
                 <!-- Descarga Baja -->
-                <!-- <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" >
-                  <span nz-icon nzType="edit" nzTheme="outline"></span>
-                </button> -->
+                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.bajas' | i18n }}"
+                  (click)="exportGrid('bajas')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
+                  <span nz-icon nzType="file" nzTheme="outline"></span>
+                </button>
               </nz-button-group>
             </div>
           </div>

@@ -57,11 +57,12 @@ const columns: any[] = [
     name: 'CUIT Entidad', 
     field: 'CUITEntidad',
     fieldName: "",
-    type: 'number',
+    type: 'string',
     searchType: "number",
     sortable: true,
     searchHidden: true,
     hidden: false,
+    showGridColumn: false,
   },
   {
     id: "PersonalFechaIngreso",
@@ -97,6 +98,7 @@ const columns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    showGridColumn: false,
   },
   {
     id: 'RazonSocial', 
@@ -108,6 +110,7 @@ const columns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    showGridColumn: false,
   },
   {
     id: 'Apellido', 
@@ -143,6 +146,7 @@ const columns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    showGridColumn: false,
   },
   {
     id: "PersonalFechaNacimiento",
@@ -155,7 +159,7 @@ const columns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    showGridColumn: false,
   },
   {
     id: 'ProvinciaDescripcion', 
@@ -199,7 +203,7 @@ const columns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    showGridColumn: false,
   },
   {
     id: "PersonalEmailEmail",
@@ -210,7 +214,7 @@ const columns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    showGridColumn: false,
   },
   {
     id: "Telefonos",
@@ -232,7 +236,7 @@ const columns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    showGridColumn: false,
   },
   {
     id: "CapitalIntegrado",
@@ -243,13 +247,13 @@ const columns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    showGridColumn: false,
   },
   {
     id: "PersonalNroLegajo",
     name: "Nro. de Legajo",
     field: "PersonalNroLegajo",
-    type: "number",
+    type: "string",
     fieldName: "per.PersonalNroLegajo",
     searchType: "number",
     sortable: true,
@@ -288,8 +292,8 @@ export class InaesController extends BaseController {
         TRIM(email.PersonalEmailEmail) AS PersonalEmailEmail,
         tels.Telefonos,
         per.PersonalNroLegajo,
-        
-        perdom.domCompleto
+        perdom.domCompleto,
+        sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion
       FROM Personal per
 
       LEFT JOIN(
@@ -316,8 +320,8 @@ export class InaesController extends BaseController {
       ) act ON act.PersonalId=per.PersonalId 
 
       LEFT JOIN (
-        SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
-        CASE 
+        SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion, p.PersonalSituacionRevistaDesde
+        /*CASE 
           WHEN p.PersonalSituacionRevistaId IS NOT NULL THEN  
             CONCAT(TRIM(s.SituacionRevistaDescripcion), ' (Desde: ', FORMAT(p.PersonalSituacionRevistaDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
               CASE WHEN p.PersonalSituacionRevistaHasta IS NULL THEN '' 
@@ -325,7 +329,7 @@ export class InaesController extends BaseController {
               END, ')'
             )
           ELSE '' 
-        END AS sitRevCom
+        END AS sitRevCom*/
         FROM PersonalSituacionRevista p
         JOIN SituacionRevista s
           ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= GETDATE() AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= CAST(GETDATE() AS DATE)
