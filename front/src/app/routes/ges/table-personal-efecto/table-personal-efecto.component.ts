@@ -31,7 +31,7 @@ export class TablePersonalEfectoComponent {
 
   refreshGrid = input<number>(0);
   personalIdFilter = input<number>(0);
-  efectoSelected = output<{ EfectoId: number; EfectoIndividualId: number | null; EfectoDescripcionCompleto: string } | null>();
+  efectoSelected = output<any | null>();
   private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
@@ -116,13 +116,7 @@ export class TablePersonalEfectoComponent {
   handleSelectedRowsChanged(e: any): void {
     const rows: number[] = e.detail.args.rows ?? []
     const item = rows.length === 1 ? this.angularGrid.dataView.getItem(rows[0]) : null
-    this.efectoSelected.emit(item
-      ? {
-          EfectoId: item.EfectoId,
-          EfectoIndividualId: item.EfectoEfectoIndividualId ?? item.EfectoIndividualId ?? null,
-          EfectoDescripcionCompleto: item.EfectoDescripcionCompleto,
-        }
-      : null)
+    this.efectoSelected.emit(item ?? null)
   }
 
   exportGrid(): void {

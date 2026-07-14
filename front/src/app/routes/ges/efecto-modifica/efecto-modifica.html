@@ -1,12 +1,56 @@
 <nz-card class="small-margin">
-  @if (efectoId()) {
+  @if (efecto()) {
     <h3>{{ titulo() }}</h3>
-    <p><strong>Efecto ID:</strong> {{ efectoId() }}</p>
-    <p><strong>Efecto Individual ID:</strong> {{ efectoIndividualId() || '-' }}</p>
-    <p><strong>Modo:</strong> {{ esConsulta() ? 'Consulta (solo lectura)' : 'Modificación' }}</p>
-    <p style="margin-top: 12px; color: rgba(0,0,0,0.45);">
-      Formulario de edición del efecto pendiente de definir.
-    </p>
+    <form nz-form [formGroup]="formEfecto" nzLayout="horizontal">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Efecto ID</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <input nz-input formControlName="EfectoId" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Descripción</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <input nz-input formControlName="EfectoDescripcionCompleto" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Rubro</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <nz-select formControlName="RubroId" nzShowSearch nzAllowClear nzPlaceHolder="Rubro" [nzDropdownMatchSelectWidth]="false">
+            @for (option of $optionsRubros | async; track option.RubroId) {
+              <nz-option [nzValue]="option.RubroId" [nzLabel]="option.RubroDescripcion"></nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Subrubro</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <nz-select formControlName="SubrubroId" nzShowSearch nzAllowClear nzPlaceHolder="Subrubro" [nzDropdownMatchSelectWidth]="false">
+            @for (option of $optionsSubrubros | async; track option.SubrubroId) {
+              <nz-option [nzValue]="option.SubrubroId" [nzLabel]="option.SubrubroDescripcion"></nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Stock</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <input nz-input formControlName="StockStock" />
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+
+    @if (esConsulta()) {
+      <p style="color: rgba(0,0,0,0.45);">Modo consulta (solo lectura).</p>
+    } @else {
+      <p style="color: rgba(0,0,0,0.45);">Modo modificación — el guardado en backend queda pendiente.</p>
+    }
   } @else {
     <p>Seleccione un efecto en una grilla (General, Personal, Objetivos, Depósitos o Proveedores)
       y presione Consultar o Modificar.</p>

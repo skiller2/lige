@@ -115,11 +115,8 @@
         (efectoSelected)="efectoSeleccionado.set($event)" />
     </div>
   }
-  @if (activeTab() === 'modifica') {
-    <app-efecto-modifica
-      [efectoId]="efectoModificaId()"
-      [efectoIndividualId]="efectoModificaIndividualId()"
-      [modo]="modoModifica()" />
+  @if (activeTab() === 'modifica' || activeTab() === 'consulta') {
+    <app-efecto-modifica [efecto]="efectoSeleccionado()" [modo]="activeTab()" />
   }
   @if (visitedTabs().has('movimientos')) {
     <div [hidden]="activeTab() !== 'movimientos'">

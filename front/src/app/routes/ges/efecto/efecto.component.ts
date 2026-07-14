@@ -75,24 +75,19 @@ export class EfectoComponent {
     this.detalleVisible.set(true)
   }
 
-  readonly efectoSeleccionado = signal<{ EfectoId: number; EfectoIndividualId: number | null; EfectoDescripcionCompleto: string } | null>(null)
+  readonly efectoSeleccionado = signal<any | null>(null)
 
   readonly modificaEfectoDeshabilitado = computed(() => this.efectoSeleccionado() == null)
 
   private limpiarSeleccionAlCambiarTab = effect(() => {
-    this.activeTab()
-    this.efectoSeleccionado.set(null)
+    const tab = this.activeTab()
+    if (tab !== 'modifica' && tab !== 'consulta') this.efectoSeleccionado.set(null)
   })
 
-  // Navega a /ges/efecto/modifica con el efecto seleccionado y el modo (consulta = solo lectura).
+  // Navega a /ges/efecto/modifica o /ges/efecto/consulta (la solapa es el modo); el efecto viaja por señal.
   abrirModifica(modo: 'consulta' | 'modifica') {
-    const sel = this.efectoSeleccionado()
-    if (!sel) return
-    this.router.navigate(['/', 'ges', 'efecto', 'modifica', {
-      EfectoId: sel.EfectoId,
-      EfectoIndividualId: sel.EfectoIndividualId ?? '',
-      modo,
-    }])
+    if (!this.efectoSeleccionado()) return
+    this.router.navigate(['/', 'ges', 'efecto', modo])
   }
 
   // Body que se manda al generar el comprobante. Si ya hay un movimiento confirmado, el backend lo
@@ -146,23 +141,6 @@ export class EfectoComponent {
     this.route.params.pipe(map(params => Number(params['MovimientoStockCodigo']) || 0)),
     { initialValue: 0 }
   )
-
-  // Parámetros de la pantalla modificar/consultar efecto (llegan como matrix params en la URL).
-  efectoModificaId = toSignal(
-    this.route.params.pipe(map(params => Number(params['EfectoId']) || 0)),
-    { initialValue: 0 }
-  )
-
-  efectoModificaIndividualId = toSignal(
-    this.route.params.pipe(map(params => Number(params['EfectoIndividualId']) || 0)),
-    { initialValue: 0 }
-  )
-
-  modoModifica = toSignal(
-    this.route.params.pipe(map(params => (params['modo'] as string) || 'consulta')),
-    { initialValue: 'consulta' }
-  )
-
   refreshTickGeneral = signal(0)
   refreshTickPersonal = signal(0)
   refreshTickObjetivos = signal(0)
