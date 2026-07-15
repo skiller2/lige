@@ -8,6 +8,7 @@ import path from 'path';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import { unlink } from "fs/promises";
 import { findColumnByIndex } from "../impuestos-afip/comprobantes-utils/lista.ts";
+import { logger } from "../logger/logger.ts";
 
 const tiposMovimiento = [
   { value: "deposito", label: "Depósito", destinoIdColumn: "DepositoIdDestino" },
@@ -314,7 +315,8 @@ export class MovimientoStockController extends BaseController {
       }
 
       // Validaciones de transformacion a usado
-      if (efecto.usado) {
+      if (efecto.Usado) {
+
         // valido si es efecto o efecto+efectoindividual
         if (EfectoEfectoIndividualId != null) {
           fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `No se puede transformar a usado los Efectos con Efecto Individual asociado.` });
@@ -360,7 +362,7 @@ export class MovimientoStockController extends BaseController {
                     ON d2.EfectoDescripcion = d1.EfectoDescripcion
                   AND d2.locura = d1.locura
                 left join EfectoAtributo ea on ea.EfectoId = d2.EfectoId and ea.EfectoAtributoAtributoId = 11
-                WHERE d1.EfectoId = @1`, [EfectoId])
+                WHERE d1.EfectoId = @0`, [EfectoId])
 
         // de traer mas de 2 efectos identicos, es inconsistencia de datos
         if (resEfectosIdenticos.length > 2) {
@@ -390,6 +392,7 @@ export class MovimientoStockController extends BaseController {
             `, [EfectoId]);
 
             // creo el efecto usado y cambio el efectoid de destino al nuevo efecto usado
+
             // creo el efecto usado
             const resNuevoEfecto = await queryRunner.query(`
               INSERT INTO Efecto (EfectoDescripcion, RubroId,SubrubroId,EfectoUnidadMedidaPrincipalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
@@ -398,19 +401,26 @@ export class MovimientoStockController extends BaseController {
               SELECT SCOPE_IDENTITY() AS EfectoId
             `, [resEfectosIdenticos[0].EfectoDescripcion, resEfectosIdenticos[0].RubroId, resEfectosIdenticos[0].SubrubroId, resEfectosIdenticos[0].EfectoUnidadMedidaPrincipalId, now, usuario, ip]);
 
-            // agrego el atributo al efecto usado
+            // agrego los atributos del efecto original al nuevo efecto usado
+            let EfectoAtributoId = 1
             for (const atributo of resAtributos) {
               await queryRunner.query(`
-                INSERT INTO EfectoAtributo (EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
-                VALUES (@0, @1, @2, @3, @3, @4, @4, @5, @5)
-              `, [resNuevoEfecto[0].EfectoId, atributo.EfectoAtributoAtributoId, atributo.EfectoAtributoValorId, now, usuario, ip]);
+                INSERT INTO EfectoAtributo (EfectoAtributoId, EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+                VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
+              `, [EfectoAtributoId, resNuevoEfecto[0].EfectoId, atributo.EfectoAtributoAtributoId, atributo.EfectoAtributoValorId, now, usuario, ip]);
+              EfectoAtributoId++
             }
 
             // agrego el atributo de usado al efecto usado
             await queryRunner.query(`
-              INSERT INTO EfectoAtributo (EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
-              VALUES (@0, 11, 2, @1, @1, @2, @2, @3, @3)
-            `, [resNuevoEfecto[0].EfectoId, now, usuario, ip]);
+              INSERT INTO EfectoAtributo (EfectoAtributoId, EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+              VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
+            `, [EfectoAtributoId,
+              resNuevoEfecto[0].EfectoId,
+              11, // atributo de estado
+              2, // valor de usado
+              now, usuario, ip]);
+
 
             // cambio el efectoid de destino al nuevo efecto usado
             efecto.EfectoIdDestino = resNuevoEfecto[0].EfectoId;
@@ -422,6 +432,9 @@ export class MovimientoStockController extends BaseController {
         }
       }
 
+      logger.info(`EfectoIdDestino: ${efecto.EfectoIdDestino}, EfectoId: ${efecto.EfectoId}, EfectoEfectoIndividualId: ${efecto.EfectoEfectoIndividualId}`);
+      logger.info(`Efecto: ${JSON.stringify(efecto)}`);
+      
       const EfectoIdDestino = Number(efecto.EfectoIdDestino ?? efecto.EfectoId) // de tener indicador de usado, se modifica el efectoId de destino al efecto usado
 
       // Suma en destino.
