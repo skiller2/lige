@@ -372,7 +372,7 @@ export class MovimientoStockController extends BaseController {
         const resEfecto = resEfectosIdenticos.find((efecto: any) => efecto.EfectoId == EfectoId) // evaluar nombre de variable, ya que resEfectoIdentico es un array y resEfecto es un objeto
 
         if (!resEfecto) {
-          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `No se encontro el efecto (inconsistencia de datos).` });
+          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `No se encontro el efecto para transformarlo a usado (inconsistencia de datos).` });
           continue;
         }
 
@@ -424,7 +424,7 @@ export class MovimientoStockController extends BaseController {
 
       const EfectoIdDestino = Number(efecto.EfectoIdDestino ?? efecto.EfectoId) // de tener indicador de usado, se modifica el efectoId de destino al efecto usado
 
-      // Suma en destino. Caso de no ser efecto usado
+      // Suma en destino.
       const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6, AudFechaMod = @7, AudUsuarioMod = @8, AudIpMod = @9
          WHERE ( DepositoId = @0 OR (@0 IS NULL AND DepositoId IS NULL))
         AND ( PersonalId = @1 OR (@1 IS NULL AND PersonalId IS NULL))
@@ -433,7 +433,7 @@ export class MovimientoStockController extends BaseController {
         AND EfectoId = @4
         AND ( EfectoEfectoIndividualId = @5 OR (@5 IS NULL AND EfectoEfectoIndividualId IS NULL))
         SELECT @@ROWCOUNT as affected
-`,
+        `,
         [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoIdDestino, EfectoEfectoIndividualId, Cantidad, now, usuario, ip])
 
       const cantRegistros = ressuma[0]?.affected ?? 0;
