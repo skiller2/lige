@@ -100,20 +100,21 @@ export class MovimientoStockController extends BaseController {
       const efectos = body.efectos;
       const indIngresoStock = body.IndIngresoStock === true;
 
+      const usuario = res.locals.userName;
+      const ip = this.getRemoteAddress(req);
+      const now = new Date();
+
       // validaciones
       await this.validateForm(queryRunner, body.fecha, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, efectos, indIngresoStock);
 
       const fecha = new Date(body.fecha)
 
-      // Resuelve/crea los efectos "usados" de destino (setea linea.EfectoIdDestino) antes de registrar.
-      // await this.resolverEfectosUsados(queryRunner, efectos); Se resuelve dentro de aplicarMovimientoStock
-
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
 
-      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, observaciones, fecha, efectos, personalIdInter, indIngresoStock);
+      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, observaciones, fecha, efectos, personalIdInter, indIngresoStock, now, usuario, ip);
 
       // Impacto en Stock: resta el origen, suma el destino (el intermediario si existe)
-      await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, efectos, personalIdInter, indIngresoStock);
+      await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, efectos, personalIdInter, indIngresoStock, now, usuario, ip);
 
       // Simular: corre los INSERT reales pero hace rollback (no persiste, no consume el numerador).
       // No se genera el PDF (ni archivo ni descarga): la simulación solo valida que el movimiento es válido.
@@ -122,7 +123,7 @@ export class MovimientoStockController extends BaseController {
         return this.jsonRes({ ...body, simulado: true }, res, 'Simulación correcta: el movimiento es válido.');
       }
 
-      await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo);
+      await this.generarDocumentoIngresoStock(queryRunner, req, res, movimientoCodigo, now, usuario, ip);
 
       await queryRunner.commitTransaction();
       return this.jsonRes({ ...body, movimientoStockCodigo: movimientoCodigo }, res, "Movimiento confirmado");
@@ -143,11 +144,12 @@ export class MovimientoStockController extends BaseController {
     proveedorId: number | null,
     observaciones: string, fecha: Date, efectos: any[],
     personalIdInter: number | null = null,
-    indIngresoStock: boolean = false
+    indIngresoStock: boolean = false,
+    now: Date,
+    usuario: string,
+    ip: string,
   ) {
-    const usuario = res.locals.userName;
-    const ip = this.getRemoteAddress(req);
-    const fechaActual = new Date();
+
 
     // Código del movimiento desde GenNumerador (lo crea en 1 si no existe, o incrementa).
     const movimientoCodigo = await BaseController.getProxNumero(queryRunner, 'MovimientoStock', usuario, ip);
@@ -179,7 +181,7 @@ export class MovimientoStockController extends BaseController {
        VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14)`,
       [movimientoCodigo, fecha, movPersonalIdDestino, movProveedorIdDestino, movClienteIdDestino,
         movClienteElemDepDestino, movDepositoIdDestino, observaciones, indIngresoStock ? 1 : 0,
-        fechaActual, fechaActual, usuario, usuario, ip, ip]
+        now, now, usuario, usuario, ip, ip]
     );
 
     if (conInter) {
@@ -191,7 +193,7 @@ export class MovimientoStockController extends BaseController {
          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12)`,
         [movimientoCodigo, personalId, proveedorId, clienteIdDestino,
           clienteElemDepDestino, depositoId, JSON.stringify(efectos ?? []),
-          fechaActual, fechaActual, ip, ip, usuario, usuario]
+          now, now, ip, ip, usuario, usuario]
       );
     }
 
@@ -231,7 +233,7 @@ export class MovimientoStockController extends BaseController {
         [detalleCodigo, (linea.EfectoIdDestino ?? linea.EfectoId), linea.EfectoIndividualId, linea.Cantidad,
           stk.PersonalId, stk.DepositoId, stk.ProveedorId, clienteIdOrigen, clienteElemDepOrigen,
           movimientoCodigo, linea.Usado ? 1 : 0, linea.Cantidad,
-          fechaActual, fechaActual, ip, ip, usuario, usuario]
+          now, now, ip, ip, usuario, usuario]
       );
     }
 
@@ -243,10 +245,11 @@ export class MovimientoStockController extends BaseController {
     depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
     efectos: any[],
     personalIdInter: number | null = null,
-    indIngresoStock: boolean = false
+    indIngresoStock: boolean = false,
+    now: Date,
+    usuario: string,
+    ip: string
   ) {
-    const usuario = res.locals.userName;
-    const ip = this.getRemoteAddress(req);
     let fieldErrors = []
 
     // Con intermediario, el stock entra al intermediario (lo tiene físicamente hasta resolver el pendiente).
@@ -306,7 +309,7 @@ export class MovimientoStockController extends BaseController {
         } else if (Cantidad == CantidadActual) {
           await queryRunner.query(`DELETE FROM Stock WHERE StockId = @0`, [StockId]);
         } else {
-          await queryRunner.query(`UPDATE Stock SET StockStock = @1 WHERE StockId = @0`, [StockId, CantidadActual - Cantidad]);
+          await queryRunner.query(`UPDATE Stock SET StockStock = @1, AudFechaMod = @2, AudUsuarioMod = @3, AudIpMod = @4 WHERE StockId = @0`, [StockId, CantidadActual - Cantidad, now, usuario, ip]);
         }
       }
 
@@ -389,25 +392,25 @@ export class MovimientoStockController extends BaseController {
             // creo el efecto usado y cambio el efectoid de destino al nuevo efecto usado
             // creo el efecto usado
             const resNuevoEfecto = await queryRunner.query(`
-              INSERT INTO Efecto (EfectoDescripcion, RubroId,SubrubroId,EfectoUnidadMedidaPrincipalId)
-              VALUES (@0, @1, @2, @3)
+              INSERT INTO Efecto (EfectoDescripcion, RubroId,SubrubroId,EfectoUnidadMedidaPrincipalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+              VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
               
               SELECT SCOPE_IDENTITY() AS EfectoId
-            `, [resEfectosIdenticos[0].EfectoDescripcion, resEfectosIdenticos[0].RubroId, resEfectosIdenticos[0].SubrubroId, resEfectosIdenticos[0].EfectoUnidadMedidaPrincipalId]);
+            `, [resEfectosIdenticos[0].EfectoDescripcion, resEfectosIdenticos[0].RubroId, resEfectosIdenticos[0].SubrubroId, resEfectosIdenticos[0].EfectoUnidadMedidaPrincipalId, now, usuario, ip]);
 
             // agrego el atributo al efecto usado
             for (const atributo of resAtributos) {
               await queryRunner.query(`
-                INSERT INTO EfectoAtributo (EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId)
-                VALUES (@0, @1, @2)
-              `, [resNuevoEfecto[0].EfectoId, atributo.EfectoAtributoAtributoId, atributo.EfectoAtributoValorId]);
+                INSERT INTO EfectoAtributo (EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+                VALUES (@0, @1, @2, @3, @3, @4, @4, @5, @5)
+              `, [resNuevoEfecto[0].EfectoId, atributo.EfectoAtributoAtributoId, atributo.EfectoAtributoValorId, now, usuario, ip]);
             }
 
             // agrego el atributo de usado al efecto usado
             await queryRunner.query(`
-              INSERT INTO EfectoAtributo (EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId)
-              VALUES (@0, 11, 2)
-            `, [resNuevoEfecto[0].EfectoId]);
+              INSERT INTO EfectoAtributo (EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+              VALUES (@0, 11, 2, @1, @1, @2, @2, @3, @3)
+            `, [resNuevoEfecto[0].EfectoId, now, usuario, ip]);
 
             // cambio el efectoid de destino al nuevo efecto usado
             efecto.EfectoIdDestino = resNuevoEfecto[0].EfectoId;
@@ -422,8 +425,8 @@ export class MovimientoStockController extends BaseController {
       const EfectoIdDestino = Number(efecto.EfectoIdDestino ?? efecto.EfectoId) // de tener indicador de usado, se modifica el efectoId de destino al efecto usado
 
       // Suma en destino. Caso de no ser efecto usado
-      const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6 WHERE
-            ( DepositoId = @0 OR (@0 IS NULL AND DepositoId IS NULL))
+      const ressuma = await queryRunner.query(`UPDATE Stock SET StockStock = StockStock + @6, AudFechaMod = @7, AudUsuarioMod = @8, AudIpMod = @9
+         WHERE ( DepositoId = @0 OR (@0 IS NULL AND DepositoId IS NULL))
         AND ( PersonalId = @1 OR (@1 IS NULL AND PersonalId IS NULL))
         AND ( ObjetivoId = @2 OR (@2 IS NULL AND ObjetivoId IS NULL))
         AND ( ProveedorId = @3 OR (@3 IS NULL AND ProveedorId IS NULL))
@@ -431,14 +434,14 @@ export class MovimientoStockController extends BaseController {
         AND ( EfectoEfectoIndividualId = @5 OR (@5 IS NULL AND EfectoEfectoIndividualId IS NULL))
         SELECT @@ROWCOUNT as affected
 `,
-        [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoIdDestino, EfectoEfectoIndividualId, Cantidad])
+        [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoIdDestino, EfectoEfectoIndividualId, Cantidad, now, usuario, ip])
 
       const cantRegistros = ressuma[0]?.affected ?? 0;
       if (cantRegistros == 0) {
         await queryRunner.query(
-          `INSERT INTO Stock (DepositoId,PersonalId,ObjetivoId,ProveedorId, EfectoId, EfectoEfectoIndividualId, StockStock)
-          VALUES (@0, @1, @2, @3,@4,@5,@6)`,
-          [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoIdDestino, EfectoEfectoIndividualId, Cantidad]
+          `INSERT INTO Stock (DepositoId,PersonalId,ObjetivoId,ProveedorId, EfectoId, EfectoEfectoIndividualId, StockStock, AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
+          VALUES (@0, @1, @2, @3,@4,@5,@6,@7,@8,@9,@7,@8,@9)`,
+          [destDepositoId, destPersonalId, destObjetivoId, destProveedorId, EfectoIdDestino, EfectoEfectoIndividualId, Cantidad, now, usuario, ip]
         );
 
       } else if (cantRegistros > 1) {
@@ -563,13 +566,14 @@ export class MovimientoStockController extends BaseController {
     queryRunner: any,
     req: any,
     res: any,
-    movimientoCodigo: number | null
+    movimientoCodigo: number | null,
+    now: Date,
+    usuario: string,
+    ip: string
   ): Promise<{ filesPathAbs: string; nombreArchivo: string }> {
-    const usuario = res.locals.userName;
-    const ip = this.getRemoteAddress(req);
-    const fechaActual = new Date();
-    const anio = fechaActual.getFullYear();
-    const mes = fechaActual.getMonth() + 1;
+
+    const anio = now.getFullYear();
+    const mes = now.getMonth() + 1;
 
     // El alta del Documento (numerador, INSERT, copia del archivo y ruta según DocumentoTipo) la
     // centraliza FileUploadController.handleDOCUpload. Acá solo generamos el PDF en la carpeta
@@ -577,7 +581,7 @@ export class MovimientoStockController extends BaseController {
     const tempCarpeta = path.join(this.directoryDocumentos, 'temp');
     if (!existsSync(tempCarpeta)) mkdirSync(tempCarpeta, { recursive: true });
 
-    const tempfilename = `movstk-${movimientoCodigo ?? 'sin-mov'}-${fechaActual.getTime()}.pdf`;
+    const tempfilename = `movstk-${movimientoCodigo ?? 'sin-mov'}-${now.getTime()}.pdf`;
     const tempPathAbs = path.join(tempCarpeta, tempfilename);
 
     // Renderiza el comprobante con la plantilla configurada (config/comprobante-stock) y los
@@ -585,7 +589,7 @@ export class MovimientoStockController extends BaseController {
     await this.renderComprobantePdf(queryRunner, tempPathAbs, movimientoCodigo, null, usuario);
 
     // Denominador del documento: el código de movimiento cuando existe.
-    const denDocumento = movimientoCodigo ? `${movimientoCodigo}` : 'ingreso';
+    const denDocumento = movimientoCodigo ? `Movimiento de Stock - Código ${movimientoCodigo}` : 'Movimiento de Stock';
 
     // Objeto "file" mínimo que espera handleDOCUpload (mismo shape que un upload real).
     const file = {
@@ -601,7 +605,7 @@ export class MovimientoStockController extends BaseController {
       null,          // objetivo_id
       null,          // cliente_id
       0,             // doc_id (0 => alta de un nuevo documento)
-      fechaActual,   // fecha
+      now,   // fecha
       null,          // fec_doc_ven
       denDocumento,  // den_documento
       anio,
