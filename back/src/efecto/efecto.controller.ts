@@ -1896,13 +1896,225 @@ export class EfectoController extends BaseController {
   }
 
   async guardarEfectoModifica(req: any, res: Response, next: NextFunction) {
+    console.log('Efecto modificacion - body recibido:');
+    console.log(JSON.stringify(req.body, null, 2));
+
+    const queryRunner = await getConnection(res.locals.userName);
     try {
-      console.log('Efecto modificacion - ');
-      console.log(JSON.stringify(req.body, null, 2));
-      this.jsonRes({ ok: true }, res, 'Efecto guardado');
+      await queryRunner.startTransaction();
+
+      const body = req.body ?? {};
+      const efectoId = Number(body.EfectoId) || null;
+      const descripcion = String(body.EfectoDescripcion ?? '').trim();
+      const rubroId = Number(body.RubroId) || null;
+      const subrubroId = Number(body.SubrubroId) || null;
+      const individualId = body.EfectoEfectoIndividualId == null || body.EfectoEfectoIndividualId === ''
+        ? null
+        : Number(body.EfectoEfectoIndividualId);
+      const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').trim();
+      // Los atributos de ingreso cuelgan del efecto individual: sin individual no hay filas.
+      const atributos = individualId != null && Array.isArray(body.atributos) ? body.atributos : [];
+
+      const usuario = res.locals.userName;
+      const ip = this.getRemoteAddress(req);
+      const now = new Date();
+
+      await this.validarEfectoModifica(queryRunner, efectoId, descripcion, rubroId, subrubroId, individualId, individualDescripcion, atributos);
+
+      await queryRunner.query(`
+        UPDATE Efecto
+        SET EfectoDescripcion = @1, RubroId = @2, SubrubroId = @3,
+            AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
+        WHERE EfectoId = @0
+      `, [efectoId, descripcion, rubroId, subrubroId, now, usuario, ip]);
+
+      // El bloque de efecto individual solo aparece en el form si el efecto tiene individual.
+      // La PK es el par (EfectoEfectoIndividualId, EfectoId).
+      if (individualId != null) {
+        await queryRunner.query(`
+          UPDATE EfectoEfectoIndividual
+          SET EfectoEfectoIndividualDescripcion = @2,
+              AudFechaMod = @3, AudUsuarioMod = @4, AudIpMod = @5
+          WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+        `, [efectoId, individualId, individualDescripcion, now, usuario, ip]);
+
+        await this.guardarAtributosIngreso(queryRunner, efectoId, individualId, atributos, now, usuario, ip);
+      }
+if(true)
+        await this.rollbackTransaction(queryRunner);
+
+      //await queryRunner.commitTransaction();
+      return this.jsonRes({ EfectoId: efectoId, EfectoEfectoIndividualId: individualId }, res, 'Efecto guardado');
     } catch (error) {
+      await this.rollbackTransaction(queryRunner);
       return next(error);
+    } finally {
+      await queryRunner.release();
     }
+  }
+
+  private idsAtributosIngreso(atributos: any[]): number[] {
+    return atributos
+      .map(row => Number(row?.EfectoEfectoIndividualAtributoIngresoId))
+      .filter(id => Number.isFinite(id) && id > 0);
+  }
+
+  private async guardarAtributosIngreso(
+    queryRunner: any, efectoId: number, individualId: number, atributos: any[],
+    now: Date, usuario: string, ip: string
+  ) {
+    // Bajas: lo que el usuario sacó de la grilla ya no viene en el payload.
+    const conservados = this.idsAtributosIngreso(atributos);
+    if (conservados.length) {
+      await queryRunner.query(`
+        DELETE FROM EfectoEfectoIndividualAtributoIngreso
+        WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+          AND EfectoEfectoIndividualAtributoIngresoId NOT IN (${conservados.join(',')})
+      `, [efectoId, individualId]);
+    } else {
+      await queryRunner.query(`
+        DELETE FROM EfectoEfectoIndividualAtributoIngreso
+        WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+      `, [efectoId, individualId]);
+    }
+
+    const individual = await queryRunner.query(`
+      SELECT ISNULL(ind.EfectoEfectoIndividualAtributoIngresoUltNro, 0) AS UltNro,
+        ISNULL((
+          SELECT MAX(atr.EfectoEfectoIndividualAtributoIngresoId)
+          FROM EfectoEfectoIndividualAtributoIngreso atr
+          WHERE atr.EfectoId = ind.EfectoId AND atr.EfectoEfectoIndividualId = ind.EfectoEfectoIndividualId
+        ), 0) AS MaxId
+      FROM EfectoEfectoIndividual ind
+      WHERE ind.EfectoId = @0 AND ind.EfectoEfectoIndividualId = @1
+    `, [efectoId, individualId]);
+    let ultNro = Math.max(Number(individual[0]?.UltNro ?? 0), Number(individual[0]?.MaxId ?? 0));
+
+    for (const row of atributos) {
+      const id = Number(row?.EfectoEfectoIndividualAtributoIngresoId);
+      const atributoId = Number(row?.EfectoAtributoAtributoIngresoId);
+      const valor = String(row?.EfectoAtributoIngresoValor ?? '').trim();
+
+      if (Number.isFinite(id) && id > 0) {
+        await queryRunner.query(`
+          UPDATE EfectoEfectoIndividualAtributoIngreso
+          SET EfectoAtributoAtributoIngresoId = @3, EfectoAtributoIngresoValor = @4,
+              AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7
+          WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+            AND EfectoEfectoIndividualAtributoIngresoId = @2
+        `, [efectoId, individualId, id, atributoId, valor, now, usuario, ip]);
+      } else {
+        ultNro++;
+        await queryRunner.query(`
+          INSERT INTO EfectoEfectoIndividualAtributoIngreso
+            (EfectoEfectoIndividualAtributoIngresoId, EfectoId, EfectoEfectoIndividualId,
+             EfectoAtributoAtributoIngresoId, EfectoAtributoIngresoValor,
+             AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
+          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@5,@6,@7)
+        `, [ultNro, efectoId, individualId, atributoId, valor, now, usuario, ip]);
+      }
+    }
+
+    await queryRunner.query(`
+      UPDATE EfectoEfectoIndividual
+      SET EfectoEfectoIndividualAtributoIngresoUltNro = @2
+      WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+    `, [efectoId, individualId, ultNro]);
+  }
+
+  private async validarEfectoModifica(
+    queryRunner: any, efectoId: number | null, descripcion: string, rubroId: number | null,
+    subrubroId: number | null, individualId: number | null, individualDescripcion: string, atributos: any[]
+  ) {
+    if (!efectoId)
+      throw new ClientException('No se recibió el efecto a modificar.');
+
+    // Todas estas columnas son NOT NULL.
+    const camposVacios: string[] = [];
+    if (!descripcion) camposVacios.push('- Descripción');
+    if (!rubroId) camposVacios.push('- Rubro');
+    if (!subrubroId) camposVacios.push('- Subrubro');
+    if (individualId != null && !individualDescripcion) camposVacios.push('- Descripción individual');
+    if (camposVacios.length) {
+      camposVacios.unshift('Debe completar los siguientes campos:');
+      throw new ClientException(camposVacios);
+    }
+
+    const errores: string[] = [];
+
+    // Los largos se validan acá para no truncar silenciosamente contra el tipo de la columna.
+    if (descripcion.length > 100)
+      errores.push(`La descripción no puede superar los 100 caracteres (tiene ${descripcion.length}).`);
+    if (individualId != null && individualDescripcion.length > 60)
+      errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
+
+    const efecto = await queryRunner.query(`SELECT EfectoId FROM Efecto WHERE EfectoId = @0`, [efectoId]);
+    if (!efecto.length)
+      errores.push(`No existe el efecto ${efectoId}.`);
+
+    if (individualId != null) {
+      const individual = await queryRunner.query(`
+        SELECT EfectoEfectoIndividualId FROM EfectoEfectoIndividual
+        WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+      `, [efectoId, individualId]);
+      if (!individual.length)
+        errores.push(`No existe el efecto individual ${individualId} para el efecto ${efectoId}.`);
+    }
+
+    // SubrubroId no es único: solo tiene sentido dentro de un RubroId (la FK de Efecto es el par).
+    const subrubro = await queryRunner.query(`
+      SELECT SubrubroId FROM Subrubro WHERE RubroId = @0 AND SubrubroId = @1
+    `, [rubroId, subrubroId]);
+    if (!subrubro.length)
+      errores.push('El subrubro seleccionado no pertenece al rubro seleccionado.');
+
+    // Atributos de ingreso: ambas columnas son NOT NULL y el valor es CHAR(40).
+    const atributosVistos = new Set<number>();
+    for (const [idx, row] of atributos.entries()) {
+      const nro = idx + 1;
+      const atributoId = Number(row?.EfectoAtributoAtributoIngresoId) || null;
+      const valor = String(row?.EfectoAtributoIngresoValor ?? '').trim();
+
+      if (!atributoId) {
+        errores.push(`Atributo #${nro}: debe seleccionar el atributo.`);
+        continue;
+      }
+      if (!valor) {
+        errores.push(`Atributo #${nro}: debe ingresar el valor.`);
+        continue;
+      }
+      if (valor.length > 40)
+        errores.push(`Atributo #${nro}: el valor no puede superar los 40 caracteres (tiene ${valor.length}).`);
+      if (atributosVistos.has(atributoId))
+        errores.push(`Atributo #${nro}: el atributo está repetido.`);
+      atributosVistos.add(atributoId);
+    }
+
+    if (atributosVistos.size) {
+      const existentes = await queryRunner.query(`
+        SELECT AtributoId FROM Atributo WHERE AtributoId IN (${[...atributosVistos].join(',')})
+      `);
+      const validos = new Set(existentes.map((row: any) => Number(row.AtributoId)));
+      for (const atributoId of atributosVistos)
+        if (!validos.has(atributoId)) errores.push(`No existe el atributo ${atributoId}.`);
+    }
+
+    // Un Id que no pertenezca a este individual haría que el UPDATE no afecte ninguna fila y el
+    // cambio se perdiera sin aviso.
+    const ids = this.idsAtributosIngreso(atributos);
+    if (ids.length) {
+      const propias = await queryRunner.query(`
+        SELECT EfectoEfectoIndividualAtributoIngresoId AS Id
+        FROM EfectoEfectoIndividualAtributoIngreso
+        WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+      `, [efectoId, individualId]);
+      const validas = new Set(propias.map((row: any) => Number(row.Id)));
+      for (const id of ids)
+        if (!validas.has(id)) errores.push(`El atributo ${id} no pertenece al efecto individual.`);
+    }
+
+    if (errores.length)
+      throw new ClientException(errores);
   }
 
 }
