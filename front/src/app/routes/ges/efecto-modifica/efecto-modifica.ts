@@ -59,7 +59,7 @@ export class EfectoModificaComponent {
 
   readonly formEfecto = this.fb.group({
     EfectoId: [{ value: null as number | null, disabled: true }],
-    EfectoDescripcionCompleto: [{ value: '', disabled: true }],
+    EfectoDescripcion: [{ value: '', disabled: true }],
     RubroId: [{ value: null as number | null, disabled: true }],
     SubrubroId: [{ value: null as number | null, disabled: true }],
     StockStock: [{ value: null as number | null, disabled: true }],
@@ -98,9 +98,10 @@ export class EfectoModificaComponent {
       ...this.formEfecto.getRawValue(),
       EfectoEfectoIndividualId: this.individualId(),
     };
-    console.log('enviando al backend:', values);
-    const res = await firstValueFrom(this.apiService.guardarEfectoModifica(values));
-    console.log('respuesta del backend:', res);
+    await firstValueFrom(this.apiService.guardarEfectoModifica(values));
+    // Relee lo persistido: las filas nuevas toman el Id que les asignó el back y no se vuelven a
+    // insertar si el usuario guarda de nuevo.
+    this.atributosIngreso.reload();
   }
 
   constructor() {
@@ -114,7 +115,8 @@ export class EfectoModificaComponent {
 
       // Campos base: valor + disabled según modo. EfectoId siempre bloqueado.
       this.formEfecto.get('EfectoId')!.reset({ value: ef?.EfectoId ?? null, disabled: true });
-      this.formEfecto.get('EfectoDescripcionCompleto')!.reset({ value: ef?.EfectoDescripcionCompleto ?? '', disabled: consulta });
+      // La columna editable de Efecto, no la compuesta que muestra la grilla.
+      this.formEfecto.get('EfectoDescripcion')!.reset({ value: ef?.EfectoDescripcion ?? '', disabled: consulta });
       this.formEfecto.get('RubroId')!.reset({ value: ef?.RubroId ?? null, disabled: consulta });
       this.formEfecto.get('SubrubroId')!.reset({ value: ef?.SubrubroId ?? null, disabled: consulta });
       this.formEfecto.get('StockStock')!.reset({ value: ef?.StockStock ?? null, disabled: consulta });
