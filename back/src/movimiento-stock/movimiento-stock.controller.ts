@@ -987,14 +987,15 @@ export class MovimientoStockController extends BaseController {
   ) {
     let content = null;
     let vars = null;
-    const prev = false
 
+    /*
+    const prev = false
     const htmls= await this.getComprobanteHtmlContentGeneral(new Date(), header, body, footer, false, prev) 
     header = htmls.header
     body = htmls.body
     footer = htmls.footer
 
-    /*
+  
     header = (header) ? header : (existsSync(this.PathComprobanteTemplate.header) ? readFileSync(this.PathComprobanteTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.headerDef, 'utf-8'));
     body = (body) ? body : (existsSync(this.PathComprobanteTemplate.body) ? readFileSync(this.PathComprobanteTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.bodyDef, 'utf-8'));
     footer = (footer) ? footer : (existsSync(this.PathComprobanteTemplate.footer) ? readFileSync(this.PathComprobanteTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.footerDef, 'utf-8'));
