@@ -319,7 +319,7 @@ export class MovimientoStockController extends BaseController {
 
         // valido si es efecto o efecto+efectoindividual
         if (EfectoEfectoIndividualId != null) {
-          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `No se puede transformar a usado los Efectos con Efecto Individual asociado.` });
+          fieldErrors.push({ fieldTree: `efectos[${index}].Usado`, kind: 'server', message: `No se puede transformar a usado los Efectos con Efecto Individual asociado.` });
           continue;
         }
 
