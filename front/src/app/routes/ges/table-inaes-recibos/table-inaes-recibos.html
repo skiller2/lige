@@ -1,0 +1,34 @@
+<nz-card class="small-margin">
+  <ng-container>
+    @if (columns().length) {
+    <div nz-row>
+      <div nz-col nzSpan="12">
+        <nz-form-control>
+          <nz-form-label>Periodo</nz-form-label>
+          <!-- <nz-date-picker nzMode="month"/> -->
+          <nz-date-picker nzMode="month" [(ngModel)]="periodo" />
+        </nz-form-control>
+      </div>
+
+      <div nz-col nzSpan="12" style="display: flex;flex-direction: row-reverse;">
+        <nz-button-group nz-button nzButtonGroup style="text-align: right;">
+          <!-- Descarga Recibos -->
+          <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas' | i18n }}"
+          (click)="exportGrid()">
+            <span nz-icon nzType="file" nzTheme="outline"></span>
+          </button>
+        </nz-button-group>
+      </div>
+    </div>
+
+    <div class="gridContainer container-fluid">
+      <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions"/>
+      <angular-slickgrid gridId="gridRecibos" [columns]="columns() | colsFilter"
+        [options]="gridOptions" [dataset]="gridData.value()"
+        (onAngularGridCreated)="angularGridReady($event)">
+      </angular-slickgrid>
+    </div>
+    }
+  </ng-container>
+
+</nz-card>

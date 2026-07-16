@@ -2326,7 +2326,19 @@ export class ApiService {
       this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/inaes/list`, parameters).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/inaes/altas-bajas/list`, parameters).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
+  getINAESRecibos(parameters: any) {
+    const { periodo } = parameters
+    if (!periodo) {
+      this.notification.warning('Advertencia', `Por favor, ingrese un periodo`);
+      return of([]);
+    }
+    return this.http.post<ResponseJSON<any>>(`api/inaes/recibos/list`, parameters).pipe(
       map(res => res.data),
       catchError(() => of([]))
     );
