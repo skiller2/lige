@@ -326,13 +326,14 @@ export class MovimientoStockController extends BaseController {
         // si es efecto: veo de que este creado el efecto identico con atributo de usado
         // todo: pendiente de optimizar query
         const resEfectosIdenticos = await queryRunner.query(`
-              WITH Datos AS (
+                WITH Datos AS (
                     SELECT
                         e.EfectoId,
                         e.EfectoDescripcion,
                         e.RubroId,
                         e.SubrubroId,
                         e.EfectoUnidadMedidaPrincipalId,
+                        e.EfectoEfectoTransformacionEfectoId,
                         STRING_AGG(
                             CONCAT(
                                 ea.EfectoAtributoAtributoId,
@@ -354,12 +355,23 @@ export class MovimientoStockController extends BaseController {
                         e.EfectoDescripcion,
                          e.RubroId,
                         e.SubrubroId,
-                        e.EfectoUnidadMedidaPrincipalId
+                        e.EfectoUnidadMedidaPrincipalId,
+                        e.EfectoEfectoTransformacionEfectoId
                 )
                 SELECT d2.*, ea.EfectoAtributoValorId
                 FROM Datos d1
                 JOIN Datos d2
                     ON d2.EfectoDescripcion = d1.EfectoDescripcion
+                  AND d2.locura = d1.locura
+                left join EfectoAtributo ea on ea.EfectoId = d2.EfectoId and ea.EfectoAtributoAtributoId = 11
+                WHERE d1.EfectoId = @0
+
+                UNION
+
+                SELECT d2.*, ea.EfectoAtributoValorId
+                FROM Datos d1
+                JOIN Datos d2
+                    ON d2.EfectoId=d1.EfectoEfectoTransformacionEfectoId
                   AND d2.locura = d1.locura
                 left join EfectoAtributo ea on ea.EfectoId = d2.EfectoId and ea.EfectoAtributoAtributoId = 11
                 WHERE d1.EfectoId = @0`, [EfectoId])
@@ -379,61 +391,68 @@ export class MovimientoStockController extends BaseController {
         }
 
         // el efecto obtenido es el nuevo
-        if (resEfecto?.EfectoAtributoValorId != 2) {
-          const efectoUsadoId = resEfectosIdenticos.find(e => e.EfectoAtributoValorId == 2);
 
-          // Consulto si es el efecto usado, si no lo es, creo el efecto usado y le agrego el atributo de usado
-          if (!efectoUsadoId) {
-            // busco los atributos del efecto original y los copio al nuevo efecto usado
-            const resAtributos = await queryRunner.query(`
+        if (resEfectosIdenticos.length == 2) {
+          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `El efecto ya tiene atributo "Usado".` });
+          continue;
+        }
+
+        const efectoUsadoId = resEfectosIdenticos.find(e => e.EfectoAtributoValorId == 2);
+
+        // Consulto si es el efecto usado, si no lo es, creo el efecto usado y le agrego el atributo de usado
+        if (!efectoUsadoId) {
+          // busco los atributos del efecto original y los copio al nuevo efecto usado
+          const resAtributos = await queryRunner.query(`
               SELECT EfectoAtributoAtributoId, EfectoAtributoValorId
               FROM EfectoAtributo
               WHERE EfectoId = @0 AND EfectoAtributoAtributoId <> 11
             `, [EfectoId]);
 
-            // creo el efecto usado y cambio el efectoid de destino al nuevo efecto usado
+          // creo el efecto usado y cambio el efectoid de destino al nuevo efecto usado
 
-            // creo el efecto usado
-            const resNuevoEfecto = await queryRunner.query(`
+          // creo el efecto usado
+          const resNuevoEfecto = await queryRunner.query(`
               INSERT INTO Efecto (EfectoDescripcion, RubroId,SubrubroId,EfectoUnidadMedidaPrincipalId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
               VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
               
               SELECT SCOPE_IDENTITY() AS EfectoId
             `, [resEfectosIdenticos[0].EfectoDescripcion, resEfectosIdenticos[0].RubroId, resEfectosIdenticos[0].SubrubroId, resEfectosIdenticos[0].EfectoUnidadMedidaPrincipalId, now, usuario, ip]);
 
-            // agrego los atributos del efecto original al nuevo efecto usado
-            let EfectoAtributoId = 1
-            for (const atributo of resAtributos) {
-              await queryRunner.query(`
+          await queryRunner.query(`UPDATE Efecto SET EfectoEfectoTransformacionEfectoId = @0 WHERE EfectoId = @1`, [resNuevoEfecto[0].EfectoId, EfectoId]);
+          // agrego los atributos del efecto original al nuevo efecto usado
+          let EfectoAtributoId = 1
+          for (const atributo of resAtributos) {
+            await queryRunner.query(`
                 INSERT INTO EfectoAtributo (EfectoAtributoId, EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
                 VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
               `, [EfectoAtributoId, resNuevoEfecto[0].EfectoId, atributo.EfectoAtributoAtributoId, atributo.EfectoAtributoValorId, now, usuario, ip]);
-              EfectoAtributoId++
-            }
+            EfectoAtributoId++
+          }
 
-            // agrego el atributo de usado al efecto usado
-            await queryRunner.query(`
+          // agrego el atributo de usado al efecto usado
+          await queryRunner.query(`
               INSERT INTO EfectoAtributo (EfectoAtributoId, EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
               VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
             `, [EfectoAtributoId,
-              resNuevoEfecto[0].EfectoId,
-              11, // atributo de estado
-              2, // valor de usado
-              now, usuario, ip]);
+            resNuevoEfecto[0].EfectoId,
+            11, // atributo de estado
+            2, // valor de usado
+            now, usuario, ip]);
 
 
-            // cambio el efectoid de destino al nuevo efecto usado
-            efecto.EfectoIdDestino = resNuevoEfecto[0].EfectoId;
+          // cambio el efectoid de destino al nuevo efecto usado
+          efecto.EfectoIdDestino = resNuevoEfecto[0].EfectoId;
 
-          } else {
-            efecto.EfectoIdDestino = efectoUsadoId.EfectoId;
+        } else {
+          // Evalua del efecto usado que EfectoEfectoTransformacionEfectoId = al efecto nuevo
+          if (efectoUsadoId.EfectoId != resEfecto.EfectoEfectoTransformacionEfectoId) {
+            fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `El efecto "Usado" no se relaciona con el efecto (inconsistencia de datos).` });
+            continue;
           }
-
+          // cambio el efectoid de destino al efecto usado
+          efecto.EfectoIdDestino = efectoUsadoId.EfectoId;
         }
       }
-
-      logger.info(`EfectoIdDestino: ${efecto.EfectoIdDestino}, EfectoId: ${efecto.EfectoId}, EfectoEfectoIndividualId: ${efecto.EfectoEfectoIndividualId}`);
-      logger.info(`Efecto: ${JSON.stringify(efecto)}`);
 
       const EfectoIdDestino = Number(efecto.EfectoIdDestino ?? efecto.EfectoId) // de tener indicador de usado, se modifica el efectoId de destino al efecto usado
 
