@@ -378,7 +378,8 @@ export class MovimientoStockController extends BaseController {
 
         // de traer mas de 2 efectos identicos, es inconsistencia de datos
         if (resEfectosIdenticos.length > 2) {
-          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `Existen más de dos efectos (inconsistencia de datos).` });
+          const efectosIds = resEfectosIdenticos.map((e: any) => e.EfectoId).join(', ')
+          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `Existen más de dos efectos (inconsistencia de datos). EfectosId: ${efectosIds}` });
           continue;
         }
 
