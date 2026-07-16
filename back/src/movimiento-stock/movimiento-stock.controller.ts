@@ -434,7 +434,7 @@ export class MovimientoStockController extends BaseController {
 
       logger.info(`EfectoIdDestino: ${efecto.EfectoIdDestino}, EfectoId: ${efecto.EfectoId}, EfectoEfectoIndividualId: ${efecto.EfectoEfectoIndividualId}`);
       logger.info(`Efecto: ${JSON.stringify(efecto)}`);
-      
+
       const EfectoIdDestino = Number(efecto.EfectoIdDestino ?? efecto.EfectoId) // de tener indicador de usado, se modifica el efectoId de destino al efecto usado
 
       // Suma en destino.
@@ -1399,6 +1399,218 @@ export class MovimientoStockController extends BaseController {
       });
     } catch (error) {
       return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async jobMigrateMovimientoToMovimientoStock(req: any, res: Response, next: NextFunction) {
+    const options = {}
+    const usuario = this.getUser(res)
+    const ip = this.getRemoteAddress(req)
+
+    const queryRunner = await getConnection(usuario);
+    const fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
+    const anio = fechaActual.getFullYear()
+    const mes = fechaActual.getMonth() + 1
+
+    const fechaAyer = new Date()
+    fechaAyer.setDate(fechaAyer.getDate() - 1);
+    fechaAyer.setHours(0, 0, 0, 0)
+
+    let EventoLogCodigo = 0
+
+
+    try {
+
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Migracion de Momiento a MovimientoStock`,
+        { usuario, ip },
+        usuario,
+        ip,
+        "JOB"
+      ));
+
+
+      await queryRunner.startTransaction();
+
+      const rMovimientoStockCodigo = await queryRunner.query(`SELECT MAX(MovimientoStockCodigo) MovimientoStockCodigo FROM Movimiento`);
+      const MovimientoStockCodigo = (rMovimientoStockCodigo?.[0]?.MovimientoStockCodigo ?? 0)
+
+      await queryRunner.query(
+        `INSERT INTO MovimientoStock (MovimientoStockCodigo, Fecha, PersonalIdDestino, ProveedorIdDestino, ClienteIdDestino, ClienteElementoDependienteIdDestino, DepositoIdDestino, Observaciones, AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod, MovimientoCodigoViejo)
+
+            SELECT 
+            @0+ROW_NUMBER() OVER (ORDER BY mo.MovimientoFecha) AS MovimientoStockCodigo,
+            mo.MovimientoFecha,
+            mo.MovimientoPersonalAId, 
+            mo.MovimientoProveedorAProveedorId, 
+            obj.ClienteId,
+            obj.ClienteElementoDependienteId,
+            mo.MovimientoDepositoAId,
+            '',
+            mo.MovimientoFecha,
+            mo.MovimientoFecha,
+            @1,
+            @1,
+            @2,
+            @2,
+            CONCAT(mo.MovimientoProvisionCodigoPropio,'-',mo.MovimientoProvisionAno,'-',mo.MovimientoProvisionNumero) MovimientoCodigoViejo
+            FROM Movimiento mo
+            LEFT JOIN Objetivo obj ON obj.ObjetivoId = mo.MovimientoObjetivoAObjetivoId
+            WHERE (mo.MovimientoDepositoAId IS NOT NULL OR mo.MovimientoPersonalAId IS NOT NULL OR mo.MovimientoProveedorAProveedorId IS NOT NULL OR  mo.MovimientoObjetivoAObjetivoId IS NOT NULL) 
+            AND mo.MovimientoStockCodigo IS NULL
+            GROUP BY mo.MovimientoFecha, mo.MovimientoProvisionCodigoPropio,mo.MovimientoProvisionAno,mo.MovimientoProvisionNumero,mo.MovimientoDepositoAId,mo.MovimientoPersonalAId, mo.MovimientoProveedorAProveedorId, mo.MovimientoObjetivoAObjetivoId,obj.ClienteId,
+            obj.ClienteElementoDependienteId
+            ORDER BY mo.MovimientoFecha
+          `,
+        [MovimientoStockCodigo, usuario, ip])
+
+      await queryRunner.query(
+        `INSERT INTO MovimientoStockDetalle (MovimientoStockDetalleCodigo, EfectoId, EfectoIndividualId, Cantidad, PersonalIdOrigen, DepositoIdOrigen, 
+              ProveedorIdOrigen, ClienteIdOrigen, ClienteElementoDependienteOrigen, MovimientoStockCodigo, IndEfectoUsado, CantidadOrigen, 
+              AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+
+          SELECT 
+          ROW_NUMBER() OVER (PARTITION BY ca.MovimientoStockCodigo ORDER BY ca.MovimientoStockCodigo),
+          mo.EfectoMovimientoEfectoId,
+          mo.EfectoMovimientoEfectoEfectoIndividualId,
+          mo.MovimientoStock,
+          mo.MovimientoPersonalDeId, 
+          mo.MovimientoDepositoDeId,
+
+          mo.MovimientoProveedorDeProveedorId, 
+          obj.ClienteId,
+          obj.ClienteElementoDependienteId,
+          ca.MovimientoStockCodigo,
+          NULL,
+          NULL,
+
+          mo.MovimientoFecha,
+          mo.MovimientoFecha,
+          @0,
+          @0,
+          @1,
+          @1
+
+          FROM Movimiento mo
+          LEFT JOIN Objetivo obj ON obj.ObjetivoId = mo.MovimientoObjetivoDeObjetivoId
+
+          JOIN MovimientoStock ca ON ca.MovimientoCodigoViejo = CONCAT(mo.MovimientoProvisionCodigoPropio,'-',mo.MovimientoProvisionAno,'-',mo.MovimientoProvisionNumero)
+
+          WHERE (mo.MovimientoDepositoDeId IS NOT NULL OR mo.MovimientoPersonalDeId IS NOT NULL OR mo.MovimientoProveedorDeProveedorId IS NOT NULL OR  mo.MovimientoObjetivoDeObjetivoId IS NOT NULL) 
+          AND mo.MovimientoForma = 'S' AND mo.MovimientoStockCodigo IS NULL
+
+          ORDER BY ca.MovimientoStockCodigo
+
+          `, [usuario, ip])
+
+      await queryRunner.query(
+        `UPDATE mo
+            SET mo.MovimientoStockCodigo = ms.MovimientoStockCodigo
+            FROM Movimiento mo
+            INNER JOIN MovimientoStock ms ON ms.MovimientoCodigoViejo = CONCAT(mo.MovimientoProvisionCodigoPropio, '-', mo.MovimientoProvisionAno, '-', mo.MovimientoProvisionNumero)
+            WHERE ISNULL(mo.MovimientoStockCodigo, 0) <> ms.MovimientoStockCodigo;
+          `, [])
+
+
+
+      /*
+            const detalle = await queryRunner.query(
+              `SELECT 
+                  ROW_NUMBER() OVER (PARTITION BY ca.MovimientoStockCodigo ORDER BY ca.MovimientoStockCodigo) MovimientoStockDetalleCodigo,
+                  mo.MovimientoProvisionCodigoPropio,
+                  mo.MovimientoProvisionAno,
+                  mo.MovimientoProvisionNumero,
+                  mo.EfectoMovimientoEfectoId,
+                  mo.EfectoMovimientoEfectoEfectoIndividualId,
+                  -- SUM(mo.MovimientoStock) / COUNT(*),
+                  mo.MovimientoForma,
+                  mo.MovimientoStock,
+                  mo.MovimientoPersonalDeId, 
+                  mo.MovimientoDepositoDeId,
+                  mo.MovimientoProveedorDeProveedorId, 
+                  obj.ClienteId,
+                  obj.ClienteElementoDependienteId,
+                  ca.MovimientoStockCodigo,
+      
+                  mo.MovimientoFecha
+             
+                  FROM Movimiento mo
+                  LEFT JOIN Objetivo obj ON obj.ObjetivoId = mo.MovimientoObjetivoDeObjetivoId
+      
+                  JOIN MovimientoStock ca ON ca.MovimientoCodigoViejo = CONCAT(mo.MovimientoProvisionCodigoPropio,'-',mo.MovimientoProvisionAno,'-',mo.MovimientoProvisionNumero)
+      
+                  WHERE (mo.MovimientoDepositoDeId IS NOT NULL OR mo.MovimientoPersonalDeId IS NOT NULL OR mo.MovimientoProveedorDeProveedorId IS NOT NULL OR  mo.MovimientoObjetivoDeObjetivoId IS NOT NULL) 
+                  AND mo.MovimientoForma = 'S'
+      
+                  ORDER BY ca.MovimientoStockCodigo
+      
+                `, [])
+      
+            for (const row of detalle) {
+              
+      
+              await queryRunner.query(
+                `INSERT INTO MovimientoStockDetalle (MovimientoStockDetalleCodigo, EfectoId, EfectoIndividualId, Cantidad, PersonalIdOrigen, DepositoIdOrigen, 
+                    ProveedorIdOrigen, ClienteIdOrigen, ClienteElementoDependienteOrigen, MovimientoStockCodigo, IndEfectoUsado, CantidadOrigen, 
+                    AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+                   VALUES(@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17)
+                          `,
+                [row.MovimientoStockDetalleCodigo,
+                 row.EfectoMovimientoEfectoId,
+                 row.EfectoMovimientoEfectoEfectoIndividualId,
+                 row.MovimientoStock,
+                 row.MovimientoPersonalDeId,
+                 row.MovimientoDepositoDeId,
+      
+                 row.MovimientoProveedorDeProveedorId,
+                 row.ClienteId,
+                 row.ClienteElementoDependienteId,
+                 row.MovimientoStockCodigo,
+                 null,
+                 null,
+      
+                 row.MovimientoFecha,
+                 row.MovimientoFecha,
+                 usuario,
+                 usuario,
+                 ip,
+                 ip]
+              )
+      
+            }
+      */
+
+      await queryRunner.commitTransaction();
+
+      const resp = `Se procesaron los movimientos `
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: resp,
+        },
+        usuario,
+        ip
+      );
+
+      if (res)
+        this.jsonRes({ list: [] }, res, resp);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+
+      return next(error)
     } finally {
       await queryRunner.release();
     }
