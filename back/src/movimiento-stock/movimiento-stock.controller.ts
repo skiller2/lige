@@ -446,11 +446,11 @@ export class MovimientoStockController extends BaseController {
         } else {
           // Evalua del efecto usado que EfectoEfectoTransformacionEfectoId = al efecto nuevo
           if (efectoUsadoId.EfectoId != resEfecto.EfectoEfectoTransformacionEfectoId) {
-            fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `El efecto "Usado" (${efectoUsadoId.EfectoId}) no se relaciona con el efecto (${resEfecto.EfectoId}) - (inconsistencia de datos).` });
+            fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `El efecto "Usado" (${efectoUsadoId.EfectoId}) no se relaciona con el efecto "Nuevo" (${resEfecto.EfectoId}) - (inconsistencia de datos).` });
           }
 
           if (efectoUsadoId.EfectoDescripcion != resEfecto.EfectoDescripcion) {
-            fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `El efecto "Usado" (${efectoUsadoId.EfectoId}) no coincide la descripción con el efecto (${resEfecto.EfectoId}) - (inconsistencia de datos).` });
+            fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `El efecto "Usado" (${efectoUsadoId.EfectoId}) no coincide la descripción con el efecto "Nuevo" (${resEfecto.EfectoId}) - (inconsistencia de datos).` });
           }
           // cambio el efectoid de destino al efecto usado
           efecto.EfectoIdDestino = efectoUsadoId.EfectoId;
