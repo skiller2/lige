@@ -1636,7 +1636,6 @@ export class EfectoController extends BaseController {
       LEFT JOIN Sucursal suc ON suc.SucursalId = dep.DepositoSucursalId
       LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
       LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
-      LEFT JOIN Efecto efe ON efe.EfectoId = stk.EfectoId
       WHERE ${filterSql} `, [now])
   }
 

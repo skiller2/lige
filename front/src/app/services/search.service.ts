@@ -2355,7 +2355,6 @@ export class SearchService {
       this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
       return of([]);
     }
-
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoDeposito`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {

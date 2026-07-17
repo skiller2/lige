@@ -42,7 +42,7 @@ export class TableDepositoEfectoComponent {
   })
   filtersReady = signal(false)
   startFilters = signal<Selections[]>([
-    { index: 'StockStock', condition: 'AND', operator: '>', value: '0', closeable: true },
+    // { index: 'StockStock', condition: 'AND', operator: '>', value: '0', closeable: true },
   ])
   filtroVisible = signal(true)
 
@@ -67,7 +67,6 @@ export class TableDepositoEfectoComponent {
   gridData = resource({
     params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
     loader: async ({ params }) => {
-      if (!params.options?.filtros?.length) return []
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
         const response = await firstValueFrom(this.searchService.getEfectoDeposito(params.options))
