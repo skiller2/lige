@@ -73,7 +73,7 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/clientes/editar" >{{ 'app.icon.edit' | i18n }}</a>
-      <app-clientes-form #clienteFormEdit [ClienteId]="editClienteId()" (onAddorUpdate)="handleAddOrUpdate()"></app-clientes-form>
+      <app-clientes-form #clienteFormEdit [ClienteId]="editClienteId()" (onAddorUpdate)="handleAddOrUpdate($event)"></app-clientes-form>
     </nz-tab>
 
     <nz-tab>
@@ -84,7 +84,7 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/clientes/alta" >{{ 'app.alta' | i18n }} </a>
-      <app-clientes-form #clienteFormAlta (onAddorUpdate)="handleAddOrUpdate()" (pristineChange)="onPristineChange($event)" ></app-clientes-form>
+      <app-clientes-form #clienteFormAlta (onAddorUpdate)="handleAddOrUpdate($event)" (pristineChange)="onPristineChange($event)" ></app-clientes-form>
     </nz-tab>
 
   </nz-tabs>

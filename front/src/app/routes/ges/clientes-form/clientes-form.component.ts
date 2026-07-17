@@ -56,7 +56,7 @@ export class ClientesFormComponent {
   periodo = signal({ year: 0, month: 0 })
   ClienteId = input(0)
   isLoading = signal(false)
-  onAddorUpdate = output()
+  onAddorUpdate = output<number | null>()
   pristineChange = output<boolean>()
   mostrarDocs = model<boolean>(false)
 
@@ -234,6 +234,7 @@ export class ClientesFormComponent {
 
   async save() {
     this.isLoading.set(true)
+    const isNewCliente = !this.idForm()
     let form = this.formCli.value
     try {
       if (this.idForm()) {
@@ -257,7 +258,11 @@ export class ClientesFormComponent {
 
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
-      this.onAddorUpdate.emit()
+      this.onAddorUpdate.emit(this.idForm())
+
+      if (isNewCliente && this.idForm()) {
+        await this.router.navigate(['/ges/clientes/editar'])
+      }
     } catch (e) {
 
     }
@@ -313,9 +318,17 @@ export class ClientesFormComponent {
   }
 
   async deleteCliente() {
-    const form = this.formCli.value
-    await firstValueFrom(this.apiService.deleteCliente(form))
-    this.onAddorUpdate.emit()
+    const ClienteId = this.idForm()
+    if (!ClienteId) return
+
+    this.isLoading.set(true)
+    try {
+      await firstValueFrom(this.apiService.deleteCliente(ClienteId))
+      this.onAddorUpdate.emit(null)
+      await this.router.navigate(['/ges/clientes/listado'])
+    } finally {
+      this.isLoading.set(false)
+    }
   }
 
 }

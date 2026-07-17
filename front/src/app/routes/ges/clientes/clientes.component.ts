@@ -90,7 +90,8 @@ export class ClientesComponent {
     })
   ) 
 
-  async handleAddOrUpdate(){
+  async handleAddOrUpdate(ClienteId: number | null){
+    this.editClienteId.set(ClienteId ?? 0)
     this.listCliente$.next('')
   }
 

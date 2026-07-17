@@ -1400,8 +1400,8 @@ export class ApiService {
     )
   }
 
-  deleteCliente(vals: any) {
-    return this.http.delete<ResponseJSON<any>>(`/api/clientes`, vals).pipe(
+  deleteCliente(ClienteId: number) {
+    return this.http.delete<ResponseJSON<any>>(`/api/clientes/${ClienteId}`).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 

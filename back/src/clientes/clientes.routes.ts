@@ -57,7 +57,7 @@ clientesRouter.post('/update/:id', [authMiddleware.verifyToken, authMiddleware.h
   clientesController.updateCliente(req, res, next)
 })
 
-clientesRouter.delete("/", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial'])], (req, res, next) => {
+clientesRouter.delete("/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial'])], (req, res, next) => {
   clientesController.deleteCliente(req, res, next);
 });
 
