@@ -56,7 +56,7 @@ export class TableProveedoresEfectoComponent {
     const id = this.proveedorIdFilter()
     if (id > 0) {
       this.startFilters.set([
-        { index: 'ProveedorId', condition: 'AND', operator: '=', value: String(id), closeable: true },
+        // { index: 'ProveedorId', condition: 'AND', operator: '=', value: String(id), closeable: true },
       ])
       this.filtroVisible.set(false)
       setTimeout(() => this.filtroVisible.set(true))
@@ -70,7 +70,7 @@ export class TableProveedoresEfectoComponent {
       ? { options: this.listOptions(), refresh: this.refreshGrid() }
       : undefined,
     loader: async ({ params }) => {
-      if (!params.options?.filtros?.length) return []
+      
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
         const response = await firstValueFrom(this.searchService.getEfectoProveedores(params.options))
