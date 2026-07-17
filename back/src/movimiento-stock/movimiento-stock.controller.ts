@@ -319,7 +319,7 @@ export class MovimientoStockController extends BaseController {
 
         // valido si es efecto o efecto+efectoindividual
         if (EfectoEfectoIndividualId != null) {
-          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `No se puede transformar a usado los Efectos con Efecto Individual asociado.` });
+          fieldErrors.push({ fieldTree: `efectos[${index}].Usado`, kind: 'server', message: `No se puede transformar a usado los Efectos con Efecto Individual asociado.` });
           continue;
         }
 
@@ -378,7 +378,8 @@ export class MovimientoStockController extends BaseController {
 
         // de traer mas de 2 efectos identicos, es inconsistencia de datos
         if (resEfectosIdenticos.length > 2) {
-          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `Existen más de dos efectos (inconsistencia de datos).` });
+          const efectosIds = resEfectosIdenticos.map((e: any) => e.EfectoId).join(', ')
+          fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `Existen más de dos efectos para validar transformación a usado (inconsistencia de datos). EfectosId: ${efectosIds}` });
           continue;
         }
 
@@ -445,11 +446,11 @@ export class MovimientoStockController extends BaseController {
         } else {
           // Evalua del efecto usado que EfectoEfectoTransformacionEfectoId = al efecto nuevo
           if (efectoUsadoId.EfectoId != resEfecto.EfectoEfectoTransformacionEfectoId) {
-            fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `El efecto "Usado" (${efectoUsadoId.EfectoId}) no se relaciona con el efecto (${resEfecto.EfectoId}) - (inconsistencia de datos).` });
+            fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `El efecto "Usado" (${efectoUsadoId.EfectoId}) no se relaciona con el efecto "Nuevo" (${resEfecto.EfectoId}) - (inconsistencia de datos).` });
           }
 
           if (efectoUsadoId.EfectoDescripcion != resEfecto.EfectoDescripcion) {
-            fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `El efecto "Usado" (${efectoUsadoId.EfectoId}) no coincide la descripción con el efecto (${resEfecto.EfectoId}) - (inconsistencia de datos).` });
+            fieldErrors.push({ fieldTree: `efectos[${index}].EfectoId`, kind: 'server', message: `El efecto "Usado" (${efectoUsadoId.EfectoId}) no coincide la descripción con el efecto "Nuevo" (${resEfecto.EfectoId}) - (inconsistencia de datos).` });
           }
           // cambio el efectoid de destino al efecto usado
           efecto.EfectoIdDestino = efectoUsadoId.EfectoId;
@@ -913,11 +914,11 @@ export class MovimientoStockController extends BaseController {
   async getComprobanteHtmlContentGeneral(fecha: Date, header: string, body: string, footer: string, raw: boolean = false, prev: boolean = false) {
     const imgBuffer = readFileSync(`./assets/logo-lince-full.svg`);
     const imgBase64 = imgBuffer.toString('base64');
-    /*
-        header = (header) ? header : (existsSync(this.PathComprobanteTemplate.header) ? readFileSync(this.PathComprobanteTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.headerDef, 'utf-8'));
-        body = (body) ? body : (existsSync(this.PathComprobanteTemplate.body) ? readFileSync(this.PathComprobanteTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.bodyDef, 'utf-8'));
-        footer = (footer) ? footer : (existsSync(this.PathComprobanteTemplate.footer) ? readFileSync(this.PathComprobanteTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.footerDef, 'utf-8'));
-    */
+
+    header = (header) ? header : (existsSync(this.PathComprobanteTemplate.header) ? readFileSync(this.PathComprobanteTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.headerDef, 'utf-8'));
+    body = (body) ? body : (existsSync(this.PathComprobanteTemplate.body) ? readFileSync(this.PathComprobanteTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.bodyDef, 'utf-8'));
+    footer = (footer) ? footer : (existsSync(this.PathComprobanteTemplate.footer) ? readFileSync(this.PathComprobanteTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.footerDef, 'utf-8'));
+
     if (!raw) {
       header = header.replace(/\${imgBase64}/g, imgBase64);
       header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fecha));
@@ -987,11 +988,19 @@ export class MovimientoStockController extends BaseController {
   ) {
     let content = null;
     let vars = null;
+
+    /*
     const prev = false
+    const htmls= await this.getComprobanteHtmlContentGeneral(new Date(), header, body, footer, false, prev) 
+    header = htmls.header
+    body = htmls.body
+    footer = htmls.footer
+
+  
     header = (header) ? header : (existsSync(this.PathComprobanteTemplate.header) ? readFileSync(this.PathComprobanteTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.headerDef, 'utf-8'));
     body = (body) ? body : (existsSync(this.PathComprobanteTemplate.body) ? readFileSync(this.PathComprobanteTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.bodyDef, 'utf-8'));
     footer = (footer) ? footer : (existsSync(this.PathComprobanteTemplate.footer) ? readFileSync(this.PathComprobanteTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.footerDef, 'utf-8'));
-
+    */
 
     if (movimientoCodigo) {
       const cabecera = await this.getMovimientoCabecera(queryRunner, movimientoCodigo)

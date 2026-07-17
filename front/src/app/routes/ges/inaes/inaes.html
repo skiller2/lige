@@ -37,16 +37,9 @@
       <ng-template nz-tab>
         @if (columns().length) {
           <div nz-row nzJustify="space-between" nzAlign="middle">
+
             <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()" [(options)]="listOptions" />
-            <!-- <div nz-col nzFlex="400px">
-              <nz-form-item>
-                <nz-form-label [nzSpan]="5" class="inputText">Archivo</nz-form-label>
-                <nz-form-control [nzSpan]="19">
-                  <app-file-upload [(ngModel)]="files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'PRU'"
-                    [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
-                </nz-form-control>
-              </nz-form-item>
-            </div> -->
+            
             <div nz-col style="display: flex;">
               <nz-button-group nz-button nz-buttonGroup style="align-items: flex-end;">
                 <!-- Descarga Altas -->
@@ -75,6 +68,7 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/inaes/recibos">Recibos</a>
       <ng-template nz-tab>
+        <app-table-inaes-recibos></app-table-inaes-recibos> 
       </ng-template>
     </nz-tab>
 

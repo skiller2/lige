@@ -12,6 +12,7 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { Router } from '@angular/router';
 import { LoadingService } from '@delon/abc/loading';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { TableINAESRecibosComponent } from '../table-inaes-recibos/table-inaes-recibos'
 // icons
 // import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 // import { FileExcelFill } from '@ant-design/icons-angular/icons';
@@ -22,7 +23,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
     templateUrl: './inaes.html',
     styleUrl: './inaes.less',
     // encapsulation: ViewEncapsulation.None,
-    imports: [SHARED_IMPORTS, FiltroBuilderComponent],
+    imports: [SHARED_IMPORTS, FiltroBuilderComponent, TableINAESRecibosComponent],
     providers: [AngularUtilService, ExcelExportService,] 
     
 })
@@ -47,7 +48,7 @@ export class INAESComponent {
   private readonly loadingSrv = inject(LoadingService);
   private notification = inject(NzNotificationService)
 
-  columns = toSignal(this.apiService.getCols('/api/inaes/cols')
+  columns = toSignal(this.apiService.getCols('/api/inaes/altas-bajas/cols')
     .pipe(map((cols) => {
       // Guardar IDs de columnas que tienen showGridColumn: false
       this.hiddenColumnIds = cols

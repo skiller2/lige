@@ -55,6 +55,7 @@
     "@slickgrid-universal/event-pub-sub": "^9.11.0",
     "@slickgrid-universal/excel-export": "^9.13.0",
     "@slickgrid-universal/row-detail-view-plugin": "^9.11.0",
+    "@slickgrid-universal/text-export": "^10.8.3",
     "@zxing/browser": "^0.1.5",
     "@zxing/library": "^0.21.2",
     "@zxing/ngx-scanner": "^21.0.0",

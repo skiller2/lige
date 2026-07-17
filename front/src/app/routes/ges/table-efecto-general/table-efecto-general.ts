@@ -42,7 +42,7 @@ export class TableEfectoGeneralComponent {
   })
   filtersReady = signal(false)
   startFilters = signal<Selections[]>([
-    { index: 'StockStock', condition: 'AND', operator: '>', value: '0', closeable: true },
+    // { index: 'StockStock', condition: 'AND', operator: '>', value: '0', closeable: true },
   ])
 
   private readonly loadingSrv = inject(LoadingService)

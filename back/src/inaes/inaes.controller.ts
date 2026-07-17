@@ -16,7 +16,7 @@ const getOptionsSexo: any[] = [
   { label: 'Femenino', value: 'F' },
 ]
 
-const columns: any[] = [
+const altasBajasColumns: any[] = [
   {
     id: 'id', 
     name: 'id', 
@@ -264,9 +264,182 @@ const columns: any[] = [
   },
 ]
 
+const recibosColumns: any[] = [
+  {
+    id: 'id', 
+    name: 'id', 
+    field: 'id',
+    type: 'string',
+    fieldName: "",
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: true,
+  },
+  {
+    id: "ApellidoNombre",
+    name: "Apellido Nombre",
+    field: "ApellidoNombre",
+    type: "string",
+    fieldName: "per.PersonalId",
+    searchComponent: "inputForPersonalSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
+    id: "SituacionRevistaId",
+    name: "Situacion Revista",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+    searchComponent: "inputForSituacionRevistaSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
+    id: 'CUITEntidad', 
+    name: 'CUIT Entidad', 
+    field: 'CUITEntidad',
+    fieldName: "",
+    type: 'string',
+    searchType: "number",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    showGridColumn: false,
+  },
+  {
+    id: "PersonalCUITCUILCUIT",
+    name: "Cuit / Cuil / Cdi",
+    field: "PersonalCUITCUILCUIT",
+    type: "string",
+    fieldName: "cuit.PersonalCUITCUILCUIT",
+    searchType: "number",
+    searchComponent: "inputForCUITsSearchFromINAESFile",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: 'TipoPersona', 
+    name: 'Fecha Recibo', 
+    field: 'TipoPersona',
+    fieldName: "",
+    type: 'date',
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    showGridColumn: false,
+  },
+  {
+    id: 'RazonSocial', 
+    name: 'Medio Pago', 
+    field: 'RazonSocial',
+    fieldName: "",
+    type: 'string',
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    showGridColumn: false,
+  },
+  {
+    id: 'Apellido', 
+    name: 'Cbu/Alias', 
+    field: 'Apellido',
+    fieldName: "per.PersonalApellido",
+    type: 'string',
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: 'Nombre', 
+    name: 'Retribución',
+    field: 'Nombre',
+    fieldName: "per.PersonalNombre",
+    type: 'string',
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: 'PersonalSexo', 
+    name: 'Excedentes',
+    field: 'PersonalSexo',
+    fieldName: "per.PersonalSexo",
+    type: 'string',
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    showGridColumn: false,
+  },
+  {
+    id: "PersonalFechaNacimiento",
+    name: "Retencion Monotributo",
+    field: "PersonalFechaNacimiento",
+    type: "date",
+    fieldName: "ISNULL(per.PersonalFechaNacimiento,'9999-12-31')",
+    searchComponent: "inputForFechaSearch",
+    searchType: "date",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false,
+  },
+  {
+    id: 'ProvinciaDescripcion', 
+    name: 'Otras Retenciones',
+    field: 'ProvinciaDescripcion',
+    fieldName: "perdom.ProvinciaId",
+    type: 'string',
+    searchComponent: "inputForProvinciasSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: 'LocalidadDescripcion', 
+    name: 'Detalle Otras Retenciones',
+    field: 'LocalidadDescripcion',
+    fieldName: "perdom.LocalidadId",
+    type: 'string',
+    searchComponent: "inputForLocalidadesSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: 'DomicilioCodigoPostal', 
+    name: 'Detalle de Retribucion',
+    field: 'DomicilioCodigoPostal',
+    fieldName: "perdom.DomicilioCodigoPostal",
+    type: 'string',
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+]
+
 export class InaesController extends BaseController {
-  async getColumnsGrid(req: any, res: Response, next: NextFunction) {
-    return this.jsonRes(columns, res)
+  
+  async getColumnsAltaBajasGrid(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(altasBajasColumns, res)
+  }
+
+  async getColumnsRecibosGrid(req: any, res: Response, next: NextFunction) {
+    return this.jsonRes(recibosColumns, res)
   }
 
   private async getAltasBajasQuery(queryRunner: any, filterSql: any, orderBy: any) {
@@ -375,7 +548,7 @@ export class InaesController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     try {
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
-      const filterSql = filtrosToSql(options.filtros, columns);
+      const filterSql = filtrosToSql(options.filtros, altasBajasColumns);
       const orderBy = orderToSQL(options.sort)
 
       const lista: any[] = await this.getAltasBajasQuery(queryRunner, filterSql, orderBy)
