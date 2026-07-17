@@ -561,6 +561,21 @@ const listaColumnasDeposito: any[] = [
     maxWidth: 100,
   },
   {
+    id: "EfectoStockMinimo",
+    name: "Stock Mínimo",
+    field: "EfectoStockMinimo",
+    fieldName: "efe.EfectoStockMinimo",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "columnComparison",
+    searchComponent: "inputForColumnComparisonSearch",
+    compareFieldName: "stk.StockStock",
+    compareFieldLabel: "Stock",
+    maxWidth: 100,
+  },
+  {
     id: "Importe",
     name: "Importe Unitario",
     field: "Importe",
@@ -1604,9 +1619,11 @@ export class EfectoController extends BaseController {
           ru.RubroDescripcion,
           stk.SubrubroId,
           sru.SubrubroDescripcion,
+          efe.EfectoStockMinimo,
 
           1
       FROM StockReal stk
+      left join Efecto efe on efe.EfectoId = stk.EfectoId and stk.EfectoEfectoIndividualId is null
       LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId AND stk.EfectoEfectoIndividualId IS NULL AND lp.ListaPrecioDesde <= @0 AND ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
       LEFT JOIN ListaPrecioIndividual lpi ON lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
       JOIN Deposito dep ON dep.DepositoId = stk.DepositoId
@@ -1940,7 +1957,7 @@ export class EfectoController extends BaseController {
 
         await this.guardarAtributosIngreso(queryRunner, efectoId, individualId, atributos, now, usuario, ip);
       }
-if(true)
+      if (true)
         await this.rollbackTransaction(queryRunner);
 
       //await queryRunner.commitTransaction();
