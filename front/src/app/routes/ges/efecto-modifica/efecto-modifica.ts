@@ -64,10 +64,16 @@ export class EfectoModificaComponent {
   readonly individualId = computed(() => this.efecto()?.EfectoEfectoIndividualId ?? null);
   readonly esIndividual = computed(() => this.individualId() != null);
 
-  // Opciones del Select de las filas de atributo del individual. Vienen de AtributoIngreso (catálogo
-  // al que apunta la FK), no de Atributo. Una sola carga.
-  readonly atributosOpciones = resource({
-    loader: async () => (await firstValueFrom(this.search.getAtributosIngreso())) ?? [],
+  // Opciones del Select de las filas de atributo del individual: los atributos que ya devuelve
+  // getEfectoIndividualAtributos (resource atributosIngreso), deduplicados por su Id.
+  readonly atributosOpciones = computed(() => {
+    const rows = this.atributosIngreso.value() ?? [];
+    const map = new Map<number, string>();
+    for (const r of rows) {
+      if (r.EfectoAtributoAtributoIngresoId != null)
+        map.set(Number(r.EfectoAtributoAtributoIngresoId), r.AtributoDescripcion);
+    }
+    return [...map].map(([AtributoIngresoId, AtributoIngresoDescripcion]) => ({ AtributoIngresoId, AtributoIngresoDescripcion }));
   });
 
   // Efecto relacionado (solo mostrar). DescripcionCon = el efecto del "otro lado" de la relación.

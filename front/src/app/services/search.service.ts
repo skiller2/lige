@@ -15,7 +15,7 @@ import {
 import { SearchGrup, ResponseBySearchGrup } from '../shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente, SearchClient } from '../shared/schemas/cliente.schemas';
 import { ResponseBySearchAdministrador, SearchAdmind } from '../shared/schemas/administrador.schemas';
-import { Atributo, AtributoIngreso, EfectoAtributo, EfectoIndividualAtributo, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, Valor } from '../shared/schemas/efecto.schemas';
+import { Atributo, EfectoAtributo, EfectoIndividualAtributo, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, Valor } from '../shared/schemas/efecto.schemas';
 import { ResponseBySearchTipoAsociadoCategoria, SearchTipoAsociadoCategoria } from '../shared/schemas/tipo-asociado-categoria.schemas';
 import { ResponseBySearchRubro, SearchRubro } from '../shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from '../shared/schemas/seguro.schemas';
@@ -2600,14 +2600,6 @@ export class SearchService {
   // Opciones del Select de Atributo (form modificar/consultar efecto).
   getAtributos(): Observable<Atributo[]> {
     return this.http.get<ResponseJSON<Atributo[]>>(`api/efecto/atributos`).pipe(
-      map(res => res.data ?? []),
-      catchError(() => of([]))
-    );
-  }
-
-  // Catálogo AtributoIngreso: opciones del Select de las filas de atributo del efecto individual.
-  getAtributosIngreso(): Observable<AtributoIngreso[]> {
-    return this.http.get<ResponseJSON<AtributoIngreso[]>>(`api/efecto/atributos-ingreso`).pipe(
       map(res => res.data ?? []),
       catchError(() => of([]))
     );

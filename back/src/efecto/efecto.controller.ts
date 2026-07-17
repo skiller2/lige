@@ -1889,24 +1889,6 @@ export class EfectoController extends BaseController {
     }
   }
 
-  // Catálogo AtributoIngreso (solo lectura). Es a esta tabla, no a Atributo, que apunta la FK de
-  // EfectoEfectoIndividualAtributoIngreso.EfectoAtributoAtributoIngresoId.
-  async getAtributosIngreso(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection(res.locals.userName);
-    try {
-      const list = await queryRunner.query(`
-        SELECT AtributoIngresoId, TRIM(AtributoIngresoDescripcion) AS AtributoIngresoDescripcion
-        FROM AtributoIngreso
-        ORDER BY AtributoIngresoDescripcion
-      `);
-      this.jsonRes(list, res);
-    } catch (error) {
-      return next(error);
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
   // Opciones para el Select de Valor. Cada Valor pertenece a un Atributo (FK AtributoId): si viene
   // el atributoId se filtra por él, si no se devuelven todos.
   async getValores(req: any, res: Response, next: NextFunction) {

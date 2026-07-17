@@ -30,12 +30,6 @@ export interface Atributo {
     AtributoDescripcion: string;
 }
 
-// Catálogo de atributos de ingreso. A esta tabla apunta la FK de las filas de atributo del individual.
-export interface AtributoIngreso {
-    AtributoIngresoId: number;
-    AtributoIngresoDescripcion: string;
-}
-
 export interface Rubro {
     RubroId: number;
     RubroDescripcion: string;

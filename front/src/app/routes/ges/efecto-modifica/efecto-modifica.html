@@ -42,6 +42,13 @@
       </nz-form-item>
 
       <nz-form-item>
+        <nz-form-label [nzSpan]="6">Stock mínimo</nz-form-label>
+        <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+          <input nz-input type="number" step="0.0001" [formField]="formEfecto.EfectoStockMinimo" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
         <nz-form-label [nzSpan]="6">Atributo / Valor</nz-form-label>
         <nz-form-control [nzSpan]="14">
           <div style="display: flex; gap: 8px;">
@@ -53,13 +60,6 @@
               [ngModel]="valorSel()" (ngModelChange)="valorSel.set($event)"
               [ngModelOptions]="{ standalone: true }" />
           </div>
-        </nz-form-control>
-      </nz-form-item>
-
-      <nz-form-item>
-        <nz-form-label [nzSpan]="6">Stock mínimo</nz-form-label>
-        <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
-          <input nz-input type="number" step="0.0001" [formField]="formEfecto.EfectoStockMinimo" />
         </nz-form-control>
       </nz-form-item>
 
@@ -87,36 +87,46 @@
         </nz-form-item>
 
         <nz-form-item>
-          <nz-form-label [nzSpan]="6">Atributos</nz-form-label>
-          <nz-form-control [nzSpan]="14">
-            @for (atributo of formEfecto.atributos; track $index) {
-              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+           <nz-form-label [nzSpan]="6">Atributos</nz-form-label>
+           </nz-form-item>
+        @for (atributo of formEfecto.atributos; track $index) {
+          <div [style.background-color]="$even ? '#f5f5f5' : '#ffffff'" style="padding: 16px 8px;">
+            <nz-form-item style="align-items: center; margin-bottom: 0;">
+              <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo</nz-form-label>
+              <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
                 <nz-select [formField]="atributo.EfectoAtributoAtributoIngresoId"
-                  nzShowSearch nzAllowClear nzPlaceHolder="Atributo" [nzDropdownMatchSelectWidth]="false"
-                  style="min-width: 200px;">
-                  @for (op of atributosOpciones.value() ?? []; track op.AtributoIngresoId) {
+                  nzShowSearch nzAllowClear nzPlaceHolder="Tipo" [nzDropdownMatchSelectWidth]="false"
+                  style="width: 100%;">
+                  @for (op of atributosOpciones(); track op.AtributoIngresoId) {
                     <nz-option [nzValue]="op.AtributoIngresoId" [nzLabel]="op.AtributoIngresoDescripcion"></nz-option>
                   }
                 </nz-select>
-                <input nz-input [formField]="atributo.EfectoAtributoIngresoValor" placeholder="Valor" />
-                @if (!esConsulta()) {
-                  <button nz-button nzType="default" nzDanger nzSize="large" type="button" nz-tooltip
-                    nzTooltipTitle="Eliminar atributo" style="min-width: 56px;" (click)="quitarAtributo($index)">
+              </nz-form-control>
+              <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Valor</nz-form-label>
+              <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+                <input nz-input [formField]="atributo.EfectoAtributoIngresoValor" placeholder="Valor" style="width: 100%;" />
+              </nz-form-control>
+              @if (!esConsulta()) {
+                <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
+                  <button nz-button nzType="default" nzDanger type="button" nz-tooltip
+                    nzTooltipTitle="Eliminar atributo" (click)="quitarAtributo($index)">
                     <span nz-icon nzType="delete" nzTheme="outline"></span>
                   </button>
-                }
-              </div>
-            }
-            @if (!formEfecto.atributos.length) {
-              <p style="color: rgba(0,0,0,0.45);">Sin atributos.</p>
-            }
-            @if (!esConsulta()) {
-              <button nz-button nzType="dashed" type="button" (click)="agregarAtributo()">
-                <span nz-icon nzType="plus" nzTheme="outline"></span> Agregar atributo
-              </button>
-            }
-          </nz-form-control>
-        </nz-form-item>
+                </nz-form-control>
+              }
+            </nz-form-item>
+          </div>
+        }
+        @if (!formEfecto.atributos.length) {
+          <p style="color: rgba(0,0,0,0.45);">Sin atributos.</p>
+        }
+        @if (!esConsulta()) {
+          <div style="text-align: center; margin-top: 10px; margin-bottom: 20px;">
+            <button nz-button nzType="dashed" type="button" (click)="agregarAtributo()">
+              <span nz-icon nzType="plus" nzTheme="outline"></span> Agregar atributo
+            </button>
+          </div>
+        }
       }
 
       @if (esConsulta()) {
