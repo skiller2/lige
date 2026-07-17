@@ -64,9 +64,10 @@ export class EfectoModificaComponent {
   readonly individualId = computed(() => this.efecto()?.EfectoEfectoIndividualId ?? null);
   readonly esIndividual = computed(() => this.individualId() != null);
 
-  // Opciones del Select de Atributo (una sola carga).
+  // Opciones del Select de las filas de atributo del individual. Vienen de AtributoIngreso (catálogo
+  // al que apunta la FK), no de Atributo. Una sola carga.
   readonly atributosOpciones = resource({
-    loader: async () => (await firstValueFrom(this.search.getAtributos())) ?? [],
+    loader: async () => (await firstValueFrom(this.search.getAtributosIngreso())) ?? [],
   });
 
   // Efecto relacionado (solo mostrar). DescripcionCon = el efecto del "otro lado" de la relación.
@@ -85,6 +86,13 @@ export class EfectoModificaComponent {
       params.efectoId && params.individualId != null
         ? (await firstValueFrom(this.search.getEfectoIndividualAtributos(params.efectoId, params.individualId))) ?? []
         : [],
+  });
+
+  // Atributo/valor del efecto (fila de EfectoAtributo). Se lee para no pisarlo con null al guardar.
+  readonly efectoAtributo = resource({
+    params: () => ({ efectoId: this.efectoId() }),
+    loader: async ({ params }) =>
+      params.efectoId ? (await firstValueFrom(this.search.getEfectoAtributo(params.efectoId))) ?? null : null,
   });
 
   // El modelo se rearma solo cuando cambia el efecto o llegan sus atributos; entre medio es
@@ -170,13 +178,14 @@ export class EfectoModificaComponent {
     });
   });
 
-  // Atributo/Valor: todavía sin cablear al modelo. Estado local sólo para que el Valor se filtre por
-  // el Atributo elegido y se limpie cuando el Atributo cambia.
-  readonly atributoSel = signal<number | null>(null);
-  readonly valorSel = signal<number | null>(null);
+  // Atributo/Valor: se resiembran desde EfectoAtributo al cambiar de efecto, pero quedan editables
+  // (linkedSignal). Van por afuera del modelo del form porque persisten en su propia tabla.
+  readonly atributoSel = linkedSignal(() => this.efectoAtributo.value()?.EfectoAtributoAtributoId ?? null);
+  readonly valorSel = linkedSignal(() => this.efectoAtributo.value()?.EfectoAtributoValorId ?? null);
 
   onAtributoChange(id: number | null): void {
     this.atributoSel.set(id ?? null);
+    // Al cambiar el atributo, el valor anterior pertenece a otro atributo: se limpia.
     this.valorSel.set(null);
   }
 
@@ -200,11 +209,15 @@ export class EfectoModificaComponent {
         EfectoDescripcion: texto(m.EfectoDescripcion),
         EfectoEfectoIndividualDescripcion: texto(m.EfectoEfectoIndividualDescripcion),
         EfectoEfectoIndividualId: this.individualId(),
+        // Atributo/valor del efecto: persisten en EfectoAtributo, aparte del modelo del form.
+        EfectoAtributoAtributoId: this.atributoSel(),
+        EfectoAtributoValorId: this.valorSel(),
       };
       await firstValueFrom(this.apiService.guardarEfectoModifica(values));
       // Relee lo persistido: las filas nuevas toman el Id que les asignó el back y no se vuelven a
       // insertar si el usuario guarda de nuevo.
       this.atributosIngreso.reload();
+      this.efectoAtributo.reload();
     });
   }
 }

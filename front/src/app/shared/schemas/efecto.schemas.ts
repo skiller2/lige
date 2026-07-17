@@ -30,6 +30,12 @@ export interface Atributo {
     AtributoDescripcion: string;
 }
 
+// Catálogo de atributos de ingreso. A esta tabla apunta la FK de las filas de atributo del individual.
+export interface AtributoIngreso {
+    AtributoIngresoId: number;
+    AtributoIngresoDescripcion: string;
+}
+
 export interface Rubro {
     RubroId: number;
     RubroDescripcion: string;
@@ -40,6 +46,13 @@ export interface Valor {
     ValorId: number;
     AtributoId: number;
     ValorDescripcion: string;
+}
+
+// Fila de EfectoAtributo: el atributo/valor asignado a un efecto.
+export interface EfectoAtributo {
+    EfectoAtributoId: number;
+    EfectoAtributoAtributoId: number | null;
+    EfectoAtributoValorId: number | null;
 }
 
 // La PK de Subrubro es el par (RubroId, SubrubroId): el id solo identifica dentro de su rubro.

@@ -1,7 +1,7 @@
 <nz-card class="small-margin">
   @if (efecto()) {
     <form nz-form nzLayout="horizontal" (ngSubmit)="guardar()">
-      <nz-form-item>
+      <nz-form-item style="margin-top: 20px;">
         <nz-form-label [nzSpan]="6">Efecto ID</nz-form-label>
         <nz-form-control [nzSpan]="14">
           <input nz-input type="number" [formField]="formEfecto.EfectoId" />
@@ -45,10 +45,10 @@
         <nz-form-label [nzSpan]="6">Atributo / Valor</nz-form-label>
         <nz-form-control [nzSpan]="14">
           <div style="display: flex; gap: 8px;">
-            <app-atributo-search style="flex: 1;"
+            <app-atributo-search style="flex: 1;" [disabled]="esConsulta()"
               [ngModel]="atributoSel()" (ngModelChange)="onAtributoChange($event)"
               [ngModelOptions]="{ standalone: true }" />
-            <app-valor-search style="flex: 1;" [atributoId]="atributoSel()"
+            <app-valor-search style="flex: 1;" [atributoId]="atributoSel()" [disabled]="esConsulta()"
               [placeholder]="atributoSel() ? 'Valor' : 'Seleccione primero el atributo'"
               [ngModel]="valorSel()" (ngModelChange)="valorSel.set($event)"
               [ngModelOptions]="{ standalone: true }" />
@@ -77,7 +77,7 @@
 
       <!-- Bloque de efecto individual: descripción + atributos de ingreso. -->
       @if (esIndividual()) {
-        <nz-divider nzText="Efecto individual" nzOrientation="center"></nz-divider>
+        <nz-divider nzText="Efecto individual" nzOrientation="center" style="margin-bottom: 20px;"></nz-divider>
 
         <nz-form-item>
           <nz-form-label [nzSpan]="6">Descripción individual</nz-form-label>
@@ -94,8 +94,8 @@
                 <nz-select [formField]="atributo.EfectoAtributoAtributoIngresoId"
                   nzShowSearch nzAllowClear nzPlaceHolder="Atributo" [nzDropdownMatchSelectWidth]="false"
                   style="min-width: 200px;">
-                  @for (op of atributosOpciones.value() ?? []; track op.AtributoId) {
-                    <nz-option [nzValue]="op.AtributoId" [nzLabel]="op.AtributoDescripcion"></nz-option>
+                  @for (op of atributosOpciones.value() ?? []; track op.AtributoIngresoId) {
+                    <nz-option [nzValue]="op.AtributoIngresoId" [nzLabel]="op.AtributoIngresoDescripcion"></nz-option>
                   }
                 </nz-select>
                 <input nz-input [formField]="atributo.EfectoAtributoIngresoValor" placeholder="Valor" />
