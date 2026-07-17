@@ -70,7 +70,7 @@ export class RubroController extends BaseController {
       const result = await queryRunner.query(`
         SELECT
           ru.RubroId,
-          ru.RubroDescripcion
+          TRIM(ru.RubroDescripcion) AS RubroDescripcion
         FROM Rubro ru
         ORDER BY ru.RubroDescripcion
       `)
@@ -89,7 +89,7 @@ export class RubroController extends BaseController {
         SELECT
           sru.RubroId,
           sru.SubrubroId,
-          sru.SubrubroDescripcion
+          TRIM(sru.SubrubroDescripcion) AS SubrubroDescripcion
         FROM Subrubro sru
         ORDER BY sru.SubrubroDescripcion
       `)

@@ -30,6 +30,18 @@ export interface Atributo {
     AtributoDescripcion: string;
 }
 
+export interface Rubro {
+    RubroId: number;
+    RubroDescripcion: string;
+}
+
+// La PK de Subrubro es el par (RubroId, SubrubroId): el id solo identifica dentro de su rubro.
+export interface Subrubro {
+    RubroId: number;
+    SubrubroId: number;
+    SubrubroDescripcion: string;
+}
+
 export interface EfectoIndividualAtributo {
     EfectoEfectoIndividualAtributoIngresoId: number;
     EfectoAtributoAtributoIngresoId: number;
