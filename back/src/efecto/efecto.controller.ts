@@ -1426,6 +1426,7 @@ export class EfectoController extends BaseController {
       ru.RubroDescripcion,
       stk.SubrubroId,
       sru.SubrubroDescripcion,
+      efe.EfectoStockMinimo,
 
 	    ga.GrupoActividadDetalle,gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta,
 	    suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
@@ -1445,6 +1446,9 @@ export class EfectoController extends BaseController {
       LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
       LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
       LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
+      -- StockReal no expone las columnas propias de Efecto: EfectoStockMinimo viaja en la fila para
+      -- que el form de modificación lo edite sin pisarlo con NULL al guardar.
+      LEFT JOIN Efecto efe ON efe.EfectoId = stk.EfectoId
     WHERE stk.StockStock > 0
         AND ${filterSql} `, [now])
   }
@@ -1548,6 +1552,7 @@ export class EfectoController extends BaseController {
           ru.RubroDescripcion,
           stk.SubrubroId,
           sru.SubrubroDescripcion,
+          efe.EfectoStockMinimo,
 
         1
     FROM StockReal stk
@@ -1581,6 +1586,7 @@ export class EfectoController extends BaseController {
     LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
     LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
     LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
+    LEFT JOIN Efecto efe ON efe.EfectoId = stk.EfectoId
 
 
     WHERE stk.StockStock > 0
@@ -1630,6 +1636,7 @@ export class EfectoController extends BaseController {
       LEFT JOIN Sucursal suc ON suc.SucursalId = dep.DepositoSucursalId
       LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
       LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
+      LEFT JOIN Efecto efe ON efe.EfectoId = stk.EfectoId
       WHERE ${filterSql} `, [now])
   }
 
@@ -1673,6 +1680,7 @@ export class EfectoController extends BaseController {
           ru.RubroDescripcion,
           stk.SubrubroId,
           sru.SubrubroDescripcion,
+          efe.EfectoStockMinimo,
 
           pro.ProveedorId, pro.ProveedorRazonSocial, sucpro.SucursalDescripcion AS ProveedorSucursalDescripcion,
           dep.DepositoId, dep.DepositoNombre, sucdep.SucursalDescripcion AS DepositoSucursalDescripcion,
@@ -1686,6 +1694,7 @@ export class EfectoController extends BaseController {
 
       LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
       LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
+      LEFT JOIN Efecto efe ON efe.EfectoId = stk.EfectoId
 
       LEFT JOIN ListaPrecio lp ON lp.EfectoId = stk.EfectoId AND stk.EfectoEfectoIndividualId IS NULL and lp.ListaPrecioDesde<= @0 and ISNULL(lp.ListaPrecioHasta, '9999-12-31') >= @0
       LEFT JOIN ListaPrecioIndividual lpi on lpi.EfectoId = stk.EfectoId AND lpi.EfectoEfectoIndividualId = stk.EfectoEfectoIndividualId AND lpi.ListaPrecioIndividualDesde <= @0 AND ISNULL(lpi.ListaPrecioIndividualHasta, '9999-12-31') >= @0
@@ -1725,6 +1734,7 @@ export class EfectoController extends BaseController {
           ru.RubroDescripcion,
           stk.SubrubroId,
           sru.SubrubroDescripcion,
+          efe.EfectoStockMinimo,
 
           1
       FROM StockReal stk
@@ -1734,6 +1744,7 @@ export class EfectoController extends BaseController {
       LEFT JOIN Sucursal suc ON suc.SucursalId = pro.ProveedorSucursalId
       LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
       LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
+      LEFT JOIN Efecto efe ON efe.EfectoId = stk.EfectoId
       WHERE ${filterSql} `, [now])
   }
 
@@ -1925,6 +1936,10 @@ export class EfectoController extends BaseController {
       const descripcion = String(body.EfectoDescripcion ?? '').trim();
       const rubroId = Number(body.RubroId) || null;
       const subrubroId = Number(body.SubrubroId) || null;
+      // La columna es NULL-able: vacío significa "sin mínimo definido", que no es lo mismo que 0.
+      const stockMinimo = body.EfectoStockMinimo == null || body.EfectoStockMinimo === ''
+        ? null
+        : Number(body.EfectoStockMinimo);
       const individualId = body.EfectoEfectoIndividualId == null || body.EfectoEfectoIndividualId === ''
         ? null
         : Number(body.EfectoEfectoIndividualId);
@@ -1936,14 +1951,14 @@ export class EfectoController extends BaseController {
       const ip = this.getRemoteAddress(req);
       const now = new Date();
 
-      await this.validarEfectoModifica(queryRunner, efectoId, descripcion, rubroId, subrubroId, individualId, individualDescripcion, atributos);
+      await this.validarEfectoModifica(queryRunner, efectoId, descripcion, rubroId, subrubroId, stockMinimo, individualId, individualDescripcion, atributos);
 
       await queryRunner.query(`
         UPDATE Efecto
-        SET EfectoDescripcion = @1, RubroId = @2, SubrubroId = @3,
-            AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
+        SET EfectoDescripcion = @1, RubroId = @2, SubrubroId = @3, EfectoStockMinimo = @4,
+            AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7
         WHERE EfectoId = @0
-      `, [efectoId, descripcion, rubroId, subrubroId, now, usuario, ip]);
+      `, [efectoId, descripcion, rubroId, subrubroId, stockMinimo, now, usuario, ip]);
 
       // El bloque de efecto individual solo aparece en el form si el efecto tiene individual.
       // La PK es el par (EfectoEfectoIndividualId, EfectoId).
@@ -2041,7 +2056,8 @@ export class EfectoController extends BaseController {
 
   private async validarEfectoModifica(
     queryRunner: any, efectoId: number | null, descripcion: string, rubroId: number | null,
-    subrubroId: number | null, individualId: number | null, individualDescripcion: string, atributos: any[]
+    subrubroId: number | null, stockMinimo: number | null, individualId: number | null,
+    individualDescripcion: string, atributos: any[]
   ) {
     if (!efectoId)
       throw new ClientException('No se recibió el efecto a modificar.');
@@ -2064,6 +2080,13 @@ export class EfectoController extends BaseController {
       errores.push(`La descripción no puede superar los 100 caracteres (tiene ${descripcion.length}).`);
     if (individualId != null && individualDescripcion.length > 60)
       errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
+
+    if (stockMinimo != null) {
+      if (!Number.isFinite(stockMinimo))
+        errores.push('El stock mínimo debe ser un número.');
+      else if (stockMinimo < 0)
+        errores.push('El stock mínimo no puede ser negativo.');
+    }
 
     const efecto = await queryRunner.query(`SELECT EfectoId FROM Efecto WHERE EfectoId = @0`, [efectoId]);
     if (!efecto.length)

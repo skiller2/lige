@@ -1,25 +1,26 @@
 <nz-card class="small-margin">
   @if (efecto()) {
-    <form nz-form [formGroup]="formEfecto" nzLayout="horizontal">
+    <form nz-form nzLayout="horizontal" (ngSubmit)="guardar()">
       <nz-form-item>
         <nz-form-label [nzSpan]="6">Efecto ID</nz-form-label>
         <nz-form-control [nzSpan]="14">
-          <input nz-input formControlName="EfectoId" />
+          <input nz-input [formField]="formEfecto.EfectoId" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="6">Descripción</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <input nz-input formControlName="EfectoDescripcion" maxlength="100" />
+        <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+          <input nz-input [formField]="formEfecto.EfectoDescripcion" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
         <nz-form-label [nzSpan]="6">Rubro</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <nz-select formControlName="RubroId" nzShowSearch nzAllowClear nzPlaceHolder="Rubro" [nzDropdownMatchSelectWidth]="false">
-            @for (option of $optionsRubros | async; track option.RubroId) {
+        <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+          <nz-select [formField]="formEfecto.RubroId" nzShowSearch nzAllowClear nzPlaceHolder="Rubro"
+            [nzDropdownMatchSelectWidth]="false">
+            @for (option of rubros(); track option.RubroId) {
               <nz-option [nzValue]="option.RubroId" [nzLabel]="option.RubroDescripcion"></nz-option>
             }
           </nz-select>
@@ -28,9 +29,12 @@
 
       <nz-form-item>
         <nz-form-label [nzSpan]="6">Subrubro</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <nz-select formControlName="SubrubroId" nzShowSearch nzAllowClear nzPlaceHolder="Subrubro" [nzDropdownMatchSelectWidth]="false">
-            @for (option of $optionsSubrubros | async; track option.SubrubroId) {
+        <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+          <!-- Solo los subrubros del rubro elegido: SubrubroId no es único entre rubros. -->
+          <nz-select [formField]="formEfecto.SubrubroId" nzShowSearch nzAllowClear
+            [nzPlaceHolder]="formEfecto.RubroId().value() ? 'Subrubro' : 'Seleccione primero el rubro'"
+            [nzDropdownMatchSelectWidth]="false">
+            @for (option of subrubrosDelRubro(); track option.SubrubroId) {
               <nz-option [nzValue]="option.SubrubroId" [nzLabel]="option.SubrubroDescripcion"></nz-option>
             }
           </nz-select>
@@ -38,9 +42,9 @@
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="6">Stock</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <input nz-input formControlName="StockStock" />
+        <nz-form-label [nzSpan]="6">Stock mínimo</nz-form-label>
+        <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+          <input nz-input type="number" step="0.0001" [formField]="formEfecto.EfectoStockMinimo" />
         </nz-form-control>
       </nz-form-item>
 
@@ -62,53 +66,52 @@
 
         <nz-form-item>
           <nz-form-label [nzSpan]="6">Descripción individual</nz-form-label>
-          <nz-form-control [nzSpan]="14">
-            <input nz-input formControlName="EfectoEfectoIndividualDescripcion" />
+          <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+            <input nz-input [formField]="formEfecto.EfectoEfectoIndividualDescripcion" />
           </nz-form-control>
         </nz-form-item>
 
-        <div formArrayName="atributos">
-          <nz-form-item>
-            <nz-form-label [nzSpan]="6">Atributos</nz-form-label>
-            <nz-form-control [nzSpan]="14">
-              @for (grp of atributos.controls; track grp) {
-                <div [formGroupName]="$index" style="display: flex; gap: 8px; margin-bottom: 8px;">
-                  <nz-select formControlName="EfectoAtributoAtributoIngresoId"
-                    nzShowSearch nzAllowClear nzPlaceHolder="Atributo" [nzDropdownMatchSelectWidth]="false" style="min-width: 200px;">
-                    @for (op of atributosOpciones.value() ?? []; track op.AtributoId) {
-                      <nz-option [nzValue]="op.AtributoId" [nzLabel]="op.AtributoDescripcion"></nz-option>
-                    }
-                  </nz-select>
-                  <input nz-input formControlName="EfectoAtributoIngresoValor" placeholder="Valor" />
-                  @if (!esConsulta()) {
-                    <button nz-button nzType="default" nzDanger nzSize="large" type="button" nz-tooltip nzTooltipTitle="Eliminar atributo"
-                      style="min-width: 56px;" (click)="quitarAtributo($index)">
-                      <span nz-icon nzType="delete" nzTheme="outline"></span>
-                    </button>
+        <nz-form-item>
+          <nz-form-label [nzSpan]="6">Atributos</nz-form-label>
+          <nz-form-control [nzSpan]="14">
+            @for (atributo of formEfecto.atributos; track $index) {
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <nz-select [formField]="atributo.EfectoAtributoAtributoIngresoId"
+                  nzShowSearch nzAllowClear nzPlaceHolder="Atributo" [nzDropdownMatchSelectWidth]="false"
+                  style="min-width: 200px;">
+                  @for (op of atributosOpciones.value() ?? []; track op.AtributoId) {
+                    <nz-option [nzValue]="op.AtributoId" [nzLabel]="op.AtributoDescripcion"></nz-option>
                   }
-                </div>
-              }
-              @if (!(atributos.controls.length)) {
-                <p style="color: rgba(0,0,0,0.45);">Sin atributos.</p>
-              }
-              @if (!esConsulta()) {
-                <button nz-button nzType="dashed" type="button" (click)="agregarAtributo()">
-                  <span nz-icon nzType="plus" nzTheme="outline"></span> Agregar atributo
-                </button>
-              }
-            </nz-form-control>
-          </nz-form-item>
+                </nz-select>
+                <input nz-input [formField]="atributo.EfectoAtributoIngresoValor" placeholder="Valor" />
+                @if (!esConsulta()) {
+                  <button nz-button nzType="default" nzDanger nzSize="large" type="button" nz-tooltip
+                    nzTooltipTitle="Eliminar atributo" style="min-width: 56px;" (click)="quitarAtributo($index)">
+                    <span nz-icon nzType="delete" nzTheme="outline"></span>
+                  </button>
+                }
+              </div>
+            }
+            @if (!formEfecto.atributos.length) {
+              <p style="color: rgba(0,0,0,0.45);">Sin atributos.</p>
+            }
+            @if (!esConsulta()) {
+              <button nz-button nzType="dashed" type="button" (click)="agregarAtributo()">
+                <span nz-icon nzType="plus" nzTheme="outline"></span> Agregar atributo
+              </button>
+            }
+          </nz-form-control>
+        </nz-form-item>
+      }
+
+      @if (esConsulta()) {
+        <p style="color: rgba(0,0,0,0.45);">Modo consulta (solo lectura).</p>
+      } @else {
+        <div style="text-align: center;">
+          <button nz-button nzType="primary" type="submit">Guardar</button>
         </div>
       }
     </form>
-
-    @if (esConsulta()) {
-      <p style="color: rgba(0,0,0,0.45);">Modo consulta (solo lectura).</p>
-    } @else {
-      <div style="text-align: center;">
-        <button nz-button nzType="primary" type="button" (click)="guardar()">Guardar</button>
-      </div>
-    }
   } @else {
     <p>Seleccione un efecto en una grilla (General, Personal, Objetivos, Depósitos o Proveedores)
       y presione Consultar o Modificar.</p>
