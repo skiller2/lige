@@ -15,7 +15,7 @@ import {
 import { SearchGrup, ResponseBySearchGrup } from '../shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente, SearchClient } from '../shared/schemas/cliente.schemas';
 import { ResponseBySearchAdministrador, SearchAdmind } from '../shared/schemas/administrador.schemas';
-import { Atributo, EfectoIndividualAtributo, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual } from '../shared/schemas/efecto.schemas';
+import { Atributo, EfectoIndividualAtributo, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, Valor } from '../shared/schemas/efecto.schemas';
 import { ResponseBySearchTipoAsociadoCategoria, SearchTipoAsociadoCategoria } from '../shared/schemas/tipo-asociado-categoria.schemas';
 import { ResponseBySearchRubro, SearchRubro } from '../shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from '../shared/schemas/seguro.schemas';
@@ -2600,6 +2600,15 @@ export class SearchService {
   // Opciones del Select de Atributo (form modificar/consultar efecto).
   getAtributos(): Observable<Atributo[]> {
     return this.http.get<ResponseJSON<Atributo[]>>(`api/efecto/atributos`).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  // Opciones del Select de Valor. Con atributoId, solo los valores de ese atributo.
+  getValores(atributoId: number | null = null): Observable<Valor[]> {
+    const params = atributoId != null ? { atributoId: String(atributoId) } : {};
+    return this.http.get<ResponseJSON<Valor[]>>(`api/efecto/valores`, params).pipe(
       map(res => res.data ?? []),
       catchError(() => of([]))
     );

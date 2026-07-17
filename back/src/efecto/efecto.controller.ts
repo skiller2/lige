@@ -1889,6 +1889,29 @@ export class EfectoController extends BaseController {
     }
   }
 
+  // Opciones para el Select de Valor. Cada Valor pertenece a un Atributo (FK AtributoId): si viene
+  // el atributoId se filtra por él, si no se devuelven todos.
+  async getValores(req: any, res: Response, next: NextFunction) {
+    const atributoIdRaw = req.query?.atributoId;
+    const atributoId = atributoIdRaw === undefined || atributoIdRaw === '' || atributoIdRaw === 'null'
+      ? null
+      : Number(atributoIdRaw);
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const list = await queryRunner.query(`
+        SELECT ValorId, AtributoId, TRIM(ValorDescripcion) AS ValorDescripcion
+        FROM Valor
+        ${atributoId != null ? 'WHERE AtributoId = @0' : ''}
+        ORDER BY ValorDescripcion
+      `, atributoId != null ? [atributoId] : []);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   // Atributos de ingreso (EfectoEfectoIndividualAtributoIngreso) de un efecto individual.
   // EfectoAtributoAtributoIngresoId es la FK al Atributo (valor del Select).
   async getEfectoIndividualAtributos(req: any, res: Response, next: NextFunction) {

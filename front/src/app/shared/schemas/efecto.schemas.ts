@@ -35,6 +35,13 @@ export interface Rubro {
     RubroDescripcion: string;
 }
 
+// Cada Valor pertenece a un Atributo (FK AtributoId).
+export interface Valor {
+    ValorId: number;
+    AtributoId: number;
+    ValorDescripcion: string;
+}
+
 // La PK de Subrubro es el par (RubroId, SubrubroId): el id solo identifica dentro de su rubro.
 export interface Subrubro {
     RubroId: number;

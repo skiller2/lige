@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, linkedSignal, resource, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, resource, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SHARED_IMPORTS } from '@shared';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -10,6 +10,7 @@ import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
 import { EfectoIndividualAtributo, Rubro, Subrubro } from '../../../shared/schemas/efecto.schemas';
 import { AtributoSearchComponent } from '../../../shared/atributo-search/atributo-search';
+import { ValorSearchComponent } from '../../../shared/valor-search/valor-search';
 
 
 const texto = (valor: string | null | undefined): string => (valor ?? '').trim();
@@ -38,7 +39,7 @@ const nuevaAtributoLinea = (): AtributoLinea => ({
 
 @Component({
   selector: 'app-efecto-modifica',
-  imports: [SHARED_IMPORTS, FormField, NzFormModule, NzInputModule, NzSelectModule, AtributoSearchComponent],
+  imports: [SHARED_IMPORTS, FormField, NzFormModule, NzInputModule, NzSelectModule, AtributoSearchComponent, ValorSearchComponent],
   templateUrl: './efecto-modifica.html',
   standalone: true,
 })
@@ -168,6 +169,16 @@ export class EfectoModificaComponent {
       this.modelo.update(m => ({ ...m, SubrubroId: null }));
     });
   });
+
+  // Atributo/Valor: todavía sin cablear al modelo. Estado local sólo para que el Valor se filtre por
+  // el Atributo elegido y se limpie cuando el Atributo cambia.
+  readonly atributoSel = signal<number | null>(null);
+  readonly valorSel = signal<number | null>(null);
+
+  onAtributoChange(id: number | null): void {
+    this.atributoSel.set(id ?? null);
+    this.valorSel.set(null);
+  }
 
   agregarAtributo(): void {
     if (this.esConsulta()) return;

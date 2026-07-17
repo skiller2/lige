@@ -1,0 +1,16 @@
+<nz-select
+  [ngModel]="selected()"
+  (ngModelChange)="modelChange($event)"
+  (blur)="onBlur()"
+  [nzDisabled]="controlDisabled()"
+  [ngModelOptions]="{ standalone: true }"
+  [nzLoading]="valores.isLoading()"
+  nzAllowClear
+  nzShowSearch
+  [nzPlaceHolder]="placeholder()"
+  [nzDropdownMatchSelectWidth]="false"
+  style="width: 100%;">
+  @for (valor of valores.value() ?? []; track valor.ValorId) {
+    <nz-option [nzLabel]="valor.ValorDescripcion" [nzValue]="valor.ValorId"></nz-option>
+  }
+</nz-select>

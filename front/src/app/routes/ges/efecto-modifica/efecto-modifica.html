@@ -42,9 +42,17 @@
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="6">Atributo</nz-form-label>
+        <nz-form-label [nzSpan]="6">Atributo / Valor</nz-form-label>
         <nz-form-control [nzSpan]="14">
-          <app-atributo-search />
+          <div style="display: flex; gap: 8px;">
+            <app-atributo-search style="flex: 1;"
+              [ngModel]="atributoSel()" (ngModelChange)="onAtributoChange($event)"
+              [ngModelOptions]="{ standalone: true }" />
+            <app-valor-search style="flex: 1;" [atributoId]="atributoSel()"
+              [placeholder]="atributoSel() ? 'Valor' : 'Seleccione primero el atributo'"
+              [ngModel]="valorSel()" (ngModelChange)="valorSel.set($event)"
+              [ngModelOptions]="{ standalone: true }" />
+          </div>
         </nz-form-control>
       </nz-form-item>
 
