@@ -9,6 +9,7 @@ import { Observable, firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
 import { EfectoIndividualAtributo, Rubro, Subrubro } from '../../../shared/schemas/efecto.schemas';
+import { AtributoSearchComponent } from '../../../shared/atributo-search/atributo-search';
 
 
 const texto = (valor: string | null | undefined): string => (valor ?? '').trim();
@@ -37,7 +38,7 @@ const nuevaAtributoLinea = (): AtributoLinea => ({
 
 @Component({
   selector: 'app-efecto-modifica',
-  imports: [SHARED_IMPORTS, FormField, NzFormModule, NzInputModule, NzSelectModule],
+  imports: [SHARED_IMPORTS, FormField, NzFormModule, NzInputModule, NzSelectModule, AtributoSearchComponent],
   templateUrl: './efecto-modifica.html',
   standalone: true,
 })
