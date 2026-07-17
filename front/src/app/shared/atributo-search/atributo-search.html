@@ -1,0 +1,15 @@
+<nz-select
+  [ngModel]="selected()"
+  (ngModelChange)="modelChange($event)"
+  (blur)="onBlur()"
+  [nzDisabled]="controlDisabled()"
+  [ngModelOptions]="{ standalone: true }"
+  nzAllowClear
+  nzShowSearch
+  [nzPlaceHolder]="placeholder()"
+  [nzDropdownMatchSelectWidth]="false"
+  style="width: 100%;">
+  @for (atributo of atributos(); track atributo.AtributoId) {
+    <nz-option [nzLabel]="atributo.AtributoDescripcion" [nzValue]="atributo.AtributoId"></nz-option>
+  }
+</nz-select>
