@@ -113,6 +113,10 @@
     <app-number-advanced-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
       [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
     }
+    @if (selections.field.searchComponent=='inputForColumnComparisonSearch') {
+    <app-column-comparison-search [(operador)]="selections.operator"
+      [compareFieldLabel]="selections.field.compareFieldLabel" (keydown.enter)="handleInputConfirm()" />
+    }
     @if (selections.field.searchComponent=='inputForRequirenteSearch') {
     <app-requirente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
       [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />

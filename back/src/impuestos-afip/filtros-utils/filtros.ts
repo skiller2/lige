@@ -66,6 +66,14 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
     if (!isCondition(filtro.condition)) return;
 
+    if (type === 'columncomparison') {
+      const compareFieldName = columna?.compareFieldName;
+      const allowedOperators = ['=', '>', '<', '>=', '<='];
+      if (compareFieldName && allowedOperators.includes(filtro.operador))
+        rowFilterString.push(` (${fieldName} ${filtro.operador} ${compareFieldName}) `);
+      return;
+    }
+
     let filterString: String[]=[]
 
     for (let valorBusqueda of filtro.valor) {

@@ -1,0 +1,6 @@
+<nz-select style="width:40%" [(ngModel)]="operador" [nzDropdownMatchSelectWidth]="false">
+  @for (operator of operators; track operator) {
+    <nz-option [nzValue]="operator" [nzLabel]="operator"></nz-option>
+  }
+</nz-select>
+<input nz-input [value]="compareFieldLabel()" disabled style="width:60%" />

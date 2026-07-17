@@ -34,6 +34,7 @@ import { AdministradorSearchComponent } from "../../shared/administrador-search/
 import { SeguroSearchComponent } from "../../shared/seguro-search/seguro-search.component"
 import { ApiService } from '../../services/api.service';
 import { NumberAdvancedSearchComponent } from '../number-advanced-search/number-advanced-search';
+import { ColumnComparisonSearchComponent } from '../column-comparison-search/column-comparison-search';
 import { PeriodoSearchComponent } from '../periodo-search/periodo-search';
 import { AsyncPipe } from '@angular/common';
 import { AbstractExpandedDecoder } from '@zxing/library';
@@ -58,7 +59,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   selector: 'shared-filtro-builder',
   imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
     ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent, EfectoSearchComponent, EfectoIndividualSearchComponent,
-    TipoAsociadoCategoriaSearchComponent, TipoAsociadoSearchComponent, RequirenteSearchComponent, NumberAdvancedSearchComponent, PeriodoSearchComponent,
+    TipoAsociadoCategoriaSearchComponent, TipoAsociadoSearchComponent, RequirenteSearchComponent, NumberAdvancedSearchComponent, ColumnComparisonSearchComponent, PeriodoSearchComponent,
     TipoPersonalActaSearchComponent, AsyncPipe, NzUploadModule
   ],
   templateUrl: './filtro-builder.component.html',
@@ -178,7 +179,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     { value: 'Objetivo', label: 'Objetivo' },
     { value: 'Proveedor', label: 'Proveedor' },
   ];
-
   ngOnInit(): void {
   }
 
@@ -260,6 +260,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
           this.selections.operator = this.selections.value.operator
           this.selections.value = this.selections.value.value
         }
+      }
+
+      if (this.selections.field.searchType == 'columnComparison') {
+        const compareFieldLabel = this.selections.field.compareFieldLabel || 'otra columna';
+        this.selections.value = compareFieldLabel;
+        this.selections.label = compareFieldLabel;
       }
 
       if ((this.selections.field.type == 'date' || this.selections.field.type == 'dateTime') && this.selections.field.searchComponent != 'inputForNumberAdvancedSearch' && this.selections.value instanceof Date != true) {
