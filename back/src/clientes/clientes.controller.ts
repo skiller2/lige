@@ -836,23 +836,112 @@ ${orderBy}`, [fechaActual])
     }
 
     async deleteCliente(req: Request, res: Response, next: NextFunction) {
-
-        let { id } = req.query
-        const ClienteId = Number(id)
+        const ClienteId = Number(req.params.id)
         const queryRunner = await getConnection(res.locals.userName);
+
         try {
-
             await queryRunner.startTransaction();
-            throw new ClientException(`Función en desarrollo.`)
-            const contactosIds = await queryRunner.query(`SELECT ContactoId, ClienteId FROM Contacto WHERE ClienteId = @0 `, [ClienteId])
 
-            for (const contacto of contactosIds) {
-                await queryRunner.query(`DELETE FROM ContactoEmail WHERE ClienteId = @0 `, [contacto.ContactoId])
-                await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ClienteId = @0 `, [contacto.ContactoId])
+            if (!Number.isInteger(ClienteId) || ClienteId <= 0) {
+                throw new ClientException(`El id del cliente no es válido.`)
             }
-            await queryRunner.query(`DELETE FROM Contacto WHERE ClienteId = @0 `, [ClienteId])
 
-            await queryRunner.commitTransaction();
+            const cliente = await queryRunner.query(
+                `SELECT ClienteId FROM Cliente WHERE ClienteId = @0`,
+                [ClienteId]
+            )
+
+            if (cliente.length === 0) {
+                throw new ClientException(`El cliente indicado no existe.`)
+            }
+
+            const documentos = await queryRunner.query(`
+                SELECT DocumentoId
+                FROM Documento
+                WHERE DocumentoClienteId = @0
+                ORDER BY DocumentoId`,
+                [ClienteId]
+            )
+
+            const objetivos = await queryRunner.query(`
+                SELECT ObjetivoId, CONCAT(ClienteId,'/', ISNULL(ClienteElementoDependienteId, 0)) AS CodigoObjetivo
+                FROM Objetivo
+                WHERE ClienteId = @0
+                ORDER BY ObjetivoId`,
+                [ClienteId]
+            )
+
+            const errores: string[] = []
+            if (documentos.length > 0) {
+                const ids = documentos.map(documento => documento.DocumentoId).join(', ')
+                errores.push(
+                    `- Documentos relacionados: ${documentos.length} (${ids}).`
+                )
+            }
+            if (objetivos.length > 0) {
+                const CodigosObj = objetivos.map(objetivo => objetivo.CodigoObjetivo).join(', ')
+                errores.push(
+                    `- Objetivos relacionados: ${objetivos.length} (${CodigosObj}).`
+                )
+            }
+
+            if (errores.length > 0) {
+                errores.unshift('No se puede eliminar el cliente por los siguientes motivos:')
+                throw new ClientException(errores)
+            }
+
+            await queryRunner.query(`
+                DELETE email
+                FROM ContactoEmail email
+                JOIN Contacto contacto ON contacto.ContactoId = email.ContactoId
+                WHERE contacto.ClienteId = @0`,
+                [ClienteId]
+            )
+
+            await queryRunner.query(`
+                DELETE telefono
+                FROM ContactoTelefono telefono
+                JOIN Contacto contacto ON contacto.ContactoId = telefono.ContactoId
+                WHERE contacto.ClienteId = @0`,
+                [ClienteId]
+            )
+
+            await queryRunner.query(`DELETE FROM Contacto WHERE ClienteId = @0`, [ClienteId])
+
+            const domicilios = await queryRunner.query(`
+                SELECT DomicilioId
+                FROM NexoDomicilio
+                WHERE ClienteId = @0
+                    AND ClienteElementoDependienteId IS NULL`,
+                [ClienteId]
+            )
+
+            await queryRunner.query(`
+                DELETE FROM NexoDomicilio
+                WHERE ClienteId = @0
+                    AND ClienteElementoDependienteId IS NULL`,
+                [ClienteId]
+            )
+
+            for (const { DomicilioId } of domicilios) {
+                await queryRunner.query(`
+                    DELETE FROM Domicilio
+                    WHERE DomicilioId = @0
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM NexoDomicilio
+                            WHERE DomicilioId = @0
+                        )`,
+                    [DomicilioId]
+                )
+            }
+
+            await queryRunner.query(`DELETE FROM ClienteAdministrador WHERE ClienteId = @0`, [ClienteId])
+            await queryRunner.query(`DELETE FROM ClienteFacturacion WHERE ClienteId = @0`, [ClienteId])
+            await queryRunner.query(`DELETE FROM Cliente WHERE ClienteId = @0`, [ClienteId])
+
+            await queryRunner.commitTransaction()
+            return this.jsonRes({ ClienteId }, res, `El cliente fue eliminado correctamente.`)
 
         } catch (error) {
             await this.rollbackTransaction(queryRunner)

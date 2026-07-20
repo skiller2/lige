@@ -1828,11 +1828,13 @@ outer APPLY (SELECT
 
         try {
             if (!ClienteElementoDependienteId || !ClienteId || !ObjetivoId)
-                throw new ClientException("Debe seleccionar un Objetivo")
+                throw new ClientException("No se encontro al Objetivo con ObjetivoId: " + ObjetivoId + " ClienteId: " + ClienteId + " ClienteElementoDependienteId: " + ClienteElementoDependienteId)
 
 
 
             await queryRunner.startTransaction();
+
+            const errores: string[] = []
 
             const horasAsistencia = await queryRunner.query(`SELECT SUM(
                     ((ISNULL(CAST(LEFT(objp.ObjetivoAsistenciaAnoMesPersonalDias1Gral,2) AS INT) *60 + CAST(RIGHT(TRIM(objp.ObjetivoAsistenciaAnoMesPersonalDias1Gral),2) AS INT),0)+
@@ -1875,11 +1877,21 @@ outer APPLY (SELECT
                     WHERE objp.ObjetivoId = @0
                     `, [Number(ObjetivoId)])
 
-            if (horasAsistencia[0].totalHorasGlobal > 0) throw new ClientException(`No se puede eliminar el objetivo porque tiene horas de asistencia cargadas. Horas Cargadas Totales: ${horasAsistencia[0].totalHorasGlobal}`)
+            if (horasAsistencia[0].totalHorasGlobal > 0) errores.push(`- Horas Cargadas en asistencia Totales: ${horasAsistencia[0].totalHorasGlobal}`)
+            // throw new ClientException(`No se puede eliminar el objetivo porque tiene horas de asistencia cargadas. Horas Cargadas Totales: ${horasAsistencia[0].totalHorasGlobal}`)
 
-            const documentosAsociados = await queryRunner.query(`SELECT COUNT(*) AS totalDocumentos FROM Documento WHERE ObjetivoId = @0`, [Number(ObjetivoId)])
-            if (documentosAsociados[0].totalDocumentos > 0) throw new ClientException(`No se puede eliminar el objetivo porque tiene documentos asociados. Cantidad de Documentos Asociados: ${documentosAsociados[0].totalDocumentos}`)
+            const documentosAsociados = await queryRunner.query(`SELECT DocumentoId FROM Documento WHERE ObjetivoId = @0`, [Number(ObjetivoId)])
+            const ids = documentosAsociados.map(documento => documento.DocumentoId).join(', ')
 
+            if (documentosAsociados[0].totalDocumentos > 0) errores.push(`- Documentos relacionados: ${documentosAsociados[0].totalDocumentos} (${ids})`)
+
+            const efectosRelacionados = await queryRunner.query(`Select EfectoId, EfectoIndividualId from StockReal WHERE ObjetivoId = @0`, [Number(ObjetivoId)])
+            if (efectosRelacionados.length > 0) errores.push(`- Efectos relacionados: ${efectosRelacionados.length}`)
+
+            if (errores.length > 0) {
+                errores.unshift('No se puede eliminar el objetivo por los siguientes motivos:')
+                throw new ClientException(errores)
+            }
             await this.deletePersonalJerarquicoQuery(queryRunner, Number(ObjetivoId))
             await this.deleteGrupoActividadQuery(queryRunner, Number(ObjetivoId))
 
