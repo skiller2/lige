@@ -77,7 +77,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   private elRef = inject(ElementRef)
   private datePipe = inject(DatePipe)
   private apiService = inject(ApiService)
-  private _options= signal<Options>({
+  private _options = signal<Options>({
     filtros: [],
     sort: null,
   })
@@ -117,7 +117,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
 
       for (const filter of this.startFilters()) {
-        this.addFilter(filter.index, filter.condition, filter.operator, filter.value, filter.label || '', filter.closeable || true, true)
+        this.addFilter(filter.index, filter.condition, filter.operator, filter.value, filter.label || '', filter.closeable ?? true, true)
       }
       let storedFilters = []
       try {
@@ -321,7 +321,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       if (!(this.selections.inicial == true)) {
         this.saveLocalStorage()
       }
-      this.options.update(v=>({...this.localoptions}))
+      this.options.update(v => ({ ...this.localoptions }))
       this.optionsChange.emit({ ...this.localoptions, filtros: [...this.localoptions.filtros] });
     }
     this.resetSelections();
@@ -338,7 +338,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     const baseKey = this.keyLocalstorage();
     if (baseKey === '') return '';
     const userId: any = this.settingsService.getUser()
-    return userId.PersonalId >=0 ? `${baseKey}_${userId.PersonalId}` : baseKey;
+    return userId.PersonalId >= 0 ? `${baseKey}_${userId.PersonalId}` : baseKey;
   }
 
   saveLocalStorage() {
@@ -352,13 +352,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
   removeFiltro(indexToRemove: number) {
     this.localoptions.filtros.splice(indexToRemove, 1);
-    this.options.update(v=>({...this.localoptions}))
+    this.options.update(v => ({ ...this.localoptions }))
     this.optionsChange.emit({ ...this.localoptions, filtros: [...this.localoptions.filtros] });
     this.saveLocalStorage()
   }
 
   async editFiltro(originIdx: number) {
-    
+
     const filtro = this.localoptions.filtros[originIdx];
     if (!filtro || !filtro.closeable) return;
 
@@ -755,6 +755,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       if (dep) label = dep.DepositoNombre
     }
 
+    if (fieldObj.searchComponent == 'inputForSucursalSearch') {
+      const sucursales = await firstValueFrom(this.searchService.getSucursales())
+      const sucursalIds = String(value).split(';')
+      label = (sucursales ?? []).filter((sucursal: any) => sucursalIds.includes(String(sucursal.SucursalId))).map((sucursal: any) => sucursal.SucursalDescripcion).join('; ')
+    }
+
     if (fieldObj.searchComponent == 'inputForEfectoSearch') {
       const efecto = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', value))
       label = efecto[0].EfectoDescripcion
@@ -797,7 +803,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       if (option) label = option.label
     }
 
-    if (fieldObj.searchComponent == 'inputForActivo' || fieldObj.searchComponent =='inputForExceptuadoSearch' ) {
+    if (fieldObj.searchComponent == 'inputForActivo' || fieldObj.searchComponent == 'inputForExceptuadoSearch') {
       label = value == 1 ? 'SI' : 'NO'
     }
 
@@ -828,20 +834,20 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         break;
       case 'success':
         const Response = event.file.response
-        
+
         if (Response.data.length) {
           try {
-            let res:any
+            let res: any
             switch (this.selections.field.searchComponent) {
               case 'inputForCUITsSearchFromINAESFile':
-                res = await firstValueFrom(this.apiService.getCUITsFromINAESFile({file: Response.data}))
+                res = await firstValueFrom(this.apiService.getCUITsFromINAESFile({ file: Response.data }))
                 let value = res.cuits.join(";")
-                this.selections = { ...this.selections, condition:'AND', operator:'=', value, label: value, closeable: true, originIdx: null, inicial: false }
+                this.selections = { ...this.selections, condition: 'AND', operator: '=', value, label: value, closeable: true, originIdx: null, inicial: false }
                 break;
               default:
                 break;
             }
-          } catch (error) {}
+          } catch (error) { }
         }
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)

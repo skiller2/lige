@@ -41,9 +41,8 @@ export class TableDepositoEfectoComponent {
     sort: null,
   })
   filtersReady = signal(false)
-  startFilters = signal<Selections[]>([
-    { index: 'StockStock', condition: 'AND', operator: '>', value: '0', closeable: true },
-  ])
+  startFilters = signal<Selections[]>([])
+  startFiltersReady = signal(false)
   filtroVisible = signal(true)
 
   private readonly loadingSrv = inject(LoadingService)
@@ -54,7 +53,8 @@ export class TableDepositoEfectoComponent {
   private applyDepositoFilter = effect(() => {
     const id = this.depositoIdFilter()
     if (id > 0) {
-      this.startFilters.set([
+      this.startFilters.update(filters => [
+        ...filters.filter(filter => filter.index !== 'DepositoId'),
         { index: 'DepositoId', condition: 'AND', operator: '=', value: String(id), closeable: true },
       ])
       this.filtroVisible.set(false)
@@ -65,7 +65,10 @@ export class TableDepositoEfectoComponent {
   columns = toSignal(this.apiService.getCols('/api/efecto/colsDeposito'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
+    // Espera a que FiltroBuilder emita los filtros iniciales para evitar el warning duplicado al ingresar.
+    params: () => this.filtersReady()
+      ? { options: this.listOptions(), refresh: this.refreshGrid() }
+      : undefined,
     loader: async ({ params }) => {
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
@@ -80,8 +83,14 @@ export class TableDepositoEfectoComponent {
     defaultValue: []
   })
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.initializeGridOptions();
+    const filters = await firstValueFrom(this.searchService.getEfectoFilters('table-deposito-efecto'))
+    this.startFilters.update(currentFilters => [
+      ...filters,
+      ...currentFilters.filter(currentFilter => !filters.some((backendFilter: Selections) => backendFilter.index === currentFilter.index)),
+    ])
+    this.startFiltersReady.set(true)
   }
 
   private initializeGridOptions(): void {

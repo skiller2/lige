@@ -41,9 +41,8 @@ export class TableEfectoGeneralComponent {
     sort: null,
   })
   filtersReady = signal(false)
-  startFilters = signal<Selections[]>([
-    // { index: 'StockStock', condition: 'AND', operator: '>', value: '0', closeable: true },
-  ])
+  startFilters = signal<Selections[]>([])
+  startFiltersReady = signal(false)
 
   private readonly loadingSrv = inject(LoadingService)
   private apiService = inject(ApiService)
@@ -68,7 +67,10 @@ export class TableEfectoGeneralComponent {
   )
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
+    // Espera a que FiltroBuilder emita los filtros iniciales para evitar el warning duplicado al ingresar.
+    params: () => this.filtersReady()
+      ? { options: this.listOptions(), refresh: this.refreshGrid() }
+      : undefined,
     loader: async ({ params }) => {
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
@@ -83,8 +85,11 @@ export class TableEfectoGeneralComponent {
     defaultValue: []
   })
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.initializeGridOptions();
+    const filters = await firstValueFrom(this.searchService.getEfectoFilters('table-efecto-general'))
+    this.startFilters.set(filters)
+    this.startFiltersReady.set(true)
   }
 
   private initializeGridOptions(): void {

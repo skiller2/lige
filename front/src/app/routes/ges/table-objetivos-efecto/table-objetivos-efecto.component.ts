@@ -59,6 +59,7 @@ export class TableObjetivosEfectoComponent {
   })
   filtersReady = signal(false)
   startFilters = signal<Selections[]>([])
+  startFiltersReady = signal(false)
   filtroVisible = signal(true)
 
   private readonly loadingSrv = inject(LoadingService)
@@ -69,7 +70,8 @@ export class TableObjetivosEfectoComponent {
   private applyObjetivoFilter = effect(() => {
     const id = this.objetivoIdFilter()
     if (id > 0) {
-      this.startFilters.set([
+      this.startFilters.update(filters => [
+        ...filters.filter(filter => filter.index !== 'ObjetivoId'),
         { index: 'ObjetivoId', condition: 'AND', operator: '=', value: String(id), closeable: true },
       ])
       this.filtroVisible.set(false)
@@ -80,7 +82,10 @@ export class TableObjetivosEfectoComponent {
   columns = toSignal(this.apiService.getCols('/api/efecto/colsObjetivos'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
+    // Espera a que FiltroBuilder emita los filtros iniciales para evitar el warning duplicado al ingresar.
+    params: () => this.filtersReady()
+      ? { options: this.listOptions(), refresh: this.refreshGrid() }
+      : undefined,
     loader: async ({ params }) => {
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
@@ -95,8 +100,14 @@ export class TableObjetivosEfectoComponent {
     defaultValue: []
   })
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.initializeGridOptions();
+    const filters = await firstValueFrom(this.searchService.getEfectoFilters('table-objetivos-efecto'))
+    this.startFilters.update(currentFilters => [
+      ...filters,
+      ...currentFilters.filter(currentFilter => !filters.some((backendFilter: Selections) => backendFilter.index === currentFilter.index)),
+    ])
+    this.startFiltersReady.set(true)
   }
 
   private initializeGridOptions(): void {

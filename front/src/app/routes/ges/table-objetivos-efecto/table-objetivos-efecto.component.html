@@ -1,7 +1,7 @@
 <nz-card #tabpersonalefecto class="small-margin">
     <ng-container>
     @if(columns().length; as columnas) {
-      @if(filtroVisible()) {
+      @if(filtroVisible() && startFiltersReady()) {
         <shared-filtro-builder [fieldsToSelect]="columns()" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
       }
       

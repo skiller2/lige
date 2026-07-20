@@ -2,6 +2,8 @@ import { BaseController, ClientException, ClientWarning } from "../controller/ba
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
+import type { Selections } from "../schemas/filtro.ts";
+import { logger } from "../logger/logger.ts";
 
 const listaColumnasPersonal: any[] = [
   {
@@ -749,6 +751,17 @@ const listaColumnasEfectoGeneral: any[] = [
     searchHidden: true,
   },
   {
+    id: "SucursalId",
+    name: "Sucursal",
+    field: "SucursalId",
+    fieldName: "COALESCE(sucpro.SucursalId, sucdep.SucursalId, sucobj.SucursalId, sucper.SucursalId)",
+    type: "number",
+    searchComponent: "inputForSucursalSearch",
+    sortable: false,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
     id: "StockStock",
     name: "Stock",
     field: "StockStock",
@@ -1393,6 +1406,48 @@ export class EfectoController extends BaseController {
     this.jsonRes(listaColumnasMovimientos, res);
   }
 
+  async getGridFilters(req: any, res: Response, next: NextFunction) {
+    const startFilters: Selections[] = []
+    const filterSucursal = Array.isArray(res.locals.filterSucursal) ? res.locals.filterSucursal.join(';') : '';
+    const reqGrid = req.params?.grid;
+
+    if (!filterSucursal) return this.jsonRes(startFilters, res)
+
+    switch (reqGrid) {
+      case 'table-personal-efecto':
+      case 'table-objetivos-efecto':
+      case 'table-deposito-efecto':
+      case 'table-proveedores-efecto':
+        startFilters.push({
+          index: 'SucursalDescripcion',
+          condition: 'AND',
+          operator: '=',
+          value: filterSucursal,
+          closeable: false,
+          label: '',
+          originIdx: null
+        })
+        break
+
+      case 'table-efecto-general':
+        startFilters.push({
+          index: 'SucursalId',
+          condition: 'AND',
+          operator: '=',
+          value: filterSucursal,
+          closeable: false,
+          label: '',
+          originIdx: null
+        })
+        break
+
+      default:
+        break
+    }
+
+    return this.jsonRes(startFilters, res)
+  }
+
   private async efectobyPersonalIdQuery(queryRunner: any, personalId: number) {
     const listOptions = {
       filtros: [
@@ -1707,7 +1762,7 @@ export class EfectoController extends BaseController {
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
       LEFT JOIN ClienteElementoDependiente ele on ele.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and ele.ClienteId=obj.ClienteId
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-      LEFT JOIN Sucursal sucobj ON sucobj.SucursalId = ele.ClienteElementoDependienteSucursalId
+      LEFT JOIN Sucursal sucobj ON sucobj.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId, cli.ClienteSucursalId)
 
       LEFT JOIN Personal per ON per.PersonalId = stk.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
@@ -2214,7 +2269,7 @@ export class EfectoController extends BaseController {
 
     if (dup.length) {
       const otro = dup[0];
-      
+
       throw new ClientException([
         'Ya existe otro efecto con la misma descripción completa:',
         `"${String(otro.Completo).trim()}"`
