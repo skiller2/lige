@@ -1,16 +1,41 @@
 <nz-drawer
   [nzVisible]="visible()"
-  nzTitle="Detalle de efectos"
+  [nzTitle]="titulo()"
   [nzWidth]="640"
   (nzOnClose)="close()">
   <ng-container *nzDrawerContent>
+    @if (esIngresoStock()) {
+      <div style="margin-bottom: 4px;">
+        <strong>Ingreso de Stock</strong>
+      </div>
+    }
+    @if (cabecera()?.Destino) {
+      <div style="margin-bottom: 4px;">
+        Destino: <strong>{{ cabecera()?.Destino }}</strong>
+      </div>
+    }
+    @if (cabecera()?.MovimientoCodigoViejo) {
+      <div style="margin-bottom: 4px;">
+        Anterior: <strong>{{ cabecera()?.MovimientoCodigoViejo }}</strong>
+      </div>
+    }
+    @if (cabecera()?.Intermediario) {
+      <div style="margin-bottom: 4px;">
+        Intermediario: <strong>{{ cabecera()?.Intermediario }}</strong>
+      </div>
+    }
+    @if (cabecera()?.Observaciones) {
+      <div style="margin-bottom: 8px;">
+        Observaciones: <strong>{{ cabecera()?.Observaciones }}</strong>
+      </div>
+    }
     <div style="margin-bottom: 8px;">
       Cantidad total: <strong>{{ cantidadTotal() }}</strong>
     </div>
     <nz-table
       #detalleTable
-      [nzData]="detalle.value()"
-      [nzLoading]="detalle.isLoading()"
+      [nzData]="filas()"
+      [nzLoading]="data.isLoading()"
       nzSize="small"
       [nzShowPagination]="false"
       [nzFrontPagination]="false">

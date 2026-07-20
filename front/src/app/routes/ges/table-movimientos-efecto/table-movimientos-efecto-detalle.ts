@@ -21,20 +21,33 @@ export class TableMovimientosEfectoDetalleComponent {
 
   private searchService = inject(SearchService);
 
-  detalle = resource({
+  data = resource({
     params: () => ({ codigo: this.movimientoStockCodigo(), visible: this.visible() }),
     loader: async ({ params }) => {
       // Solo pedimos al backend cuando el drawer está abierto y hay un movimiento seleccionado.
-      if (!params.visible || !params.codigo) return [];
+      if (!params.visible || !params.codigo) return { cabecera: null, detalle: [] };
       const response = await firstValueFrom(this.searchService.getEfectoMovimientoDetalle(params.codigo));
-      return response || [];
+      return response ?? { cabecera: null, detalle: [] };
     },
-    defaultValue: []
+    defaultValue: { cabecera: null, detalle: [] }
+  });
+
+  cabecera = computed(() => this.data.value()?.cabecera ?? null);
+  filas = computed(() => this.data.value()?.detalle ?? []);
+
+  esIngresoStock = computed(() => {
+    const ind = (this.cabecera() as any)?.IndIngresoStock;
+    return ind === true || ind === 1 || ind === '1';
+  });
+
+  titulo = computed(() => {
+    const codigo = this.movimientoStockCodigo();
+    return codigo ? `Detalle de Efectos código: ${codigo}` : 'Detalle de Efectos';
   });
 
   // Total de Cantidad del detalle; debe coincidir con CantidadEfectos de la grilla.
   cantidadTotal = computed(() =>
-    this.detalle.value().reduce((acc: number, it: any) => acc + (Number(it.Cantidad) || 0), 0)
+    this.filas().reduce((acc: number, it: any) => acc + (Number(it.Cantidad) || 0), 0)
   );
 
   close(): void {

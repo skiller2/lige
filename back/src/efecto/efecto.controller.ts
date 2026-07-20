@@ -1864,7 +1864,57 @@ export class EfectoController extends BaseController {
         WHERE det.MovimientoStockCodigo = @0
         ORDER BY det.MovimientoStockDetalleCodigo
       `, [movimientoCodigo]);
-      this.jsonRes(list, res);
+
+      const cabecera = await queryRunner.query(`
+        SELECT
+          LTRIM(CONCAT(
+            CASE
+              WHEN m.DepositoIdDest IS NOT NULL THEN 'Depósito'
+              WHEN m.PersonalIdDest IS NOT NULL THEN 'Persona'
+              WHEN m.ProveedorIdDest IS NOT NULL THEN 'Proveedor'
+              WHEN m.ClienteIdDest IS NOT NULL THEN 'Objetivo'
+              ELSE ''
+            END,
+            IIF(COALESCE(
+              TRIM(depd.DepositoNombre),
+              IIF(m.PersonalIdDest IS NULL, NULL, CONCAT(TRIM(perd.PersonalApellido), ', ', TRIM(perd.PersonalNombre))),
+              TRIM(prod.ProveedorRazonSocial),
+              IIF(m.ClienteIdDest IS NULL, NULL,
+                CONCAT(m.ClienteIdDest, IIF(m.ClienteElemDepDest IS NULL, '', CONCAT('/', m.ClienteElemDepDest)),
+                  IIF(eled.ClienteElementoDependienteDescripcion IS NULL, '', CONCAT(' ', TRIM(eled.ClienteElementoDependienteDescripcion)))))
+            ) IS NULL, '', CONCAT(' ', COALESCE(
+              TRIM(depd.DepositoNombre),
+              IIF(m.PersonalIdDest IS NULL, NULL, CONCAT(TRIM(perd.PersonalApellido), ', ', TRIM(perd.PersonalNombre))),
+              TRIM(prod.ProveedorRazonSocial),
+              IIF(m.ClienteIdDest IS NULL, NULL,
+                CONCAT(m.ClienteIdDest, IIF(m.ClienteElemDepDest IS NULL, '', CONCAT('/', m.ClienteElemDepDest)),
+                  IIF(eled.ClienteElementoDependienteDescripcion IS NULL, '', CONCAT(' ', TRIM(eled.ClienteElementoDependienteDescripcion)))))
+            )))
+          )) AS Destino,
+          m.Observaciones,
+          IIF(m.IntermediarioPersonalId IS NULL, NULL, CONCAT(TRIM(peri.PersonalApellido), ', ', TRIM(peri.PersonalNombre))) AS Intermediario,
+          m.IndIngresoStock,
+          m.MovimientoCodigoViejo
+        FROM (
+          SELECT mov.Observaciones, mov.IndIngresoStock, NULLIF(TRIM(mov.MovimientoCodigoViejo), '') AS MovimientoCodigoViejo,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.PersonalIdDestino, mov.PersonalIdDestino) AS PersonalIdDest,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ProveedorIdDestino, mov.ProveedorIdDestino) AS ProveedorIdDest,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ClienteIdDestino, mov.ClienteIdDestino) AS ClienteIdDest,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ClienteElementoDependienteIdDestino, mov.ClienteElementoDependienteIdDestino) AS ClienteElemDepDest,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.DepositoIdDestino, mov.DepositoIdDestino) AS DepositoIdDest,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, mov.PersonalIdDestino, NULL) AS IntermediarioPersonalId
+          FROM MovimientoStock mov
+          LEFT JOIN MovimientoStockPendiente pend ON pend.MovimientoStockCodigo = mov.MovimientoStockCodigo
+          WHERE mov.MovimientoStockCodigo = @0
+        ) m
+        LEFT JOIN Deposito depd ON depd.DepositoId = m.DepositoIdDest
+        LEFT JOIN Personal perd ON perd.PersonalId = m.PersonalIdDest
+        LEFT JOIN Proveedor prod ON prod.ProveedorId = m.ProveedorIdDest
+        LEFT JOIN ClienteElementoDependiente eled ON eled.ClienteId = m.ClienteIdDest AND eled.ClienteElementoDependienteId = m.ClienteElemDepDest
+        LEFT JOIN Personal peri ON peri.PersonalId = m.IntermediarioPersonalId
+      `, [movimientoCodigo]);
+
+      this.jsonRes({ cabecera: cabecera[0] ?? null, detalle: list }, res);
     } catch (error) {
       return next(error);
     } finally {

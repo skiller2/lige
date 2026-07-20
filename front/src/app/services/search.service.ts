@@ -2406,7 +2406,7 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`api/efecto/movimientoDetalle/${movimientoStockCodigo}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
-        return of([]);
+        return of({ cabecera: null, detalle: [] });
       })
     );
   }
