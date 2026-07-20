@@ -2012,6 +2012,8 @@ export class EfectoController extends BaseController {
 
       await this.validarEfectoModifica(queryRunner, efectoId, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos, individualId, individualDescripcion, atributos);
 
+      const completoAntes = await this.descripcionCompletaEfecto(queryRunner, efectoId!, individualId);
+
       await queryRunner.query(`
         UPDATE Efecto
         SET EfectoDescripcion = @1, RubroId = @2, SubrubroId = @3, EfectoStockMinimo = @4,
@@ -2033,6 +2035,12 @@ export class EfectoController extends BaseController {
 
         await this.guardarAtributosIngreso(queryRunner, efectoId, individualId, atributos, now, usuario, ip);
       }
+
+      // Con los cambios ya aplicados en la transacción, las vistas recalculan la descripción completa
+      // (descripción + individual + atributos) tal como la muestra el buscador. Recién acá se puede
+      // verificar que no colisione con la de otro efecto del catálogo.
+      await this.validarDescripcionCompletaUnica(queryRunner, efectoId!, individualId, completoAntes);
+
       if (true)
         await this.rollbackTransaction(queryRunner);
 
@@ -2161,6 +2169,57 @@ export class EfectoController extends BaseController {
       SET EfectoEfectoIndividualAtributoIngresoUltNro = @2
       WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
     `, [efectoId, individualId, ultNro]);
+  }
+
+  // Concatenación que muestra el buscador (descripción + descripción individual + atributos del
+  // efecto e individual). La arman las vistas EfectoDescripcion / EfectoIndividualDescripcion, así
+  // que es la fuente de verdad del string; se lee de la base en vez de rearmarlo en código.
+  private static readonly COMPLETO_EXPR = `CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )')`;
+
+  private async descripcionCompletaEfecto(
+    queryRunner: any, efectoId: number, individualId: number | null
+  ): Promise<string | null> {
+    const rows = await queryRunner.query(`
+      SELECT ${EfectoController.COMPLETO_EXPR} AS Completo
+      FROM EfectoDescripcion efe
+      LEFT JOIN EfectoIndividualDescripcion efeind
+        ON efeind.EfectoId = efe.EfectoId AND efeind.EfectoEfectoIndividualId = @1
+      WHERE efe.EfectoId = @0
+    `, [efectoId, individualId ?? null]);
+    return rows[0]?.Completo ?? null;
+  }
+
+  // Verifica que la descripción completa del efecto no coincida con la de otro efecto del catálogo.
+  // Se corre DESPUÉS de persistir y con la transacción abierta: recién ahí las vistas reflejan los
+  // atributos nuevos. `completoAntes` es lo que tenía el efecto al abrir el form.
+  private async validarDescripcionCompletaUnica(
+    queryRunner: any, efectoId: number, individualId: number | null, completoAntes: string | null
+  ) {
+    const completo = await this.descripcionCompletaEfecto(queryRunner, efectoId, individualId);
+    if (!completo) return;
+
+    const norm = (s: string | null) => (s ?? '').trim().toUpperCase();
+    if (norm(completo) === norm(completoAntes)) return;
+
+    const dup = await queryRunner.query(`
+      SELECT TOP 1 efe.EfectoId, efeind.EfectoEfectoIndividualId, ${EfectoController.COMPLETO_EXPR} AS Completo
+      FROM EfectoDescripcion efe
+      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = efe.EfectoId
+      WHERE TRIM(UPPER(${EfectoController.COMPLETO_EXPR})) = TRIM(UPPER(@1))
+        AND NOT (efe.EfectoId = @0 AND (
+          efeind.EfectoEfectoIndividualId = @2
+          OR (efeind.EfectoEfectoIndividualId IS NULL AND @2 IS NULL)
+        ))
+    `, [efectoId, completo, individualId ?? null]);
+
+    if (dup.length) {
+      const otro = dup[0];
+      
+      throw new ClientException([
+        'Ya existe otro efecto con la misma descripción completa:',
+        `"${String(otro.Completo).trim()}"`
+      ]);
+    }
   }
 
   private async validarEfectoModifica(
