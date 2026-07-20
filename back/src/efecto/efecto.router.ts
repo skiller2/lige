@@ -79,7 +79,7 @@ efectoRouter.get("/valores", [authMiddleware.verifyToken, authMiddleware.hasGrou
 });
 
 efectoRouter.get("/atributo/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  efectoController.getEfectoAtributo(req, res, next);
+  efectoController.getEfectoAtributos(req, res, next);
 });
 
 efectoRouter.get("/individual-atributos/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {

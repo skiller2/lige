@@ -2614,12 +2614,12 @@ export class SearchService {
     );
   }
 
-  // Atributo/valor asignado al efecto (fila de EfectoAtributo). null si el efecto no tiene.
-  getEfectoAtributo(efectoId: number): Observable<EfectoAtributo | null> {
-    if (!efectoId) return of(null);
-    return this.http.get<ResponseJSON<EfectoAtributo | null>>(`api/efecto/atributo/${efectoId}`).pipe(
-      map(res => res.data ?? null),
-      catchError(() => of(null))
+  // Atributos/valores asignados al efecto (filas de EfectoAtributo, 1:N).
+  getEfectoAtributos(efectoId: number): Observable<EfectoAtributo[]> {
+    if (!efectoId) return of([]);
+    return this.http.get<ResponseJSON<EfectoAtributo[]>>(`api/efecto/atributo/${efectoId}`).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
     );
   }
 

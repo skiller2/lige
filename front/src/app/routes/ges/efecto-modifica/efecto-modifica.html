@@ -49,19 +49,45 @@
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="6">Atributo / Valor</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <div style="display: flex; gap: 8px;">
-            <app-atributo-search style="flex: 1;" [disabled]="esConsulta()"
-              [ngModel]="atributoSel()" (ngModelChange)="onAtributoChange($event)"
-              [ngModelOptions]="{ standalone: true }" />
-            <app-valor-search style="flex: 1;" [atributoId]="atributoSel()" [disabled]="esConsulta()"
-              [placeholder]="atributoSel() ? 'Valor' : 'Seleccione primero el atributo'"
-              [ngModel]="valorSel()" (ngModelChange)="valorSel.set($event)"
-              [ngModelOptions]="{ standalone: true }" />
-          </div>
-        </nz-form-control>
+        <nz-form-label [nzSpan]="6">Atributo</nz-form-label>
       </nz-form-item>
+      @for (fila of efectoAtributos(); track $index) {
+        <div [style.background-color]="$even ? '#f5f5f5' : '#ffffff'" style="padding: 16px 8px;">
+          <nz-form-item style="align-items: center; margin-bottom: 0;">
+            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Atributo</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+              <app-atributo-search [disabled]="esConsulta()"
+                [ngModel]="fila.EfectoAtributoAtributoId" (ngModelChange)="onEfectoAtributoChange($index, $event)"
+                [ngModelOptions]="{ standalone: true }" />
+            </nz-form-control>
+            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Valor</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+              <app-valor-search [atributoId]="fila.EfectoAtributoAtributoId" [disabled]="esConsulta()"
+                [placeholder]="fila.EfectoAtributoAtributoId ? 'Valor' : 'Seleccione primero el atributo'"
+                [ngModel]="fila.EfectoAtributoValorId" (ngModelChange)="onEfectoValorChange($index, $event)"
+                [ngModelOptions]="{ standalone: true }" />
+            </nz-form-control>
+            @if (!esConsulta()) {
+              <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
+                <button nz-button nzType="default" nzDanger type="button" nz-tooltip
+                  nzTooltipTitle="Eliminar atributo" (click)="quitarEfectoAtributo($index)">
+                  <span nz-icon nzType="delete" nzTheme="outline"></span>
+                </button>
+              </nz-form-control>
+            }
+          </nz-form-item>
+        </div>
+      }
+      @if (!efectoAtributos().length) {
+        <p style="color: rgba(0,0,0,0.45);">Sin atributos.</p>
+      }
+      @if (!esConsulta()) {
+        <div style="text-align: center; margin-top: 10px; margin-bottom: 20px;">
+          <button nz-button nzType="dashed" type="button" (click)="agregarEfectoAtributo()">
+            <span nz-icon nzType="plus" nzTheme="outline"></span> Agregar atributo
+          </button>
+        </div>
+      }
 
       <!-- Efecto relacionado (solo lectura). Se muestra si el efecto tiene relación. -->
       @if ((relaciones.value() ?? []).length) {

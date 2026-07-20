@@ -1912,23 +1912,22 @@ export class EfectoController extends BaseController {
     }
   }
 
-  // Atributo/valor asignado al efecto (fila de EfectoAtributo). El form maneja una sola fila por
-  // efecto: se devuelve la de menor EfectoAtributoId (la misma que después actualiza el guardado).
-  async getEfectoAtributo(req: any, res: Response, next: NextFunction) {
+  // Atributos/valores asignados al efecto (filas de EfectoAtributo, tabla 1:N).
+  async getEfectoAtributos(req: any, res: Response, next: NextFunction) {
     const efectoId = Number(req.params.id);
     if (!efectoId) {
-      this.jsonRes(null, res);
+      this.jsonRes([], res);
       return;
     }
     const queryRunner = await getConnection(res.locals.userName);
     try {
       const rows = await queryRunner.query(`
-        SELECT TOP 1 EfectoAtributoId, EfectoAtributoAtributoId, EfectoAtributoValorId
+        SELECT EfectoAtributoId, EfectoAtributoAtributoId, EfectoAtributoValorId
         FROM EfectoAtributo
         WHERE EfectoId = @0
         ORDER BY EfectoAtributoId
       `, [efectoId]);
-      this.jsonRes(rows[0] ?? null, res);
+      this.jsonRes(rows, res);
     } catch (error) {
       return next(error);
     } finally {
@@ -1992,20 +1991,26 @@ export class EfectoController extends BaseController {
       const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').trim();
       // Los atributos de ingreso cuelgan del efecto individual: sin individual no hay filas.
       const atributos = individualId != null && Array.isArray(body.atributos) ? body.atributos : [];
-      // Atributo/valor del efecto (fila de EfectoAtributo). Ambas columnas son NULL-able. El valor
-      // solo tiene sentido con un atributo elegido: sin atributo se fuerza a null.
-      const efectoAtributoId = body.EfectoAtributoAtributoId == null || body.EfectoAtributoAtributoId === ''
-        ? null
-        : Number(body.EfectoAtributoAtributoId);
-      const efectoValorId = efectoAtributoId == null || body.EfectoAtributoValorId == null || body.EfectoAtributoValorId === ''
-        ? null
-        : Number(body.EfectoAtributoValorId);
+      // Atributos/valores del efecto (filas de EfectoAtributo, 1:N). Se descartan las filas sin
+      // atributo. El valor solo tiene sentido con atributo: sin atributo se fuerza a null.
+      const efectoAtributos = (Array.isArray(body.EfectoAtributos) ? body.EfectoAtributos : [])
+        .map((row: any) => {
+          const atributoId = row?.EfectoAtributoAtributoId == null || row?.EfectoAtributoAtributoId === ''
+            ? null
+            : Number(row.EfectoAtributoAtributoId);
+          const valorId = atributoId == null || row?.EfectoAtributoValorId == null || row?.EfectoAtributoValorId === ''
+            ? null
+            : Number(row.EfectoAtributoValorId);
+          const id = row?.EfectoAtributoId == null || row?.EfectoAtributoId === '' ? null : Number(row.EfectoAtributoId);
+          return { EfectoAtributoId: id, EfectoAtributoAtributoId: atributoId, EfectoAtributoValorId: valorId };
+        })
+        .filter((row: any) => row.EfectoAtributoAtributoId != null);
 
       const usuario = res.locals.userName;
       const ip = this.getRemoteAddress(req);
       const now = new Date();
 
-      await this.validarEfectoModifica(queryRunner, efectoId, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributoId, efectoValorId, individualId, individualDescripcion, atributos);
+      await this.validarEfectoModifica(queryRunner, efectoId, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos, individualId, individualDescripcion, atributos);
 
       await queryRunner.query(`
         UPDATE Efecto
@@ -2014,7 +2019,7 @@ export class EfectoController extends BaseController {
         WHERE EfectoId = @0
       `, [efectoId, descripcion, rubroId, subrubroId, stockMinimo, now, usuario, ip]);
 
-      await this.guardarEfectoAtributo(queryRunner, efectoId!, efectoAtributoId, efectoValorId, now, usuario, ip);
+      await this.guardarEfectoAtributos(queryRunner, efectoId!, efectoAtributos, now, usuario, ip);
 
       // El bloque de efecto individual solo aparece en el form si el efecto tiene individual.
       // La PK es el par (EfectoEfectoIndividualId, EfectoId).
@@ -2041,43 +2046,52 @@ export class EfectoController extends BaseController {
     }
   }
 
-  // Persiste el atributo/valor del efecto en EfectoAtributo. El form maneja una sola fila por efecto:
-  // se actualiza la de menor EfectoAtributoId si existe, y si no y hay atributo se inserta una nueva.
-  // No se tocan otras filas del efecto (la tabla es 1:N y puede tener más).
-  private async guardarEfectoAtributo(
-    queryRunner: any, efectoId: number, atributoId: number | null, valorId: number | null,
-    now: Date, usuario: string, ip: string
+  // Sincroniza las filas de EfectoAtributo del efecto (tabla 1:N): baja lo que ya no viene, actualiza
+  // las que traen Id y da de alta las nuevas. Mismo esquema que guardarAtributosIngreso.
+  private async guardarEfectoAtributos(
+    queryRunner: any, efectoId: number, filas: any[], now: Date, usuario: string, ip: string
   ) {
-    const existente = await queryRunner.query(`
-      SELECT TOP 1 EfectoAtributoId FROM EfectoAtributo
-      WHERE EfectoId = @0 ORDER BY EfectoAtributoId
-    `, [efectoId]);
-
-    if (existente.length) {
+    // Bajas: lo que el usuario sacó de la grilla ya no viene en el payload.
+    const conservados = filas
+      .map(f => Number(f?.EfectoAtributoId))
+      .filter(id => Number.isFinite(id) && id > 0);
+    if (conservados.length) {
       await queryRunner.query(`
-        UPDATE EfectoAtributo
-        SET EfectoAtributoAtributoId = @2, EfectoAtributoValorId = @3,
-            AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
-        WHERE EfectoId = @0 AND EfectoAtributoId = @1
-      `, [efectoId, existente[0].EfectoAtributoId, atributoId, valorId, now, usuario, ip]);
-      return;
+        DELETE FROM EfectoAtributo
+        WHERE EfectoId = @0 AND EfectoAtributoId NOT IN (${conservados.join(',')})
+      `, [efectoId]);
+    } else {
+      await queryRunner.query(`DELETE FROM EfectoAtributo WHERE EfectoId = @0`, [efectoId]);
     }
-
-    // Sin atributo elegido y sin fila previa no hay nada que guardar.
-    if (atributoId == null) return;
 
     // EfectoAtributoId es secuencial por efecto (parte de la PK compuesta con EfectoId).
     const max = await queryRunner.query(`
       SELECT ISNULL(MAX(EfectoAtributoId), 0) AS MaxId FROM EfectoAtributo WHERE EfectoId = @0
     `, [efectoId]);
-    const nuevoId = Number(max[0]?.MaxId ?? 0) + 1;
+    let ultId = Number(max[0]?.MaxId ?? 0);
 
-    await queryRunner.query(`
-      INSERT INTO EfectoAtributo
-        (EfectoAtributoId, EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId,
-         AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
-      VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
-    `, [nuevoId, efectoId, atributoId, valorId, now, usuario, ip]);
+    for (const fila of filas) {
+      const id = Number(fila?.EfectoAtributoId);
+      const atributoId = fila?.EfectoAtributoAtributoId ?? null;
+      const valorId = fila?.EfectoAtributoValorId ?? null;
+
+      if (Number.isFinite(id) && id > 0) {
+        await queryRunner.query(`
+          UPDATE EfectoAtributo
+          SET EfectoAtributoAtributoId = @2, EfectoAtributoValorId = @3,
+              AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
+          WHERE EfectoId = @0 AND EfectoAtributoId = @1
+        `, [efectoId, id, atributoId, valorId, now, usuario, ip]);
+      } else {
+        ultId++;
+        await queryRunner.query(`
+          INSERT INTO EfectoAtributo
+            (EfectoAtributoId, EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId,
+             AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
+          VALUES (@0, @1, @2, @3, @4, @5, @6, @4, @5, @6)
+        `, [ultId, efectoId, atributoId, valorId, now, usuario, ip]);
+      }
+    }
   }
 
   private idsAtributosIngreso(atributos: any[]): number[] {
@@ -2151,8 +2165,8 @@ export class EfectoController extends BaseController {
 
   private async validarEfectoModifica(
     queryRunner: any, efectoId: number | null, descripcion: string, rubroId: number | null,
-    subrubroId: number | null, stockMinimo: number | null, efectoAtributoId: number | null,
-    efectoValorId: number | null, individualId: number | null,
+    subrubroId: number | null, stockMinimo: number | null, efectoAtributos: any[],
+    individualId: number | null,
     individualDescripcion: string, atributos: any[]
   ) {
     if (!efectoId)
@@ -2204,19 +2218,33 @@ export class EfectoController extends BaseController {
     if (!subrubro.length)
       errores.push('El subrubro seleccionado no pertenece al rubro seleccionado.');
 
-    // Atributo/valor del efecto (EfectoAtributo). Ambos son opcionales, pero si vienen tienen que
-    // existir y el valor tiene que pertenecer al atributo elegido (Valor.AtributoId).
-    if (efectoAtributoId != null) {
-      const atr = await queryRunner.query(`SELECT AtributoId FROM Atributo WHERE AtributoId = @0`, [efectoAtributoId]);
-      if (!atr.length)
-        errores.push(`No existe el atributo ${efectoAtributoId}.`);
-    }
-    if (efectoValorId != null) {
-      const val = await queryRunner.query(`
-        SELECT ValorId FROM Valor WHERE ValorId = @0 AND AtributoId = @1
-      `, [efectoValorId, efectoAtributoId]);
-      if (!val.length)
-        errores.push('El valor seleccionado no pertenece al atributo seleccionado.');
+    // Filas de EfectoAtributo. Cada atributo tiene que existir y su valor (si viene) pertenecer a él
+    // (Valor.AtributoId). El atributo no puede repetirse entre filas.
+    const atributosEfectoVistos = new Set<number>();
+    for (const [idx, fila] of efectoAtributos.entries()) {
+      const nro = idx + 1;
+      const atributoId = Number(fila?.EfectoAtributoAtributoId) || null;
+      const valorId = fila?.EfectoAtributoValorId == null ? null : Number(fila.EfectoAtributoValorId);
+      if (!atributoId) continue;
+
+      if (atributosEfectoVistos.has(atributoId)) {
+        errores.push(`Atributo/Valor #${nro}: el atributo está repetido.`);
+        continue;
+      }
+      atributosEfectoVistos.add(atributoId);
+
+      const atr = await queryRunner.query(`SELECT AtributoId FROM Atributo WHERE AtributoId = @0`, [atributoId]);
+      if (!atr.length) {
+        errores.push(`Atributo/Valor #${nro}: no existe el atributo ${atributoId}.`);
+        continue;
+      }
+      if (valorId != null) {
+        const val = await queryRunner.query(`
+          SELECT ValorId FROM Valor WHERE ValorId = @0 AND AtributoId = @1
+        `, [valorId, atributoId]);
+        if (!val.length)
+          errores.push(`Atributo/Valor #${nro}: el valor no pertenece al atributo seleccionado.`);
+      }
     }
 
     // Atributos de ingreso: ambas columnas son NOT NULL y el valor es CHAR(40).

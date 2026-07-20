@@ -8,7 +8,7 @@ import { applyEach, disabled, form, FormField, maxLength, required, submit, vali
 import { Observable, firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
-import { EfectoIndividualAtributo, Rubro, Subrubro } from '../../../shared/schemas/efecto.schemas';
+import { EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro } from '../../../shared/schemas/efecto.schemas';
 import { AtributoSearchComponent } from '../../../shared/atributo-search/atributo-search';
 import { ValorSearchComponent } from '../../../shared/valor-search/valor-search';
 
@@ -35,6 +35,19 @@ const nuevaAtributoLinea = (): AtributoLinea => ({
   EfectoEfectoIndividualAtributoIngresoId: null,
   EfectoAtributoAtributoIngresoId: null,
   EfectoAtributoIngresoValor: '',
+});
+
+/** Una fila de EfectoAtributo (atributo + valor del efecto). Sin Id = alta. */
+interface EfectoAtributoLinea {
+  EfectoAtributoId: number | null;
+  EfectoAtributoAtributoId: number | null;
+  EfectoAtributoValorId: number | null;
+}
+
+const nuevaEfectoAtributoLinea = (): EfectoAtributoLinea => ({
+  EfectoAtributoId: null,
+  EfectoAtributoAtributoId: null,
+  EfectoAtributoValorId: null,
 });
 
 @Component({
@@ -94,11 +107,11 @@ export class EfectoModificaComponent {
         : [],
   });
 
-  // Atributo/valor del efecto (fila de EfectoAtributo). Se lee para no pisarlo con null al guardar.
-  readonly efectoAtributo = resource({
+  // Atributos/valores del efecto (filas de EfectoAtributo, 1:N). Se leen para no pisarlos al guardar.
+  readonly efectoAtributosRes = resource({
     params: () => ({ efectoId: this.efectoId() }),
     loader: async ({ params }) =>
-      params.efectoId ? (await firstValueFrom(this.search.getEfectoAtributo(params.efectoId))) ?? null : null,
+      params.efectoId ? (await firstValueFrom(this.search.getEfectoAtributos(params.efectoId))) ?? [] : [],
   });
 
   // El modelo se rearma solo cuando cambia el efecto o llegan sus atributos; entre medio es
@@ -184,15 +197,37 @@ export class EfectoModificaComponent {
     });
   });
 
-  // Atributo/Valor: se resiembran desde EfectoAtributo al cambiar de efecto, pero quedan editables
-  // (linkedSignal). Van por afuera del modelo del form porque persisten en su propia tabla.
-  readonly atributoSel = linkedSignal(() => this.efectoAtributo.value()?.EfectoAtributoAtributoId ?? null);
-  readonly valorSel = linkedSignal(() => this.efectoAtributo.value()?.EfectoAtributoValorId ?? null);
+  // Filas de Atributo/Valor del efecto (EfectoAtributo, 1:N). Se resiembran desde el resource al
+  // cambiar de efecto, pero quedan editables (linkedSignal). Van por afuera del modelo del form
+  // porque persisten en su propia tabla y el valor de cada fila depende de su atributo.
+  readonly efectoAtributos = linkedSignal<EfectoAtributo[], EfectoAtributoLinea[]>({
+    source: () => this.efectoAtributosRes.value() ?? [],
+    computation: rows => rows.map(r => ({
+      EfectoAtributoId: r.EfectoAtributoId ?? null,
+      EfectoAtributoAtributoId: r.EfectoAtributoAtributoId ?? null,
+      EfectoAtributoValorId: r.EfectoAtributoValorId ?? null,
+    })),
+  });
 
-  onAtributoChange(id: number | null): void {
-    this.atributoSel.set(id ?? null);
-    // Al cambiar el atributo, el valor anterior pertenece a otro atributo: se limpia.
-    this.valorSel.set(null);
+  onEfectoAtributoChange(index: number, atributoId: number | null): void {
+    // Al cambiar el atributo de la fila, su valor anterior pertenece a otro atributo: se limpia.
+    this.efectoAtributos.update(rows => rows.map((r, i) =>
+      i === index ? { ...r, EfectoAtributoAtributoId: atributoId ?? null, EfectoAtributoValorId: null } : r));
+  }
+
+  onEfectoValorChange(index: number, valorId: number | null): void {
+    this.efectoAtributos.update(rows => rows.map((r, i) =>
+      i === index ? { ...r, EfectoAtributoValorId: valorId ?? null } : r));
+  }
+
+  agregarEfectoAtributo(): void {
+    if (this.esConsulta()) return;
+    this.efectoAtributos.update(rows => [...rows, nuevaEfectoAtributoLinea()]);
+  }
+
+  quitarEfectoAtributo(index: number): void {
+    if (this.esConsulta()) return;
+    this.efectoAtributos.update(rows => rows.filter((_, i) => i !== index));
   }
 
   agregarAtributo(): void {
@@ -215,15 +250,14 @@ export class EfectoModificaComponent {
         EfectoDescripcion: texto(m.EfectoDescripcion),
         EfectoEfectoIndividualDescripcion: texto(m.EfectoEfectoIndividualDescripcion),
         EfectoEfectoIndividualId: this.individualId(),
-        // Atributo/valor del efecto: persisten en EfectoAtributo, aparte del modelo del form.
-        EfectoAtributoAtributoId: this.atributoSel(),
-        EfectoAtributoValorId: this.valorSel(),
+        // Filas de EfectoAtributo: persisten en su propia tabla, aparte del modelo del form.
+        EfectoAtributos: this.efectoAtributos(),
       };
       await firstValueFrom(this.apiService.guardarEfectoModifica(values));
       // Relee lo persistido: las filas nuevas toman el Id que les asignó el back y no se vuelven a
       // insertar si el usuario guarda de nuevo.
       this.atributosIngreso.reload();
-      this.efectoAtributo.reload();
+      this.efectoAtributosRes.reload();
     });
   }
 }
