@@ -12,6 +12,11 @@
 
       <div nz-col nzSpan="12" style="display: flex;flex-direction: row-reverse;">
         <nz-button-group nz-button nzButtonGroup style="text-align: right;">
+          <!-- Recarga -->
+          <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
+          (click)="gridData.reload()">
+            <span nz-icon nzType="reload" nzTheme="outline"></span>
+          </button>
           <!-- Descarga Recibos -->
           <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas' | i18n }}"
           (click)="exportGrid()">

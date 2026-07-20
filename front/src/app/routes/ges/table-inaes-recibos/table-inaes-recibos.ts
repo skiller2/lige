@@ -90,7 +90,10 @@ export class TableINAESRecibosComponent {
 
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
-      // columnTotal('StockStock', this.angularGrid)
+      columnTotal('total_ingresos', this.angularGrid)
+      columnTotal('Excedentes', this.angularGrid)
+      columnTotal('RetencionMonotributo', this.angularGrid)
+      columnTotal('OtrasRetenciones', this.angularGrid)
     });
   }
  
