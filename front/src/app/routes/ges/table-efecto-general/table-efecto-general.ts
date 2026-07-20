@@ -87,7 +87,7 @@ export class TableEfectoGeneralComponent {
 
   async ngOnInit(): Promise<void> {
     this.initializeGridOptions();
-    const filters = await firstValueFrom(this.searchService.getEfectoFilters('table-efecto-general'))
+    const filters = await firstValueFrom(this.searchService.getEfectoFilters())
     this.startFilters.set(filters)
     this.startFiltersReady.set(true)
   }

@@ -83,7 +83,7 @@ export class TableProveedoresEfectoComponent {
 
   async ngOnInit(): Promise<void> {
     this.initializeGridOptions();
-    const filters = await firstValueFrom(this.searchService.getEfectoFilters('table-proveedores-efecto'))
+    const filters = await firstValueFrom(this.searchService.getEfectoFilters())
     this.startFilters.set(filters)
     this.startFiltersReady.set(true)
   }

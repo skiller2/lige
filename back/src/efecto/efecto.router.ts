@@ -11,14 +11,14 @@ efectoRouter.get("/objetivo/:id", [authMiddleware.verifyToken,], (req, res, next
   efectoController.getEfectoByObjetivoId(req, res, next);
 });
 
-efectoRouter.get("/colsPersonal", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res) => {
+efectoRouter.get("/colsPersonal", [authMiddleware.verifyToken], (req, res) => {
   efectoController.getGridColsPersonal(req, res);
 });
 efectoRouter.post("/getEfectoPersonal", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
   efectoController.getEfectoPersonal(req, res, next);
 });
 
-efectoRouter.get("/colsObjetivos", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res) => {
+efectoRouter.get("/colsObjetivos", [authMiddleware.verifyToken], (req, res) => {
   efectoController.getGridColsObjetivos(req, res);
 });
 efectoRouter.post("/getEfectoObjetivos", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
@@ -39,18 +39,18 @@ efectoRouter.post("/getEfectoProveedores", [authMiddleware.verifyToken, authMidd
   efectoController.getEfectoProveedores(req, res, next);
 });
 
-efectoRouter.get("/colsEfectoGeneral", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res) => {
+efectoRouter.get("/colsEfectoGeneral", [authMiddleware.verifyToken], (req, res) => {
   efectoController.getGridColsEfectoGeneral(req, res);
 });
 efectoRouter.post("/getEfectoGeneral", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
   efectoController.getEfectoGeneral(req, res, next);
 });
 
-efectoRouter.get("/colsMovimientos", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res) => {
+efectoRouter.get("/colsMovimientos", [authMiddleware.verifyToken], (req, res) => {
   efectoController.getGridColsMovimientos(req, res);
 });
-efectoRouter.get("/filters/:grid", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.filterSucursal, authMiddleware.authADGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
-  efectoController.getGridFilters(req, res, next);
+efectoRouter.get("/filters", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.filterSucursal, authMiddleware.authADGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+  return efectoController.getGridFilters(req, res, next);
 });
 efectoRouter.post("/getEfectoMovimientos", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
   efectoController.getEfectoMovimientos(req, res, next);

@@ -751,11 +751,10 @@ const listaColumnasEfectoGeneral: any[] = [
     searchHidden: true,
   },
   {
-    id: "SucursalId",
+    id: "SucursalDescripcion",
     name: "Sucursal",
-    field: "SucursalId",
+    field: "SucursalDescripcion",
     fieldName: "COALESCE(sucpro.SucursalId, sucdep.SucursalId, sucobj.SucursalId, sucper.SucursalId)",
-    type: "number",
     searchComponent: "inputForSucursalSearch",
     sortable: false,
     hidden: false,
@@ -1409,41 +1408,35 @@ export class EfectoController extends BaseController {
   async getGridFilters(req: any, res: Response, next: NextFunction) {
     const startFilters: Selections[] = []
     const filterSucursal = Array.isArray(res.locals.filterSucursal) ? res.locals.filterSucursal.join(';') : '';
-    const reqGrid = req.params?.grid;
+    const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';') : '';
+    const authADGroup = res.locals?.authADGroup ? res.locals?.authADGroup : null;
 
-    if (!filterSucursal) return this.jsonRes(startFilters, res)
+    logger.info(`test: ${grupoActividad}`)
+    logger.info(`grupoactividad: `, JSON.stringify(res.locals.GrupoActividad))
 
-    switch (reqGrid) {
-      case 'table-personal-efecto':
-      case 'table-objetivos-efecto':
-      case 'table-deposito-efecto':
-      case 'table-proveedores-efecto':
-        startFilters.push({
-          index: 'SucursalDescripcion',
-          condition: 'AND',
-          operator: '=',
-          value: filterSucursal,
-          closeable: false,
-          label: '',
-          originIdx: null
-        })
-        break
+    if (!filterSucursal) throw new ClientException('No se ha especificado la sucursal del usuario')
 
-      case 'table-efecto-general':
-        startFilters.push({
-          index: 'SucursalId',
-          condition: 'AND',
-          operator: '=',
-          value: filterSucursal,
-          closeable: false,
-          label: '',
-          originIdx: null
-        })
-        break
+    // if (grupoActividad) {
+    //   startFilters.push({
+    //     index: 'GrupoActividadNumero',
+    //     condition: 'AND',
+    //     operator: '=',
+    //     value: grupoActividad,
+    //     closeable: authADGroup ? true : false,
+    //     label: '',
+    //     originIdx: null
+    //   })
+    // }
 
-      default:
-        break
-    }
+    startFilters.push({
+      index: 'SucursalDescripcion',
+      condition: 'AND',
+      operator: '=',
+      value: filterSucursal,
+      closeable: false,
+      label: '',
+      originIdx: null
+    })
 
     return this.jsonRes(startFilters, res)
   }
@@ -1483,7 +1476,7 @@ export class EfectoController extends BaseController {
       sru.SubrubroDescripcion,
       efe.EfectoStockMinimo,
 
-	    ga.GrupoActividadDetalle,gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta,
+	    ga.GrupoActividadDetalle, ga.GrupoActividadNumero, ga.GrupoActividadId, gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta,
 	    suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
       1
     FROM StockReal stk

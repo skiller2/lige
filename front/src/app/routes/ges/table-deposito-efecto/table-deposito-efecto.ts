@@ -85,7 +85,7 @@ export class TableDepositoEfectoComponent {
 
   async ngOnInit(): Promise<void> {
     this.initializeGridOptions();
-    const filters = await firstValueFrom(this.searchService.getEfectoFilters('table-deposito-efecto'))
+    const filters = await firstValueFrom(this.searchService.getEfectoFilters())
     this.startFilters.update(currentFilters => [
       ...filters,
       ...currentFilters.filter(currentFilter => !filters.some((backendFilter: Selections) => backendFilter.index === currentFilter.index)),
