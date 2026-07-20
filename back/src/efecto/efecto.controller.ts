@@ -3,7 +3,6 @@ import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Selections } from "../schemas/filtro.ts";
-import { logger } from "../logger/logger.ts";
 
 const listaColumnasPersonal: any[] = [
   {
@@ -286,7 +285,7 @@ const listaColumnasObjetivos: any[] = [
   },
   {
     name: "Grupo Actividad",
-    type: "string",
+    type: "number",
     id: "GrupoActividadId",
     field: "GrupoActividadId",
     fieldName: " ga.GrupoActividadId",
@@ -1407,33 +1406,33 @@ export class EfectoController extends BaseController {
 
   async getGridFilters(req: any, res: Response, next: NextFunction) {
     const startFilters: Selections[] = []
-    const filterSucursal = Array.isArray(res.locals.filterSucursal) ? res.locals.filterSucursal.join(';') : '';
-    const grupoActividad = res.locals.GrupoActividad ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';') : '';
-    const authADGroup = res.locals?.authADGroup ? res.locals?.authADGroup : null;
+    const sucursalIds = Array.isArray(res.locals.filterSucursal) ? res.locals.filterSucursal : [];
+    const grupoActividadIds = Array.isArray(res.locals.GrupoActividad)? res.locals.GrupoActividad.map((grupo: any) => Number(grupo.GrupoActividadId)).filter((id: number) => id > 0): [];
+    const filterSucursal = sucursalIds.join(';');
+    const grupoActividad = grupoActividadIds.join(';');
 
-    logger.info(`test: ${grupoActividad}`)
-    logger.info(`grupoactividad: `, JSON.stringify(res.locals.GrupoActividad))
+    const authADGroup = Boolean(res.locals?.authADGroup);
 
     if (!filterSucursal) throw new ClientException('No se ha especificado la sucursal del usuario')
 
-    // if (grupoActividad) {
-    //   startFilters.push({
-    //     index: 'GrupoActividadNumero',
-    //     condition: 'AND',
-    //     operator: '=',
-    //     value: grupoActividad,
-    //     closeable: authADGroup ? true : false,
-    //     label: '',
-    //     originIdx: null
-    //   })
-    // }
+    if (grupoActividadIds.length > 0) {
+      startFilters.push({
+        index: 'GrupoActividadId',
+        condition: 'AND',
+        operator: '=',
+        value: grupoActividad,
+        closeable: authADGroup, // solo se puede eliminar filtro de grupoActividad si tiene authADGroup
+        label: '',
+        originIdx: null
+      })
+    }
 
-    startFilters.push({
+    startFilters.unshift({
       index: 'SucursalDescripcion',
       condition: 'AND',
       operator: '=',
       value: filterSucursal,
-      closeable: false,
+      closeable: (grupoActividadIds.length > 0 && !authADGroup) ? true : false, // solo se puede eliminar filtro de sucursal si hay grupoActividad y no tiene authADGroup
       label: '',
       originIdx: null
     })

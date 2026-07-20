@@ -367,6 +367,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     if (!fieldObj || fieldObj.searchHidden) return;
 
+    // Al editar, conserva la descripción actual; el componente de búsqueda la reemplaza si cambia la selección.
+    this.valueExtended = { fullName: filtro.label || '' }
+
     /*    
     
         // Simplificar obtención de value
@@ -792,9 +795,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     }
 
     if (fieldObj.searchComponent == 'inputForGrupoActividadSearch') {
-      const res = await firstValueFrom(this.searchService.getGrupoActividad('GrupoActividadId', value))
-      if (res && res.length > 0) label = res[0].GrupoActividadDetalle
-      else label = 'Vacio'
+      const grupoActividadIds = String(value).split(';')
+      let result = ''
+      for (const grupoActividadId of grupoActividadIds) {
+        const gruposActividad = await firstValueFrom(this.searchService.getGrupoActividad('GrupoActividadId', grupoActividadId))
+        if (gruposActividad.length > 0) result += `${gruposActividad[0].GrupoActividadDetalle}; `
+      }
+      label = result || 'Vacio'
     }
 
     if (fieldObj.searchComponent == 'inputForTipoPersonalActaSearch') {
