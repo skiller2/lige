@@ -7,7 +7,7 @@ import type { QueryRunner } from "typeorm";
 export class SucursalController extends BaseController {
   static async listSucursalesQuery(queryRunner: QueryRunner) {
     return await queryRunner.query(
-      'SELECT SucursalId, SucursalDescripcion, SucursalId as value, SucursalDescripcion as label FROM Sucursal '
+      'SELECT SucursalId, SucursalDescripcion, SucursalId as value, trim(SucursalDescripcion) as label FROM Sucursal '
     )
   }
 
