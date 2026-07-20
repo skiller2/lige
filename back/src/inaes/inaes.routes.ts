@@ -17,7 +17,7 @@ inaesRouter.post('/altas-bajas/list', [authMiddleware.verifyToken, authMiddlewar
 })
 
 inaesRouter.post('/recibos/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], async (req, res, next) => {
-    await inaesController.getAltasBajas(req, res, next)
+    await inaesController.getRecibos(req, res, next)
 })
 
 inaesRouter.post('/cuits/from-file', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], async (req, res, next) => {
