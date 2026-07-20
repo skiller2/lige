@@ -14,6 +14,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Selections } from '../../../shared/schemas/filtro';
 import { LoadingService } from '@delon/abc/loading';
 
+
+
 @Component({
   selector: 'app-table-movimientos-efecto',
   imports: [
@@ -40,7 +42,7 @@ export class TableMovimientosEfectoComponent {
     sort: null,
   })
   filtersReady = signal(false)
-  startFilters = signal<Selections[]>([])
+  startFilters = signal<Selections[]>(this.filtrosMesVigente())
   filtroVisible = signal(true)
 
   private readonly loadingSrv = inject(LoadingService)
@@ -59,6 +61,17 @@ export class TableMovimientosEfectoComponent {
       setTimeout(() => this.filtroVisible.set(true))
     }
   })
+
+
+    private  filtrosMesVigente() {
+      const hoy = new Date()
+      const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+      const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0)
+      return [
+        { index: 'Fecha', condition: 'AND', operator: '>=', value: primerDia, closeable: true },
+        { index: 'Fecha', condition: 'AND', operator: '<=', value: ultimoDia, closeable: true },
+      ]
+    }
 
   columns = toSignal(this.apiService.getCols('/api/efecto/colsMovimientos'), { initialValue: [] as Column[] })
 
