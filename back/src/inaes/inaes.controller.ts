@@ -277,30 +277,6 @@ const recibosColumns: any[] = [
     hidden: true,
   },
   {
-    id: "ApellidoNombre",
-    name: "Apellido Nombre",
-    field: "ApellidoNombre",
-    type: "string",
-    fieldName: "per.PersonalId",
-    searchComponent: "inputForPersonalSearch",
-    searchType: "number",
-    sortable: true,
-    searchHidden: false,
-    hidden: true,
-  },
-  {
-    id: "SituacionRevistaId",
-    name: "Situacion Revista",
-    field: "SituacionRevistaId",
-    type: "number",
-    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
-    searchComponent: "inputForSituacionRevistaSearch",
-    searchType: "number",
-    sortable: true,
-    searchHidden: false,
-    hidden: true,
-  },
-  {
     id: 'CUITEntidad', 
     name: 'CUIT Entidad', 
     field: 'CUITEntidad',
@@ -318,41 +294,49 @@ const recibosColumns: any[] = [
     field: "PersonalCUITCUILCUIT",
     type: "string",
     fieldName: "cuit.PersonalCUITCUILCUIT",
-    searchType: "number",
-    searchComponent: "inputForCUITsSearchFromINAESFile",
     sortable: true,
-    searchHidden: false,
+    searchHidden: true,
     hidden: false,
   },
   {
-    id: 'TipoPersona', 
+    id: "ApellidoNombre",
+    name: "Apellido Nombre",
+    field: "ApellidoNombre",
+    type: "string",
+    fieldName: "mov1.PersonalId",
+    searchComponent: "inputForPersonalSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+  },
+  {
+    id: 'DocumentoAudFechaIng', 
     name: 'Fecha Recibo', 
-    field: 'TipoPersona',
-    fieldName: "",
+    field: 'DocumentoAudFechaIng',
+    fieldName: "doc.DocumentoAudFechaIng",
     type: 'date',
     searchType: "string",
     sortable: true,
     searchHidden: true,
     hidden: false,
-    showGridColumn: false,
   },
   {
-    id: 'RazonSocial', 
+    id: 'MedioPago', 
     name: 'Medio Pago', 
-    field: 'RazonSocial',
+    field: 'MedioPago',
     fieldName: "",
     type: 'string',
     searchType: "string",
     sortable: true,
     searchHidden: true,
     hidden: false,
-    showGridColumn: false,
   },
   {
-    id: 'Apellido', 
+    id: 'PersonalBancoCBU', 
     name: 'Cbu/Alias', 
-    field: 'Apellido',
-    fieldName: "per.PersonalApellido",
+    field: 'PersonalBancoCBU',
+    fieldName: "perban.PersonalBancoCBU",
     type: 'string',
     searchType: "string",
     sortable: true,
@@ -360,70 +344,62 @@ const recibosColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'Nombre', 
+    id: 'total_ingresos', 
     name: 'Retribución',
-    field: 'Nombre',
-    fieldName: "per.PersonalNombre",
-    type: 'string',
-    searchType: "string",
+    field: 'total_ingresos',
+    fieldName: "total_ingresos",
+    type: 'currency',
     sortable: true,
     searchHidden: true,
     hidden: false,
   },
   {
-    id: 'PersonalSexo', 
+    id: 'Excedentes', 
     name: 'Excedentes',
-    field: 'PersonalSexo',
-    fieldName: "per.PersonalSexo",
+    field: 'Excedentes',
+    fieldName: '',
+    type: 'currency',
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: "RetencionMonotributo",
+    name: "Retencion Monotributo",
+    field: "RetencionMonotributo",
+    type: "currency",
+    fieldName: "",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: 'OtrasRetenciones', 
+    name: 'Otras Retenciones',
+    field: 'OtrasRetenciones',
+    fieldName: "",
+    type: 'currency',
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: 'DetalleOtrasRetenciones', 
+    name: 'Detalle Otras Retenciones',
+    field: 'DetalleOtrasRetenciones',
+    fieldName: "",
     type: 'string',
+    searchComponent: "",
     searchType: "string",
     sortable: true,
-    searchHidden: true,
-    hidden: false,
-    showGridColumn: false,
-  },
-  {
-    id: "PersonalFechaNacimiento",
-    name: "Retencion Monotributo",
-    field: "PersonalFechaNacimiento",
-    type: "date",
-    fieldName: "ISNULL(per.PersonalFechaNacimiento,'9999-12-31')",
-    searchComponent: "inputForFechaSearch",
-    searchType: "date",
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    showGridColumn: false,
-  },
-  {
-    id: 'ProvinciaDescripcion', 
-    name: 'Otras Retenciones',
-    field: 'ProvinciaDescripcion',
-    fieldName: "perdom.ProvinciaId",
-    type: 'string',
-    searchComponent: "inputForProvinciasSearch",
-    searchType: "number",
-    sortable: true,
     searchHidden: false,
     hidden: false,
   },
   {
-    id: 'LocalidadDescripcion', 
-    name: 'Detalle Otras Retenciones',
-    field: 'LocalidadDescripcion',
-    fieldName: "perdom.LocalidadId",
-    type: 'string',
-    searchComponent: "inputForLocalidadesSearch",
-    searchType: "number",
-    sortable: true,
-    searchHidden: false,
-    hidden: false,
-  },
-  {
-    id: 'DomicilioCodigoPostal', 
+    id: 'DetalledeRetribucion', 
     name: 'Detalle de Retribucion',
-    field: 'DomicilioCodigoPostal',
-    fieldName: "perdom.DomicilioCodigoPostal",
+    field: 'DetalledeRetribucion',
+    fieldName: "",
     type: 'string',
     searchType: "string",
     sortable: true,
@@ -542,7 +518,7 @@ export class InaesController extends BaseController {
       WHERE (1=1)
       AND (${filterSql})
       ${orderBy}`)
-    }
+  }
   
   async getAltasBajas(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
@@ -552,6 +528,192 @@ export class InaesController extends BaseController {
       const orderBy = orderToSQL(options.sort)
 
       const lista: any[] = await this.getAltasBajasQuery(queryRunner, filterSql, orderBy)
+
+      this.jsonRes(lista, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  private async getRecibosQuery(queryRunner: any, filterSql: any, orderBy: any, year:number, month:number) {
+    return await queryRunner.query(`
+      SELECT 
+        ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
+        mov1.persona_id,
+        30643445510 AS CUITEntidad,
+        cuit.PersonalCUITCUILCUIT,
+        doc.DocumentoAudFechaIng,
+        'Banco' AS MedioPago,
+        CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+
+        viginorm.importe AS importe_vigil, viginorm.horas AS horas_vigil,
+        viginormart14.importe AS importe_vigilart14, viginormart14.horas AS horas_vigilart14, 
+        -- adminorm.importe AS importe_admin, adminorm.horas AS horas_admin,
+        vigiar42.importe AS importe_vigilar42, vigiar42.horas AS horas_vigilar42,
+        admiar42.importe AS importe_adminar42, admiar42.horas AS horas_adminar42,
+        vigiextra.importe AS importe_extra, vigiextra.horas AS horas_extra,
+
+        (ISNULL(viginorm.importe,0) + ISNULL(viginormart14.importe,0) + ISNULL(vigiextra.importe,0) + ISNULL(vigiar42.importe,0) + ISNULL(admiar42.importe,0)) AS total_ingresos,
+
+        mdesc.importe AS descuentos,
+        motro.importe AS otros_desc,
+        mayud.importe AS ayuda_asis,
+        mrent.importe AS rentas,
+        mddjj.importe AS ddjj,
+        madel.importe AS adelantos,
+        mprep.importe AS prepaga,
+        mtele.importe AS telefonia,
+
+        ISNULL(mdesc.importe,0) + ISNULL(motro.importe,0) + ISNULL(mayud.importe,0) + ISNULL(mrent.importe,0) + ISNULL(mddjj.importe,0) + ISNULL(mprep.importe,0) + ISNULL(mtele.importe,0) AS total_egresos,
+
+        ISNULL(viginorm.importe,0) + ISNULL(viginormart14.importe,0) + ISNULL(vigiextra.importe,0) + ISNULL(vigiar42.importe,0) + ISNULL(admiar42.importe,0) - ISNULL(mdesc.importe,0) - ISNULL(motro.importe,0) - ISNULL(mayud.importe,0) - ISNULL(mrent.importe,0) - ISNULL(mddjj.importe,0) - ISNULL(mprep.importe,0) - ISNULL(mtele.importe,0) AS retiro,
+        supri.PersonalSucursalPrincipalSucursalId, suc.SucursalDescripcion,
+        g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
+        perban.PersonalBancoCBU, banc.BancoDescripcion,
+        detsitrev.detsituacionrevista,
+        1
+
+      FROM Personal per 
+      JOIN (
+        SELECT DISTINCT per.PersonalId persona_id
+        FROM Personal per
+        JOIN lige.dbo.liqmaperiodo am ON am.anio=@1 AND am.mes=@2 
+        LEFT JOIN lige.dbo.liqmamovimientos m ON m.persona_id = per.PersonalId AND m.periodo_id = am.periodo_id
+        LEFT JOIN PersonalSituacionRevista sit ON sit.PersonalId=per.PersonalId AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+            AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)  AND sit.PersonalSituacionRevistaSituacionId IN (2,5,11,12,14,20,26,28)
+            
+            
+        WHERE (sit.PersonalId IS NOT NULL OR m.persona_id IS NOT NULL)
+      ) mov1 ON mov1.persona_id = per.PersonalId
+
+      LEFT JOIN lige.dbo.liqmaperiodo mov ON mov.anio=@1 AND mov.mes=@2 
+
+      LEFT JOIN PersonalSucursalPrincipal supri ON supri.PersonalId = per.PersonalId
+      LEFT JOIN Sucursal suc ON suc.SucursalId = supri.PersonalSucursalPrincipalSucursalId
+      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+
+      LEFT JOIN GrupoActividadPersonal ga ON ga.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,1) <  ISNULL(ga.GrupoActividadPersonalHasta, '9999-12-31') AND ga.GrupoActividadPersonalDesde = (
+        SELECT MAX(ga.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal ga
+        WHERE DATEFROMPARTS(@1,@2,28) > ga.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(ga.GrupoActividadPersonalHasta, '9999-12-31')
+          AND ga.GrupoActividadPersonalPersonalId = per.PersonalId
+        GROUP BY ga.GrupoActividadPersonalPersonalId
+      )
+
+      LEFT JOIN GrupoActividad g ON g.GrupoActividadId = ga.GrupoActividadId           
+      LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoDesde = (SELECT MAX(perbanmax.PersonalBancoDesde) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId) 
+        AND perban.PersonalBancoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+        AND ISNULL(perban.PersonalBancoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
+      LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe 
+        FROM lige.dbo.liqmamovimientos ingvig 
+        JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = ingvig.tipo_movimiento_id
+        WHERE ingvig.tipocuenta_id = 'G' AND tipo.tipo_movimiento = 'I'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingresos Extra
+      ) AS vigiextra ON vigiextra.persona_id=per.PersonalId AND vigiextra.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=8 AND ingvig.detalle NOT LIKE 'Art14%' AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingreso Vigilancia
+      ) AS viginorm ON viginorm.persona_id=per.PersonalId AND viginorm.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=8 AND ingvig.detalle LIKE 'Art14%' AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingreso Vigilancia Art14
+      ) AS viginormart14 ON viginormart14.persona_id=per.PersonalId AND  viginormart14.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=9 AND ingvig.tipocuenta_id = 'G' 
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingreso Administracion
+      ) AS adminorm ON adminorm.persona_id=per.PersonalId AND  adminorm.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=12 AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingreso Art42 Vigilancia
+      ) AS vigiar42 ON vigiar42.persona_id=per.PersonalId AND  vigiar42.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=13 AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingreso Art42 Adminis
+      ) AS admiar42 ON admiar42.persona_id=per.PersonalId AND  admiar42.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=4 AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Descuento
+      ) AS mdesc ON mdesc.persona_id=per.PersonalId AND  mdesc.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=5 AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Otro Descuento
+      ) AS motro ON motro.persona_id=per.PersonalId AND  motro.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=15 AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Adelanto
+      ) AS madel ON madel.persona_id=per.PersonalId AND  madel.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=7 AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ayuda
+      ) AS mayud ON mayud.persona_id=per.PersonalId AND  mayud.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=14  AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Prepaga
+      ) AS mprep ON mprep.persona_id=per.PersonalId AND  mprep.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=6 AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --Rentas
+      ) AS mrent ON mrent.persona_id=per.PersonalId AND  mrent.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=16 AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --DDJJ
+      ) AS mddjj ON mddjj.persona_id=per.PersonalId AND  mddjj.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=17 AND ingvig.tipocuenta_id = 'G'
+        GROUP BY ingvig.periodo_id, ingvig.persona_id --TELE
+      ) AS mtele ON mtele.persona_id=per.PersonalId AND  mtele.periodo_id = mov.periodo_id
+
+      LEFT JOIN (
+        SELECT sit.PersonalId, STRING_AGG(CONCAT(TRIM(sr.SituacionRevistaDescripcion), ' ',FORMAT(sit.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - ',FORMAT(sit.PersonalSituacionRevistaHasta,'dd/MM/yyyy')), '\n') detsituacionrevista
+        FROM PersonalSituacionRevista sit
+        JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaSituacionId 
+        -- WHERE sit.PersonalSituacionRevistaSituacionId NOT IN (2,4,5,6,10,11,12,20,23,26)
+          AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
+          AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
+        GROUP BY sit.PersonalId
+      ) AS detsitrev ON detsitrev.PersonalId=per.PersonalId 
+
+      LEFT JOIN Documento doc ON doc.PersonalId = per.PersonalId AND doc.DocumentoTipoCodigo = 'REC' AND doc.DocumentoAnio = @1 AND doc.DocumentoMes = @2
+      
+      /*
+      WHERE g.GrupoActividadId IN (
+        SELECT g.GrupoActividadId FROM GrupoActividad g 
+        JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = g.GrupoActividadId
+        WHERE gaj.GrupoActividadJerarquicoPersonalId = @3 
+      ) OR @3 IS NULL
+      */
+      WHERE (${filterSql})
+      ${orderBy}`, [null, year, month, null])
+  }
+
+
+  async getRecibos(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const periodo:Date|null = req.body.periodo? new Date(req.body.periodo) : null
+      if (!periodo) throw new ClientException('Ingrese un Periodo') 
+      const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+      const filterSql = filtrosToSql(options.filtros, altasBajasColumns);
+      const orderBy = orderToSQL(options.sort)
+
+      const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
 
       this.jsonRes(lista, res);
     } catch (error) {

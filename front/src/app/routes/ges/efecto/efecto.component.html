@@ -115,22 +115,20 @@
     <app-table-movimientos-efecto [refreshGrid]="refreshTickMovimientos()"
       [movimientoCodigoFilter]="movimientoIdFilter()" (comprobanteSelected)="movimientoComprobanteCodigo.set($event)" />
   </div>
+  <!-- El drawer se instancia recién al abrirse para que no participe del render inicial asincrónico de las grillas. -->
+  @defer (when detalleVisible()) {
+  <app-table-movimientos-efecto-detalle [movimientoStockCodigo]="movimientoComprobanteCodigo()"
+    [(visible)]="detalleVisible" />
   }
+  }
+
   @if (activeTab() === 'movimiento') {
-
   <app-movimiento-stock (confirmado)="onComprobanteConfirmado()" (volverAMovimientos)="onVolverAMovimientos()" />
-
   }
-  @if (activeTab() === 'ingreso-stock') {
 
+  @if (activeTab() === 'ingreso-stock') {
   <app-movimiento-stock [IndIngresoStock]="true" (confirmado)="onComprobanteConfirmado()"
     (volverAMovimientos)="onVolverAMovimientos()" />
-
   }
 
-
-
 </nz-card>
-
-<app-table-movimientos-efecto-detalle [movimientoStockCodigo]="movimientoComprobanteCodigo()"
-  [(visible)]="detalleVisible" />

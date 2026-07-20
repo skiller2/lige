@@ -2301,11 +2301,11 @@ export class SearchService {
   }
 
   getNovedadesFilters() {
-    return this.http.get<ResponseJSON<any>>(`api/novedades/filters`)
-      .pipe(
-        map(res => res.data),
-        catchError(() => of([]))
-      );
+    return this.http.get<ResponseJSON<any>>(`api/novedades/filters`).pipe(map(res => res.data),catchError(() => of([])));
+  }
+
+  getEfectoFilters() {
+    return this.http.get<ResponseJSON<any>>(`api/efecto/filters`).pipe(map(res => res.data),catchError(() => of([])));
   }
 
   getListExcepcionesAsistencia(options: any, periodo: Date) {
@@ -2322,8 +2322,8 @@ export class SearchService {
   }
 
   getEfectoPersonal(listOptions: any) {
-    if (!listOptions.filtros.length) {
-      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+    if (!Array.isArray(listOptions?.filtros) || !listOptions.filtros.some((filter: any) => filter?.index !== 'SucursalDescripcion')) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro adicional al de sucursal para visualizar los datos.`);
       return of([]);
     }
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoPersonal`, { listOptions }).pipe(
@@ -2337,8 +2337,8 @@ export class SearchService {
 
 
   getEfectoObjetivos(listOptions: any) {
-    if (!listOptions.filtros.length) {
-      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+    if (!Array.isArray(listOptions?.filtros) || !listOptions.filtros.some((filter: any) => filter?.index !== 'SucursalDescripcion')) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro adicional al de sucursal para visualizar los datos.`);
       return of([]);
     }
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoObjetivos`, { listOptions }).pipe(
@@ -2351,8 +2351,8 @@ export class SearchService {
   }
 
   getEfectoDeposito(listOptions: any) {
-    if (!listOptions.filtros.length) {
-      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+    if (!Array.isArray(listOptions?.filtros) || !listOptions.filtros.some((filter: any) => filter?.index !== 'SucursalDescripcion')) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro adicional al de sucursal para visualizar los datos.`);
       return of([]);
     }
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoDeposito`, { listOptions }).pipe(
@@ -2365,8 +2365,8 @@ export class SearchService {
   }
 
   getEfectoProveedores(listOptions: any) {
-    if (!listOptions.filtros.length) {
-      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+    if (!Array.isArray(listOptions?.filtros) || !listOptions.filtros.some((filter: any) => filter?.index !== 'SucursalDescripcion')) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro adicional al de sucursal para visualizar los datos.`);
       return of([]);
     }
 
@@ -2380,8 +2380,8 @@ export class SearchService {
   }
 
   getEfectoGeneral(listOptions: any) {
-    if (!listOptions.filtros.length) {
-      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
+    if (!Array.isArray(listOptions?.filtros) || !listOptions.filtros.some((filter: any) => filter?.index !== 'SucursalDescripcion')) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro adicional al de sucursal para visualizar los datos.`);
       return of([]);
     }
 

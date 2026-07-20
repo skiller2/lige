@@ -2,6 +2,7 @@ import { BaseController, ClientException, ClientWarning } from "../controller/ba
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
+import type { Selections } from "../schemas/filtro.ts";
 
 const listaColumnasPersonal: any[] = [
   {
@@ -284,7 +285,7 @@ const listaColumnasObjetivos: any[] = [
   },
   {
     name: "Grupo Actividad",
-    type: "string",
+    type: "number",
     id: "GrupoActividadId",
     field: "GrupoActividadId",
     fieldName: " ga.GrupoActividadId",
@@ -747,6 +748,16 @@ const listaColumnasEfectoGeneral: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
+  },
+  {
+    id: "SucursalDescripcion",
+    name: "Sucursal",
+    field: "SucursalDescripcion",
+    fieldName: "COALESCE(sucpro.SucursalId, sucdep.SucursalId, sucobj.SucursalId, sucper.SucursalId)",
+    searchComponent: "inputForSucursalSearch",
+    sortable: false,
+    hidden: false,
+    searchHidden: false,
   },
   {
     id: "StockStock",
@@ -1393,6 +1404,42 @@ export class EfectoController extends BaseController {
     this.jsonRes(listaColumnasMovimientos, res);
   }
 
+  async getGridFilters(req: any, res: Response, next: NextFunction) {
+    const startFilters: Selections[] = []
+    const sucursalIds = Array.isArray(res.locals.filterSucursal) ? res.locals.filterSucursal : [];
+    const grupoActividadIds = Array.isArray(res.locals.GrupoActividad)? res.locals.GrupoActividad.map((grupo: any) => Number(grupo.GrupoActividadId)).filter((id: number) => id > 0): [];
+    const filterSucursal = sucursalIds.join(';');
+    const grupoActividad = grupoActividadIds.join(';');
+
+    const authADGroup = Boolean(res.locals?.authADGroup);
+
+    if (!filterSucursal) throw new ClientException('No se ha especificado la sucursal del usuario')
+
+    if (grupoActividadIds.length > 0) {
+      startFilters.push({
+        index: 'GrupoActividadId',
+        condition: 'AND',
+        operator: '=',
+        value: grupoActividad,
+        closeable: authADGroup, // solo se puede eliminar filtro de grupoActividad si tiene authADGroup
+        label: '',
+        originIdx: null
+      })
+    }
+
+    startFilters.unshift({
+      index: 'SucursalDescripcion',
+      condition: 'AND',
+      operator: '=',
+      value: filterSucursal,
+      closeable: (grupoActividadIds.length > 0 && !authADGroup) ? true : false, // solo se puede eliminar filtro de sucursal si hay grupoActividad y no tiene authADGroup
+      label: '',
+      originIdx: null
+    })
+
+    return this.jsonRes(startFilters, res)
+  }
+
   private async efectobyPersonalIdQuery(queryRunner: any, personalId: number) {
     const listOptions = {
       filtros: [
@@ -1428,7 +1475,7 @@ export class EfectoController extends BaseController {
       sru.SubrubroDescripcion,
       efe.EfectoStockMinimo,
 
-	    ga.GrupoActividadDetalle,gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta,
+	    ga.GrupoActividadDetalle, ga.GrupoActividadNumero, ga.GrupoActividadId, gaper.GrupoActividadPersonalDesde, gaper.GrupoActividadPersonalHasta,
 	    suc.SucursalId , TRIM(suc.SucursalDescripcion) AS SucursalDescripcion,
       1
     FROM StockReal stk
@@ -1707,7 +1754,7 @@ export class EfectoController extends BaseController {
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = stk.ObjetivoId
       LEFT JOIN ClienteElementoDependiente ele on ele.ClienteElementoDependienteId=obj.ClienteElementoDependienteId and ele.ClienteId=obj.ClienteId
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-      LEFT JOIN Sucursal sucobj ON sucobj.SucursalId = ele.ClienteElementoDependienteSucursalId
+      LEFT JOIN Sucursal sucobj ON sucobj.SucursalId = ISNULL(ele.ClienteElementoDependienteSucursalId, cli.ClienteSucursalId)
 
       LEFT JOIN Personal per ON per.PersonalId = stk.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
@@ -2264,7 +2311,7 @@ export class EfectoController extends BaseController {
 
     if (dup.length) {
       const otro = dup[0];
-      
+
       throw new ClientException([
         'Ya existe otro efecto con la misma descripción completa:',
         `"${String(otro.Completo).trim()}"`

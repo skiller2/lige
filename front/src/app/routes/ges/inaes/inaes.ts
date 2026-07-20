@@ -39,6 +39,7 @@ export class INAESComponent {
   });
   loadingExport = signal<boolean>(false)
   startFilters = signal<Selections[]>([])
+  tabIndex = signal<number>(0)
   hiddenColumnIds: string[] = [];
   showColumnIds: string[] = [];
 
@@ -88,6 +89,8 @@ export class INAESComponent {
     this.angularGrid = angularGrid.detail
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
+      columnTotal('CapitalSuscripto', this.angularGrid)
+      columnTotal('CapitalIntegrado', this.angularGrid)
     })
 
     // Ocultar columnas basadas en la propiedad showGridColumn de cada columna

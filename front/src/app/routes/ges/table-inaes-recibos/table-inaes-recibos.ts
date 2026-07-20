@@ -41,16 +41,29 @@ export class TableINAESRecibosComponent {
   startFilters = signal<Selections[]>([])
   periodo = signal<Date>(new Date())
 
-  columns = toSignal(this.apiService.getCols('/api/inaes/recibos/cols'), { initialValue: [] as Column[] })
+  hiddenColumnIds: string[] = [];
+  showColumnIds: string[] = [];
+
+  columns = toSignal(this.apiService.getCols('/api/inaes/recibos/cols')
+  .pipe(map((cols) => {
+    // Guardar IDs de columnas que tienen showGridColumn: false
+    this.hiddenColumnIds = cols
+      .filter((col: any) => col.showGridColumn === false)
+      .map((col: Column) => col.id as string);
+    this.showColumnIds = cols.map((col: Column) => col.id as string);
+    
+    return cols;
+  })), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => ({ options: this.listOptions() }),
+    params: () => ({ options: this.listOptions(), periodo: this.periodo() }),
     loader: async ({ params }) => {
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
-        // const response = await firstValueFrom(this.searchService.getEfectoPersonal(params.options))
-        // return response || []
-        return []
+        const res = await firstValueFrom(this.apiService.getINAESRecibos({options: params.options, periodo: params.periodo}))
+        
+        return res || []
+        // return []
       } catch (_e) {
         return []
       } finally {
@@ -77,7 +90,10 @@ export class TableINAESRecibosComponent {
 
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
-      // columnTotal('StockStock', this.angularGrid)
+      columnTotal('total_ingresos', this.angularGrid)
+      columnTotal('Excedentes', this.angularGrid)
+      columnTotal('RetencionMonotributo', this.angularGrid)
+      columnTotal('OtrasRetenciones', this.angularGrid)
     });
   }
  

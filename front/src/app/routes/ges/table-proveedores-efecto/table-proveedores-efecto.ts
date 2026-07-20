@@ -42,9 +42,8 @@ export class TableProveedoresEfectoComponent {
     sort: null,
   })
   filtersReady = signal(false)
-  startFilters = signal<Selections[]>([
-    { index: 'StockStock', condition: 'AND', operator: '>', value: '0', closeable: true },
-  ])
+  startFilters = signal<Selections[]>([])
+  startFiltersReady = signal(false)
   filtroVisible = signal(true)
 
   private readonly loadingSrv = inject(LoadingService)
@@ -55,9 +54,6 @@ export class TableProveedoresEfectoComponent {
   private applyProveedorFilter = effect(() => {
     const id = this.proveedorIdFilter()
     if (id > 0) {
-      this.startFilters.set([
-        // { index: 'ProveedorId', condition: 'AND', operator: '=', value: String(id), closeable: true },
-      ])
       this.filtroVisible.set(false)
       setTimeout(() => this.filtroVisible.set(true))
     }
@@ -66,6 +62,7 @@ export class TableProveedoresEfectoComponent {
   columns = toSignal(this.apiService.getCols('/api/efecto/colsProveedores'), { initialValue: [] as Column[] })
 
   gridData = resource({
+    // Espera a que FiltroBuilder emita los filtros iniciales para evitar el warning duplicado al ingresar.
     params: () => this.filtersReady()
       ? { options: this.listOptions(), refresh: this.refreshGrid() }
       : undefined,
@@ -84,8 +81,11 @@ export class TableProveedoresEfectoComponent {
     defaultValue: []
   })
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.initializeGridOptions();
+    const filters = await firstValueFrom(this.searchService.getEfectoFilters())
+    this.startFilters.set(filters)
+    this.startFiltersReady.set(true)
   }
 
   private initializeGridOptions(): void {
