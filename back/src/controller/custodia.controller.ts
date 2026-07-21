@@ -1192,7 +1192,7 @@ export class CustodiaController extends BaseController {
                 infoCustodia.FechaLiquidacion = null
             }
 
-            if (!(await this.hasGroup(req, 'Liquidaciones')) && ResponsableId != infoCustodia.ResponsableId) {
+            if (!(await this.hasGroup(req, 'Liquidaciones')) && !(await this.hasGroup(req, 'mCustodias')) && ResponsableId != infoCustodia.ResponsableId) {
                 throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.Responsable} o pertenecer al grupo 'Liquidaciones'.`)
             }
 
