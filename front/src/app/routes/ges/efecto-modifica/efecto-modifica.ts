@@ -215,6 +215,44 @@ export class EfectoModificaComponent {
     })),
   });
 
+ readonly descripcionCompleta = computed(() => {
+    const m = this.formEfecto().value();
+
+    // Atributos del efecto: se resuelven los Ids contra los catálogos ya cargados.
+    const atributosPorId = new Map(this.atributos().map(a => [Number(a.AtributoId), a.AtributoDescripcion]));
+    // ValorId es secuencial dentro de cada Atributo, no único en la tabla (igual que SubrubroId
+    // dentro de su Rubro): la clave es el par, si no cada valor resuelve al de otro atributo.
+    const valoresPorId = new Map(
+      this.valores().map(v => [`${Number(v.AtributoId)}-${Number(v.ValorId)}`, v.ValorDescripcion])
+    );
+    const atrEfecto = this.efectoAtributos()
+      .filter(fila => fila.EfectoAtributoAtributoId != null)
+      .map(fila => {
+        const atributo = atributosPorId.get(Number(fila.EfectoAtributoAtributoId)) ?? '';
+        const valor = fila.EfectoAtributoValorId != null
+          ? valoresPorId.get(`${Number(fila.EfectoAtributoAtributoId)}-${Number(fila.EfectoAtributoValorId)}`) ?? ''
+          : '';
+        return texto(`${texto(atributo)} ${texto(valor)}`);
+      })
+      .filter(Boolean)
+      .join(', ');
+
+    // Atributos de ingreso del individual: el valor es texto libre, cargado en la misma fila.
+    const descripcionIngresoPorId = new Map(
+      this.atributosOpciones().map(op => [Number(op.AtributoIngresoId), op.AtributoIngresoDescripcion])
+    );
+    const atrIndividual = (m.atributos ?? [])
+      .filter(linea => linea.EfectoAtributoAtributoIngresoId != null)
+      .map(linea => {
+        const atributo = descripcionIngresoPorId.get(Number(linea.EfectoAtributoAtributoIngresoId)) ?? '';
+        return texto(`${texto(atributo)} ${texto(linea.EfectoAtributoIngresoValor)}`);
+      })
+      .filter(Boolean)
+      .join(', ');
+
+    return `${texto(m.EfectoDescripcion)} - ${texto(m.EfectoEfectoIndividualDescripcion)} (${atrEfecto}, ${atrIndividual} )`;
+  });
+
   onEfectoAtributoChange(index: number, atributoId: number | null): void {
     // Al cambiar el atributo de la fila, su valor anterior pertenece a otro atributo: se limpia.
     this.efectoAtributos.update(rows => rows.map((r, i) =>

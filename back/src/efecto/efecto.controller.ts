@@ -2109,7 +2109,7 @@ export class EfectoController extends BaseController {
 
       await this.validarEfectoModifica(queryRunner, efectoId, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos, individualId, individualDescripcion, atributos);
 
-      const completoAntes = await this.descripcionCompletaEfecto(queryRunner, efectoId!, individualId);
+      const claveAntes = await this.claveEfecto(queryRunner, efectoId!, individualId);
 
       await queryRunner.query(`
         UPDATE Efecto
@@ -2133,10 +2133,10 @@ export class EfectoController extends BaseController {
         await this.guardarAtributosIngreso(queryRunner, efectoId, individualId, atributos, now, usuario, ip);
       }
 
-      // Con los cambios ya aplicados en la transacción, las vistas recalculan la descripción completa
-      // (descripción + individual + atributos) tal como la muestra el buscador. Recién acá se puede
-      // verificar que no colisione con la de otro efecto del catálogo.
-      await this.validarDescripcionCompletaUnica(queryRunner, efectoId!, individualId, completoAntes);
+      // Con los cambios ya aplicados en la transacción, la clave del efecto (descripción + individual
+      // + atributos ordenados) ya refleja lo que se acaba de guardar. Recién acá se puede verificar
+      // que no colisione con la de otro efecto del catálogo.
+      await this.validarDescripcionCompletaUnica(queryRunner, efectoId!, individualId, claveAntes);
 
       if (true)
         await this.rollbackTransaction(queryRunner);
@@ -2273,41 +2273,69 @@ export class EfectoController extends BaseController {
   // que es la fuente de verdad del string; se lee de la base en vez de rearmarlo en código.
   private static readonly COMPLETO_EXPR = `CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )')`;
 
-  private async descripcionCompletaEfecto(
+  private static readonly CLAVE_EXPR = (() => {
+    // Cada atributo del efecto se identifica por su par (descripción del atributo, descripción del
+    // valor). ValorId es secuencial dentro de su Atributo, así que el join va por las dos columnas.
+    const parEfecto = `CONCAT(UPPER(TRIM(atr.AtributoDescripcion)), ' ', UPPER(TRIM(val.ValorDescripcion)))`;
+    // En el individual el valor es texto libre cargado en la propia fila.
+    const parIngreso = `CONCAT(UPPER(TRIM(atring.AtributoIngresoDescripcion)), ' ', UPPER(TRIM(efeatr.EfectoAtributoIngresoValor)))`;
+    return `CONCAT(
+      UPPER(TRIM(efe.EfectoDescripcion)), '|',
+      ISNULL(UPPER(TRIM(efeind.EfectoEfectoIndividualDescripcion)), ''), '|',
+      ISNULL((
+        SELECT STRING_AGG(${parEfecto}, ',') WITHIN GROUP (ORDER BY ${parEfecto})
+        FROM EfectoAtributo efeatr
+        LEFT JOIN Atributo atr ON atr.AtributoId = efeatr.EfectoAtributoAtributoId
+        LEFT JOIN Valor val ON val.AtributoId = efeatr.EfectoAtributoAtributoId
+          AND val.ValorId = efeatr.EfectoAtributoValorId
+        WHERE efeatr.EfectoId = efe.EfectoId
+      ), ''), '|',
+      ISNULL((
+        SELECT STRING_AGG(${parIngreso}, ',') WITHIN GROUP (ORDER BY ${parIngreso})
+        FROM EfectoEfectoIndividualAtributoIngreso efeatr
+        LEFT JOIN AtributoIngreso atring
+          ON atring.AtributoIngresoId = efeatr.EfectoAtributoAtributoIngresoId
+        WHERE efeatr.EfectoId = efeind.EfectoId
+          AND efeatr.EfectoEfectoIndividualId = efeind.EfectoEfectoIndividualId
+      ), '')
+    )`;
+  })();
+
+  private async claveEfecto(
     queryRunner: any, efectoId: number, individualId: number | null
   ): Promise<string | null> {
     const rows = await queryRunner.query(`
-      SELECT ${EfectoController.COMPLETO_EXPR} AS Completo
+      SELECT ${EfectoController.CLAVE_EXPR} AS Clave
       FROM EfectoDescripcion efe
       LEFT JOIN EfectoIndividualDescripcion efeind
         ON efeind.EfectoId = efe.EfectoId AND efeind.EfectoEfectoIndividualId = @1
       WHERE efe.EfectoId = @0
     `, [efectoId, individualId ?? null]);
-    return rows[0]?.Completo ?? null;
+    return rows[0]?.Clave ?? null;
   }
 
-  // Verifica que la descripción completa del efecto no coincida con la de otro efecto del catálogo.
-  // Se corre DESPUÉS de persistir y con la transacción abierta: recién ahí las vistas reflejan los
-  // atributos nuevos. `completoAntes` es lo que tenía el efecto al abrir el form.
-  private async validarDescripcionCompletaUnica(
-    queryRunner: any, efectoId: number, individualId: number | null, completoAntes: string | null
+   private async validarDescripcionCompletaUnica(
+    queryRunner: any, efectoId: number, individualId: number | null, claveAntes: string | null
   ) {
-    const completo = await this.descripcionCompletaEfecto(queryRunner, efectoId, individualId);
-    if (!completo) return;
+    const clave = await this.claveEfecto(queryRunner, efectoId, individualId);
+    if (!clave) return;
+    if (clave === claveAntes) return;
 
-    const norm = (s: string | null) => (s ?? '').trim().toUpperCase();
-    if (norm(completo) === norm(completoAntes)) return;
+    // La descripción es el primer tramo de la clave. Se compara aparte para que el filtro descarte
+    // la mayoría del catálogo antes de tener que armar los STRING_AGG de atributos de cada efecto.
+    const descripcionNorm = clave.split('|')[0];
 
     const dup = await queryRunner.query(`
       SELECT TOP 1 efe.EfectoId, efeind.EfectoEfectoIndividualId, ${EfectoController.COMPLETO_EXPR} AS Completo
       FROM EfectoDescripcion efe
       LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = efe.EfectoId
-      WHERE TRIM(UPPER(${EfectoController.COMPLETO_EXPR})) = TRIM(UPPER(@1))
+      WHERE UPPER(TRIM(efe.EfectoDescripcion)) = @3
+        AND ${EfectoController.CLAVE_EXPR} = @1
         AND NOT (efe.EfectoId = @0 AND (
           efeind.EfectoEfectoIndividualId = @2
           OR (efeind.EfectoEfectoIndividualId IS NULL AND @2 IS NULL)
         ))
-    `, [efectoId, completo, individualId ?? null]);
+    `, [efectoId, clave, individualId ?? null, descripcionNorm]);
 
     if (dup.length) {
       const otro = dup[0];

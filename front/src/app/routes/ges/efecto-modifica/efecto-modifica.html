@@ -50,6 +50,9 @@
 
       <nz-form-item>
         <nz-form-label [nzSpan]="6">Atributo</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <span style="color: rgba(0,0,0,0.45);">{{ descripcionCompleta() }}</span>
+        </nz-form-control>
       </nz-form-item>
       @for (fila of efectoAtributos(); track $index) {
         <div [style.background-color]="$even ? '#f5f5f5' : '#ffffff'" style="padding: 16px 8px;">
