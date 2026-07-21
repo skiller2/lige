@@ -50,8 +50,18 @@
   <div nz-col [nzXs]="20" [nzSm]="11" [nzMd]="7" [nzLg]="5" class="input-search"
     style="text-align: center; display:inline-block; width: 100%">
     @if (!selections.field.searchComponent) {
-    <input placeholder="Valor" #inputElement nz-input type="text" [(ngModel)]="selections.value"
-      (keydown.enter)="handleInputConfirm()" />
+      <div nz-row class="input-panel">
+        <div style="flex: 1;">
+          <input placeholder="Valor" #inputElement nz-input type="text" [(ngModel)]="selections.value"
+            (keydown.enter)="handleInputConfirm()" />
+        </div>
+        @if (selections.field.actions?.includes('searchCUITsFromFile')) {
+        <nz-upload nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
+        (nzChange)="uploadChange($event,'searchCUITsFromFile')" [nzShowUploadList]="false">
+          <button nz-button><nz-icon nzType="upload" /></button>
+        </nz-upload>
+        }
+      </div>
     }
     @if (selections.field.searchComponent=='inputForPersonalSearch') {
     <app-personal-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
@@ -121,12 +131,20 @@
     <app-requirente-search [(ngModel)]="selections.value" [ngModelOptions]="{ standalone: true }"
       [(valueExtended)]="valueExtended" (keydown.enter)="handleInputConfirm()" />
     }
-    @if (selections.field.searchComponent=='inputForCUITsSearchFromINAESFile') {
-    <nz-upload nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
-      (nzChange)="uploadChange($event)">
-      <button nz-button><nz-icon nzType="upload" />Leer CUITs de Archivo PDF INAES</button>
-    </nz-upload>
-    }
+    <!-- @if (selections.field.searchComponent=='inputForCUITSearch') {
+    <div nz-row class="input-panel">
+      <div style="flex: 1;">
+        <input placeholder="CUIT" nz-input type="text" [(ngModel)]="selections.value"
+          (keydown.enter)="handleInputConfirm()" />
+      </div>
+      @if (selections.field.actions?.includes('searchCUITsFromFile')) {
+      <nz-upload nzAction="/api/file-upload/upload" nzName="pdf" [nzLimit]="1"
+      (nzChange)="uploadChange($event,'searchCUITsFromFile')">
+        <button nz-button><nz-icon nzType="upload" /></button>
+      </nz-upload>
+      }
+    </div>
+    } -->
     @if (selections.field.searchComponent=='inputForSucursalSearch') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Sucursal" nzShowSearch
       (ngModelChange)="selectedValueSucursal($event)" [nzDropdownMatchSelectWidth]="false"
