@@ -825,7 +825,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     this.handleInputConfirm(null)
   }
 
-  async uploadChange(event: any) {
+  async uploadChange(event: any, action:string) {
     switch (event.type) {
       case 'start':
         this.uploading$.next({ loading: true, event })
@@ -845,11 +845,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         if (Response.data.length) {
           try {
             let res: any
-            switch (this.selections.field.searchComponent) {
-              case 'inputForCUITsSearchFromINAESFile':
+            switch (action) {
+              case 'searchCUITsFromFile':
                 res = await firstValueFrom(this.apiService.getCUITsFromINAESFile({ file: Response.data }))
-                let value = res.cuits.join(";")
-                this.selections = { ...this.selections, condition: 'AND', operator: '=', value, label: value, closeable: true, originIdx: null, inicial: false }
+                this.selections.value = res.cuits.join(";")
                 break;
               default:
                 break;
@@ -858,7 +857,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
         }
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)
-        this.handleInputConfirm(null)
+        // this.handleInputConfirm(null)
         break
       default:
         break;

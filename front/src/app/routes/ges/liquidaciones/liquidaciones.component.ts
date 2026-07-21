@@ -48,6 +48,7 @@ import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-s
 import { SearchService } from '../../../services/search.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { RecibosModalComponent } from '../recibos-modal/recibos-modal'
+import { MonotributosModalComponent } from '../monotributos-modal/monotributos-modal'
 import { Selections } from '../../../shared/schemas/filtro';
 @Component({
   selector: 'app-liquidaciones',
@@ -61,7 +62,8 @@ import { Selections } from '../../../shared/schemas/filtro';
     NzAffixModule,
     FiltroBuilderComponent,
     NzUploadModule,
-    RecibosModalComponent
+    RecibosModalComponent,
+    MonotributosModalComponent
 
   ],
   providers: [AngularUtilService]
@@ -110,7 +112,8 @@ export class LiquidacionesComponent {
   PersonalIdUnique = [];
   PersonalNameForReceip = "";
 
-  isVisible = model<boolean>(false);
+  isVisibleRecibo = model<boolean>(false);
+  isVisibleMonot = model<boolean>(false);
   isWithDuplicado = false;
   selectedOption = model("T");
   ObjetivoIdWithSearch = model(0);
@@ -802,8 +805,12 @@ export class LiquidacionesComponent {
     };
   }
 
-  showModal(): void {
-    this.isVisible.set(true);
+  showModalRecibos(): void {
+    this.isVisibleRecibo.set(true);
+  }
+
+  showModalMonot(): void {
+    this.isVisibleMonot.set(true);
   }
 
 }

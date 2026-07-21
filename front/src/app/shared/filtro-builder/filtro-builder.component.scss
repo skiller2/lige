@@ -20,3 +20,9 @@ nz-tag.tag-ellipsis,
   text-overflow: ellipsis;
   vertical-align: bottom;
 }
+
+.input-panel{
+  display: flex; 
+  align-items: center; 
+  width: 100%;
+}

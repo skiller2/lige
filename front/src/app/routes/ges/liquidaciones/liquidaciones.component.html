@@ -1,6 +1,8 @@
 <nz-card class="small-margin">
 
-  <app-recibos-modal [(isVisible)]='isVisible' [mes]="mes()" [anio]="anio()"></app-recibos-modal>
+  <app-recibos-modal [(isVisible)]='isVisibleRecibo' [mes]="mes()" [anio]="anio()"></app-recibos-modal>
+
+  <app-monotributos-modal [(isVisible)]='isVisibleMonot' [mes]="mes()" [anio]="anio()"></app-monotributos-modal>
 
   <form nz-form #liquidacionesForm="ngForm">
 
@@ -111,8 +113,11 @@
               <li nz-menu-item (click)="exportGrid()">
                 <span nz-icon nzType="download"></span><span style="white-space: normal;">Grilla</span>
               </li>
-              <li nz-menu-item (click)="showModal()">
-                <span nz-icon nzType="download"></span><span style="white-space: normal;">Recibos</span>
+              <li nz-menu-item (click)="showModalRecibos()">
+                <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga Recibos</span>
+              </li>
+              <li nz-menu-item (click)="showModalMonot()">
+                <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga Monotributos</span>
               </li>
             </ul>
 

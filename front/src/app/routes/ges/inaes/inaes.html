@@ -1,18 +1,4 @@
 <nz-card class="small-margin">
-  <div nz-row>
-    <div nz-col nzSpan="12">
-      <nz-form-control>
-        <!-- <nz-date-picker nzMode="month" [(ngModel)]="periodo" /> -->
-      </nz-form-control>
-    </div>
-
-    <div nz-col nzSpan="12" style="display: flex;flex-direction: row-reverse;">
-      <nz-button-group nz-button nzButtonGroup style="text-align: right;">
-        <!-- <button nz-button nzType="default" (click)="openDrawerforEdit()" [disabled]="!(PersonalLicenciaId>0)" ><span nz-icon nzType="edit"
-                nzTheme="outline" ></span></button> -->
-      </nz-button-group>
-    </div>
-  </div>
 
   <div nz-row class="contentStyle">
     <div nz-col nzSpan="13" class="listStyle">
@@ -36,11 +22,11 @@
       <a nz-tab-link routerLink="/ges/inaes/altas-bajas">Altas y Bajas</a>
       <ng-template nz-tab>
         @if (columns().length) {
-          <div nz-row nzJustify="space-between" nzAlign="middle">
-
-            <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()" [(options)]="listOptions" />
-            
-            <div nz-col style="display: flex;">
+          <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+            <div style="flex: 1;">
+              <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()" [(options)]="listOptions"  />
+            </div>
+            <div style="flex-shrink: 0;">
               <nz-button-group nz-button nz-buttonGroup style="align-items: flex-end;">
                 <!-- Recarga -->
                 <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
