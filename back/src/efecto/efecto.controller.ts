@@ -1261,7 +1261,18 @@ export class EfectoController extends BaseController {
     }
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      const list = await queryRunner.query(`
+      const list = await this.relacionesDe(queryRunner, efectoId, individualId);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // La comparte el GET de relaciones (lo usa efecto-stock-linea) y el GET del form de modificación.
+  private async relacionesDe(queryRunner: any, efectoId: number, individualId: number | null) {
+    return await queryRunner.query(`
         SELECT
           ere.EfectoRelacionEfectoId,
           ere.EfectoRelacionConEfectoId,
@@ -1292,12 +1303,6 @@ export class EfectoController extends BaseController {
            AND (ere.EfectoRelacionConEfectoEfectoIndividualId = @1
                 OR (@1 IS NULL AND ere.EfectoRelacionConEfectoEfectoIndividualId IS NULL)))
       `, [efectoId, individualId]);
-      this.jsonRes(list, res);
-    } catch (error) {
-      return next(error);
-    } finally {
-      await queryRunner.release();
-    }
   }
 
   async getEfectoUbicaciones(req: any, res: Response, next: NextFunction) {
@@ -2009,48 +2014,7 @@ export class EfectoController extends BaseController {
     }
   }
 
-  // Atributos/valores asignados al efecto (filas de EfectoAtributo, tabla 1:N).
-  async getEfectoAtributos(req: any, res: Response, next: NextFunction) {
-    const efectoId = Number(req.params.id);
-    if (!efectoId) {
-      this.jsonRes([], res);
-      return;
-    }
-    const queryRunner = await getConnection(res.locals.userName);
-    try {
-      const rows = await this.efectoAtributosDe(queryRunner, efectoId);
-      this.jsonRes(rows, res);
-    } catch (error) {
-      return next(error);
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
-  // Atributos de ingreso (EfectoEfectoIndividualAtributoIngreso) de un efecto individual.
-  // EfectoAtributoAtributoIngresoId es la FK al Atributo (valor del Select).
-  async getEfectoIndividualAtributos(req: any, res: Response, next: NextFunction) {
-    const efectoId = Number(req.params.id);
-    const individualIdRaw = req.query?.individualId;
-    const individualId = individualIdRaw === undefined || individualIdRaw === '' || individualIdRaw === 'null'
-      ? null
-      : Number(individualIdRaw);
-    if (!efectoId || individualId == null) {
-      this.jsonRes([], res);
-      return;
-    }
-    const queryRunner = await getConnection(res.locals.userName);
-    try {
-      const list = await this.atributosIngresoDe(queryRunner, efectoId, individualId);
-      this.jsonRes(list, res);
-    } catch (error) {
-      return next(error);
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
-  // Las tres lecturas de abajo las comparten el GET inicial del form y la respuesta del guardado, así
+  // Las lecturas de abajo las comparten el GET inicial del form y la respuesta del guardado, así
   // el front recibe siempre la misma forma y no hace falta que vuelva a consultar tras guardar.
   private async efectoAtributosDe(queryRunner: any, efectoId: number) {
     return await queryRunner.query(`
@@ -2101,6 +2065,31 @@ export class EfectoController extends BaseController {
         ? await this.atributosIngresoDe(queryRunner, efectoId, individualId)
         : [],
     };
+  }
+
+  // Carga inicial del form de modificar/consultar efecto: una sola llamada con todo lo que el form
+  // necesita del efecto (cabecera, atributos, atributos de ingreso del individual y relaciones), en
+  // la misma forma que devuelve el guardado más las relaciones (que son solo lectura).
+  async getFormularioEfectoModifica(req: any, res: Response, next: NextFunction) {
+    const efectoId = Number(req.params.id);
+    const individualIdRaw = req.query?.individualId;
+    const individualId = individualIdRaw === undefined || individualIdRaw === '' || individualIdRaw === 'null'
+      ? null
+      : Number(individualIdRaw);
+    if (!efectoId) {
+      this.jsonRes(null, res);
+      return;
+    }
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const formulario = await this.formularioEfectoModifica(queryRunner, efectoId, individualId);
+      const relaciones = await this.relacionesDe(queryRunner, efectoId, individualId);
+      this.jsonRes({ ...formulario, relaciones }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async guardarEfectoModifica(req: any, res: Response, next: NextFunction) {

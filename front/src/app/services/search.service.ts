@@ -15,7 +15,7 @@ import {
 import { SearchGrup, ResponseBySearchGrup } from '../shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente, SearchClient } from '../shared/schemas/cliente.schemas';
 import { ResponseBySearchAdministrador, SearchAdmind } from '../shared/schemas/administrador.schemas';
-import { Atributo, EfectoAtributo, EfectoIndividualAtributo, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, Valor } from '../shared/schemas/efecto.schemas';
+import { Atributo, EfectoModificaFormulario, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, Valor } from '../shared/schemas/efecto.schemas';
 import { ResponseBySearchTipoAsociadoCategoria, SearchTipoAsociadoCategoria } from '../shared/schemas/tipo-asociado-categoria.schemas';
 import { ResponseBySearchRubro, SearchRubro } from '../shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from '../shared/schemas/seguro.schemas';
@@ -2614,21 +2614,14 @@ export class SearchService {
     );
   }
 
-  // Atributos/valores asignados al efecto (filas de EfectoAtributo, 1:N).
-  getEfectoAtributos(efectoId: number): Observable<EfectoAtributo[]> {
-    if (!efectoId) return of([]);
-    return this.http.get<ResponseJSON<EfectoAtributo[]>>(`api/efecto/atributo/${efectoId}`).pipe(
-      map(res => res.data ?? []),
-      catchError(() => of([]))
-    );
-  }
-
-  // Atributos de ingreso de un efecto individual (EfectoEfectoIndividualAtributoIngreso).
-  getEfectoIndividualAtributos(efectoId: number, individualId: number | null): Observable<EfectoIndividualAtributo[]> {
-    if (!efectoId || individualId == null) return of([]);
-    return this.http.get<ResponseJSON<EfectoIndividualAtributo[]>>(`api/efecto/individual-atributos/${efectoId}`, { individualId: String(individualId) }).pipe(
-      map(res => res.data ?? []),
-      catchError(() => of([]))
+  // Carga inicial del form de modificar/consultar efecto: cabecera + atributos del efecto +
+  // atributos de ingreso del individual + relaciones, todo en una sola llamada.
+  getEfectoFormularioModifica(efectoId: number, individualId: number | null = null): Observable<EfectoModificaFormulario | null> {
+    if (!efectoId) return of(null);
+    const params = individualId != null ? { individualId: String(individualId) } : {};
+    return this.http.get<ResponseJSON<EfectoModificaFormulario>>(`api/efecto/formulario/${efectoId}`, params).pipe(
+      map(res => res.data ?? null),
+      catchError(() => of(null))
     );
   }
 

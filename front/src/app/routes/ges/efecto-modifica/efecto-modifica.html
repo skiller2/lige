@@ -103,11 +103,11 @@
       }
 
       <!-- Efecto relacionado (solo lectura). Se muestra si el efecto tiene relación. -->
-      @if ((relaciones.value() ?? []).length) {
+      @if (relaciones().length) {
         <nz-form-item>
           <nz-form-label [nzSpan]="6">Relacionado con</nz-form-label>
           <nz-form-control [nzSpan]="14">
-            @for (rel of relaciones.value(); track rel.EfectoRelacionEfectoId) {
+            @for (rel of relaciones(); track rel.EfectoRelacionEfectoId) {
               <div>{{ rel.DescripcionCon }}</div>
             }
           </nz-form-control>

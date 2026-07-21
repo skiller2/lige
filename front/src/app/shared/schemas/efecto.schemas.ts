@@ -62,3 +62,16 @@ export interface EfectoIndividualAtributo {
     EfectoAtributoIngresoValor: string;
     AtributoDescripcion: string;
 }
+
+export interface EfectoModificaFormulario {
+    EfectoId: number;
+    EfectoDescripcion: string;
+    RubroId: number | null;
+    SubrubroId: number | null;
+    EfectoStockMinimo: number | null;
+    EfectoEfectoIndividualId: number | null;
+    EfectoEfectoIndividualDescripcion: string;
+    EfectoAtributos: EfectoAtributo[];
+    atributos: EfectoIndividualAtributo[];
+    relaciones: EfectoRelacionEfecto[];
+}

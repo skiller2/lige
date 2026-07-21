@@ -83,12 +83,8 @@ efectoRouter.get("/valores", [authMiddleware.verifyToken, authMiddleware.hasGrou
   efectoController.getValores(req, res, next);
 });
 
-efectoRouter.get("/atributo/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  efectoController.getEfectoAtributos(req, res, next);
-});
-
-efectoRouter.get("/individual-atributos/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  efectoController.getEfectoIndividualAtributos(req, res, next);
+efectoRouter.get("/formulario/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  efectoController.getFormularioEfectoModifica(req, res, next);
 });
 
 efectoRouter.post("/modificacion", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {

@@ -84,9 +84,9 @@ export class EfectoModificaComponent {
   readonly esIndividual = computed(() => this.individualId() != null);
 
   // Opciones del Select de las filas de atributo del individual: los atributos que ya devuelve
-  // getEfectoIndividualAtributos (resource atributosIngreso), deduplicados por su Id.
+  // el formulario en atributos (atributosIngreso), deduplicados por su Id.
   readonly atributosOpciones = computed(() => {
-    const rows = this.atributosIngreso.value() ?? [];
+    const rows = this.atributosIngreso();
     const map = new Map<number, string>();
     for (const r of rows) {
       if (r.EfectoAtributoAtributoIngresoId != null)
@@ -95,37 +95,29 @@ export class EfectoModificaComponent {
     return [...map].map(([AtributoIngresoId, AtributoIngresoDescripcion]) => ({ AtributoIngresoId, AtributoIngresoDescripcion }));
   });
 
-  // Efecto relacionado (solo mostrar). DescripcionCon = el efecto del "otro lado" de la relación.
-  readonly relaciones = resource({
+  // Todo lo que el form necesita del efecto en una sola llamada: relaciones, atributos de ingreso
+  // del individual y filas de EfectoAtributo. Antes eran tres GET en paralelo con la misma clave
+  // (efectoId, individualId).
+  readonly formulario = resource({
     params: () => ({ efectoId: this.efectoId(), individualId: this.individualId() }),
     loader: async ({ params }) =>
       params.efectoId
-        ? (await firstValueFrom(this.search.getEfectoRelaciones(params.efectoId, params.individualId))) ?? []
-        : [],
+        ? await firstValueFrom(this.search.getEfectoFormularioModifica(params.efectoId, params.individualId))
+        : null,
   });
+
+  // Efecto relacionado (solo mostrar). DescripcionCon = el efecto del "otro lado" de la relación.
+  readonly relaciones = computed(() => this.formulario.value()?.relaciones ?? []);
 
   // Filas de atributo ingreso del efecto individual.
-  readonly atributosIngreso = resource({
-    params: () => ({ efectoId: this.efectoId(), individualId: this.individualId() }),
-    loader: async ({ params }) =>
-      params.efectoId && params.individualId != null
-        ? (await firstValueFrom(this.search.getEfectoIndividualAtributos(params.efectoId, params.individualId))) ?? []
-        : [],
-  });
-
-  // Atributos/valores del efecto (filas de EfectoAtributo, 1:N). Se leen para no pisarlos al guardar.
-  readonly efectoAtributosRes = resource({
-    params: () => ({ efectoId: this.efectoId() }),
-    loader: async ({ params }) =>
-      params.efectoId ? (await firstValueFrom(this.search.getEfectoAtributos(params.efectoId))) ?? [] : [],
-  });
+  readonly atributosIngreso = computed(() => this.formulario.value()?.atributos ?? []);
 
   // El modelo se rearma solo cuando cambia el efecto o llegan sus atributos; entre medio es
   // escribible y se queda con lo que edita el usuario. Reemplaza al effect que reseteaba control
-  // por control. Tras guardar, el reload() de atributosIngreso vuelve a pasar por acá y deja el
-  // modelo con lo que quedó persistido.
+  // por control. Tras guardar no se recarga: el back devuelve el formulario persistido y se aplica
+  // sobre el modelo (ver guardar()).
   private readonly modelo = linkedSignal<{ ef: any; rows: EfectoIndividualAtributo[] }, EfectoModificaModel>({
-    source: () => ({ ef: this.efecto(), rows: this.atributosIngreso.value() ?? [] }),
+    source: () => ({ ef: this.efecto(), rows: this.atributosIngreso() }),
     computation: ({ ef, rows }) => ({
       EfectoId: ef?.EfectoId ?? null,
       // La columna editable de Efecto, no la compuesta que muestra la grilla.
@@ -207,7 +199,7 @@ export class EfectoModificaComponent {
   // cambiar de efecto, pero quedan editables (linkedSignal). Van por afuera del modelo del form
   // porque persisten en su propia tabla y el valor de cada fila depende de su atributo.
   readonly efectoAtributos = linkedSignal<EfectoAtributo[], EfectoAtributoLinea[]>({
-    source: () => this.efectoAtributosRes.value() ?? [],
+    source: () => this.formulario.value()?.EfectoAtributos ?? [],
     computation: rows => rows.map(r => ({
       EfectoAtributoId: r.EfectoAtributoId ?? null,
       EfectoAtributoAtributoId: r.EfectoAtributoAtributoId ?? null,
