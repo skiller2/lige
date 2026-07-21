@@ -72,8 +72,14 @@
             </nz-form-control>
             @if (!esConsulta()) {
               <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
-                <button nz-button nzType="default" nzDanger type="button" nz-tooltip
-                  nzTooltipTitle="Eliminar atributo" (click)="quitarEfectoAtributo($index)">
+                @if ($last) {
+                  <button type="button" nz-button nzType="primary" class="add-button"
+                    (click)="agregarEfectoAtributo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+                    <span nz-icon nzType="plus"></span>
+                  </button>
+                }
+                <button type="button" nz-button nzType="default" (click)="quitarEfectoAtributo($index)"
+                  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
                   <span nz-icon nzType="delete" nzTheme="outline"></span>
                 </button>
               </nz-form-control>
@@ -82,14 +88,18 @@
         </div>
       }
       @if (!efectoAtributos().length) {
-        <p style="color: rgba(0,0,0,0.45);">Sin atributos.</p>
-      }
-      @if (!esConsulta()) {
-        <div style="text-align: center; margin-top: 10px; margin-bottom: 20px;">
-          <button nz-button nzType="dashed" type="button" (click)="agregarEfectoAtributo()">
-            <span nz-icon nzType="plus" nzTheme="outline"></span> Agregar atributo
-          </button>
-        </div>
+        <nz-form-item style="align-items: center;">
+          <nz-form-label [nzSpan]="6"></nz-form-label>
+          <nz-form-control [nzSpan]="14">
+            <span style="color: rgba(0,0,0,0.45); margin-right: 8px;">Sin atributos.</span>
+            @if (!esConsulta()) {
+              <button type="button" nz-button nzType="primary" class="add-button"
+                (click)="agregarEfectoAtributo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+                <span nz-icon nzType="plus"></span>
+              </button>
+            }
+          </nz-form-control>
+        </nz-form-item>
       }
 
       <!-- Efecto relacionado (solo lectura). Se muestra si el efecto tiene relación. -->
@@ -137,8 +147,14 @@
               </nz-form-control>
               @if (!esConsulta()) {
                 <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
-                  <button nz-button nzType="default" nzDanger type="button" nz-tooltip
-                    nzTooltipTitle="Eliminar atributo" (click)="quitarAtributo($index)">
+                  @if ($last) {
+                    <button type="button" nz-button nzType="primary" class="add-button"
+                      (click)="agregarAtributo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+                      <span nz-icon nzType="plus"></span>
+                    </button>
+                  }
+                  <button type="button" nz-button nzType="default" (click)="quitarAtributo($index)"
+                    nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
                     <span nz-icon nzType="delete" nzTheme="outline"></span>
                   </button>
                 </nz-form-control>
@@ -147,21 +163,25 @@
           </div>
         }
         @if (!formEfecto.atributos.length) {
-          <p style="color: rgba(0,0,0,0.45);">Sin atributos.</p>
-        }
-        @if (!esConsulta()) {
-          <div style="text-align: center; margin-top: 10px; margin-bottom: 20px;">
-            <button nz-button nzType="dashed" type="button" (click)="agregarAtributo()">
-              <span nz-icon nzType="plus" nzTheme="outline"></span> Agregar atributo
-            </button>
-          </div>
+          <nz-form-item style="align-items: center;">
+            <nz-form-label [nzSpan]="6"></nz-form-label>
+            <nz-form-control [nzSpan]="14">
+              <span style="color: rgba(0,0,0,0.45); margin-right: 8px;">Sin atributos.</span>
+              @if (!esConsulta()) {
+                <button type="button" nz-button nzType="primary" class="add-button"
+                  (click)="agregarAtributo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+                  <span nz-icon nzType="plus"></span>
+                </button>
+              }
+            </nz-form-control>
+          </nz-form-item>
         }
       }
 
       @if (esConsulta()) {
         <p style="color: rgba(0,0,0,0.45);">Modo consulta (solo lectura).</p>
       } @else {
-        <div style="text-align: center;">
+        <div style="text-align: center; margin-top: 20px;">
           <button nz-button nzType="primary" type="submit">Guardar</button>
         </div>
       }
