@@ -16,6 +16,7 @@ import { DescuentosComponent } from '../descuentos/descuentos.component';
 import { PersonalGrupoComponent } from '../personal-grupo/personal-grupo.component';
 import { LoadingService } from '@delon/abc/loading';
 import { RecibosModalComponent } from '../recibos-modal/recibos-modal'
+import { MonotributosModalComponent } from '../monotributos-modal/monotributos-modal'
 import { DatosBotDrawerComponent } from '../datos-bot-drawer/datos-bot-drawer';
 
 enum Busqueda { Sucursal, Objetivo, Personal }
@@ -25,7 +26,7 @@ enum Busqueda { Sucursal, Objetivo, Personal }
   templateUrl: './detalle-asistencia.component.html',
   styleUrls: ['./detalle-asistencia.component.less'],
   imports: [...SHARED_IMPORTS, NzResizableModule, CurrencyPipeModule, CommonModule, PersonalSearchComponent, ObjetivoSearchComponent, ViewResponsableComponent,
-     DescuentosComponent, PersonalGrupoComponent, RecibosModalComponent, DatosBotDrawerComponent]
+     DescuentosComponent, PersonalGrupoComponent, RecibosModalComponent, MonotributosModalComponent, DatosBotDrawerComponent]
 })
 export class DetalleAsistenciaComponent {
   @ViewChild('asistencia', { static: true }) asistencia: NgForm = new NgForm(
@@ -54,7 +55,8 @@ export class DetalleAsistenciaComponent {
   private destroy$ = new Subject();
 
   responsable = signal(0)
-  isVisible = signal<boolean>(false)
+  isVisibleRecibo = signal<boolean>(false)
+  isVisibleMonot = signal<boolean>(false)
 
   selectedDate = null;
   selectedPeriod = signal({ year: 0, month: 0 });

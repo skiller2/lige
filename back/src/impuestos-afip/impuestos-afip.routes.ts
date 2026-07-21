@@ -159,7 +159,7 @@ impuestosAfipRouter.get(
 
 impuestosAfipRouter.post(
   "/download/comprobantes_filtrados/",
-  authMiddleware.verifyToken,
+  [authMiddleware.verifyToken],
   (req, res, next) => {
     impuestosAfipController.handleDownloadComprobantesByFiltro(req, res,next);
   }
