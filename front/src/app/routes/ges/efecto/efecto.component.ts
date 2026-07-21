@@ -17,6 +17,9 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { DownloadService } from '../../../services/download.service';
 import { firstValueFrom, map } from 'rxjs';
+
+const TABS_GRILLA: string[] = ['general', 'personal', 'objetivos', 'deposito', 'proveedores']
+
 @Component({
   selector: 'app-efecto',
   imports: [
@@ -75,14 +78,26 @@ export class EfectoComponent {
     this.detalleVisible.set(true)
   }
 
-  readonly efectoSeleccionado = signal<any | null>(null)
+  private readonly seleccionPorTab = signal<Record<string, any>>({})
+
+  private readonly ultimaGrilla = signal(TABS_GRILLA[0])
+
+  private recordarGrilla = effect(() => {
+    const tab = this.activeTab()
+    if (TABS_GRILLA.includes(tab)) this.ultimaGrilla.set(tab)
+  })
+
+  readonly efectoSeleccionado = computed(() => {
+    const tab = this.activeTab()
+    const grilla = tab === 'modifica' || tab === 'consulta' ? this.ultimaGrilla() : tab
+    return this.seleccionPorTab()[grilla] ?? null
+  })
+
+  seleccionarEfecto(tab: string, efecto: any | null) {
+    this.seleccionPorTab.update(sel => ({ ...sel, [tab]: efecto }))
+  }
 
   readonly modificaEfectoDeshabilitado = computed(() => this.efectoSeleccionado() == null)
-
-  private limpiarSeleccionAlCambiarTab = effect(() => {
-    const tab = this.activeTab()
-    if (tab !== 'modifica' && tab !== 'consulta') this.efectoSeleccionado.set(null)
-  })
 
   // Navega a /ges/efecto/modifica o /ges/efecto/consulta (la solapa es el modo); el efecto viaja por señal.
   abrirModifica(modo: 'consulta' | 'modifica') {
