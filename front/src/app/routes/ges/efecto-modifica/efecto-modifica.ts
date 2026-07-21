@@ -297,11 +297,38 @@ export class EfectoModificaComponent {
         // Filas de EfectoAtributo: persisten en su propia tabla, aparte del modelo del form.
         EfectoAtributos: this.efectoAtributos(),
       };
-      await firstValueFrom(this.apiService.guardarEfectoModifica(values));
-      // Relee lo persistido: las filas nuevas toman el Id que les asignó el back y no se vuelven a
-      // insertar si el usuario guarda de nuevo.
-      this.atributosIngreso.reload();
-      this.efectoAtributosRes.reload();
+      console.log('[efecto-modifica] payload enviado:', JSON.parse(JSON.stringify(values)));
+
+      const res = await firstValueFrom(this.apiService.guardarEfectoModifica(values));
+
+      console.log('[efecto-modifica] formulario recibido:', res?.data);
+
+      // El back devuelve el formulario ya persistido, así que se aplica en vez de recargar: recargar
+      // los resources rearmaba el modelo entero (el linkedSignal se alimenta de atributosIngreso) y
+      // el form parpadeaba. Lo único que hace falta traer son los Ids que el back asignó a las filas
+      // nuevas, para que al guardar de nuevo se actualicen en lugar de insertarse otra vez.
+      const guardado = res?.data;
+      if (!guardado) return;
+
+      this.modelo.update(mod => ({
+        ...mod,
+        EfectoDescripcion: texto(guardado.EfectoDescripcion),
+        RubroId: guardado.RubroId ?? null,
+        SubrubroId: guardado.SubrubroId ?? null,
+        EfectoStockMinimo: guardado.EfectoStockMinimo ?? null,
+        EfectoEfectoIndividualDescripcion: texto(guardado.EfectoEfectoIndividualDescripcion),
+        atributos: (guardado.atributos ?? []).map((row: EfectoIndividualAtributo) => ({
+          EfectoEfectoIndividualAtributoIngresoId: row.EfectoEfectoIndividualAtributoIngresoId ?? null,
+          EfectoAtributoAtributoIngresoId: row.EfectoAtributoAtributoIngresoId ?? null,
+          EfectoAtributoIngresoValor: texto(row.EfectoAtributoIngresoValor),
+        })),
+      }));
+
+      this.efectoAtributos.set((guardado.EfectoAtributos ?? []).map((row: EfectoAtributo) => ({
+        EfectoAtributoId: row.EfectoAtributoId ?? null,
+        EfectoAtributoAtributoId: row.EfectoAtributoAtributoId ?? null,
+        EfectoAtributoValorId: row.EfectoAtributoValorId ?? null,
+      })));
     });
   }
 }

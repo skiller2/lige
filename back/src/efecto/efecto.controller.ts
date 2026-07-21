@@ -2018,12 +2018,7 @@ export class EfectoController extends BaseController {
     }
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      const rows = await queryRunner.query(`
-        SELECT EfectoAtributoId, EfectoAtributoAtributoId, EfectoAtributoValorId
-        FROM EfectoAtributo
-        WHERE EfectoId = @0
-        ORDER BY EfectoAtributoId
-      `, [efectoId]);
+      const rows = await this.efectoAtributosDe(queryRunner, efectoId);
       this.jsonRes(rows, res);
     } catch (error) {
       return next(error);
@@ -2046,23 +2041,66 @@ export class EfectoController extends BaseController {
     }
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      const list = await queryRunner.query(`
-        SELECT
-          efeatr.EfectoEfectoIndividualAtributoIngresoId,
-          efeatr.EfectoAtributoAtributoIngresoId,
-          TRIM(efeatr.EfectoAtributoIngresoValor) AS EfectoAtributoIngresoValor,
-          TRIM(atr.AtributoIngresoDescripcion) AS AtributoDescripcion
-        FROM EfectoEfectoIndividualAtributoIngreso efeatr
-        LEFT JOIN AtributoIngreso atr ON atr.AtributoIngresoId = efeatr.EfectoAtributoAtributoIngresoId
-        WHERE efeatr.EfectoId = @0 AND efeatr.EfectoEfectoIndividualId = @1
-        ORDER BY efeatr.EfectoEfectoIndividualAtributoIngresoId
-      `, [efectoId, individualId]);
+      const list = await this.atributosIngresoDe(queryRunner, efectoId, individualId);
       this.jsonRes(list, res);
     } catch (error) {
       return next(error);
     } finally {
       await queryRunner.release();
     }
+  }
+
+  // Las tres lecturas de abajo las comparten el GET inicial del form y la respuesta del guardado, así
+  // el front recibe siempre la misma forma y no hace falta que vuelva a consultar tras guardar.
+  private async efectoAtributosDe(queryRunner: any, efectoId: number) {
+    return await queryRunner.query(`
+      SELECT EfectoAtributoId, EfectoAtributoAtributoId, EfectoAtributoValorId
+      FROM EfectoAtributo
+      WHERE EfectoId = @0
+      ORDER BY EfectoAtributoId
+    `, [efectoId]);
+  }
+
+  private async atributosIngresoDe(queryRunner: any, efectoId: number, individualId: number) {
+    return await queryRunner.query(`
+      SELECT
+        efeatr.EfectoEfectoIndividualAtributoIngresoId,
+        efeatr.EfectoAtributoAtributoIngresoId,
+        TRIM(efeatr.EfectoAtributoIngresoValor) AS EfectoAtributoIngresoValor,
+        TRIM(atr.AtributoIngresoDescripcion) AS AtributoDescripcion
+      FROM EfectoEfectoIndividualAtributoIngreso efeatr
+      LEFT JOIN AtributoIngreso atr ON atr.AtributoIngresoId = efeatr.EfectoAtributoAtributoIngresoId
+      WHERE efeatr.EfectoId = @0 AND efeatr.EfectoEfectoIndividualId = @1
+      ORDER BY efeatr.EfectoEfectoIndividualAtributoIngresoId
+    `, [efectoId, individualId]);
+  }
+
+ private async formularioEfectoModifica(
+    queryRunner: any, efectoId: number, individualId: number | null
+  ) {
+    const efecto = await queryRunner.query(`
+      SELECT EfectoId, TRIM(EfectoDescripcion) AS EfectoDescripcion, RubroId, SubrubroId, EfectoStockMinimo
+      FROM Efecto
+      WHERE EfectoId = @0
+    `, [efectoId]);
+
+    const individual = individualId != null
+      ? await queryRunner.query(`
+          SELECT TRIM(EfectoEfectoIndividualDescripcion) AS EfectoEfectoIndividualDescripcion
+          FROM EfectoEfectoIndividual
+          WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+        `, [efectoId, individualId])
+      : [];
+
+    return {
+      ...(efecto[0] ?? {}),
+      EfectoEfectoIndividualId: individualId,
+      EfectoEfectoIndividualDescripcion: individual[0]?.EfectoEfectoIndividualDescripcion ?? '',
+      EfectoAtributos: await this.efectoAtributosDe(queryRunner, efectoId),
+      atributos: individualId != null
+        ? await this.atributosIngresoDe(queryRunner, efectoId, individualId)
+        : [],
+    };
   }
 
   async guardarEfectoModifica(req: any, res: Response, next: NextFunction) {
@@ -2138,11 +2176,17 @@ export class EfectoController extends BaseController {
       // que no colisione con la de otro efecto del catálogo.
       await this.validarDescripcionCompletaUnica(queryRunner, efectoId!, individualId, claveAntes);
 
+      // Se relee dentro de la transacción, antes de cerrarla: es lo que se le devuelve al front.
+      const formulario = await this.formularioEfectoModifica(queryRunner, efectoId!, individualId);
+
+      console.log('Efecto modificacion - formulario devuelto:');
+      console.log(JSON.stringify(formulario, null, 2));
+
       if (true)
         await this.rollbackTransaction(queryRunner);
 
       //await queryRunner.commitTransaction();
-      return this.jsonRes({ EfectoId: efectoId, EfectoEfectoIndividualId: individualId }, res, 'Efecto guardado');
+      return this.jsonRes(formulario, res, 'Efecto guardado');
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
       return next(error);
