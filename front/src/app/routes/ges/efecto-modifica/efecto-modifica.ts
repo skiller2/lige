@@ -8,7 +8,7 @@ import { applyEach, disabled, form, FormField, maxLength, required, submit, vali
 import { Observable, firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
-import { EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro } from '../../../shared/schemas/efecto.schemas';
+import { Atributo, EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro, Valor } from '../../../shared/schemas/efecto.schemas';
 import { AtributoSearchComponent } from '../../../shared/atributo-search/atributo-search';
 import { ValorSearchComponent } from '../../../shared/valor-search/valor-search';
 
@@ -64,6 +64,12 @@ export class EfectoModificaComponent {
   private apiService = inject(ApiService);
 
   readonly rubros = toSignal(this.search.getRubros() as Observable<Rubro[]>, { initialValue: [] as Rubro[] });
+
+  // Catálogos de las filas de atributo/valor: se cargan una sola vez acá y se pasan a los selects de
+  // cada fila. Los valores vienen todos, con su AtributoId, y valor-search filtra por el atributo de
+  // su fila; igual que subrubro con rubro.
+  readonly atributos = toSignal(this.search.getAtributos(), { initialValue: [] as Atributo[] });
+  readonly valores = toSignal(this.search.getValores(), { initialValue: [] as Valor[] });
 
   // Los subrubros se filtran por rubro en el front, así que hace falta la lista completa.
   private readonly todosLosSubrubros = toSignal(

@@ -56,13 +56,13 @@
           <nz-form-item style="align-items: center; margin-bottom: 0;">
             <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Atributo</nz-form-label>
             <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-              <app-atributo-search [disabled]="esConsulta()"
+              <app-atributo-search [atributos]="atributos()" [disabled]="esConsulta()"
                 [ngModel]="fila.EfectoAtributoAtributoId" (ngModelChange)="onEfectoAtributoChange($index, $event)"
                 [ngModelOptions]="{ standalone: true }" />
             </nz-form-control>
             <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Valor</nz-form-label>
             <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-              <app-valor-search [atributoId]="fila.EfectoAtributoAtributoId" [disabled]="esConsulta()"
+              <app-valor-search [valores]="valores()" [atributoId]="fila.EfectoAtributoAtributoId" [disabled]="esConsulta()"
                 [placeholder]="fila.EfectoAtributoAtributoId ? 'Valor' : 'Seleccione primero el atributo'"
                 [ngModel]="fila.EfectoAtributoValorId" (ngModelChange)="onEfectoValorChange($index, $event)"
                 [ngModelOptions]="{ standalone: true }" />

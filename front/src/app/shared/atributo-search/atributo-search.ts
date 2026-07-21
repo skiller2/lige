@@ -1,8 +1,6 @@
-import { ChangeDetectionStrategy, Component, forwardRef, inject, input, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, forwardRef, input, signal } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import { noop } from 'rxjs';
-import { SearchService } from '../../services/search.service';
 import { SHARED_IMPORTS } from '@shared';
 import { Atributo } from '../schemas/efecto.schemas';
 
@@ -24,12 +22,11 @@ import { Atributo } from '../schemas/efecto.schemas';
   ],
 })
 export class AtributoSearchComponent implements ControlValueAccessor {
-  private searchService = inject(SearchService);
-
   readonly placeholder = input('Atributo');
 
-  // Los atributos son pocos y no dependen del efecto: una sola carga para todas las instancias.
-  readonly atributos = toSignal(this.searchService.getAtributos(), { initialValue: [] as Atributo[] });
+  // La lista la carga el componente que lo usa y la pasa por input: hay un select por fila de
+  // atributo y, si cada uno pidiera la suya, se repetiría la misma request una vez por fila.
+  readonly atributos = input<Atributo[]>([]);
 
   // Signals y no campos comunes: con OnPush, lo que escribe el form por CVA tiene que notificar.
   readonly selected = signal<number | null>(null);

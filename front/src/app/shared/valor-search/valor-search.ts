@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, forwardRef, inject, input, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, forwardRef, input, signal } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
-import { firstValueFrom, noop } from 'rxjs';
-import { SearchService } from '../../services/search.service';
+import { noop } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { Valor } from '../schemas/efecto.schemas';
 
@@ -25,20 +24,21 @@ import { Valor } from '../schemas/efecto.schemas';
   ],
 })
 export class ValorSearchComponent implements ControlValueAccessor {
-  private searchService = inject(SearchService);
-
   readonly placeholder = input('Valor');
 
-  // Filtra las opciones por atributo. La lista se recarga cuando cambia.
+  // Filtra las opciones por atributo.
   readonly atributoId = input<number | null>(null);
 
-  readonly valores = resource({
-    params: () => ({ atributoId: this.atributoId() }),
-    // Sin atributo no hay valores que ofrecer: se evita además traer la tabla entera.
-    loader: async ({ params }) =>
-      params.atributoId == null
-        ? [] as Valor[]
-        : (await firstValueFrom(this.searchService.getValores(params.atributoId))) ?? [] as Valor[],
+  // La lista completa (con el AtributoId de cada valor) la carga el componente que lo usa y la pasa
+  // por input: una sola vez para todas las filas, en vez de una request por fila y otra cada vez que
+  // el usuario cambia el atributo de la fila.
+  readonly todosLosValores = input<Valor[]>([], { alias: 'valores' });
+
+  // Sin atributo no hay valores que ofrecer: el valor depende de su atributo, como subrubro del rubro.
+  readonly opciones = computed(() => {
+    const atributoId = Number(this.atributoId());
+    if (!atributoId) return [] as Valor[];
+    return this.todosLosValores().filter(valor => Number(valor.AtributoId) === atributoId);
   });
 
   // Signals y no campos comunes: con OnPush, lo que escribe el form por CVA tiene que notificar.
