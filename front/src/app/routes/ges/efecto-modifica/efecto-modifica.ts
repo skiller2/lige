@@ -224,7 +224,7 @@ export class EfectoModificaComponent {
         const valor = fila.EfectoAtributoValorId != null
           ? valoresPorId.get(`${Number(fila.EfectoAtributoAtributoId)}-${Number(fila.EfectoAtributoValorId)}`) ?? ''
           : '';
-        return texto(`${texto(atributo)} ${texto(valor)}`);
+        return texto(`${texto(atributo)}: ${texto(valor)}`);
       })
       .filter(Boolean)
       .join(', ');

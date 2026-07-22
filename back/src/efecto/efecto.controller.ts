@@ -561,21 +561,21 @@ const listaColumnasDeposito: any[] = [
     searchComponent: "inputForNumberAdvancedSearch",
     maxWidth: 100,
   },
-  {
-    id: "EfectoStockMinimo",
-    name: "Stock Mínimo",
-    field: "EfectoStockMinimo",
-    fieldName: "efe.EfectoStockMinimo",
-    type: "number",
-    sortable: true,
-    hidden: false,
-    searchHidden: false,
-    searchType: "columnComparison",
-    searchComponent: "inputForColumnComparisonSearch",
-    compareFieldName: "stk.StockStock",
-    compareFieldLabel: "Stock",
-    maxWidth: 100,
-  },
+  // {
+  //   id: "EfectoStockMinimo",
+  //   name: "Stock Mínimo",
+  //   field: "EfectoStockMinimo",
+  //   fieldName: "efe.EfectoStockMinimo",
+  //   type: "number",
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: false,
+  //   searchType: "columnComparison",
+  //   searchComponent: "inputForColumnComparisonSearch",
+  //   compareFieldName: "stk.StockStock",
+  //   compareFieldLabel: "Stock",
+  //   maxWidth: 100,
+  // },
   {
     id: "Importe",
     name: "Importe Unitario",
@@ -2106,9 +2106,7 @@ export class EfectoController extends BaseController {
       const rubroId = Number(body.RubroId) || null;
       const subrubroId = Number(body.SubrubroId) || null;
       // La columna es NULL-able: vacío significa "sin mínimo definido", que no es lo mismo que 0.
-      const stockMinimo = body.EfectoStockMinimo == null || body.EfectoStockMinimo === ''
-        ? null
-        : Number(body.EfectoStockMinimo);
+      const stockMinimo = body.EfectoStockMinimo == null || body.EfectoStockMinimo === '' ? null: Number(body.EfectoStockMinimo);
       const individualId = body.EfectoEfectoIndividualId == null || body.EfectoEfectoIndividualId === ''
         ? null
         : Number(body.EfectoEfectoIndividualId);
@@ -2138,9 +2136,10 @@ export class EfectoController extends BaseController {
 
       const claveAntes = await this.claveEfecto(queryRunner, efectoId!, individualId);
 
+      // se comenta modificacion de stock minimo
       await queryRunner.query(`
         UPDATE Efecto
-        SET EfectoDescripcion = @1, RubroId = @2, SubrubroId = @3, EfectoStockMinimo = @4,
+        SET EfectoDescripcion = @1, RubroId = @2, SubrubroId = @3, -- EfectoStockMinimo = @4,
             AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7
         WHERE EfectoId = @0
       `, [efectoId, descripcion, rubroId, subrubroId, stockMinimo, now, usuario, ip]);

@@ -1,193 +1,188 @@
 <nz-card class="small-margin">
   @if (efecto()) {
-    <form nz-form nzLayout="horizontal" (ngSubmit)="guardar()">
-      <nz-form-item style="margin-top: 20px;">
-        <nz-form-label [nzSpan]="6">Efecto ID</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <input nz-input type="number" [formField]="formEfecto.EfectoId" />
-        </nz-form-control>
-      </nz-form-item>
+  <form nz-form nzLayout="horizontal" (ngSubmit)="guardar()">
+    <!-- <span style="color: rgba(0,0,0,0.45);">{{ descripcionCompleta() }}</span> -->
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="6">Descripción</nz-form-label>
-        <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
-          <input nz-input [formField]="formEfecto.EfectoDescripcion" />
-        </nz-form-control>
-      </nz-form-item>
+    <nz-form-item style="margin-top: 5px;">     
+        <span style="color: rgba(0,0,0,0.45);">{{ descripcionCompleta() }}</span>
+    </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="6">Rubro</nz-form-label>
-        <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
-          <nz-select [formField]="formEfecto.RubroId" nzShowSearch nzAllowClear nzPlaceHolder="Rubro"
-            [nzDropdownMatchSelectWidth]="false">
-            @for (option of rubros(); track option.RubroId) {
-              <nz-option [nzValue]="option.RubroId" [nzLabel]="option.RubroDescripcion"></nz-option>
-            }
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="6">Subrubro</nz-form-label>
-        <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
-          <!-- Solo los subrubros del rubro elegido: SubrubroId no es único entre rubros. -->
-          <nz-select [formField]="formEfecto.SubrubroId" nzShowSearch nzAllowClear
-            [nzPlaceHolder]="formEfecto.RubroId().value() ? 'Subrubro' : 'Seleccione primero el rubro'"
-            [nzDropdownMatchSelectWidth]="false">
-            @for (option of subrubrosDelRubro(); track option.SubrubroId) {
-              <nz-option [nzValue]="option.SubrubroId" [nzLabel]="option.SubrubroDescripcion"></nz-option>
-            }
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
+    <nz-form-item style="margin-top: 20px;">
+      <nz-form-label [nzSpan]="6">Efecto ID</nz-form-label>
+      <nz-form-control [nzSpan]="14">
+        <input nz-input type="number" [formField]="formEfecto.EfectoId" />
+      </nz-form-control>
+    </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="6">Stock mínimo</nz-form-label>
-        <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
-          <input nz-input type="number" step="0.0001" [formField]="formEfecto.EfectoStockMinimo" />
-        </nz-form-control>
-      </nz-form-item>
+    <nz-form-item>
+      <nz-form-label [nzSpan]="6">Descripción</nz-form-label>
+      <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+        <input nz-input [formField]="formEfecto.EfectoDescripcion" />
+      </nz-form-control>
+    </nz-form-item>
 
-      <nz-form-item>
-        <nz-form-label [nzSpan]="6">Atributo</nz-form-label>
-        <nz-form-control [nzSpan]="14">
-          <span style="color: rgba(0,0,0,0.45);">{{ descripcionCompleta() }}</span>
-        </nz-form-control>
-      </nz-form-item>
-      @for (fila of efectoAtributos(); track $index) {
-        <div [style.background-color]="$even ? '#f5f5f5' : '#ffffff'" style="padding: 16px 8px;">
-          <nz-form-item style="align-items: center; margin-bottom: 0;">
-            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Atributo</nz-form-label>
-            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-              <app-atributo-search [atributos]="atributos()" [disabled]="esConsulta()"
-                [ngModel]="fila.EfectoAtributoAtributoId" (ngModelChange)="onEfectoAtributoChange($index, $event)"
-                [ngModelOptions]="{ standalone: true }" />
-            </nz-form-control>
-            <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Valor</nz-form-label>
-            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-              <app-valor-search [valores]="valores()" [atributoId]="fila.EfectoAtributoAtributoId" [disabled]="esConsulta()"
-                [placeholder]="fila.EfectoAtributoAtributoId ? 'Valor' : 'Seleccione primero el atributo'"
-                [ngModel]="fila.EfectoAtributoValorId" (ngModelChange)="onEfectoValorChange($index, $event)"
-                [ngModelOptions]="{ standalone: true }" />
-            </nz-form-control>
-            @if (!esConsulta()) {
-              <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
-                @if ($last) {
-                  <button type="button" nz-button nzType="primary" class="add-button"
-                    (click)="agregarEfectoAtributo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-                    <span nz-icon nzType="plus"></span>
-                  </button>
-                }
-                <button type="button" nz-button nzType="default" (click)="quitarEfectoAtributo($index)"
-                  nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-                  <span nz-icon nzType="delete" nzTheme="outline"></span>
-                </button>
-              </nz-form-control>
-            }
-          </nz-form-item>
-        </div>
-      }
+    <nz-form-item>
+      <nz-form-label [nzSpan]="6">Rubro</nz-form-label>
+      <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+        <nz-select [formField]="formEfecto.RubroId" nzShowSearch nzAllowClear nzPlaceHolder="Rubro"
+          [nzDropdownMatchSelectWidth]="false">
+          @for (option of rubros(); track option.RubroId) {
+          <nz-option [nzValue]="option.RubroId" [nzLabel]="option.RubroDescripcion"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="6">Subrubro</nz-form-label>
+      <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+        <!-- Solo los subrubros del rubro elegido: SubrubroId no es único entre rubros. -->
+        <nz-select [formField]="formEfecto.SubrubroId" nzShowSearch nzAllowClear
+          [nzPlaceHolder]="formEfecto.RubroId().value() ? 'Subrubro' : 'Seleccione primero el rubro'"
+          [nzDropdownMatchSelectWidth]="false">
+          @for (option of subrubrosDelRubro(); track option.SubrubroId) {
+          <nz-option [nzValue]="option.SubrubroId" [nzLabel]="option.SubrubroDescripcion"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- Deshabilitado momentaneamente -->
+    <!-- <nz-form-item>
+      <nz-form-label [nzSpan]="6">Stock mínimo</nz-form-label>
+      <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+        <input nz-input type="number" step="0.0001" [formField]="formEfecto.EfectoStockMinimo" />
+      </nz-form-control>
+    </nz-form-item> -->
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="6">Atributo</nz-form-label>
       @if (!efectoAtributos().length) {
-        <nz-form-item style="align-items: center;">
-          <nz-form-label [nzSpan]="6"></nz-form-label>
-          <nz-form-control [nzSpan]="14">
-            <span style="color: rgba(0,0,0,0.45); margin-right: 8px;">Sin atributos.</span>
-            @if (!esConsulta()) {
-              <button type="button" nz-button nzType="primary" class="add-button"
-                (click)="agregarEfectoAtributo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-                <span nz-icon nzType="plus"></span>
-              </button>
-            }
-          </nz-form-control>
-        </nz-form-item>
+      <span style="color: rgba(0,0,0,0.45); margin: 5px 10px;">Sin atributos.</span>
+      @if (!esConsulta()) {
+      <button type="button" nz-button nzType="primary" class="add-button" (click)="agregarEfectoAtributo()" nz-tooltip
+        nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <span nz-icon nzType="plus"></span>
+      </button>
       }
-
-      <!-- Efecto relacionado (solo lectura). Se muestra si el efecto tiene relación. -->
-      @if (relaciones().length) {
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6">Relacionado con</nz-form-label>
-          <nz-form-control [nzSpan]="14">
-            @for (rel of relaciones(); track rel.EfectoRelacionEfectoId) {
-              <div>{{ rel.DescripcionCon }}</div>
-            }
-          </nz-form-control>
-        </nz-form-item>
       }
-
-      <!-- Bloque de efecto individual: descripción + atributos de ingreso. -->
-      @if (esIndividual()) {
-        <nz-divider nzText="Efecto individual" nzOrientation="center" style="margin-bottom: 20px;"></nz-divider>
-
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6">Descripción individual</nz-form-label>
-          <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
-            <input nz-input [formField]="formEfecto.EfectoEfectoIndividualDescripcion" />
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item>
-           <nz-form-label [nzSpan]="6">Atributos</nz-form-label>
-           </nz-form-item>
-        @for (atributo of formEfecto.atributos; track $index) {
-          <div [style.background-color]="$even ? '#f5f5f5' : '#ffffff'" style="padding: 16px 8px;">
-            <nz-form-item style="align-items: center; margin-bottom: 0;">
-              <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo</nz-form-label>
-              <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-                <nz-select [formField]="atributo.EfectoAtributoAtributoIngresoId"
-                  nzShowSearch nzAllowClear nzPlaceHolder="Tipo" [nzDropdownMatchSelectWidth]="false"
-                  style="width: 100%;">
-                  @for (op of atributosOpciones(); track op.AtributoIngresoId) {
-                    <nz-option [nzValue]="op.AtributoIngresoId" [nzLabel]="op.AtributoIngresoDescripcion"></nz-option>
-                  }
-                </nz-select>
-              </nz-form-control>
-              <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Valor</nz-form-label>
-              <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-                <input nz-input [formField]="atributo.EfectoAtributoIngresoValor" placeholder="Valor" style="width: 100%;" />
-              </nz-form-control>
-              @if (!esConsulta()) {
-                <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
-                  @if ($last) {
-                    <button type="button" nz-button nzType="primary" class="add-button"
-                      (click)="agregarAtributo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-                      <span nz-icon nzType="plus"></span>
-                    </button>
-                  }
-                  <button type="button" nz-button nzType="default" (click)="quitarAtributo($index)"
-                    nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-                    <span nz-icon nzType="delete" nzTheme="outline"></span>
-                  </button>
-                </nz-form-control>
-              }
-            </nz-form-item>
-          </div>
+    </nz-form-item>
+    @for (fila of efectoAtributos(); track $index) {
+    <div [style.background-color]="$even ? '#f5f5f5' : '#ffffff'" style="padding: 16px 8px;">
+      <nz-form-item style="align-items: center; margin-bottom: 0;">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Atributo</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+          <app-atributo-search [atributos]="atributos()" [disabled]="esConsulta()"
+            [ngModel]="fila.EfectoAtributoAtributoId" (ngModelChange)="onEfectoAtributoChange($index, $event)"
+            [ngModelOptions]="{ standalone: true }" />
+        </nz-form-control>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Valor</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+          <app-valor-search [valores]="valores()" [atributoId]="fila.EfectoAtributoAtributoId" [disabled]="esConsulta()"
+            [placeholder]="fila.EfectoAtributoAtributoId ? 'Valor' : 'Seleccione primero el atributo'"
+            [ngModel]="fila.EfectoAtributoValorId" (ngModelChange)="onEfectoValorChange($index, $event)"
+            [ngModelOptions]="{ standalone: true }" />
+        </nz-form-control>
+        @if (!esConsulta()) {
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
+          @if ($last) {
+          <button type="button" nz-button nzType="primary" class="add-button" (click)="agregarEfectoAtributo()"
+            nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus"></span>
+          </button>
+          }
+          <button type="button" nz-button nzType="default" (click)="quitarEfectoAtributo($index)" nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+            <span nz-icon nzType="delete" nzTheme="outline"></span>
+          </button>
+        </nz-form-control>
         }
-        @if (!formEfecto.atributos.length) {
-          <nz-form-item style="align-items: center;">
-            <nz-form-label [nzSpan]="6"></nz-form-label>
-            <nz-form-control [nzSpan]="14">
-              <span style="color: rgba(0,0,0,0.45); margin-right: 8px;">Sin atributos.</span>
-              @if (!esConsulta()) {
-                <button type="button" nz-button nzType="primary" class="add-button"
-                  (click)="agregarAtributo()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-                  <span nz-icon nzType="plus"></span>
-                </button>
-              }
-            </nz-form-control>
-          </nz-form-item>
-        }
-      }
+      </nz-form-item>
+    </div>
+    }
 
-      @if (esConsulta()) {
-        <p style="color: rgba(0,0,0,0.45);">Modo consulta (solo lectura).</p>
-      } @else {
-        <div style="text-align: center; margin-top: 20px;">
-          <button nz-button nzType="primary" type="submit">Guardar</button>
-        </div>
+
+    <!-- Efecto relacionado (solo lectura). Se muestra si el efecto tiene relación. -->
+    @if (relaciones().length) {
+    <nz-form-item>
+      <nz-form-label [nzSpan]="6">Relacionado con</nz-form-label>
+      <nz-form-control [nzSpan]="14">
+        @for (rel of relaciones(); track rel.EfectoRelacionEfectoId) {
+        <div>{{ rel.DescripcionCon }}</div>
+        }
+      </nz-form-control>
+    </nz-form-item>
+    }
+
+    <!-- Bloque de efecto individual: descripción + atributos de ingreso. -->
+    @if (esIndividual()) {
+    <nz-divider nzText="Efecto individual" nzOrientation="center" style="margin-bottom: 20px;"></nz-divider>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="6">Descripción individual</nz-form-label>
+      <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+        <input nz-input [formField]="formEfecto.EfectoEfectoIndividualDescripcion" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzSpan]="6">Atributos</nz-form-label>
+      @if (!formEfecto.atributos.length) {
+      <span style="color: rgba(0,0,0,0.45); margin: 5px 10px;">Sin atributos.</span>
+      @if (!esConsulta()) {
+      <button type="button" nz-button nzType="primary" class="add-button" (click)="agregarAtributo()" nz-tooltip
+        nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <span nz-icon nzType="plus"></span>
+      </button>
       }
-    </form>
+      }
+    </nz-form-item>
+    @for (atributo of formEfecto.atributos; track $index) {
+    <div [style.background-color]="$even ? '#f5f5f5' : '#ffffff'" style="padding: 16px 8px;">
+      <nz-form-item style="align-items: center; margin-bottom: 0;">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+          <nz-select [formField]="atributo.EfectoAtributoAtributoIngresoId" nzShowSearch nzAllowClear
+            nzPlaceHolder="Tipo" [nzDropdownMatchSelectWidth]="false" style="width: 100%;">
+            @for (op of atributosOpciones(); track op.AtributoIngresoId) {
+            <nz-option [nzValue]="op.AtributoIngresoId" [nzLabel]="op.AtributoIngresoDescripcion"></nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Valor</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+          <input nz-input [formField]="atributo.EfectoAtributoIngresoValor" placeholder="Valor" style="width: 100%;" />
+        </nz-form-control>
+        @if (!esConsulta()) {
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="2">
+          @if ($last) {
+          <button type="button" nz-button nzType="primary" class="add-button" (click)="agregarAtributo()" nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus"></span>
+          </button>
+          }
+          <button type="button" nz-button nzType="default" (click)="quitarAtributo($index)" nz-tooltip
+            nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+            <span nz-icon nzType="delete" nzTheme="outline"></span>
+          </button>
+        </nz-form-control>
+        }
+      </nz-form-item>
+    </div>
+    }
+    }
+
+    @if (esConsulta()) {
+    <p style="color: rgba(0,0,0,0.45);">Modo consulta (solo lectura).</p>
+    } @else {
+    <div style="text-align: center; margin-top: 20px;">
+      <button nz-button nzType="primary" type="submit">Guardar</button>
+    </div>
+    }
+  </form>
   } @else {
-    <p>Seleccione un efecto en una grilla (General, Personal, Objetivos, Depósitos o Proveedores)
-      y presione Consultar o Modificar.</p>
+  <p>Seleccione un efecto en una grilla (General, Personal, Objetivos, Depósitos o Proveedores)
+    y presione Consultar o Modificar.</p>
   }
 </nz-card>
