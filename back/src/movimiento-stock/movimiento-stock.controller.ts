@@ -168,6 +168,8 @@ export class MovimientoStockController extends BaseController {
     // Con intermediario, el destino "visible" del MovimientoStock pasa a ser el intermediario (persona)
     // y el destino final real se guarda aparte en MovimientoStockPendiente.
     const conInter = personalIdInter != null;
+    if (personalIdInter) throw new ClientException(`No se permite movimiento con intermediario (En desarrollo).`);
+    
     const movPersonalIdDestino = conInter ? personalIdInter : personalId;
     const movProveedorIdDestino = conInter ? null : proveedorId;
     const movClienteIdDestino = conInter ? null : clienteIdDestino;
