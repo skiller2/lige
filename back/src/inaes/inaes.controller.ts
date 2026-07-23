@@ -16,6 +16,11 @@ const getOptionsSexo: any[] = [
   { label: 'Femenino', value: 'F' },
 ]
 
+const getOptionsEstado: any[] = [
+  { label: 'Baja', value: '0' },
+  { label: 'Alta', value: '1' },
+]
+
 const altasBajasColumns: any[] = [
   {
     id: 'id', 
@@ -27,6 +32,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: true,
+    excludeFromExport: true,
   },
   {
     id: "ApellidoNombre",
@@ -39,6 +45,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: true,
+    excludeFromExport: true,
   },
   {
     id: "SituacionRevistaId",
@@ -51,6 +58,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: true,
+    excludeFromExport: true,
   },
   {
     id: 'CUITEntidad', 
@@ -114,9 +122,9 @@ const altasBajasColumns: any[] = [
     showGridColumn: false,
   },
   {
-    id: 'Apellido', 
+    id: 'PersonalApellido', 
     name: 'Apellido', 
-    field: 'Apellido',
+    field: 'PersonalApellido',
     fieldName: "per.PersonalApellido",
     type: 'string',
     searchType: "string",
@@ -125,9 +133,9 @@ const altasBajasColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'Nombre', 
+    id: 'PersonalNombre', 
     name: 'Nombre',
-    field: 'Nombre',
+    field: 'PersonalNombre',
     fieldName: "per.PersonalNombre",
     type: 'string',
     searchType: "string",
@@ -220,11 +228,11 @@ const altasBajasColumns: any[] = [
     showGridColumn: false,
   },
   {
-    id: "Telefonos",
-    name: "Teléfonos",
-    field: "Telefonos",
+    id: "Telefono",
+    name: "Telefono",
+    field: "Telefono",
     type: "string",
-    fieldName: "tels.Telefonos",
+    fieldName: "tel.Telefono",
     searchType: "string",
     sortable: true,
     searchHidden: true,
@@ -263,6 +271,19 @@ const altasBajasColumns: any[] = [
     searchHidden: false,
     hidden: false,
   },
+  {
+    id: 'Estado', 
+    name: 'Estado', 
+    field: 'Estado',
+    type: 'string',
+    sortable: true,
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsEstado },
+    searchHidden: true,
+    hidden: false,
+    excludeFromExport: true,
+    // showGridColumn: false,
+  },
 ]
 
 const recibosColumns: any[] = [
@@ -276,6 +297,7 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: true,
+    excludeFromExport: true,
   },
   {
     id: 'CUITEntidad', 
@@ -309,7 +331,8 @@ const recibosColumns: any[] = [
     searchType: "number",
     sortable: true,
     searchHidden: false,
-    hidden: true,
+    hidden: false,
+    excludeFromExport: true,
   },
   {
     id: 'DocumentoAudFechaIng', 
@@ -419,7 +442,8 @@ export class InaesController extends BaseController {
     return this.jsonRes(recibosColumns, res)
   }
 
-  private async getAltasBajasQuery(queryRunner: any, filterSql: any, orderBy: any) {
+  private async getAltasBajasQuery(queryRunner: any, filterSql: any, orderBy: any, cuits:string|null ) {
+    let flags = cuits? `CASE WHEN cuit.PersonalCUITCUILCUIT IN (${cuits}) THEN '1' ELSE '0' END AS Estado` : `'0' AS Estado`
     return await queryRunner.query(`
       SELECT
         per.PersonalId AS id,
@@ -428,12 +452,8 @@ export class InaesController extends BaseController {
         cuit.PersonalCUITCUILCUIT,
         'Humana' AS TipoPersona,
         'COOP DE TRABAJO LINCE SEGURIDAD LTDA' AS RazonSocial,
-        LEFT(PersonalApellidoNombre, CHARINDEX(', ', PersonalApellidoNombre) - 1) AS Apellido,
-        SUBSTRING(
-          PersonalApellidoNombre,
-          CHARINDEX(', ', PersonalApellidoNombre) + 2,
-          LEN(PersonalApellidoNombre)
-        ) AS Nombre,
+        per.PersonalApellido,
+        per.PersonalNombre,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         per.PersonalSexo,
         per.PersonalFechaNacimiento,
@@ -442,34 +462,12 @@ export class InaesController extends BaseController {
         perdom.DomicilioCodigoPostal,
         perdom.Domicilio,
         TRIM(email.PersonalEmailEmail) AS PersonalEmailEmail,
-        tels.Telefonos,
+        tel.Telefono,
         per.PersonalNroLegajo,
         perdom.domCompleto,
-        sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion
+        sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion,
+        ${flags}
       FROM Personal per
-
-      LEFT JOIN(
-        SELECT
-          a.PersonalId,
-          a.ActaId,
-          b.ActaFechaActa,
-          b.ActaDescripcion,
-          a.TipoPersonalActaCodigo,
-          tip.TipoPersonalActaDescripcion
-        FROM PersonalActa a
-        JOIN Acta b ON b.ActaId = a.ActaId
-        JOIN (
-          SELECT
-            a.PersonalId,
-            MAX(b.ActaFechaActa) AS MaxFecha
-          FROM PersonalActa a
-          JOIN Acta b ON b.ActaId = a.ActaId
-          WHERE a.TipoPersonalActaCodigo IN ('ALT','BAJ','REI','BD')
-          GROUP BY a.PersonalId
-        ) x ON x.PersonalId = a.PersonalId AND x.MaxFecha = b.ActaFechaActa
-        JOIN TipoPersonalActa tip ON tip.TipoPersonalActaCodigo = a.TipoPersonalActaCodigo
-        WHERE a.TipoPersonalActaCodigo IN ('ALT','BAJ','REI','BD') 
-      ) act ON act.PersonalId=per.PersonalId 
 
       LEFT JOIN (
         SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion, p.PersonalSituacionRevistaDesde
@@ -489,12 +487,14 @@ export class InaesController extends BaseController {
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId = per.PersonalId
         
-      LEFT JOIN (
-        SELECT t.PersonalId, STRING_AGG(TRIM(t.PersonalTelefonoNro),', ') Telefonos 
-        FROM PersonalTelefono t 
-        WHERE t.PersonalTelefonoInactivo = 0 OR t.PersonalTelefonoInactivo IS NULL 
-        GROUP BY t.PersonalId
-      ) tels ON tels.PersonalId= per.PersonalId
+      OUTER APPLY (
+        SELECT TOP (1)
+          TRIM(t.PersonalTelefonoNro) AS Telefono
+        FROM PersonalTelefono t
+        WHERE t.PersonalId = per.PersonalId
+          AND (t.PersonalTelefonoInactivo = 0 OR t.PersonalTelefonoInactivo IS NULL)
+        ORDER BY t.PersonalTelefonoId
+      ) tel
 
       LEFT JOIN (
         SELECT 
@@ -515,7 +515,7 @@ export class InaesController extends BaseController {
       ) AS perdom ON perdom.PersonalId = per.PersonalId
 
       LEFT JOIN PersonalEmail email on email.PersonalId=per.PersonalId AND email.PersonalEmailInactivo=0
-      LEFT JOIN BotRegTelefonoPersonal rt ON rt.PersonalId = per.PersonalId
+
       WHERE (1=1)
       AND (${filterSql})
       ${orderBy}`)
@@ -525,10 +525,19 @@ export class InaesController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     try {
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+
+      const index = options.filtros.findIndex((p:any) => p.index === "PersonalCUITCUILCUIT");
+      let CUITs:string = null
+      if (index !== -1) {
+        let CUITsFromFile:any = null;
+        [CUITsFromFile] = options.filtros.splice(index, 1);
+        CUITs = CUITsFromFile.valor[0].split(";").join(",")
+      }
+
       const filterSql = filtrosToSql(options.filtros, altasBajasColumns);
       const orderBy = orderToSQL(options.sort)
 
-      const lista: any[] = await this.getAltasBajasQuery(queryRunner, filterSql, orderBy)
+      const lista: any[] = await this.getAltasBajasQuery(queryRunner, filterSql, orderBy, CUITs)
 
       this.jsonRes(lista, res);
     } catch (error) {
@@ -548,32 +557,33 @@ export class InaesController extends BaseController {
         doc.DocumentoAudFechaIng,
         'Banco' AS MedioPago,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+        perban.PersonalBancoCBU,
 
-        viginorm.importe AS importe_vigil, viginorm.horas AS horas_vigil,
-        viginormart14.importe AS importe_vigilart14, viginormart14.horas AS horas_vigilart14, 
+        --viginorm.importe AS importe_vigil, viginorm.horas AS horas_vigil,
+        --viginormart14.importe AS importe_vigilart14, viginormart14.horas AS horas_vigilart14, 
         -- adminorm.importe AS importe_admin, adminorm.horas AS horas_admin,
-        vigiar42.importe AS importe_vigilar42, vigiar42.horas AS horas_vigilar42,
-        admiar42.importe AS importe_adminar42, admiar42.horas AS horas_adminar42,
-        vigiextra.importe AS importe_extra, vigiextra.horas AS horas_extra,
+        --vigiar42.importe AS importe_vigilar42, vigiar42.horas AS horas_vigilar42,
+        --admiar42.importe AS importe_adminar42, admiar42.horas AS horas_adminar42,
+        --vigiextra.importe AS importe_extra, vigiextra.horas AS horas_extra,
 
-        (ISNULL(viginorm.importe,0) + ISNULL(viginormart14.importe,0) + ISNULL(vigiextra.importe,0) + ISNULL(vigiar42.importe,0) + ISNULL(admiar42.importe,0)) AS total_ingresos,
+        --(ISNULL(viginorm.importe,0) + ISNULL(viginormart14.importe,0) + ISNULL(vigiextra.importe,0) + ISNULL(vigiar42.importe,0) + ISNULL(admiar42.importe,0)) AS total_ingresos,
 
-        mdesc.importe AS descuentos,
-        motro.importe AS otros_desc,
-        mayud.importe AS ayuda_asis,
-        mrent.importe AS rentas,
-        mddjj.importe AS ddjj,
-        madel.importe AS adelantos,
-        mprep.importe AS prepaga,
-        mtele.importe AS telefonia,
+        --mdesc.importe AS descuentos,
+        --motro.importe AS otros_desc,
+        --mayud.importe AS ayuda_asis,
+        --mrent.importe AS rentas,
+        --mddjj.importe AS ddjj,
+        --madel.importe AS adelantos,
+        --mprep.importe AS prepaga,
+        --mtele.importe AS telefonia,
 
-        ISNULL(mdesc.importe,0) + ISNULL(motro.importe,0) + ISNULL(mayud.importe,0) + ISNULL(mrent.importe,0) + ISNULL(mddjj.importe,0) + ISNULL(mprep.importe,0) + ISNULL(mtele.importe,0) AS total_egresos,
+        --ISNULL(mdesc.importe,0) + ISNULL(motro.importe,0) + ISNULL(mayud.importe,0) + ISNULL(mrent.importe,0) + ISNULL(mddjj.importe,0) + ISNULL(mprep.importe,0) + ISNULL(mtele.importe,0) AS total_egresos,
 
-        ISNULL(viginorm.importe,0) + ISNULL(viginormart14.importe,0) + ISNULL(vigiextra.importe,0) + ISNULL(vigiar42.importe,0) + ISNULL(admiar42.importe,0) - ISNULL(mdesc.importe,0) - ISNULL(motro.importe,0) - ISNULL(mayud.importe,0) - ISNULL(mrent.importe,0) - ISNULL(mddjj.importe,0) - ISNULL(mprep.importe,0) - ISNULL(mtele.importe,0) AS retiro,
-        supri.PersonalSucursalPrincipalSucursalId, suc.SucursalDescripcion,
-        g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
-        perban.PersonalBancoCBU, banc.BancoDescripcion,
-        detsitrev.detsituacionrevista,
+        --ISNULL(viginorm.importe,0) + ISNULL(viginormart14.importe,0) + ISNULL(vigiextra.importe,0) + ISNULL(vigiar42.importe,0) + ISNULL(admiar42.importe,0) - ISNULL(mdesc.importe,0) - ISNULL(motro.importe,0) - ISNULL(mayud.importe,0) - ISNULL(mrent.importe,0) - ISNULL(mddjj.importe,0) - ISNULL(mprep.importe,0) - ISNULL(mtele.importe,0) AS retiro,
+        --supri.PersonalSucursalPrincipalSucursalId, suc.SucursalDescripcion,
+        --g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
+        --banc.BancoDescripcion,
+        --detsitrev.detsituacionrevista,
         1
 
       FROM Personal per 

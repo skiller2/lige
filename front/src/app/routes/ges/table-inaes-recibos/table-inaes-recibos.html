@@ -18,8 +18,8 @@
             <span nz-icon nzType="reload" nzTheme="outline"></span>
           </button>
           <!-- Descarga Recibos -->
-          <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas' | i18n }}"
-          (click)="exportGrid()">
+          <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.recibos' | i18n }}"
+          (click)="exportGrid()" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
             <span nz-icon nzType="file" nzTheme="outline"></span>
           </button>
         </nz-button-group>

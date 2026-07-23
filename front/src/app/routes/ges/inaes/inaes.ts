@@ -41,7 +41,7 @@ export class INAESComponent {
   startFilters = signal<Selections[]>([])
   tabIndex = signal<number>(0)
   hiddenColumnIds: string[] = [];
-  showColumnIds: string[] = [];
+  columnsForExport: string[] = [];
 
   readonly router = inject(Router)
   private apiService = inject(ApiService)
@@ -55,7 +55,9 @@ export class INAESComponent {
       this.hiddenColumnIds = cols
         .filter((col: any) => col.showGridColumn === false)
         .map((col: Column) => col.id as string);
-      this.showColumnIds = cols.map((col: Column) => col.id as string);
+      this.columnsForExport = cols
+        .filter((col: any) => col.excludeFromExport != true)
+        .map((col: Column) => col.id as string);
       
       return cols;
     })), { initialValue: [] as Column[] })
@@ -106,15 +108,14 @@ export class INAESComponent {
     this.loadingExport.set(true)
     
     //Configuro el filtro
-    let sitRevista:number[] = []
+    let Estado:string
     switch (filter) {
       case 'altas':
-        //ACTIVOS (2), LICENCIA (10), ASOCIADO EN TRAMITE (12) 
-        sitRevista = [2,10,12]
+        Estado = '1'
         break;
       case 'bajas':
         //BAJA (3)
-        sitRevista = [3]
+        Estado = '0'
         break;
     
       default:
@@ -125,7 +126,7 @@ export class INAESComponent {
 
     //Filtro los datos
     let dataExport:any[] = await this.gridData.value().filter(
-      (row: any) => (sitRevista.includes(row.PersonalSituacionRevistaSituacionId))
+      (row: any) => (row.Estado === Estado)
     )
 
     if (!dataExport.length) {
@@ -135,9 +136,19 @@ export class INAESComponent {
     }
     this.gridData.value.set(dataExport)
 
-    //Muestro todas la columnas
+    //Muestro solo las columnas que se van a exportar
     if (this.hiddenColumnIds.length > 0) 
-      this.angularGrid.gridService.showColumnByIds(this.showColumnIds)
+      this.angularGrid.gridService.showColumnByIds(this.columnsForExport)
+    //Validaciones
+    //Campos vacios
+    const emptyFields = this.getEmptyFields()
+    if (emptyFields.length) {
+      let errorMsg = 'Campos Vacios:\n'
+      errorMsg += emptyFields.map((x:any) => `[Fila ${x.row + 1}]: ${x.names.join(", ")}.`).join('\n');
+      this.notification.warning('Advertencia', errorMsg);
+      this.loadingExport.set(false)
+      return
+    }
     
     await this.excelExportService.exportToExcel({
       filename: `INAES-${filter}`,
@@ -150,5 +161,26 @@ export class INAESComponent {
       this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
 
     this.loadingExport.set(false)
+  }
+
+  getEmptyFields():any[] {
+    const result: { row: number, fields: string[], names: string[] }[] = [];
+    this.angularGrid.dataView.getItems().forEach((item, index) => {
+      let fields:string[] = []
+      let names:string[] = []
+      this.columns().forEach((column:any) => {
+        if (column.excludeFromExport) return //Excluir las columnas que no se van a exportan
+        const value = item[column.field];
+
+        if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')){
+          fields.push(column.field)
+          names.push(column.name)
+        }
+          
+      });
+      result.push({ row: index, fields, names });
+    });
+
+    return result;
   }
 }

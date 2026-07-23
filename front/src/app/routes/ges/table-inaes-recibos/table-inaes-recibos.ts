@@ -15,6 +15,7 @@ import { totalRecords, columnTotal } from '../../../shared/custom-search/custom-
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Selections } from '../../../shared/schemas/filtro';
 import { LoadingService } from '@delon/abc/loading';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Component({
   selector: 'app-table-inaes-recibos',
@@ -35,14 +36,16 @@ export class TableINAESRecibosComponent {
   private readonly loadingSrv = inject(LoadingService)
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
-  private searchService = inject(SearchService)
+  // private searchService = inject(SearchService)
+  private notification = inject(NzNotificationService)
 
   listOptions = signal<listOptionsT>({ filtros: [], sort: null })
   startFilters = signal<Selections[]>([])
   periodo = signal<Date>(new Date())
+  loadingExport = signal<boolean>(false)
 
   hiddenColumnIds: string[] = [];
-  showColumnIds: string[] = [];
+  columnsForExport: string[] = [];
 
   columns = toSignal(this.apiService.getCols('/api/inaes/recibos/cols')
   .pipe(map((cols) => {
@@ -50,7 +53,9 @@ export class TableINAESRecibosComponent {
     this.hiddenColumnIds = cols
       .filter((col: any) => col.showGridColumn === false)
       .map((col: Column) => col.id as string);
-    this.showColumnIds = cols.map((col: Column) => col.id as string);
+    this.columnsForExport = cols
+        .filter((col: any) => col.excludeFromExport != true)
+        .map((col: Column) => col.id as string);
     
     return cols;
   })), { initialValue: [] as Column[] })
@@ -95,13 +100,63 @@ export class TableINAESRecibosComponent {
       columnTotal('RetencionMonotributo', this.angularGrid)
       columnTotal('OtrasRetenciones', this.angularGrid)
     });
+
+    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
+    if (this.hiddenColumnIds.length > 0) {
+      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
+    }
   }
  
   exportGrid(): void {
+    this.loadingExport.set(true)
+
+    //Muestro solo las columnas que se van a exportar
+    if (this.hiddenColumnIds.length > 0) 
+      this.angularGrid.gridService.showColumnByIds(this.columnsForExport)
+
+    //Validaciones
+    //Campos vacios
+    const emptyFields = this.getEmptyFields()
+    if (emptyFields.length) {
+      let errorMsg = 'Campos Vacios:\n'
+      errorMsg += emptyFields.map((x:any) => `[Fila ${x.row + 1}]: ${x.names.join(", ")}.`).join('\n');
+      this.notification.warning('Advertencia', errorMsg);
+      this.loadingExport.set(false)
+      return
+    }
+
     (this.textExportService as TextExportService).exportToFile({
       delimiter: ';',
       filename: 'inaes-recibos',
       format: 'csv'
     });
+    this.gridData.reload()
+
+    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
+    if (this.hiddenColumnIds.length > 0)
+      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
+
+    this.loadingExport.set(false)
+  }
+
+  getEmptyFields():any[] {
+    const result: { row: number, fields: string[], names: string[] }[] = [];
+    this.angularGrid.dataView.getItems().forEach((item, index) => {
+      let fields:string[] = []
+      let names:string[] = []
+      this.columns().forEach((column:any) => {
+        if (column.excludeFromExport) return //Excluir las columnas que no se van a exportan
+        const value = item[column.field];
+
+        if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')){
+          fields.push(column.field)
+          names.push(column.name)
+        }
+          
+      });
+      result.push({ row: index, fields, names });
+    });
+
+    return result;
   }
 } 

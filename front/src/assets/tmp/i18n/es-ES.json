@@ -173,6 +173,7 @@
   "app.btn.export": "Exportar",
   "app.btn.export.altas": "Exportar Altas",
   "app.btn.export.bajas": "Exportar Bajas",
+  "app.btn.export.recibos": "Exportar Recibos",
   "app.btn.starloading": "Iniciar Carga",
   "app.btn.endloading": "Finaliza Carga",
   "app.btn.copi.previous.month": "Copia mes anterior",
