@@ -517,7 +517,8 @@ export class SearchService {
       throw new Error(`Error HTTP ${response.status}`);
     }
 
-    return await response.json();
+    const result = await response.json()
+    return result;
   }
 
 

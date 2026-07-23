@@ -7,4 +7,37 @@
   }
 
 </nz-select>
-<p>Debug: {{selectedItem()|json}}<p>
+<button nz-button nzType="default" [disabled]="!selectedItem()" (click)="openDrawer()">
+<span nz-icon nzType="environment"></span>Ver ubicación</button>
+
+<nz-drawer
+  [nzVisible]="visibleDrawer()"
+  [nzWidth]="800"
+  nzTitle="Ubicación"
+  (nzOnClose)="closeDrawer()">
+
+  <ng-container *nzDrawerContent>
+
+    @if (selectedItem()) {
+
+      <h4>{{ selectedItem()?.display_name }}</h4>
+
+      <iframe
+        [src]="mapUrl()"
+        width="100%"
+        height="500"
+        style="border:0"
+        loading="lazy">
+      </iframe>
+
+      <div style="margin-top:12px">
+        Latitud: {{ selectedItem()?.lat }}
+        <br>
+        Longitud: {{ selectedItem()?.lon }}
+      </div>
+
+    }
+
+  <p>Debug: {{selectedItem()|json}}<p>
+  </ng-container>
+</nz-drawer>  

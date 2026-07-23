@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  computed,
   DestroyRef,
   forwardRef,
   inject,
@@ -36,6 +37,7 @@ import { NzSelectComponent } from 'ng-zorro-antd/select';
 
 import { SearchService } from '../../../app/services/search.service';
 import { SHARED_IMPORTS } from '@shared';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-direccion-search',
@@ -60,6 +62,7 @@ export class DireccionSearchComponent
 
   private readonly searchService = inject(SearchService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly dsc = viewChild<NzSelectComponent>('dsc');
 
@@ -147,11 +150,13 @@ export class DireccionSearchComponent
 
 
 
-/*    
+
     if (value?.display_name) {
-       value = toObservable(await this.searchService.getDireccionNominatim(value.display_name))
+      const arrResult = await this.searchService.getDireccionNominatim(value.display_name)
+      if (arrResult[0])
+        value = arrResult[0]
     }
-*/
+
     this.selectedItem.set(value ?? null);
 
     if (!value) {
@@ -161,14 +166,14 @@ export class DireccionSearchComponent
     const current = this.options();
 
     const found = current.some(
-      (x:any) => x.place_id === value.place_id
+      (x: any) => x.place_id === value.place_id
     );
 
     if (!found) {
       current.unshift(value);
     }
   }
-  
+
   registerOnChange(fn: any): void {
     this.propagateChange = fn;
   }
@@ -228,5 +233,30 @@ export class DireccionSearchComponent
   }
 
   compareByPlaceId = (a: any, b: any) => a?.place_id === b?.place_id;
+
+  readonly mapUrl = computed<SafeResourceUrl>(() => {
+
+    const item = this.selectedItem();
+
+    if (!item?.lat || !item?.lon) {
+      return this.sanitizer.bypassSecurityTrustResourceUrl(
+        'about:blank'
+      );
+    }
+
+    const lat = Number(item.lat);
+    const lon = Number(item.lon);
+
+    const bbox = [
+      lon - 0.005,
+      lat - 0.005,
+      lon + 0.005,
+      lat + 0.005
+    ].join(',');
+
+    return this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`
+    );
+  });
 
 }
