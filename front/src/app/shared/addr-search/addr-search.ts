@@ -35,29 +35,29 @@ import {
 
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 
-import { SearchService } from '../../../app/services/search.service';
+import { SearchService } from '../../services/search.service';
 import { SHARED_IMPORTS } from '@shared';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
-  selector: 'app-direccion-search',
+  selector: 'app-addr-search',
   standalone: true,
   imports: [
     CommonModule,
     ...SHARED_IMPORTS
   ],
-  templateUrl: './direccion-search.component.html',
-  styleUrls: ['./direccion-search.component.less'],
+  templateUrl: './addr-search.html',
+  styleUrls: ['./addr-search.less'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => DireccionSearchComponent),
+      useExisting: forwardRef(() => AddrSearchComponent),
       multi: true
     }
   ]
 })
-export class DireccionSearchComponent
+export class AddrSearchComponent
   implements ControlValueAccessor, AfterViewInit {
 
   private readonly searchService = inject(SearchService);

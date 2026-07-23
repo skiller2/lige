@@ -509,7 +509,8 @@ export class SearchService {
 
     const response = await fetch(url, {
       headers: {
-        "Accept": "application/json"
+        "Accept": "application/json",
+        "Accept-Language": "es-ES"
       }
     });
 
@@ -518,7 +519,22 @@ export class SearchService {
     }
 
     const result = await response.json()
-    return result;
+
+    result.forEach((item: any) => {
+      const { road, house_number, city, state, postcode } = item.address || {};
+
+      item.display_name = [
+        [road, house_number].filter(Boolean).join(" "),
+        city,
+        state,
+        postcode
+      ]
+        .filter(Boolean)
+        .join(", ");
+    });
+
+    return result
+
   }
 
 

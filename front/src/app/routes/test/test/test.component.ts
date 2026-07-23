@@ -8,7 +8,7 @@ import { GeocoderAutocomplete } from '@geoapify/geocoder-autocomplete';
 import { ApiService } from '../../../services/api.service';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
-import { DireccionSearchComponent } from '../../../shared/direccion-search/direccion-search.component';
+import { AddrSearchComponent } from '../../../shared/addr-search/addr-search';
 
 import { Directionality } from '@angular/cdk/bidi';
 import { DescuentosComponent } from '../../ges/descuentos/descuentos.component';
@@ -30,7 +30,7 @@ import { ALAIN_I18N_TOKEN } from '@delon/theme';
     selector: 'test',
     templateUrl: './test.component.html',
     styleUrls: ['./test.component.less'],
-    imports: [...SHARED_IMPORTS, CommonModule, DireccionSearchComponent,NzIconModule, ReporteComponent],
+    imports: [...SHARED_IMPORTS, CommonModule, AddrSearchComponent,NzIconModule, ReporteComponent],
     providers: [provideNzIconsPatch([TagOutline, ClockCircleOutline, BankOutline, CarOutline, EnvironmentOutline])],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
