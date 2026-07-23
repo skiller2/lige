@@ -2436,6 +2436,10 @@ export class SearchService {
   }
 
   getEfectoMovimientos(listOptions: any) {
+    if (!listOptions.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro o un período.`);
+      return of([]);
+    }
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoMovimientos`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {

@@ -78,6 +78,9 @@ export class TableMovimientosEfectoComponent {
   gridData = resource({
     params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
     loader: async ({ params }) => {
+      if (!this.filtersReady()) {
+        return [];
+      }
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
         const response = await firstValueFrom(this.searchService.getEfectoMovimientos(params.options ?? { filtros: [], sort: null }))
