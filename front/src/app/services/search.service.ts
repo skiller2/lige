@@ -496,7 +496,32 @@ export class SearchService {
       );
   }
 
-  getDireccion(direccion: string): Observable<any[]> {
+  async getDireccionNominatim(direccion: string) {
+    const url = new URL("https://nominatim.openstreetmap.org/search");
+
+    url.searchParams.append("q", direccion);
+    url.searchParams.append("polygon_geojson", "1");
+    url.searchParams.append("countrycodes", "AR");
+    url.searchParams.append("layer", "address");
+    url.searchParams.append("limit", "10");
+    url.searchParams.append("format", "jsonv2");
+    url.searchParams.append("addressdetails", "1");
+
+    const response = await fetch(url, {
+      headers: {
+        "Accept": "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  }
+
+
+  getDireccionAPIFY(direccion: string): Observable<any[]> {
     if (!direccion || direccion == '') {
       return of([]);
     }
@@ -2301,11 +2326,11 @@ export class SearchService {
   }
 
   getNovedadesFilters() {
-    return this.http.get<ResponseJSON<any>>(`api/novedades/filters`).pipe(map(res => res.data),catchError(() => of([])));
+    return this.http.get<ResponseJSON<any>>(`api/novedades/filters`).pipe(map(res => res.data), catchError(() => of([])));
   }
 
   getEfectoFilters() {
-    return this.http.get<ResponseJSON<any>>(`api/efecto/filters`).pipe(map(res => res.data),catchError(() => of([])));
+    return this.http.get<ResponseJSON<any>>(`api/efecto/filters`).pipe(map(res => res.data), catchError(() => of([])));
   }
 
   getListExcepcionesAsistencia(options: any, periodo: Date) {

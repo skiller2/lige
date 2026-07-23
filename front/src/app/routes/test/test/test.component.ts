@@ -133,7 +133,12 @@ export class TestComponent {
   }
 
 
-    
+  setDireccion(){
+    console.log("setDireccion")
+    this.direccion.set(
+    { "place_id": 15595575, "display_name": "1528, Tomás Manuel de Anchorena, Barrio Norte, Recoleta, Buenos Aires, Comuna 2, Ciudad Autónoma de Buenos Aires, C1425BGB, Argentina" }
+    )
+  }    
 
 
 

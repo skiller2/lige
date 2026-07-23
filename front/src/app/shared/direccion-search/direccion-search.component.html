@@ -1,22 +1,10 @@
-<nz-select #dsc [(ngModel)]="_selected" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
-  style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Direccion"
-  nzShowSearch nzServerSearch (nzOnSearch)="search($event)">
-  <!-- TODO: quitar objeto de track  -->
-  @for (option of optionsArray2(); track option) {
-    @if (($isOptionsLoading | async) == false) {
-      <nz-option [nzValue]="option.properties.place_id"  [nzLabel]="option.properties.formatted" />
-    }
-  }
-  @if (extendedOption().id !='' ) {
-    <nz-option [nzValue]="extendedOption().id"
-      [nzLabel]="extendedOption().fullName" />
-  }
-
-  @if ($isOptionsLoading | async) {
-    <nz-option nzDisabled nzCustomContent>
-      <span nz-icon nzType="loading" class="loading-icon"></span>
-      Cargando datos...
+<nz-select #dsc [ngModel]="selectedItem()" [nzDropdownMatchSelectWidth]="false" [ngModelOptions]="{ standalone: true }"
+  style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear nzPlaceHolder="Direccion" nzShowSearch
+  nzServerSearch (nzOnSearch)="search($event)" [nzLoading]="loading()" [compareWith]="compareByPlaceId">
+  @for (item of options(); track item.place_id) {
+    <nz-option [nzValue]="item" [nzLabel]="item.display_name">
     </nz-option>
   }
+
 </nz-select>
-<p>Extendido: {{extendedOption() | json }}</p>
+<p>Debug: {{selectedItem()|json}}<p>

@@ -1,195 +1,232 @@
-import { Component, EventEmitter, Input, Output, ViewChild, forwardRef, input, model, signal } from '@angular/core'
 import {
-  BehaviorSubject,
-  Observable,
-  Subject,
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  forwardRef,
+  inject,
+  model,
+  output,
+  signal,
+  viewChild
+} from '@angular/core';
+
+import { CommonModule } from '@angular/common';
+
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR
+} from '@angular/forms';
+
+import {
   debounceTime,
+  distinctUntilChanged,
   firstValueFrom,
-  noop,
   switchMap,
-  tap,
-} from 'rxjs'
-import { SearchGrup } from '../schemas/grupoActividad.shemas'
-import { SearchService } from '../../../app/services/search.service'
-import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms'
-import { doOnSubscribe } from '../../../app/services/api.service'
-import { NzSelectComponent } from 'ng-zorro-antd/select'
-import { SHARED_IMPORTS } from '@shared'
-import { CommonModule } from '@angular/common'
-import { toSignal} from '@angular/core/rxjs-interop';
+  tap
+} from 'rxjs';
+
+import {
+  takeUntilDestroyed,
+  toObservable,
+  toSignal
+} from '@angular/core/rxjs-interop';
+
+import { NzSelectComponent } from 'ng-zorro-antd/select';
+
+import { SearchService } from '../../../app/services/search.service';
+import { SHARED_IMPORTS } from '@shared';
+
 @Component({
-    selector: 'app-direccion-search',
-    templateUrl: './direccion-search.component.html',
-    styleUrls: ['./direccion-search.component.less'],
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => DireccionSearchComponent),
-            multi: true,
-        },
-    ],
-    imports: [...SHARED_IMPORTS, CommonModule]
+  selector: 'app-direccion-search',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ...SHARED_IMPORTS
+  ],
+  templateUrl: './direccion-search.component.html',
+  styleUrls: ['./direccion-search.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DireccionSearchComponent),
+      multi: true
+    }
+  ]
 })
+export class DireccionSearchComponent
+  implements ControlValueAccessor, AfterViewInit {
 
-export class DireccionSearchComponent implements ControlValueAccessor {
+  private readonly searchService = inject(SearchService);
+  private readonly destroyRef = inject(DestroyRef);
 
+  readonly dsc = viewChild<NzSelectComponent>('dsc');
 
-//  tmpInputVal: any
-  constructor(private searchService: SearchService) { }
-
-  @Input() valueExtended: any
-  @Output('valueExtendedChange') valueExtendedEmitter: EventEmitter<any> = new EventEmitter<any>()
-  @ViewChild("dsc") dsc!: NzSelectComponent
-  private isDisabled = false
-  $searchChange = new BehaviorSubject('')
-  $isOptionsLoading = new BehaviorSubject<boolean>(false)
-  onItemChanged = new Subject<any>();    // object
-
-  private _selectedId: string = ''
-  _selected = signal('')
-  extendedOption = model({ id: '', fullName: "", fullObj: {} })
-  selectedItem: any;
-
-  private propagateTouched: () => void = noop
-  private propagateChange: (_: any) => void = noop
+  /**
+   * Valor seleccionado
+   */
+  readonly selectedItem = model<any | null>(null);
 
 
-  registerOnChange(fn: any) {
+  readonly visibleDrawer = signal(false);
 
-    this.propagateChange = fn
-  }
+  readonly loading = signal(false);
 
-  onBlur() {
-    this.propagateTouched()
-  }
+  private readonly searchTerm = signal('');
 
-  onRemove() {
-     
-  }
+  private propagateTouched: () => void = () => { };
+  private propagateChange: (_: any) => void = () => { };
 
-  registerOnTouched(fn: any) {
-    this.propagateTouched = fn
-  }
+  readonly options = toSignal(
+    toObservable(this.searchTerm).pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
 
-  ngOnDestroy() {
-    this.dsc?.originElement.nativeElement.removeEventListener('keydown', this.onKeydown.bind(this))
-  }
+      tap(() => this.loading.set(true)),
 
-  onKeydown(event: KeyboardEvent) {
-    //    this._lastInputEvent = event;
-    //    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Enter') {
-      event.stopImmediatePropagation()
+      switchMap(term =>
+        this.searchService.getDireccionNominatim(term)
+      ),
+
+      tap({
+        next: () => this.loading.set(false),
+        error: () => this.loading.set(false)
+      }),
+
+      takeUntilDestroyed(this.destroyRef)
+    ),
+    {
+      initialValue: []
     }
-  }
+  );
 
-
-
-  ngAfterViewInit() {
-    setTimeout(() => {
-      this.dsc.originElement.nativeElement.addEventListener('keydown', this.onKeydown.bind(this));
-      //this.dsc.focus()  //Al hacer click en el componente hace foco
-      this.dsc.setDisabledState(this.isDisabled)
-
-    }, 1);
-  }
-
-
-  get selectedId() {
-    return this._selectedId
-  }
-
-  get selectedIdNum(): number {
-    return parseInt(this._selectedId)
-  }
-
-  set selectedId(val: string) {
-     
-    this.dsc?.focus()
-    val = (val === null || val === undefined) ? '' : val
-
-    if (val !== this._selectedId) {
-      this._selectedId = val
-
-      if (this._selectedId == '' || this._selectedId == '0') {
-        this.extendedOption.set( { id: '', fullName: "", fullObj: {} })
-        this.selectedItem = this.extendedOption()
-
-        this.valueExtendedEmitter.emit(this.extendedOption())
-        if (this._selected() != '')
-          this._selected.set('')
-        this.propagateChange(this._selectedId)
-        return
-      }
-
-      const res = this.optionsArray2()?.find((x: any) => x.properties.place_id == this._selectedId)
-       
-
-      this.extendedOption.set({ id: res.properties.place_id, fullName: res.properties.formatted,  fullObj: res })
-      this.selectedItem = this.extendedOption()
-
- 
-
-      this._selected.set(this._selectedId)
-      this.valueExtendedEmitter.emit(this.extendedOption())
-      this.propagateChange(this._selectedId)
-
-
-
-      
-
+  private readonly keydownHandler = (
+    event: KeyboardEvent
+  ): void => {
+    if (
+      event.key === 'ArrowDown' ||
+      event.key === 'ArrowUp' ||
+      event.key === 'Enter'
+    ) {
+      event.stopImmediatePropagation();
     }
+  };
+
+  ngAfterViewInit(): void {
+    const select = this.dsc();
+
+    if (!select) {
+      return;
+    }
+
+    select.originElement.nativeElement.addEventListener(
+      'keydown',
+      this.keydownHandler
+    );
   }
 
-  writeValue(value: any) {
-//    this.tmpInputVal = value
-    if (value !== this._selectedId) {
-      this.selectedId = value
+  ngOnDestroy(): void {
+    const select = this.dsc();
+
+    if (!select) {
+      return;
+    }
+
+    select.originElement.nativeElement.removeEventListener(
+      'keydown',
+      this.keydownHandler
+    );
+  }
+
+  // ======================
+  // ControlValueAccessor
+  // ======================
+
+  async writeValue(value: any): Promise<void> {
+
+
+
+/*    
+    if (value?.display_name) {
+       value = toObservable(await this.searchService.getDireccionNominatim(value.display_name))
+    }
+*/
+    this.selectedItem.set(value ?? null);
+
+    if (!value) {
+      return;
+    }
+
+    const current = this.options();
+
+    const found = current.some(
+      (x:any) => x.place_id === value.place_id
+    );
+
+    if (!found) {
+      current.unshift(value);
     }
   }
   
-  optionsArray2 = toSignal(
-     this.$searchChange.pipe(
-      debounceTime(500),
-      switchMap(value =>
-        this.searchService
-          .getDireccion(value)
-          .pipe(
-            doOnSubscribe(() => this.$isOptionsLoading.next(true)),
-            tap({ complete: () => this.$isOptionsLoading.next(false) })
-          )
-      )
-    ), { requireSync: false }) 
+  registerOnChange(fn: any): void {
+    this.propagateChange = fn;
+  }
 
+  registerOnTouched(fn: any): void {
+    this.propagateTouched = fn;
+  }
 
-  modelChange(val: string) {
-     
-    if (val == '') val = '0'
-    this.selectedId = val
-}
+  setDisabledState(disabled: boolean): void {
+    this.dsc()?.setDisabledState(disabled);
+  }
+
+  // ======================
+  // Eventos
+  // ======================
+
+  onBlur(): void {
+    this.propagateTouched();
+  }
 
   search(value: string): void {
-    this.extendedOption.set({ id: '', fullName: "", fullObj: {} })
-    this.$searchChange.next(value)
+    this.searchTerm.set(value);
   }
 
-  focus() {
-     
+  modelChange(value: any | null): void {
 
+    this.selectedItem.set(value);
+
+    if (!value) {
+
+      this.propagateChange(null);
+
+      return;
+    }
+
+    this.propagateChange(value);
   }
 
-  visibleDrawer = signal(false)
-  setDisabledState(isDisabled: boolean): void {
-    this.isDisabled = isDisabled
-    this.dsc?.setDisabledState(isDisabled)
+  onRemove(): void {
+
+    this.selectedItem.set(null);
+
+
+    this.propagateChange(null);
+  }
+
+  focus(): void {
+    this.dsc()?.focus();
   }
 
   openDrawer(): void {
-    this.visibleDrawer.set(true)
+    this.visibleDrawer.set(true);
   }
 
   closeDrawer(): void {
-    this.visibleDrawer.set(false)
+    this.visibleDrawer.set(false);
   }
 
-}  
+  compareByPlaceId = (a: any, b: any) => a?.place_id === b?.place_id;
+
+}
