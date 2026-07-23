@@ -550,12 +550,21 @@ export class MovimientoStockController extends BaseController {
       const form = req.body?.form;
 
       // Movimiento ya guardado (selección en la grilla / descarga tras confirmar): se sirve el
-      // comprobante PERSISTIDO en Documento (generado al confirmar). No se regenera; si no está
-      // archivado se devuelve error.
+      // comprobante PERSISTIDO en Documento (generado al confirmar). Si no está archivado
+      // (MovimientoStockDocumentoId nulo) se genera en el momento, se enlaza y se descarga.
       if (movimientoCodigo) {
         const doc = await this.getComprobanteExistente(queryRunner, movimientoCodigo);
-        if (!doc)
-          throw new ClientException(`No se encontró el comprobante del movimiento ${movimientoCodigo}`);
+        if (!doc) {
+          await queryRunner.startTransaction();
+          const { filesPathAbs, nombreArchivo } = await this.generarDocumentoIngresoStock(
+            queryRunner, req, res, movimientoCodigo, new Date(), usuario, this.getRemoteAddress(req)
+          );
+          await queryRunner.commitTransaction();
+
+          return res.download(filesPathAbs, nombreArchivo, (err) => {
+            if (err) return next(err);
+          });
+        }
 
         const finalurl = path.join(this.directoryDocumentos, doc.DocumentoPath);
         if (!existsSync(finalurl))
@@ -582,6 +591,7 @@ export class MovimientoStockController extends BaseController {
         if (err) return next(err);
       });
     } catch (error) {
+      await this.rollbackTransaction(queryRunner);
       return next(error);
     } finally {
       await queryRunner.release();
