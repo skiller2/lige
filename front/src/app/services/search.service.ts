@@ -521,12 +521,12 @@ export class SearchService {
     const result = await response.json()
 
     result.forEach((item: any) => {
-      const { road, house_number, city, state, postcode } = item.address || {};
+      const { road, house_number, town, state, state_district, postcode } = item.address || {};
 
       item.display_name = [
         [road, house_number].filter(Boolean).join(" "),
-        city,
-        state,
+        state_district || town,
+        state ,
         postcode
       ]
         .filter(Boolean)
