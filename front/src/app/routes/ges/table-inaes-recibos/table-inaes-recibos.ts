@@ -119,7 +119,9 @@ export class TableINAESRecibosComponent {
     const emptyFields = this.getEmptyFields()
     if (emptyFields.length) {
       let errorMsg = 'Campos Vacios:\n'
-      errorMsg += emptyFields.map((x:any) => `[Fila ${x.row + 1}]: ${x.names.join(", ")}.`).join('\n');
+      errorMsg += emptyFields.map(
+        (x:any) => `[Fila ${x.row + 1}] ${this.gridData.value()[x.row].ApellidoNombre}: ${x.names.join(", ")}.`
+      ).join('\n');
       this.notification.warning('Advertencia', errorMsg);
       this.loadingExport.set(false)
       return
