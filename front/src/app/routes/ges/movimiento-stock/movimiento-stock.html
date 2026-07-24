@@ -4,10 +4,10 @@
   ({{ comprobanteCodigo() ? 'existe' : 'no existe' }})
 </p>-->
 <form style="margin-top: 30px;" (ngSubmit)="confirmar()">
-
+  
   <nz-divider [nzText]="destinoLabel" style="margin-bottom: 40px;"></nz-divider>
   <ng-template #destinoLabel>
-    <span style="margin-right: 8px;">{{ IndIngresoStock() ? 'Ingreso Stock - Destino' : 'Destino' }}</span>
+    <span style="margin-right: 8px;">{{ IndIngresoStock() ? 'Ingreso Stock - Destino' : 'Movimiento Stock - Destino' }}</span>
     <button nz-button nzType="default" type="button"
       (click)="limpiarDestino()"
       nz-tooltip nzTooltipTitle="{{ 'app.limpiar.destino' | i18n }}">
