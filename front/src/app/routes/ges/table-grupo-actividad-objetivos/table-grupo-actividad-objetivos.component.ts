@@ -14,7 +14,9 @@ import { Component, model, signal, inject, resource } from '@angular/core';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { EditorObjetivoComponent } from '../../../shared/editor-objetivo/editor-objetivo.component';
 import { ActivatedRoute, Router } from '@angular/router';
+import { LoadingService } from '@delon/abc/loading';
 import { Selections } from '../../../shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-table-grupo-actividad-objetivos',
@@ -34,8 +36,9 @@ export class TableGrupoActividadObjetivosComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
-  formChange$ = new BehaviorSubject('')
-  private readonly messageSrv = inject(NzMessageService);
+  // private readonly messageSrv = inject(NzMessageService)
+  private readonly loadingSrv = inject(LoadingService)
+  
   columnDefinitions: Column[] = []
   itemAddActive = false
 
@@ -54,11 +57,7 @@ export class TableGrupoActividadObjetivosComponent {
   excelExportService = new ExcelExportService()
   rowLocked: boolean = false;
 
-  listOptionsChange(options: any) {
-    this.listOptions.set(options)
-  }
-
-  columnsObjetivos$ = this.apiService.getCols('/api/grupo-actividad/colsobjetivos').pipe(
+  columnsObjetivos = toSignal(this.apiService.getCols('/api/grupo-actividad/colsobjetivos').pipe(
     switchMap(async (cols) => { return { cols } }),
     map((data: any) => {
       let mapped = data.cols.map((col: Column) => {
@@ -103,7 +102,26 @@ export class TableGrupoActividadObjetivosComponent {
         return col
       });
       return mapped
-    }));
+    })
+  ), { initialValue: [] as Column[] })
+
+  gridDataObjetivos = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.searchService.getListGrupoActividadObjetivos({ options: params.options })
+        .pipe(map(data => { return data.list })));
+      } catch (error) {
+        
+      }
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: [],
+  })
 
   async ngOnInit() {
 
@@ -229,19 +247,6 @@ export class TableGrupoActividadObjetivosComponent {
 
   }
 
-
-  gridDataObjetivos = resource({
-    params: () => ({ options: this.listOptions() }),
-    loader: async ({ params }) => {
-      return await firstValueFrom(this.searchService.getListGrupoActividadObjetivos({ options: params.options })
-        .pipe(map(data => {
-          return data.list
-        }))
-      )
-    },
-    defaultValue: [],
-  })
-
   handleSelectedRowsChanged(e: any): void {
 
     const selrow = e.detail.args.rows[0]
@@ -255,9 +260,7 @@ export class TableGrupoActividadObjetivosComponent {
 
   }
 
-
   updateItemMetadata(previousItemMetadata: any) {
-
 
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';
@@ -312,7 +315,6 @@ export class TableGrupoActividadObjetivosComponent {
       }
     }, 1000)
   }
-
 
 }
 

@@ -1,33 +1,36 @@
 <nz-card class="small-margin">
 
-  @if ((columnsPersonal$|async); as columnas) {
+  @if (columnsPersonal().length) {
     <div nz-tab>
       <div class="fila">
         <div class="izquierda">
-          <shared-filtro-builder  [fieldsToSelect]="columnas" [startFilters]="startFilters"
-            (optionsChange)="listOptionsChange($event)" style="width: 80%;" />
-          </div>
-          <div class="derecha">
-            <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-              <button nz-button nzType="default" (click)="addNewItem()"><span nz-icon nzType="plus"
-              nzTheme="outline"></span></button>
-            </a>
-            <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user" nzTheme="outline"
-            nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span></button>
-          </div>
+          <shared-filtro-builder  [fieldsToSelect]="columnsPersonal()" [startFilters]="startFilters()" [(options)]="listOptions" style="width: 80%;" />
         </div>
-        <div class="gridContainerGAP container-fluid">
-          <angular-slickgrid gridId="gridEditGAP" [columns]="columnas  | colsFilter"
-            [options]="gridOptionsEdit" [dataset]="gridDataPersonal.value()"
-            (onAngularGridCreated)="angularGridReadyEdit($event)"
-            (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
-            <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
-          </angular-slickgrid>
-        </div>
+        <nz-button-group nz-button nzButtonGroup class="derecha">
+          <!-- Recarga de grilla -->
+          <button nz-button nzType="default" (click)="gridDataPersonal.reload()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}">
+            <span nz-icon nzType="reload" nzTheme="outline"></span>
+          </button>
+
+          <button nz-button nzType="default" (click)="addNewItem()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus" nzTheme="outline"></span>
+          </button>
+          <button nz-button nzType="default" (click)="openDrawer()" nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}">
+            <span nz-icon nzType="user" nzTheme="outline" ></span>
+          </button>
+        </nz-button-group>
       </div>
-    }
-  </nz-card>
+      <div class="gridContainerGAP container-fluid">
+        <angular-slickgrid gridId="gridEditGAP" [columns]="columnsPersonal() | colsFilter"
+          [options]="gridOptionsEdit" [dataset]="gridDataPersonal.value()"
+          (onAngularGridCreated)="angularGridReadyEdit($event)"
+          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
+          <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
+        </angular-slickgrid>
+      </div>
+    </div>
+  }
+</nz-card>
 
-
-  <app-detalle-persona [anio]="currPeriodo().anio" [mes]="currPeriodo().mes" [SucursalId]="0"
-  [PersonalId]="PersonalId()" [visible]="visibleDrawerPersona()" (onClose)="closeDrawer()"></app-detalle-persona>
+<app-detalle-persona [anio]="currPeriodo().anio" [mes]="currPeriodo().mes" [SucursalId]="0"
+[PersonalId]="PersonalId()" [visible]="visibleDrawerPersona()" (onClose)="closeDrawer()"></app-detalle-persona>

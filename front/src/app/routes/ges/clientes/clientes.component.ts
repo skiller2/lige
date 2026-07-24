@@ -1,23 +1,21 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, OnChanges, SimpleChanges, input, ElementRef } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, Column, Editors, Formatters, GridOption, EditCommand, SlickGlobalEditorLock, compareObjects, Aggregators, GroupTotalFormatters } from 'angular-slickgrid';
+import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, resource } from '@angular/core';
+import { AngularGridInstance, AngularUtilService, Column,  GridOption} from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
-import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
-import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { I18nPipe, SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { ClientesFormComponent } from "../clientes-form/clientes-form.component"
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
+import { LoadingService } from '@delon/abc/loading';
 import { Selections } from '../../../shared/schemas/filtro';
-
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-clientes',
@@ -47,10 +45,10 @@ export class ClientesComponent {
   childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
   listCliente$ = new BehaviorSubject('')
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  });
 
 
   formChange$ = new BehaviorSubject('');
@@ -60,8 +58,9 @@ export class ClientesComponent {
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
   private settingService = inject(SettingsService)
+  private readonly loadingSrv = inject(LoadingService)
 
-  columns$ = this.apiService.getCols('/api/clientes/cols').pipe(
+  columns = toSignal(this.apiService.getCols('/api/clientes/cols').pipe(
     map((cols) => {
       if (cols[8]) {
         cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
@@ -71,7 +70,7 @@ export class ClientesComponent {
       }
       return cols
     })
-  )
+  ), { initialValue: [] as Column[] })
 
 
 //  child = viewChild.required(ClientesFormComponent)
@@ -79,20 +78,27 @@ export class ClientesComponent {
   childDeta = viewChild.required<ClientesFormComponent>('clienteFormDeta')
   childEdit = viewChild.required<ClientesFormComponent>('clienteFormEdit')
 
-  gridData$ = this.listCliente$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getListaClientes({ options: this.listOptions })
-        .pipe(map(data => {
-          return data.list
-        })
-      )
-    })
-  ) 
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.searchService.getListaClientes({ options: params.options })
+        .pipe(map(data => { return data.list })));
+      } catch (error) {
+        
+      }
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   async handleAddOrUpdate(ClienteId: number | null){
     this.editClienteId.set(ClienteId ?? 0)
-    this.listCliente$.next('')
+    this.gridData.reload()
   }
 
   async ngOnInit(){
@@ -128,14 +134,15 @@ export class ClientesComponent {
     this.childIsPristine.set(isPristine)
   }
 
-    async angularGridReady(angularGrid: any) {
-      this.angularGrid = angularGrid.detail
-      this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
-           totalRecords(this.angularGrid)
-           columnTotal('CantidadObjetivos', this.angularGrid)
-      })
-      if (this.apiService.isMobile())
-          this.angularGrid.gridService.hideColumnByIds([])
+  async angularGridReady(angularGrid: any) {
+    this.angularGrid = angularGrid.detail
+    this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
+      totalRecords(this.angularGrid)
+      columnTotal('CantidadObjetivos', this.angularGrid)
+    })
+
+    if (this.apiService.isMobile())
+      this.angularGrid.gridService.hideColumnByIds([])
   }
 
   handleSelectedRowsChanged(e: any): void {
@@ -164,15 +171,6 @@ export class ClientesComponent {
   
     cellNode.replaceChildren(componentOutput.domElement)
     
-  }
-
-  getGridData(): void {
-    this.listCliente$.next('')
-  }
-
-  listOptionsChange(options: any) {
-      this.listOptions = options
-      this.listCliente$.next('')
   }
 
   onTabsetChange(_event: any) {

@@ -11,8 +11,10 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, resource } from '@angular/core';
+import { LoadingService } from '@delon/abc/loading';
 import { Selections } from '../../../shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-table-grupo-actividad-grupos',
@@ -26,21 +28,19 @@ import { Selections } from '../../../shared/schemas/filtro';
   styleUrl: './table-grupo-actividad-grupos.component.less'
 })
 export class TableGrupoActividadGruposComponent {
-
-
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
-  formChange$ = new BehaviorSubject('')
   private readonly messageSrv = inject(NzMessageService);
+  private readonly loadingSrv = inject(LoadingService)
+
   columnDefinitions: Column[] = []
   itemAddActive = false
-  listGrupoActividad$ = new BehaviorSubject('')
   editGrupo = signal<{ GrupoActividadId: string }[]>([])
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  });
   startFilters = signal<Selections[]>([])
 
 
@@ -51,13 +51,7 @@ export class TableGrupoActividadGruposComponent {
   excelExportService = new ExcelExportService()
   rowLocked: boolean = false;
 
-
-  listOptionsChange(options: any) {
-    this.listOptions = options
-    this.listGrupoActividad$.next('')
-  }
-
-  columns$ = this.apiService.getCols('/api/grupo-actividad/cols').pipe(
+  columns = toSignal(this.apiService.getCols('/api/grupo-actividad/cols').pipe(
     switchMap(async (cols) => {
       const sucursales = await firstValueFrom(this.searchService.getSucursales());
       const inactivo = await firstValueFrom(this.searchService.getInactivo());
@@ -112,7 +106,26 @@ export class TableGrupoActividadGruposComponent {
         return col
       });
       return mapped
-    }));
+    })
+  ), { initialValue: [] as Column[] })
+
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.searchService.getListGrupoActividadGrupos({ options: params.options })
+        .pipe(map(data => { return data.list })));
+      } catch (error) {
+        
+      }
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   async ngOnInit() {
 
@@ -158,7 +171,7 @@ export class TableGrupoActividadGruposComponent {
           this.rowLocked = true
 
         const response = await firstValueFrom(this.apiService.onchangecellGrupoActividadGrupo(row))
-        this.listGrupoActividad$.next('')
+        this.gridData.reload()
         this.rowLocked = false
       } catch (e: any) {
 
@@ -194,7 +207,7 @@ export class TableGrupoActividadGruposComponent {
   async deleteItem() {
 
     await firstValueFrom(this.apiService.deleteGrupoActividadGrupo(this.editGrupo()))
-    this.listGrupoActividad$.next('')
+    this.gridData.reload()
   }
 
   createNewItem(incrementIdByHowMany = 1) {
@@ -243,17 +256,6 @@ export class TableGrupoActividadGruposComponent {
   async onCellChanged(e: any) {
   }
 
-  gridData$ = this.listGrupoActividad$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getListGrupoActividadGrupos({ options: this.listOptions })
-        .pipe(map(data => {
-          return data.list
-        })
-        )
-    })
-  )
-
   handleSelectedRowsChanged(e: any): void {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
@@ -263,9 +265,7 @@ export class TableGrupoActividadGruposComponent {
     }
   }
 
-
   updateItemMetadata(previousItemMetadata: any) {
-
 
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';
@@ -303,8 +303,6 @@ export class TableGrupoActividadGruposComponent {
 */
     return true;
   }
-
-
 
 }
 

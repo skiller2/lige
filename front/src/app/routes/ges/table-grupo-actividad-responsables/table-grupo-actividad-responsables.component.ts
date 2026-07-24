@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AngularGridInstance, AngularUtilService, Column, Formatters, Editors, GridOption, SlickGrid, OnEventArgs, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, Formatters, Editors, GridOption, SlickGlobalEditorLock, EditCommand } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -11,11 +11,13 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
-import { Component, model, signal, inject } from '@angular/core';
+import { Component, model, signal, inject, resource } from '@angular/core';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { LoadingService } from '@delon/abc/loading';
 import { Selections } from '../../../shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 
 @Component({
@@ -37,21 +39,21 @@ export class TableGrupoActividadResponsablesComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
-  formChange$ = new BehaviorSubject('')
-  private readonly messageSrv = inject(NzMessageService);
+  private readonly messageSrv = inject(NzMessageService)
+  private readonly loadingSrv = inject(LoadingService)
+
   columnDefinitions: Column[] = []
   itemAddActive = false
-  listGrupoActividadResponsables$ = new BehaviorSubject('')
   GrupoActividadJerarquicoId = signal(0)
   GrupoActividadJerarquicoPersonalId = signal(0)
   GrupoActividadId = signal("")
   currPeriodo = signal({ anio: 0, mes: 0 })
-
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
-  startFilters: Selections[] = []
+  });
+  startFilters = signal<Selections[]>([])
+
   complexityLevelList = [true, false];
   angularGridEditActividad!: AngularGridInstance;
   gridOptionsEdit!: GridOption;
@@ -59,14 +61,9 @@ export class TableGrupoActividadResponsablesComponent {
   excelExportService = new ExcelExportService()
   rowLocked: boolean = false;
 
-  visibleDrawerPersona = signal(false)
+  visibleDrawerPersona = signal<boolean>(false)
 
-  listOptionsChange(options: any) {
-    this.listOptions = options
-    this.listGrupoActividadResponsables$.next('')
-  }
-
-  columnsResponsable$ = this.apiService.getCols('/api/grupo-actividad/colsresponsables').pipe(
+  columnsResponsable = toSignal(this.apiService.getCols('/api/grupo-actividad/colsresponsables').pipe(
     switchMap(async (cols) => {
       const tipo = await firstValueFrom(this.searchService.getTipo());
       return { cols, tipo }
@@ -128,7 +125,24 @@ export class TableGrupoActividadResponsablesComponent {
         return col
       });
       return mapped
-    }));
+    })
+  ), { initialValue: [] as Column[] })
+
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.searchService.getListGrupoActividadResponsables({ options: params.options })
+        .pipe(map(data => { return data.list })));
+      } catch (error) {}
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   async ngOnInit() {
 
@@ -143,9 +157,10 @@ export class TableGrupoActividadResponsablesComponent {
     const dateToday = new Date();
     this.currPeriodo.set({ anio: dateToday.getFullYear(), mes: dateToday.getMonth() + 1 })
 
-    this.startFilters = [
+    this.startFilters.set([
       { index: 'GrupoActividadJerarquicoDesde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
-      { index: 'GrupoActividadJerarquicoHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }]
+      { index: 'GrupoActividadJerarquicoHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }
+    ])
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
       //      if column.id 
@@ -188,7 +203,7 @@ export class TableGrupoActividadResponsablesComponent {
         this.angularGridEditActividad.gridService.updateItemById(row.id, row)
 
         if (response.data.PreviousDate) {
-          this.listGrupoActividadResponsables$.next('')
+          this.gridData.reload()
         }
 
         this.rowLocked = false
@@ -225,7 +240,7 @@ export class TableGrupoActividadResponsablesComponent {
   async deleteItemResponsable() {
 
     await firstValueFrom(this.apiService.deleteGrupoActividadResponsables(this.GrupoActividadJerarquicoId(), this.GrupoActividadId()))
-    this.listGrupoActividadResponsables$.next('')
+    this.gridData.reload()
   }
 
   createNewItem(incrementIdByHowMany = 1) {
@@ -284,17 +299,6 @@ export class TableGrupoActividadResponsablesComponent {
 
   async onCellChanged(e: any) {
   }
-
-  gridData$ = this.listGrupoActividadResponsables$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getListGrupoActividadResponsables({ options: this.listOptions })
-        .pipe(map(data => {
-          return data.list
-        })
-        )
-    })
-  )
 
   handleSelectedRowsChanged(e: any): void {
 

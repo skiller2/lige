@@ -1,20 +1,25 @@
 
 <nz-card class="small-margin">
 
-  @if ((columnsObjetivos$|async); as columnas) {
+  @if (columnsObjetivos().length) {
     <div nz-tab>
       <div class="fila">
         <div class="izquierda">
-          <shared-filtro-builder  [fieldsToSelect]="columnas" [startFilters]="startFilters()" (optionsChange)="listOptionsChange($event)" style="width: 80%;" />
+          <shared-filtro-builder  [fieldsToSelect]="columnsObjetivos()" [startFilters]="startFilters()" [(options)]="listOptions" style="width: 80%;" />
         </div>
-        <div class="derecha">
-          <a  nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-            <button nz-button nzType="default" (click)="addNewItem()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-          </a>
-        </div>
+        <nz-button-group nz-button nzButtonGroup class="derecha">
+          <!-- Recarga de grilla -->
+          <button nz-button nzType="default" (click)="gridDataObjetivos.reload()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}">
+            <span nz-icon nzType="reload" nzTheme="outline"></span>
+          </button>
+
+          <button nz-button nzType="default" (click)="addNewItem()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus" nzTheme="outline"></span>
+          </button>
+        </nz-button-group>
       </div>
       <div class="gridContainerGAO container-fluid">
-        <angular-slickgrid gridId="gridEditGAO" [columns]="columnas  | colsFilter" [options]="gridOptionsEdit"
+        <angular-slickgrid gridId="gridEditGAO" [columns]="columnsObjetivos()  | colsFilter" [options]="gridOptionsEdit"
           [dataset]="gridDataObjetivos.value()" (onAngularGridCreated)="angularGridReadyEdit($event)"
           (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"  (onBeforeEditCell)="handleOnBeforeEditCell($event)">
           <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->

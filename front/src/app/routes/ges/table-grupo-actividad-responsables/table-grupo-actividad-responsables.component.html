@@ -1,26 +1,31 @@
 
 <nz-card class="small-margin">
 
-  @if ((columnsResponsable$|async); as columnas) {
+  @if (columnsResponsable().length) {
     <div nz-tab>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <div class="izquierda">
-          <shared-filtro-builder  [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
+          <shared-filtro-builder  [fieldsToSelect]="columnsResponsable()" [startFilters]="startFilters()" [(options)]="listOptions" />
         </div>
         <nz-button-group nz-button nzButtonGroup class="derecha">
-          <a nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-            <button nz-button nzType="default" (click)="addNewItem()"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-          </a>
-          <button nz-button nzType="default" (click)="openDrawer()"><span nz-icon nzType="user" nzTheme="outline"
-          nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"></span></button>
+          <!-- Recargar de grilla -->
+          <button nz-button nzType="default" (click)="gridData.reload()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}">
+            <span nz-icon nzType="reload" nzTheme="outline"></span>
+          </button>
+          <button nz-button nzType="default" (click)="addNewItem()" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+            <span nz-icon nzType="plus" nzTheme="outline"></span>
+          </button>
+          <button nz-button nzType="default" (click)="openDrawer()" nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}">
+            <span nz-icon nzType="user" nzTheme="outline"></span>
+          </button>
           <!-- <a nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
           <button nz-button nzType="default" [disabled]=" GrupoActividadJerarquicoId().length == 0" (click)="deleteItemResponsable()"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
         </a> -->
       </nz-button-group>
     </div>
     <div class="gridContainerGAR container-fluid">
-      <angular-slickgrid gridId="gridEditGAR" [columns]="columnas  | colsFilter" [options]="gridOptionsEdit"
-        [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReadyEdit($event)"
+      <angular-slickgrid gridId="gridEditGAR" [columns]="columnsResponsable()  | colsFilter" [options]="gridOptionsEdit"
+        [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReadyEdit($event)"
         (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" (onCellChange)="onCellChanged($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
         <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
       </angular-slickgrid>
