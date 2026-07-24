@@ -105,6 +105,16 @@ export class EfectoComponent {
     this.router.navigate(['/', 'ges', 'efecto', modo])
   }
 
+  // Alta de un efecto completo: el formulario se abre vacío (sin efecto de partida).
+  abrirAlta() {
+    this.router.navigate(['/', 'ges', 'efecto', 'alta'])
+  }
+
+  // Alta de un efecto individual: el efecto de partida se elige con el buscador dentro del formulario.
+  abrirAltaIndividual() {
+    this.router.navigate(['/', 'ges', 'efecto', 'alta-individual'])
+  }
+
   // Body que se manda al generar el comprobante. Si ya hay un movimiento confirmado, el backend lo
   // arma leyéndolo de la base (por id); si no, lo arma con los datos del form (parametroStock).
   readonly comprobanteBody = computed(() => {

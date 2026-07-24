@@ -1208,6 +1208,18 @@ export class ApiService {
     );
   }
 
+  altaEfecto(payload: any) {
+    return this.http.post<ResponseJSON<any>>('api/efecto/formulario/altaefecto', payload).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    );
+  }
+
+  altaEfectoIndividual(payload: any) {
+    return this.http.post<ResponseJSON<any>>('api/efecto/formulario/altaefectoindividual', payload).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    );
+  }
+
   delAdelanto(adelanto: { PersonalId: string; monto: number, anio: number, mes: number }) {
     return this.http
       .delete<ResponseJSON<any>>(`api/adelantos/${adelanto.PersonalId}`, adelanto)

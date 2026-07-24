@@ -2182,6 +2182,23 @@ export class EfectoController extends BaseController {
       await queryRunner.release();
     }
   }
+  async altaEfecto(req: any, res: Response, next: NextFunction) {
+    console.log(JSON.stringify(req.body, null, 2));
+    try {
+      return this.jsonRes(null, res, 'Formulario dado de alta exitosamente');
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  async altaEfectoIndividual(req: any, res: Response, next: NextFunction) {
+    console.log(JSON.stringify(req.body, null, 2));
+    try {
+      return this.jsonRes(null, res, 'Formulario efecto individual dado de alta exitosamente');
+    } catch (error) {
+      return next(error);
+    }
+  }
 
   // Sincroniza las filas de EfectoAtributo del efecto (tabla 1:N): baja lo que ya no viene, actualiza
   // las que traen Id y da de alta las nuevas. Mismo esquema que guardarAtributosIngreso.

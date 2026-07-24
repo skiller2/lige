@@ -11,6 +11,7 @@ import { ApiService } from '../../../services/api.service';
 import { Atributo, EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro, Valor } from '../../../shared/schemas/efecto.schemas';
 import { AtributoSearchComponent } from '../../../shared/atributo-search/atributo-search';
 import { ValorSearchComponent } from '../../../shared/valor-search/valor-search';
+import { EfectoSearchComponent } from '../../../shared/efecto-search/efecto-search';
 
 
 const texto = (valor: string | null | undefined): string => (valor ?? '').trim();
@@ -52,7 +53,7 @@ const nuevaEfectoAtributoLinea = (): EfectoAtributoLinea => ({
 
 @Component({
   selector: 'app-efecto-form',
-  imports: [SHARED_IMPORTS, FormField, NzFormModule, NzInputModule, NzSelectModule, AtributoSearchComponent, ValorSearchComponent],
+  imports: [SHARED_IMPORTS, FormField, NzFormModule, NzInputModule, NzSelectModule, AtributoSearchComponent, ValorSearchComponent, EfectoSearchComponent],
   templateUrl: './efecto-form.html',
   standalone: true,
 })
@@ -77,11 +78,32 @@ export class EfectoFormComponent {
     { initialValue: [] as Subrubro[] }
   );
 
-  readonly esConsulta = computed(() => this.modo() !== 'formulario');
+  // Los dos modos de alta (uno por botón): 'alta' abre el form vacío; 'alta-individual' reduce la
+  // sección Efecto a un buscador y recién habilita el bloque individual al elegir un efecto.
+  readonly esAltaCompleta = computed(() => this.modo() === 'alta');
+  readonly esAltaIndividual = computed(() => this.modo() === 'alta-individual');
+  // Solo lectura en consulta; en modificación y en las altas es editable.
+  readonly esConsulta = computed(() => this.modo() === 'consulta');
 
-  readonly efectoId = computed(() => this.efecto()?.EfectoId ?? null);
-  readonly individualId = computed(() => this.efecto()?.EfectoEfectoIndividualId ?? null);
-  readonly esIndividual = computed(() => this.individualId() != null);
+  // Efecto elegido en el buscador (solo 'alta-individual'). Hasta que se elige, no hay efecto de
+  // partida y el bloque individual queda oculto.
+  private readonly efectoBuscado = signal<any | null>(null);
+
+  // En 'alta-individual' el efecto de partida sale del buscador; en el resto de los modos, del input.
+  readonly efectoActivo = computed(() => this.esAltaIndividual() ? this.efectoBuscado() : this.efecto());
+
+  readonly efectoId = computed(() => this.efectoActivo()?.EfectoId ?? null);
+  readonly individualId = computed(() => this.efectoActivo()?.EfectoEfectoIndividualId ?? null);
+  readonly esIndividual = computed(() =>
+    this.esAltaCompleta()
+    || (this.esAltaIndividual() && this.efectoBuscado() != null)
+    || this.individualId() != null
+  );
+
+  onEfectoBuscadoChange(opt: any): void {
+    const efectoId = opt?.EfectoId ? Number(opt.EfectoId) : null;
+    this.efectoBuscado.set(efectoId ? { EfectoId: efectoId, EfectoEfectoIndividualId: null, EfectoDescripcion: opt?.fullName ?? '' } : null);
+  }
 
   // Opciones del Select de las filas de atributo del individual: los atributos que ya devuelve
   // el formulario en atributos (atributosIngreso), deduplicados por su Id.
@@ -117,7 +139,7 @@ export class EfectoFormComponent {
   // por control. Tras guardar no se recarga: el back devuelve el formulario persistido y se aplica
   // sobre el modelo (ver guardar()).
   private readonly modelo = linkedSignal<{ ef: any; rows: EfectoIndividualAtributo[] }, EfectoFormModel>({
-    source: () => ({ ef: this.efecto(), rows: this.atributosIngreso() }),
+    source: () => ({ ef: this.efectoActivo(), rows: this.atributosIngreso() }),
     computation: ({ ef, rows }) => ({
       EfectoId: ef?.EfectoId ?? null,
       // La columna editable de Efecto, no la compuesta que muestra la grilla.
@@ -140,10 +162,19 @@ export class EfectoFormComponent {
     disabled(p, () => this.esConsulta());
     disabled(p.EfectoId);
 
-    required(p.EfectoDescripcion, { message: 'La descripción es obligatoria' });
-    maxLength(p.EfectoDescripcion, 100, { message: 'La descripción no puede superar los 100 caracteres' });
-    required(p.RubroId, { message: 'El rubro es obligatorio' });
-    required(p.SubrubroId, { message: 'El subrubro es obligatorio' });
+    // La cabecera de Efecto (descripción, rubro, subrubro) no se edita en alta individual: ahí la
+    // sección Efecto es solo el buscador y el efecto ya existe, así que esas obligatorias no aplican.
+    required(p.EfectoDescripcion, { message: 'La descripción es obligatoria', when: () => !this.esAltaIndividual() });
+    // maxLength no admite 'when', así que el largo se valida con un validate mode-aware: en alta
+    // individual la descripción es la del efecto elegido (no se edita y puede ser larga), así que no aplica.
+    validate(p.EfectoDescripcion, ({ value }) => {
+      if (this.esAltaIndividual()) return undefined;
+      return texto(value()).length > 100
+        ? { kind: 'maxLength', message: 'La descripción no puede superar los 100 caracteres' }
+        : undefined;
+    });
+    required(p.RubroId, { message: 'El rubro es obligatorio', when: () => !this.esAltaIndividual() });
+    required(p.SubrubroId, { message: 'El subrubro es obligatorio', when: () => !this.esAltaIndividual() });
 
     // Columna NULL-able: vacío es "sin mínimo definido" y es válido.
     validate(p.EfectoStockMinimo, ({ value }) => {
@@ -184,7 +215,7 @@ export class EfectoFormComponent {
   // subrubro y vaciarlo sería borrar el dato que se acaba de leer.
   private readonly limpiarSubrubroDeOtroRubro = effect(() => {
     const rubroId = this.formEfecto.RubroId().value();
-    const ef = this.efecto();
+    const ef = this.efectoActivo();
     untracked(() => {
       const esCarga = ef !== this.efectoVisto;
       const cambioRubro = rubroId !== this.rubroVisto;
@@ -278,6 +309,9 @@ export class EfectoFormComponent {
 
   async guardar(): Promise<void> {
     if (this.esConsulta()) return;
+    // Alta individual: hay que elegir primero el efecto de partida en el buscador; sin él no hay nada
+    // que dar de alta (y el bloque de efecto individual todavía está oculto).
+    if (this.esAltaIndividual() && !this.efectoActivo()) return;
     await submit(this.formEfecto, async f => {
       const m = f().value();
       const values = {
@@ -291,7 +325,14 @@ export class EfectoFormComponent {
       };
       console.log('[efecto-form] payload enviado:', JSON.parse(JSON.stringify(values)));
 
-      const res = await firstValueFrom(this.apiService.guardarEfectoForm(values));
+      // Cada modo tiene su endpoint: alta de efecto completo, alta de efecto individual o
+      // modificación de un efecto existente.
+      const guardado$ = this.esAltaCompleta()
+        ? this.apiService.altaEfecto(values)
+        : this.esAltaIndividual()
+          ? this.apiService.altaEfectoIndividual(values)
+          : this.apiService.guardarEfectoForm(values);
+      const res = await firstValueFrom(guardado$);
 
       console.log('[efecto-form] formulario recibido:', res?.data);
 

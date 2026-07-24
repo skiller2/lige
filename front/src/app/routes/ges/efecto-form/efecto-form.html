@@ -1,5 +1,5 @@
 <nz-card class="small-margin">
-  @if (efecto()) {
+  @if (efecto() || esAltaCompleta() || esAltaIndividual()) {
   <form nz-form nzLayout="horizontal" (ngSubmit)="guardar()">
     <!-- <span style="color: rgba(0,0,0,0.45);">{{ descripcionCompleta() }}</span> -->
 
@@ -8,6 +8,16 @@
     </nz-form-item>
 
 
+    @if (esAltaIndividual()) {
+    <nz-form-item style="margin-top: 20px;">
+      <nz-form-label [nzSpan]="6">Efecto</nz-form-label>
+      <nz-form-control [nzSpan]="14">
+        <app-efecto-search (valueExtendedChange)="onEfectoBuscadoChange($event)"></app-efecto-search>
+      </nz-form-control>
+    </nz-form-item>
+    }
+
+    @if (!esAltaIndividual()) {
     <nz-form-item style="margin-top: 20px;">
       <nz-form-label [nzSpan]="6">Efecto ID</nz-form-label>
       <nz-form-control [nzSpan]="14">
@@ -113,6 +123,7 @@
         }
       </nz-form-control>
     </nz-form-item>
+    }
     }
 
     <!-- Bloque de efecto individual: descripción + atributos de ingreso. -->

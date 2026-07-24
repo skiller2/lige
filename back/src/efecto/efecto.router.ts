@@ -90,3 +90,11 @@ efectoRouter.get("/formulario/:id", [authMiddleware.verifyToken, authMiddleware.
 efectoRouter.post("/formulario/modificacion", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   efectoController.guardarEfectoForm(req, res, next);
 });
+
+efectoRouter.post("/formulario/altaefecto", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  efectoController.altaEfecto(req, res, next);
+});
+
+efectoRouter.post("/formulario/altaefectoindividual", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  efectoController.altaEfectoIndividual(req, res, next);
+});
