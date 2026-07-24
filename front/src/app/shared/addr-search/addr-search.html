@@ -1,0 +1,50 @@
+<nz-space-compact nzBlock>
+  <nz-select #dsc [ngModel]="selectedItem()" [nzDropdownMatchSelectWidth]="false"
+    [ngModelOptions]="{ standalone: true }" style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear
+    nzPlaceHolder="Direccion" nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [nzLoading]="loading()"
+    [compareWith]="compareByPlaceId">
+
+    @if (!loading()) {
+      @for (item of options(); track item.place_id) {
+        <nz-option [nzValue]="item" [nzLabel]="item.display_name">
+        </nz-option>
+      }
+    } @else {
+      <nz-option nzDisabled nzCustomContent>
+        <nz-icon nzType="loading" class="loading-icon" />
+        Buscando información...
+      </nz-option>
+    }
+
+  </nz-select>
+  <button nz-button nz-tooltip nzTooltipTitle="Ver Mapa" [disabled]="!selectedItem()" (click)="openDrawer()">
+    <nz-icon nzType="environment" />
+  </button>
+
+</nz-space-compact>
+
+
+
+<nz-drawer [nzVisible]="visibleDrawer()" [nzWidth]="800" nzTitle="Ubicación" (nzOnClose)="closeDrawer()">
+
+  <ng-container *nzDrawerContent>
+
+    @if (selectedItem()) {
+
+    <h4>{{ selectedItem()?.display_name }}</h4>
+
+    <iframe [src]="mapUrl()" width="100%" height="500" style="border:0" loading="lazy">
+    </iframe>
+
+    <div style="margin-top:12px">
+      Latitud: {{ selectedItem()?.lat }}
+      <br>
+      Longitud: {{ selectedItem()?.lon }}
+    </div>
+
+    }
+
+    <p>Debug: {{selectedItem()|json}}
+    <p>
+  </ng-container>
+</nz-drawer>

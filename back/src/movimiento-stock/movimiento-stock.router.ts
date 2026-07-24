@@ -20,15 +20,15 @@ movimientoStockRouter.get("/proveedores", [authMiddleware.verifyToken, authMiddl
   movimientoStockController.getProveedores(req, res, next);
 });
 
-movimientoStockRouter.post("/confirmar", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+movimientoStockRouter.post("/confirmar", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica'])], (req, res, next) => {
   movimientoStockController.confirmarMovimiento(req, res, next);
 });
 
-movimientoStockRouter.post("/confirmarIngreso", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+movimientoStockRouter.post("/confirmarIngreso", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica'])], (req, res, next) => {
   movimientoStockController.confirmarMovimiento(req, res, next);
 });
 
-movimientoStockRouter.post("/comprobante", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+movimientoStockRouter.post("/comprobante", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
   movimientoStockController.descargarComprobante(req, res, next);
 });
 

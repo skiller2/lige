@@ -1148,8 +1148,6 @@ export class ImpuestosAfipController extends BaseController {
       const fullPath = join(FileUploadController.pathDocuments, comprobante.DocumentoPath)
       const nombre_archivo = comprobante.DocumentoNombreArchivo
 
-      //const filename = `${year}-${month.padStart(2,"0")}-${cuit}-${personalId}.pdf`;
-
       if (!existsSync(fullPath))
         throw new ClientException(`El archivo de monotributo no se encontró ${month}/${year}, CUIT:${cuit} .`);
 
@@ -1200,6 +1198,8 @@ export class ImpuestosAfipController extends BaseController {
 
 
     TODO://Detectar el espacio vacío alrededor del comprobante de manera automática
+console.log("CALC",page0.getWidth(),page0.getHeight())
+
     if (page0.getWidth() == 595.276 && page0.getHeight() == 841.89) {
       origenComprobante = "PAGO"
       embededPages = await newPdf.embedPages(originPDFPages, [
@@ -1210,12 +1210,15 @@ export class ImpuestosAfipController extends BaseController {
       embededPages = await newPdf.embedPages(originPDFPages, [
         { top: 808, bottom: 385, left: 37, right: 560 },
       ]);
-    } else if (page0.getWidth() == 595.32001 && page0.getHeight() == 841.92004) {  //Comprobante Manual
+    } 
+    
+    /*else if (page0.getWidth() == 595.32001 && page0.getHeight() == 841.92004) {  //Comprobante Manual
       origenComprobante = "MANUAL"
       embededPages = await newPdf.embedPages(originPDFPages, [
         { top: 830, bottom: 450, left: 167, right: 430 },
       ]);
-    } else {
+    } */
+    else {
       embededPages = await newPdf.embedPages(originPDFPages);
     }
 
