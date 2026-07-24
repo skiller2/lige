@@ -1907,7 +1907,7 @@ export class EfectoController extends BaseController {
           m.Observaciones,
           IIF(m.IntermediarioPersonalId IS NULL, NULL, CONCAT(TRIM(peri.PersonalApellido), ', ', TRIM(peri.PersonalNombre))) AS Intermediario,
           m.IndIngresoStock,
-          m.MovimientoCodigoViejo
+          m.MovimientoCodigoViejo, m.Fecha
         FROM (
           SELECT mov.Observaciones, mov.IndIngresoStock, NULLIF(TRIM(mov.MovimientoCodigoViejo), '') AS MovimientoCodigoViejo,
               IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.PersonalIdDestino, mov.PersonalIdDestino) AS PersonalIdDest,
@@ -1915,7 +1915,7 @@ export class EfectoController extends BaseController {
               IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ClienteIdDestino, mov.ClienteIdDestino) AS ClienteIdDest,
               IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ClienteElementoDependienteIdDestino, mov.ClienteElementoDependienteIdDestino) AS ClienteElemDepDest,
               IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.DepositoIdDestino, mov.DepositoIdDestino) AS DepositoIdDest,
-              IIF(pend.MovimientoStockCodigo IS NOT NULL, mov.PersonalIdDestino, NULL) AS IntermediarioPersonalId
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, mov.PersonalIdDestino, NULL) AS IntermediarioPersonalId, mov.Fecha
           FROM MovimientoStock mov
           LEFT JOIN MovimientoStockPendiente pend ON pend.MovimientoStockCodigo = mov.MovimientoStockCodigo
           WHERE mov.MovimientoStockCodigo = @0
