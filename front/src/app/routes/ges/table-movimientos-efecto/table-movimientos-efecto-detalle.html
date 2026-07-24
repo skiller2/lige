@@ -24,7 +24,7 @@
       Cantidad de Efectos: <strong>{{ cantidadTotal() }}</strong>
     </div>
     <div style="margin-bottom: 8px;">
-      Fecha efectuado: <strong>{{ cabecera()?.FechaMovimiento | date }}</strong>
+      Fecha efectuado: <strong>{{ cabecera()?.Fecha | date }}</strong>
     </div>
 
     <nz-table #detalleTable [nzData]="filas()" [nzLoading]="data.isLoading()" nzSize="middle" [nzShowPagination]="false"
