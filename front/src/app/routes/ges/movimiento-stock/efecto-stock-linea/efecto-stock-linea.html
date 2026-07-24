@@ -3,7 +3,8 @@
   <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Efecto</nz-form-label>
   <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" [nzLg]="5" nzHasFeedback sfErrorTip>
     <app-efecto-search [formField]="field().EfectoId" [individualId]="field().EfectoIndividualId().value()"
-      [soloConStock]="!IndIngresoStock()" (valueExtendedChange)="onEfectoExtended($event)"></app-efecto-search>
+      [soloConStock]="!IndIngresoStock()" [soloConIndividual]="false" [soloConEfecto]="false"
+      (valueExtendedChange)="onEfectoExtended($event)"></app-efecto-search>
 
     <!-- RELACIONAR DESHABILITADO (por el momento no se usa)
     @if (relaciones.value()?.length) {

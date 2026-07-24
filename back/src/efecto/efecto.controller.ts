@@ -1160,8 +1160,7 @@ export class EfectoController extends BaseController {
 
   async searchEfecto(req: any, res: Response, next: NextFunction) {
     const { fieldName, value, soloConStock, soloConIndividual, soloConEfecto } = req.body;
-    if (!soloConStock && !soloConIndividual && !soloConEfecto) throw new ClientException("Debe indicar al menos un parámetro de búsqueda: soloConStock, soloConIndividual o soloConEfecto.");
-    
+
     const queryRunner = await getConnection(res.locals.userName);
 
     let buscar = false;

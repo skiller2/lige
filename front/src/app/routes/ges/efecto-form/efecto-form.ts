@@ -94,11 +94,16 @@ export class EfectoFormComponent {
 
   readonly efectoId = computed(() => this.efectoActivo()?.EfectoId ?? null);
   readonly individualId = computed(() => this.efectoActivo()?.EfectoEfectoIndividualId ?? null);
+  // En alta individual el bloque se muestra siempre (aunque todavía no se haya elegido efecto): queda
+  // visible pero deshabilitado y se habilita al elegir el efecto de partida (ver individualDeshabilitado).
   readonly esIndividual = computed(() =>
     this.esAltaCompleta()
-    || (this.esAltaIndividual() && this.efectoBuscado() != null)
+    || this.esAltaIndividual()
     || this.individualId() != null
   );
+
+  // El bloque de efecto individual arranca deshabilitado en alta individual hasta elegir el efecto.
+  readonly individualDeshabilitado = computed(() => this.esAltaIndividual() && !this.efectoActivo());
 
   onEfectoBuscadoChange(opt: any): void {
     const efectoId = opt?.EfectoId ? Number(opt.EfectoId) : null;
@@ -161,6 +166,11 @@ export class EfectoFormComponent {
     // El modo es una regla derivada, no un estado que haya que rearmar en cada carga.
     disabled(p, () => this.esConsulta());
     disabled(p.EfectoId);
+
+    // Bloque de efecto individual: visible siempre en alta individual, pero deshabilitado hasta que
+    // se elija el efecto de partida en el buscador.
+    disabled(p.EfectoEfectoIndividualDescripcion, () => this.individualDeshabilitado());
+    disabled(p.atributos, () => this.individualDeshabilitado());
 
     // La cabecera de Efecto (descripción, rubro, subrubro) no se edita en alta individual: ahí la
     // sección Efecto es solo el buscador y el efecto ya existe, así que esas obligatorias no aplican.
@@ -298,12 +308,12 @@ export class EfectoFormComponent {
   }
 
   agregarAtributo(): void {
-    if (this.esConsulta()) return;
+    if (this.esConsulta() || this.individualDeshabilitado()) return;
     this.modelo.update(m => ({ ...m, atributos: [...m.atributos, nuevaAtributoLinea()] }));
   }
 
   quitarAtributo(index: number): void {
-    if (this.esConsulta()) return;
+    if (this.esConsulta() || this.individualDeshabilitado()) return;
     this.modelo.update(m => ({ ...m, atributos: m.atributos.filter((_, i) => i !== index) }));
   }
 
