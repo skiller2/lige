@@ -32,6 +32,8 @@ export class EfectoSearchComponent implements ControlValueAccessor {
   readonly soloConStock = input(false)
   // Param 2 (opcional): si es true, solo trae efectos que tengan EfectoEfectoIndividualId (individuales).
   readonly soloConIndividual = input(false)
+  // Param 3 (opcional): si es true, solo trae efectos que no tengan EfectoEfectoIndividualId (no individuales).
+  readonly soloConEfecto = input(false)
   readonly valueExtendedChange = output<any>()
   readonly csc = viewChild<NzSelectComponent>('csc')
 
@@ -56,11 +58,11 @@ export class EfectoSearchComponent implements ControlValueAccessor {
   private readonly termino = signal('')
   private readonly terminoDebounced = signal('')
   readonly opciones = resource({
-    params: () => ({ q: this.terminoDebounced(), stock: this.soloConStock(), indiv: this.soloConIndividual() }),
+    params: () => ({ q: this.terminoDebounced(), stock: this.soloConStock(), indiv: this.soloConIndividual(), efecto: this.soloConEfecto() }),
     loader: async ({ params }) => {
       if (!params.q) return [] as SearchEfecto[]
       return (await firstValueFrom(
-        this.searchService.getEfectoFromName('EfectoDescripcion', params.q, params.stock, params.indiv)
+        this.searchService.getEfectoFromName('EfectoDescripcion', params.q, params.stock, params.indiv, params.efecto)
       )) ?? []
     },
   })
@@ -142,7 +144,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
       return
     }
 
-    const res = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', id))
+    const res = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', id, this.soloConStock(), this.soloConIndividual(), this.soloConEfecto()))
     if (res && res.length > 0) {
       // Elegimos el registro del individual indicado; si no se indicó (o no está), caemos al primero.
       const match = res.find(r => (r.EfectoEfectoIndividualId ?? null) === this.individualId()) ?? res[0]
