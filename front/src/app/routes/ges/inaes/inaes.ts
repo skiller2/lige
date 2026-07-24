@@ -114,10 +114,8 @@ export class INAESComponent {
         Estado = '1'
         break;
       case 'bajas':
-        //BAJA (3)
         Estado = '0'
         break;
-    
       default:
         this.notification.warning('Advertencia', `Error al intenetar exportar.`);
         this.loadingExport.set(false)
