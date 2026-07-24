@@ -769,11 +769,6 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = efecto[0].EfectoDescripcion
     }
 
-    if (fieldObj.searchComponent == 'inputForEfectoIndividualSearch') {
-      const efectoIndividual = await firstValueFrom(this.searchService.getEfectoIndividualFromName('EfectoEfectoIndividualId', value))
-      label = efectoIndividual[0].EfectoEfectoIndividualDescripcion
-    }
-
     if (fieldObj.searchComponent == 'inputForSituacionRevistaSearch') {
       let valueSplit = value.split(";")
       let result = ''
@@ -825,7 +820,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     this.handleInputConfirm(null)
   }
 
-  async uploadChange(event: any, action:string) {
+  async uploadChange(event: any, action: string) {
     switch (event.type) {
       case 'start':
         this.uploading$.next({ loading: true, event })

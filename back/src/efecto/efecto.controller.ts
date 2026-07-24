@@ -1159,7 +1159,9 @@ const listaColumnasMovimientos: any[] = [
 export class EfectoController extends BaseController {
 
   async searchEfecto(req: any, res: Response, next: NextFunction) {
-    const { fieldName, value, soloConStock, soloConIndividual } = req.body;
+    const { fieldName, value, soloConStock, soloConIndividual, soloConEfecto } = req.body;
+    if (!soloConStock && !soloConIndividual && !soloConEfecto) throw new ClientException("Debe indicar al menos un parámetro de búsqueda: soloConStock, soloConIndividual o soloConEfecto.");
+    
     const queryRunner = await getConnection(res.locals.userName);
 
     let buscar = false;
@@ -1195,6 +1197,9 @@ export class EfectoController extends BaseController {
     // Param 2 (opcional): solo efectos individuales (con EfectoEfectoIndividualId). Lo manda "Relacionado con".
     if (soloConIndividual) query += ` EfectoEfectoIndividualId IS NOT NULL AND `;
 
+    if (soloConEfecto) query += ` EfectoEfectoIndividualId IS NULL AND `;
+
+
     queryRunner
       .query((query += " 1=1"))
       .then(async (records) => {
@@ -1205,49 +1210,6 @@ export class EfectoController extends BaseController {
         return next(error)
       });
   }
-
-  // TODO: READAPTAR PARA QUE SE BUSQUE POR EFECTOID + EFECTOEFFECTOINDIVIDUALID (VER API Y FRONT TAMBIEN)
-  async searchEfectoIndividual(req: any, res: Response, next: NextFunction) {
-    const { fieldName, value } = req.body;
-    const queryRunner = await getConnection(res.locals.userName);
-
-    let buscar = false;
-    let query: string = `SELECT EfectoId,EfectoEfectoIndividualId, EfectoEfectoIndividualDescripcion  FROM EfectoIndividualDescripcion WHERE`;
-    switch (fieldName) {
-      case "EfectoEfectoIndividualDescripcion":
-        const valueArray: Array<string> = value.split(/[\s,.]+/);
-        valueArray.forEach((element, index) => {
-          if (element.trim().length > 1) {
-            query += `(EfectoEfectoIndividualDescripcion LIKE '%${element.trim()}%') AND `;
-            buscar = true;
-          }
-        });
-        break;
-      case "EfectoEfectoIndividualId":
-        if (value.length > 0) {
-          query += `EfectoEfectoIndividualId = '${value.EfectoEfectoIndividualId}' AND `;
-          buscar = true;
-        }
-        break;
-      default:
-        break;
-    }
-
-    if (buscar == false) {
-      this.jsonRes({ recordsArray: [] }, res);
-      return;
-    }
-
-    queryRunner
-      .query((query += " 1=1"))
-      .then((records) => {
-        this.jsonRes({ recordsArray: records }, res);
-      })
-      .catch((error) => {
-        return next(error)
-      });
-  }
-
 
   async getEfectoRelaciones(req: any, res: Response, next: NextFunction) {
     const efectoId = Number(req.params.id);
@@ -1412,7 +1374,7 @@ export class EfectoController extends BaseController {
   async getGridFilters(req: any, res: Response, next: NextFunction) {
     const startFilters: Selections[] = []
     const sucursalIds = Array.isArray(res.locals.filterSucursal) ? res.locals.filterSucursal : [];
-    const grupoActividadIds = Array.isArray(res.locals.GrupoActividad)? res.locals.GrupoActividad.map((grupo: any) => Number(grupo.GrupoActividadId)).filter((id: number) => id > 0): [];
+    const grupoActividadIds = Array.isArray(res.locals.GrupoActividad) ? res.locals.GrupoActividad.map((grupo: any) => Number(grupo.GrupoActividadId)).filter((id: number) => id > 0) : [];
     const filterSucursal = sucursalIds.join(';');
     const grupoActividad = grupoActividadIds.join(';');
 
@@ -2039,7 +2001,7 @@ export class EfectoController extends BaseController {
     `, [efectoId, individualId]);
   }
 
- private async formularioEfectoForm(
+  private async formularioEfectoForm(
     queryRunner: any, efectoId: number, individualId: number | null
   ) {
     const efecto = await queryRunner.query(`
@@ -2106,7 +2068,7 @@ export class EfectoController extends BaseController {
       const rubroId = Number(body.RubroId) || null;
       const subrubroId = Number(body.SubrubroId) || null;
       // La columna es NULL-able: vacío significa "sin mínimo definido", que no es lo mismo que 0.
-      const stockMinimo = body.EfectoStockMinimo == null || body.EfectoStockMinimo === '' ? null: Number(body.EfectoStockMinimo);
+      const stockMinimo = body.EfectoStockMinimo == null || body.EfectoStockMinimo === '' ? null : Number(body.EfectoStockMinimo);
       const individualId = body.EfectoEfectoIndividualId == null || body.EfectoEfectoIndividualId === ''
         ? null
         : Number(body.EfectoEfectoIndividualId);
@@ -2363,7 +2325,7 @@ export class EfectoController extends BaseController {
     return rows[0]?.Clave ?? null;
   }
 
-   private async validarDescripcionCompletaUnica(
+  private async validarDescripcionCompletaUnica(
     queryRunner: any, efectoId: number, individualId: number | null, claveAntes: string | null
   ) {
     const clave = await this.claveEfecto(queryRunner, efectoId, individualId);

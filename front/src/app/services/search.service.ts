@@ -526,7 +526,7 @@ export class SearchService {
       item.display_name = [
         [road, house_number].filter(Boolean).join(" "),
         state_district || town,
-        state ,
+        state,
         postcode
       ]
         .filter(Boolean)
@@ -2671,12 +2671,12 @@ export class SearchService {
     );
   }
 
-  getEfectoFromName(fieldName: string, values: string, soloConStock = false, soloConIndividual = false): Observable<SearchEfecto[]> {
+  getEfectoFromName(fieldName: string, values: string, soloConStock: boolean, soloConIndividual: boolean, soloConEfecto: boolean): Observable<SearchEfecto[]> {
     if (!values || values == '') {
       return of([]);
     }
     return this.http
-      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', { fieldName: fieldName, value: values, soloConStock, soloConIndividual }).pipe(map(res => {
+      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', { fieldName: fieldName, value: values, soloConStock, soloConIndividual, soloConEfecto }).pipe(map(res => {
         if (res.data.recordsArray) return res.data.recordsArray;
         else return [];
       }),
@@ -2687,22 +2687,7 @@ export class SearchService {
       );
   }
 
-  getEfectoIndividualFromName(fieldName: string, values: string): Observable<SearchEfectoIndividual[]> {
-    if (!values || values == '') {
-      return of([]);
-    }
-    return this.http
-      .post<ResponseJSON<ResponseBySearchEfectoIndividual>>('api/efecto/searchEfectoIndividual', { fieldName: fieldName, value: values, }).pipe(map(res => {
-        if (res.data.recordsArray) return res.data.recordsArray;
-        else return [];
-      }),
-        catchError((err, caught) => {
-
-          return of([]);
-        })
-      );
-  }
-
+  
   getTipoAsociadoCategoriaFromName(fieldName: string, values: string): Observable<SearchTipoAsociadoCategoria[]> {
     if (!values || values == '') {
       return of([]);
