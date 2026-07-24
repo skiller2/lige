@@ -765,7 +765,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
     // readaptar componente de busqueda de efecto
     if (fieldObj.searchComponent == 'inputForEfectoSearch') {
-      const efecto = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', value, true, false, false))
+      const efecto = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', value, false, false, false))
       label = efecto[0].EfectoDescripcion
     }
 
