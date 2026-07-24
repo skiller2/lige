@@ -3,6 +3,7 @@ import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Selections } from "../schemas/filtro.ts";
+import { logger } from "../logger/logger.ts";
 
 const listaColumnasPersonal: any[] = [
   {
@@ -1159,9 +1160,7 @@ const listaColumnasMovimientos: any[] = [
 export class EfectoController extends BaseController {
 
   async searchEfecto(req: any, res: Response, next: NextFunction) {
-    const { fieldName, value, soloConStock, soloConIndividual, soloConEfecto } = req.body;
-    if (!soloConStock && !soloConIndividual && !soloConEfecto) throw new ClientException("Debe indicar al menos un parámetro de búsqueda: soloConStock, soloConIndividual o soloConEfecto.");
-    
+    const { fieldName, value, soloConStock, soloConIndividual, soloConEfecto } = req.body;    
     const queryRunner = await getConnection(res.locals.userName);
 
     let buscar = false;
