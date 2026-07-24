@@ -63,7 +63,7 @@ export interface EfectoIndividualAtributo {
     AtributoDescripcion: string;
 }
 
-export interface EfectoModificaFormulario {
+export interface EfectoFormulario {
     EfectoId: number;
     EfectoDescripcion: string;
     RubroId: number | null;

@@ -21,7 +21,7 @@ interface AtributoLinea {
   EfectoAtributoIngresoValor: string;
 }
 
-interface EfectoModificaModel {
+interface EfectoFormModel {
   EfectoId: number | null;
   EfectoDescripcion: string;
   RubroId: number | null;
@@ -51,12 +51,12 @@ const nuevaEfectoAtributoLinea = (): EfectoAtributoLinea => ({
 });
 
 @Component({
-  selector: 'app-efecto-modifica',
+  selector: 'app-efecto-form',
   imports: [SHARED_IMPORTS, FormField, NzFormModule, NzInputModule, NzSelectModule, AtributoSearchComponent, ValorSearchComponent],
-  templateUrl: './efecto-modifica.html',
+  templateUrl: './efecto-form.html',
   standalone: true,
 })
-export class EfectoModificaComponent {
+export class EfectoFormComponent {
   readonly efecto = input<any | null>(null);
   readonly modo = input<string>('consulta');
 
@@ -77,7 +77,7 @@ export class EfectoModificaComponent {
     { initialValue: [] as Subrubro[] }
   );
 
-  readonly esConsulta = computed(() => this.modo() !== 'modifica');
+  readonly esConsulta = computed(() => this.modo() !== 'formulario');
 
   readonly efectoId = computed(() => this.efecto()?.EfectoId ?? null);
   readonly individualId = computed(() => this.efecto()?.EfectoEfectoIndividualId ?? null);
@@ -102,7 +102,7 @@ export class EfectoModificaComponent {
     params: () => ({ efectoId: this.efectoId(), individualId: this.individualId() }),
     loader: async ({ params }) =>
       params.efectoId
-        ? await firstValueFrom(this.search.getEfectoFormularioModifica(params.efectoId, params.individualId))
+        ? await firstValueFrom(this.search.getEfectoFormulario(params.efectoId, params.individualId))
         : null,
   });
 
@@ -116,7 +116,7 @@ export class EfectoModificaComponent {
   // escribible y se queda con lo que edita el usuario. Reemplaza al effect que reseteaba control
   // por control. Tras guardar no se recarga: el back devuelve el formulario persistido y se aplica
   // sobre el modelo (ver guardar()).
-  private readonly modelo = linkedSignal<{ ef: any; rows: EfectoIndividualAtributo[] }, EfectoModificaModel>({
+  private readonly modelo = linkedSignal<{ ef: any; rows: EfectoIndividualAtributo[] }, EfectoFormModel>({
     source: () => ({ ef: this.efecto(), rows: this.atributosIngreso() }),
     computation: ({ ef, rows }) => ({
       EfectoId: ef?.EfectoId ?? null,
@@ -289,11 +289,11 @@ export class EfectoModificaComponent {
         // Filas de EfectoAtributo: persisten en su propia tabla, aparte del modelo del form.
         EfectoAtributos: this.efectoAtributos(),
       };
-      console.log('[efecto-modifica] payload enviado:', JSON.parse(JSON.stringify(values)));
+      console.log('[efecto-form] payload enviado:', JSON.parse(JSON.stringify(values)));
 
-      const res = await firstValueFrom(this.apiService.guardarEfectoModifica(values));
+      const res = await firstValueFrom(this.apiService.guardarEfectoForm(values));
 
-      console.log('[efecto-modifica] formulario recibido:', res?.data);
+      console.log('[efecto-form] formulario recibido:', res?.data);
 
       // El back devuelve el formulario ya persistido, así que se aplica en vez de recargar: recargar
       // los resources rearmaba el modelo entero (el linkedSignal se alimenta de atributosIngreso) y

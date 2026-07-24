@@ -10,7 +10,7 @@ import { TableMovimientosEfectoComponent } from '../table-movimientos-efecto/tab
 import { TableMovimientosEfectoDetalleComponent } from '../table-movimientos-efecto/table-movimientos-efecto-detalle';
 import { TableEfectoGeneralComponent } from '../table-efecto-general/table-efecto-general';
 import { MovimientoStockComponent } from '../movimiento-stock/movimiento-stock';
-import { EfectoModificaComponent } from '../efecto-modifica/efecto-modifica';
+import { EfectoFormComponent } from '../efecto-form/efecto-form';
 import { SettingsService } from '@delon/theme';
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -33,7 +33,7 @@ const TABS_GRILLA: string[] = ['general', 'personal', 'objetivos', 'deposito', '
     TableMovimientosEfectoDetalleComponent,
     TableEfectoGeneralComponent,
     MovimientoStockComponent,
-    EfectoModificaComponent,
+    EfectoFormComponent,
   ],
   templateUrl: './efecto.component.html',
   styleUrl: './efecto.component.less',
@@ -89,7 +89,7 @@ export class EfectoComponent {
 
   readonly efectoSeleccionado = computed(() => {
     const tab = this.activeTab()
-    const grilla = tab === 'modifica' || tab === 'consulta' ? this.ultimaGrilla() : tab
+    const grilla = tab === 'formulario' || tab === 'consulta' ? this.ultimaGrilla() : tab
     return this.seleccionPorTab()[grilla] ?? null
   })
 
@@ -99,8 +99,8 @@ export class EfectoComponent {
 
   readonly modificaEfectoDeshabilitado = computed(() => this.efectoSeleccionado() == null)
 
-  // Navega a /ges/efecto/modifica o /ges/efecto/consulta (la solapa es el modo); el efecto viaja por señal.
-  abrirModifica(modo: 'consulta' | 'modifica') {
+  // Navega a /ges/efecto/formulario o /ges/efecto/consulta (la solapa es el modo); el efecto viaja por señal.
+  abrirModifica(modo: 'consulta' | 'formulario') {
     if (!this.efectoSeleccionado()) return
     this.router.navigate(['/', 'ges', 'efecto', modo])
   }

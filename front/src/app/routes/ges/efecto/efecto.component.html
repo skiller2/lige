@@ -57,7 +57,7 @@
       </button>
       <!-- Modificar efecto. Habilitado con un efecto seleccionado en la grilla activa. -->
       <button nz-button nzType="default" type="button" nz-tooltip nzTooltipTitle="Modificar efecto"
-        [disabled]="modificaEfectoDeshabilitado()" (click)="abrirModifica('modifica')">
+        [disabled]="modificaEfectoDeshabilitado()" (click)="abrirModifica('formulario')">
         <span nz-icon nzType="edit" nzTheme="outline"></span>
       </button>
 
@@ -108,8 +108,8 @@
       (efectoSelected)="seleccionarEfecto('proveedores', $event)" />
   </div>
   }
-  @if (activeTab() === 'modifica' || activeTab() === 'consulta') {
-  <app-efecto-modifica [efecto]="efectoSeleccionado()" [modo]="activeTab()" />
+  @if (activeTab() === 'formulario' || activeTab() === 'consulta') {
+  <app-efecto-form [efecto]="efectoSeleccionado()" [modo]="activeTab()" />
   }
   @if (visitedTabs().has('movimientos')) {
   <div [hidden]="activeTab() !== 'movimientos'">

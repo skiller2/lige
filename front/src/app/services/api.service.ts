@@ -1202,8 +1202,8 @@ export class ApiService {
   }
 
   // Guardado del form de modificar efecto. La notificación sale sola vía response() (usa res.msg).
-  guardarEfectoModifica(payload: any) {
-    return this.http.post<ResponseJSON<any>>('api/efecto/modificacion', payload).pipe(
+  guardarEfectoForm(payload: any) {
+    return this.http.post<ResponseJSON<any>>('api/efecto/formulario/modificacion', payload).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     );
   }

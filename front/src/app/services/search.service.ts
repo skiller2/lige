@@ -15,7 +15,7 @@ import {
 import { SearchGrup, ResponseBySearchGrup } from '../shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente, SearchClient } from '../shared/schemas/cliente.schemas';
 import { ResponseBySearchAdministrador, SearchAdmind } from '../shared/schemas/administrador.schemas';
-import { Atributo, EfectoModificaFormulario, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, Valor } from '../shared/schemas/efecto.schemas';
+import { Atributo, EfectoFormulario, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, Valor } from '../shared/schemas/efecto.schemas';
 import { ResponseBySearchTipoAsociadoCategoria, SearchTipoAsociadoCategoria } from '../shared/schemas/tipo-asociado-categoria.schemas';
 import { ResponseBySearchRubro, SearchRubro } from '../shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from '../shared/schemas/seguro.schemas';
@@ -2642,10 +2642,10 @@ export class SearchService {
 
   // Carga inicial del form de modificar/consultar efecto: cabecera + atributos del efecto +
   // atributos de ingreso del individual + relaciones, todo en una sola llamada.
-  getEfectoFormularioModifica(efectoId: number, individualId: number | null = null): Observable<EfectoModificaFormulario | null> {
+  getEfectoFormulario(efectoId: number, individualId: number | null = null): Observable<EfectoFormulario | null> {
     if (!efectoId) return of(null);
     const params = individualId != null ? { individualId: String(individualId) } : {};
-    return this.http.get<ResponseJSON<EfectoModificaFormulario>>(`api/efecto/formulario/${efectoId}`, params).pipe(
+    return this.http.get<ResponseJSON<EfectoFormulario>>(`api/efecto/formulario/${efectoId}`, params).pipe(
       map(res => res.data ?? null),
       catchError(() => of(null))
     );

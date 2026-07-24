@@ -2039,7 +2039,7 @@ export class EfectoController extends BaseController {
     `, [efectoId, individualId]);
   }
 
- private async formularioEfectoModifica(
+ private async formularioEfectoForm(
     queryRunner: any, efectoId: number, individualId: number | null
   ) {
     const efecto = await queryRunner.query(`
@@ -2070,7 +2070,7 @@ export class EfectoController extends BaseController {
   // Carga inicial del form de modificar/consultar efecto: una sola llamada con todo lo que el form
   // necesita del efecto (cabecera, atributos, atributos de ingreso del individual y relaciones), en
   // la misma forma que devuelve el guardado más las relaciones (que son solo lectura).
-  async getFormularioEfectoModifica(req: any, res: Response, next: NextFunction) {
+  async getFormularioEfectoForm(req: any, res: Response, next: NextFunction) {
     const efectoId = Number(req.params.id);
     const individualIdRaw = req.query?.individualId;
     const individualId = individualIdRaw === undefined || individualIdRaw === '' || individualIdRaw === 'null'
@@ -2082,7 +2082,7 @@ export class EfectoController extends BaseController {
     }
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      const formulario = await this.formularioEfectoModifica(queryRunner, efectoId, individualId);
+      const formulario = await this.formularioEfectoForm(queryRunner, efectoId, individualId);
       const relaciones = await this.relacionesDe(queryRunner, efectoId, individualId);
       this.jsonRes({ ...formulario, relaciones }, res);
     } catch (error) {
@@ -2092,7 +2092,7 @@ export class EfectoController extends BaseController {
     }
   }
 
-  async guardarEfectoModifica(req: any, res: Response, next: NextFunction) {
+  async guardarEfectoForm(req: any, res: Response, next: NextFunction) {
     console.log('Efecto modificacion - body recibido:');
     console.log(JSON.stringify(req.body, null, 2));
 
@@ -2132,7 +2132,7 @@ export class EfectoController extends BaseController {
       const ip = this.getRemoteAddress(req);
       const now = new Date();
 
-      await this.validarEfectoModifica(queryRunner, efectoId, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos, individualId, individualDescripcion, atributos);
+      await this.validarEfectoForm(queryRunner, efectoId, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos, individualId, individualDescripcion, atributos);
 
       const claveAntes = await this.claveEfecto(queryRunner, efectoId!, individualId);
 
@@ -2165,7 +2165,7 @@ export class EfectoController extends BaseController {
       await this.validarDescripcionCompletaUnica(queryRunner, efectoId!, individualId, claveAntes);
 
       // Se relee dentro de la transacción, antes de cerrarla: es lo que se le devuelve al front.
-      const formulario = await this.formularioEfectoModifica(queryRunner, efectoId!, individualId);
+      const formulario = await this.formularioEfectoForm(queryRunner, efectoId!, individualId);
 
       console.log('Efecto modificacion - formulario devuelto:');
       console.log(JSON.stringify(formulario, null, 2));
@@ -2379,7 +2379,7 @@ export class EfectoController extends BaseController {
     }
   }
 
-  private async validarEfectoModifica(
+  private async validarEfectoForm(
     queryRunner: any, efectoId: number | null, descripcion: string, rubroId: number | null,
     subrubroId: number | null, stockMinimo: number | null, efectoAtributos: any[],
     individualId: number | null,
