@@ -42,7 +42,7 @@ export class TableMovimientosEfectoDetalleComponent {
 
   titulo = computed(() => {
     const codigo = this.movimientoStockCodigo();
-    return codigo ? `Detalle de Efectos código: ${codigo}` : 'Detalle de Efectos';
+    return codigo ? `Detalle del Movimiento de Stock (Código: ${codigo})` : 'Detalle del Movimiento de Stock';
   });
 
   // Total de Cantidad del detalle; debe coincidir con CantidadEfectos de la grilla.

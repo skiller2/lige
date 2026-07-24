@@ -1,43 +1,33 @@
-<nz-drawer
-  [nzVisible]="visible()"
-  [nzTitle]="titulo()"
-  [nzWidth]="640"
-  (nzOnClose)="close()">
+<nz-drawer [nzVisible]="visible()" [nzTitle]="titulo()" [nzWidth]="'min(100vw, 1000px)'" (nzOnClose)="close()">
   <ng-container *nzDrawerContent>
     @if (esIngresoStock()) {
-      <div style="margin-bottom: 4px;">
-        <strong>Ingreso de Stock</strong>
-      </div>
-    }
-    @if (cabecera()?.Destino) {
-      <div style="margin-bottom: 4px;">
-        Destino: <strong>{{ cabecera()?.Destino }}</strong>
-      </div>
-    }
-    @if (cabecera()?.MovimientoCodigoViejo) {
-      <div style="margin-bottom: 4px;">
-        Anterior: <strong>{{ cabecera()?.MovimientoCodigoViejo }}</strong>
-      </div>
-    }
-    @if (cabecera()?.Intermediario) {
-      <div style="margin-bottom: 4px;">
-        Intermediario: <strong>{{ cabecera()?.Intermediario }}</strong>
-      </div>
-    }
-    @if (cabecera()?.Observaciones) {
-      <div style="margin-bottom: 8px;">
-        Observaciones: <strong>{{ cabecera()?.Observaciones }}</strong>
-      </div>
-    }
-    <div style="margin-bottom: 8px;">
-      Cantidad total: <strong>{{ cantidadTotal() }}</strong>
+    <div style="margin-bottom: 4px;">
+      <strong>Ingreso de Stock</strong>
     </div>
-    <nz-table
-      #detalleTable
-      [nzData]="filas()"
-      [nzLoading]="data.isLoading()"
-      nzSize="small"
-      [nzShowPagination]="false"
+    }
+    <div style="margin-bottom: 4px;">
+      Destino: <strong>{{ cabecera()?.Destino }}</strong>
+    </div>
+    @if (cabecera()?.MovimientoCodigoViejo) {
+    <div style="margin-bottom: 4px;">
+      Código Viejo: <strong>{{ cabecera()?.MovimientoCodigoViejo }}</strong>
+    </div>
+    }
+    <div style="margin-bottom: 4px;">
+      Intermediario: <strong>{{ cabecera()?.Intermediario }}</strong>
+    </div>
+    <div style="margin-bottom: 8px;">
+      Observaciones: <strong>{{ cabecera()?.Observaciones }}</strong>
+    </div>
+
+    <div style="margin-bottom: 8px;">
+      Cantidad de Efectos: <strong>{{ cantidadTotal() }}</strong>
+    </div>
+    <div style="margin-bottom: 8px;">
+      Fecha efectuado: <strong>{{ cabecera()?.FechaMovimiento | date }}</strong>
+    </div>
+
+    <nz-table #detalleTable [nzData]="filas()" [nzLoading]="data.isLoading()" nzSize="middle" [nzShowPagination]="false"
       [nzFrontPagination]="false">
       <thead>
         <tr>
@@ -49,12 +39,12 @@
       </thead>
       <tbody>
         @for (item of detalleTable.data; track item.MovimientoStockDetalleCodigo) {
-          <tr>
-            <td>{{ item.EfectoDescripcionCompleto }}</td>
-            <td>{{ item.Origen }}</td>
-            <td nzAlign="right">{{ item.Cantidad }}</td>
-            <td nzAlign="center">{{ item.IndEfectoUsado ? 'Sí' : 'No' }}</td>
-          </tr>
+        <tr>
+          <td>{{ item.EfectoDescripcionCompleto }}</td>
+          <td>{{ item.Origen }}</td>
+          <td nzAlign="right">{{ item.Cantidad }}</td>
+          <td nzAlign="center">{{ item.IndEfectoUsado ? 'Sí' : 'No' }}</td>
+        </tr>
         }
       </tbody>
     </nz-table>
