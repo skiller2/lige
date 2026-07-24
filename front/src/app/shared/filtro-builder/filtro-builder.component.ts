@@ -23,7 +23,6 @@ import { TipoMovimientoSearchComponent } from '../tipo-movimiento-search/tipo-mo
 import { ObjetivoSearchComponent } from '../objetivo-search/objetivo-search.component';
 import { ClienteSearchComponent } from '../cliente-search/cliente-search.component';
 import { EfectoSearchComponent } from '../efecto-search/efecto-search';
-import { EfectoIndividualSearchComponent } from '../efecto-individual-search/efecto-individual-search';
 import { TipoAsociadoCategoriaSearchComponent } from '../tipo-asociado-categoria-search/tipo-asociado-categoria-search';
 import { TipoAsociadoSearchComponent } from '../tipo-asociado-search/tipo-asociado-search';
 import { PersonalSearchComponent } from '../personal-search/personal-search.component';
@@ -58,7 +57,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
 @Component({
   selector: 'shared-filtro-builder',
   imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
-    ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent, EfectoSearchComponent, EfectoIndividualSearchComponent,
+    ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent, EfectoSearchComponent,
     TipoAsociadoCategoriaSearchComponent, TipoAsociadoSearchComponent, RequirenteSearchComponent, NumberAdvancedSearchComponent, ColumnComparisonSearchComponent, PeriodoSearchComponent,
     TipoPersonalActaSearchComponent, AsyncPipe, NzUploadModule
   ],
@@ -764,8 +763,9 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       label = (sucursales ?? []).filter((sucursal: any) => sucursalIds.includes(String(sucursal.SucursalId))).map((sucursal: any) => sucursal.SucursalDescripcion).join('; ')
     }
 
+    // readaptar componente de busqueda de efecto
     if (fieldObj.searchComponent == 'inputForEfectoSearch') {
-      const efecto = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', value))
+      const efecto = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', value, true, false, false))
       label = efecto[0].EfectoDescripcion
     }
 
