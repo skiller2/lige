@@ -14,7 +14,9 @@ import { Component, signal, inject, resource } from '@angular/core'
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { EditorPersonaComponent } from '../../../shared/editor-persona/editor-persona.component';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { LoadingService } from '@delon/abc/loading';
 import { Selections } from '../../../shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-table-grupo-actividad-personal',
@@ -34,8 +36,9 @@ export class TableGrupoActividadPersonalComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
-  formChange$ = new BehaviorSubject('')
-  private readonly messageSrv = inject(NzMessageService);
+  // private readonly messageSrv = inject(NzMessageService)
+  private readonly loadingSrv = inject(LoadingService)
+
   columnDefinitions: Column[] = []
   itemAddActive = false
   visibleDrawerPersona = signal(false)
@@ -45,7 +48,7 @@ export class TableGrupoActividadPersonalComponent {
     filtros: [],
     sort: null,
   })
-  startFilters: Selections[] = []
+  startFilters = signal<Selections[]>([])
 
   currPeriodo = signal({anio:0,mes:0})
   complexityLevelList = [true, false];
@@ -55,11 +58,7 @@ export class TableGrupoActividadPersonalComponent {
   excelExportService = new ExcelExportService()
   rowLocked: boolean = false;
 
-  listOptionsChange(options: any) {
-    this.listOptions.set(options)
-  }
-
-  columnsPersonal$ = this.apiService.getCols('/api/grupo-actividad/colspersonal').pipe(
+  columnsPersonal = toSignal(this.apiService.getCols('/api/grupo-actividad/colspersonal').pipe(
     switchMap(async (cols) => { return { cols } }),
     map((data) => {
       let mapped = data.cols.map((col: Column) => {
@@ -103,7 +102,24 @@ export class TableGrupoActividadPersonalComponent {
         return col
       });
       return mapped
-    }));
+    })
+  ), { initialValue: [] as Column[] })
+
+  gridDataPersonal = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.searchService.getListGrupoActividadPersonal({ options: params.options })
+        .pipe(map(data => { return data.list })));
+      } catch (error) {}
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: [],
+  })
 
   async ngOnInit() {
 
@@ -116,10 +132,12 @@ export class TableGrupoActividadPersonalComponent {
     this.gridOptionsEdit.createFooterRow = true
 
     const dateToday = new Date();
-    this.startFilters = [
+    this.startFilters.set([
       { index: 'GrupoActividadPersonalDesde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
-      { index: 'GrupoActividadPersonalHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }]
-      this.currPeriodo.set({anio:dateToday.getFullYear(), mes:dateToday.getMonth()+1})
+      { index: 'GrupoActividadPersonalHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true }
+    ])
+
+    this.currPeriodo.set({anio:dateToday.getFullYear(), mes:dateToday.getMonth()+1})
 
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
@@ -228,18 +246,6 @@ export class TableGrupoActividadPersonalComponent {
 
   }
 
-  gridDataPersonal = resource({
-    params: () => ({ options: this.listOptions() }),
-    loader: async ({ params }) => {
-      return await firstValueFrom(this.searchService.getListGrupoActividadPersonal({ options: params.options })
-        .pipe(map(data => {
-          return data.list
-        }))
-      )
-    },
-    defaultValue: [],
-  })
-
   handleSelectedRowsChanged(e: any): void {
 
     const selrow = e.detail.args.rows[0]
@@ -250,9 +256,7 @@ export class TableGrupoActividadPersonalComponent {
 
   }
 
-
   updateItemMetadata(previousItemMetadata: any) {
-
 
     return (rowNumber: number) => {
       const newCssClass = 'element-add-no-complete';
