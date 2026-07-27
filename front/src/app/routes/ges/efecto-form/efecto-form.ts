@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, linkedSignal, resource, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, input, linkedSignal, output, resource, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SHARED_IMPORTS } from '@shared';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -60,6 +60,9 @@ const nuevaEfectoAtributoLinea = (): EfectoAtributoLinea => ({
 export class EfectoFormComponent {
   readonly efecto = input<any | null>(null);
   readonly modo = input<string>('consulta');
+
+  // Tras un alta exitosa emite el efecto ya persistido; el padre lo selecciona y navega a modificación.
+  readonly guardadoAlta = output<any>();
 
   private search = inject(SearchService);
   private apiService = inject(ApiService);
@@ -337,6 +340,7 @@ export class EfectoFormComponent {
 
       // Cada modo tiene su endpoint: alta de efecto completo, alta de efecto individual o
       // modificación de un efecto existente.
+      const esAlta = this.esAltaCompleta() || this.esAltaIndividual();
       const guardado$ = this.esAltaCompleta()
         ? this.apiService.altaEfecto(values)
         : this.esAltaIndividual()
@@ -346,13 +350,20 @@ export class EfectoFormComponent {
 
       console.log('[efecto-form] formulario recibido:', res?.data);
 
-      // El back devuelve el formulario ya persistido, así que se aplica en vez de recargar: recargar
-      // los resources rearmaba el modelo entero (el linkedSignal se alimenta de atributosIngreso) y
-      // el form parpadeaba. Lo único que hace falta traer son los Ids que el back asignó a las filas
-      // nuevas, para que al guardar de nuevo se actualicen en lugar de insertarse otra vez.
       const guardado = res?.data;
       if (!guardado) return;
 
+      // Alta: el efecto ya quedó persistido. Se avisa al padre para que lo seleccione y pase el
+      // formulario a modificación de ese efecto (queda con su nuevo EfectoId, editable).
+      if (esAlta) {
+        this.guardadoAlta.emit(guardado);
+        return;
+      }
+
+      // Modificación: el back devuelve el formulario ya persistido, así que se aplica en vez de recargar:
+      // recargar los resources rearmaba el modelo entero (el linkedSignal se alimenta de atributosIngreso)
+      // y el form parpadeaba. Lo único que hace falta traer son los Ids que el back asignó a las filas
+      // nuevas, para que al guardar de nuevo se actualicen en lugar de insertarse otra vez.
       this.modelo.update(mod => ({
         ...mod,
         EfectoDescripcion: texto(guardado.EfectoDescripcion),

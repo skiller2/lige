@@ -2143,12 +2143,99 @@ export class EfectoController extends BaseController {
       await queryRunner.release();
     }
   }
+  
   async altaEfecto(req: any, res: Response, next: NextFunction) {
+    console.log('Efecto alta (completo) - body recibido:');
     console.log(JSON.stringify(req.body, null, 2));
+
+    const queryRunner = await getConnection(res.locals.userName);
     try {
-      return this.jsonRes(null, res, 'Formulario dado de alta exitosamente');
+      await queryRunner.startTransaction();
+
+      const body = req.body ?? {};
+      const descripcion = String(body.EfectoDescripcion ?? '').trim();
+      const rubroId = Number(body.RubroId) || null;
+      const subrubroId = Number(body.SubrubroId) || null;
+      const stockMinimo = body.EfectoStockMinimo == null || body.EfectoStockMinimo === '' ? null : Number(body.EfectoStockMinimo);
+      const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').trim();
+      const crearIndividual = individualDescripcion.length > 0;
+      const efectoAtributos = (Array.isArray(body.EfectoAtributos) ? body.EfectoAtributos : [])
+        .map((row: any) => {
+          const atributoId = row?.EfectoAtributoAtributoId == null || row?.EfectoAtributoAtributoId === ''
+            ? null
+            : Number(row.EfectoAtributoAtributoId);
+          const valorId = atributoId == null || row?.EfectoAtributoValorId == null || row?.EfectoAtributoValorId === ''
+            ? null
+            : Number(row.EfectoAtributoValorId);
+          return { EfectoAtributoId: null, EfectoAtributoAtributoId: atributoId, EfectoAtributoValorId: valorId };
+        })
+        .filter((row: any) => row.EfectoAtributoAtributoId != null);
+      
+        const atributos = crearIndividual && Array.isArray(body.atributos) ? body.atributos : [];
+
+      const usuario = res.locals.userName;
+      const ip = this.getRemoteAddress(req);
+      const now = new Date();
+
+      await this.validarAltaEfectoForm(queryRunner, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos, crearIndividual, individualDescripcion, atributos);
+
+      const nuevo = await queryRunner.query(`
+        INSERT INTO Efecto
+          (EfectoDescripcion, RubroId, SubrubroId, EfectoStockMinimo,
+           EfectoAtributoUltNro, EfectoEfectoIndividualUltNro,
+           AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @6, @7, @8);
+        SELECT CAST(SCOPE_IDENTITY() AS DECIMAL(12, 0)) AS EfectoId;
+      `, [descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos.length, crearIndividual ? 1 : 0, now, usuario, ip]);
+      const efectoId = Number(nuevo?.[0]?.EfectoId);
+      if (!efectoId) throw new ClientException('No se pudo obtener el EfectoId asignado por la base.');
+
+      await this.guardarEfectoAtributos(queryRunner, efectoId, efectoAtributos, now, usuario, ip);
+
+      let individualId: number | null = null;
+      if (crearIndividual) {
+        // EfectoEfectoIndividualId es secuencial por efecto; para el primero arranca en 1.
+        individualId = 1;
+        // SuDescripcion es NOT NULL: se inserta un placeholder y se recalcula con la descripción
+        // completa una vez insertados los atributos (que forman parte de esa cadena).
+        await queryRunner.query(`
+          INSERT INTO EfectoEfectoIndividual
+            (EfectoEfectoIndividualId, EfectoId, EfectoEfectoIndividualDescripcion, EfectoEfectoIndividualSuDescripcion,
+             EfectoEfectoIndividualAtributoIngresoUltNro,
+             AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
+          VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @5, @6, @7)
+        `, [individualId, efectoId, individualDescripcion, individualDescripcion, 0, now, usuario, ip]);
+
+        await this.guardarAtributosIngreso(queryRunner, efectoId, individualId, atributos, now, usuario, ip);
+
+        await queryRunner.query(`UPDATE Efecto SET EfectoEfectoIndividualUltNro = 1 WHERE EfectoId = @0`, [efectoId]);
+
+        const completo = await this.descripcionCompletaDe(queryRunner, efectoId, individualId);
+        if (completo) {
+          await queryRunner.query(`
+            UPDATE EfectoEfectoIndividual SET EfectoEfectoIndividualSuDescripcion = @2
+            WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+          `, [efectoId, individualId, String(completo).substring(0, 250)]);
+        }
+      }
+
+      await this.validarDescripcionCompletaUnica(queryRunner, efectoId, individualId, null);
+
+      const formulario = await this.formularioEfectoForm(queryRunner, efectoId, individualId);
+      console.log('Efecto alta (completo) - formulario dado de alta:');
+      console.log(JSON.stringify(formulario, null, 2));
+
+      const PROBANDO: boolean = true;
+      if (PROBANDO)
+        throw new ClientException(`PRUEBA OK: efecto ${efectoId}${individualId != null ? ` / individual ${individualId}` : ''} armado sin impactar las tablas.`);
+
+      await queryRunner.commitTransaction();
+      return this.jsonRes(null, res, `Efecto ${efectoId} dado de alta exitosamente`);
     } catch (error) {
+      await this.rollbackTransaction(queryRunner);
       return next(error);
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -2159,6 +2246,127 @@ export class EfectoController extends BaseController {
     } catch (error) {
       return next(error);
     }
+  }
+
+  // Descripción completa (efecto + individual + atributos) leída de las vistas, igual que claveEfecto
+  // pero con COMPLETO_EXPR. Se usa para poblar EfectoEfectoIndividualSuDescripcion en el alta.
+  private async descripcionCompletaDe(
+    queryRunner: any, efectoId: number, individualId: number | null
+  ): Promise<string | null> {
+    const rows = await queryRunner.query(`
+      SELECT ${EfectoController.COMPLETO_EXPR} AS Completo
+      FROM EfectoDescripcion efe
+      LEFT JOIN EfectoIndividualDescripcion efeind
+        ON efeind.EfectoId = efe.EfectoId AND efeind.EfectoEfectoIndividualId = @1
+      WHERE efe.EfectoId = @0
+    `, [efectoId, individualId ?? null]);
+    return rows[0]?.Completo ?? null;
+  }
+
+  // Validación del alta de efecto. Espeja a validarEfectoForm pero sin los chequeos de existencia
+  // (el efecto/individual todavía no existen) ni de Ids propios (las filas son todas nuevas).
+  private async validarAltaEfectoForm(
+    queryRunner: any, descripcion: string, rubroId: number | null, subrubroId: number | null,
+    stockMinimo: number | null, efectoAtributos: any[],
+    crearIndividual: boolean, individualDescripcion: string, atributos: any[]
+  ) {
+    // Todas estas columnas son NOT NULL.
+    const camposVacios: string[] = [];
+    if (!descripcion) camposVacios.push('- Descripción');
+    if (!rubroId) camposVacios.push('- Rubro');
+    if (!subrubroId) camposVacios.push('- Subrubro');
+    if (crearIndividual && !individualDescripcion) camposVacios.push('- Descripción individual');
+    if (camposVacios.length) {
+      camposVacios.unshift('Debe completar los siguientes campos:');
+      throw new ClientException(camposVacios);
+    }
+
+    const errores: string[] = [];
+
+    if (descripcion.length > 100)
+      errores.push(`La descripción no puede superar los 100 caracteres (tiene ${descripcion.length}).`);
+    if (crearIndividual && individualDescripcion.length > 60)
+      errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
+
+    if (stockMinimo != null) {
+      if (!Number.isFinite(stockMinimo))
+        errores.push('El stock mínimo debe ser un número.');
+      else if (stockMinimo < 0)
+        errores.push('El stock mínimo no puede ser negativo.');
+    }
+
+    // SubrubroId no es único: solo tiene sentido dentro de un RubroId (la FK de Efecto es el par).
+    const subrubro = await queryRunner.query(`
+      SELECT SubrubroId FROM Subrubro WHERE RubroId = @0 AND SubrubroId = @1
+    `, [rubroId, subrubroId]);
+    if (!subrubro.length)
+      errores.push('El subrubro seleccionado no pertenece al rubro seleccionado.');
+
+    // Filas de EfectoAtributo. Cada atributo tiene que existir y su valor (si viene) pertenecer a él
+    // (Valor.AtributoId). El atributo no puede repetirse entre filas.
+    const atributosEfectoVistos = new Set<number>();
+    for (const [idx, fila] of efectoAtributos.entries()) {
+      const nro = idx + 1;
+      const atributoId = Number(fila?.EfectoAtributoAtributoId) || null;
+      const valorId = fila?.EfectoAtributoValorId == null ? null : Number(fila.EfectoAtributoValorId);
+      if (!atributoId) continue;
+
+      if (atributosEfectoVistos.has(atributoId)) {
+        errores.push(`Atributo/Valor #${nro}: el atributo está repetido.`);
+        continue;
+      }
+      atributosEfectoVistos.add(atributoId);
+
+      const atr = await queryRunner.query(`SELECT AtributoId FROM Atributo WHERE AtributoId = @0`, [atributoId]);
+      if (!atr.length) {
+        errores.push(`Atributo/Valor #${nro}: no existe el atributo ${atributoId}.`);
+        continue;
+      }
+      if (valorId != null) {
+        const val = await queryRunner.query(`
+          SELECT ValorId FROM Valor WHERE ValorId = @0 AND AtributoId = @1
+        `, [valorId, atributoId]);
+        if (!val.length)
+          errores.push(`Atributo/Valor #${nro}: el valor no pertenece al atributo seleccionado.`);
+      }
+    }
+
+    // Atributos de ingreso: solo si se crea el individual. Ambas columnas son NOT NULL y el valor es CHAR(40).
+    if (crearIndividual) {
+      const atributosVistos = new Set<number>();
+      for (const [idx, row] of atributos.entries()) {
+        const nro = idx + 1;
+        const atributoId = Number(row?.EfectoAtributoAtributoIngresoId) || null;
+        const valor = String(row?.EfectoAtributoIngresoValor ?? '').trim();
+
+        if (!atributoId) {
+          errores.push(`Atributo #${nro}: debe seleccionar el atributo.`);
+          continue;
+        }
+        if (!valor) {
+          errores.push(`Atributo #${nro}: debe ingresar el valor.`);
+          continue;
+        }
+        if (valor.length > 40)
+          errores.push(`Atributo #${nro}: el valor no puede superar los 40 caracteres (tiene ${valor.length}).`);
+        if (atributosVistos.has(atributoId))
+          errores.push(`Atributo #${nro}: el atributo está repetido.`);
+        atributosVistos.add(atributoId);
+      }
+
+      if (atributosVistos.size) {
+        // La FK de EfectoAtributoAtributoIngresoId es a AtributoIngreso, no a Atributo.
+        const existentes = await queryRunner.query(`
+          SELECT AtributoIngresoId FROM AtributoIngreso WHERE AtributoIngresoId IN (${[...atributosVistos].join(',')})
+        `);
+        const validos = new Set(existentes.map((row: any) => Number(row.AtributoIngresoId)));
+        for (const atributoId of atributosVistos)
+          if (!validos.has(atributoId)) errores.push(`No existe el atributo de ingreso ${atributoId}.`);
+      }
+    }
+
+    if (errores.length)
+      throw new ClientException(errores);
   }
 
   // Sincroniza las filas de EfectoAtributo del efecto (tabla 1:N): baja lo que ya no viene, actualiza

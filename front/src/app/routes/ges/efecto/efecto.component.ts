@@ -115,6 +115,12 @@ export class EfectoComponent {
     this.router.navigate(['/', 'ges', 'efecto', 'alta-individual'])
   }
 
+  onGuardadoAlta(efecto: any) {
+    if (!efecto) return
+    this.seleccionarEfecto(this.ultimaGrilla(), efecto)
+    this.router.navigate(['/', 'ges', 'efecto', 'formulario'])
+  }
+
   // Body que se manda al generar el comprobante. Si ya hay un movimiento confirmado, el backend lo
   // arma leyéndolo de la base (por id); si no, lo arma con los datos del form (parametroStock).
   readonly comprobanteBody = computed(() => {
