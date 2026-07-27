@@ -11,13 +11,16 @@ import { findColumnByIndex } from "../impuestos-afip/comprobantes-utils/lista.ts
 import { logger } from "../logger/logger.ts";
 
 const tiposMovimiento = [
-  { value: "deposito", label: "Depósito", destinoIdColumn: "DepositoIdDestino" },
-  { value: "personal", label: "Persona", destinoIdColumn: "PersonalIdDestino", origen: "persona" },
-  { value: "objetivo", label: "Objetivo", destinoIdColumn: "ClienteIdDestino", origen: "objetivo" },
-  { value: "proveedor", label: "Proveedor", destinoIdColumn: "ProveedorIdDestino" },
+  { value: "deposito", label: "Depósito", destinoIdColumn: "DepositoIdDestino", intermediario: false },
+  { value: "personal", label: "Persona", destinoIdColumn: "PersonalIdDestino", origen: "persona", intermediario: true },
+  { value: "objetivo", label: "Objetivo", destinoIdColumn: "ClienteIdDestino", origen: "objetivo", intermediario: false },
+  { value: "proveedor", label: "Proveedor", destinoIdColumn: "ProveedorIdDestino", intermediario: true },
 ];
 
 const tiposDestino = tiposMovimiento.map(({ value, label }) => ({ value, label }));
+
+// Tipos válidos para el intermediario: solo los marcados con intermediario: true (persona / proveedor).
+const tiposIntermediario = tiposMovimiento.filter((t) => t.intermediario).map(({ value, label }) => ({ value, label }));
 
 const tipoDestinoSingular: Record<string, string> = Object.fromEntries(
   tiposMovimiento.map((t) => [t.value, t.label]),
@@ -46,9 +49,11 @@ export class MovimientoStockController extends BaseController {
     footerDef: './assets/comprobante-stock/comprobante-stock-footer.def.html',
   };
 
+
   async getTiposDestino(req: Request, res: Response, next: NextFunction) {
     try {
-      this.jsonRes(tiposDestino, res);
+      const soloIntermediario = req.query?.intermediario === 'true';
+      this.jsonRes(soloIntermediario ? tiposIntermediario : tiposDestino, res);
     } catch (error) {
       return next(error);
     } finally {
@@ -95,6 +100,7 @@ export class MovimientoStockController extends BaseController {
       const depositoId = Number(body.depositoId) || null;
       const personalId = Number(body.personalId) || null;
       const personalIdInter = Number(body.personalIdInter) || null;
+      const proveedorIdInter = Number(body.proveedorIdInter) || null;
       const objetivoId = Number(body.objetivoId) || null;
       const proveedorId = Number(body.proveedorId) || null;
       const observaciones = String(body.observaciones ?? '');
@@ -106,16 +112,16 @@ export class MovimientoStockController extends BaseController {
       const now = new Date();
 
       // validaciones
-      await this.validateForm(queryRunner, body.fecha, depositoId, personalId, personalIdInter, objetivoId, proveedorId, observaciones, efectos, indIngresoStock);
+      await this.validateForm(queryRunner, body.fecha, depositoId, personalId, personalIdInter, objetivoId, proveedorId, proveedorIdInter, observaciones, efectos, indIngresoStock);
 
       const fecha = new Date(body.fecha)
 
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
 
-      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, observaciones, fecha, efectos, personalIdInter, indIngresoStock, now, usuario, ip);
+      const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, observaciones, fecha, efectos, personalIdInter, proveedorIdInter, indIngresoStock, now, usuario, ip);
 
       // Impacto en Stock: resta el origen, suma el destino (el intermediario si existe)
-      await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, efectos, personalIdInter, indIngresoStock, now, usuario, ip);
+      await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId, efectos, personalIdInter, proveedorIdInter, indIngresoStock, now, usuario, ip);
 
       // Simular: corre los INSERT reales pero hace rollback (no persiste, no consume el numerador).
       // No se genera el PDF (ni archivo ni descarga): la simulación solo valida que el movimiento es válido.
@@ -145,6 +151,7 @@ export class MovimientoStockController extends BaseController {
     proveedorId: number | null,
     observaciones: string, fecha: Date, efectos: any[],
     personalIdInter: number | null = null,
+    proveedorIdInter: number | null = null,
     indIngresoStock: boolean = false,
     now: Date,
     usuario: string,
@@ -165,13 +172,16 @@ export class MovimientoStockController extends BaseController {
       clienteElemDepDestino = obj?.ClienteElementoDependienteId ?? null;
     }
 
-    // Con intermediario, el destino "visible" del MovimientoStock pasa a ser el intermediario (persona)
-    // y el destino final real se guarda aparte en MovimientoStockPendiente.
-    const conInter = personalIdInter != null;
-    if (personalIdInter) throw new ClientException(`No se permite movimiento con intermediario (En desarrollo).`);
-    
-    const movPersonalIdDestino = conInter ? personalIdInter : personalId;
-    const movProveedorIdDestino = conInter ? null : proveedorId;
+    // Con intermediario, el destino "visible" del MovimientoStock pasa a ser el intermediario
+    // (persona o proveedor) y el destino final real se guarda aparte en MovimientoStockPendiente.
+    const conInterPersonal = personalIdInter != null;
+    const conInterProveedor = proveedorIdInter != null;
+    const conInter = conInterPersonal || conInterProveedor;
+    // GUARD DE PRODUCCIÓN: el movimiento con intermediario está en desarrollo y no debe usarse aún.
+    // if (conInter) throw new ClientException(`No se permite movimiento con intermediario (En desarrollo).`);
+
+    const movPersonalIdDestino = conInterPersonal ? personalIdInter : (conInter ? null : personalId);
+    const movProveedorIdDestino = conInterProveedor ? proveedorIdInter : (conInter ? null : proveedorId);
     const movClienteIdDestino = conInter ? null : clienteIdDestino;
     const movClienteElemDepDestino = conInter ? null : clienteElemDepDestino;
     const movDepositoIdDestino = conInter ? null : depositoId;
@@ -248,6 +258,7 @@ export class MovimientoStockController extends BaseController {
     depositoId: number | null, personalId: number | null, objetivoId: number | null, proveedorId: number | null,
     efectos: any[],
     personalIdInter: number | null = null,
+    proveedorIdInter: number | null = null,
     indIngresoStock: boolean = false,
     now: Date,
     usuario: string,
@@ -256,11 +267,13 @@ export class MovimientoStockController extends BaseController {
     let fieldErrors = []
 
     // Con intermediario, el stock entra al intermediario (lo tiene físicamente hasta resolver el pendiente).
-    const conInter = personalIdInter != null;
+    const conInterPersonal = personalIdInter != null;
+    const conInterProveedor = proveedorIdInter != null;
+    const conInter = conInterPersonal || conInterProveedor;
     const destDepositoId = conInter ? null : depositoId;
-    const destPersonalId = conInter ? personalIdInter : personalId;
+    const destPersonalId = conInterPersonal ? personalIdInter : (conInter ? null : personalId);
     const destObjetivoId = conInter ? null : objetivoId;
-    const destProveedorId = conInter ? null : proveedorId;
+    const destProveedorId = conInterProveedor ? proveedorIdInter : (conInter ? null : proveedorId);
     for (const [index, efecto] of efectos.entries()) {
       const EfectoId = Number(efecto.EfectoId)
       const EfectoEfectoIndividualId = efecto.EfectoIndividualId ?? null
@@ -691,7 +704,7 @@ export class MovimientoStockController extends BaseController {
   }
 
   private async validateForm(queryRunner: any, fechaRaw: any, depositoId: number | null, personalId: number | null, personalIdInter: number | null, objetivoId: number | null, proveedorId: number | null,
-    observaciones: string | null, efectos: any, indIngresoStock: boolean = false
+    proveedorIdInter: number | null, observaciones: string | null, efectos: any, indIngresoStock: boolean = false
   ) {
     let fieldErrors = []
 
@@ -723,10 +736,28 @@ export class MovimientoStockController extends BaseController {
       });
     }
 
-    // En Ingreso de Stock no corresponde intermediario.
-    if (indIngresoStock && personalIdInter != null) {
+    // El intermediario no puede ser el mismo proveedor seleccionado como destino.
+    if (proveedorIdInter && (proveedorIdInter === proveedorId)) {
       fieldErrors.push({
-        fieldTree: 'personalIdInter',
+        fieldTree: 'proveedorIdInter',
+        kind: 'server',
+        message: 'El intermediario no puede ser igual al proveedor seleccionado'
+      });
+    }
+
+    // Solo se admite un intermediario a la vez (persona o proveedor, no ambos).
+    if (personalIdInter != null && proveedorIdInter != null) {
+      fieldErrors.push({
+        fieldTree: 'tipoIntermediario',
+        kind: 'server',
+        message: 'Debe informar solo un tipo de intermediario.'
+      });
+    }
+
+    // En Ingreso de Stock no corresponde intermediario.
+    if (indIngresoStock && (personalIdInter != null || proveedorIdInter != null)) {
+      fieldErrors.push({
+        fieldTree: personalIdInter != null ? 'personalIdInter' : 'proveedorIdInter',
         kind: 'server',
         message: 'El Ingreso de Stock no puede tener intermediario.'
       });
@@ -1075,7 +1106,9 @@ export class MovimientoStockController extends BaseController {
       const destinoNombre = await this.resolverDestinoLabel(queryRunner, tipoDestino, form);
       const tipoSingular = tipoDestinoSingular[tipoDestino] ?? '';
       const destino = (tipoSingular && destinoNombre) ? `${tipoSingular} - ${destinoNombre}` : destinoNombre;
-      const intermediario = await this.resolverPersonalNombre(queryRunner, form.personalIdInter);
+      const intermediario = form.proveedorIdInter
+        ? await this.resolverProveedorNombre(queryRunner, form.proveedorIdInter)
+        : await this.resolverPersonalNombre(queryRunner, form.personalIdInter);
       const observaciones = form.observaciones ?? '';
       const textefectos = await this.resolverEfectoLineas(queryRunner, form.efectos);
 
@@ -1154,6 +1187,17 @@ export class MovimientoStockController extends BaseController {
       return r?.[0]?.nombre ?? String(personalId);
     } catch (error) {
       return String(personalId);
+    }
+  }
+
+  // Razón social de un proveedor por su ID (destino o intermediario).
+  private async resolverProveedorNombre(queryRunner: any, proveedorId: any): Promise<string> {
+    if (proveedorId == null || proveedorId === '') return '';
+    try {
+      const r = await queryRunner.query(`SELECT TOP 1 TRIM(ProveedorRazonSocial) AS nombre FROM Proveedor WHERE ProveedorId = @0`, [proveedorId]);
+      return r?.[0]?.nombre ?? String(proveedorId);
+    } catch (error) {
+      return String(proveedorId);
     }
   }
 

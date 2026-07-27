@@ -1,7 +1,6 @@
-import { Component, forwardRef, inject } from '@angular/core';
+import { Component, computed, forwardRef, inject, input, resource } from '@angular/core';
 import { NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { noop } from 'rxjs';
+import { firstValueFrom, noop } from 'rxjs';
 import { SearchService } from '../../services/search.service';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -21,10 +20,16 @@ import { CommonModule } from '@angular/common';
 export class TipoDestinoSearchComponent implements ControlValueAccessor {
   private searchService = inject(SearchService);
 
-  tiposDestino = toSignal(
-    this.searchService.getStockEfectoTiposDestino(),
-    { initialValue: [] as { value: string; label: string }[] }
-  );
+  readonly soloIntermediario = input<boolean>(false);
+
+  private tiposResource = resource({
+    params: () => ({ soloIntermediario: this.soloIntermediario() }),
+    loader: async ({ params }) => await firstValueFrom(
+      this.searchService.getStockEfectoTiposDestino(params.soloIntermediario)
+    ) as { value: string; label: string }[],
+  });
+
+  tiposDestino = computed(() => this.tiposResource.value() ?? []);
 
   private _selected: string | null = null;
   controlDisabled = false;

@@ -4,19 +4,19 @@
   ({{ comprobanteCodigo() ? 'existe' : 'no existe' }})
 </p>-->
 <form style="margin-top: 30px;" (ngSubmit)="confirmar()">
-  
+
   <nz-divider [nzText]="destinoLabel" style="margin-bottom: 40px;"></nz-divider>
   <ng-template #destinoLabel>
-    <span style="margin-right: 8px;">{{ IndIngresoStock() ? 'Ingreso Stock - Destino' : 'Movimiento Stock - Destino' }}</span>
-    <button nz-button nzType="default" type="button"
-      (click)="limpiarDestino()"
-      nz-tooltip nzTooltipTitle="{{ 'app.limpiar.destino' | i18n }}">
+    <span style="margin-right: 8px;">{{ IndIngresoStock() ? 'Ingreso Stock - Destino' : 'Movimiento Stock - Destino'
+      }}</span>
+    <button nz-button nzType="default" type="button" (click)="limpiarDestino()" nz-tooltip
+      nzTooltipTitle="{{ 'app.limpiar.destino' | i18n }}">
       <span nz-icon nzType="delete" nzTheme="outline"></span>
     </button>
   </ng-template>
 
   <div nz-row [nzGutter]="15">
-        <!-- <nz-form-control [nzSpan]="16" nzHasFeedback sfErrorTip="form">
+    <!-- <nz-form-control [nzSpan]="16" nzHasFeedback sfErrorTip="form">
         </nz-form-control>
       -->
 
@@ -24,7 +24,8 @@
       <nz-form-item>
         <nz-form-label [nzSpan]="8">Fecha</nz-form-label>
         <nz-form-control [nzSpan]="16" nzHasFeedback sfErrorTip>
-          <nz-date-picker [formField]="formEfectoStock.fecha" nzFormat="dd/MM/yyyy" style="width: 100%;"></nz-date-picker>
+          <nz-date-picker [formField]="formEfectoStock.fecha" nzFormat="dd/MM/yyyy"
+            style="width: 100%;"></nz-date-picker>
         </nz-form-control>
       </nz-form-item>
     </div>
@@ -49,169 +50,187 @@
   </div>
 
   @if (tipoDestinoSeleccionado() === 'deposito') {
-    <div nz-row [nzGutter]="16">
-      <div nz-col [nzSpan]="12">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="4">Depósito</nz-form-label>
-          <nz-form-control [nzSpan]="8" nzHasFeedback sfErrorTip>
-            <nz-select [formField]="formEfectoStock.depositoId" nzAllowClear nzPlaceHolder="Seleccione un depósito"
-              [nzDropdownMatchSelectWidth]="false" style="width: 100%;" nzShowSearch
-              [nzLoading]="depositos.isLoading()">
-              @for (dep of depositos.value() ?? []; track dep.DepositoId) {
-                <nz-option [nzLabel]="dep.DepositoNombre" [nzValue]="dep.DepositoId"></nz-option>
-              }
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
-      </div>
+  <div nz-row [nzGutter]="16">
+    <div nz-col [nzSpan]="12">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="4">Depósito</nz-form-label>
+        <nz-form-control [nzSpan]="8" nzHasFeedback sfErrorTip>
+          <nz-select [formField]="formEfectoStock.depositoId" nzAllowClear nzPlaceHolder="Seleccione un depósito"
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%;" nzShowSearch [nzLoading]="depositos.isLoading()">
+            @for (dep of depositos.value() ?? []; track dep.DepositoId) {
+            <nz-option [nzLabel]="dep.DepositoNombre" [nzValue]="dep.DepositoId"></nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
     </div>
+  </div>
   }
 
   @if (tipoDestinoSeleccionado() === 'proveedor') {
-    <div nz-row [nzGutter]="15">
-      <div nz-col [nzSpan]="12">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="4">Proveedor</nz-form-label>
-          <nz-form-control [nzSpan]="8" nzHasFeedback sfErrorTip>
-            <app-proveedor-search [formField]="formEfectoStock.proveedorId" />
-          </nz-form-control>
-        </nz-form-item>
-      </div>
+  <div nz-row [nzGutter]="15">
+    <div nz-col [nzSpan]="12">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="4">Proveedor</nz-form-label>
+        <nz-form-control [nzSpan]="8" nzHasFeedback sfErrorTip>
+          <app-proveedor-search [formField]="formEfectoStock.proveedorId" />
+        </nz-form-control>
+      </nz-form-item>
     </div>
+  </div>
   }
 
   @if (tipoDestinoSeleccionado() === 'objetivo') {
-    <div nz-row [nzGutter]="15">
-      <div nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6">Objetivo</nz-form-label>
-          <nz-form-control [nzSpan]="18" nzHasFeedback sfErrorTip>
-            <app-objetivo-search [formField]="formEfectoStock.objetivoId" />
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-
-      <div nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="8">Grupo actividad</nz-form-label>
-          <nz-form-control [nzSpan]="14">
-            <app-view-responsable [list]="objetivoResponsables.value() ?? []"></app-view-responsable>
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-      <div nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
-          <nz-form-control [nzSpan]="11">
-            @if (objetivoContratos.value(); as contratos) {
-              @if (contratos.length === 0 && parametroStock().objetivoId) {
-                <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
-              }
-              <ul style="margin: 0; padding-left: 16px;">
-                @for (contrato of contratos; track contrato.ContratoFechaHasta) {
-                  <li>
-                    @if (!contrato.ContratoFechaHasta) { <span>Desde</span> }
-                    {{ contrato.ContratoFechaDesde | date }}
-                    @if (contrato.ContratoFechaHasta) { <span>-</span> }
-                    {{ contrato.ContratoFechaHasta | date }}
-                  </li>
-                }
-              </ul>
-            }
-          </nz-form-control>
-        </nz-form-item>
-      </div>
+  <div nz-row [nzGutter]="15">
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Objetivo</nz-form-label>
+        <nz-form-control [nzSpan]="18" nzHasFeedback sfErrorTip>
+          <app-objetivo-search [formField]="formEfectoStock.objetivoId" />
+        </nz-form-control>
+      </nz-form-item>
     </div>
+
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="8">Grupo actividad</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <app-view-responsable [list]="objetivoResponsables.value() ?? []"></app-view-responsable>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="3">Contrato</nz-form-label>
+        <nz-form-control [nzSpan]="11">
+          @if (objetivoContratos.value(); as contratos) {
+          @if (contratos.length === 0 && parametroStock().objetivoId) {
+          <nz-alert nzShowIcon nzType="error" nzMessage="Sin contrato" class="app-small"></nz-alert>
+          }
+          <ul style="margin: 0; padding-left: 16px;">
+            @for (contrato of contratos; track contrato.ContratoFechaHasta) {
+            <li>
+              @if (!contrato.ContratoFechaHasta) { <span>Desde</span> }
+              {{ contrato.ContratoFechaDesde | date }}
+              @if (contrato.ContratoFechaHasta) { <span>-</span> }
+              {{ contrato.ContratoFechaHasta | date }}
+            </li>
+            }
+          </ul>
+          }
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+  </div>
   }
 
   @if (tipoDestinoSeleccionado() === 'personal') {
-    <div nz-row [nzGutter]="15">
-      <div nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6">Persona</nz-form-label>
-          <nz-form-control [nzSpan]="18" nzHasFeedback sfErrorTip>
-            <app-personal-search [formField]="formEfectoStock.personalId" [anio]="anio()" [mes]="mes()" />
+  <div nz-row [nzGutter]="15">
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Persona</nz-form-label>
+        <nz-form-control [nzSpan]="18" nzHasFeedback sfErrorTip>
+          <app-personal-search [formField]="formEfectoStock.personalId" [anio]="anio()" [mes]="mes()" />
 
 
-          </nz-form-control>
-        </nz-form-item>
-      </div>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
 
-      <div nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="10">Situación revista</nz-form-label>
-          <nz-form-control [nzSpan]="14">
-            @if (personaSitRevista.value(); as situacion) {
-              @if (!situacion.length) { <span>—</span> }
-              <ul style="margin: 0; padding-left: 16px;">
-                @for (sit of situacion; track sit.PersonalSituacionRevistaDesde) {
-                  <li>
-                    {{ sit.SituacionRevistaDescripcion }}
-                    {{ sit.PersonalSituacionRevistaDesde | date:'dd/MM/yyyy' }}
-                    {{ sit.PersonalSituacionRevistaHasta | date:'dd/MM/yyyy' }}
-                  </li>
-                }
-              </ul>
-            } @else {
-              <span>—</span>
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="10">Situación revista</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          @if (personaSitRevista.value(); as situacion) {
+          @if (!situacion.length) { <span>—</span> }
+          <ul style="margin: 0; padding-left: 16px;">
+            @for (sit of situacion; track sit.PersonalSituacionRevistaDesde) {
+            <li>
+              {{ sit.SituacionRevistaDescripcion }}
+              {{ sit.PersonalSituacionRevistaDesde | date:'dd/MM/yyyy' }}
+              {{ sit.PersonalSituacionRevistaHasta | date:'dd/MM/yyyy' }}
+            </li>
             }
-          </nz-form-control>
-        </nz-form-item>
-      </div>
-      <div nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6">Grupo actividad</nz-form-label>
-          <nz-form-control [nzSpan]="14">
-            <app-view-responsable [list]="personaResponsables.value() ?? []"></app-view-responsable>
-          </nz-form-control>
-        </nz-form-item>
-      </div>
+          </ul>
+          } @else {
+          <span>—</span>
+          }
+        </nz-form-control>
+      </nz-form-item>
     </div>
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Grupo actividad</nz-form-label>
+        <nz-form-control [nzSpan]="14">
+          <app-view-responsable [list]="personaResponsables.value() ?? []"></app-view-responsable>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+  </div>
 
-   
+
   }
-   <div nz-row [nzGutter]="15">
-      <div nz-col [nzSpan]="16">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="3">Observaciones</nz-form-label>
-          <nz-form-control [nzSpan]="11">
-            <input nz-input [formField]="formEfectoStock.observaciones" placeholder="Observaciones" />
-          </nz-form-control>
-        </nz-form-item>
-      </div>
+  <div nz-row [nzGutter]="15">
+    <div nz-col [nzSpan]="16">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="3">Observaciones</nz-form-label>
+        <nz-form-control [nzSpan]="11">
+          <input nz-input [formField]="formEfectoStock.observaciones" placeholder="Observaciones" />
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+  </div>
+
+
+  @if (!IndIngresoStock()) {
+  <div nz-row [nzGutter]="15">
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="8">Tipo Intermediario</nz-form-label>
+        <nz-form-control [nzSpan]="16" nzHasFeedback sfErrorTip>
+          <app-tipo-destino-search [formField]="formEfectoStock.tipoIntermediario" [soloIntermediario]="true" />
+        </nz-form-control>
+      </nz-form-item>
     </div>
 
-  
-    @if (!IndIngresoStock()) {
-    <div nz-row [nzGutter]="15">
-      <div nz-col [nzSpan]="8">
-        <nz-form-item>
-          <nz-form-label [nzSpan]="6">Intermediario</nz-form-label>
-          <nz-form-control [nzSpan]="18" nzHasFeedback sfErrorTip>
-            <app-personal-search [formField]="formEfectoStock.personalIdInter" [anio]="anio()" [mes]="mes()" />
-
-          </nz-form-control>
-        </nz-form-item>
-      </div>
+    @if (tipoIntermediarioSeleccionado() === 'personal') {
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Intermediario</nz-form-label>
+        <nz-form-control [nzSpan]="18" nzHasFeedback sfErrorTip>
+          <app-personal-search [formField]="formEfectoStock.personalIdInter" [anio]="anio()" [mes]="mes()" />
+        </nz-form-control>
+      </nz-form-item>
     </div>
     }
-  
+
+    @if (tipoIntermediarioSeleccionado() === 'proveedor') {
+    <div nz-col [nzSpan]="8">
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Intermediario</nz-form-label>
+        <nz-form-control [nzSpan]="18" nzHasFeedback sfErrorTip>
+          <app-proveedor-search [formField]="formEfectoStock.proveedorIdInter" />
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+    }
+  </div>
+  }
+
 
   <nz-divider [nzText]="origenLabel" style="margin-bottom: 10px;"></nz-divider>
   <ng-template #origenLabel>
     <span style="margin-right: 8px;">Origen</span>
     @if (!IndIngresoStock()) {
-      <button nz-button nzType="default" type="button"
-        nz-popconfirm [nzPopconfirmTitle]="buscadorTpl" [nzPopconfirmShowArrow]="false"
-         nzOkText="Confirmar" (nzOnConfirm)="confirmarBusqueda()"
-        nz-tooltip nzTooltipTitle="{{ 'app.buscador.personas.objetivos' | i18n }}">
-        <span nz-icon nzType="user" nzTheme="outline"></span>
-      </button>
+    <button nz-button nzType="default" type="button" nz-popconfirm [nzPopconfirmTitle]="buscadorTpl"
+      [nzPopconfirmShowArrow]="false" nzOkText="Confirmar" (nzOnConfirm)="confirmarBusqueda()" nz-tooltip
+      nzTooltipTitle="{{ 'app.buscador.personas.objetivos' | i18n }}">
+      <span nz-icon nzType="user" nzTheme="outline"></span>
+    </button>
     }
 
-    <button nz-button nzType="default" type="button" style="margin-left: 6px;"
-      (click)="limpiarOrigen()"
-      nz-tooltip nzTooltipTitle="Limpiar Origen">
+    <button nz-button nzType="default" type="button" style="margin-left: 6px;" (click)="limpiarOrigen()" nz-tooltip
+      nzTooltipTitle="Limpiar Origen">
       <span nz-icon nzType="delete" nzTheme="outline"></span>
     </button>
 
@@ -220,9 +239,10 @@
         <div style="margin-bottom: 12px;">
           <label style="display: block; font-size: 12px; color: rgba(0,0,0,0.45); margin-bottom: 4px;">Tipo</label>
           <nz-select [ngModel]="tipoBusqueda()" (ngModelChange)="onChangeTipoBusqueda($event)"
-            [ngModelOptions]="{ standalone: true }" [nzDropdownMatchSelectWidth]="false" style="width: 100%;" nzShowSearch>
+            [ngModelOptions]="{ standalone: true }" [nzDropdownMatchSelectWidth]="false" style="width: 100%;"
+            nzShowSearch>
             @for (t of tiposOrigen.value() ?? []; track t.value) {
-              <nz-option [nzValue]="t.value" [nzLabel]="t.label"></nz-option>
+            <nz-option [nzValue]="t.value" [nzLabel]="t.label"></nz-option>
             }
           </nz-select>
         </div>
@@ -232,45 +252,45 @@
             {{ tipoBusqueda() === 'persona' ? 'Persona' : 'Objetivo' }}
           </label>
           @if (tipoBusqueda() === 'persona') {
-            <app-personal-search [(ngModel)]="personaBuscadaId" [ngModelOptions]="{ standalone: true }"
-              [anio]="anio()" [mes]="mes()" />
+          <app-personal-search [(ngModel)]="personaBuscadaId" [ngModelOptions]="{ standalone: true }" [anio]="anio()"
+            [mes]="mes()" />
           } @else {
-            <app-objetivo-search [(ngModel)]="objetivoBuscadoId" [ngModelOptions]="{ standalone: true }" />
+          <app-objetivo-search [(ngModel)]="objetivoBuscadoId" [ngModelOptions]="{ standalone: true }" />
           }
         </div>
       </div>
     </ng-template>
   </ng-template>
-                                            
+
   @for (ef of formEfectoStock.efectos; track trackByTrackId(ef); let i = $index, last = $last){
-    <div nz-row nzAlign="middle" [nzGutter]="8">
-      <div nz-col [nzSpan]="21">
-        <app-efecto-stock-linea [field]="ef" [sucursalDestino]="sucursalDescripcionDisplay()" [IndIngresoStock]="IndIngresoStock()" />
-      </div>
-      <div nz-col [nzSpan]="3">
-        <div style="display: flex; gap: 4px;">
-          <button type="button" nz-button nzType="primary" class="add-button"
-            [style.visibility]="last ? 'visible' : 'hidden'"
-            (click)="addEfectoLinea($event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-            <span nz-icon nzType="plus"></span>
-          </button>
-          <button type="button" nz-button nzType="default"
-            [style.visibility]="formEfectoStock.efectos.length >= 2 ? 'visible' : 'hidden'"
-            (click)="removeEfectoLinea(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-            <span nz-icon nzType="delete" nzTheme="outline"></span>
-          </button>
-        </div>
+  <div nz-row nzAlign="middle" [nzGutter]="8">
+    <div nz-col [nzSpan]="21">
+      <app-efecto-stock-linea [field]="ef" [sucursalDestino]="sucursalDescripcionDisplay()"
+        [IndIngresoStock]="IndIngresoStock()" />
+    </div>
+    <div nz-col [nzSpan]="3">
+      <div style="display: flex; gap: 4px;">
+        <button type="button" nz-button nzType="primary" class="add-button"
+          [style.visibility]="last ? 'visible' : 'hidden'" (click)="addEfectoLinea($event)" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+          <span nz-icon nzType="plus"></span>
+        </button>
+        <button type="button" nz-button nzType="default"
+          [style.visibility]="formEfectoStock.efectos.length >= 2 ? 'visible' : 'hidden'"
+          (click)="removeEfectoLinea(i, $event)" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+          <span nz-icon nzType="delete" nzTheme="outline"></span>
+        </button>
       </div>
     </div>
+  </div>
   }
 
   <div nz-row style="margin-top: 40px; margin-bottom: 40px;">
     <div nz-col [nzSpan]="24" style="text-align: center;">
-      <button nz-button [nzType]="fijar() ? 'primary' : 'default'" type="button"
-        (click)="toggleFijar()"
-        nz-tooltip nzTooltipTitle="Mantener los datos al guardar">
+      <button nz-button [nzType]="fijar() ? 'primary' : 'default'" type="button" (click)="toggleFijar()" nz-tooltip
+        nzTooltipTitle="Mantener los datos al guardar">
         <span nz-icon nzType="pushpin" nzTheme="outline"></span>
-    </button>
+      </button>
       <button style="margin-right: 10px;" nzType="primary" nz-button type="submit"
         [nzLoading]="formEfectoStock().submitting()"
         [disabled]="formEfectoStock().submitting() || formEfectoStock().dirty()==false || formEfectoStock().valid()==false">
