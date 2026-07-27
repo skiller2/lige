@@ -55,7 +55,9 @@ export class MovimientoStockComponent {
     personalId: null,
     objetivoId: null,
     proveedorId: null,
+    tipoIntermediario: '',
     personalIdInter: null,
+    proveedorIdInter: null,
     observaciones: '',
     efectos: [nuevaEfectoLinea()],
   };
@@ -141,6 +143,10 @@ export class MovimientoStockComponent {
     required(p.objetivoId, { message: 'El objetivo es obligatorio', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'objetivo' });
     required(p.proveedorId, { message: 'El proveedor es obligatorio', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'proveedor' });
 
+    // El intermediario es opcional, pero si se elige el tipo, el dato correspondiente es obligatorio.
+    required(p.personalIdInter, { message: 'La persona intermediaria es obligatoria', when: (ctx) => ctx.valueOf(p.tipoIntermediario) === 'personal' });
+    required(p.proveedorIdInter, { message: 'El proveedor intermediario es obligatorio', when: (ctx) => ctx.valueOf(p.tipoIntermediario) === 'proveedor' });
+
     applyEach(p.efectos, (linea) => {
       required(linea.EfectoId, { message: 'Efecto obligatorio', when: (ctx) => ctx.valueOf(linea.EfectoId) !== null });
       required(linea.StockId, { message: 'Ubicación obligatoria', when: (ctx) => ctx.valueOf(linea.StockId) !== null });
@@ -207,7 +213,9 @@ export class MovimientoStockComponent {
       personalId: null,
       objetivoId: null,
       proveedorId: null,
+      tipoIntermediario: '',
       personalIdInter: null,
+      proveedorIdInter: null,
       observaciones: '',
     }));
   }
@@ -252,6 +260,7 @@ export class MovimientoStockComponent {
   }
 
   tipoDestinoSeleccionado = computed(() => this.parametroStock().tipoDestino);
+  tipoIntermediarioSeleccionado = computed(() => this.parametroStock().tipoIntermediario);
   personalIdSig = computed(() => this.parametroStock().personalId);
   objetivoIdSig = computed(() => this.parametroStock().objetivoId);
   anio = computed(() => this.parametroStock().fecha?.getFullYear() ?? new Date().getFullYear());
@@ -345,6 +354,19 @@ export class MovimientoStockComponent {
         break
     }
     this.parametroStock().tipoDestino
+
+    // Intermediario: solo se envía el ID que corresponde al tipo elegido; el resto se anula.
+    switch (this.parametroStock().tipoIntermediario) {
+      case 'personal':
+        this.parametroStock.update(m => ({ ...m, proveedorIdInter: null }))
+        break
+      case 'proveedor':
+        this.parametroStock.update(m => ({ ...m, personalIdInter: null }))
+        break
+      default:
+        this.parametroStock.update(m => ({ ...m, personalIdInter: null, proveedorIdInter: null }))
+        break
+    }
 
     if (this.parametroStock().efectos.length == 0)
       this.addEfectoLinea(null)

@@ -2457,8 +2457,8 @@ export class SearchService {
     );
   }
 
-  getStockEfectoTiposDestino() {
-    return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/tipos-destino`).pipe(
+  getStockEfectoTiposDestino(intermediario: boolean = false) {
+    return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/tipos-destino`, { intermediario }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         console.log('Something went wrong!');
@@ -2687,7 +2687,6 @@ export class SearchService {
       );
   }
 
-  
   getTipoAsociadoCategoriaFromName(fieldName: string, values: string): Observable<SearchTipoAsociadoCategoria[]> {
     if (!values || values == '') {
       return of([]);

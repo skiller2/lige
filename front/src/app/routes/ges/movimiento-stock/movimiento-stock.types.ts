@@ -20,7 +20,9 @@ export interface ParametroformEfectoStock {
   personalId: number | null;
   objetivoId: string | null;
   proveedorId: number | null;
+  tipoIntermediario: string;
   personalIdInter: number | null;
+  proveedorIdInter: number | null;
   observaciones: string;
   efectos: EfectoStockLinea[];
 }
