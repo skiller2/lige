@@ -844,6 +844,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
               case 'searchCUITsFromFile':
                 res = await firstValueFrom(this.apiService.getCUITsFromINAESFile({ file: Response.data }))
                 this.selections.value = res.cuits.join(";")
+                this.selections.label = res.cuits.join(";")
                 break;
               default:
                 break;
