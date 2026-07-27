@@ -1,4 +1,4 @@
-import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef, model, signal } from '@angular/core';
+import { Component, ViewChild, Injector, inject, TemplateRef, ChangeDetectorRef, model, signal, resource } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NgForm } from '@angular/forms';
@@ -50,6 +50,8 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 import { RecibosModalComponent } from '../recibos-modal/recibos-modal'
 import { MonotributosModalComponent } from '../monotributos-modal/monotributos-modal'
 import { Selections } from '../../../shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
+
 @Component({
   selector: 'app-liquidaciones',
   templateUrl: './liquidaciones.component.html',
@@ -70,8 +72,6 @@ import { Selections } from '../../../shared/schemas/filtro';
 })
 
 export class LiquidacionesComponent {
-  @ViewChild('liquidacionesForm', { static: true }) liquidacionesForm: NgForm =
-    new NgForm([], [])
 
   public apiService = inject(ApiService);
   public router = inject(Router);
@@ -81,12 +81,12 @@ export class LiquidacionesComponent {
   private notification = inject(NzNotificationService);
   private readonly loadingSrv = inject(LoadingService);
 
-  startFilters= signal(<Selections[]>[])
-  
+  periodo = signal<Date>(new Date())
+  startFilters = signal(<Selections[]>[])
+  tabIndex = signal<number>(0)
 
   url = '/api/liquidaciones';
   url_forzado = '/api/liquidaciones/forzado';
-  formChange$ = new BehaviorSubject('');
   files: NzUploadFile[] = [];
   columnDefinitions: Column[] = [];
   toggle = false;
@@ -96,7 +96,6 @@ export class LiquidacionesComponent {
   mes = signal(0)
   fechaRecibo = model(new Date())
   saveLoading$ = new BehaviorSubject(false);
-  filesChange$ = new BehaviorSubject('');
   gridOptions!: GridOption;
   gridOptionsEdit!: GridOption;
   gridOptionsImport!: GridOption;
@@ -121,8 +120,6 @@ export class LiquidacionesComponent {
   SucursalIdWithSearch = model(0);
   PersonalIdWithSearch = model(0);
 
-
-
   $selectedCuentalIdChange = new BehaviorSubject('');
   $isCuentaDataLoading = new BehaviorSubject(false);
   $selectedMovimientoIdChange = new BehaviorSubject('');
@@ -139,21 +136,17 @@ export class LiquidacionesComponent {
   $optionsSucursales = this.searchService.getSucursales();
 
   $optionsMovimiento = this.apiService.getTipoMovimiento("I");
-  $importacionesAnteriores = this.formChange$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      const periodo = this.liquidacionesForm.form.get('periodo')?.value
-      return this.apiService
-        .getImportacionesAnteriores(
-          periodo.getFullYear(), periodo.getMonth() + 1
-        )
-        .pipe(
-        //map(data => {return data}),
-        //doOnSubscribe(() => this.tableLoading$.next(true)),
-        //tap({ complete: () => this.tableLoading$.next(false) })
-      )
-    })
-  )
+
+  importacionesAnteriores = resource({
+    params: () => ({ periodo: this.periodo(), tabIndex:this.tabIndex() }),
+    loader: async ({ params }) => {
+      if (params.tabIndex != 3) return [];
+      const anio = params.periodo.getFullYear()
+      const mes = params.periodo.getMonth() + 1
+      if (!anio || !mes) return [];
+      return await firstValueFrom(this.apiService.getImportacionesAnteriores(anio, mes))
+    }
+  });
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
@@ -200,20 +193,10 @@ export class LiquidacionesComponent {
     }
   }
 
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
-
-  formChange(event: any) {
-    this.formChange$.next(event);
-  }
-
-  listOptionsChange(options: any) {
-    this.listOptions = options;
-    this.formChange$.next('');
-
-  }
+  });
 
   ngAfterViewInit(): void {
     const now = new Date(); //date
@@ -227,7 +210,7 @@ export class LiquidacionesComponent {
           ? Number(localStorage.getItem('mes'))
           : now.getMonth() + 1;
 
-      this.liquidacionesForm.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
+      this.periodo.set(new Date(anio, mes - 1, 1));
     }, 1);
 
     const PersonalId = Number(this.route.snapshot.paramMap.get('PersonalId'))
@@ -275,31 +258,27 @@ export class LiquidacionesComponent {
       this.angularGridEdit.gridService.hideColumnByIds([])
   }
 
-  gridData$ = this.formChange$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      const periodo = this.liquidacionesForm.form.get('periodo')?.value
-      this.anio.set(periodo.getFullYear())
-      this.mes.set(periodo.getMonth() + 1)
-      return this.apiService
-        .getLiquidaciones(
-          { anio: periodo.getFullYear(), mes: periodo.getMonth() + 1, options: this.listOptions }
-        )
-        .pipe(
-          map((data: any) => {
-
-            // this.gridDataLen = data?.list?.length
-            // this.gridDataLen = data.list?.length
-            // this.gridObj.getFooterRowColumn(0).innerHTML = 'Registros:  ' + this.gridDataLen.toString()
-            this.cleanerVariables();
-            this.PersonalIdUnique = data?.list
-            return data?.list
-          }),
-          doOnSubscribe(() => this.loadingSrv.open()),
-          tap({ complete: () => this.loadingSrv.close() })
-        )
-    })
-  )
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), periodo: this.periodo()}),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        response = await firstValueFrom(this.apiService.getLiquidaciones({ anio: params.periodo.getFullYear(), mes: params.periodo.getMonth() + 1, options: params.options })
+        .pipe(map(data => { 
+          this.cleanerVariables();
+          this.PersonalIdUnique = data?.list
+          return data.list
+         })));
+      } catch (error) {
+        
+      }
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   cleanerVariables() {
     this.PersonalIdForReceip = 0
@@ -318,13 +297,8 @@ export class LiquidacionesComponent {
 
 
   dateChange(result: Date): void {
-    this.selectedPeriod.year = result.getFullYear();
-    this.selectedPeriod.month = result.getMonth() + 1;
-
-    localStorage.setItem('anio', String(this.selectedPeriod.year));
-    localStorage.setItem('mes', String(this.selectedPeriod.month));
-
-    this.formChange('');
+    localStorage.setItem('anio', String(result.getFullYear()));
+    localStorage.setItem('mes', String(result.getMonth() + 1));
   }
 
   columnsImport = [
@@ -378,7 +352,7 @@ export class LiquidacionesComponent {
     });
   }
 
-  columns$ = this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols: Column<any>[]) => {
+  columns = toSignal(this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols: Column<any>[]) => {
     this.hiddenColumnIds = cols
       .filter((col: any) => col.showGridColumn === false)
       .map((col: Column) => col.id as string);
@@ -388,74 +362,75 @@ export class LiquidacionesComponent {
       .forEach((col: Column) => col.asyncPostRender = this.renderAngularComponent.bind(this))
 
     return cols
-  }));
+  })), { initialValue: [] as Column[] })
 
 
   async liquidacionesAcciones(value: string) {
     switch (value) {
       case "movimientosAutomaticos":
 
-        firstValueFrom(this.apiService.setmovimientosAutomaticos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setmovimientosAutomaticos(this.selectedPeriod.year, this.selectedPeriod.month))
         break;
 
       case "Asistencia":
 
-        firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
+        firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month)) //.subscribe(evt => {this.formChange$.next('')});
         break;
       case "CompensaGeneCoor":
-        firstValueFrom(this.apiService.setCompensaGeneralCoordinador(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
+        firstValueFrom(this.apiService.setCompensaGeneralCoordinador(this.selectedPeriod.year, this.selectedPeriod.month)) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
       case "Custodia":
 
-        firstValueFrom(this.apiService.setingresoPorCustodia(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next('')))) //.subscribe(evt => {this.formChange$.next('')});
+        firstValueFrom(this.apiService.setingresoPorCustodia(this.selectedPeriod.year, this.selectedPeriod.month)) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
       case "Licencias":
 
-        firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.selectedPeriod.year, this.selectedPeriod.month))
         break;
 
 
       case "ingresosCoordinadorDeCuenta":
 
-        firstValueFrom(this.apiService.setingresosCoordinadorDeCuenta(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setingresosCoordinadorDeCuenta(this.selectedPeriod.year, this.selectedPeriod.month))
         break;
 
       case "descuentoPorDeudaAnterior":
 
-        firstValueFrom(this.apiService.setdescuentoPorDeudaAnterior(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setdescuentoPorDeudaAnterior(this.selectedPeriod.year, this.selectedPeriod.month))
         break;
 
       case "descuentos":
 
-        firstValueFrom(this.apiService.setdescuentos(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setdescuentos(this.selectedPeriod.year, this.selectedPeriod.month))
         break;
 
       case "movimientoAcreditacionEnCuenta":
 
-        firstValueFrom(this.apiService.setmovimientoAcreditacionEnCuenta(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.setmovimientoAcreditacionEnCuenta(this.selectedPeriod.year, this.selectedPeriod.month))
         break;
 
       case "generarRecibos":
 
-        firstValueFrom(this.apiService.generaRecibos(this.selectedPeriod.year, this.selectedPeriod.month, this.fechaRecibo()).pipe(tap((_res: any) => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.generaRecibos(this.selectedPeriod.year, this.selectedPeriod.month, this.fechaRecibo()))
         break;
 
       case "generarReciboUnico":
 
-        firstValueFrom(this.apiService.generaReciboUnico(this.selectedPeriod.year, this.selectedPeriod.month, this.PersonalIdForReceip).pipe(tap((_res: any) => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.generaReciboUnico(this.selectedPeriod.year, this.selectedPeriod.month, this.PersonalIdForReceip))
         break;
 
       case "DescuentoRetiros":
 
-        firstValueFrom(this.apiService.generaDescuentoRetiros(this.selectedPeriod.year, this.selectedPeriod.month).pipe(tap((_res: any) => this.formChange$.next(''))))
+        firstValueFrom(this.apiService.generaDescuentoRetiros(this.selectedPeriod.year, this.selectedPeriod.month))
         break;
 
       default:
         break;
 
     }
+    this.gridData.reload()
 
   }
 
@@ -718,13 +693,13 @@ export class LiquidacionesComponent {
 
   confirmNewItem() {
     const altas = this.gridDataInsert.filter((f: any) => f.isfull == 1);
-    const periodo = this.liquidacionesForm.form.get('periodo')?.value
+    const periodo = this.periodo()
     let periodoM = periodo.getMonth() + 1;
     let periodoY = periodo.getFullYear();
     const valuePeriodo = periodoM + "/" + periodoY;
     if (altas.length > 0) {
       this.apiService.setAgregarRegistros({ gridDataInsert: altas }, valuePeriodo).subscribe((_res: any) => {
-        this.formChange$.next('')
+        this.gridData.reload()
         this.cleanTable()
       });
     }
@@ -732,11 +707,11 @@ export class LiquidacionesComponent {
 
   confirmDeleteImportacion(id: any) {
     this.NotificationIdForDelete = parseInt(id);
-    const periodo = this.liquidacionesForm.form.get('periodo')?.value
+    const periodo = this.periodo()
     if (this.NotificationIdForDelete > 0) {
       //(document.querySelectorAll('nz-notification')[0] as HTMLElement).hidden = true;
       this.apiService.setDeleteImportacion(this.NotificationIdForDelete, periodo.getFullYear(), periodo.getMonth() + 1).subscribe((_evt: any) => {
-        this.formChange$.next('')
+        this.importacionesAnteriores.reload();
       });
     }
   }
@@ -767,7 +742,7 @@ export class LiquidacionesComponent {
         this.gridDataImportLen = 0
         this.uploading$.next({ loading: false, event })
         this.apiService.response(Response)
-        this.formChange$.next('')
+        this.importacionesAnteriores.reload()
         break
       default:
 
@@ -785,7 +760,7 @@ export class LiquidacionesComponent {
       }
     });
     const newId = highestId + incrementIdByHowMany;
-    const periodo = this.liquidacionesForm.form.get('periodo')?.value
+    const periodo = this.periodo()
     let periodoM = periodo.getMonth() + 1
     let periodoY = periodo.getFullYear()
     let isfull = 0
