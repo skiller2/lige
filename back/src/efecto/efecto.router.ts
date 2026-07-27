@@ -46,17 +46,8 @@ efectoRouter.post("/getEfectoGeneral", [authMiddleware.verifyToken, authMiddlewa
   efectoController.getEfectoGeneral(req, res, next);
 });
 
-efectoRouter.get("/colsMovimientos", [authMiddleware.verifyToken], (req, res) => {
-  efectoController.getGridColsMovimientos(req, res);
-});
 efectoRouter.get("/filters", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.filterSucursal, authMiddleware.authADGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
   return efectoController.getGridFilters(req, res, next);
-});
-efectoRouter.post("/getEfectoMovimientos", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
-  efectoController.getEfectoMovimientos(req, res, next);
-});
-efectoRouter.get("/movimientoDetalle/:codigo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
-  efectoController.getEfectoMovimientoDetalle(req, res, next);
 });
 
 efectoRouter.post("/searchEfecto", authMiddleware.verifyToken, (req, res, next) => {

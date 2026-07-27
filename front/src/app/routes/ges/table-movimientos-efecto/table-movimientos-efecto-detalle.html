@@ -13,9 +13,11 @@
       Código Viejo: <strong>{{ cabecera()?.MovimientoCodigoViejo }}</strong>
     </div>
     }
+    @if (cabecera()?.Intermediario) {
     <div style="margin-bottom: 4px;">
-      Intermediario: <strong>{{ cabecera()?.Intermediario }}</strong>
+      Intermediario ({{ cabecera()?.TipoIntermediario }}): <strong>{{ cabecera()?.Intermediario }}</strong>
     </div>
+    }
     <div style="margin-bottom: 8px;">
       Observaciones: <strong>{{ cabecera()?.Observaciones }}</strong>
     </div>

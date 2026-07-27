@@ -20,6 +20,18 @@ movimientoStockRouter.get("/proveedores", [authMiddleware.verifyToken, authMiddl
   movimientoStockController.getProveedores(req, res, next);
 });
 
+movimientoStockRouter.get("/colsMovimientos", [authMiddleware.verifyToken], (req, res) => {
+  movimientoStockController.getGridColsMovimientos(req, res);
+});
+
+movimientoStockRouter.post("/getEfectoMovimientos", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+  movimientoStockController.getEfectoMovimientos(req, res, next);
+});
+
+movimientoStockRouter.get("/movimientoDetalle/:codigo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+  movimientoStockController.getEfectoMovimientoDetalle(req, res, next);
+});
+
 movimientoStockRouter.post("/confirmar", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica'])], (req, res, next) => {
   movimientoStockController.confirmarMovimiento(req, res, next);
 });
