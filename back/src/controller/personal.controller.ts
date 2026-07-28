@@ -3503,10 +3503,9 @@ UNION ALL
         left JOIN Banco ban ON ban.BancoId = pb.PersonalBancoBancoId
         Left JOIN Personal per ON per.PersonalId = pb.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-        WHERE (pb.PersonalBancoCBU = @0 AND @1 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @1 >= pb.PersonalBancoDesde)
-           OR (pb.PersonalId = @2 AND pb.PersonalBancoBancoId = @3 AND ((ISNULL(pb.PersonalBancoHasta, '9999-12-31') >= @1 AND pb.PersonalBancoDesde <= @1) OR pb.PersonalBancoDesde >= @1))
+        WHERE ((@0 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @0 >= pb.PersonalBancoDesde) OR pb.PersonalBancoDesde >= @0)
            ORDER BY pb.PersonalBancoDesde DESC
-      `, [CBU, FechaActual, PersonalId, BancoId])
+      `, [FechaActual])
 
     // Validación de CBU EXISTENTE
     const existPersonalBanco = personalBancoRows.filter((r: any) => r.PersonalBancoCBU === CBU)
