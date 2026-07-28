@@ -8,6 +8,7 @@ import path from 'path';
 import { existsSync, mkdirSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import { unlink } from "fs/promises";
 import { findColumnByIndex } from "../impuestos-afip/comprobantes-utils/lista.ts";
+import { filtrosToSql } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { logger } from "../logger/logger.ts";
 
 const tiposMovimiento = [
@@ -34,6 +35,185 @@ const tipoDestinoCaseSql = `CASE
           ${tiposMovimiento.map((t) => `WHEN mov.${t.destinoIdColumn} IS NOT NULL THEN '${t.label}'`).join("\n          ")}
           ELSE ''
         END`;
+
+// Columnas de la grilla de movimientos de stock (definición + mapeo de filtros a SQL).
+const listaColumnasMovimientos: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "MovimientoStockCodigo",
+    name: "Código",
+    field: "MovimientoStockCodigo",
+    fieldName: "m.MovimientoStockCodigo",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    maxWidth: 110,
+  },
+  {
+    id: "Fecha",
+    name: "Fecha",
+    field: "Fecha",
+    fieldName: "m.Fecha",
+    type: "date",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: "TipoDestino",
+    name: "Tipo Destino",
+    field: "TipoDestino",
+    fieldName: "CASE WHEN m.DepositoIdDest IS NOT NULL THEN 'Depósito' WHEN m.PersonalIdDest IS NOT NULL THEN 'Persona' WHEN m.ProveedorIdDest IS NOT NULL THEN 'Proveedor' WHEN m.ClienteIdDest IS NOT NULL THEN 'Objetivo' ELSE '' END",
+    type: "string",
+    searchComponent: "inputForDestinoTipoSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 110,
+  },
+  {
+    id: "DestinoDescripcion",
+    name: "Destino",
+    field: "DestinoDescripcion",
+    fieldName: "DestinoDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "SucursalDestino",
+    name: "Sucursal Destino",
+    field: "SucursalDestino",
+    fieldName: "COALESCE(depd.DepositoSucursalId, psp.PersonalSucursalPrincipalSucursalId, prod.ProveedorSucursalId, eled.ClienteElementoDependienteSucursalId)",
+    type: "string",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: "TipoIntermediario",
+    name: "Tipo Intermediario",
+    field: "TipoIntermediario",
+    fieldName: "CASE WHEN m.IntermediarioPersonalId IS NOT NULL THEN 'Persona' WHEN m.IntermediarioProveedorId IS NOT NULL THEN 'Proveedor' ELSE '' END",
+    type: "string",
+    searchComponent: "inputForDestinoTipoSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 110,
+  },
+  {
+    id: "Intermediario",
+    name: "Intermediario",
+    field: "Intermediario",
+    fieldName: "m.IntermediarioPersonalId",
+    type: "number",
+    searchComponent: "inputForPersonalSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: "TienePendiente",
+    name: "Pendiente",
+    field: "TienePendiente",
+    fieldName: "m.TienePendiente",
+    type: "string",
+    searchComponent: "inputForActivo",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    formatter: 'collectionFormatter',
+    params: { collection: [{ label: 'NO', value: '0' }, { label: 'SI', value: '1' }] },
+    exportWithFormatter: true,
+    minWidth: 80,
+    maxWidth: 90,
+    cssClass: 'text-center'
+  },
+  {
+    id: "CantidadEfectos",
+    name: "Cantidad Efectos",
+    field: "CantidadEfectos",
+    fieldName: "CantidadEfectos",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    maxWidth: 110,
+    cssClass: 'text-center'
+  },
+  // Columnas solo de filtro (ocultas en la grilla). Apuntan al destino efectivo del derivado `m`:
+  // si hay pendiente toma el destino real de MovimientoStockPendiente, si no el de MovimientoStock.
+  {
+    id: "PersonalId",
+    name: "Persona",
+    field: "PersonalId",
+    fieldName: "m.PersonalIdDest",
+    type: "number",
+    searchComponent: "inputForPersonalSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "ObjetivoId",
+    name: "Objetivo",
+    field: "ObjetivoId",
+    fieldName: "(SELECT TOP 1 o.ObjetivoId FROM Objetivo o WHERE o.ClienteId = m.ClienteIdDest AND o.ClienteElementoDependienteId = m.ClienteElemDepDest)",
+    type: "number",
+    searchComponent: "inputForObjetivoSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "ProveedorId",
+    name: "Proveedor",
+    field: "ProveedorId",
+    fieldName: "m.ProveedorIdDest",
+    type: "number",
+    searchComponent: "inputForProveedorSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "DepositoId",
+    name: "Depósito",
+    field: "DepositoId",
+    fieldName: "m.DepositoIdDest",
+    type: "number",
+    searchComponent: "inputForDepositoSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
+  }, {
+    id: "EfectoId",
+    name: "Efecto",
+    field: "EfectoId",
+    fieldName: "m.MovimientoStockCodigo",
+    type: "number",
+    searchComponent: "inputForEfectoSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
+  },
+]
 
 export class MovimientoStockController extends BaseController {
 
@@ -66,6 +246,205 @@ export class MovimientoStockController extends BaseController {
     } catch (error) {
       return next(error);
     } finally {
+    }
+  }
+
+  async getGridColsMovimientos(req, res) {
+    this.jsonRes(listaColumnasMovimientos, res);
+  }
+
+  // Listado de todos los movimientos de stock. Cuando un movimiento tiene registro en
+  // MovimientoStockPendiente significa que se cargó con intermediario: en ese caso el destino real
+  // (persona/objetivo/proveedor/depósito) está en la tabla Pendiente y el PersonalIdDestino de
+  // MovimientoStock es en realidad el intermediario.
+  async getEfectoMovimientos(req: any, res: Response, next: NextFunction) {
+    const listOptions = req.body.listOptions
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const list = await this.getEfectoMovimientosQuery(queryRunner, listOptions);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  private getEfectoMovimientosQuery(queryRunner: any, listOptions: any) {
+    // El efecto no es columna de la grilla se saca del filtrosToSql y se
+    // resuelve como EXISTS sobre MovimientoStockDetalle.
+    const filtros = listOptions?.filtros ?? []
+    const efectoId = Number(filtros.find((f: any) => f?.index === 'EfectoId')?.valor?.[0]?.EfectoId)
+    const filterSql = filtrosToSql(filtros.filter((f: any) => f?.index !== 'EfectoId'), listaColumnasMovimientos)
+    const efectoSql = efectoId ? ` AND EXISTS (SELECT 1 FROM MovimientoStockDetalle det WHERE det.MovimientoStockCodigo = m.MovimientoStockCodigo AND det.EfectoId = ${efectoId})` : ''
+    return queryRunner.query(`
+      SELECT ROW_NUMBER() OVER (ORDER BY m.MovimientoStockCodigo DESC) AS id,
+          m.MovimientoStockCodigo,
+          m.Fecha,
+          CASE
+            WHEN m.DepositoIdDest IS NOT NULL THEN 'Depósito'
+            WHEN m.PersonalIdDest IS NOT NULL THEN 'Persona'
+            WHEN m.ProveedorIdDest IS NOT NULL THEN 'Proveedor'
+            WHEN m.ClienteIdDest IS NOT NULL THEN 'Objetivo'
+            ELSE ''
+          END AS TipoDestino,
+          COALESCE(
+            TRIM(depd.DepositoNombre),
+            IIF(m.PersonalIdDest IS NULL, NULL, CONCAT(TRIM(perd.PersonalApellido), ', ', TRIM(perd.PersonalNombre))),
+            TRIM(prod.ProveedorRazonSocial),
+            IIF(m.ClienteIdDest IS NULL, NULL,
+              CONCAT(m.ClienteIdDest, IIF(m.ClienteElemDepDest IS NULL, '', CONCAT('/', m.ClienteElemDepDest)),
+                IIF(eled.ClienteElementoDependienteDescripcion IS NULL, '', CONCAT(' ', TRIM(eled.ClienteElementoDependienteDescripcion)))))
+          ) AS DestinoDescripcion,
+          TRIM(COALESCE(sucdep.SucursalDescripcion, sucper.SucursalDescripcion, sucpro.SucursalDescripcion, sucobj.SucursalDescripcion)) AS SucursalDestino,
+          CASE
+            WHEN m.IntermediarioPersonalId IS NOT NULL THEN 'Persona'
+            WHEN m.IntermediarioProveedorId IS NOT NULL THEN 'Proveedor'
+            ELSE ''
+          END AS TipoIntermediario,
+          COALESCE(
+            IIF(m.IntermediarioPersonalId IS NULL, NULL, CONCAT(TRIM(peri.PersonalApellido), ', ', TRIM(peri.PersonalNombre))),
+            IIF(m.IntermediarioProveedorId IS NULL, NULL, TRIM(proi.ProveedorRazonSocial))
+          ) AS Intermediario,
+          m.TienePendiente,
+          m.CantidadEfectos
+      FROM (
+        SELECT mov.MovimientoStockCodigo, mov.Fecha,
+            IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.PersonalIdDestino, mov.PersonalIdDestino) AS PersonalIdDest,
+            IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ProveedorIdDestino, mov.ProveedorIdDestino) AS ProveedorIdDest,
+            IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ClienteIdDestino, mov.ClienteIdDestino) AS ClienteIdDest,
+            IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ClienteElementoDependienteIdDestino, mov.ClienteElementoDependienteIdDestino) AS ClienteElemDepDest,
+            IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.DepositoIdDestino, mov.DepositoIdDestino) AS DepositoIdDest,
+            IIF(pend.MovimientoStockCodigo IS NOT NULL, mov.PersonalIdDestino, NULL) AS IntermediarioPersonalId,
+            IIF(pend.MovimientoStockCodigo IS NOT NULL, mov.ProveedorIdDestino, NULL) AS IntermediarioProveedorId,
+            IIF(pend.MovimientoStockCodigo IS NOT NULL, '1', '0') AS TienePendiente,
+            ISNULL((SELECT SUM(det.Cantidad) FROM MovimientoStockDetalle det WHERE det.MovimientoStockCodigo = mov.MovimientoStockCodigo), 0) AS CantidadEfectos
+        FROM MovimientoStock mov
+        LEFT JOIN MovimientoStockPendiente pend ON pend.MovimientoStockCodigo = mov.MovimientoStockCodigo
+      ) m
+      LEFT JOIN Deposito depd ON depd.DepositoId = m.DepositoIdDest
+      LEFT JOIN Sucursal sucdep ON sucdep.SucursalId = depd.DepositoSucursalId
+      LEFT JOIN Personal perd ON perd.PersonalId = m.PersonalIdDest
+      LEFT JOIN PersonalSucursalPrincipal psp ON psp.PersonalId = perd.PersonalId AND psp.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) FROM PersonalSucursalPrincipal a WHERE a.PersonalId = perd.PersonalId)
+      LEFT JOIN Sucursal sucper ON sucper.SucursalId = psp.PersonalSucursalPrincipalSucursalId
+      LEFT JOIN Proveedor prod ON prod.ProveedorId = m.ProveedorIdDest
+      LEFT JOIN Sucursal sucpro ON sucpro.SucursalId = prod.ProveedorSucursalId
+      LEFT JOIN ClienteElementoDependiente eled ON eled.ClienteId = m.ClienteIdDest AND eled.ClienteElementoDependienteId = m.ClienteElemDepDest
+      LEFT JOIN Sucursal sucobj ON sucobj.SucursalId = eled.ClienteElementoDependienteSucursalId
+      LEFT JOIN Personal peri ON peri.PersonalId = m.IntermediarioPersonalId
+      LEFT JOIN Proveedor proi ON proi.ProveedorId = m.IntermediarioProveedorId
+      WHERE ${filterSql}${efectoSql} `)
+  }
+
+  // Detalle de efectos de un movimiento (MovimientoStockDetalle): descripción del efecto, origen
+  // resuelto, cantidad y si el efecto está usado. Alimenta el drawer de detalle de la grilla.
+  async getEfectoMovimientoDetalle(req: any, res: Response, next: NextFunction) {
+    const movimientoCodigo = Number(req.params.codigo);
+    if (!movimientoCodigo) {
+      this.jsonRes([], res);
+      return;
+    }
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const list = await queryRunner.query(`
+        SELECT det.MovimientoStockDetalleCodigo, det.Cantidad, det.IndEfectoUsado,
+          CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) AS EfectoDescripcionCompleto,
+          LTRIM(CONCAT(
+            CASE
+              WHEN det.DepositoIdOrigen IS NOT NULL THEN 'Depósito'
+              WHEN det.PersonalIdOrigen IS NOT NULL THEN 'Persona'
+              WHEN det.ProveedorIdOrigen IS NOT NULL THEN 'Proveedor'
+              WHEN det.ClienteIdOrigen IS NOT NULL THEN 'Objetivo'
+              ELSE ''
+            END,
+            IIF(COALESCE(
+              TRIM(depo.DepositoNombre),
+              IIF(det.PersonalIdOrigen IS NULL, NULL, CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre))),
+              TRIM(proo.ProveedorRazonSocial),
+              IIF(det.ClienteIdOrigen IS NULL, NULL,
+                CONCAT(det.ClienteIdOrigen, IIF(det.ClienteElementoDependienteOrigen IS NULL, '', CONCAT('/', det.ClienteElementoDependienteOrigen))))
+            ) IS NULL, '', CONCAT(': ', COALESCE(
+              TRIM(depo.DepositoNombre),
+              IIF(det.PersonalIdOrigen IS NULL, NULL, CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre))),
+              TRIM(proo.ProveedorRazonSocial),
+              IIF(det.ClienteIdOrigen IS NULL, NULL,
+                CONCAT(det.ClienteIdOrigen, IIF(det.ClienteElementoDependienteOrigen IS NULL, '', CONCAT('/', det.ClienteElementoDependienteOrigen))))
+            )))
+          )) AS Origen
+        FROM MovimientoStockDetalle det
+        LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = det.EfectoId
+        LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = det.EfectoId AND efeind.EfectoEfectoIndividualId = det.EfectoIndividualId
+        LEFT JOIN Deposito depo ON depo.DepositoId = det.DepositoIdOrigen
+        LEFT JOIN Personal pero ON pero.PersonalId = det.PersonalIdOrigen
+        LEFT JOIN Proveedor proo ON proo.ProveedorId = det.ProveedorIdOrigen
+        WHERE det.MovimientoStockCodigo = @0
+        ORDER BY det.MovimientoStockDetalleCodigo
+      `, [movimientoCodigo]);
+
+      const cabecera = await queryRunner.query(`
+        SELECT
+          LTRIM(CONCAT(
+            CASE
+              WHEN m.DepositoIdDest IS NOT NULL THEN 'Depósito'
+              WHEN m.PersonalIdDest IS NOT NULL THEN 'Persona'
+              WHEN m.ProveedorIdDest IS NOT NULL THEN 'Proveedor'
+              WHEN m.ClienteIdDest IS NOT NULL THEN 'Objetivo'
+              ELSE ''
+            END,
+            IIF(COALESCE(
+              TRIM(depd.DepositoNombre),
+              IIF(m.PersonalIdDest IS NULL, NULL, CONCAT(TRIM(perd.PersonalApellido), ', ', TRIM(perd.PersonalNombre))),
+              TRIM(prod.ProveedorRazonSocial),
+              IIF(m.ClienteIdDest IS NULL, NULL,
+                CONCAT(m.ClienteIdDest, IIF(m.ClienteElemDepDest IS NULL, '', CONCAT('/', m.ClienteElemDepDest)),
+                  IIF(eled.ClienteElementoDependienteDescripcion IS NULL, '', CONCAT(' ', TRIM(eled.ClienteElementoDependienteDescripcion)))))
+            ) IS NULL, '', CONCAT(' ', COALESCE(
+              TRIM(depd.DepositoNombre),
+              IIF(m.PersonalIdDest IS NULL, NULL, CONCAT(TRIM(perd.PersonalApellido), ', ', TRIM(perd.PersonalNombre))),
+              TRIM(prod.ProveedorRazonSocial),
+              IIF(m.ClienteIdDest IS NULL, NULL,
+                CONCAT(m.ClienteIdDest, IIF(m.ClienteElemDepDest IS NULL, '', CONCAT('/', m.ClienteElemDepDest)),
+                  IIF(eled.ClienteElementoDependienteDescripcion IS NULL, '', CONCAT(' ', TRIM(eled.ClienteElementoDependienteDescripcion)))))
+            )))
+          )) AS Destino,
+          m.Observaciones,
+          CASE
+            WHEN m.IntermediarioPersonalId IS NOT NULL THEN 'Persona'
+            WHEN m.IntermediarioProveedorId IS NOT NULL THEN 'Proveedor'
+            ELSE ''
+          END AS TipoIntermediario,
+          COALESCE(
+            IIF(m.IntermediarioPersonalId IS NULL, NULL, CONCAT(TRIM(peri.PersonalApellido), ', ', TRIM(peri.PersonalNombre))),
+            IIF(m.IntermediarioProveedorId IS NULL, NULL, TRIM(proi.ProveedorRazonSocial))
+          ) AS Intermediario,
+          m.IndIngresoStock,
+          m.MovimientoCodigoViejo, m.Fecha
+        FROM (
+          SELECT mov.Observaciones, mov.IndIngresoStock, NULLIF(TRIM(mov.MovimientoCodigoViejo), '') AS MovimientoCodigoViejo,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.PersonalIdDestino, mov.PersonalIdDestino) AS PersonalIdDest,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ProveedorIdDestino, mov.ProveedorIdDestino) AS ProveedorIdDest,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ClienteIdDestino, mov.ClienteIdDestino) AS ClienteIdDest,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.ClienteElementoDependienteIdDestino, mov.ClienteElementoDependienteIdDestino) AS ClienteElemDepDest,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.DepositoIdDestino, mov.DepositoIdDestino) AS DepositoIdDest,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, mov.PersonalIdDestino, NULL) AS IntermediarioPersonalId,
+              IIF(pend.MovimientoStockCodigo IS NOT NULL, mov.ProveedorIdDestino, NULL) AS IntermediarioProveedorId, mov.Fecha
+          FROM MovimientoStock mov
+          LEFT JOIN MovimientoStockPendiente pend ON pend.MovimientoStockCodigo = mov.MovimientoStockCodigo
+          WHERE mov.MovimientoStockCodigo = @0
+        ) m
+        LEFT JOIN Deposito depd ON depd.DepositoId = m.DepositoIdDest
+        LEFT JOIN Personal perd ON perd.PersonalId = m.PersonalIdDest
+        LEFT JOIN Proveedor prod ON prod.ProveedorId = m.ProveedorIdDest
+        LEFT JOIN ClienteElementoDependiente eled ON eled.ClienteId = m.ClienteIdDest AND eled.ClienteElementoDependienteId = m.ClienteElemDepDest
+        LEFT JOIN Personal peri ON peri.PersonalId = m.IntermediarioPersonalId
+        LEFT JOIN Proveedor proi ON proi.ProveedorId = m.IntermediarioProveedorId
+      `, [movimientoCodigo]);
+
+      this.jsonRes({ cabecera: cabecera[0] ?? null, detalle: list }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
     }
   }
 

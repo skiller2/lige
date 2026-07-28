@@ -2440,7 +2440,7 @@ export class SearchService {
       this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro o un período.`);
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoMovimientos`, { listOptions }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/movimiento-stock/getEfectoMovimientos`, { listOptions }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         return of([]);
@@ -2449,7 +2449,7 @@ export class SearchService {
   }
 
   getEfectoMovimientoDetalle(movimientoStockCodigo: number) {
-    return this.http.get<ResponseJSON<any>>(`api/efecto/movimientoDetalle/${movimientoStockCodigo}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/movimientoDetalle/${movimientoStockCodigo}`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
         return of({ cabecera: null, detalle: [] });

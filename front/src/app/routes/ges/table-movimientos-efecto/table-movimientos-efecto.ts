@@ -73,7 +73,7 @@ export class TableMovimientosEfectoComponent {
       ]
     }
 
-  columns = toSignal(this.apiService.getCols('/api/efecto/colsMovimientos'), { initialValue: [] as Column[] })
+  columns = toSignal(this.apiService.getCols('/api/movimiento-stock/colsMovimientos'), { initialValue: [] as Column[] })
 
   gridData = resource({
     params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
