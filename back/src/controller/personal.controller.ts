@@ -3498,12 +3498,14 @@ UNION ALL
 
     const personalBancoRows: any = await queryRunner.query(`
         SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
-          CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT
+          CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT, TRIM(ban.BancoDescripcion) BancoDescripcion
         FROM PersonalBanco pb
+        left JOIN Banco ban ON ban.BancoId = pb.PersonalBancoBancoId
         Left JOIN Personal per ON per.PersonalId = pb.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
         WHERE (pb.PersonalBancoCBU = @0 AND @1 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @1 >= pb.PersonalBancoDesde)
            OR (pb.PersonalId = @2 AND pb.PersonalBancoBancoId = @3 AND ((ISNULL(pb.PersonalBancoHasta, '9999-12-31') >= @1 AND pb.PersonalBancoDesde <= @1) OR pb.PersonalBancoDesde >= @1))
+           ORDER BY pb.PersonalBancoDesde DESC
       `, [CBU, FechaActual, PersonalId, BancoId])
 
     // Validación de CBU EXISTENTE
@@ -3513,17 +3515,29 @@ UNION ALL
 
     const PersonalBanco: any = personalBancoRows.filter((r: any) => r.PersonalId === PersonalId && r.PersonalBancoBancoId === BancoId)
 
+    const lastReg = PersonalBanco?.[0]
+
     // NO SE CONTEMPLA SI SE TIENE MAS DE UN REGISTRO VIGENTE, YA QUE NO DEBERIA EXISTIR MAS DE UNO
     if (PersonalBanco.length > 1)
-      throw new ClientException(`No se puede dar de alta la cuenta. Registros vigentes y a futuros en el banco ${BancoId}: ${PersonalBanco.length}.`)
+      throw new ClientException(`No se puede dar de alta la cuenta. Registros vigentes y a futuros en el banco ${lastReg.BancoDescripcion}: ${PersonalBanco.length}.`)
 
-    const lastReg = PersonalBanco?.[0]
+    
+
+    // Registro marcado como cuenta nueva que todavía está esperando el CBU
+    const cuentaNuevaPendiente: boolean = lastReg && lastReg.IndNuevaCuenta == 1 && !lastReg.PersonalBancoCBU?.trim()
+
+    // Mientras esa cuenta siga pendiente no se permite generar otra: hay que completar el CBU de la
+    // existente, ya sea por la importación del XLS o manualmente desde el drawer
+    if (cuentaNuevaPendiente && !CBU?.trim()) {
+      const DesdePendiente: Date = new Date(lastReg.PersonalBancoDesde)
+      throw new ClientException(`Existe un registro pendiente de CBU en la persona ${lastReg.ApellidoNombre} - CUIT: ${lastReg.CUIT ? lastReg.CUIT : ''} del banco "${lastReg.BancoDescripcion}"`)
+    }
 
     // Se actualiza el registro existente (en lugar de cerrarlo e insertar uno nuevo) en dos casos:
     //  a) el registro vigente arranca exactamente en la misma fecha Desde, es decir es el mismo período
     //  b) el registro está marcado como cuenta nueva y todavía no tiene CBU, y ahora llega uno: se completa
     const mismaFechaDesde: boolean = lastReg && new Date(lastReg.PersonalBancoDesde).getTime() == Desde.getTime()
-    const completaCuentaNueva: boolean = lastReg && lastReg.IndNuevaCuenta == 1 && !lastReg.PersonalBancoCBU?.trim() && !!CBU?.trim()
+    const completaCuentaNueva: boolean = cuentaNuevaPendiente && !!CBU?.trim()
 
     if (mismaFechaDesde || completaCuentaNueva) {
       const PersonalBancoId = lastReg.PersonalBancoId
@@ -3540,7 +3554,7 @@ UNION ALL
       if (lastReg) {
         if (lastReg.PersonalBancoDesde.getTime() > Desde.getTime()) {
           const Desde: Date = new Date(lastReg.PersonalBancoDesde)
-          throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${Desde.getDate()}/${Desde.getMonth() + 1}/${Desde.getFullYear()}`)
+          throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${Desde.getDate()}/${Desde.getMonth() + 1}/${Desde.getFullYear()} (${lastReg.ApellidoNombre} - CUIT: ${lastReg.CUIT ? lastReg.CUIT : ''})`)
         }
         const PersonalBancoId: number = lastReg.PersonalBancoId
         const Hasta: Date = new Date(Desde)
@@ -3598,7 +3612,7 @@ UNION ALL
       if (!this.isCBU(CBU))
         throw new ClientException('El CBU debe ser de 22 digitos.')
 
-      
+
       Desde = new Date(Desde)
       Desde.setHours(0, 0, 0, 0)
 
