@@ -1975,6 +1975,24 @@ export class EfectoController extends BaseController {
     }
   }
 
+  // Catálogo de tipos de atributo de ingreso (Select "Tipo" de las filas del individual). Es global
+  // (no depende de rubro/subrubro/efecto), igual que Atributo; alimenta el combo también en el alta.
+  async getAtributosIngreso(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const list = await queryRunner.query(`
+        SELECT AtributoIngresoId, TRIM(AtributoIngresoDescripcion) AS AtributoIngresoDescripcion
+        FROM AtributoIngreso
+        ORDER BY AtributoIngresoDescripcion
+      `);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   // Las lecturas de abajo las comparten el GET inicial del form y la respuesta del guardado, así
   // el front recibe siempre la misma forma y no hace falta que vuelva a consultar tras guardar.
   private async efectoAtributosDe(queryRunner: any, efectoId: number) {
@@ -2225,12 +2243,13 @@ export class EfectoController extends BaseController {
       console.log('Efecto alta (completo) - formulario dado de alta:');
       console.log(JSON.stringify(formulario, null, 2));
 
-      const PROBANDO: boolean = true;
+      const PROBANDO: boolean = false;
       if (PROBANDO)
         throw new ClientException(`PRUEBA OK: efecto ${efectoId}${individualId != null ? ` / individual ${individualId}` : ''} armado sin impactar las tablas.`);
 
       await queryRunner.commitTransaction();
-      return this.jsonRes(null, res, `Efecto ${efectoId} dado de alta exitosamente`);
+      // Devuelve el formulario ya persistido: el front lo usa para pasar a modificación del nuevo efecto.
+      return this.jsonRes(formulario, res, `Efecto ${efectoId} dado de alta exitosamente`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
       return next(error);
@@ -2239,12 +2258,81 @@ export class EfectoController extends BaseController {
     }
   }
 
+  // Alta de un efecto individual: parte de un efecto ya existente (elegido en el buscador) y crea
+  // sólo un EfectoEfectoIndividual nuevo (+ sus atributos de ingreso). No toca el Efecto ni sus
+  // EfectoAtributo.
   async altaEfectoIndividual(req: any, res: Response, next: NextFunction) {
+    console.log('Efecto individual alta - body recibido:');
     console.log(JSON.stringify(req.body, null, 2));
+
+    const queryRunner = await getConnection(res.locals.userName);
     try {
-      return this.jsonRes(null, res, 'Formulario efecto individual dado de alta exitosamente');
+      await queryRunner.startTransaction();
+
+      const body = req.body ?? {};
+      const efectoId = Number(body.EfectoId) || null;
+      const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').trim();
+      const atributos = Array.isArray(body.atributos) ? body.atributos : [];
+
+      const usuario = res.locals.userName;
+      const ip = this.getRemoteAddress(req);
+      const now = new Date();
+
+      await this.validarAltaEfectoIndividualForm(queryRunner, efectoId, individualDescripcion, atributos);
+
+      // EfectoEfectoIndividualId es secuencial por efecto (parte de la PK compuesta): MAX+1 del efecto.
+      const maxInd = await queryRunner.query(`
+        SELECT ISNULL(MAX(EfectoEfectoIndividualId), 0) AS MaxId
+        FROM EfectoEfectoIndividual WHERE EfectoId = @0
+      `, [efectoId]);
+      const individualId = Number(maxInd[0]?.MaxId ?? 0) + 1;
+
+      // SuDescripcion es NOT NULL: placeholder que se recalcula con la descripción completa una vez
+      // insertados los atributos.
+      await queryRunner.query(`
+        INSERT INTO EfectoEfectoIndividual
+          (EfectoEfectoIndividualId, EfectoId, EfectoEfectoIndividualDescripcion, EfectoEfectoIndividualSuDescripcion,
+           EfectoEfectoIndividualAtributoIngresoUltNro,
+           AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @5, @6, @7)
+      `, [individualId, efectoId, individualDescripcion, individualDescripcion, 0, now, usuario, ip]);
+
+      // Inserta los atributos de ingreso y actualiza el UltNro del individual.
+      await this.guardarAtributosIngreso(queryRunner, efectoId!, individualId, atributos, now, usuario, ip);
+
+      // Último individual del efecto.
+      await queryRunner.query(`UPDATE Efecto SET EfectoEfectoIndividualUltNro = @1 WHERE EfectoId = @0`, [efectoId, individualId]);
+
+      // SuDescripcion = descripción completa (efecto + individual + atributos), leída de la vista ya
+      // con los hijos insertados. Se recorta a los 250 de la columna.
+      const completo = await this.descripcionCompletaDe(queryRunner, efectoId!, individualId);
+      if (completo) {
+        await queryRunner.query(`
+          UPDATE EfectoEfectoIndividual SET EfectoEfectoIndividualSuDescripcion = @2
+          WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+        `, [efectoId, individualId, String(completo).substring(0, 250)]);
+      }
+
+      // La descripción completa del nuevo individual no debe colisionar con otro del catálogo.
+      await this.validarDescripcionCompletaUnica(queryRunner, efectoId!, individualId, null);
+
+      const formulario = await this.formularioEfectoForm(queryRunner, efectoId!, individualId);
+      console.log('Efecto individual alta - formulario dado de alta:');
+      console.log(JSON.stringify(formulario, null, 2));
+
+      // Poné PROBANDO = true para volver al modo prueba (arma todo pero hace rollback sin impactar).
+      const PROBANDO: boolean = false;
+      if (PROBANDO)
+        throw new ClientException(`PRUEBA OK: efecto ${efectoId} / individual ${individualId} armado sin impactar las tablas.`);
+
+      await queryRunner.commitTransaction();
+      // Devuelve el formulario ya persistido: el front lo usa para pasar a modificación del efecto.
+      return this.jsonRes(formulario, res, `Efecto individual ${individualId} dado de alta exitosamente`);
     } catch (error) {
+      await this.rollbackTransaction(queryRunner);
       return next(error);
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -2261,6 +2349,61 @@ export class EfectoController extends BaseController {
       WHERE efe.EfectoId = @0
     `, [efectoId, individualId ?? null]);
     return rows[0]?.Completo ?? null;
+  }
+
+  // Validación del alta de efecto individual: el efecto base ya existe (tiene que existir) y se crea
+  // un individual nuevo con su descripción y sus atributos de ingreso.
+  private async validarAltaEfectoIndividualForm(
+    queryRunner: any, efectoId: number | null, individualDescripcion: string, atributos: any[]
+  ) {
+    if (!efectoId)
+      throw new ClientException('No se recibió el efecto de partida.');
+
+    if (!individualDescripcion)
+      throw new ClientException(['Debe completar los siguientes campos:', '- Descripción individual']);
+
+    const errores: string[] = [];
+
+    if (individualDescripcion.length > 60)
+      errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
+
+    const efecto = await queryRunner.query(`SELECT EfectoId FROM Efecto WHERE EfectoId = @0`, [efectoId]);
+    if (!efecto.length)
+      errores.push(`No existe el efecto ${efectoId}.`);
+
+    // Atributos de ingreso: ambas columnas son NOT NULL y el valor es CHAR(40).
+    const atributosVistos = new Set<number>();
+    for (const [idx, row] of atributos.entries()) {
+      const nro = idx + 1;
+      const atributoId = Number(row?.EfectoAtributoAtributoIngresoId) || null;
+      const valor = String(row?.EfectoAtributoIngresoValor ?? '').trim();
+
+      if (!atributoId) {
+        errores.push(`Atributo #${nro}: debe seleccionar el atributo.`);
+        continue;
+      }
+      if (!valor) {
+        errores.push(`Atributo #${nro}: debe ingresar el valor.`);
+        continue;
+      }
+      if (valor.length > 40)
+        errores.push(`Atributo #${nro}: el valor no puede superar los 40 caracteres (tiene ${valor.length}).`);
+      if (atributosVistos.has(atributoId))
+        errores.push(`Atributo #${nro}: el atributo está repetido.`);
+      atributosVistos.add(atributoId);
+    }
+
+    if (atributosVistos.size) {
+      const existentes = await queryRunner.query(`
+        SELECT AtributoIngresoId FROM AtributoIngreso WHERE AtributoIngresoId IN (${[...atributosVistos].join(',')})
+      `);
+      const validos = new Set(existentes.map((row: any) => Number(row.AtributoIngresoId)));
+      for (const atributoId of atributosVistos)
+        if (!validos.has(atributoId)) errores.push(`No existe el atributo de ingreso ${atributoId}.`);
+    }
+
+    if (errores.length)
+      throw new ClientException(errores);
   }
 
   // Validación del alta de efecto. Espeja a validarEfectoForm pero sin los chequeos de existencia

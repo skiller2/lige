@@ -30,6 +30,11 @@ export interface Atributo {
     AtributoDescripcion: string;
 }
 
+export interface AtributoIngreso {
+    AtributoIngresoId: number;
+    AtributoIngresoDescripcion: string;
+}
+
 export interface Rubro {
     RubroId: number;
     RubroDescripcion: string;

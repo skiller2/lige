@@ -15,7 +15,7 @@ import {
 import { SearchGrup, ResponseBySearchGrup } from '../shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente, SearchClient } from '../shared/schemas/cliente.schemas';
 import { ResponseBySearchAdministrador, SearchAdmind } from '../shared/schemas/administrador.schemas';
-import { Atributo, EfectoFormulario, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, Valor } from '../shared/schemas/efecto.schemas';
+import { Atributo, AtributoIngreso, EfectoFormulario, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, Valor } from '../shared/schemas/efecto.schemas';
 import { ResponseBySearchTipoAsociadoCategoria, SearchTipoAsociadoCategoria } from '../shared/schemas/tipo-asociado-categoria.schemas';
 import { ResponseBySearchRubro, SearchRubro } from '../shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from '../shared/schemas/seguro.schemas';
@@ -2659,6 +2659,15 @@ export class SearchService {
       catchError(() => of([]))
     );
   }
+
+  // Catálogo de tipos de atributo de ingreso (Select "Tipo" de las filas del efecto individual).
+  getAtributosIngreso(): Observable<AtributoIngreso[]> {
+    return this.http.get<ResponseJSON<AtributoIngreso[]>>(`api/efecto/atributosIngreso`).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
 
   // Carga inicial del form de modificar/consultar efecto: cabecera + atributos del efecto +
   // atributos de ingreso del individual + relaciones, todo en una sola llamada.

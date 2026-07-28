@@ -8,7 +8,7 @@ import { applyEach, disabled, form, FormField, maxLength, required, submit, vali
 import { Observable, firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
-import { Atributo, EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro, Valor } from '../../../shared/schemas/efecto.schemas';
+import { Atributo, AtributoIngreso, EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro, Valor } from '../../../shared/schemas/efecto.schemas';
 import { AtributoSearchComponent } from '../../../shared/atributo-search/atributo-search';
 import { ValorSearchComponent } from '../../../shared/valor-search/valor-search';
 import { EfectoSearchComponent } from '../../../shared/efecto-search/efecto-search';
@@ -75,6 +75,8 @@ export class EfectoFormComponent {
   readonly atributos = toSignal(this.search.getAtributos(), { initialValue: [] as Atributo[] });
   readonly valores = toSignal(this.search.getValores(), { initialValue: [] as Valor[] });
 
+  readonly atributosIngresoCatalogo = toSignal(this.search.getAtributosIngreso(), { initialValue: [] as AtributoIngreso[] });
+
   // Los subrubros se filtran por rubro en el front, así que hace falta la lista completa.
   private readonly todosLosSubrubros = toSignal(
     this.search.getSubrubros() as Observable<Subrubro[]>,
@@ -113,17 +115,14 @@ export class EfectoFormComponent {
     this.efectoBuscado.set(efectoId ? { EfectoId: efectoId, EfectoEfectoIndividualId: null, EfectoDescripcion: opt?.fullName ?? '' } : null);
   }
 
-  // Opciones del Select de las filas de atributo del individual: los atributos que ya devuelve
-  // el formulario en atributos (atributosIngreso), deduplicados por su Id.
-  readonly atributosOpciones = computed(() => {
-    const rows = this.atributosIngreso();
-    const map = new Map<number, string>();
-    for (const r of rows) {
-      if (r.EfectoAtributoAtributoIngresoId != null)
-        map.set(Number(r.EfectoAtributoAtributoIngresoId), r.AtributoDescripcion);
-    }
-    return [...map].map(([AtributoIngresoId, AtributoIngresoDescripcion]) => ({ AtributoIngresoId, AtributoIngresoDescripcion }));
-  });
+  // Opciones del Select "Tipo" de las filas del individual: el catálogo completo de AtributoIngreso
+  // (así hay opciones también al dar de alta un individual, sin filas previas de dónde derivarlas).
+  readonly atributosOpciones = computed(() =>
+    this.atributosIngresoCatalogo().map(a => ({
+      AtributoIngresoId: Number(a.AtributoIngresoId),
+      AtributoIngresoDescripcion: a.AtributoIngresoDescripcion,
+    }))
+  );
 
   // Todo lo que el form necesita del efecto en una sola llamada: relaciones, atributos de ingreso
   // del individual y filas de EfectoAtributo. Antes eran tres GET en paralelo con la misma clave
