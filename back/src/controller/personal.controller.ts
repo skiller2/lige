@@ -3491,19 +3491,41 @@ UNION ALL
     Desde: Date,
     CBU: string,
     IndNuevaCuenta: number,
-    AudFecha,
+    FechaActual: Date,
     usuario: string,
     ip: string
   ) {
-    let PersonalBanco: any = await queryRunner.query(`
-      SELECT PersonalBancoId, PersonalBancoDesde, IndNuevaCuenta, PersonalBancoCBU
-      FROM PersonalBanco 
-      WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoHasta IS NULL
-    `, [PersonalId, BancoId])
 
-    const lastReg: any = PersonalBanco[0]
+    const personalBancoRows: any = await queryRunner.query(`
+        SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
+          CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT
+        FROM PersonalBanco pb
+        Left JOIN Personal per ON per.PersonalId = pb.PersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+        WHERE (pb.PersonalBancoCBU = @0 AND @1 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @1 >= pb.PersonalBancoDesde)
+           OR (pb.PersonalId = @2 AND pb.PersonalBancoBancoId = @3 AND ((ISNULL(pb.PersonalBancoHasta, '9999-12-31') >= @1 AND pb.PersonalBancoDesde <= @1) OR pb.PersonalBancoDesde >= @1))
+      `, [CBU, FechaActual, PersonalId, BancoId])
 
-    if (lastReg && (new Date(lastReg.PersonalBancoDesde).getTime() == Desde.getTime() || (lastReg.IndNuevaCuenta == 1 && lastReg.PersonalBancoCBU.length == 0))) {
+    // Validación de CBU EXISTENTE
+    const existPersonalBanco = personalBancoRows.filter((r: any) => r.PersonalBancoCBU === CBU)
+    if (existPersonalBanco.length && CBU != '' && CBU != null)
+      throw new ClientException(`El CBU ingresado se encuentra registrado y vigente en una persona. (${existPersonalBanco[0].ApellidoNombre} - CUIT: ${existPersonalBanco[0].CUIT ? existPersonalBanco[0].CUIT : ''})`);
+
+    const PersonalBanco: any = personalBancoRows.filter((r: any) => r.PersonalId === PersonalId && r.PersonalBancoBancoId === BancoId)
+
+    // NO SE CONTEMPLA SI SE TIENE MAS DE UN REGISTRO VIGENTE, YA QUE NO DEBERIA EXISTIR MAS DE UNO
+    if (PersonalBanco.length > 1)
+      throw new ClientException(`No se puede dar de alta la cuenta. Registros vigentes y a futuros en el banco ${BancoId}: ${PersonalBanco.length}.`)
+
+    const lastReg = PersonalBanco?.[0]
+
+    // Se actualiza el registro existente (en lugar de cerrarlo e insertar uno nuevo) en dos casos:
+    //  a) el registro vigente arranca exactamente en la misma fecha Desde, es decir es el mismo período
+    //  b) el registro está marcado como cuenta nueva y todavía no tiene CBU, y ahora llega uno: se completa
+    const mismaFechaDesde: boolean = lastReg && new Date(lastReg.PersonalBancoDesde).getTime() == Desde.getTime()
+    const completaCuentaNueva: boolean = lastReg && lastReg.IndNuevaCuenta == 1 && !lastReg.PersonalBancoCBU?.trim() && !!CBU?.trim()
+
+    if (mismaFechaDesde || completaCuentaNueva) {
       const PersonalBancoId = lastReg.PersonalBancoId
       await queryRunner.query(`
         UPDATE PersonalBanco SET
@@ -3512,8 +3534,8 @@ UNION ALL
         AudFechaMod = @5,
         AudUsuarioMod = @6,
         AudIpMod= @7
-        WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2) AND PersonalBancoHasta IS NULL
-      `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta, AudFecha, usuario, ip])
+        WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
+      `, [PersonalId, BancoId, PersonalBancoId, CBU, IndNuevaCuenta, FechaActual, usuario, ip])
     } else {
       if (lastReg) {
         if (lastReg.PersonalBancoDesde.getTime() > Desde.getTime()) {
@@ -3530,7 +3552,7 @@ UNION ALL
           AudUsuarioMod = @5,
           AudIpMod=@6
           WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
-        `, [PersonalId, BancoId, PersonalBancoId, Hasta, AudFecha, usuario, ip])
+        `, [PersonalId, BancoId, PersonalBancoId, Hasta, FechaActual, usuario, ip])
 
       }
       const Personal: any = await queryRunner.query(`
@@ -3545,7 +3567,7 @@ UNION ALL
         VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
 
         UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
-      `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, IndNuevaCuenta, AudFecha, usuario, ip])
+      `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, IndNuevaCuenta, FechaActual, usuario, ip])
     }
   }
 
@@ -3576,16 +3598,7 @@ UNION ALL
       if (!this.isCBU(CBU))
         throw new ClientException('El CBU debe ser de 22 digitos.')
 
-      let PersonalBanco = await queryRunner.query(`
-        SELECT pb.PersonalBancoId, CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT
-        FROM PersonalBanco pb
-        Left JOIN Personal per ON per.PersonalId = pb.PersonalId
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        WHERE pb.PersonalBancoCBU = @0 AND  @1 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @1 >= pb.PersonalBancoDesde
-      `, [CBU, fechaActual])
-      if (PersonalBanco.length && CBU != '' && CBU != null)
-        throw new ClientException(`El CBU ingresado se encuentra registrado y vigente en una persona. (${PersonalBanco[0].ApellidoNombre} - CUIT: ${PersonalBanco[0].CUIT ? PersonalBanco[0].CUIT : ''})`);
-
+      
       Desde = new Date(Desde)
       Desde.setHours(0, 0, 0, 0)
 

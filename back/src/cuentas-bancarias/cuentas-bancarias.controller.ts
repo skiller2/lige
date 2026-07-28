@@ -275,7 +275,8 @@ export class CuentasBancariasController extends BaseController {
     const periodoRequest: Date = req.body.periodo ? new Date(req.body.periodo) : null
     const bancoIdRequest = Number(req.body.BancoId)
     const file = req.body.file
-    const IndNuevaCuenta = 1
+    //La importación completa el CBU de las cuentas nuevas, por lo que dejan de estar pendientes
+    const IndNuevaCuenta = 0
     const queryRunner = await getConnection(res.locals.userName);
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
@@ -322,106 +323,94 @@ export class CuentasBancariasController extends BaseController {
       const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
       const sheet1 = workSheetsFromBuffer[0];
 
-      // inicializo variables para obtener los indices de las columnas necesarias para la importación (luego en el switch según el banco)
-      let columnsName: Array<string>
-      let columnsXLS: any
+      // Índices de columnas del Excel. El encabezado, los nombres de columna y el
+      // formato del CBU varían por banco, por eso se resuelven dentro del switch.
+      let idxCuit: number
+      let idxCbu: number
 
-      let idxCuit
-      let idxCbu
-
-      //Resuelvo los índices de columna una sola vez (encabezado en fila 7)
       switch (bancoIdRequest) {
-        case 4: //Banco Patagonia
+        case 4: { //Banco Patagonia
+          //El encabezado está en la fila 7 (índice 6)
+          const columnsName: Array<string> = sheet1.data[6]
+          const columnsXLS: Record<string, number> = columnsName.reduce((acc, column, index) => {
+            acc[String(column).trim().toLowerCase()] = index
+            return acc
+          }, {} as Record<string, number>)
 
-          columnsName = sheet1.data[6]
-
-          //Tranformo el array en un objeto con claves como los elementos del array y valores como sus índices
-          columnsXLS = columnsName.reduce((acc, column, index) => {
-            const normalizedColumn = String(column).trim().toLowerCase()
-            acc[normalizedColumn] = index;
-            return acc;
-          }, {} as Record<string, number>);
-     
           idxCuit = columnsXLS['cuit / cuil / cdi nro']
           idxCbu = columnsXLS['cbu']
 
-          //Validar que esten las columnas nesesarias
+          //Valida que estén las columnas necesarias
           if (isNaN(idxCuit)) columnsnNotFound.push('- CUIT')
           if (isNaN(idxCbu)) columnsnNotFound.push('- CBU')
+          if (columnsnNotFound.length) {
+            columnsnNotFound.unshift('Faltan las siguientes columnas:')
+            throw new ClientException(columnsnNotFound)
+          }
 
-          // Elimino las primeras 7 filas (0 a 6) para dejar solo los datos desde la fila 8
+          //Elimino las primeras 7 filas (índices 0 a 6) para dejar los datos desde la fila 8
           sheet1.data.splice(0, 7)
 
+          //Patagonia exporta el CBU con formato "General" y pierde el 0 inicial (queda en 21 dígitos).
+          //Relleno con ceros a la izquierda para reconstruir los 22 dígitos.
+          for (const row of sheet1.data) {
+            if (row[idxCbu] != null && String(row[idxCbu]).trim() !== '')
+              row[idxCbu] = String(row[idxCbu]).trim().padStart(22, '0')
+          }
           break
+        }
         default:
           throw new ClientException(`No se encuentra configurado el banco con id ${bancoIdRequest} para la importación de cuentas bancarias.`)
       }
 
-      //El encabezado está en la fila 7 (índice 6); elimino filas 1 a 7 para dejar datos desde la fila 8
-
-      //Obtengo la descripcion del banco
-      const Banco: any = await queryRunner.query(`
-        SELECT BancoId, TRIM(BancoDescripcion) AS Descripcion FROM Banco WHERE BancoId IN (@0)
-      `, [bancoIdRequest])
-      const bancoDescripcion = Banco[0].Descripcion
-
-      if (columnsnNotFound.length) {
-        columnsnNotFound.unshift('Faltan las siguientes columnas:')
-        throw new ClientException(columnsnNotFound)
-      }
-
-      den_documento = `Alta-Cuentas-Bancarias-${bancoDescripcion}-${dia}-${mes}-${anio}`
+      den_documento = `Alta-Cuentas-Bancarias-${bancoIdRequest}-${dia}-${mes}-${anio}`
       const docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anio, mes, file[0], usuario, ip, queryRunner)
       docFilePath = docDescuentoObjetivo?.newFilePath
 
-      // esta parte debe ser distinta para cada banco?
-      
+      //CBU que trae cada CUIT en el Excel (CUIT normalizado a 11 dígitos)
+      const cbuPorCuitExcel = new Map<string, string>()
       for (const row of sheet1.data) {
-        //Finaliza cuando la fila esta vacia
-        if (!row[idxCbu] && !row[idxCuit]) break
-        const CBU = String(row[idxCbu] ?? '').trim()
-        let CUIT = row[idxCuit]
+        const cuit = String(row[idxCuit] ?? '').replace(/\D/g, "")
+        if (cuit.length !== 11) continue
+        cbuPorCuitExcel.set(cuit, String(row[idxCbu] ?? '').trim())
+      }
 
-        //Verifica que exista el cuit del personal
-        CUIT = String(CUIT).replace(/\D/g, "")
+      //Personas con cuenta nueva (IndNuevaCuenta = 1) vigente para este banco: son las únicas actualizables
+      const cuentasNuevas: any[] = await queryRunner.query(`
+        SELECT pb.PersonalId, cuit.PersonalCUITCUILCUIT
+        FROM PersonalBanco pb
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pb.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = pb.PersonalId)
+        WHERE pb.IndNuevaCuenta = 1 AND pb.PersonalBancoBancoId = @0 AND pb.PersonalBancoHasta IS NULL
+      `, [bancoIdRequest])
 
-        if (CUIT.length != 11) {
-          dataset.push({ id: idError++, CUIT: row[idxCuit], Detalle: `El CUIT no tiene el formato correcto.` })
+      //Cruce: de las cuentas nuevas me quedo sólo con las que vienen en el Excel, cada una con su CBU.
+      //Los CUIT del Excel que no existen o que no tienen cuenta nueva quedan fuera (se saltean).
+      const cuentasAActualizar = cuentasNuevas.map((r: any) => {
+        const CUIT = String(r.PersonalCUITCUILCUIT ?? '').replace(/\D/g, "")
+        return { PersonalId: r.PersonalId, CUIT, CBU: cbuPorCuitExcel.get(CUIT) }
+      }).filter((item) => item.CBU !== undefined)
+
+      for (const { PersonalId, CUIT, CBU } of cuentasAActualizar) {
+        //CBU vacío en una cuenta a actualizar
+        if (!CBU) {
+          dataset.push({ id: idError++, CUIT, Detalle: `El CBU está vacío.` })
           continue
         }
-        const PersonalCUITCUIL = await queryRunner.query(`
-          SELECT cuit.PersonalId, PersonalCUITCUILCUIT
-          FROM PersonalCUITCUIL cuit 
-          WHERE cuit.PersonalCUITCUILCUIT IN (@0) AND PersonalCUITCUILHasta IS NULL
-        `, [CUIT])
-        if (!PersonalCUITCUIL.length) {
-          dataset.push({ id: idError++, CUIT: row[idxCuit], Detalle: `No se pudo identificar el CUIT.` })
-          continue
-        }
-        const PersonalId = PersonalCUITCUIL[0].PersonalId
 
-        //Verifica el formato del CBU
+        //Formato de CBU (22 dígitos numéricos)
         if (!this.isCBU(CBU)) {
-          dataset.push({ id: idError++, CUIT: row[idxCuit], Detalle: `El CBU debe ser de 22 digitos.` })
+          dataset.push({ id: idError++, CUIT, Detalle: `El CBU debe ser de 22 dígitos. (${CBU})` })
           continue
         }
 
-        //Verifica si el CBU ya fue registrado
-        let PersonalBanco = await queryRunner.query(`
-          SELECT pb.PersonalBancoId, CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT
-          FROM PersonalBanco pb
-          Left JOIN Personal per ON per.PersonalId = pb.PersonalId
-          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-          WHERE pb.PersonalBancoCBU = @0 AND  @1 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @1 >= pb.PersonalBancoDesde
-        `, [CBU, fechaActual])
-        if (PersonalBanco.length && CBU != '' && CBU != null) {
-          dataset.push({ id: idError++, CUIT: row[idxCuit], Detalle: `El CBU ingresado se encuentra registrado y vigente en una persona. (${PersonalBanco[0].ApellidoNombre} - CUIT: ${PersonalBanco[0].CUIT ? PersonalBanco[0].CUIT : ''})` })
+        try {
+          await PersonalController.setPersonalBancoQuerys(queryRunner, PersonalId, bancoIdRequest, periodoRequest, CBU, IndNuevaCuenta, fechaActual, usuario, ip)
+          altaCuentasBancarias++
+        } catch (error: any) {
+          const detalle = error instanceof ClientException ? error.messageArr.join(' - ') : (error?.message ?? String(error))
+          dataset.push({ id: idError++, CUIT, Detalle: detalle })
           continue
         }
-
-        await PersonalController.setPersonalBancoQuerys(queryRunner, PersonalId, bancoIdRequest, periodoRequest, CBU, IndNuevaCuenta, fechaActual, usuario, ip)
-
-        altaCuentasBancarias++
       }
 
       if (dataset.length > 0) {
@@ -502,7 +491,7 @@ export class CuentasBancariasController extends BaseController {
         }
         const PersonalId = PersonalCUITCUIL[0].PersonalId
 
-        await PersonalController.setPersonalBancoQuerys(queryRunner, PersonalId, BancoId, Desde, '', IndNuevaCuenta, fechaActual, usuario, ip)
+        await PersonalController.setPersonalBancoQuerys(queryRunner, PersonalId, BancoId, Desde, null, IndNuevaCuenta, fechaActual, usuario, ip)
       }
 
       if (errors.length) {
