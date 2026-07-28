@@ -164,7 +164,7 @@ export class CuentasBancariasController extends BaseController {
 
   isCBU(cbu: string): boolean {
     if (!cbu || cbu.trim() == '')
-      return true
+      return false
 
     // Verifica que tenga exactamente 22 caracteres
     if (cbu.length != 22)
@@ -184,7 +184,7 @@ export class CuentasBancariasController extends BaseController {
     return this.jsonRes(columns, res)
   }
 
-  async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any, periodo:Date, sitRevistaPeriodo:Date, liqmaperiodo:Date) {
+  async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any, periodo: Date, sitRevistaPeriodo: Date, liqmaperiodo: Date) {
     return await queryRunner.query(`
       SELECT CONCAT(pb.PersonalId, '-',PersonalBancoId, '-', pb.PersonalBancoCBU) id,
         pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(pb.IndNuevaCuenta AS VARCHAR(1)) AS IndNuevaCuenta
@@ -261,7 +261,7 @@ export class CuentasBancariasController extends BaseController {
       const sitRevistaPeriodo = new Date(req.body.sitRevistaPeriodo)
       const liqmaperiodo = new Date(req.body.liqmaperiodo)
 
-      const lista:any[] = await this.getCuentasBancariasQuery(queryRunner, filterSql, orderBy, periodo, sitRevistaPeriodo, liqmaperiodo)
+      const lista: any[] = await this.getCuentasBancariasQuery(queryRunner, filterSql, orderBy, periodo, sitRevistaPeriodo, liqmaperiodo)
 
       this.jsonRes(lista, res);
     } catch (error) {
@@ -288,12 +288,12 @@ export class CuentasBancariasController extends BaseController {
     let docFilePath: string | null = null
     let EventoLogCodigo = 0
     let campos_vacios: any[] = [];
-    
+
     try {
       ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
         `Importación xls Cuentas Bancarias ${bancoIdRequest}`,
-        { periodo:periodoRequest, BancoId:bancoIdRequest, usuario, ip },
+        { periodo: periodoRequest, BancoId: bancoIdRequest, usuario, ip },
         usuario,
         ip,
         "LIQ"
@@ -309,9 +309,9 @@ export class CuentasBancariasController extends BaseController {
         throw new ClientException(campos_vacios)
       }
 
-      periodoRequest.setHours(0,0,0,0)
+      periodoRequest.setHours(0, 0, 0, 0)
       const anio = periodoRequest.getFullYear()
-      const mes = periodoRequest.getMonth()+1
+      const mes = periodoRequest.getMonth() + 1
       const dia = periodoRequest.getDate()
 
       //Valida que el período no tenga el indicador de recibos generado
@@ -321,16 +321,43 @@ export class CuentasBancariasController extends BaseController {
 
       const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
       const sheet1 = workSheetsFromBuffer[0];
-      const columnsName: Array<string> = sheet1.data[0]
 
-      //Tranformo el array en un objeto con claves como los elementos del array y valores como sus índices
-      const columnsXLS: any = columnsName.reduce((acc, column, index) => {
-        const normalizedColumn = String(column).trim().toLowerCase()
-        acc[normalizedColumn] = index;
-        return acc;
-      }, {} as Record<string, number>);
+      // inicializo variables para obtener los indices de las columnas necesarias para la importación (luego en el switch según el banco)
+      let columnsName: Array<string>
+      let columnsXLS: any
 
-      sheet1.data.splice(0, 1)
+      let idxCuit
+      let idxCbu
+
+      //Resuelvo los índices de columna una sola vez (encabezado en fila 7)
+      switch (bancoIdRequest) {
+        case 4: //Banco Patagonia
+
+          columnsName = sheet1.data[6]
+
+          //Tranformo el array en un objeto con claves como los elementos del array y valores como sus índices
+          columnsXLS = columnsName.reduce((acc, column, index) => {
+            const normalizedColumn = String(column).trim().toLowerCase()
+            acc[normalizedColumn] = index;
+            return acc;
+          }, {} as Record<string, number>);
+     
+          idxCuit = columnsXLS['cuit / cuil / cdi nro']
+          idxCbu = columnsXLS['cbu']
+
+          //Validar que esten las columnas nesesarias
+          if (isNaN(idxCuit)) columnsnNotFound.push('- CUIT')
+          if (isNaN(idxCbu)) columnsnNotFound.push('- CBU')
+
+          // Elimino las primeras 7 filas (0 a 6) para dejar solo los datos desde la fila 8
+          sheet1.data.splice(0, 7)
+
+          break
+        default:
+          throw new ClientException(`No se encuentra configurado el banco con id ${bancoIdRequest} para la importación de cuentas bancarias.`)
+      }
+
+      //El encabezado está en la fila 7 (índice 6); elimino filas 1 a 7 para dejar datos desde la fila 8
 
       //Obtengo la descripcion del banco
       const Banco: any = await queryRunner.query(`
@@ -338,29 +365,28 @@ export class CuentasBancariasController extends BaseController {
       `, [bancoIdRequest])
       const bancoDescripcion = Banco[0].Descripcion
 
-      //Validar que esten las columnas nesesarias
-      if (isNaN(columnsXLS['cuit'])) columnsnNotFound.push('- CUIT')
-      if (isNaN(columnsXLS['cbu'])) columnsnNotFound.push('- CBU')
-
       if (columnsnNotFound.length) {
         columnsnNotFound.unshift('Faltan las siguientes columnas:')
         throw new ClientException(columnsnNotFound)
       }
 
-      den_documento = `Cuentas-Bancarias-${bancoDescripcion}-${dia}-${mes}-${anio}`
+      den_documento = `Alta-Cuentas-Bancarias-${bancoDescripcion}-${dia}-${mes}-${anio}`
       const docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, anio, mes, file[0], usuario, ip, queryRunner)
       docFilePath = docDescuentoObjetivo?.newFilePath
+
+      // esta parte debe ser distinta para cada banco?
+      
       for (const row of sheet1.data) {
         //Finaliza cuando la fila esta vacia
-        if (!row[columnsXLS['cbu']] && !row[columnsXLS['cuit']]) break
-        const CBU = row[columnsXLS['cbu']]
-        let CUIT = row[columnsXLS['cuit']]
+        if (!row[idxCbu] && !row[idxCuit]) break
+        const CBU = String(row[idxCbu] ?? '').trim()
+        let CUIT = row[idxCuit]
 
         //Verifica que exista el cuit del personal
         CUIT = String(CUIT).replace(/\D/g, "")
 
         if (CUIT.length != 11) {
-          dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `El CUIT no tiene el formato correcto.` })
+          dataset.push({ id: idError++, CUIT: row[idxCuit], Detalle: `El CUIT no tiene el formato correcto.` })
           continue
         }
         const PersonalCUITCUIL = await queryRunner.query(`
@@ -369,14 +395,14 @@ export class CuentasBancariasController extends BaseController {
           WHERE cuit.PersonalCUITCUILCUIT IN (@0) AND PersonalCUITCUILHasta IS NULL
         `, [CUIT])
         if (!PersonalCUITCUIL.length) {
-          dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `No se pudo identificar el CUIT.` })
+          dataset.push({ id: idError++, CUIT: row[idxCuit], Detalle: `No se pudo identificar el CUIT.` })
           continue
         }
-        const PersonalId = CUIT[0].PersonalId
+        const PersonalId = PersonalCUITCUIL[0].PersonalId
 
         //Verifica el formato del CBU
         if (!this.isCBU(CBU)) {
-          dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `El CBU debe ser de 22 digitos.` })
+          dataset.push({ id: idError++, CUIT: row[idxCuit], Detalle: `El CBU debe ser de 22 digitos.` })
           continue
         }
 
@@ -388,8 +414,8 @@ export class CuentasBancariasController extends BaseController {
           LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
           WHERE pb.PersonalBancoCBU = @0 AND  @1 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @1 >= pb.PersonalBancoDesde
         `, [CBU, fechaActual])
-        if (PersonalBanco.length && CBU != '' && CBU != null){
-          dataset.push({ id: idError++, CUIT: row[columnsXLS['cuit']], Detalle: `El CBU ingresado se encuentra registrado y vigente en una persona. (${PersonalBanco[0].ApellidoNombre} - CUIT: ${PersonalBanco[0].CUIT ? PersonalBanco[0].CUIT : ''})` })
+        if (PersonalBanco.length && CBU != '' && CBU != null) {
+          dataset.push({ id: idError++, CUIT: row[idxCuit], Detalle: `El CBU ingresado se encuentra registrado y vigente en una persona. (${PersonalBanco[0].ApellidoNombre} - CUIT: ${PersonalBanco[0].CUIT ? PersonalBanco[0].CUIT : ''})` })
           continue
         }
 
@@ -403,15 +429,18 @@ export class CuentasBancariasController extends BaseController {
       }
 
       await queryRunner.commitTransaction();
+
+      const successMessage = `XLS Recibido y procesado! Registros procesados correctamente: ${altaCuentasBancarias}`;
+
       await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
-        { res: `Procesado correctamente`, altaCuentasBancarias },
+        { res: successMessage, 'Alta': altaCuentasBancarias },
         usuario,
         ip
       );
-      this.jsonRes([], res, `XLS Recibido y procesado! Se procesaron ${altaCuentasBancarias} registros correctamente`);
+      this.jsonRes([], res, successMessage);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
 
@@ -435,11 +464,11 @@ export class CuentasBancariasController extends BaseController {
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
     const queryRunner = await getConnection(usuario);
-    const CUITs:string = req.body.CUITs
-    const BancoId:number = req.body.BancoId
+    const CUITs: string = req.body.CUITs
+    const BancoId: number = req.body.BancoId
     let Desde = req.body.Desde
-    const IndNuevaCuenta:number = 1
-    let errors:any[] = []
+    const IndNuevaCuenta: number = 1
+    let errors: any[] = []
 
     try {
       let campos_vacios: any[] = []
@@ -454,7 +483,7 @@ export class CuentasBancariasController extends BaseController {
       }
       Desde = new Date(Desde)
       Desde.setHours(0, 0, 0, 0)
-      const arrayCUITs:any[] = CUITs.split(/\D+/).filter(Boolean);
+      const arrayCUITs: any[] = CUITs.split(/\D+/).filter(Boolean);
 
       for (const CUIT of arrayCUITs) {
 
@@ -472,7 +501,7 @@ export class CuentasBancariasController extends BaseController {
           continue
         }
         const PersonalId = PersonalCUITCUIL[0].PersonalId
-        
+
         await PersonalController.setPersonalBancoQuerys(queryRunner, PersonalId, BancoId, Desde, '', IndNuevaCuenta, fechaActual, usuario, ip)
       }
 
