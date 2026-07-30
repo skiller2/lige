@@ -3543,11 +3543,11 @@ UNION ALL
 
     for (const pb of PersonalBanco) {
       if (pb.PersonalBancoDesde.getTime() > Desde.getTime()) {
-        throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${pb.PersonalBancoDesde.getDate()}/${pb.PersonalBancoDesde.getMonth() + 1}/${pb.PersonalBancoDesde.getFullYear()} (${pb.ApellidoNombre} - CUIT: ${pb.CUIT ? pb.CUIT : ''})`)
+        throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${pb.PersonalBancoDesde.getDate()}/${pb.PersonalBancoDesde.getMonth() + 1}/${pb.PersonalBancoDesde.getFullYear()} (Banco: ${pb.BancoDescripcion})`)
       }
 
       // actualizo registro (falta que se actualice el hasta de los otros)
-      if (pb.PersonalBancoDesde.getTime() == Desde.getTime()) {
+      if (pb.PersonalBancoDesde.getTime() == Desde.getTime() && pb.PersonalBancoBancoId == BancoId) {
         logger.info(`Actualizo registro de PersonalBanco con PersonalBancoId: ${pb.PersonalBancoId}`)
         await queryRunner.query(`
         UPDATE PersonalBanco SET
