@@ -138,7 +138,7 @@ export class DomicilioController extends BaseController {
   async getBarrio(req: any, res: Response, next: NextFunction){
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      const options = await await queryRunner.query(`
+      const options = await queryRunner.query(`
       SELECT bar.BarrioId, bar.LocalidadId, bar.PaisId, bar.ProvinciaId, TRIM(bar.BarrioDescripcion) label
         , bar.BarrioId value
         , CONCAT_WS(', ', TRIM(bar.BarrioDescripcion), TRIM(loc.LocalidadDescripcion), TRIM(pro.ProvinciaDescripcion), TRIM(pais.PaisDescripcion)) address
@@ -155,6 +155,141 @@ export class DomicilioController extends BaseController {
     }finally {
       await queryRunner.release()
     }
+  }
+
+  async searchProvincia(req: any, res: Response, next: NextFunction){
+    const { PaisId, fieldName, value } = req.body;
+    if (PaisId == "") {
+      this.jsonRes({ objetivos: [] }, res);
+      return;
+    }
+    let buscar = false;
+    let query = `
+      SELECT pro.ProvinciaId, TRIM(pro.ProvinciaDescripcion) Descripcion
+      FROM Provincia pro
+      WHERE 
+    `;
+
+    if (PaisId > 0)
+      query += 'pro.PaisId IN (@0) AND '
+
+    switch (fieldName) {
+      case "Descripcion":
+        if (value.trim().length > 1) {
+          query += ` (pro.ProvinciaDescripcion LIKE '%${value.trim()}') AND `;
+          buscar = true;
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (buscar == false) {
+      this.jsonRes({ recordsArray: [] }, res);
+      return;
+    }
+
+    const queryRunner = await getConnection(res.locals.userName);
+    queryRunner.query((query += " 1=1"), [PaisId])
+    .then(async (records) => {
+      await queryRunner.release()
+
+      this.jsonRes({ recordsArray: records }, res);
+    }).catch((error) => {
+      return next(error)
+    });
+  }
+  
+  async searchLocalidad(req: any, res: Response, next: NextFunction){
+    const { PaisId, ProvinciaId, fieldName, value } = req.body;
+    if (PaisId == "" || ProvinciaId == "") {
+      this.jsonRes({ objetivos: [] }, res);
+      return;
+    }
+    let buscar = false;
+    let query = `
+      SELECT loc.LocalidadId, TRIM(loc.LocalidadDescripcion) Descripcion
+      FROM Localidad loc
+      WHERE 
+    `;
+
+    if (PaisId > 0)
+      query += 'loc.PaisId IN (@0) AND '
+    if (ProvinciaId > 0)
+      query += 'loc.ProvinciaId IN (@1) AND '
+
+    switch (fieldName) {
+      case "Descripcion":
+        if (value.trim().length > 1) {
+          query += ` (loc.LocalidadDescripcion LIKE '%${value.trim()}') AND `;
+          buscar = true;
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (buscar == false) {
+      this.jsonRes({ recordsArray: [] }, res);
+      return;
+    }
+
+    const queryRunner = await getConnection(res.locals.userName);
+    queryRunner.query((query += " 1=1"), [PaisId, ProvinciaId])
+    .then(async (records) => {
+      await queryRunner.release()
+
+      this.jsonRes({ recordsArray: records }, res);
+    }).catch((error) => {
+      return next(error)
+    });
+  }
+
+  async searchBarrio(req: any, res: Response, next: NextFunction){
+    const { PaisId, ProvinciaId, LocalidadId, fieldName, value } = req.body;
+    if (PaisId == "" || ProvinciaId == "" || LocalidadId == "") {
+      this.jsonRes({ objetivos: [] }, res);
+      return;
+    }
+    let buscar = false;
+    let query = `
+      SELECT bar.BarrioId, TRIM(bar.BarrioDescripcion) Descripcion
+      FROM Barrio bar
+      WHERE 
+    `;
+
+    if (PaisId > 0)
+      query += 'bar.PaisId IN (@0) AND '
+    if (ProvinciaId > 0)
+      query += 'bar.ProvinciaId IN (@1) AND '
+    if (LocalidadId > 0)
+      query += 'bar.LocalidadId IN (@1) AND '
+
+    switch (fieldName) {
+      case "Descripcion":
+        if (value.trim().length > 1) {
+          query += ` (bar.BarrioDescripcion LIKE '%${value.trim()}') AND `;
+          buscar = true;
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (buscar == false) {
+      this.jsonRes({ recordsArray: [] }, res);
+      return;
+    }
+
+    const queryRunner = await getConnection(res.locals.userName);
+    queryRunner.query((query += " 1=1"), [PaisId, ProvinciaId, LocalidadId])
+    .then(async (records) => {
+      await queryRunner.release()
+
+      this.jsonRes({ recordsArray: records }, res);
+    }).catch((error) => {
+      return next(error)
+    });
   }
 
 }

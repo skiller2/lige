@@ -1394,6 +1394,8 @@ outer APPLY (SELECT
                         , Obj.DomicilioProvinciaId
                         , Obj.DomicilioLocalidadId
                         , Obj.DomicilioBarrioId
+                        , Obj.DomicilioCompleto
+                        , Obj.DomicilioJson
                     )
 
                 }
@@ -2020,7 +2022,7 @@ outer APPLY (SELECT
             await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, Obj.CoberturaServicio)
             await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
             await this.addElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
-                Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
+                Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId, Obj.DomicilioCompleto, Obj.DomicilioJson)
 
             //await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
             await this.insertObjetivoSql(queryRunner, Number(Obj.ClienteId), Obj.Descripcion, ClienteElementoDependienteUltNro, Obj.SucursalId)
@@ -2098,17 +2100,19 @@ outer APPLY (SELECT
     }
 
     async addElementoDependienteDomicilio(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, DomicilioDomLugar: any, DomicilioDomCalle: any,
-        DomicilioDomNro: any, DomicilioCodigoPostal: any, DomicilioProvinciaId: any, DomicilioLocalidadId: any, DomicilioBarrioId: any) {
+        DomicilioDomNro: any, DomicilioCodigoPostal: any, DomicilioProvinciaId: any, DomicilioLocalidadId: any, DomicilioBarrioId: any,
+        DomicilioCompleto:string, DomicilioJson:string) {
         await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual=0  WHERE ClienteElementoDependienteId = @0 AND ClienteId=@1 `, [ClienteElementoDependienteId, ClienteId])
 
         const domicilioBarrioIdValue = DomicilioBarrioId ? DomicilioBarrioId : null
         await queryRunner.query(`INSERT INTO Domicilio (
-                    DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
-                    DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId) 
-                    VALUES ( @0,@1,@2,@3,@4,@5,@6,@7)`, [
+                DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
+                DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId,
+                DomicilioCompleto, DomicilioJson) 
+                VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, [
             DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro,
             DomicilioCodigoPostal, 1, DomicilioProvinciaId, DomicilioLocalidadId,
-            domicilioBarrioIdValue
+            domicilioBarrioIdValue, DomicilioCompleto, DomicilioJson
         ])
         const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
         const DomicilioId = resDomicilio[0]['']

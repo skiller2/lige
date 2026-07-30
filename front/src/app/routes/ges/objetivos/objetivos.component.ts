@@ -219,7 +219,6 @@ export class ObjetivosComponent {
     }, 1000)
 
     this.route.queryParams.subscribe(params => {
-      console.log('params: ', params);
       const filter = this.startFilters()
       if (params['LugarHabilitacionDescripcionList'] == '') {
         filter.push({ index: 'LugarHabilitacionDescripcionList', condition: 'AND', operator: '=', value: null, closeable: true })

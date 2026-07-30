@@ -2795,4 +2795,61 @@ export class SearchService {
       );
   }
 
+  getProvinciaFromName(fieldName:string, provincia:string, paisId?:number): Observable<any[]> {
+    if (!provincia || provincia == '') return of([]);
+    return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/provincia', {
+        fieldName: fieldName,
+        value: provincia,
+        paisId: paisId? paisId: 0,
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          return of([]);
+        })
+      );
+  }
+
+  getLocalidadFromName(fieldName:string, localidad:string, provinciaId:number, paisId?:number): Observable<any[]> {
+    if (!localidad || localidad == '') return of([]);
+    return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/localidad', {
+        fieldName: fieldName,
+        value: localidad,
+        provinciaId: provinciaId,
+        paisId: paisId? paisId: 0
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          return of([]);
+        })
+      );
+  }
+
+  getBarrioFromName(fieldName:string, barrio:string, localidadId:number, provinciaId:number, paisId?:number): Observable<any[]> {
+    if (!barrio || barrio == '') return of([]);
+    return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/barrio', {
+        fieldName: fieldName,
+        value: barrio,
+        localidadId: localidadId,
+        provinciaId: provinciaId,
+        paisId: paisId? paisId: 0
+      })
+      .pipe(
+        map(res => {
+          if (res.data.recordsArray) return res.data.recordsArray;
+          else return [];
+        }),
+        catchError((err, caught) => {
+          return of([]);
+        })
+      );
+  }
+
 }
