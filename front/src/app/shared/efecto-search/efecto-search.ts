@@ -37,6 +37,8 @@ export class EfectoSearchComponent implements ControlValueAccessor {
   readonly valueExtendedChange = output<any>()
   readonly csc = viewChild<NzSelectComponent>('csc')
 
+  readonly controlDisabled = signal(false)
+
   // Estado de la vista como signals (habilita OnPush): el valor del nz-select y la opción "fija"
   // que se muestra para un efecto ya seleccionado (cuando no está entre los resultados de búsqueda).
   readonly selectedLabel = signal('')
@@ -204,7 +206,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean): void {
-    this.csc()?.setDisabledState(isDisabled)
+    this.controlDisabled.set(isDisabled)
   }
 
 }

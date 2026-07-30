@@ -60,7 +60,7 @@ export class EfectoComponent {
   readonly descargaComprobanteDeshabilitada = computed(() => {
     // En el form de movimiento el botón siempre está habilitado (el backend arma el comprobante con
     // los datos del form); en la grilla de movimientos, solo con una fila seleccionada.
-    if (this.activeTab() === 'movimiento' || this.activeTab() === 'ingreso-stock') return false
+    if (this.activeTab() === 'movimiento' || this.activeTab() === 'ingreso-stock' || this.activeTab() === 'intermediario') return false
     if (this.activeTab() === 'movimientos') return this.comprobanteCodigo() === null
     return true
   })

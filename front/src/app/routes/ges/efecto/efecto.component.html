@@ -45,6 +45,11 @@
         <nz-icon nzType="plus" nzTheme="outline" />
       </button>
 
+      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="Intermediario"
+        [routerLink]="['/', 'ges', 'efecto', 'intermediario']">
+        <nz-icon nzType="swap" nzTheme="outline" />
+      </button>
+
       <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.stock' | i18n }}"
         [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
         <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
@@ -75,7 +80,7 @@
         <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
       </button>
 
-      @if (activeTab() !== 'ingreso-stock') {
+      @if (activeTab() !== 'ingreso-stock' && activeTab() !== 'intermediario') {
       <button #descargarComprobante nz-button nzType="default" type="button" nz-tooltip
         nzTooltipTitle="Descargar Comprobante" [disabled]="descargaComprobanteDeshabilitada()" app-down-file
         [httpMethod]="'POST'" [httpBody]="comprobanteBody()" httpUrl="api/movimiento-stock/comprobante">
@@ -138,6 +143,11 @@
 
   @if (activeTab() === 'ingreso-stock') {
   <app-movimiento-stock [IndIngresoStock]="true" (confirmado)="onComprobanteConfirmado()"
+    (volverAMovimientos)="onVolverAMovimientos()" />
+  }
+
+  @if (activeTab() === 'intermediario') {
+  <app-movimiento-stock [IndIngresoStock]="true" [IndIntermediario]="true" (confirmado)="onComprobanteConfirmado()"
     (volverAMovimientos)="onVolverAMovimientos()" />
   }
 

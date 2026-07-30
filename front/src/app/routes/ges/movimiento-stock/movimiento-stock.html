@@ -7,8 +7,7 @@
 
   <nz-divider [nzText]="destinoLabel" style="margin-bottom: 40px;"></nz-divider>
   <ng-template #destinoLabel>
-    <span style="margin-right: 8px;">{{ IndIngresoStock() ? 'Ingreso Stock - Destino' : 'Movimiento Stock - Destino'
-      }}</span>
+    <span style="margin-right: 8px;">{{ tituloDestino() }}</span>
     <button nz-button nzType="default" type="button" (click)="limpiarDestino()" nz-tooltip
       nzTooltipTitle="{{ 'app.limpiar.destino' | i18n }}">
       <span nz-icon nzType="delete" nzTheme="outline"></span>
@@ -271,7 +270,7 @@
     <div nz-col [nzSpan]="3">
       <div style="display: flex; gap: 4px;">
         <button type="button" nz-button nzType="primary" class="add-button"
-          [style.visibility]="last ? 'visible' : 'hidden'" (click)="addEfectoLinea($event)" nz-tooltip
+          [style.visibility]="last && !IndIntermediario() ? 'visible' : 'hidden'" (click)="addEfectoLinea($event)" nz-tooltip
           nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
           <span nz-icon nzType="plus"></span>
         </button>

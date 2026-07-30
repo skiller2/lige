@@ -4,7 +4,7 @@ import { SHARED_IMPORTS } from '@shared';
 import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
 import { CommonModule } from '@angular/common';
-import { applyEach, form, FormField, required, submit, validate } from '@angular/forms/signals';
+import { applyEach, disabled, form, FormField, required, submit, validate } from '@angular/forms/signals';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { TipoDestinoSearchComponent } from '../../../shared/tipo-destino-search/tipo-destino-search.component';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -40,11 +40,23 @@ export class MovimientoStockComponent {
   // Modo "Ingreso de Stock": lo pasa el padre en la solapa ingreso-stock. Cambia la ruta de guardado.
   readonly IndIngresoStock = input<boolean>(false);
 
+  // Modo "Intermediario": lo pasa el padre en la solapa intermediario. Se comporta igual que el
+  // Ingreso de Stock (viaja con IndIngresoStock en true); solo cambia el título y el storage.
+  readonly IndIntermediario = input<boolean>(false);
+
+  // Título del divisor de la cabecera, según el modo en el que se abrió el formulario.
+  readonly tituloDestino = computed(() => {
+    if (this.IndIntermediario()) return 'Intermediario - Destino';
+    if (this.IndIngresoStock()) return 'Ingreso Stock - Destino';
+    return 'Movimiento Stock - Destino';
+  });
+
   // "Fijar" (pin): si está activo, al guardar NO se limpian los datos ni se cambia de solapa.
   // Se persiste junto al formulario en localStorage (ver effect persistir / ngOnInit).
   readonly fijar = signal(false);
 
   private get STORAGE_KEY(): string {
+    if (this.IndIntermediario()) return 'intermediario-form';
     return this.IndIngresoStock() ? 'ingreso-stock-form' : 'movimiento-stock-form';
   }
 
@@ -136,6 +148,8 @@ export class MovimientoStockComponent {
 
   readonly formEfectoStock = form(this.parametroStock, (p) => {
     required(p.fecha, { message: 'La fecha es obligatoria' });
+    // En Intermediario la fecha no se edita: queda fija en el día de hoy (ver ngOnInit).
+    disabled(p.fecha, () => this.IndIntermediario());
     required(p.tipoDestino, { message: 'El tipo de destino es obligatorio' });
 
     required(p.depositoId, { message: 'El depósito es obligatorio', when: (ctx) => ctx.valueOf(p.tipoDestino) === 'deposito' });
@@ -148,6 +162,11 @@ export class MovimientoStockComponent {
     required(p.proveedorIdInter, { message: 'El proveedor intermediario es obligatorio', when: (ctx) => ctx.valueOf(p.tipoIntermediario) === 'proveedor' });
 
     applyEach(p.efectos, (linea) => {
+      // En Intermediario el origen no se edita: efecto, ubicación y "Usado" vienen dados.
+      disabled(linea.EfectoId, () => this.IndIntermediario());
+      disabled(linea.StockId, () => this.IndIntermediario());
+      disabled(linea.Usado, () => this.IndIntermediario());
+
       required(linea.EfectoId, { message: 'Efecto obligatorio', when: (ctx) => ctx.valueOf(linea.EfectoId) !== null });
       required(linea.StockId, { message: 'Ubicación obligatoria', when: (ctx) => ctx.valueOf(linea.StockId) !== null });
       // La cantidad no puede ser 0/negativa ni superar el stock disponible (StockStock, hermano de la línea).
