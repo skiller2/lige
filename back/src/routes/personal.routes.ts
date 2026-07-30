@@ -49,10 +49,6 @@ personalRouter.post(`${base}/setgrupactividad/:id`, [authMiddleware.verifyToken,
   personalController.setGrupoActividadPersonal(req, res, next)
 });
 
-personalRouter.post(`${base}/setbanco`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`])], (req, res, next) => {
-  personalController.setPersonalBanco(req, res, next)
-});
-
 personalRouter.post(`${base}/unsubscribe/cbu`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`])], (req, res, next) => {
   personalController.unsubscribeCBUs(req, res, next)
 });

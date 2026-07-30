@@ -1716,7 +1716,7 @@ export class ApiService {
   }
 
   setPersonalBanco(values: any) {
-    return this.http.post<ResponseJSON<any>>(`/api/personal/setbanco`, values).pipe(
+    return this.http.post<ResponseJSON<any>>(`/api/cuentas-bancarias/setbanco`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     );
   }

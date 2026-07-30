@@ -4,11 +4,10 @@ import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
-import { PersonalController } from "../controller/personal.controller.ts"
 import type { QueryRunner } from "typeorm";
 import xlsx from 'node-xlsx';
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
-import { personalController } from "../controller/controller.module.ts";
+import { logger } from "../logger/logger.ts";
 
 const columns: any[] = [
   {
@@ -499,6 +498,173 @@ export class CuentasBancariasController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release()
+    }
+  }
+
+  async setPersonalBanco(req: any, res: Response, next: NextFunction) {
+    const fechaActual = new Date()
+    const ip = this.getRemoteAddress(req)
+    const usuario = res.locals.userName
+    const queryRunner = await getConnection(usuario);
+    const PersonalId: number = Number(req.body.PersonalId);
+    const BancoId: number = req.body.BancoId
+    const CBU = req.body.CBU?.trim() || null
+    let Desde = req.body.Desde
+    const IndNuevaCuenta = CBU ? 0 : 1
+
+    try {
+      let campos_vacios: any[] = []
+      await queryRunner.startTransaction()
+
+      if (!PersonalId) campos_vacios.push(`- Persona`);
+
+      if (!BancoId) campos_vacios.push(`- Banco`);
+      //if (!CBU) campos_vacios.push(`- CBU`);
+      if (!Desde) campos_vacios.push(`- Fecha Desde`);
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos:')
+        throw new ClientException(campos_vacios);
+      }
+      //Sin CBU se da de alta una cuenta pendiente, por eso sólo se valida el formato cuando viene informado
+      if (CBU && !this.isCBU(CBU))
+        throw new ClientException('El CBU debe ser de 22 digitos.')
+
+
+      Desde = new Date(Desde)
+      Desde.setHours(0, 0, 0, 0)
+
+      if (IndNuevaCuenta == 1) {
+        await CuentasBancariasController.setCuentasPendientes(queryRunner, PersonalId, BancoId, Desde, fechaActual, usuario, ip)
+      } else {
+        await CuentasBancariasController.setPersonalBancoQuerys(queryRunner, PersonalId, BancoId, Desde, CBU, fechaActual, usuario, ip)
+      }
+
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, 'Carga Exitosa');
+    } catch (error) {
+      this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  static async setPersonalBancoQuerys(
+    queryRunner: any,
+    PersonalId: number,
+    BancoId: number,
+    Desde: Date,
+    CBU: string,
+    FechaActual: Date,
+    usuario: string,
+    ip: string
+  ) {
+    const PersonalBancoRows: any = await queryRunner.query(`
+        SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
+          CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT, TRIM(ban.BancoDescripcion) BancoDescripcion
+        FROM PersonalBanco pb
+        left JOIN Banco ban ON ban.BancoId = pb.PersonalBancoBancoId
+        Left JOIN Personal per ON per.PersonalId = pb.PersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+        WHERE ((@0 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @0 >= pb.PersonalBancoDesde) OR pb.PersonalBancoDesde >= @0)
+           ORDER BY pb.PersonalBancoDesde DESC
+      `, [FechaActual])
+
+    // Validación de CBU EXISTENTE
+    const existCBU = PersonalBancoRows.filter((r: any) => r.PersonalBancoCBU == CBU)
+    if (existCBU.length > 0)
+      throw new ClientException(`El CBU ingresado se encuentra registrado y vigente en una persona. (${existCBU[0].ApellidoNombre} - CUIT: ${existCBU[0].CUIT ? existCBU[0].CUIT : ''})`);
+
+    const PersonalBanco: any = PersonalBancoRows.filter((r: any) => r.PersonalId === PersonalId)
+
+    const cbuVigentes: any = PersonalBanco.filter((r: any) => (r.PersonalBancoCBU != null && r.PersonalBancoCBU != '') && r.IndNuevaCuenta == 0)
+
+    // ALTA de cuenta sin historial en la PersonalBanco
+    if (PersonalBanco.length == 0) {
+      logger.info(`ALTA de cuenta sin historial en la PersonalBanco`)
+      const Personal: any = await queryRunner.query(`
+        SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
+        FROM Personal
+        WHERE PersonalId IN (@0)
+      `, [PersonalId])
+      const newPersonalBancoId: number = Personal[0].UltNro
+      await queryRunner.query(`
+        INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
+        AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
+
+        UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
+      `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, 0, FechaActual, usuario, ip])
+
+      return
+    }
+
+    let resPersonalBancoId = null
+    let registroActualizado = false
+
+    for (const pb of PersonalBanco) {
+      if (pb.PersonalBancoDesde.getTime() > Desde.getTime()) {
+        throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${pb.PersonalBancoDesde.getDate()}/${pb.PersonalBancoDesde.getMonth() + 1}/${pb.PersonalBancoDesde.getFullYear()} (Banco: ${pb.BancoDescripcion})`)
+      }
+
+      // actualizo registro (falta que se actualice el hasta de los otros)
+      if (pb.PersonalBancoDesde.getTime() == Desde.getTime() && pb.PersonalBancoBancoId == BancoId) {
+        logger.info(`Actualizo registro de PersonalBanco con PersonalBancoId: ${pb.PersonalBancoId}`)
+        await queryRunner.query(`
+        UPDATE PersonalBanco SET
+        PersonalBancoCBU = @3,
+        IndNuevaCuenta = @4,
+        AudFechaMod = @5,
+        AudUsuarioMod = @6,
+        AudIpMod= @7
+        WHERE PersonalId IN (@0) AND PersonalBancoBancoId IN (@1) AND PersonalBancoId IN (@2)
+      `, [PersonalId, BancoId, pb.PersonalBancoId, CBU, 0, FechaActual, usuario, ip])
+
+        resPersonalBancoId = pb.IndNuevaCuenta ? pb.PersonalBancoId : null
+        registroActualizado = true
+        break
+      }
+    }
+
+    if (!registroActualizado && PersonalBanco.length > 1 && cbuVigentes.length > 0) {
+      throw new ClientException(`No se puede dar de alta la cuenta. La persona cuenta con CBU pendiente de carga.`)
+    }
+
+    if (!registroActualizado) {
+      logger.info(`No se actualizó ningún registro de PersonalBanco, se creará uno nuevo`)
+      // creo el nuevo registro si no hay update
+      const Personal: any = await queryRunner.query(`
+        SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
+        FROM Personal
+        WHERE PersonalId IN (@0)
+      `, [PersonalId])
+      const newPersonalBancoId: number = Personal[0].UltNro
+      await queryRunner.query(`
+        INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
+        AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+        VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
+
+        UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
+      `, [PersonalId, newPersonalBancoId, BancoId, CBU, Desde, 0, FechaActual, usuario, ip])
+
+      resPersonalBancoId = newPersonalBancoId
+    }
+
+    if (resPersonalBancoId && cbuVigentes.length > 0) {
+      logger.info(`Actualizando el registro vigente de PersonalBanco con PersonalBancoId: ${cbuVigentes[0].PersonalBancoId} para cerrar su vigencia`)
+      const newHasta: Date = new Date(Desde)
+      newHasta.setDate(newHasta.getDate() - 1)
+      await queryRunner.query(`
+          UPDATE PersonalBanco SET
+          PersonalBancoHasta = @2,
+          AudFechaMod = @3,
+          AudUsuarioMod = @4,
+          AudIpMod=@5
+          WHERE PersonalId IN (@0) AND PersonalBancoId != @1 AND IndNuevaCuenta = 0
+          AND @3 <= isnull(PersonalBancoHasta, '9999-12-31') and @3 >= PersonalBancoDesde
+        `, [PersonalId, resPersonalBancoId, newHasta, FechaActual, usuario, ip])
+
     }
   }
 
