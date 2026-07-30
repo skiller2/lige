@@ -52,7 +52,7 @@ export class CuentasBancariasAltaDrawerComponent {
         await submit(this.formCuentasBancarias, async (form) => {
             const values: CuentasBancarias = form().value()
             try {
-                await firstValueFrom(this.apiService.addCuentasBancarias(values))
+                await firstValueFrom(this.apiService.addCuentasPendientes(values))
                 this.onAddorUpdate.emit()
                 this.visible.set(false)
             } catch (e) {

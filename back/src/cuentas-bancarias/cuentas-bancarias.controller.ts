@@ -436,7 +436,7 @@ export class CuentasBancariasController extends BaseController {
     }
   }
 
-  async addCuentasBancarias(req: any, res: Response, next: NextFunction) {
+  async addCuentasPendientes(req: any, res: Response, next: NextFunction) {
     const fechaActual = new Date()
     const ip = this.getRemoteAddress(req)
     const usuario = res.locals.userName
