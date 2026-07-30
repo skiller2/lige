@@ -34,6 +34,9 @@ export class EfectoStockLineaComponent {
   readonly sucursalDestino = input<string | null>(null);
   /** Ingreso de Stock: las ubicaciones de origen se limitan a proveedores (sin validar stock). */
   readonly IndIngresoStock = input<boolean>(false);
+  /** Intermediario: la línea viene dada por el movimiento pendiente (efecto, ubicación y cantidad
+   *  no se editan ni se recalculan). */
+  readonly IndIntermediario = input<boolean>(false);
 
 
   /** El bloque "Relacionado con" está visible. */
@@ -84,6 +87,8 @@ export class EfectoStockLineaComponent {
   // Autoselección de ubicación al (re)cargar las ubicaciones. Lee StockId sin trackearlo, así solo
   // corre cuando cambia la lista (no cuando el usuario elige a mano).
   private readonly autoStockId = effect(() => {
+    // En Intermediario la ubicación viene dada por el movimiento pendiente: no se recalcula nunca.
+    if (this.IndIntermediario()) return;
     const lista = this.ubicaciones.value() ?? [];
     this.sucursalDestino(); // reacciona también si cambia la sucursal del destino
     untracked(() => {
@@ -119,6 +124,8 @@ export class EfectoStockLineaComponent {
   //    sin tocar la cantidad, así respeta la cantidad precargada.
   //  - Si cambió solo la ubicación dentro del mismo efecto -> recalcula la cantidad.
   private readonly autoCantidad = effect(() => {
+    // En Intermediario la cantidad viene del pendiente: no se recalcula al cambiar la ubicación.
+    if (this.IndIntermediario()) return;
     const efectoId = this.field().EfectoId().value();
     const stockId = this.field().StockId().value();
     untracked(() => {
@@ -137,6 +144,8 @@ export class EfectoStockLineaComponent {
 
   
   private readonly autoStockStock = effect(() => {
+    // En Intermediario el stock disponible ya viene con la línea precargada.
+    if (this.IndIntermediario()) return;
     const stockId = this.field().StockId().value();
     const u = (this.ubicaciones.value() ?? []).find(x => Number(x.StockId) === Number(stockId));
     this.field().StockStock().value.set(u?.StockStock != null ? Number(u.StockStock) : null);

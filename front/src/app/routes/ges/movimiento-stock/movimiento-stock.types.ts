@@ -10,6 +10,7 @@ export interface EfectoStockLinea {
   RelacionEfectoId: number | null;
   RelacionStockId: number | null;
   RelacionEfectoIndividualId: number | null;
+  MovimientoStockCodigoOrigen: number | null;
 }
 
 /** Datos del formulario completo: destino (cabecera) + las líneas de origen. */
@@ -36,8 +37,9 @@ export const nuevaEfectoLinea = (): EfectoStockLinea => ({
   StockStock: null,
   EfectoIndividualId: null,
   Usado: false, 
-  RelacionEfectoId: null, 
-  RelacionStockId: null, 
+  RelacionEfectoId: null,
+  RelacionStockId: null,
   RelacionEfectoIndividualId: null,
+  MovimientoStockCodigoOrigen: null,
 });
 

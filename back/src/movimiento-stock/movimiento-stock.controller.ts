@@ -448,6 +448,73 @@ export class MovimientoStockController extends BaseController {
     }
   }
 
+  async getMovimientosPendientes(req: any, res: Response, next: NextFunction) {
+    const tipoDestino = String(req.params.tipoDestino ?? '');
+    const destinoId = Number(req.params.destinoId) || null;
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      if (!destinoId || !tiposMovimiento.some((t) => t.value === tipoDestino))
+        return this.jsonRes([], res);
+
+      // El destino "objetivo" se guarda como Cliente + ElementoDependiente.
+      let filtroSql = '';
+      let params: any[] = [];
+      if (tipoDestino === 'objetivo') {
+        const obj = await this.getObjetivoCliente(queryRunner, destinoId);
+        if (!obj?.ClienteId) return this.jsonRes([], res);
+        filtroSql = `pend.ClienteIdDestino = @0
+          AND (pend.ClienteElementoDependienteIdDestino = @1 OR (@1 IS NULL AND pend.ClienteElementoDependienteIdDestino IS NULL))`;
+        params = [obj.ClienteId, obj.ClienteElementoDependienteId ?? null];
+      } else {
+        const columna = tiposMovimiento.find((t) => t.value === tipoDestino)!.destinoIdColumn;
+        filtroSql = `pend.${columna} = @0`;
+        params = [destinoId];
+      }
+
+      const rows = await queryRunner.query(`
+        SELECT pend.MovimientoStockCodigo,
+            det.MovimientoStockDetalleCodigo,
+            det.EfectoId,
+            det.EfectoIndividualId,
+            det.Cantidad,
+            det.IndEfectoUsado,
+            -- Si el intermediario es un proveedor sin fila en StockReal, se usa la ubicación sintética
+            -- (-ProveedorId), igual que el Ingreso de Stock: el backend la decodifica al confirmar.
+            COALESCE(stk.StockId, IIF(mov.ProveedorIdDestino IS NULL, NULL, -mov.ProveedorIdDestino)) AS StockId,
+            stk.StockStock,
+            CASE
+              WHEN mov.PersonalIdDestino IS NOT NULL THEN 'personal'
+              WHEN mov.ProveedorIdDestino IS NOT NULL THEN 'proveedor'
+              ELSE ''
+            END AS TipoIntermediario,
+            COALESCE(mov.PersonalIdDestino, mov.ProveedorIdDestino) AS IntermediarioId,
+            COALESCE(
+              IIF(mov.PersonalIdDestino IS NULL, NULL, CONCAT(TRIM(peri.PersonalApellido), ', ', TRIM(peri.PersonalNombre))),
+              TRIM(proi.ProveedorRazonSocial)
+            ) AS Intermediario
+        FROM MovimientoStockPendiente pend
+        JOIN MovimientoStock mov ON mov.MovimientoStockCodigo = pend.MovimientoStockCodigo
+        JOIN MovimientoStockDetalle det ON det.MovimientoStockCodigo = pend.MovimientoStockCodigo
+        -- Ubicación de origen: el stock del intermediario (persona o proveedor) para ese efecto.
+        LEFT JOIN StockReal stk ON stk.EfectoId = det.EfectoId
+          AND (stk.EfectoEfectoIndividualId = det.EfectoIndividualId OR (det.EfectoIndividualId IS NULL AND stk.EfectoEfectoIndividualId IS NULL))
+          AND (stk.PersonalId = mov.PersonalIdDestino OR (mov.PersonalIdDestino IS NULL AND stk.PersonalId IS NULL))
+          AND (stk.ProveedorId = mov.ProveedorIdDestino OR (mov.ProveedorIdDestino IS NULL AND stk.ProveedorId IS NULL))
+          AND stk.DepositoId IS NULL AND stk.ObjetivoId IS NULL
+        LEFT JOIN Personal peri ON peri.PersonalId = mov.PersonalIdDestino
+        LEFT JOIN Proveedor proi ON proi.ProveedorId = mov.ProveedorIdDestino
+        WHERE ${filtroSql}
+        ORDER BY pend.MovimientoStockCodigo, det.MovimientoStockDetalleCodigo
+      `, params);
+
+      this.jsonRes(rows, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async getProveedores(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
 
@@ -513,6 +580,75 @@ export class MovimientoStockController extends BaseController {
 
       await queryRunner.commitTransaction();
       return this.jsonRes({ ...body, movimientoStockCodigo: movimientoCodigo }, res, "Movimiento confirmado");
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner);
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async confirmarIntermediario(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      await queryRunner.startTransaction();
+
+      const body = req.body ?? {};
+      const simular = body.simular === true;
+      const depositoId = Number(body.depositoId) || null;
+      const personalId = Number(body.personalId) || null;
+      const objetivoId = Number(body.objetivoId) || null;
+      const proveedorId = Number(body.proveedorId) || null;
+      const observaciones = String(body.observaciones ?? '');
+      const efectos = body.efectos ?? [];
+
+      const usuario = res.locals.userName;
+      const ip = this.getRemoteAddress(req);
+      const now = new Date();
+
+      // El movimiento nuevo va del intermediario al destino real: ya no lleva intermediario propio
+      // ni es un ingreso de stock (el origen descuenta).
+      await this.validateForm(queryRunner, body.fecha, depositoId, personalId, null, objetivoId, proveedorId, null, observaciones, efectos, false);
+
+      const fecha = new Date(body.fecha);
+
+      // Movimientos pendientes que aportaron líneas (los precargó getMovimientosPendientes).
+      const origenes: number[] = [...new Set(efectos.map((e: any) => Number(e.MovimientoStockCodigoOrigen)).filter(Boolean))] as number[];
+      if (!origenes.length)
+        throw new ClientException('Las líneas no corresponden a ningún movimiento pendiente.');
+
+      const codigos: number[] = [];
+      for (const origen of origenes) {
+        const lineas = efectos.filter((e: any) => Number(e.MovimientoStockCodigoOrigen) === origen);
+
+        const movimientoCodigo = await this.insertMovimiento(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId,
+          observaciones, fecha, lineas, null, null, false, now, usuario, ip);
+
+        await queryRunner.query(
+          `UPDATE MovimientoStock SET MovimientoStockCodigoOrigen = @1 WHERE MovimientoStockCodigo = @0`,
+          [movimientoCodigo, origen]
+        );
+
+        await this.aplicarMovimientoStock(queryRunner, req, res, depositoId, personalId, objetivoId, proveedorId,
+          lineas, null, null, false, now, usuario, ip);
+
+        // Baja del pendiente: el movimiento original queda entregado (Pendiente = NO en la grilla).
+        await queryRunner.query(`DELETE FROM MovimientoStockPendiente WHERE MovimientoStockCodigo = @0`, [origen]);
+
+        codigos.push(movimientoCodigo);
+      }
+
+      // Simular: corre todo y hace rollback (no persiste ni consume el numerador).
+      if (simular) {
+        await this.rollbackTransaction(queryRunner);
+        return this.jsonRes({ ...body, simulado: true }, res, 'Simulación correcta: la entrega es válida.');
+      }
+
+      for (const codigo of codigos)
+        await this.generarDocumentoIngresoStock(queryRunner, req, res, codigo, now, usuario, ip);
+
+      await queryRunner.commitTransaction();
+      return this.jsonRes({ ...body, movimientoStockCodigo: codigos[0] }, res, 'Entrega confirmada');
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
       return next(error);
@@ -598,7 +734,7 @@ export class MovimientoStockController extends BaseController {
       // En Ingreso de Stock el origen es un proveedor: si la ubicación es sintética (StockId negativo,
       // proveedor sin fila en StockReal) se decodifica el ProveedorId; si es positiva sale de StockReal.
       let stk: any;
-      if (indIngresoStock && Number(linea.StockId) < 0) {
+      if (Number(linea.StockId) < 0) {
         stk = { PersonalId: null, DepositoId: null, ObjetivoId: null, ProveedorId: -Number(linea.StockId) };
       } else {
         const stkRows = await queryRunner.query(
@@ -659,7 +795,9 @@ export class MovimientoStockController extends BaseController {
       const Cantidad = efecto.Cantidad
       const StockId = efecto.StockId
 
-      if (!indIngresoStock) {
+      // Un StockId negativo es una ubicación sintética (proveedor sin fila en StockReal): no hay
+      // stock que descontar en el origen.
+      if (!indIngresoStock && Number(StockId) > 0) {
         const resStock = await queryRunner.query(
           `SELECT stk.StockId, stk.EfectoId, stk.EfectoEfectoIndividualId, stk.StockStock, stk.PersonalId, stk.DepositoId, stk.ObjetivoId, stk.ProveedorId 
             FROM StockReal stk
@@ -1168,7 +1306,9 @@ export class MovimientoStockController extends BaseController {
       if (linea.Cantidad == null || Number(linea.Cantidad) <= 0)
         fieldErrors.push({ fieldTree: `efectos[${i}].Cantidad`, kind: 'server', message: 'La cantidad debe ser mayor a 0.' });
 
-      if (indIngresoStock) continue;
+      // La ubicación sintética (StockId negativo = proveedor sin fila en StockReal) no se valida
+      // contra StockReal, igual que en el Ingreso de Stock.
+      if (indIngresoStock || Number(linea.StockId) < 0) continue;
 
       const rows = await queryRunner.query(
         `SELECT TOP 1 stk.StockId, stk.StockStock, stk.EfectoId, stk.EfectoEfectoIndividualId,

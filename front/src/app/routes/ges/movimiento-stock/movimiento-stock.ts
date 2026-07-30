@@ -1,4 +1,4 @@
-import { afterNextRender, ChangeDetectionStrategy, Component, computed, effect, inject, input, output, resource, signal, viewChildren } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, effect, inject, input, output, resource, signal, untracked, viewChildren } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS } from '@shared';
 import { SearchService } from '../../../services/search.service';
@@ -270,6 +270,7 @@ export class MovimientoStockComponent {
       RelacionEfectoId: null,
       RelacionStockId: null,
       RelacionEfectoIndividualId: null,
+      MovimientoStockCodigoOrigen: null,
     }));
   }
 
@@ -342,6 +343,64 @@ export class MovimientoStockComponent {
   });
 
 
+  // ===== Movimientos pendientes (solo modo Intermediario) =====
+  // Id del destino elegido, según el tipo. Es un computed sobre un primitivo: los consumidores solo
+  // se notifican cuando cambia realmente (no en cada update de parametroStock).
+  readonly destinoIdSig = computed(() => {
+    const p = this.parametroStock();
+    switch (p.tipoDestino) {
+      case 'deposito': return p.depositoId;
+      case 'personal': return p.personalId;
+      case 'objetivo': return p.objetivoId;
+      case 'proveedor': return p.proveedorId;
+      default: return null;
+    }
+  });
+
+  // Pendientes cuyo destino real es el elegido: una fila por efecto, con la ubicación del
+  // intermediario (que lo tiene físicamente) como origen.
+  readonly pendientes = resource({
+    params: () => ({ intermediario: this.IndIntermediario(), tipo: this.tipoDestinoSeleccionado(), id: this.destinoIdSig() }),
+    loader: async ({ params }) => {
+      const id = Number(params.id);
+      return params.intermediario && params.tipo && id
+        ? (await firstValueFrom(this.searchService.getMovimientosPendientes(params.tipo, id))) ?? []
+        : [];
+    },
+  });
+
+  // Al resolverse la búsqueda de pendientes se reemplazan las líneas de origen. Si no hay pendientes
+  // para ese destino, queda una línea vacía.
+  private readonly precargarPendientes = effect(() => {
+    if (!this.IndIntermediario()) return;
+    const rows = this.pendientes.value();
+    if (rows === undefined) return;
+    untracked(() => this.aplicarPendientes(rows));
+  });
+
+  private aplicarPendientes(rows: any[]): void {
+    const efectos: EfectoStockLinea[] = (rows ?? []).map((r: any) => ({
+      trackId: crypto.randomUUID(),
+      EfectoId: r.EfectoId ?? null,
+      Cantidad: r.Cantidad != null ? Number(r.Cantidad) : null,
+      StockId: r.StockId ?? null,
+      StockStock: r.StockStock != null ? Number(r.StockStock) : null,
+      EfectoIndividualId: r.EfectoIndividualId ?? null,
+      Usado: r.IndEfectoUsado == 1,
+      RelacionEfectoId: null,
+      RelacionStockId: null,
+      RelacionEfectoIndividualId: null,
+      MovimientoStockCodigoOrigen: r.MovimientoStockCodigo ?? null,
+    }));
+
+    this.parametroStock.update(s => ({ ...s, efectos: efectos.length ? efectos : [nuevaEfectoLinea()] }));
+
+    if (efectos.length) {
+      this.formEfectoStock().markAsTouched();
+      this.formEfectoStock().markAsDirty();
+    }
+  }
+
   async confirmar(simular = false) {
     this.parametroStock.update(m => ({
       ...m,
@@ -395,9 +454,10 @@ export class MovimientoStockComponent {
       const formValue = form().value();
 
       try {
-        // En modo Ingreso de Stock se guarda por la ruta nueva (confirmarIngresoStockEfecto).
-        const payload = { ...formValue, simular, IndIngresoStock: this.IndIngresoStock() };
-        const res = await firstValueFrom(this.apiService.confirmarStockEfecto(payload, this.IndIngresoStock() ? 'I' : 'M'));
+        // Cada modo tiene su ruta: Intermediario ('T'), Ingreso de Stock ('I') o movimiento común ('M').
+        const payload = { ...formValue, simular, IndIngresoStock: this.IndIngresoStock(), IndIntermediario: this.IndIntermediario() };
+        const tipo = this.IndIntermediario() ? 'T' : (this.IndIngresoStock() ? 'I' : 'M');
+        const res = await firstValueFrom(this.apiService.confirmarStockEfecto(payload, tipo));
 
         if (!simular) {
           const movimientoStockCodigo = res?.data?.movimientoStockCodigo ?? null;

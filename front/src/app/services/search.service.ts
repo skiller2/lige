@@ -2490,6 +2490,14 @@ export class SearchService {
     );
   }
 
+  getMovimientosPendientes(tipoDestino: string, destinoId: number) {
+    if (!tipoDestino || !destinoId) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/pendientes/${tipoDestino}/${destinoId}`).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
   getStockEfectoProveedores() {
     return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/proveedores`).pipe(
       map(res => res.data),
