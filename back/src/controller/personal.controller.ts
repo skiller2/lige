@@ -3472,8 +3472,8 @@ UNION ALL
       return true
 
     // Verifica que tenga exactamente 22 caracteres
-    // if (cbu.length != 22)
-    //   return false
+    if (cbu.length != 22)
+      return false
 
     // Verifica que todos los caracteres sean números
     for (let i = 0; i < cbu.length; i++) {

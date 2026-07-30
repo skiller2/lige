@@ -73,7 +73,15 @@
             @for (data of personalBanco.data; track data.id) {
               <tr class="">
                 <td>{{ data.Descripcion }}</td>
-                <td>{{ data.IndNuevaCuenta == 1 ? 'Carga Pendiente' : data.CBU }}</td>
+                <td>
+                  @if (data.IndNuevaCuenta == 1) {
+                    <nz-tag nzColor="warning">Carga Pendiente</nz-tag>
+                  } @else if (!data.CBU) {
+                    <nz-tag [nzColor]="'red'">Sin CBU</nz-tag>
+                  } @else {
+                    {{ data.CBU }}
+                  }
+                </td>
                 <td>{{ data.Desde }}</td>
                 <td>{{ data.Hasta }}</td>
               </tr>
