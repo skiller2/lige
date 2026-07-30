@@ -9,6 +9,10 @@ domicilioRouter.get('/provincias/options', [authMiddleware.verifyToken, ], (req,
 domicilioRouter.get('/localidades/options', [authMiddleware.verifyToken, ], (req, res, next) => { domicilioController.getLocalidad(req, res, next) } )
 domicilioRouter.get('/barrios/options', [authMiddleware.verifyToken, ], (req, res, next) => { domicilioController.getBarrio(req, res, next) } )
 
+domicilioRouter.post('/search/provincia', [authMiddleware.verifyToken, ], (req, res, next) => { domicilioController.searchProvincia(req, res, next) } )
+domicilioRouter.post('/search/localidad', [authMiddleware.verifyToken, ], (req, res, next) => { domicilioController.searchLocalidad(req, res, next) } )
+domicilioRouter.post('/search/barrio', [authMiddleware.verifyToken, ], (req, res, next) => { domicilioController.searchBarrio(req, res, next) } )
+
 domicilioRouter.post('/provincias', [authMiddleware.verifyToken, ], (req, res, next) => { domicilioController.getProvinciasByPais(req, res, next) } )
 domicilioRouter.post('/localidades', [authMiddleware.verifyToken, ], (req, res, next) => { domicilioController.getLocalidadByProvincia(req, res, next) } )
 domicilioRouter.post('/barrios', [authMiddleware.verifyToken, ], (req, res, next) => { domicilioController.getBarrioByLocalidad(req, res, next) } )
