@@ -407,7 +407,7 @@ export class CuentasBancariasController extends BaseController {
 
       await queryRunner.commitTransaction();
 
-      const successMessage = `XLS Recibido y procesado! Registros procesados correctamente: ${altaCuentasBancarias}. Registros sin modificar: ${cuentasSinModificar}.`;
+      const successMessage = `- Registros modificados: ${altaCuentasBancarias}.\n- Registros sin modificar: ${cuentasSinModificar}.`;
 
       await this.eventoLogFin(
         queryRunner,
@@ -444,7 +444,6 @@ export class CuentasBancariasController extends BaseController {
     const CUITs: string = req.body.CUITs
     const BancoId: number = req.body.BancoId
     let Desde = req.body.Desde
-    const IndNuevaCuenta: number = 1
     let errors: any[] = []
     let registrosProcesados = 0
 
@@ -680,19 +679,19 @@ export class CuentasBancariasController extends BaseController {
     const PersonalBanco: any = personalBancoRows.filter((r: any) => r.PersonalId === PersonalId)
 
     // Registro marcado como cuenta nueva que todavía está esperando el CBU
-    const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta === 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU === ''))
+    const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU == ''))
     if (cuentaNuevaPendiente.length > 1)
       throw new ClientException(`No se puede dar de alta la cuenta. Registros pendientes de CBU: ${cuentaNuevaPendiente.length} (Inconsistencia de datos).`)
 
-    if (cuentaNuevaPendiente.length === 0) return { cuentasSinModificar: 1 }
+    if (cuentaNuevaPendiente.length == 0) return { cuentasSinModificar: 1 }
 
     // Validación de CBU EXISTENTE
-    const existPersonalBanco = personalBancoRows.filter((r: any) => r.PersonalBancoCBU === CBU && r.IndNuevaCuenta === 0 && (r.PersonalBancoCBU != null && r.PersonalBancoCBU != ''))
+    const existPersonalBanco = personalBancoRows.filter((r: any) => r.PersonalBancoCBU == CBU && r.IndNuevaCuenta == 0 && (r.PersonalBancoCBU != null && r.PersonalBancoCBU != ''))
     if (existPersonalBanco.length && CBU != '' && CBU != null)
       throw new ClientException(`El CBU ingresado se encuentra registrado y vigente en una persona. (${existPersonalBanco[0].ApellidoNombre} - CUIT: ${existPersonalBanco[0].CUIT ? existPersonalBanco[0].CUIT : ''})`);
 
     // buscar si tiene vigente mas de un cbu, si encuentra mas de uno, no se permite dar de alta la cuenta nueva. Se debera cerrar el vigente y luego dar de alta la nueva
-    const cbuVigentes = PersonalBanco.filter((r: any) => r.PersonalBancoCBU && r.IndNuevaCuenta === 0)
+    const cbuVigentes = PersonalBanco.filter((r: any) => r.PersonalBancoCBU && r.IndNuevaCuenta == 0)
 
     // NO SE CONTEMPLA SI SE TIENE MAS DE UN REGISTRO VIGENTE, YA QUE NO DEBERIA EXISTIR MAS DE UNO
     if (cbuVigentes.length > 1)
@@ -709,7 +708,7 @@ export class CuentasBancariasController extends BaseController {
     newHasta.setDate(newHasta.getDate() - 1)
     newHasta.setHours(0, 0, 0, 0)
 
-    if (cbuVigentes.length === 1 && newHasta.getTime() < cbuVigentes[0].PersonalBancoDesde.getTime()) {
+    if (cbuVigentes.length == 1 && newHasta.getTime() < cbuVigentes[0].PersonalBancoDesde.getTime()) {
       throw new ClientException(`La fecha de cierre del CBU vigente no puede ser menor a la fecha desde del mismo (Desde: ${cbuVigentes[0].PersonalBancoDesde.toLocaleDateString()} / Nuevo Hasta: ${newHasta.toLocaleDateString()})`)
     }
 
@@ -724,7 +723,7 @@ export class CuentasBancariasController extends BaseController {
       `, [cuentaNuevaPendiente[0].PersonalId, cuentaNuevaPendiente[0].PersonalBancoId, CBU, FechaActual, usuario, ip])
 
     // cerrar el registro vigente, ya que ahora se completa la cuenta nueva con un CBU
-    if (cbuVigentes.length === 1) {
+    if (cbuVigentes.length == 1) {
       await queryRunner.query(`
           UPDATE PersonalBanco SET
           PersonalBancoHasta = @2,
