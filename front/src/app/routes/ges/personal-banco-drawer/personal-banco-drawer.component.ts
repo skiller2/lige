@@ -44,8 +44,8 @@ export class PersonalBancoDrawerComponent {
     private readonly defaultPersonalBancoForm: PersonalBanco = { 
         PersonalId: 0,
         BancoId: 0, 
-        CBU: '', 
-        Desde: new Date()
+        CBU: '',
+        Desde: null
     }
     
     readonly personalBanco = signal<PersonalBanco>(this.defaultPersonalBancoForm)
