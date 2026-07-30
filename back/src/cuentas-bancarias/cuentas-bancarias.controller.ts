@@ -168,7 +168,7 @@ export class CuentasBancariasController extends BaseController {
 
     // Verifica que tenga exactamente 22 caracteres
     if (cbu.length != 22)
-      return false
+    return false
 
     // Verifica que todos los caracteres sean números
     for (let i = 0; i < cbu.length; i++) {
@@ -578,11 +578,10 @@ export class CuentasBancariasController extends BaseController {
 
     const PersonalBanco: any = PersonalBancoRows.filter((r: any) => r.PersonalId === PersonalId)
 
-    const cbuVigentes: any = PersonalBanco.filter((r: any) => (r.PersonalBancoCBU != null && r.PersonalBancoCBU != '') && r.IndNuevaCuenta == 0)
+    const cbuPendientes: any = PersonalBanco.filter((r: any) => (r.PersonalBancoCBU == null || r.PersonalBancoCBU == '') && r.IndNuevaCuenta == 1)
 
     // ALTA de cuenta sin historial en la PersonalBanco
     if (PersonalBanco.length == 0) {
-      logger.info(`ALTA de cuenta sin historial en la PersonalBanco`)
       const Personal: any = await queryRunner.query(`
         SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
         FROM Personal
@@ -610,7 +609,6 @@ export class CuentasBancariasController extends BaseController {
 
       // actualizo registro (falta que se actualice el hasta de los otros)
       if (pb.PersonalBancoDesde.getTime() == Desde.getTime() && pb.PersonalBancoBancoId == BancoId) {
-        logger.info(`Actualizo registro de PersonalBanco con PersonalBancoId: ${pb.PersonalBancoId}`)
         await queryRunner.query(`
         UPDATE PersonalBanco SET
         PersonalBancoCBU = @3,
@@ -627,12 +625,11 @@ export class CuentasBancariasController extends BaseController {
       }
     }
 
-    if (!registroActualizado && PersonalBanco.length > 1 && cbuVigentes.length > 0) {
+    if (!registroActualizado && cbuPendientes.length > 0) {
       throw new ClientException(`No se puede dar de alta la cuenta. La persona cuenta con CBU pendiente de carga.`)
     }
 
     if (!registroActualizado) {
-      logger.info(`No se actualizó ningún registro de PersonalBanco, se creará uno nuevo`)
       // creo el nuevo registro si no hay update
       const Personal: any = await queryRunner.query(`
         SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
@@ -651,8 +648,7 @@ export class CuentasBancariasController extends BaseController {
       resPersonalBancoId = newPersonalBancoId
     }
 
-    if (resPersonalBancoId && cbuVigentes.length > 0) {
-      logger.info(`Actualizando el registro vigente de PersonalBanco con PersonalBancoId: ${cbuVigentes[0].PersonalBancoId} para cerrar su vigencia`)
+    if (resPersonalBancoId) {
       const newHasta: Date = new Date(Desde)
       newHasta.setDate(newHasta.getDate() - 1)
       await queryRunner.query(`
@@ -751,16 +747,16 @@ export class CuentasBancariasController extends BaseController {
         Left JOIN Personal per ON per.PersonalId = pb.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
         WHERE ((@0 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @0 >= pb.PersonalBancoDesde) OR pb.PersonalBancoDesde >= @0) AND pb.PersonalId = @1
-      `, [FechaActual, PersonalId])  
+      `, [FechaActual, PersonalId])
 
-    const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta === 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU === ''))
+    const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU == ''))
     // Mientras esa cuenta siga pendiente no se permite generar otra: hay que completar el CBU de la existente, ya sea por la importación del XLS o manualmente desde el drawer
-    if (cuentaNuevaPendiente.length > 0) throw new ClientException(`Existen cuentas pendientes de CBU en la persona ${cuentaNuevaPendiente[0].ApellidoNombre} - CUIT: ${cuentaNuevaPendiente[0].CUIT ? cuentaNuevaPendiente[0].CUIT : ''}`)
+    if (cuentaNuevaPendiente.length > 0) throw new ClientException(`La persona cuenta con CBU pendiente de carga.`)
 
 
     // valido que no haya mas de un registro vigente o a futuro que tenga desde mayor o igual a la fecha desde de la cuenta pendiente que se quiere dar de alta
-    const res =  PersonalBanco.filter((r: any) => r.PersonalBancoDesde >= Desde)
-    if (res.length > 0) throw new ClientException(`La fecha desde de la cuenta pendiente debe ser mayor a ${cuentaNuevaPendiente[0].PersonalBancoDesde.toLocaleDateString()}. (${cuentaNuevaPendiente[0].ApellidoNombre} - CUIT: ${cuentaNuevaPendiente[0].CUIT ? cuentaNuevaPendiente[0].CUIT : ''})`)
+    const res = PersonalBanco.filter((r: any) => r.PersonalBancoDesde >= Desde)
+    if (res.length > 0) throw new ClientException(`La fecha desde de la cuenta pendiente debe ser mayor a ${res[0].PersonalBancoDesde.toLocaleDateString()}. (${res[0].ApellidoNombre} - CUIT: ${res[0].CUIT ? res[0].CUIT : ''})`)
 
     const Personal: any = await queryRunner.query(`
         SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
