@@ -527,7 +527,7 @@ export class CuentasBancariasController extends BaseController {
       }
       //Sin CBU se da de alta una cuenta pendiente, por eso sólo se valida el formato cuando viene informado
       if (CBU && !this.isCBU(CBU))
-        throw new ClientException('El CBU debe ser de 22 digitos.')
+        throw new ClientException('El CBU debe ser de 22 digitos y tener el formato correcto.')
 
 
       Desde = new Date(Desde)
