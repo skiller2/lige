@@ -36,8 +36,8 @@ export const nuevaEfectoLinea = (): EfectoStockLinea => ({
   StockStock: null,
   EfectoIndividualId: null,
   Usado: false, 
-  RelacionEfectoId: null, 
-  RelacionStockId: null, 
+  RelacionEfectoId: null,
+  RelacionStockId: null,
   RelacionEfectoIndividualId: null,
 });
 

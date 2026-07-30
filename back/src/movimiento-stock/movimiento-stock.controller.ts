@@ -448,6 +448,73 @@ export class MovimientoStockController extends BaseController {
     }
   }
 
+  async getMovimientosPendientes(req: any, res: Response, next: NextFunction) {
+    const tipoDestino = String(req.params.tipoDestino ?? '');
+    const destinoId = Number(req.params.destinoId) || null;
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      if (!destinoId || !tiposMovimiento.some((t) => t.value === tipoDestino))
+        return this.jsonRes([], res);
+
+      // El destino "objetivo" se guarda como Cliente + ElementoDependiente.
+      let filtroSql = '';
+      let params: any[] = [];
+      if (tipoDestino === 'objetivo') {
+        const obj = await this.getObjetivoCliente(queryRunner, destinoId);
+        if (!obj?.ClienteId) return this.jsonRes([], res);
+        filtroSql = `pend.ClienteIdDestino = @0
+          AND (pend.ClienteElementoDependienteIdDestino = @1 OR (@1 IS NULL AND pend.ClienteElementoDependienteIdDestino IS NULL))`;
+        params = [obj.ClienteId, obj.ClienteElementoDependienteId ?? null];
+      } else {
+        const columna = tiposMovimiento.find((t) => t.value === tipoDestino)!.destinoIdColumn;
+        filtroSql = `pend.${columna} = @0`;
+        params = [destinoId];
+      }
+
+      const rows = await queryRunner.query(`
+        SELECT pend.MovimientoStockCodigo,
+            det.MovimientoStockDetalleCodigo,
+            det.EfectoId,
+            det.EfectoIndividualId,
+            det.Cantidad,
+            det.IndEfectoUsado,
+            -- Si el intermediario es un proveedor sin fila en StockReal, se usa la ubicación sintética
+            -- (-ProveedorId), igual que el Ingreso de Stock: el backend la decodifica al confirmar.
+            COALESCE(stk.StockId, IIF(mov.ProveedorIdDestino IS NULL, NULL, -mov.ProveedorIdDestino)) AS StockId,
+            stk.StockStock,
+            CASE
+              WHEN mov.PersonalIdDestino IS NOT NULL THEN 'personal'
+              WHEN mov.ProveedorIdDestino IS NOT NULL THEN 'proveedor'
+              ELSE ''
+            END AS TipoIntermediario,
+            COALESCE(mov.PersonalIdDestino, mov.ProveedorIdDestino) AS IntermediarioId,
+            COALESCE(
+              IIF(mov.PersonalIdDestino IS NULL, NULL, CONCAT(TRIM(peri.PersonalApellido), ', ', TRIM(peri.PersonalNombre))),
+              TRIM(proi.ProveedorRazonSocial)
+            ) AS Intermediario
+        FROM MovimientoStockPendiente pend
+        JOIN MovimientoStock mov ON mov.MovimientoStockCodigo = pend.MovimientoStockCodigo
+        JOIN MovimientoStockDetalle det ON det.MovimientoStockCodigo = pend.MovimientoStockCodigo
+        -- Ubicación de origen: el stock del intermediario (persona o proveedor) para ese efecto.
+        LEFT JOIN StockReal stk ON stk.EfectoId = det.EfectoId
+          AND (stk.EfectoEfectoIndividualId = det.EfectoIndividualId OR (det.EfectoIndividualId IS NULL AND stk.EfectoEfectoIndividualId IS NULL))
+          AND (stk.PersonalId = mov.PersonalIdDestino OR (mov.PersonalIdDestino IS NULL AND stk.PersonalId IS NULL))
+          AND (stk.ProveedorId = mov.ProveedorIdDestino OR (mov.ProveedorIdDestino IS NULL AND stk.ProveedorId IS NULL))
+          AND stk.DepositoId IS NULL AND stk.ObjetivoId IS NULL
+        LEFT JOIN Personal peri ON peri.PersonalId = mov.PersonalIdDestino
+        LEFT JOIN Proveedor proi ON proi.ProveedorId = mov.ProveedorIdDestino
+        WHERE ${filtroSql}
+        ORDER BY pend.MovimientoStockCodigo, det.MovimientoStockDetalleCodigo
+      `, params);
+
+      this.jsonRes(rows, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async getProveedores(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
 
@@ -518,6 +585,22 @@ export class MovimientoStockController extends BaseController {
       return next(error);
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  async confirmarIntermediario(req: any, res: Response, next: NextFunction) {
+    try {
+      const body = req.body ?? {};
+      logger.info('confirmarIntermediario', {
+        usuario: res.locals.userName,
+        simular: body.simular === true,
+        body,
+      });
+      console.dir({ confirmarIntermediario: body }, { depth: null });
+
+      return this.jsonRes({ ...body, simulado: body.simular === true }, res, 'Datos recibidos (Intermediario en desarrollo)');
+    } catch (error) {
+      return next(error);
     }
   }
 

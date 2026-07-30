@@ -20,6 +20,10 @@ movimientoStockRouter.get("/proveedores", [authMiddleware.verifyToken, authMiddl
   movimientoStockController.getProveedores(req, res, next);
 });
 
+movimientoStockRouter.get("/pendientes/:tipoDestino/:destinoId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+  movimientoStockController.getMovimientosPendientes(req, res, next);
+});
+
 movimientoStockRouter.get("/colsMovimientos", [authMiddleware.verifyToken], (req, res) => {
   movimientoStockController.getGridColsMovimientos(req, res);
 });
@@ -38,6 +42,10 @@ movimientoStockRouter.post("/confirmar", [authMiddleware.verifyToken, authMiddle
 
 movimientoStockRouter.post("/confirmarIngreso", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica'])], (req, res, next) => {
   movimientoStockController.confirmarMovimiento(req, res, next);
+});
+
+movimientoStockRouter.post("/confirmarIntermediario", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica'])], (req, res, next) => {
+  movimientoStockController.confirmarIntermediario(req, res, next);
 });
 
 movimientoStockRouter.post("/comprobante", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {

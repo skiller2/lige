@@ -1186,7 +1186,7 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>(`api/adelantos`, adelanto).pipe(tap((res: ResponseJSON<any>) => this.response(res)));
   }
 
-  confirmarStockEfecto(payload: any, tipo: string) {// 'I' | 'M'
+  confirmarStockEfecto(payload: any, tipo: string) {// 'I' | 'M' | 'T'
     let url = ''
     switch (tipo) {
       case 'I':
@@ -1194,6 +1194,9 @@ export class ApiService {
         break;
       case 'M':
         url = "api/movimiento-stock/confirmar"
+        break;
+      case 'T':
+        url = "api/movimiento-stock/confirmarIntermediario"
         break;
       default:
         return of(null);
