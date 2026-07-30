@@ -270,6 +270,7 @@ export class MovimientoStockComponent {
       RelacionEfectoId: null,
       RelacionStockId: null,
       RelacionEfectoIndividualId: null,
+      MovimientoStockCodigoOrigen: null,
     }));
   }
 
@@ -389,6 +390,7 @@ export class MovimientoStockComponent {
       RelacionEfectoId: null,
       RelacionStockId: null,
       RelacionEfectoIndividualId: null,
+      MovimientoStockCodigoOrigen: r.MovimientoStockCodigo ?? null,
     }));
 
     this.parametroStock.update(s => ({ ...s, efectos: efectos.length ? efectos : [nuevaEfectoLinea()] }));
