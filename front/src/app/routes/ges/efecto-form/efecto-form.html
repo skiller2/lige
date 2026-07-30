@@ -12,6 +12,7 @@
     <nz-form-item style="margin-top: 20px;">
       <nz-form-label [nzSpan]="6">Efecto</nz-form-label>
       <nz-form-control [nzSpan]="14">
+        <!-- resolver buscador de efecto con uno que consulte la tabla efectoDescripcion, no a stock real -->
         <app-efecto-search [soloConStock]="false" [soloConIndividual]="false" [soloConEfecto]="true"
           (valueExtendedChange)="onEfectoBuscadoChange($event)"></app-efecto-search>
       </nz-form-control>
