@@ -2309,17 +2309,18 @@ export class AsistenciaController extends BaseController {
 
       const asistencia: any[] = [];
 
-      const anio = periodoDesde.getFullYear();
-      const mes = periodoDesde.getMonth() + 1;
-      const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId], queryRunner);
+      while (periodoDesde <= periodoHasta) {
+        const anio = periodoDesde.getFullYear();
+        const mes = periodoDesde.getMonth() + 1;
+        const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId], queryRunner);
 
-      asistencia.push(...result.map(row => ({
-        ...row,
-        Periodo: `${mes.toString().padStart(2, '0')}/${anio}`
-      })));
+        asistencia.push(...result.map(row => ({
+          ...row,
+          Periodo: `${mes.toString().padStart(2, '0')}/${anio}`
+        })));
 
-      periodoDesde.setMonth(periodoDesde.getMonth() + 1);
-
+        periodoDesde.setMonth(periodoDesde.getMonth() + 1);
+      }
 
       this.jsonRes({ asistencia }, res);
     } catch (error) {
