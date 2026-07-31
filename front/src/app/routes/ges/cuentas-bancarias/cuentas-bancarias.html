@@ -1,10 +1,9 @@
 <nz-card class="small-margin">
-  <div nz-row nzSpan="24" style="margin-top: 5px;">
+  <!-- <div nz-row nzSpan="24" style="margin-top: 5px;">
     <nz-form-label [nzMd]="2">Periodo</nz-form-label>
     <nz-form-control [nzMd]="3">
       <nz-date-picker [(ngModel)]="periodo" nzFormat="dd/MM/yyyy" />
     </nz-form-control>
-    @if (tabIndex() == 0) {
     <nz-form-label [nzMd]="3">Situación revista</nz-form-label>
     <nz-form-control [nzMd]="3">
       <nz-date-picker [(ngModel)]="periodoSR" nzFormat="dd/MM/yyyy" />
@@ -13,14 +12,26 @@
     <nz-form-control [nzMd]="3">
       <nz-date-picker [(ngModel)]="periodoIT" nzMode="month" nzFormat="MM/yyyy" />
     </nz-form-control>
-    }
-  </div>
 
-  <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
-    <div nz-row nzSpan="12">
+  </div> -->
+
+  <div nz-row style="align-items: center; display: flex;">
+    <div nz-row style="flex: 1;">
+      <nz-form-label [nzMd]="3">Periodo</nz-form-label>
+    <nz-form-control [nzMd]="5">
+      <nz-date-picker [(ngModel)]="periodo" nzFormat="dd/MM/yyyy" />
+    </nz-form-control>
+    <nz-form-label [nzMd]="3">Situación revista</nz-form-label>
+    <nz-form-control [nzMd]="5">
+      <nz-date-picker [(ngModel)]="periodoSR" nzFormat="dd/MM/yyyy" />
+    </nz-form-control>
+    <nz-form-label [nzMd]="3">Importe transferido</nz-form-label>
+    <nz-form-control [nzMd]="5">
+      <nz-date-picker [(ngModel)]="periodoIT" nzMode="month" nzFormat="MM/yyyy" />
+    </nz-form-control>
     </div>
 
-    <ul nz-menu nzMode="horizontal">
+    <ul nz-menu nzMode="horizontal" style="display: flex; justify-content: center; flex: 1;">
       <li nz-menu-item nzMatchRouter>
         <span nz-icon nzType=""></span>
         <a [routerLink]="['/', 'ges', 'cuentas-bancarias', 'listado']">Listado</a>
@@ -30,8 +41,7 @@
         <a [routerLink]="['/', 'ges', 'cuentas-bancarias', 'importacion']">Importación</a>
       </li>
     </ul>
-
-    <nz-button-group nz-button nzButtonGroup>
+    <nz-button-group nz-button nzButtonGroup style="flex: 1; justify-content: flex-end; display: flex;">
       <!-- btn cargar cuantas bancarias -->
       <button nz-button nzType="default" (click)="openDrawerforNewsCuentasBancarias()" nz-tooltip
         nzTooltipTitle="{{ 'app.cuentasBancarias.altaMasiva' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
