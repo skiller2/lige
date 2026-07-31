@@ -741,7 +741,7 @@ export class CuentasBancariasController extends BaseController {
   async setCuentasPendientes(queryRunner: any, PersonalId: number, BancoId: number, Desde: Date, FechaActual: Date, usuario: string, ip: string) {
 
     // se bloquea la carga de cuentas bancarias con CBU pendiente para todos los bancos menos el Banco Patagonia (BancoId = 4). Solo el patagonia tiene importador de CBU pendientes
-    if (BancoId != 4) throw new ClientException(`No se encuentra habilitada la carga de cuentas bancarias con CBU pendiente. Solo se encuentra habilitada para el Banco Patagonia.`)
+    if (BancoId != 4) throw new ClientException(`No se encuentra habilitada la carga de cuentas bancarias con CBU pendiente. Solo esta disponible para el Banco Patagonia.`)
 
     const PersonalBanco: any = await queryRunner.query(`
         SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
