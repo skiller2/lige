@@ -150,6 +150,9 @@
       </button>
       }
       }
+      @if (faltanAtributosIndividual()) {
+      <span style="color: #ff4d4f; margin: 5px 10px;">Debe cargar al menos un atributo</span>
+      }
     </nz-form-item>
     @for (atributo of formEfecto.atributos; track $index) {
     <div [style.background-color]="$even ? '#f5f5f5' : '#ffffff'" style="padding: 16px 8px;">
