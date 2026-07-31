@@ -1041,20 +1041,18 @@ export class SearchService {
 
   getPersonalAsistencia(
     personalId: number,
-    anio: number,
-    mes: number
+    desde: Date | null,
+    hasta: Date | null
   ): Observable<any> {
-    if (!personalId) return of([]);
-
     return this.http
-      .get(`api/asistencia/perasist/${anio}/${mes}/${personalId}`)
+      .post<ResponseJSON<PersonaObj>>(`api/asistencia/perasist/${personalId}`, { desde, hasta })
       .pipe(
         map((res: ResponseJSON<PersonaObj>) =>
           res && res.data ? res.data : []
         ),
         catchError((err, caught) => {
 
-          return of([]);
+          return of({ asistencia: [] });
         })
       );
   }

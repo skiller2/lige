@@ -1,24 +1,35 @@
-<nz-drawer [nzClosable]="false" [nzVisible]="visibleObjetivo()" [nzPlacement]="placement" [nzWidth]="640"
-  [nzTitle]="'Listado de Objetivos: '  + PersonalNombre()" (nzOnClose)="visibleObjetivo.set(false)">
+<nz-drawer [nzClosable]="false" [nzVisible]="visibleObjetivo()" [nzPlacement]="placement" [nzWidth]="'min(100vw, 1000px)'"
+  [nzTitle]="'Listado de Asistencia en Vigilancia: '  + PersonalNombre()" (nzOnClose)="visibleObjetivo.set(false)">
   <ng-container *nzDrawerContent>
     <form nz-form #personalObjetivoDrawerForm="ngForm">
 
-      <nz-form-item>
-        <nz-form-label>Periodo</nz-form-label>
-        <nz-form-control>
-
-          <nz-date-picker nzMode="month" name="periodo" [(ngModel)]="periodo"
-            (ngModelChange)="selectedValueChange($event)" nzFormat="MM/yyyy" />
+      <div class="periodo-rango">
+        <nz-form-item>
+          <nz-form-label>Desde</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker nzMode="month" name="periodoDesde" [ngModel]="periodoDesde()"
+              (ngModelChange)="periodoDesde.set($event); selectedValueChange()" nzFormat="MM/yyyy" />
           </nz-form-control>
         </nz-form-item>
+
         <nz-form-item>
+          <nz-form-label>Hasta</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker nzMode="month" name="periodoHasta" [ngModel]="periodoHasta()"
+              (ngModelChange)="periodoHasta.set($event); selectedValueChange()" nzFormat="MM/yyyy" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <nz-form-item>
 
           @if ($listaAsistenciaPer | async; as listaAsistenciaPer ) {
             <nz-form-control>
-              <nz-table #asistPer [nzData]="listaAsistenciaPer.asistencia" nzSize="small" [nzPageSize]="100000000"
+              <nz-table #asistPer [nzData]="listaAsistenciaPer.asistencia" nzSize="middle" [nzPageSize]="100000000"
                 [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">
                 <thead>
                   <tr>
+                    <th>Período</th>
                     <th>Código</th>
                     <th>Objetivo</th>
                     <th>Categoría</th>
@@ -32,6 +43,7 @@
                   <!-- TODO: quitar objeto de track  -->
                   @for (data of asistPer.data; track data) {
                     <tr class="">
+                      <td>{{ data.Periodo }}</td>
                       <td title="{{ data.ObjetivoId }}">
                         {{ data.ObjetivoCodigo }}
                       </td>

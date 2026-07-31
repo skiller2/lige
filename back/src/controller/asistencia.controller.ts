@@ -2281,19 +2281,47 @@ export class AsistenciaController extends BaseController {
 
   async getPersonalAsistencia(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
+    let error: any = []
+
     try {
-      const personalId = req.params.personalId;
-      const anio = req.params.anio;
-      const mes = req.params.mes;
-      var desde = new Date(anio, mes - 1, 1);
+      const personalId = Number(req.params.personalId);
+      const desde = req.body.desde ? new Date(req.body.desde) : null;
+      const hasta = req.body.hasta ? new Date(req.body.hasta) : null;
 
-      const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId], queryRunner)
+      if (!personalId) throw new ClientException('Debe indicar la Persona');
+      if (!desde) error.push('- Desde');
+      if (!hasta) error.push('- Hasta');
 
-      const totalImporte = result.map(row => row.totalminutoscalcimporteconart14).reduce((prev, curr) => prev + curr, 0)
-      const totalHoras = result.map(row => row.totalhorascalc).reduce((prev, curr) => prev + curr, 0)
+      if (error.length) {
+        error.unshift('Debe completar los siguientes campos:');
+        throw new ClientException(error);
+      }
+
+      if (Number.isNaN(desde.getTime())) throw new ClientException('El período Desde no es válido');
+      if (Number.isNaN(hasta.getTime())) throw new ClientException('El período Hasta no es válido');
+
+      const periodoDesde = new Date(desde.getFullYear(), desde.getMonth(), 1);
+      const periodoHasta = new Date(hasta.getFullYear(), hasta.getMonth(), 1);
+
+      if (periodoDesde > periodoHasta) {
+        throw new ClientException('El período Desde no puede ser posterior al período Hasta');
+      }
+
+      const asistencia: any[] = [];
+
+      const anio = periodoDesde.getFullYear();
+      const mes = periodoDesde.getMonth() + 1;
+      const result = await AsistenciaController.getAsistenciaObjetivos(anio, mes, [personalId], queryRunner);
+
+      asistencia.push(...result.map(row => ({
+        ...row,
+        Periodo: `${mes.toString().padStart(2, '0')}/${anio}`
+      })));
+
+      periodoDesde.setMonth(periodoDesde.getMonth() + 1);
 
 
-      this.jsonRes({ asistencia: result, totalImporte, totalHoras }, res);
+      this.jsonRes({ asistencia }, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
