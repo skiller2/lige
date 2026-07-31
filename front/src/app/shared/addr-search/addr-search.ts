@@ -69,7 +69,7 @@ export class AddrSearchComponent
   /**
    * Valor seleccionado
    */
-  readonly selectedItem = model<any | null>(null);
+  readonly selectedItem = model<any | null>({});
 
 
   readonly visibleDrawer = signal(false);
@@ -148,16 +148,14 @@ export class AddrSearchComponent
 
   async writeValue(value: any): Promise<void> {
 
-
-
-
     if (value?.display_name) {
       const arrResult = await this.searchService.getDireccionNominatim(value.display_name)
       if (arrResult[0])
         value = arrResult[0]
     }
 
-    this.selectedItem.set(value ?? null);
+    await this.valSelectedItem(value ?? null)
+    // this.selectedItem.set(value ?? null);
 
     if (!value) {
       return;
@@ -198,26 +196,16 @@ export class AddrSearchComponent
     this.searchTerm.set(value);
   }
 
-  modelChange(value: any | null): void {
-
-    this.selectedItem.set(value);
-
-    if (!value) {
-
-      this.propagateChange(null);
-
-      return;
-    }
-
-    this.propagateChange(value);
+  async modelChange(value: any | null): Promise<void> {
+    await this.valSelectedItem(value)
+    // this.selectedItem.set(value);
+    this.propagateChange(this.selectedItem());
   }
 
   onRemove(): void {
-
-    this.selectedItem.set(null);
-
-
-    this.propagateChange(null);
+    this.valSelectedItem(null)
+  //   // this.selectedItem.set(null);
+    this.propagateChange(this.selectedItem());
   }
 
   focus(): void {
@@ -258,5 +246,49 @@ export class AddrSearchComponent
       `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`
     );
   });
+
+  private async valSelectedItem(value: any | null): Promise<void> {
+    
+    if (!value || Object.keys(value).length === 0) {
+      this.selectedItem.set(null);
+      // this.propagateChange(null);
+      return;
+    }
+    
+    // Validar el address
+    const address = value.address
+    let verAddress:any = {PaisId: 1, ProvinciaId:0, LocalidadId:0, BarrioId:0}
+    if(address.state){
+      let array:any[] = address.state.split(" ")
+      await firstValueFrom(this.searchService.getProvinciaFromName('Descripcion', array[array.length-1], verAddress.PaisId)
+        .pipe(tap(res => {
+          if (res.length) verAddress.ProvinciaId = res[0].ProvinciaId
+          else verAddress.ProvinciaId = 0
+        }))
+      )
+    }
+    if(address.state_district || address.city){
+      let array:any[] = address.state_district? address.state_district.split(" ") : (address.city? address.city.split(" "): [])
+      await firstValueFrom(this.searchService.getLocalidadFromName('Descripcion', array[array.length-1], verAddress.ProvinciaId, verAddress.PaisId)
+        .pipe(tap(res => {
+          if (res.length) verAddress.LocalidadId = res[0].LocalidadId
+          else verAddress.LocalidadId = 0
+        }))
+      )
+    }
+    if(address.town){
+      let array:any[] = address.town.split(" ")
+      await firstValueFrom(this.searchService.getBarrioFromName('Descripcion', array[array.length-1], verAddress.LocalidadId, verAddress.ProvinciaId, verAddress.PaisId)
+        .pipe(tap(res => {
+          if (res.length) verAddress.BarrioId = res[0].BarrioId
+          else verAddress.BarrioId = 0
+        }))
+      )
+    }
+
+    value.verAddress = verAddress
+    this.selectedItem.set(value);
+    // this.propagateChange(value);
+  }
 
 }

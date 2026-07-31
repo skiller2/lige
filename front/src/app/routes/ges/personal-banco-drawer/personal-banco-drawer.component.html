@@ -4,14 +4,14 @@
 
     <nz-card nzType="inner" nzTitle="Agregar Nuevo Datos Bancarios" >
       <form (ngSubmit)="save()">
-        <!-- @if (!PersonalId()){ -->
+        @if (!PersonalId()){
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="5">Personal</nz-form-label>
+          <nz-form-label [nzXs]="5">Persona</nz-form-label>
           <nz-form-control>
             <app-personal-search [formField]="formPersonalBanco.PersonalId" [anio]="anio()" [mes]="mes()"/>
           </nz-form-control>
         </nz-form-item>
-        <!-- } -->
+        }
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="5">Banco</nz-form-label>
@@ -73,7 +73,15 @@
             @for (data of personalBanco.data; track data.id) {
               <tr class="">
                 <td>{{ data.Descripcion }}</td>
-                <td>{{ data.CBU }}</td>
+                <td>
+                  @if (data.IndNuevaCuenta == 1) {
+                    <nz-tag nzColor="warning">Carga Pendiente</nz-tag>
+                  } @else if (!data.CBU) {
+                    <nz-tag [nzColor]="'red'">Sin CBU</nz-tag>
+                  } @else {
+                    {{ data.CBU }}
+                  }
+                </td>
                 <td>{{ data.Desde }}</td>
                 <td>{{ data.Hasta }}</td>
               </tr>

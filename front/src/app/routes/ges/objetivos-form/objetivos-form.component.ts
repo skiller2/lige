@@ -2,21 +2,23 @@ import { CommonModule } from '@angular/common';
 import { Component, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, Input, input, output, } from '@angular/core';
 import { AngularUtilService } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge } from 'rxjs';
+import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
+import { NzSelectModule } from 'ng-zorro-antd/select';
+import { Router } from '@angular/router';
+import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
+
 import { ApiService } from '../../../services/api.service';
+import { SearchService } from '../../../services/search.service';
+import { TableObjetivoDocumentoComponent } from '../../../routes/ges/table-objetivo-documentos/table-objetivo-documentos';
+import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
-import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, startWith, Observable, of, filter, merge } from 'rxjs';
-import { SearchService } from '../../../services/search.service';
-import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
-import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
-import { NzSelectModule } from 'ng-zorro-antd/select';
-import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
-import { Router } from '@angular/router';
-import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { TableObjetivoDocumentoComponent } from '../../../routes/ges/table-objetivo-documentos/table-objetivo-documentos';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
+import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
+import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
 
 export interface CoordinadorCuenta {
   ObjetivoId: number,
@@ -54,6 +56,7 @@ export interface Objetivo {
   DomicilioFulllAdress: string,
   DomicilioDomNro: number, DomicilioCodigoPostal: number, DomicilioDomLugar: string,
   DomicilioProvinciaId: number, DomicilioLocalidadId: number, DomicilioBarrioId: number,
+  DomicilioCompleto: string, DomicilioJson: string,
   infoCoordinadorCuenta: CoordinadorCuenta[],
   rubrosCliente: any[],
   docsRequerido: any[],
@@ -82,15 +85,16 @@ export interface Objetivo {
   imports: [
     SHARED_IMPORTS,
     CommonModule,
-    PersonalSearchComponent,
-    ClienteSearchComponent,
     NzAutocompleteModule,
     NzSelectModule,
+    NzCheckboxModule,
+    PersonalSearchComponent,
+    ClienteSearchComponent,
     FileUploadComponent,
     GrupoActividadSearchComponent,
-    NzCheckboxModule,
     DetallePersonaComponent,
     TableObjetivoDocumentoComponent,
+    AddrSearchComponent,
     FormField
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -98,21 +102,21 @@ export interface Objetivo {
 
 
 export class ObjetivosFormComponent {
-
-  visibleDrawer = signal(false)
-  periodo = signal({ year: 0, month: 0 })
-  //  visibleDrawer: boolean = false
+  
   ObjetivoId = input(0)
   ClienteId = input(0)
   ClienteElementoDependienteId = input(0)
-  selectedValueProvincia = null
-  isLoading = signal(false)
-  addNew = model()
-  onAddorUpdate = output()
-  files = []
-  pristineChange = output<boolean>()
-  mostrarDocs = model<boolean>(false)
   readonly = input<boolean>(false)
+  pristineChange = output<boolean>()
+  onAddorUpdate = output()
+  mostrarDocs = model<boolean>(false)
+  addNew = model()
+  direccion = signal<any | null>({})
+  isLoading = signal(false)
+  visibleDrawer = signal(false)
+  periodo = signal({ year: 0, month: 0 })
+  selectedValueProvincia = null
+  files = []
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -151,6 +155,7 @@ export class ObjetivosFormComponent {
     DomicilioFulllAdress: "",
     DomicilioDomNro: NaN, DomicilioCodigoPostal: NaN, DomicilioDomLugar: '',
     DomicilioProvinciaId: 0, DomicilioLocalidadId: 0, DomicilioBarrioId: 0,
+    DomicilioCompleto: "", DomicilioJson: "",
     infoCoordinadorCuenta: [structuredClone(this.coordinadorCuentaDefault)],
     rubrosCliente: [],
     docsRequerido: [],
@@ -173,10 +178,17 @@ export class ObjetivosFormComponent {
   readonly objetivo = signal<Objetivo>(this.objetivoDefault);
   readonly formObjetivo = form(this.objetivo, (p) => {
     disabled(p, () => this.readonly()),
-      disabled(p.codigo, () => true),
-      applyEach(p.infoActividad, (infoActividad) => {
-        disabled(infoActividad.GrupoActividadId, () => (this.ObjetivoId() ? true : false))
-      });
+    disabled(p.DomicilioDomCalle, () => this.direccion()?.address? true : false),
+    disabled(p.DomicilioDomNro, () => this.direccion()?.address? true : false),
+    disabled(p.DomicilioCodigoPostal, () => this.direccion()?.address? true : false),
+    // disabled(p.DomicilioDomLugar, () => this.direccion()?.address? true : false),
+    disabled(p.DomicilioProvinciaId, () => this.direccion()?.address? true : false),
+    disabled(p.DomicilioLocalidadId, () => this.direccion()?.address? true : false),
+    disabled(p.DomicilioBarrioId, () => this.direccion()?.address? true : false),
+    disabled(p.codigo, () => true),
+    applyEach(p.infoActividad, (infoActividad) => {
+      disabled(infoActividad.GrupoActividadId, () => (this.ObjetivoId() ? true : false))
+    });
   })
 
   childDocsGrid = viewChild.required<TableObjetivoDocumentoComponent>('docsGrid')
@@ -193,6 +205,35 @@ export class ObjetivosFormComponent {
   effect = effect(() => {
     const pristine = !this.formObjetivo().dirty()
     this.pristineChange.emit(pristine)
+  })
+
+  inputDireccion = effect(async () => {
+    
+    if (!this.direccion() || Object.keys(this.direccion()).length === 0){
+      this.objetivo.update(m => ({
+        ...m,
+        DomicilioCompleto: "",
+        DomicilioJson: "",
+      }));
+      return
+    }
+    const address:any = this.direccion().address
+    const verAddress:any = this.direccion().verAddress
+    this.objetivo.update(m => ({
+      ...m,
+      DomicilioDomCalle: address.road? address.road : '',
+      DomicilioFulllAdress: this.direccion().display_name,
+      DomicilioDomNro: address.house_number? address.house_number : NaN, 
+      DomicilioCodigoPostal: address.postcode? address.postcode : NaN, 
+      // DomicilioDomLugar: address.display_name,
+      DomicilioProvinciaId: verAddress.ProvinciaId, 
+      DomicilioLocalidadId: verAddress.LocalidadId, 
+      DomicilioBarrioId: verAddress.BarrioId,
+      DomicilioCompleto: address.display_name,
+      DomicilioJson: JSON.stringify(address),
+    }))
+    
+    // setTimeout(() => { this.formObjetivo().reset() }, 400);
   })
 
   onChangePeriodo = effect(() => {
@@ -223,17 +264,7 @@ export class ObjetivosFormComponent {
     }
   })
 
-  async ngOnInit() {
-
-    // this.formObj.statusChanges.subscribe(() => {
-    //   this.checkPristine();
-    // });
-
-  }
-
-  // checkPristine() {
-  //   this.pristineChange.emit(!this.formObjetivo().dirty());
-  // }
+  async ngOnInit() {}
 
   resetForm() {
     this.objetivo.update(m => ({
@@ -257,12 +288,9 @@ export class ObjetivosFormComponent {
       await this.load()
   }
 
-
-
   async load() {
 
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(), this.ClienteId(), this.ClienteElementoDependienteId()))
-
 
     // this.infoCoordinadorCuenta().clear()
     // this.infoActividad().clear()
