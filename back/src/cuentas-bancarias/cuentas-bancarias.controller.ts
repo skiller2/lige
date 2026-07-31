@@ -168,7 +168,7 @@ export class CuentasBancariasController extends BaseController {
 
     // Verifica que tenga exactamente 22 caracteres
     if (cbu.length != 22)
-    return false
+      return false
 
     // Verifica que todos los caracteres sean números
     for (let i = 0; i < cbu.length; i++) {
@@ -484,7 +484,7 @@ export class CuentasBancariasController extends BaseController {
 
         const PersonalId = PersonalCUITCUIL[0].PersonalId
 
-        await CuentasBancariasController.setCuentasPendientes(queryRunner, PersonalId, BancoId, Desde, fechaActual, usuario, ip)
+        await this.setCuentasPendientes(queryRunner, PersonalId, BancoId, Desde, fechaActual, usuario, ip)
         registrosProcesados++
       }
 
@@ -533,9 +533,9 @@ export class CuentasBancariasController extends BaseController {
       Desde.setHours(0, 0, 0, 0)
 
       if (IndNuevaCuenta == 1) {
-        await CuentasBancariasController.setCuentasPendientes(queryRunner, PersonalId, BancoId, Desde, fechaActual, usuario, ip)
+        await this.setCuentasPendientes(queryRunner, PersonalId, BancoId, Desde, fechaActual, usuario, ip)
       } else {
-        await CuentasBancariasController.setPersonalBancoQuerys(queryRunner, PersonalId, BancoId, Desde, CBU, fechaActual, usuario, ip)
+        await this.setPersonalBancoQuerys(queryRunner, PersonalId, BancoId, Desde, CBU, fechaActual, usuario, ip)
       }
 
 
@@ -549,7 +549,7 @@ export class CuentasBancariasController extends BaseController {
     }
   }
 
-  static async setPersonalBancoQuerys(
+  async setPersonalBancoQuerys(
     queryRunner: any,
     PersonalId: number,
     BancoId: number,
@@ -559,6 +559,8 @@ export class CuentasBancariasController extends BaseController {
     usuario: string,
     ip: string
   ) {
+
+    if (!CBU || CBU.trim() == '') throw new ClientException(`El CBU no puede estar vacío.`)
     const PersonalBancoRows: any = await queryRunner.query(`
         SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
           CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT, TRIM(ban.BancoDescripcion) BancoDescripcion
@@ -736,7 +738,10 @@ export class CuentasBancariasController extends BaseController {
     return { cuentasModificadas: 1 }
   }
 
-  static async setCuentasPendientes(queryRunner: any, PersonalId: number, BancoId: number, Desde: Date, FechaActual: Date, usuario: string, ip: string) {
+  async setCuentasPendientes(queryRunner: any, PersonalId: number, BancoId: number, Desde: Date, FechaActual: Date, usuario: string, ip: string) {
+
+    // se bloquea la carga de cuentas bancarias con CBU pendiente para todos los bancos menos el Banco Patagonia (BancoId = 4). Solo el patagonia tiene importador de CBU pendientes
+    if (BancoId != 4) throw new ClientException(`No se encuentra habilitada la carga de cuentas bancarias con CBU pendiente. Solo se encuentra habilitada para el Banco Patagonia.`)
 
     const PersonalBanco: any = await queryRunner.query(`
         SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
@@ -750,7 +755,7 @@ export class CuentasBancariasController extends BaseController {
 
     const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU == ''))
     // Mientras esa cuenta siga pendiente no se permite generar otra: hay que completar el CBU de la existente, ya sea por la importación del XLS o manualmente desde el drawer
-    if (cuentaNuevaPendiente.length > 0) throw new ClientException(`La persona cuenta con CBU pendiente de carga.`)
+    if (cuentaNuevaPendiente.length > 0) throw new ClientException(`La persona ${cuentaNuevaPendiente[0].ApellidoNombre} - CUIT: ${cuentaNuevaPendiente[0].CUIT ? cuentaNuevaPendiente[0].CUIT : ''} cuenta con CBU pendiente de carga.`)
 
 
     // valido que no haya mas de un registro vigente o a futuro que tenga desde mayor o igual a la fecha desde de la cuenta pendiente que se quiere dar de alta
