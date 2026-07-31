@@ -1,4 +1,4 @@
-<nz-drawer [nzClosable]="false" [nzVisible]="visibleCustodias()" [nzPlacement]="placement" [nzWidth]="640"
+<nz-drawer [nzClosable]="false" [nzVisible]="visibleCustodias()" [nzPlacement]="placement" [nzWidth]="'min(100vw, 1000px)'"
   [nzTitle]="'Listado de Custodias: '  + PersonalNombre()" (nzOnClose)="visibleCustodias.set(false)">
   <ng-container *nzDrawerContent>
     <form nz-form #personalCustodiasDrawerForm="ngForm">

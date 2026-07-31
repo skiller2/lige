@@ -306,6 +306,8 @@ export class CuentasBancariasController extends BaseController {
         throw new ClientException(campos_vacios)
       }
 
+
+
       const workSheetsFromBuffer = xlsx.parse(readFileSync(FileUploadController.getTempPath() + '/' + file[0].tempfilename))
       const sheet1 = workSheetsFromBuffer[0];
 
@@ -349,6 +351,17 @@ export class CuentasBancariasController extends BaseController {
           throw new ClientException(`No se encuentra configurado el banco con id ${bancoIdRequest} para la importación de cuentas bancarias.`)
       }
 
+      //Personas con cuenta nueva (IndNuevaCuenta = 1) vigente para este banco: son las únicas actualizables
+      const cuentasPendienteCBU: any[] = await queryRunner.query(`
+        SELECT pb.PersonalId, cuit.PersonalCUITCUILCUIT
+        FROM PersonalBanco pb
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pb.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = pb.PersonalId)
+        WHERE pb.IndNuevaCuenta = 1 AND pb.PersonalBancoBancoId = @0 AND pb.PersonalBancoHasta IS NULL
+      `, [bancoIdRequest])
+
+      if (!cuentasPendienteCBU.length) throw new ClientException(`No se encontraron cuentas pendientes de CBU para el banco con id ${bancoIdRequest}.`)
+
+      
       den_documento = `Alta-Cuentas-Bancarias-${bancoIdRequest}`
       const docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, fechaActual.getFullYear(), fechaActual.getMonth() + 1, file[0], usuario, ip, queryRunner)
       docFilePath = docDescuentoObjetivo?.newFilePath
@@ -361,17 +374,11 @@ export class CuentasBancariasController extends BaseController {
         cbuPorCuitExcel.set(cuit, String(row[idxCbu] ?? '').trim())
       }
 
-      //Personas con cuenta nueva (IndNuevaCuenta = 1) vigente para este banco: son las únicas actualizables
-      const cuentasNuevas: any[] = await queryRunner.query(`
-        SELECT pb.PersonalId, cuit.PersonalCUITCUILCUIT
-        FROM PersonalBanco pb
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pb.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = pb.PersonalId)
-        WHERE pb.IndNuevaCuenta = 1 AND pb.PersonalBancoBancoId = @0 AND pb.PersonalBancoHasta IS NULL
-      `, [bancoIdRequest])
+
 
       //Cruce: de las cuentas nuevas me quedo sólo con las que vienen en el Excel, cada una con su CBU.
       //Los CUIT del Excel que no existen o que no tienen cuenta nueva quedan fuera (se saltean).
-      const cuentasAActualizar = cuentasNuevas.map((r: any) => {
+      const cuentasAActualizar = cuentasPendienteCBU.map((r: any) => {
         const CUIT = String(r.PersonalCUITCUILCUIT ?? '').replace(/\D/g, "")
         return { PersonalId: r.PersonalId, CUIT, CBU: cbuPorCuitExcel.get(CUIT) }
       }).filter((item) => item.CBU !== undefined)
