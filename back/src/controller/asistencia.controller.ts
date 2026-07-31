@@ -2064,7 +2064,7 @@ export class AsistenciaController extends BaseController {
       persona.PersonalId,
       obj.ObjetivoId, 
       CONCAT(obj.ClienteId,'/', ISNULL(obj.ClienteElementoDependienteId,0)) AS ObjetivoCodigo,
-      clidep.ClienteElementoDependienteDescripcion,
+      CONCAT(TRIM(cli.ClienteDenominacion), ' ' , TRIM(clidep.ClienteElementoDependienteDescripcion)) AS ClienteElementoDependienteDescripcion,
 
 --      ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
 --      gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
