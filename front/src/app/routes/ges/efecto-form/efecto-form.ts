@@ -110,6 +110,19 @@ export class EfectoFormComponent {
   // El bloque de efecto individual arranca deshabilitado en alta individual hasta elegir el efecto.
   readonly individualDeshabilitado = computed(() => this.esAltaIndividual() && !this.efectoActivo());
 
+  readonly hayDescripcionIndividual = computed(() => texto(this.modelo().EfectoEfectoIndividualDescripcion) !== '');
+
+  readonly hayAtributosIndividual = computed(() => this.modelo().atributos.some(
+    a => a.EfectoAtributoAtributoIngresoId != null || texto(a.EfectoAtributoIngresoValor) !== ''
+  ));
+
+  private readonly individualEnUso = computed(() => this.hayDescripcionIndividual() || this.hayAtributosIndividual());
+
+  /** Descripción individual cargada pero sin ningún atributo: el usuario tiene que completar abajo. */
+  readonly faltanAtributosIndividual = computed(() =>
+    this.esAltaCompleta() && this.hayDescripcionIndividual() && !this.hayAtributosIndividual()
+  );
+
   onEfectoBuscadoChange(opt: any): void {
     const efectoId = opt?.EfectoId ? Number(opt.EfectoId) : null;
     this.efectoBuscado.set(efectoId ? { EfectoId: efectoId, EfectoEfectoIndividualId: null, EfectoDescripcion: opt?.fullName ?? '' } : null);
@@ -141,12 +154,15 @@ export class EfectoFormComponent {
   // Filas de atributo ingreso del efecto individual.
   readonly atributosIngreso = computed(() => this.formulario.value()?.atributos ?? []);
 
-  // El modelo se rearma solo cuando cambia el efecto o llegan sus atributos; entre medio es
+  // El modelo se rearma solo cuando cambia el modo, el efecto o llegan sus atributos; entre medio es
   // escribible y se queda con lo que edita el usuario. Reemplaza al effect que reseteaba control
   // por control. Tras guardar no se recarga: el back devuelve el formulario persistido y se aplica
   // sobre el modelo (ver guardar()).
-  private readonly modelo = linkedSignal<{ ef: any; rows: EfectoIndividualAtributo[] }, EfectoFormModel>({
-    source: () => ({ ef: this.efectoActivo(), rows: this.atributosIngreso() }),
+  // El modo entra en la fuente porque al cambiar de solapa (p. ej. alta -> alta individual) el efecto
+  // sigue siendo null y los atributos siguen vacíos: sin él, lo cargado a mano en el modo anterior
+  // sobrevive al cambio.
+  private readonly modelo = linkedSignal<{ modo: string; ef: any; rows: EfectoIndividualAtributo[] }, EfectoFormModel>({
+    source: () => ({ modo: this.modo(), ef: this.efectoActivo(), rows: this.atributosIngreso() }),
     computation: ({ ef, rows }) => ({
       EfectoId: ef?.EfectoId ?? null,
       // La columna editable de Efecto, no la compuesta que muestra la grilla.
@@ -196,17 +212,26 @@ export class EfectoFormComponent {
       return undefined;
     });
 
+    // En el alta de efecto el individual es opcional: la descripción solo se exige si hay atributos
+    // cargados. En el resto de los modos sigue siendo obligatoria siempre que haya individual.
     required(p.EfectoEfectoIndividualDescripcion, {
       message: 'La descripción individual es obligatoria',
-      when: () => this.esIndividual(),
+      when: () => this.esAltaCompleta() ? this.hayAtributosIndividual() : this.esIndividual(),
     });
     maxLength(p.EfectoEfectoIndividualDescripcion, 60, {
       message: 'La descripción individual no puede superar los 60 caracteres',
     });
 
+    // La otra mitad de la regla: con descripción individual cargada tiene que haber al menos un atributo.
+    validate(p.atributos, () => this.faltanAtributosIndividual()
+      ? { kind: 'required', message: 'Debe cargar al menos un atributo' }
+      : undefined);
+
     applyEach(p.atributos, linea => {
-      required(linea.EfectoAtributoAtributoIngresoId, { message: 'Debe seleccionar el atributo' });
-      required(linea.EfectoAtributoIngresoValor, { message: 'Debe ingresar el valor' });
+      // En el alta, una fila vacía con el bloque individual sin usar no molesta.
+      const exigir = () => !this.esAltaCompleta() || this.individualEnUso();
+      required(linea.EfectoAtributoAtributoIngresoId, { message: 'Debe seleccionar el atributo', when: exigir });
+      required(linea.EfectoAtributoIngresoValor, { message: 'Debe ingresar el valor', when: exigir });
       maxLength(linea.EfectoAtributoIngresoValor, 40, { message: 'El valor no puede superar los 40 caracteres' });
     });
   });
@@ -241,9 +266,9 @@ export class EfectoFormComponent {
   // Filas de Atributo/Valor del efecto (EfectoAtributo, 1:N). Se resiembran desde el resource al
   // cambiar de efecto, pero quedan editables (linkedSignal). Van por afuera del modelo del form
   // porque persisten en su propia tabla y el valor de cada fila depende de su atributo.
-  readonly efectoAtributos = linkedSignal<EfectoAtributo[], EfectoAtributoLinea[]>({
-    source: () => this.formulario.value()?.EfectoAtributos ?? [],
-    computation: rows => rows.map(r => ({
+  readonly efectoAtributos = linkedSignal<{ modo: string; rows: EfectoAtributo[] }, EfectoAtributoLinea[]>({
+    source: () => ({ modo: this.modo(), rows: this.formulario.value()?.EfectoAtributos ?? [] }),
+    computation: ({ rows }) => rows.map(r => ({
       EfectoAtributoId: r.EfectoAtributoId ?? null,
       EfectoAtributoAtributoId: r.EfectoAtributoAtributoId ?? null,
       EfectoAtributoValorId: r.EfectoAtributoValorId ?? null,
