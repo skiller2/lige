@@ -67,6 +67,7 @@ import { SalarioMinimoVitalMovilController } from "../salario-minimo-vital-movil
 import { OrdenesDeVentaController } from "../ordenes-de-venta/ordenes-de-venta.controller.ts";
 import { AvisoController } from "../aviso/aviso.controller.ts";
 import { VehiculoController } from "../vehiculo/vehiculo.controller.ts";
+import { DireccionesController } from "../direcciones/direcciones.controller.ts";
 import { ValorHoraController } from "../valor-hora/valor-hora.controller.ts";
 import { CuentasBancariasController } from "../cuentas-bancarias/cuentas-bancarias.controller.ts";
 import { InaesController } from "../inaes/inaes.controller.ts";
@@ -144,3 +145,5 @@ export const vehiculoController = new VehiculoController()
 export const valorHoraController = new ValorHoraController()
 export const cuentasBancariasController = new CuentasBancariasController()
 export const inaesController = new InaesController()
+export const direccionesController = new DireccionesController()
+
