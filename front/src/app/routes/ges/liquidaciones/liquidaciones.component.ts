@@ -92,15 +92,13 @@ export class LiquidacionesComponent {
   toggle = false;
   detailViewRowCount = 9;
   gridDataLen = 0
-  anio = signal(0)
-  mes = signal(0)
   fechaRecibo = model(new Date())
   saveLoading$ = new BehaviorSubject(false);
   gridOptions!: GridOption;
   gridOptionsEdit!: GridOption;
   gridOptionsImport!: GridOption;
   hiddenColumnIds: string[] = [];
-  selectedPeriod = { year: 0, month: 0 };
+
   gridDataInsert = [];
   uploading$ = new BehaviorSubject({ loading: false, event: null });
   selectedCuentalId = '';
@@ -368,62 +366,61 @@ export class LiquidacionesComponent {
   async liquidacionesAcciones(value: string) {
     switch (value) {
       case "movimientosAutomaticos":
-
-        firstValueFrom(this.apiService.setmovimientosAutomaticos(this.selectedPeriod.year, this.selectedPeriod.month))
+        firstValueFrom(this.apiService.setmovimientosAutomaticos(this.periodo().getFullYear(), this.periodo().getMonth() + 1))
         break;
 
       case "Asistencia":
 
-        firstValueFrom(this.apiService.setingresoPorAsistencia(this.selectedPeriod.year, this.selectedPeriod.month)) //.subscribe(evt => {this.formChange$.next('')});
+        firstValueFrom(this.apiService.setingresoPorAsistencia(this.periodo().getFullYear(), this.periodo().getMonth() + 1)) //.subscribe(evt => {this.formChange$.next('')});
         break;
       case "CompensaGeneCoor":
-        firstValueFrom(this.apiService.setCompensaGeneralCoordinador(this.selectedPeriod.year, this.selectedPeriod.month)) //.subscribe(evt => {this.formChange$.next('')});
+        firstValueFrom(this.apiService.setCompensaGeneralCoordinador(this.periodo().getFullYear(), this.periodo().getMonth() + 1)) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
       case "Custodia":
 
-        firstValueFrom(this.apiService.setingresoPorCustodia(this.selectedPeriod.year, this.selectedPeriod.month)) //.subscribe(evt => {this.formChange$.next('')});
+        firstValueFrom(this.apiService.setingresoPorCustodia(this.periodo().getFullYear(), this.periodo().getMonth() + 1)) //.subscribe(evt => {this.formChange$.next('')});
         break;
 
       case "Licencias":
 
-        firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.selectedPeriod.year, this.selectedPeriod.month))
+        firstValueFrom(this.apiService.setingresoPorAsistenciaAdministrativosArt42(this.periodo().getFullYear(), this.periodo().getMonth() + 1))
         break;
 
 
       case "ingresosCoordinadorDeCuenta":
 
-        firstValueFrom(this.apiService.setingresosCoordinadorDeCuenta(this.selectedPeriod.year, this.selectedPeriod.month))
+        firstValueFrom(this.apiService.setingresosCoordinadorDeCuenta(this.periodo().getFullYear(), this.periodo().getMonth() + 1))
         break;
 
       case "descuentoPorDeudaAnterior":
 
-        firstValueFrom(this.apiService.setdescuentoPorDeudaAnterior(this.selectedPeriod.year, this.selectedPeriod.month))
+        firstValueFrom(this.apiService.setdescuentoPorDeudaAnterior(this.periodo().getFullYear(), this.periodo().getMonth() + 1))
         break;
 
       case "descuentos":
 
-        firstValueFrom(this.apiService.setdescuentos(this.selectedPeriod.year, this.selectedPeriod.month))
+        firstValueFrom(this.apiService.setdescuentos(this.periodo().getFullYear(), this.periodo().getMonth() + 1))
         break;
 
       case "movimientoAcreditacionEnCuenta":
 
-        firstValueFrom(this.apiService.setmovimientoAcreditacionEnCuenta(this.selectedPeriod.year, this.selectedPeriod.month))
+        firstValueFrom(this.apiService.setmovimientoAcreditacionEnCuenta(this.periodo().getFullYear(), this.periodo().getMonth() + 1))
         break;
 
       case "generarRecibos":
 
-        firstValueFrom(this.apiService.generaRecibos(this.selectedPeriod.year, this.selectedPeriod.month, this.fechaRecibo()))
+        firstValueFrom(this.apiService.generaRecibos(this.periodo().getFullYear(), this.periodo().getMonth() + 1, this.fechaRecibo()))
         break;
 
       case "generarReciboUnico":
 
-        firstValueFrom(this.apiService.generaReciboUnico(this.selectedPeriod.year, this.selectedPeriod.month, this.PersonalIdForReceip))
+        firstValueFrom(this.apiService.generaReciboUnico(this.periodo().getFullYear(), this.periodo().getMonth() + 1, this.PersonalIdForReceip))
         break;
 
       case "DescuentoRetiros":
 
-        firstValueFrom(this.apiService.generaDescuentoRetiros(this.selectedPeriod.year, this.selectedPeriod.month))
+        firstValueFrom(this.apiService.generaDescuentoRetiros(this.periodo().getFullYear(), this.periodo().getMonth() + 1))
         break;
 
       default:

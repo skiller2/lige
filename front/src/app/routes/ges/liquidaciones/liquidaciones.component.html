@@ -1,8 +1,8 @@
 <nz-card class="small-margin">
 
-  <app-recibos-modal [(isVisible)]='isVisibleRecibo' [mes]="mes()" [anio]="anio()"></app-recibos-modal>
+  <app-recibos-modal [(isVisible)]='isVisibleRecibo' [mes]="periodo().getMonth() + 1" [anio]="periodo().getFullYear()"></app-recibos-modal>
 
-  <app-monotributos-modal [(isVisible)]='isVisibleMonot' [mes]="mes()" [anio]="anio()"></app-monotributos-modal>
+  <app-monotributos-modal [(isVisible)]='isVisibleMonot' [mes]="periodo().getMonth() + 1" [anio]="periodo().getFullYear()"></app-monotributos-modal>
 
   <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
       <div nz-row nzSpan="12">
@@ -94,7 +94,7 @@
         <li nz-submenu nzTitle="Informes">
           <ul style="width: auto !important">
             <li nz-menu-item app-down-file [httpMethod]="'POST'"
-              [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':selectedPeriod.year,'Mes':selectedPeriod.month}}"
+              [httpBody]="{'Reporte':'Banelco','Formato':'EXCEL', 'Filtros': {'Anio':periodo().getFullYear(),'Mes':periodo().getMonth() + 1}}"
               httpUrl="api/informes/descarga" notificationMsg="Generando Informe Banelco">
               <span nz-icon nzType="download"></span><span style="white-space: normal;">Banelco</span>
             </li>
@@ -233,14 +233,14 @@
 
             <nz-form-item>
               <nz-form-control>
-                <nz-form-label [nzSpan]="5">Archivo liquidaciones</nz-form-label>
+                <nz-form-label [nzSpan]="5">Archivo liquidaciones </nz-form-label>
                 <ng-container>
                   <nz-upload nzAccept="application/xls" nzAction="/api/liquidaciones/upload" 
                     [nzData]="{
                       tipocuenta: selectedCuentalId,
                       movimiento: selectedMovimientoId,
-                      anio:selectedPeriod.year, 
-                      mes:selectedPeriod.month
+                      anio:periodo().getFullYear(), 
+                      mes:(periodo().getMonth() + 1)
                     }" nzName="xls" [nzLimit]="1" [nzShowUploadList]="false" (nzChange)="uploadChange($event)"
                   >
                     <button nz-button>
@@ -253,6 +253,7 @@
             </nz-form-item>
 
           </nz-spin>
+          <a>Periodo {{periodo()|json}}</a>
         </form>
 
         <div class="gridContainer3 container-fluid">
