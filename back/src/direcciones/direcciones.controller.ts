@@ -1,3 +1,4 @@
+import type { QueryRunner } from "typeorm";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Response } from "express";
@@ -6,6 +7,30 @@ export class DireccionesController extends BaseController {
     test(req: any, res: any, next: any) {
         throw new Error("Method not implemented.");
     }
+
+    async getProvinciaId(queryRunner: QueryRunner, state: string) {
+        const provincias = await queryRunner.query(`SELECT ProvinciaId,ProvinciaDescripcion FROM Provincia WHERE PaisId  = 1 AND ProvinciaDescripcion COLLATE Latin1_General_CI_AI = @0`, [state])
+        if (provincias.length !== 1)
+            throw new Error(`Provincia "${state}" no encontrada.`);
+        return provincias[0].ProvinciaId;
+    }
+
+    async getLocalidadId(queryRunner: QueryRunner, ProvinciaId: number, LocalidadDescripcion1: string, LocalidadDescripcion2: string) {
+        LocalidadDescripcion2 = String(LocalidadDescripcion2).replace(/^Partido de\s*/i, "").trim();
+
+        const localidades = await queryRunner.query(`SELECT LocalidadId,LocalidadDescripcion FROM Localidad WHERE ProvinciaId = @0 AND (LocalidadDescripcion COLLATE Latin1_General_CI_AI= @1 OR LocalidadDescripcion COLLATE Latin1_General_CI_AI= @2)`, [ProvinciaId, LocalidadDescripcion1, LocalidadDescripcion2])
+        if (localidades.length == 0)
+            throw new Error(`Localidad "${LocalidadDescripcion1} o ${LocalidadDescripcion2}" no encontrada.`);
+        return localidades[0].LocalidadId;
+    }
+    async getBarrioId(queryRunner: QueryRunner, ProvinciaId: number, LocalidadId: number, BarrioDescripcion: string) {
+        const barrios = await queryRunner.query(`SELECT BarrioId,BarrioDescripcion FROM Barrio WHERE ProvinciaId = @0 AND LocalidadId = @1 AND BarrioDescripcion = @2`, [ProvinciaId, LocalidadId, BarrioDescripcion])
+        if (barrios.length !== 1)
+            //throw new Error(`Barrio "${BarrioDescripcion}" no encontrado.`);
+            return null
+        return barrios[0].BarrioId;
+    }
+
 
     static waitT = (ms: number) => {
         return new Promise((resolve) => {
@@ -43,7 +68,9 @@ export class DireccionesController extends BaseController {
             throw new Error(`Error HTTP ${response.status}`);
         }
 
-        const result: any = await response.json()
+        let result: any = await response.json()
+
+        result = result.filter((item: any) => item.address?.road);
 
         result.forEach((item: any) => {
             const { road, house_number, town, state, state_district, postcode } = item.address || {};
@@ -69,6 +96,7 @@ export class DireccionesController extends BaseController {
         const ip = this.getRemoteAddress(req)
 
         let registrosActualizados = 0
+        let registrosProcesados = 0
         let EventoLogCodigo = 0
 
 
@@ -82,7 +110,6 @@ export class DireccionesController extends BaseController {
                 "HAB"
             ));
 
-            await queryRunner.startTransaction();
             const direcciones = await queryRunner.query(`SELECT dom.DomicilioId 
 
                 ,TRIM(dom.DomicilioDomCalle) Calle,
@@ -107,31 +134,60 @@ export class DireccionesController extends BaseController {
 
 
             for (const direccion of direcciones) {
-
+                registrosProcesados++
                 const domNormalizar = direccion.domNormalizar
                 const DomicilioId = direccion.DomicilioId
-
-                await DireccionesController.waitT(1500)
-                const nominatimResult = await this.getDireccionNominatim(domNormalizar)
-
-
-                if (nominatimResult.length != 1)
+                let nominatimResult: any = []
+                await DireccionesController.waitT(1000)
+                try {
+                    nominatimResult = await this.getDireccionNominatim(domNormalizar)
+                } catch (error) {
                     continue
-
-                const nominatimItem = nominatimResult[0]
-                console.log("Que tengo:")
-                console.log(nominatimItem)
-                break;
-
-                await queryRunner.query(`
-                                    UPDATE Domicilio SET DomicilioJson = @1,  DomicilioCompleto = @2
+                }
+                if (nominatimResult.length != 1) {
+                    await queryRunner.query(`
+                                    UPDATE Domicilio SET DomicilioJson = @1
                                     WHERE DomicilioId =@0
-                                `, [DomicilioId])
+                                `, [DomicilioId, `ERROR Coincidencias ${nominatimResult.length}`])
+                    continue
+                }
+
+                const DomicilioJson = nominatimResult[0]
+                const DomicilioCodigoPostal = DomicilioJson.address.postcode
+                const DomicilioCompleto = DomicilioJson.display_name
+                const DomicilioDomCalle = DomicilioJson.address.road
+                const DomicilioDomNro = DomicilioJson.address.house_number
+                let DomicilioProvinciaId = null
+                let DomicilioLocalidadId = null
+                try {
+                    DomicilioProvinciaId = await this.getProvinciaId(queryRunner, DomicilioJson.address.state) // Buscarlo en provincias
+                } catch (error) {
+                    await queryRunner.query(`
+                                    UPDATE Domicilio SET DomicilioJson = @1
+                                    WHERE DomicilioId =@0
+                                `, [DomicilioId, `ERROR Provincia "${DomicilioJson.address.state}" no encontrada`])
+                    continue
+                }
+                try {
+                    DomicilioLocalidadId = (DomicilioProvinciaId == 25) ? 1 : await this.getLocalidadId(queryRunner, DomicilioProvinciaId, DomicilioJson.address.city, DomicilioJson.address.state_district) //Busco  LocalidadId en base a la provincia y el nombre de la localidad
+                } catch (error) {
+                    await queryRunner.query(`
+                                    UPDATE Domicilio SET DomicilioJson = @1
+                                    WHERE DomicilioId =@0
+                                `, [DomicilioId, `ERROR Localidad "${DomicilioJson.address.city} o ${DomicilioJson.address.state_district}" no encontrada`])
+                    continue
+                }
+
+                const DomicilioBarrioId = await this.getBarrioId(queryRunner, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioJson.address.suburb)
+                const DomicilioPaisId = 1 // Argentina
+                await queryRunner.query(`
+                                    UPDATE Domicilio SET DomicilioJson = @1,  DomicilioCompleto = @2, DomicilioCodigoPostal = @3, DomicilioDomCalle = @4, DomicilioDomNro = @5, DomicilioProvinciaId = @6, DomicilioLocalidadId = @7, DomicilioBarrioId = @8, DomicilioPaisId =@9
+                                    WHERE DomicilioId =@0
+                                `, [DomicilioId, JSON.stringify(DomicilioJson), DomicilioCompleto, DomicilioCodigoPostal, DomicilioDomCalle, DomicilioDomNro, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId, DomicilioPaisId])
+
                 registrosActualizados++
             }
 
-            throw new ClientException(`Direcciones normalizadas ${registrosActualizados}`, { registrosActualizados }, 0)
-            await queryRunner.commitTransaction();
 
             await this.eventoLogFin(
                 queryRunner,
@@ -139,21 +195,22 @@ export class DireccionesController extends BaseController {
                 'COM',
                 {
                     res: `Procesado correctamente`,
-                    'Registros Actualizados': registrosActualizados
+                    'Registros Actualizados': registrosActualizados,
+                    'Registros Procesados': registrosProcesados
                 },
                 usuario,
                 ip
             );
 
-
             this.jsonRes({ registrosActualizados }, res, `Direcciones normalizadas ${registrosActualizados}`);
 
         } catch (error) {
+            console.log("Error en jobUpdateDirecciones:", error)
             await this.rollbackTransaction(queryRunner)
             await this.eventoLogFin(queryRunner,
                 EventoLogCodigo,
                 'ERR',
-                { res: error },
+                { res: error, 'Registros Procesados': registrosProcesados, 'Registros Actualizados': registrosActualizados },
                 usuario,
                 ip
             );
@@ -163,3 +220,4 @@ export class DireccionesController extends BaseController {
         }
     }
 }
+
