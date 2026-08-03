@@ -44,7 +44,7 @@ movimientoStockRouter.post("/confirmarIngreso", [authMiddleware.verifyToken, aut
   movimientoStockController.confirmarMovimiento(req, res, next);
 });
 
-movimientoStockRouter.post("/confirmarIntermediario", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica'])], (req, res, next) => {
+movimientoStockRouter.post("/confirmarIntermediario", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   movimientoStockController.confirmarIntermediario(req, res, next);
 });
 

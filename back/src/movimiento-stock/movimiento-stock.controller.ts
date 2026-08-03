@@ -557,6 +557,7 @@ export class MovimientoStockController extends BaseController {
       const ip = this.getRemoteAddress(req);
       const now = new Date();
 
+      if (personalIdInter || proveedorIdInter) throw new ClientException(`No se permite movimiento con intermediario (En desarrollo).`);
       // validaciones
       await this.validateForm(queryRunner, body.fecha, depositoId, personalId, personalIdInter, objetivoId, proveedorId, proveedorIdInter, observaciones, efectos, indIngresoStock);
 
@@ -693,7 +694,7 @@ export class MovimientoStockController extends BaseController {
     const conInterProveedor = proveedorIdInter != null;
     const conInter = conInterPersonal || conInterProveedor;
     // GUARD DE PRODUCCIÓN: el movimiento con intermediario está en desarrollo y no debe usarse aún.
-    // if (conInter) throw new ClientException(`No se permite movimiento con intermediario (En desarrollo).`);
+    if (conInter) throw new ClientException(`No se permite movimiento con intermediario (En desarrollo).`);
 
     const movPersonalIdDestino = conInterPersonal ? personalIdInter : (conInter ? null : personalId);
     const movProveedorIdDestino = conInterProveedor ? proveedorIdInter : (conInter ? null : proveedorId);
@@ -789,6 +790,9 @@ export class MovimientoStockController extends BaseController {
     const destPersonalId = conInterPersonal ? personalIdInter : (conInter ? null : personalId);
     const destObjetivoId = conInter ? null : objetivoId;
     const destProveedorId = conInterProveedor ? proveedorIdInter : (conInter ? null : proveedorId);
+
+    if (conInter) throw new ClientException(`No se permite movimiento con intermediario (En desarrollo).`)
+
     for (const [index, efecto] of efectos.entries()) {
       const EfectoId = Number(efecto.EfectoId)
       const EfectoEfectoIndividualId = efecto.EfectoIndividualId ?? null
