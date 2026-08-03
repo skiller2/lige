@@ -629,6 +629,8 @@ export class CustodiaController extends BaseController {
         if (ResponsableId === undefined) search = `1=1`
         else search = `obj.ResponsableId IN (${ResponsableId})`
 
+        // agregar una variante de que si es jerarquico o responsable de un grupo, triga las custodias que son de su grupo. Pero solo puede ver
+
         //NEW TABLE
         return await queryRunner.query(`
            SELECT DISTINCT 
