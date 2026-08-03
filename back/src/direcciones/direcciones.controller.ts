@@ -124,12 +124,14 @@ export class DireccionesController extends BaseController {
                 dom.DomicilioJson
 
                 FROM Domicilio dom
-                
+                JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId
+
                 LEFT JOIN Pais pais on pais.PaisId=dom.DomicilioPaisId
                 LEFT JOIN Provincia prov on prov.PaisId=pais.PaisId and prov.ProvinciaId=dom.DomicilioProvinciaId
                 LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
                 LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
-                WHERE dom.DomicilioJson IS NULL`)
+
+                WHERE dom.DomicilioJson IS NULL AND nex.NexoDomicilioActual = 1`)
 
 
 
