@@ -381,7 +381,7 @@ export class CuentasBancariasController extends BaseController {
       const cuentasAActualizar = cuentasPendienteCBU.map((r: any) => {
         const CUIT = String(r.PersonalCUITCUILCUIT ?? '').replace(/\D/g, "")
         return { PersonalId: r.PersonalId, CUIT, CBU: cbuPorCuitExcel.get(CUIT) }
-      }).filter((item) => item.CBU != undefined && item.CBU != null && item.CBU.trim() !== '')
+      })
 
       const cbusFiltro = [...new Set(cuentasAActualizar.map((c) => String(c.CBU ?? '').trim()).filter((cbu) => /^\d{1,22}$/.test(cbu)))]
 
@@ -404,8 +404,6 @@ export class CuentasBancariasController extends BaseController {
         for (const cbuExist of ExistCbu) {
           dataset.push({ id: idError++, CUIT: cbuExist.CUIT, Detalle: `El CBU ${cbuExist.PersonalBancoCBU} ya se encuentra registrado y vigente en la persona ${cbuExist.ApellidoNombre}.` })
         }
-        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
-
       }
 
 
@@ -700,41 +698,31 @@ export class CuentasBancariasController extends BaseController {
 
   async updateCuentasPendientes(queryRunner: any, PersonalId: number, BancoId: number, CBU: string, FechaActual: Date, usuario: string, ip: string) {
 
-    const personalBancoRows: any = await queryRunner.query(`
+    const PersonalBanco: any = await queryRunner.query(`
         SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
           CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT, TRIM(ban.BancoDescripcion) BancoDescripcion
         FROM PersonalBanco pb
         left JOIN Banco ban ON ban.BancoId = pb.PersonalBancoBancoId
         Left JOIN Personal per ON per.PersonalId = pb.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-        WHERE ((@0 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @0 >= pb.PersonalBancoDesde) OR pb.PersonalBancoDesde >= @0)
+        WHERE ((@0 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @0 >= pb.PersonalBancoDesde) OR pb.PersonalBancoDesde >= @0) AND pb.PersonalId = @1
            ORDER BY pb.PersonalBancoDesde DESC
       `, [FechaActual, PersonalId])
 
-    const PersonalBanco: any = personalBancoRows.filter((r: any) => r.PersonalId === PersonalId)
-
     // Registro marcado como cuenta nueva que todavía está esperando el CBU
     const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU == ''))
+    if (cuentaNuevaPendiente.length == 0) return { cuentasSinModificar: 1 }
+
     if (cuentaNuevaPendiente.length > 1)
       throw new ClientException(`No se puede dar de alta la cuenta. Registros pendientes de CBU: ${cuentaNuevaPendiente.length} (Inconsistencia de datos).`)
 
-    if (cuentaNuevaPendiente.length == 0) return { cuentasSinModificar: 1 }
-
-    // Validación de CBU EXISTENTE
-    const existPersonalBanco = personalBancoRows.filter((r: any) => r.PersonalBancoCBU == CBU && r.IndNuevaCuenta == 0 && (r.PersonalBancoCBU != null && r.PersonalBancoCBU != ''))
-    if (existPersonalBanco.length && CBU != '' && CBU != null)
-      throw new ClientException(`El CBU ingresado se encuentra registrado y vigente en una persona. (${existPersonalBanco[0].ApellidoNombre} - CUIT: ${existPersonalBanco[0].CUIT ? existPersonalBanco[0].CUIT : ''})`);
-
     // buscar si tiene vigente mas de un cbu, si encuentra mas de uno, no se permite dar de alta la cuenta nueva. Se debera cerrar el vigente y luego dar de alta la nueva
-    const cbuVigentes = PersonalBanco.filter((r: any) => r.PersonalBancoCBU && r.IndNuevaCuenta == 0)
+    const cbuVigentes = PersonalBanco.filter((r: any) => (r.PersonalBancoCBU != null && r.PersonalBancoCBU != '') && r.IndNuevaCuenta == 0)
 
     // NO SE CONTEMPLA SI SE TIENE MAS DE UN REGISTRO VIGENTE, YA QUE NO DEBERIA EXISTIR MAS DE UNO
     if (cbuVigentes.length > 1)
       throw new ClientException(`No se puede dar de alta la cuenta. Registros vigentes y a futuros: ${cbuVigentes.length} (Inconsistencia de datos).`)
 
-
-    // Mientras esa cuenta siga pendiente no se permite generar otra: hay que completar el CBU de la
-    // existente, ya sea por la importación del XLS o manualmente desde el drawer
     if (!CBU?.trim()) {
       throw new ClientException(`EL CBU del archivo esta vacío`)
     }
