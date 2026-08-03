@@ -6,6 +6,8 @@ import {
   map,
   Observable,
   of,
+  tap,
+  firstValueFrom,
 } from 'rxjs';
 import {
   PersonaObj,
@@ -520,7 +522,8 @@ export class SearchService {
 
     const result = await response.json()
 
-    result.forEach((item: any) => {
+    for (const item of result) {
+
       const { road, house_number, town, state, state_district, postcode } = item.address || {};
 
       item.display_name = [
@@ -531,7 +534,40 @@ export class SearchService {
       ]
         .filter(Boolean)
         .join(", ");
-    });
+      
+      // Validar el address
+      const address = item.address
+      let verAddress:any = {PaisId: 1, ProvinciaId:0, LocalidadId:0, BarrioId:0}
+      if(address.state){
+        await firstValueFrom(this.getProvinciaFromName('Descripcion', address.state, verAddress.PaisId)
+          .pipe(map(res => {
+            if (res.length) verAddress.ProvinciaId = res[0].ProvinciaId
+            else verAddress.ProvinciaId = 0
+          }))
+        )
+      }
+      if(address.state_district || address.city){
+        let array:any[] = address.state_district? address.state_district.split(" ") : (address.city? address.city.split(" "): [])
+        await firstValueFrom(this.getLocalidadFromName('Descripcion', array[array.length-1], verAddress.ProvinciaId, verAddress.PaisId)
+          .pipe(tap(res => {
+            if (res.length) verAddress.LocalidadId = res[0].LocalidadId
+            else verAddress.LocalidadId = 0
+          }))
+        )
+      }
+      if(address.town){
+        let array:any[] = address.town.split(" ")
+        await firstValueFrom(this.getBarrioFromName('Descripcion', array[array.length-1], verAddress.LocalidadId, verAddress.ProvinciaId, verAddress.PaisId)
+          .pipe(tap(res => {
+            if (res.length) verAddress.BarrioId = res[0].BarrioId
+            else verAddress.BarrioId = 0
+          }))
+        )
+      }
+
+      item.verAddress = verAddress
+      
+    }
 
     return result
 

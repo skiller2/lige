@@ -176,7 +176,7 @@ export class DomicilioController extends BaseController {
     switch (fieldName) {
       case "Descripcion":
         if (value.trim().length > 1) {
-          query += ` (pro.ProvinciaDescripcion LIKE '%${value.trim()}') AND `;
+          query += ` (pro.ProvinciaDescripcion LIKE '%${value.trim()}%') AND `;
           buscar = true;
         }
         break;
@@ -290,6 +290,41 @@ export class DomicilioController extends BaseController {
     }).catch((error) => {
       return next(error)
     });
+  }
+
+  // Crea las localidades que no estan registradas usando DomicilioJSON. Ver tabla de Domicilio
+  async checkDomicilioJSON(queryRunner:any, domicilio:any){
+    if(!domicilio.DomicilioJson.length) return null
+    const address:any = JSON.parse(domicilio.DomicilioJson)
+    
+    if (!domicilio.DomicilioLocalidadId && (address.state_district || address.city)) {
+      const LocalidadDescripcion:string = address.state_district? address.state_district : address.city
+
+      const Provincia = await queryRunner.query(`
+        SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
+        FROM Provincia
+        WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
+      `, [domicilio.DomicilioPaisId, domicilio.DomicilioProvinciaId])
+      const newLocalidadId:number = Provincia[0].ProvinciaLocalidadUltNro+1
+
+      await queryRunner.query(`
+        UPDATE Provincia
+        SET ProvinciaLocalidadUltNro = @0
+        WHERE PaisId IN (@1) AND ProvinciaId IN (@2)
+
+        INSERT INTO Localidad (
+          LocalidadId,
+          PaisId,
+          ProvinciaId,
+          LocalidadDescripcion,
+          LocalidadBarrioUltNro ) 
+        VALUES (@0, @1, @2, @3, 0)
+      `, [newLocalidadId, domicilio.DomicilioPaisId, domicilio.DomicilioProvinciaId, LocalidadDescripcion])
+
+      domicilio.DomicilioLocalidadId = newLocalidadId
+    }
+
+    return domicilio
   }
 
 }

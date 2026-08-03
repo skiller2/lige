@@ -181,7 +181,6 @@ export class ObjetivosFormComponent {
     disabled(p.DomicilioDomCalle, () => this.direccion()?.address? true : false),
     disabled(p.DomicilioDomNro, () => this.direccion()?.address? true : false),
     disabled(p.DomicilioCodigoPostal, () => this.direccion()?.address? true : false),
-    // disabled(p.DomicilioDomLugar, () => this.direccion()?.address? true : false),
     disabled(p.DomicilioProvinciaId, () => this.direccion()?.address? true : false),
     disabled(p.DomicilioLocalidadId, () => this.direccion()?.address? true : false),
     disabled(p.DomicilioBarrioId, () => this.direccion()?.address? true : false),
@@ -225,7 +224,6 @@ export class ObjetivosFormComponent {
       DomicilioFulllAdress: this.direccion().display_name,
       DomicilioDomNro: address.house_number? address.house_number : NaN, 
       DomicilioCodigoPostal: address.postcode? address.postcode : NaN, 
-      // DomicilioDomLugar: address.display_name,
       DomicilioProvinciaId: verAddress.ProvinciaId, 
       DomicilioLocalidadId: verAddress.LocalidadId, 
       DomicilioBarrioId: verAddress.BarrioId,
@@ -271,9 +269,6 @@ export class ObjetivosFormComponent {
       ...this.objetivoDefault
     }))
     this.formObjetivo().reset()
-    // this.infoCoordinadorCuenta().clear()
-    // this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-    // this.formObj.markAsPristine()
   }
 
   async newRecord() {
@@ -292,39 +287,12 @@ export class ObjetivosFormComponent {
 
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(), this.ClienteId(), this.ClienteElementoDependienteId()))
 
-    // this.infoCoordinadorCuenta().clear()
-    // this.infoActividad().clear()
-
     if (!infoObjetivo.infoCoordinadorCuenta.length) {
       infoObjetivo.infoCoordinadorCuenta = [{ ...this.coordinadorCuentaDefault }]
     }
     if (!infoObjetivo.infoActividad?.length || !infoObjetivo.infoActividad[0]) {
       infoObjetivo.infoActividad = [{ ...this.actividadDefault }]
     }
-    // infoObjetivo?.infoCoordinadorCuenta.forEach((obj: any) => {
-    //   this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-    // });
-
-    // if(infoObjetivo.infoCoordinadorCuenta.length == 0){
-    //   this.infoCoordinadorCuenta().push(this.fb.group({ ...this.objCoordinadorCuenta }))
-
-    // }  
-
-    // infoObjetivo?.infoActividad.forEach((obj: any) => {
-    //   this.infoActividad().push(this.fb.group({ ...this.objActividad }))
-    // });
-
-    // if(infoObjetivo.infoActividad.length == 0){
-    //   this.infoActividad().push(this.fb.group({ ...this.objActividad }))
-    // }
-
-    // if (this.formObj.disabled){
-    //   this.infoCoordinadorCuenta().disable()
-    //   this.infoActividad().disable()
-    // }else {
-    //   this.infoCoordinadorCuenta().enable()
-    //   this.infoActividad().disable()
-    // }
 
     this.objetivo.update(m => ({
       ...m,
@@ -339,23 +307,7 @@ export class ObjetivosFormComponent {
       GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico?.[0]?.GrupoActividadJerarquicoPersonalId ?? 0
     }));
     setTimeout(() => { this.formObjetivo().reset() }, 400);
-    // this.formObj.patchValue({
-    //   DireccionModificada:false,
-    //   FechaModificada:false,
-    //   ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
-    //   ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
-    //   codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
-    //   GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
-    //   clienteOld: this.ClienteId(),
-    //   GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
-    // });
-
-
-    // this.formObj.get('codigo')?.disable()
-    // //this.formObj.get('ClienteId')?.disable();
-    // this.formObj.get('GrupoActividadId')?.disable()
-    // this.formObj.get('DocumentoTipoCodigo')?.disable()
-    // // this.formObj.reset(infoObjetivo)
+    
   }
 
   async save() {
@@ -381,15 +333,6 @@ export class ObjetivosFormComponent {
             clienteOld: result.data.ClienteId,
             DomicilioId: result.data.DomicilioId
           }));
-          // this.formObj.patchValue({
-          //   infoCoordinadorCuenta: result.data.infoCoordinadorCuenta,
-          //   infoActividad: result.data.infoActividad,
-          //   codigo: `${result.data.ClienteId}/${result.data.ClienteElementoDependienteId}`,
-          //   clienteOld: result.data.ClienteId,
-          //   DomicilioId: result.data.DomicilioId
-          // });
-
-          //this.edit.set(false)
 
         } else { //INSERT (nuevo registro)
 
@@ -401,7 +344,6 @@ export class ObjetivosFormComponent {
           if (!infoObjetivo.infoActividad?.length || !infoObjetivo.infoActividad[0]) {
             infoObjetivo.infoActividad = [{ ...this.actividadDefault }]
           }
-          // this.formObj.get('ClienteId')?.disable();
 
           this.objetivo.update(m => ({
             ...m,
@@ -416,20 +358,6 @@ export class ObjetivosFormComponent {
             GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico?.[0]?.GrupoActividadJerarquicoPersonalId ?? 0
           }));
 
-          // this.formObj.reset(infoObjetivo)
-          // this.formObj.patchValue({
-          //   DireccionModificada:false,
-          //   FechaModificada:false,
-          //   ContratoFechaDesdeOLD:infoObjetivo.ContratoFechaDesde,
-          //   ContratoFechaHastaOLD:infoObjetivo.ContratoFechaHasta,
-          //   codigo: `${infoObjetivo.ClienteId}/${infoObjetivo.ClienteElementoDependienteId}`,
-          //   GrupoActividadId: infoObjetivo.infoActividad.GrupoActividadId,
-          //   clienteOld: infoObjetivo.ClienteId,
-          //   GrupoActividadJerarquicoPersonalId: infoObjetivo.infoActividadJerarquico[0].GrupoActividadJerarquicoPersonalId
-          // });
-
-          //this.addNew.set(true)
-          // this.mostrarDocs.set(true)
         }
 
         if (this.mostrarDocs()) {
