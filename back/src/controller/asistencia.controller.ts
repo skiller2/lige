@@ -394,7 +394,7 @@ export class AsistenciaController extends BaseController {
         const hasLiquidaciones = await this.hasGroup(req, 'Liquidaciones')
         const hasOperaciones = await this.hasGroup(req, 'gOperaciones')
 
-        // calculo del 3er dia del mes siguiente al periodo de la grilla de asistencia 
+        // calculo del 3er dia del mes siguiente a las 10am ,al periodo de la grilla de asistencia 
         const limiteOperaciones = new Date(Number(anio), Number(mes), 3, 10, 0, 0, 0)
         const puedeRehabilitar = hasLiquidaciones || (hasOperaciones && new Date() < limiteOperaciones)
         if (!puedeRehabilitar) {
