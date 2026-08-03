@@ -1,4 +1,4 @@
-import { BaseController, ClientException } from "../controller/base.controller.ts";
+import { BaseController, ClientException, ClientWarning } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
@@ -332,7 +332,7 @@ export class CuentasBancariasController extends BaseController {
           if (isNaN(idxCuit)) columnsnNotFound.push('- CUIT')
           if (isNaN(idxCbu)) columnsnNotFound.push('- CBU')
           if (columnsnNotFound.length) {
-            columnsnNotFound.unshift('Faltan las siguientes columnas:')
+            columnsnNotFound.unshift('El formato del archivo es incorrecto. Faltan las siguientes columnas:')
             throw new ClientException(columnsnNotFound)
           }
 
@@ -359,9 +359,9 @@ export class CuentasBancariasController extends BaseController {
         WHERE pb.IndNuevaCuenta = 1 AND pb.PersonalBancoBancoId = @0 AND pb.PersonalBancoHasta IS NULL
       `, [bancoIdRequest])
 
-      if (!cuentasPendienteCBU.length) throw new ClientException(`No se encontraron cuentas pendientes de CBU para el banco con id ${bancoIdRequest}.`)
+      if (!cuentasPendienteCBU.length) throw new ClientWarning(`No se encontraron cuentas pendientes de CBU para el banco con id ${bancoIdRequest}.`)
 
-      
+
       den_documento = `Alta-Cuentas-Bancarias-${bancoIdRequest}`
       const docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, fechaActual.getFullYear(), fechaActual.getMonth() + 1, file[0], usuario, ip, queryRunner)
       docFilePath = docDescuentoObjetivo?.newFilePath
@@ -381,7 +381,33 @@ export class CuentasBancariasController extends BaseController {
       const cuentasAActualizar = cuentasPendienteCBU.map((r: any) => {
         const CUIT = String(r.PersonalCUITCUILCUIT ?? '').replace(/\D/g, "")
         return { PersonalId: r.PersonalId, CUIT, CBU: cbuPorCuitExcel.get(CUIT) }
-      }).filter((item) => item.CBU !== undefined)
+      }).filter((item) => item.CBU != undefined && item.CBU != null && item.CBU.trim() !== '')
+
+      const cbusFiltro = [...new Set(cuentasAActualizar.map((c) => String(c.CBU ?? '').trim()).filter((cbu) => /^\d{1,22}$/.test(cbu)))]
+
+      logger.info(`Cuentas a actualizar: ${cuentasAActualizar.length}. CBU distintos: ${cbusFiltro.length}.`)
+      const ExistCbu: any = await queryRunner.query(`
+        SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
+          CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT, TRIM(ban.BancoDescripcion) BancoDescripcion
+        FROM PersonalBanco pb
+        left JOIN Banco ban ON ban.BancoId = pb.PersonalBancoBancoId
+        Left JOIN Personal per ON per.PersonalId = pb.PersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+        WHERE ((@0 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @0 >= pb.PersonalBancoDesde) OR pb.PersonalBancoDesde >= @0) and pb.IndNuevaCuenta = 0
+          AND pb.PersonalBancoCBU IN (${cbusFiltro.length ? cbusFiltro.map((cbu) => `'${cbu}'`).join(',') : `'-'`})
+           ORDER BY pb.PersonalBancoDesde DESC
+      `, [fechaActual])
+
+
+      logger.info(`Cuentas con CBU ya registradas: ${ExistCbu.length}.`)
+      if (ExistCbu.length > 0) {
+        for (const cbuExist of ExistCbu) {
+          dataset.push({ id: idError++, CUIT: cbuExist.CUIT, Detalle: `El CBU ${cbuExist.PersonalBancoCBU} ya se encuentra registrado y vigente en la persona ${cbuExist.ApellidoNombre}.` })
+        }
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
+
+      }
+
 
       for (const { PersonalId, CUIT, CBU } of cuentasAActualizar) {
         //CBU vacío en una cuenta a actualizar
@@ -683,7 +709,7 @@ export class CuentasBancariasController extends BaseController {
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
         WHERE ((@0 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @0 >= pb.PersonalBancoDesde) OR pb.PersonalBancoDesde >= @0)
            ORDER BY pb.PersonalBancoDesde DESC
-      `, [FechaActual])
+      `, [FechaActual, PersonalId])
 
     const PersonalBanco: any = personalBancoRows.filter((r: any) => r.PersonalId === PersonalId)
 
