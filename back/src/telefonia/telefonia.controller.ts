@@ -271,10 +271,11 @@ export class TelefoniaController extends BaseController {
 
     return queryRunner.query(
       `
-SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.ObjetivoPersonalJerarquicoPersonalId) id,tel.TelefoniaId, efeatr.EfectoAtributoIngresoValor, 
+SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.ObjetivoPersonalJerarquicoPersonalId) id,efeatr.EfectoAtributoIngresoValor, 
 		stk.EfectoDescripcionCompleto, 
       eledep.ClienteElementoDependienteDescripcion, 
-      tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, conx.importe, conx.importesum,
+      tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, 
+		conx.importe, conx.importesum,
       per.PersonalId,
       efeind.EfectoId, efeind.EfectoEfectoIndividualId,
       conx.ImpuestoInternoTelefoniaImpuesto,
@@ -297,14 +298,17 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
       stk.StockStock,
       
       1
-      FROM Telefonia tel 
-      JOIN EfectoEfectoIndividual efeind ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId
-      LEFT JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeatr.EfectoId =tel.TelefoniaEfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
+      
+
+      FROM EfectoEfectoIndividual efeind 
+		JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = efeind.EfectoEfectoIndividualId AND efeatr.EfectoId =efeind.EfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
+
+      JOIN Telefonia tel ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId		
       
 		LEFT JOIN (
 		SELECT stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto, SUM(stk.StockStock) StockStock
 		FROM StockReal stk 
-		GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto) stk ON stk.EfectoId=tel.TelefoniaEfectoId AND stk.EfectoEfectoIndividualId=tel.TelefoniaEfectoEfectoIndividualId
+		GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto) stk ON stk.EfectoId=efeind.EfectoId AND stk.EfectoEfectoIndividualId=efeind.EfectoEfectoIndividualId
       LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
       LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
       LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
