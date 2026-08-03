@@ -369,16 +369,18 @@ export class CuentasBancariasController extends BaseController {
       //Normalizo Cuentas pendientes de CBU por CUIT para detectar mas adelante duplicados en el archivo y contra la base. El banco manda todas las cuentas, no sólo las que estamos esperando.
       const CBUPendientes = new Map<string, any[]>()
       for (const r of resCBUPendientes) {
-        if (!CBUPendientes.has(r.PersonalCUITCUILCUIT)) CBUPendientes.set(r.PersonalCUITCUILCUIT, [])
-        CBUPendientes.get(r.PersonalCUITCUILCUIT).push(r)
+        const CUIT = String(r.PersonalCUITCUILCUIT)
+        if (!CBUPendientes.has(CUIT)) CBUPendientes.set(CUIT, [])
+        CBUPendientes.get(CUIT).push(r)
       }
 
+      logger.info(`CBUPendientes para el banco con id ${bancoIdRequest}: ${CBUPendientes.size}.`)
       //Cruce: sólo las filas del archivo cuyo CUIT tiene una cuenta pendiente de CBU. El resto del Excel se ignora (el banco manda todas las cuentas, no sólo las que estamos esperando).
       //Las filas sin CBU también se saltean: no hay nada para actualizar.
       //Si se decide que el CBU vacío debe ser un error, sacarlo del filter y reportarlo en el for de abajo.
-      const filasExcel = sheet1.data.map((row: any) => ({ CUIT: String(row[idxCuit] ?? '').replace(/\D/g, ""), CBU: String(row[idxCbu] ?? '').trim() }))
-        .filter((fila) => CBUPendientes.has(fila.CUIT) && fila.CBU)
+      const filasExcel = sheet1.data.map((row: any) => ({ CUIT: String(row[idxCuit] ?? '').replace(/\D/g, ""), CBU: String(row[idxCbu] ?? '').trim() })).filter((fila) => CBUPendientes.has(fila.CUIT) && fila.CBU)
 
+      logger.info(`Filas del archivo con CUIT pendiente de CBU para el banco con id ${bancoIdRequest}: ${filasExcel.length}.`)
       if (!filasExcel.length)
         throw new ClientException(`Ningún CUIT del archivo corresponde a una cuenta pendiente de CBU para el banco con id ${bancoIdRequest}.`)
 
