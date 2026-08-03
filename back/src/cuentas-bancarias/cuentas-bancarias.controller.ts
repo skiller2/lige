@@ -352,43 +352,83 @@ export class CuentasBancariasController extends BaseController {
       }
 
       //Personas con cuenta nueva (IndNuevaCuenta = 1) vigente para este banco: son las únicas actualizables
-      const cuentasPendienteCBU: any[] = await queryRunner.query(`
+      const resCBUPendientes: any[] = await queryRunner.query(`
         SELECT pb.PersonalId, cuit.PersonalCUITCUILCUIT
         FROM PersonalBanco pb
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pb.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = pb.PersonalId)
         WHERE pb.IndNuevaCuenta = 1 AND pb.PersonalBancoBancoId = @0 AND pb.PersonalBancoHasta IS NULL
       `, [bancoIdRequest])
 
-      if (!cuentasPendienteCBU.length) throw new ClientWarning(`No se encontraron cuentas pendientes de CBU para el banco con id ${bancoIdRequest}.`)
+      if (!resCBUPendientes.length) throw new ClientWarning(`No se encontraron cuentas pendientes de CBU para el banco con id ${bancoIdRequest}.`)
 
 
       den_documento = `Alta-Cuentas-Bancarias-${bancoIdRequest}`
       const docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, fechaActual.getFullYear(), fechaActual.getMonth() + 1, file[0], usuario, ip, queryRunner)
       docFilePath = docDescuentoObjetivo?.newFilePath
 
-      //CBU que trae cada CUIT en el Excel (CUIT normalizado a 11 dígitos)
-      const cbuPorCuitExcel = new Map<string, string>()
-      for (const row of sheet1.data) {
-        const cuit = String(row[idxCuit] ?? '').replace(/\D/g, "")
-        if (cuit.length !== 11) continue
-        cbuPorCuitExcel.set(cuit, String(row[idxCbu] ?? '').trim())
+      //Normalizo Cuentas pendientes de CBU por CUIT para detectar mas adelante duplicados en el archivo y contra la base. El banco manda todas las cuentas, no sólo las que estamos esperando.
+      const CBUPendientes = new Map<string, any[]>()
+      for (const r of resCBUPendientes) {
+        if (!CBUPendientes.has(r.PersonalCUITCUILCUIT)) CBUPendientes.set(r.PersonalCUITCUILCUIT, [])
+        CBUPendientes.get(r.PersonalCUITCUILCUIT).push(r)
       }
 
+      //Cruce: sólo las filas del archivo cuyo CUIT tiene una cuenta pendiente de CBU. El resto del Excel se ignora (el banco manda todas las cuentas, no sólo las que estamos esperando).
+      //Las filas sin CBU también se saltean: no hay nada para actualizar.
+      //Si se decide que el CBU vacío debe ser un error, sacarlo del filter y reportarlo en el for de abajo.
+      const filasExcel = sheet1.data.map((row: any) => ({ CUIT: String(row[idxCuit] ?? '').replace(/\D/g, ""), CBU: String(row[idxCbu] ?? '').trim() }))
+        .filter((fila) => CBUPendientes.has(fila.CUIT) && fila.CBU)
 
+      if (!filasExcel.length)
+        throw new ClientException(`Ningún CUIT del archivo corresponde a una cuenta pendiente de CBU para el banco con id ${bancoIdRequest}.`)
 
-      //Cruce: de las cuentas nuevas me quedo sólo con las que vienen en el Excel, cada una con su CBU.
-      //Los CUIT del Excel que no existen o que no tienen cuenta nueva quedan fuera (se saltean).
-      const cuentasAActualizar = cuentasPendienteCBU.map((r: any) => {
-        const CUIT = String(r.PersonalCUITCUILCUIT ?? '').replace(/\D/g, "")
-        return { PersonalId: r.PersonalId, CUIT, CBU: cbuPorCuitExcel.get(CUIT) }
-      })
+      //Validaciones del archivo en una sola pasada. Los duplicados se detectan contra lo ya recorrido.
+      const cuits = new Set<string>()
+      const cuitXCBU = new Map<string, string>()
+      const cuentasAActualizar: { PersonalId: number, CUIT: string, CBU: string }[] = []
 
-      const cbusFiltro = [...new Set(cuentasAActualizar.map((c) => String(c.CBU ?? '').trim()).filter((cbu) => /^\d{1,22}$/.test(cbu)))]
+      for (const { CUIT, CBU } of filasExcel) {
+        const pendientes = CBUPendientes.get(CUIT)
+        let filaValida = true
 
-      logger.info(`Cuentas a actualizar: ${cuentasAActualizar.length}. CBU distintos: ${cbusFiltro.length}.`)
+        //Formato de CBU (22 dígitos numéricos), antes de ir a buscarlo a la base
+        if (!this.isCBU(CBU)) {
+          dataset.push({ id: idError++, CUIT, Detalle: `El CBU debe ser de 22 dígitos. (${CBU})` })
+          filaValida = false
+        }
+
+        //El banco mandó más de una fila para la misma persona: no se sabe cuál CBU corresponde
+        if (cuits.has(CUIT)) {
+          dataset.push({ id: idError++, CUIT, Detalle: `El CUIT viene más de una vez en el archivo.` })
+          filaValida = false
+        }
+        cuits.add(CUIT)
+
+        //Mismo CBU en dos CUIT distintos: no lo detecta la base porque ninguno está grabado todavía
+        const resCUIT = cuitXCBU.get(CBU)
+        if (resCUIT && resCUIT != CUIT) {
+          dataset.push({ id: idError++, CUIT, Detalle: `El CBU ${CBU} ya viene en el archivo para el CUIT ${resCUIT}.` })
+          filaValida = false
+        }
+        cuitXCBU.set(CBU, CUIT)
+
+        //Una persona no puede tener más de una cuenta pendiente de CBU vigente
+        if (pendientes.length > 1) {
+          dataset.push({ id: idError++, CUIT, Detalle: `El CUIT tiene ${pendientes.length} cuentas pendientes de CBU en la base (Inconsistencia de datos).` })
+          filaValida = false
+        }
+
+        if (filaValida) cuentasAActualizar.push({ PersonalId: pendientes[0].PersonalId, CUIT, CBU })
+      }
+
+      //Vienen sin repetir y con formato válido: a cuentasAActualizar sólo entran filas que pasaron isCBU()
+      //(22 dígitos numéricos) y la validación de CBU repetido. Por eso es seguro interpolarlos en el IN.
+      const cbusFiltro = cuentasAActualizar.map((c) => c.CBU)
+
+      logger.info(`Cuentas a actualizar: ${cuentasAActualizar.length}.`)
       const ExistCbu: any = await queryRunner.query(`
         SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
-          CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT, TRIM(ban.BancoDescripcion) BancoDescripcion
+          CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT, TRIM(ban.BancoDescripcion) BancoDescripcion
         FROM PersonalBanco pb
         left JOIN Banco ban ON ban.BancoId = pb.PersonalBancoBancoId
         Left JOIN Personal per ON per.PersonalId = pb.PersonalId
@@ -398,30 +438,26 @@ export class CuentasBancariasController extends BaseController {
            ORDER BY pb.PersonalBancoDesde DESC
       `, [fechaActual])
 
-
+      //El CBU ya está registrado y vigente en alguien. Es error incluso si ese alguien es la misma persona
+      //del archivo: una cuenta nueva tiene que traer un CBU nuevo.
       logger.info(`Cuentas con CBU ya registradas: ${ExistCbu.length}.`)
-      if (ExistCbu.length > 0) {
-        for (const cbuExist of ExistCbu) {
-          dataset.push({ id: idError++, CUIT: cbuExist.CUIT, Detalle: `El CBU ${cbuExist.PersonalBancoCBU} ya se encuentra registrado y vigente en la persona ${cbuExist.ApellidoNombre}.` })
-        }
+
+      for (const cbu of ExistCbu) {
+        dataset.push({
+          id: idError++,
+          CUIT: cbu.PersonalCUITCUILCUIT,
+          Detalle: `El CBU ${cbu.PersonalBancoCBU} ya se encuentra registrado y vigente en la persona ${cbu.ApellidoNombre} (CUIT: ${cbu.PersonalCUITCUILCUIT}).`
+        })
       }
 
+      //Corta antes de grabar: si algo del archivo está mal, no se toca ningún registro.
+      if (dataset.length > 0) {
+        throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
+      }
 
       for (const { PersonalId, CUIT, CBU } of cuentasAActualizar) {
-        //CBU vacío en una cuenta a actualizar
-        if (!CBU) {
-          dataset.push({ id: idError++, CUIT, Detalle: `El CBU está vacío.` })
-          continue
-        }
-
-        //Formato de CBU (22 dígitos numéricos)
-        if (!this.isCBU(CBU)) {
-          dataset.push({ id: idError++, CUIT, Detalle: `El CBU debe ser de 22 dígitos. (${CBU})` })
-          continue
-        }
-
         try {
-          const result = await this.updateCuentasPendientes(queryRunner, PersonalId, bancoIdRequest, CBU, fechaActual, usuario, ip)
+          const result = await this.updateCuentasPendientesQuerys(queryRunner, PersonalId, bancoIdRequest, CBU, fechaActual, usuario, ip)
           altaCuentasBancarias += result?.cuentasModificadas || 0
           cuentasSinModificar += result?.cuentasSinModificar || 0
 
@@ -696,25 +732,18 @@ export class CuentasBancariasController extends BaseController {
     }
   }
 
-  async updateCuentasPendientes(queryRunner: any, PersonalId: number, BancoId: number, CBU: string, FechaActual: Date, usuario: string, ip: string) {
+  async updateCuentasPendientesQuerys(queryRunner: any, PersonalId: number, BancoId: number, CBU: string, FechaActual: Date, usuario: string, ip: string) {
 
     const PersonalBanco: any = await queryRunner.query(`
-        SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
-          CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT CUIT, TRIM(ban.BancoDescripcion) BancoDescripcion
+        SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU
         FROM PersonalBanco pb
-        left JOIN Banco ban ON ban.BancoId = pb.PersonalBancoBancoId
-        Left JOIN Personal per ON per.PersonalId = pb.PersonalId
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
         WHERE ((@0 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @0 >= pb.PersonalBancoDesde) OR pb.PersonalBancoDesde >= @0) AND pb.PersonalId = @1
            ORDER BY pb.PersonalBancoDesde DESC
       `, [FechaActual, PersonalId])
 
     // Registro marcado como cuenta nueva que todavía está esperando el CBU
-    const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU == ''))
+    const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU == '') && r.PersonalBancoBancoId == BancoId)
     if (cuentaNuevaPendiente.length == 0) return { cuentasSinModificar: 1 }
-
-    if (cuentaNuevaPendiente.length > 1)
-      throw new ClientException(`No se puede dar de alta la cuenta. Registros pendientes de CBU: ${cuentaNuevaPendiente.length} (Inconsistencia de datos).`)
 
     // buscar si tiene vigente mas de un cbu, si encuentra mas de uno, no se permite dar de alta la cuenta nueva. Se debera cerrar el vigente y luego dar de alta la nueva
     const cbuVigentes = PersonalBanco.filter((r: any) => (r.PersonalBancoCBU != null && r.PersonalBancoCBU != '') && r.IndNuevaCuenta == 0)
@@ -722,10 +751,6 @@ export class CuentasBancariasController extends BaseController {
     // NO SE CONTEMPLA SI SE TIENE MAS DE UN REGISTRO VIGENTE, YA QUE NO DEBERIA EXISTIR MAS DE UNO
     if (cbuVigentes.length > 1)
       throw new ClientException(`No se puede dar de alta la cuenta. Registros vigentes y a futuros: ${cbuVigentes.length} (Inconsistencia de datos).`)
-
-    if (!CBU?.trim()) {
-      throw new ClientException(`EL CBU del archivo esta vacío`)
-    }
 
     const newHasta: Date = new Date(cuentaNuevaPendiente[0].PersonalBancoDesde)
     newHasta.setDate(newHasta.getDate() - 1)
@@ -742,8 +767,8 @@ export class CuentasBancariasController extends BaseController {
         AudFechaMod = @3,
         AudUsuarioMod = @4,
         AudIpMod= @5
-        WHERE PersonalId = @0 AND PersonalBancoId = @1
-      `, [cuentaNuevaPendiente[0].PersonalId, cuentaNuevaPendiente[0].PersonalBancoId, CBU, FechaActual, usuario, ip])
+        WHERE PersonalId = @0 AND PersonalBancoId = @1 and PersonalBancoBancoId = @6
+      `, [cuentaNuevaPendiente[0].PersonalId, cuentaNuevaPendiente[0].PersonalBancoId, CBU, FechaActual, usuario, ip, BancoId])
 
     // cerrar el registro vigente, ya que ahora se completa la cuenta nueva con un CBU
     if (cbuVigentes.length == 1) {
