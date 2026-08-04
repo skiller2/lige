@@ -60,7 +60,6 @@ import { ExcepcionesAsistenciaController } from "../excepciones-asistencia/excep
 import { CompensaGeneralACordinadorController } from "../liquidaciones/compensa-general-a-coordinador/compensa-general-a-coordinador.controller.ts";
 import { EfectoController } from "../efecto/efecto.controller.ts";
 import { MovimientoStockController } from "../movimiento-stock/movimiento-stock.controller.ts";
-import { DomicilioController } from "../domicilio/domicilio.controller.ts";
 import { HabilitacionesController } from "../habilitaciones/habilitaciones.controller.ts";
 import { ParametrosVentaController } from "../parametro-venta/parametro-venta.controller.ts";
 import { SalarioMinimoVitalMovilController } from "../salario-minimo-vital-movil/salario-minimo-vital-movil.controller.ts";
@@ -115,7 +114,6 @@ export const administradorController = new AdministradorController();
 export const rubroController = new RubroController();
 export const accesoBotController = new AccesoBotController();
 export const situacionRevistaController = new SituacionRevistaController();
-export const domicilioController = new DomicilioController();
 export const estudioController = new EstudioController();
 export const preciosProductosController = new PreciosProductosController();
 export const descripcionProductoController = new DescripcionProductoController();

@@ -1814,7 +1814,7 @@ export class SearchService {
   }
 
   getPaises(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/domicilio/paises`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/direcciones/paises`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
 
@@ -1827,7 +1827,7 @@ export class SearchService {
     if (!paisId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/domicilio/provincias`, { paisId }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/direcciones/provincias`, { paisId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
 
@@ -1840,7 +1840,7 @@ export class SearchService {
     if (!paisId || !provinciaId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/domicilio/localidades`, { paisId, provinciaId }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/direcciones/localidades`, { paisId, provinciaId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
 
@@ -1853,7 +1853,7 @@ export class SearchService {
     if (!paisId || !provinciaId || !localidadId) {
       return of([]);
     }
-    return this.http.post<ResponseJSON<any>>(`api/domicilio/barrios`, { paisId, provinciaId, localidadId }).pipe(
+    return this.http.post<ResponseJSON<any>>(`api/direcciones/barrios`, { paisId, provinciaId, localidadId }).pipe(
       map(res => res.data),
       catchError((err, caught) => {
 
@@ -2831,7 +2831,7 @@ export class SearchService {
 
   getProvinciaFromName(fieldName:string, provincia:string, paisId?:number): Observable<any[]> {
     if (!provincia || provincia == '') return of([]);
-    return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/provincia', {
+    return this.http.post<ResponseJSON<ResponseBySearch>>('api/direcciones/search/provincia', {
         fieldName: fieldName,
         value: provincia,
         paisId: paisId? paisId: 0,
@@ -2849,7 +2849,7 @@ export class SearchService {
 
   getLocalidadFromName(fieldName:string, localidad:string, provinciaId:number, paisId?:number): Observable<any[]> {
     if (!localidad || localidad == '') return of([]);
-    return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/localidad', {
+    return this.http.post<ResponseJSON<ResponseBySearch>>('api/direcciones/search/localidad', {
         fieldName: fieldName,
         value: localidad,
         provinciaId: provinciaId,
@@ -2868,7 +2868,7 @@ export class SearchService {
 
   getBarrioFromName(fieldName:string, barrio:string, localidadId:number, provinciaId:number, paisId?:number): Observable<any[]> {
     if (!barrio || barrio == '') return of([]);
-    return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/barrio', {
+    return this.http.post<ResponseJSON<ResponseBySearch>>('api/direcciones/search/barrio', {
         fieldName: fieldName,
         value: barrio,
         localidadId: localidadId,

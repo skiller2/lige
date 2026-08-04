@@ -32,7 +32,6 @@ import { administradorRouter } from "./administrador.routes.ts";
 import { rubroRouter } from "./rubro.routes.ts";
 import { accesoBotRouter } from "../acceso-bot/acceso.routes.ts";
 import { situacionrevistaRouter } from "../routes/situacionrevista.routes.ts";
-import { domicilioRouter } from "../domicilio/domicilio.routes.ts";
 import { estudioRouter } from "../routes/estudio.routes.ts";
 import { preciosProductosRouter } from "../precios-productos/precios-productos.routes.ts";
 import { descripcionProductoControllerRouter } from "./descripcion-producto.routes.ts";
@@ -59,6 +58,7 @@ import { avisoRouter } from "../aviso/aviso.routes.ts";
 import { vehiculoRouter } from "../vehiculo/vehiculo.routes.ts";
 import { valorHoraRouter } from "../valor-hora/valor-hora.routes.ts";
 import { cuentasBancariasRouter } from "../cuentas-bancarias/cuentas-bancarias.routes.ts";
+import { direccionesRouter } from "../direcciones/direcciones.routes.ts";
 import { inaesRouter } from "../inaes/inaes.routes.ts";
 
 export function makeRoutes(server: WebServer) {
@@ -95,7 +95,6 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/rubro", rubroRouter)
   server.setRoute("/api/acceso-bot", accesoBotRouter)
   server.setRoute("/api/situacion-revista", situacionrevistaRouter)
-  server.setRoute("/api/domicilio", domicilioRouter)
   server.setRoute("/api/estudio", estudioRouter)
   server.setRoute("/api/productos", preciosProductosRouter)
   server.setRoute("/api/descripcion-productos", descripcionProductoControllerRouter)
@@ -123,4 +122,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/valor-hora", valorHoraRouter);
   server.setRoute("/api/cuentas-bancarias", cuentasBancariasRouter);
   server.setRoute("/api/inaes", inaesRouter);
+  server.setRoute("/api/direcciones", direccionesRouter);
 }

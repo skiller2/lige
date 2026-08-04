@@ -2069,7 +2069,7 @@ export class ApiService {
   }
 
   getProvinciasOptions(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/domicilio/provincias/options`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/direcciones/provincias/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
 
@@ -2079,7 +2079,7 @@ export class ApiService {
   }
 
   getLocalidadesOptions(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/domicilio/localidades/options`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/direcciones/localidades/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
 
@@ -2089,7 +2089,7 @@ export class ApiService {
   }
 
   getBarriosOptions(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`api/domicilio/barrios/options`).pipe(
+    return this.http.get<ResponseJSON<any>>(`api/direcciones/barrios/options`).pipe(
       map(res => res.data),
       catchError((err, caught) => {
 
