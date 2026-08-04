@@ -224,14 +224,6 @@ async function main() {
   //await queryRunner.commitTransaction()
 
 
-/*
-    const mockReq: any = {
-      body: { },
-      headers: {},
-      socket: { remoteAddress: '127.0.0.1' }
-    }
-    await direccionesController.jobUpdateDirecciones(mockReq, null, (ret: any) => ret)
-*/
 
 
 }
