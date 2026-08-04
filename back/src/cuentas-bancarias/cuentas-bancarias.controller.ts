@@ -283,7 +283,6 @@ export class CuentasBancariasController extends BaseController {
     let dataset: any = []
     let idError: number = 0
     let altaCuentasBancarias = 0
-    let cuentasSinModificar = 0
     let docFilePath: string | null = null
     let EventoLogCodigo = 0
     let campos_vacios: any[] = [];
@@ -356,11 +355,10 @@ export class CuentasBancariasController extends BaseController {
         SELECT pb.PersonalId, cuit.PersonalCUITCUILCUIT
         FROM PersonalBanco pb
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pb.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = pb.PersonalId)
-        WHERE pb.IndNuevaCuenta = 1 AND pb.PersonalBancoBancoId = @0 AND pb.PersonalBancoHasta IS NULL
+        WHERE pb.IndNuevaCuenta = 1 AND pb.PersonalBancoBancoId = @0 and pb.PersonalBancoCBU is null
       `, [bancoIdRequest])
 
       if (!resCBUPendientes.length) throw new ClientWarning(`No se encontraron cuentas pendientes de CBU para el banco con id ${bancoIdRequest}.`)
-
 
       den_documento = `Alta-Cuentas-Bancarias-${bancoIdRequest}`
       const docDescuentoObjetivo = await FileUploadController.handleDOCUpload(null, null, null, null, fechaActual, null, den_documento, fechaActual.getFullYear(), fechaActual.getMonth() + 1, file[0], usuario, ip, queryRunner)
@@ -374,15 +372,12 @@ export class CuentasBancariasController extends BaseController {
         CBUPendientes.get(CUIT).push(r)
       }
 
-      logger.info(`CBUPendientes para el banco con id ${bancoIdRequest}: ${CBUPendientes.size}.`)
       //Cruce: sólo las filas del archivo cuyo CUIT tiene una cuenta pendiente de CBU. El resto del Excel se ignora (el banco manda todas las cuentas, no sólo las que estamos esperando).
       //Las filas sin CBU también se saltean: no hay nada para actualizar.
       //Si se decide que el CBU vacío debe ser un error, sacarlo del filter y reportarlo en el for de abajo.
       const filasExcel = sheet1.data.map((row: any) => ({ CUIT: String(row[idxCuit] ?? '').replace(/\D/g, ""), CBU: String(row[idxCbu] ?? '').trim() })).filter((fila) => CBUPendientes.has(fila.CUIT) && fila.CBU)
 
-      logger.info(`Filas del archivo con CUIT pendiente de CBU para el banco con id ${bancoIdRequest}: ${filasExcel.length}.`)
-      if (!filasExcel.length)
-        throw new ClientException(`Ningún CUIT del archivo corresponde a una cuenta pendiente de CBU para el banco con id ${bancoIdRequest}.`)
+      if (!filasExcel.length) throw new ClientException(`Ningún CUIT del archivo corresponde a una cuenta pendiente de CBU para el banco con id ${bancoIdRequest}.`)
 
       //Validaciones del archivo en una sola pasada. Los duplicados se detectan contra lo ya recorrido.
       const cuits = new Set<string>()
@@ -427,7 +422,6 @@ export class CuentasBancariasController extends BaseController {
       //(22 dígitos numéricos) y la validación de CBU repetido. Por eso es seguro interpolarlos en el IN.
       const cbusFiltro = cuentasAActualizar.map((c) => c.CBU)
 
-      logger.info(`Cuentas a actualizar: ${cuentasAActualizar.length}.`)
       const ExistCbu: any = await queryRunner.query(`
         SELECT pb.PersonalBancoId, pb.PersonalId, pb.PersonalBancoBancoId, pb.PersonalBancoDesde, pb.PersonalBancoHasta, pb.IndNuevaCuenta, pb.PersonalBancoCBU,
           CONCAT(trim(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, cuit.PersonalCUITCUILCUIT, TRIM(ban.BancoDescripcion) BancoDescripcion
@@ -442,8 +436,6 @@ export class CuentasBancariasController extends BaseController {
 
       //El CBU ya está registrado y vigente en alguien. Es error incluso si ese alguien es la misma persona
       //del archivo: una cuenta nueva tiene que traer un CBU nuevo.
-      logger.info(`Cuentas con CBU ya registradas: ${ExistCbu.length}.`)
-
       for (const cbu of ExistCbu) {
         dataset.push({
           id: idError++,
@@ -461,7 +453,6 @@ export class CuentasBancariasController extends BaseController {
         try {
           const result = await this.updateCuentasPendientesQuerys(queryRunner, PersonalId, bancoIdRequest, CBU, fechaActual, usuario, ip)
           altaCuentasBancarias += result?.cuentasModificadas || 0
-          cuentasSinModificar += result?.cuentasSinModificar || 0
 
         } catch (error) {
           dataset.push({ id: idError++, CUIT, Detalle: `${error.message || error}` })
@@ -476,13 +467,14 @@ export class CuentasBancariasController extends BaseController {
 
       await queryRunner.commitTransaction();
 
-      const successMessage = `- Registros modificados: ${altaCuentasBancarias}.\n- Registros sin modificar: ${cuentasSinModificar}.`;
+      const successMessage = `Registros modificados: ${altaCuentasBancarias}. Cuentas que continúan pendientes de CBU: ${resCBUPendientes.length - altaCuentasBancarias}.`;
 
       await this.eventoLogFin(
         queryRunner,
         EventoLogCodigo,
         'COM',
-        { res: successMessage, 'Alta': altaCuentasBancarias, 'Sin Modificar': cuentasSinModificar, list: JSON.stringify(dataset) },
+        { res: successMessage, 'Alta': altaCuentasBancarias, 'Pendientes de CBU': resCBUPendientes.length - altaCuentasBancarias, 
+          list: JSON.stringify(dataset), cuentasAActualizar: JSON.stringify(cuentasAActualizar),  resCBUPendientes: JSON.stringify(resCBUPendientes) },
         usuario,
         ip
       );
@@ -677,6 +669,10 @@ export class CuentasBancariasController extends BaseController {
         throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${pb.PersonalBancoDesde.getDate()}/${pb.PersonalBancoDesde.getMonth() + 1}/${pb.PersonalBancoDesde.getFullYear()} (Banco: ${pb.BancoDescripcion})`)
       }
 
+      if (pb.PersonalBancoHasta && pb.PersonalBancoHasta.getTime() < Desde.getTime()) {
+        throw new ClientException(`La fecha Desde no puede ser menor a la fecha ${pb.PersonalBancoHasta.getDate()}/${pb.PersonalBancoHasta.getMonth() + 1}/${pb.PersonalBancoHasta.getFullYear()} (Banco: ${pb.BancoDescripcion})`)
+      }
+
       // actualizo registro (falta que se actualice el hasta de los otros)
       if (pb.PersonalBancoDesde.getTime() == Desde.getTime() && pb.PersonalBancoBancoId == BancoId) {
         await queryRunner.query(`
@@ -745,7 +741,6 @@ export class CuentasBancariasController extends BaseController {
 
     // Registro marcado como cuenta nueva que todavía está esperando el CBU
     const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU == '') && r.PersonalBancoBancoId == BancoId)
-    if (cuentaNuevaPendiente.length == 0) return { cuentasSinModificar: 1 }
 
     // buscar si tiene vigente mas de un cbu, si encuentra mas de uno, no se permite dar de alta la cuenta nueva. Se debera cerrar el vigente y luego dar de alta la nueva
     const cbuVigentes = PersonalBanco.filter((r: any) => (r.PersonalBancoCBU != null && r.PersonalBancoCBU != '') && r.IndNuevaCuenta == 0)
