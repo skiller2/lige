@@ -3,7 +3,7 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Response } from "express";
 
-export class DireccionesController extends BaseController {
+export class DomicilioController extends BaseController {
     test(req: any, res: any, next: any) {
         throw new Error("Method not implemented.");
     }
@@ -140,7 +140,7 @@ export class DireccionesController extends BaseController {
                 const domNormalizar = direccion.domNormalizar
                 const DomicilioId = direccion.DomicilioId
                 let nominatimResult: any = []
-                await DireccionesController.waitT(1000)
+                await DomicilioController.waitT(1000)
                 try {
                     nominatimResult = await this.getDireccionNominatim(domNormalizar)
                 } catch (error) {
