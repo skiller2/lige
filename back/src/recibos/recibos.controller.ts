@@ -454,7 +454,7 @@ export class RecibosController extends BaseController {
         select distinct doc.PersonalId
         from Documento doc 
         left join lige.dbo.liqmaperiodo peri on peri.mes=doc.DocumentoMes and peri.anio=doc.DocumentoAnio
-        where doc.DocumentoTipoCodigo='REC' and peri.periodo_id=@0 and doc.DocumentoNombreArchivo LIKE '%-C-%'
+        where doc.DocumentoTipoCodigo='RECC' and peri.periodo_id=@0
       )  ORDER BY per.PersonalId ASC`
 
 
@@ -513,7 +513,7 @@ export class RecibosController extends BaseController {
         select distinct doc.PersonalId
         from Documento doc 
         left join lige.dbo.liqmaperiodo peri on peri.mes=doc.DocumentoMes and peri.anio=doc.DocumentoAnio
-        where doc.DocumentoTipoCodigo='REC' and peri.periodo_id=@0 and doc.DocumentoNombreArchivo LIKE '%-G-%'
+        where doc.DocumentoTipoCodigo='REC' and peri.periodo_id=@0
       )
       ORDER BY per.PersonalId ASC`
 
