@@ -21,14 +21,14 @@ export class TelefoniaController extends BaseController {
 
   listaColumnas: any[] = [
     {
-      id: "TelefoniaId",
-      name: "TelefoniaId",
-      field: "TelefoniaId",
-      fieldName: "tel.TelefoniaId",
+      id: "MovimientoStockCodigo",
+      name: "Código Movimiento",
+      field: "MovimientoStockCodigo",
+      fieldName: "mov.MovimientoStockCodigo",
       type: "number",
       sortable: true,
-      searchHidden: true,
-      hidden: true
+      searchHidden: false,
+      hidden: false
     },
     {
       name: "Teléfono Número",
@@ -45,7 +45,7 @@ export class TelefoniaController extends BaseController {
       type: "string",
       id: "EfectoDescripcionCompleto",
       field: "EfectoDescripcionCompleto",
-      fieldName: "stk.EfectoDescripcionCompleto",
+      fieldName: "EfectoDescripcionCompleto",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -96,11 +96,11 @@ export class TelefoniaController extends BaseController {
       hidden: true,
     },
     {
-      name: "PersonalId",
+      name: "PersonalIdDestino",
       type: "number",
-      id: "PersonalId",
-      field: "PersonalId",
-      fieldName: "tel.TelefoniaPersonalId",
+      id: "PersonalIdDestino",
+      field: "PersonalIdDestino",
+      fieldName: "mov.PersonalIdDestino",
       sortable: true,
       searchHidden: true,
       hidden: true,
@@ -121,7 +121,7 @@ export class TelefoniaController extends BaseController {
       type: "string",
       id: "ClienteElementoDependienteDescripcion",
       field: "ClienteElementoDependienteDescripcion",
-      fieldName: "tel.TelefoniaObjetivoId",
+      fieldName: "obj.ObjetivoId",
       searchComponent: "inputForObjetivoSearch",
       searchType: "number",
       sortable: true,
@@ -238,19 +238,9 @@ export class TelefoniaController extends BaseController {
     {
       name: "Fecha desde",
       type: "date",
-      id: "TelefoniaDesde",
-      field: "TelefoniaDesde",
-      fieldName: "tel.TelefoniaDesde",
-      sortable: true,
-      searchHidden: false,
-      hidden: false,
-    },
-    {
-      name: "Fecha hasta",
-      type: "date",
-      id: "TelefoniaHasta",
-      field: "TelefoniaHasta",
-      fieldName: "tel.TelefoniaHasta",
+      id: "Fecha",
+      field: "Fecha",
+      fieldName: "mov.Fecha",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -271,107 +261,140 @@ export class TelefoniaController extends BaseController {
 
     return queryRunner.query(
       `
-SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.ObjetivoPersonalJerarquicoPersonalId) id,efeatr.EfectoAtributoIngresoValor, 
-		stk.EfectoDescripcionCompleto, 
-      eledep.ClienteElementoDependienteDescripcion, 
-      tel.TelefoniaDesde, tel.TelefoniaHasta, tel.TelefoniaObjetivoId, tel.TelefoniaPersonalId, 
-		conx.importe, conx.importesum,
-      per.PersonalId,
-      efeind.EfectoId, efeind.EfectoEfectoIndividualId,
-      conx.ImpuestoInternoTelefoniaImpuesto,
-      tel.TelefoniaObservacion,
-      iif(tel.TelefoniaObjetivoId is not null, CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)), null) as codObjetivo,
-      iif(tel.TelefoniaPersonalId is not null or objjer.ObjetivoPersonalJerarquicoPersonalId is not null,CONCAT(TRIM(per.PersonalApellido), ', ',TRIM(per.PersonalNombre)), null) ApellidoNombre, cuit.PersonalCUITCUILCUIT,
-      iif(tel.TelefoniaObjetivoId is not null or objjer.ObjetivoPersonalJerarquicoPersonalId is not null,CONCAT(CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0)), ' ', cli.ClienteDenominacion,' ',eledep.ClienteElementoDependienteDescripcion), null) ObjetivoDescripcion,
-      IIF(objjer.ObjetivoPersonalJerarquicoPersonalId is not null,'1', '0') as isCoordinadorCuenta,
-      IIF(objjer.ObjetivoPersonalJerarquicoSeDescuentaTelefono = 1,'1','0' ) DescTelefono,
-      ISNULL(eledepcon.Activo,0) AS Activo,
-      eledepcon.ClienteElementoDependienteContratoFechaDesde,
-      eledepcon.ClienteElementoDependienteContratoFechaHasta,
-      sit.SituacionRevistaDescripcion,sitrev.PersonalSituacionRevistaSituacionId, 
-      CASE 
-        WHEN  sitrev.PersonalId IS NOT NULL THEN CONCAT(TRIM(sit.SituacionRevistaDescripcion),' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta,'dd/MM/yyyy'), ')')
-        ELSE NULL
-      END AS SitRevCom,
-      sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
-      sucp.SucursalDescripcion SucursalPersonal,sucp.SucursalId,suco.SucursalDescripcion SucursalObjetivo, suco.SucursalId,
-      stk.StockStock,
-      
-      1
-      
-
-      FROM EfectoEfectoIndividual efeind 
-		JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = efeind.EfectoEfectoIndividualId AND efeatr.EfectoId =efeind.EfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
-
-      JOIN Telefonia tel ON efeind.EfectoEfectoIndividualId = tel.TelefoniaEfectoEfectoIndividualId AND efeind.EfectoId =tel.TelefoniaEfectoId		
-      
-		LEFT JOIN (
-		SELECT stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto, SUM(stk.StockStock) StockStock
-		FROM StockReal stk 
-		GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto) stk ON stk.EfectoId=efeind.EfectoId AND stk.EfectoEfectoIndividualId=efeind.EfectoEfectoIndividualId
-      LEFT JOIN Objetivo obj ON obj.ObjetivoId = tel.TelefoniaObjetivoId
-      LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-      LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
-
-      LEFT JOIN (
-                            SELECT 
-                                ec.ClienteId, 
-                                ec.ClienteElementoDependienteId, 
-                                ec.ClienteElementoDependienteContratoId, 
-                                ec.ClienteElementoDependienteContratoFechaDesde, 
-                                ec.ClienteElementoDependienteContratoFechaHasta,
-								CASE
-									WHEN ec.ClienteElementoDependienteContratoFechaDesde<=@0 AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta,'9999-12-31')>=@0 THEN '1'
-									ELSE '0' END AS Activo,
-                                ROW_NUMBER() OVER (PARTITION BY ec.ClienteId, ec.ClienteElementoDependienteId 
-                                                    ORDER BY ec.ClienteElementoDependienteContratoFechaDesde DESC) AS RowNum
-                            FROM ClienteElementoDependienteContrato ec
-                            WHERE EOMONTH(@0) >= ec.ClienteElementoDependienteContratoFechaDesde
-                        ) eledepcon ON eledepcon.ClienteId = obj.ClienteId 
-                            AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-                            AND eledepcon.RowNum = 1
+SELECT CONCAT(mov.MovimientoStockCodigo,'-',efeind.EfectoId, '-', efeind.EfectoEfectoIndividualId) id,
+       efeatr.EfectoAtributoIngresoValor,
+       CONCAT(TRIM(efedes.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efedes.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
+       -- efedes.EfectoIndividualAtrDescripcion,
+  		 mov.Fecha,
+       mov.MovimientoStockCodigo,
+		 mov.PersonalIdDestino,
+		 mov.ClienteIdDestino,
+		 mov.ClienteElementoDependienteIdDestino,
+       
+       -- conx.importe,
+       -- conx.importesum,
+       efeind.EfectoId,
+       efeind.EfectoEfectoIndividualId,
+       conx.ImpuestoInternoTelefoniaImpuesto,
+       -- tel.TelefoniaObservacion,
+       iif(mov.ClienteIdDestino IS NOT NULL, CONCAT(mov.ClienteIdDestino, '/', ISNULL(mov.ClienteElementoDependienteIdDestino, 0)), NULL) AS codObjetivo,
+       iif(mov.PersonalIdDestino IS NOT NULL
+           OR objjer.ObjetivoPersonalJerarquicoPersonalId IS NOT NULL, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)), NULL) ApellidoNombre,
+       cuit.PersonalCUITCUILCUIT,
+       iif(mov.ClienteIdDestino IS NOT NULL
+           OR objjer.ObjetivoPersonalJerarquicoPersonalId IS NOT NULL, CONCAT(CONCAT(mov.ClienteIdDestino, '/', ISNULL(mov.ClienteElementoDependienteIdDestino, 0)), ' ', cli.ClienteDenominacion, ' ', eledep.ClienteElementoDependienteDescripcion), NULL) ObjetivoDescripcion,
+       IIF(objjer.ObjetivoPersonalJerarquicoPersonalId IS NOT NULL, '1', '0') AS isCoordinadorCuenta,
+       IIF(objjer.ObjetivoPersonalJerarquicoSeDescuentaTelefono = 1, '1', '0') DescTelefono,
+       ISNULL(eledepcon.Activo, 0) AS Activo,
+       eledepcon.ClienteElementoDependienteContratoFechaDesde,
+       eledepcon.ClienteElementoDependienteContratoFechaHasta,
+       sit.SituacionRevistaDescripcion,
+       sitrev.PersonalSituacionRevistaSituacionId,
+       CASE
+           WHEN sitrev.PersonalId IS NOT NULL THEN CONCAT(TRIM(sit.SituacionRevistaDescripcion), ' (Desde: ', FORMAT(sitrev.PersonalSituacionRevistaDesde, 'dd/MM/yyyy'), ' - Hasta: ', FORMAT(sitrev.PersonalSituacionRevistaHasta, 'dd/MM/yyyy'), ')')
+           ELSE NULL
+       END AS SitRevCom,
+       sitrev.PersonalSituacionRevistaDesde,
+       sitrev.PersonalSituacionRevistaHasta,
+       sucp.SucursalDescripcion SucursalPersonal,
+       sucp.SucursalId,
+       suco.SucursalDescripcion SucursalObjetivo,
+       suco.SucursalId, 
+		 stk.StockStock,
+ 1
+FROM EfectoEfectoIndividual efeind
+JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = efeind.EfectoEfectoIndividualId AND efeatr.EfectoId =efeind.EfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7 
 
 
-      LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta ,'9999-12-31') AND objjer.ObjetivoPersonalJerarquicoSeDescuentaTelefono = 1
-      LEFT JOIN Personal per ON per.PersonalId = ISNULL(tel.TelefoniaPersonalId, objjer.ObjetivoPersonalJerarquicoPersonalId)
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-
-      LEFT JOIN (
-        SELECT asi.TelefoniaId, imp.ImpuestoInternoTelefoniaImpuesto,
-        SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100 )) importe,
-        
-        SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte) importesum
-
-        FROM ConsumoTelefoniaAno anio
-        JOIN ConsumoTelefoniaAnoMes mes ON mes.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
-        JOIN ConsumoTelefoniaAnoMesTelefonoAsignado asi ON asi.ConsumoTelefoniaAnoMesId=mes.ConsumoTelefoniaAnoMesId AND asi.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
-        JOIN ConsumoTelefoniaAnoMesTelefonoConsumo con ON con.ConsumoTelefoniaAnoMesId = mes.ConsumoTelefoniaAnoMesId AND con.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId AND con.ConsumoTelefoniaAnoMesTelefonoAsignadoId= asi.ConsumoTelefoniaAnoMesTelefonoAsignadoId
-        JOIN ImpuestoInternoTelefonia imp ON EOMONTH(DATEFROMPARTS(@1,@2,1)) > imp.ImpuestoInternoTelefoniaDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(imp.ImpuestoInternoTelefoniaHasta ,'9999-12-31') 
-        WHERE anio.ConsumoTelefoniaAnoAno = @1 AND mes.ConsumoTelefoniaAnoMesMes = @2
-        GROUP BY asi.TelefoniaId,imp.ImpuestoInternoTelefoniaImpuesto
-      ) conx ON conx.TelefoniaId = tel.TelefoniaId
-        
-
-  
-          LEFT JOIN 
-          (
-          SELECT sitrev2.PersonalId, MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
-          FROM PersonalSituacionRevista sitrev2
-          WHERE @0 >= sitrev2.PersonalSituacionRevistaDesde AND @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta,'9999-12-31') 
-          GROUP BY sitrev2.PersonalId
-          ) sitrev3  ON sitrev3.PersonalId = per.PersonalId
-          LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
-                  
-          LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
-          
-          LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
-          LEFT JOIN Sucursal sucp ON sucp.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
-
-          LEFT JOIN Sucursal suco ON suco.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId ,sucper.PersonalSucursalPrincipalSucursalId)
+CROSS APPLY
+     (SELECT TOP (1) sc.MovimientoStockCodigo, sc.Fecha, sc.PersonalIdDestino, sc.ProveedorIdDestino, sc.DepositoIdDestino, sc.ClienteIdDestino, sc.ClienteElementoDependienteIdDestino
+      FROM MovimientoStockDetalle sd
+      JOIN MovimientoStock sc ON sc.MovimientoStockCodigo = sd.MovimientoStockCodigo
+      WHERE sd.EfectoId = efeind.EfectoId
+        AND sd.EfectoIndividualId = efeind.EfectoEfectoIndividualId
+        AND sc.Fecha <= @0
+      ORDER BY sc.Fecha DESC, sc.MovimientoStockCodigo DESC) mov
+   
 
 
-      WHERE @0 >= tel.TelefoniaDesde AND @0 <= ISNULL(tel.TelefoniaHasta,'9999-12-31') 
-    AND tel.TelefoniaDesde <> ISNULL(tel.TelefoniaHasta,'9999-12-31')
+   JOIN EfectoDescripcion efedes ON efedes.EfectoId = efeind.EfectoId 
+JOIN EfectoIndividualDescripcion efeinddes ON efeinddes.EfectoId = efeind.EfectoId AND efeinddes.EfectoEfectoIndividualId = efeind.EfectoEfectoIndividualId
+
+JOIN (
+  SELECT stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto, SUM(stk.StockStock) StockStock
+  FROM StockReal stk 
+  GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto
+  ) stk ON stk.EfectoId=efeind.EfectoId AND stk.EfectoEfectoIndividualId=efeind.EfectoEfectoIndividualId
+
+
+LEFT JOIN Cliente cli ON cli.ClienteId = mov.ClienteIdDestino
+LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = mov.ClienteElementoDependienteIdDestino AND eledep.ClienteId = mov.ClienteIdDestino
+LEFT JOIN
+  (SELECT ec.ClienteId,
+          ec.ClienteElementoDependienteId,
+          ec.ClienteElementoDependienteContratoId,
+          ec.ClienteElementoDependienteContratoFechaDesde,
+          ec.ClienteElementoDependienteContratoFechaHasta,
+          CASE
+              WHEN ec.ClienteElementoDependienteContratoFechaDesde<=@0
+                   AND ISNULL(ec.ClienteElementoDependienteContratoFechaHasta, '9999-12-31')>=@0 THEN '1'
+              ELSE '0'
+          END AS Activo,
+          ROW_NUMBER() OVER (PARTITION BY ec.ClienteId, ec.ClienteElementoDependienteId
+                             ORDER BY ec.ClienteElementoDependienteContratoFechaDesde DESC) AS RowNum
+   FROM ClienteElementoDependienteContrato ec
+   WHERE EOMONTH(@0) >= ec.ClienteElementoDependienteContratoFechaDesde ) eledepcon ON eledepcon.ClienteId = mov.ClienteIdDestino
+AND eledepcon.ClienteElementoDependienteId = mov.ClienteElementoDependienteIdDestino
+AND eledepcon.RowNum = 1
+LEFT JOIN Objetivo obj ON obj.ClienteId =  mov.ClienteIdDestino AND obj.ClienteElementoDependienteId = mov.ClienteElementoDependienteIdDestino
+LEFT JOIN ObjetivoPersonalJerarquico objjer ON objjer.ObjetivoId = obj.ObjetivoId
+AND @0 >= objjer.ObjetivoPersonalJerarquicoDesde
+AND @0 <= ISNULL(objjer.ObjetivoPersonalJerarquicoHasta, '9999-12-31')
+AND objjer.ObjetivoPersonalJerarquicoSeDescuentaTelefono = 1
+LEFT JOIN Personal per ON per.PersonalId = ISNULL(mov.PersonalIdDestino, objjer.ObjetivoPersonalJerarquicoPersonalId)
+LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
+AND cuit.PersonalCUITCUILId =
+  (SELECT MAX(cuitmax.PersonalCUITCUILId)
+   FROM PersonalCUITCUIL cuitmax
+   WHERE cuitmax.PersonalId = per.PersonalId)
+LEFT JOIN
+  (SELECT asi.EfectoId, asi.EfectoEfectoIndividualId,
+          imp.ImpuestoInternoTelefoniaImpuesto,
+          SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte+ (con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte * imp.ImpuestoInternoTelefoniaImpuesto / 100)) importe,
+          SUM(con.ConsumoTelefoniaAnoMesTelefonoConsumoImporte) importesum
+   FROM ConsumoTelefoniaAno anio
+   JOIN ConsumoTelefoniaAnoMes mes ON mes.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
+   JOIN ConsumoTelefoniaAnoMesTelefonoAsignado asi ON asi.ConsumoTelefoniaAnoMesId=mes.ConsumoTelefoniaAnoMesId
+   AND asi.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
+   JOIN ConsumoTelefoniaAnoMesTelefonoConsumo con ON con.ConsumoTelefoniaAnoMesId = mes.ConsumoTelefoniaAnoMesId
+   AND con.ConsumoTelefoniaAnoId = anio.ConsumoTelefoniaAnoId
+   AND con.ConsumoTelefoniaAnoMesTelefonoAsignadoId= asi.ConsumoTelefoniaAnoMesTelefonoAsignadoId
+   JOIN ImpuestoInternoTelefonia imp ON EOMONTH(DATEFROMPARTS(@1,@2, 1)) > imp.ImpuestoInternoTelefoniaDesde
+   AND DATEFROMPARTS(@1,@2, 1) < ISNULL(imp.ImpuestoInternoTelefoniaHasta, '9999-12-31')
+   WHERE anio.ConsumoTelefoniaAnoAno = @1
+     AND mes.ConsumoTelefoniaAnoMesMes = @2
+   GROUP BY asi.EfectoId, asi.EfectoEfectoIndividualId,
+            imp.ImpuestoInternoTelefoniaImpuesto) conx ON conx.EfectoId = efeind.EfectoId AND conx.EfectoEfectoIndividualId = efeind.EfectoEfectoIndividualId
+LEFT JOIN
+  (SELECT sitrev2.PersonalId,
+          MAX(sitrev2.PersonalSituacionRevistaId) PersonalSituacionRevistaId
+   FROM PersonalSituacionRevista sitrev2
+   WHERE @0 >= sitrev2.PersonalSituacionRevistaDesde
+     AND @0 <= ISNULL(sitrev2.PersonalSituacionRevistaHasta, '9999-12-31')
+   GROUP BY sitrev2.PersonalId) sitrev3 ON sitrev3.PersonalId = per.PersonalId
+LEFT JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId
+AND sitrev.PersonalSituacionRevistaId = sitrev3.PersonalSituacionRevistaId
+LEFT JOIN SituacionRevista sit ON sit.SituacionRevistaId = sitrev.PersonalSituacionRevistaSituacionId
+LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId
+AND sucper.PersonalSucursalPrincipalId =
+  (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId
+   FROM PersonalSucursalPrincipal a
+   WHERE a.PersonalId = per.PersonalId)
+LEFT JOIN Sucursal sucp ON sucp.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
+LEFT JOIN Sucursal suco ON suco.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, sucper.PersonalSucursalPrincipalSucursalId)
+   
+ WHERE stk.StockStock > 0
+
            AND (${filterSql}) ${orderBy}`,
       [fecha, anio, mes])
 
@@ -584,7 +607,7 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
       const telefonosRegistradosSinConsumo = telefonos.filter((row) => (Number(row.total) < 1 || isNaN(Number(row.total))))
       for (const tel of telefonosRegistradosSinConsumo) {
         if (!tel.TelefoniaHasta || tel.TelefoniaHasta > new Date()) {
-          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` figura en sistema de gestion y no en xls (Efecto: ${tel.EfectoDescripcionCompleto}), TelefonoId: ${tel.TelefoniaId}` })
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` figura en sistema de gestion y no en xls (Efecto: ${tel.EfectoDescripcionCompleto}), EfectoEfectoIndividualId: ${tel.EfectoEfectoIndividualId}` })
         }
       }
 
@@ -593,13 +616,13 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
 
       for (const tel of telefonos) {
         if (!tel.EfectoAtributoIngresoValor)
-          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin número de teléfono asignado (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` sin número de teléfono asignado (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), EfectoEfectoIndividualId: ${tel.EfectoEfectoIndividualId}` })
 
         telRepeat[tel.EfectoEfectoIndividualId] = (telRepeat[tel.EfectoEfectoIndividualId] || 0) + 1;
         if (telRepeat[tel.EfectoEfectoIndividualId] > 1)
-          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` se encuentra repetido #${telRepeat[tel.EfectoEfectoIndividualId]} el teléfono (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), TelefonoId: ${tel.TelefoniaId}` })
+          dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` se encuentra repetido #${telRepeat[tel.EfectoEfectoIndividualId]} el teléfono (Efecto: ${tel.EfectoEfectoIndividualDescripcion}), EfectoEfectoIndividualId: ${tel.EfectoEfectoIndividualId}` })
 
-        if (tel.TelefoniaObjetivoId) {
+        if (tel.ClienteIdDestino) {
           if (!tel.ClienteElementoDependienteContratoFechaHasta && !tel.ClienteElementoDependienteContratoFechaDesde)
             dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: ` Objetivo sin fecha de contrato` })
 
@@ -614,7 +637,7 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
           }
         }
 
-        if (tel.PersonalId && tel.PersonalId != 28496) { //PersonalId 28496 Lince es un caso particular que no tiene situación de revista y se decidió permitirlo igual
+        if (tel.PersonalIdDestino && tel.PersonalIdDestino != 28496) { //PersonalId 28496 Lince es un caso particular que no tiene situación de revista y se decidió permitirlo igual
           if (tel.PersonalSituacionRevistaSituacionId != 2 && tel.PersonalSituacionRevistaSituacionId != 10)
             dataset.push({ id: datasetid++, TelefoniaNro: tel.EfectoAtributoIngresoValor, Detalle: `Personal ${tel.PersonalId} con situación de revista ${tel.SituacionRevistaDescripcion}` })
         }
@@ -711,15 +734,17 @@ SELECT CONCAT(efeind.EfectoId, '-',efeind.EfectoEfectoIndividualId,'-',objjer.Ob
         let ConsumoTelefoniaAnoMesTelefonoConsumoUltlNro = 0
         totalsuma += telrow.total
         await queryRunner.query(
-          `INSERT INTO ConsumoTelefoniaAnoMesTelefonoAsignado (ConsumoTelefoniaAnoMesTelefonoAsignadoId, ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoId, TelefoniaId, ConsumoTelefoniaAnoMesTelefonoConsumoUltlNro, TelefonoConsumoFacturarAPersonalId, TelefonoConsumoFacturarAObjetivoId)
-           VALUES (@0,@1,@2,@3,@4,@5,@6)`,
+          `INSERT INTO ConsumoTelefoniaAnoMesTelefonoAsignado (ConsumoTelefoniaAnoMesTelefonoAsignadoId, ConsumoTelefoniaAnoMesId, ConsumoTelefoniaAnoId, TelefoniaId, ConsumoTelefoniaAnoMesTelefonoConsumoUltlNro, TelefonoConsumoFacturarAPersonalId, TelefonoConsumoFacturarAObjetivoId, EfectoId, EfectoEfectoIndividualId)
+           VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8)`,
           [ConsumoTelefoniaAnoMesTelefonoUltNro,
             ConsumoTelefoniaAnoMesId,
             ConsumoTelefoniaAnoId,
-            telrow.TelefoniaId,
+            null,
             ConsumoTelefoniaAnoMesTelefonoConsumoUltlNro,
             telrow.PersonalId,
-            telrow.TelefoniaObjetivoId
+            telrow.TelefoniaObjetivoId,
+            telrow.EfectoId,
+            telrow.EfectoEfectoIndividualId
           ])
 
         let ConsumoTelefoniaAnoMesTelefonoConsumoId = 0

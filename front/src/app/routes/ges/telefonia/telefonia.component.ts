@@ -83,10 +83,10 @@ export class TelefoniaComponent {
 
   columnsImport = signal([
     {
-      id: "id",
-      name: "id",
-      field: "id",
-      fieldName: "id.TelefoniaId",
+      id: "EfectoEfectoIndividualId",
+      name: "EfectoEfectoIndividualId",
+      field: "EfectoEfectoIndividualId",
+      fieldName: "efeind.EfectoEfectoIndividualId",
       type: "number",
       sortable: true,
       searchHidden: true,
@@ -148,11 +148,11 @@ export class TelefoniaComponent {
     params: () => ({ anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
       let response = []
-      this.loadingSrv.open({ type: 'spin', text: '' })
+      //this.loadingSrv.open({ type: 'spin', text: '' })
       try {
         response = await firstValueFrom(this.apiService.getImportacionesTelefoniaAnteriores(params.anio, params.mes))
       } catch (_e) { }
-      this.loadingSrv.close()
+      //this.loadingSrv.close()
 
       return response || [];
     },
