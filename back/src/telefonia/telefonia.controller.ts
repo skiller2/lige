@@ -51,16 +51,6 @@ export class TelefoniaController extends BaseController {
       hidden: false,
     },
     {
-      name: "Observación",
-      type: "string",
-      id: "TelefoniaObservacion",
-      field: "TelefoniaObservacion",
-      fieldName: "tel.TelefoniaObservacion",
-      sortable: true,
-      searchHidden: false,
-      hidden: false,
-    },
-    {
       name: "Apellido Nombre",
       type: "string",
       id: "ApellidoNombre",
@@ -264,7 +254,6 @@ export class TelefoniaController extends BaseController {
 SELECT CONCAT(mov.MovimientoStockCodigo,'-',efeind.EfectoId, '-', efeind.EfectoEfectoIndividualId) id,
        efeatr.EfectoAtributoIngresoValor,
        CONCAT(TRIM(efedes.EfectoDescripcion), ' - ', TRIM(efeinddes.EfectoEfectoIndividualDescripcion), ' (', efedes.EfectoAtrDescripcion, ', ', efeinddes.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
-       -- efedes.EfectoIndividualAtrDescripcion,
   		 mov.Fecha,
        mov.MovimientoStockCodigo,
 		 mov.PersonalIdDestino,
@@ -323,6 +312,7 @@ JOIN EfectoIndividualDescripcion efeinddes ON efeinddes.EfectoId = efeind.Efecto
 JOIN (
   SELECT stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto, SUM(stk.StockStock) StockStock
   FROM StockReal stk 
+  WHERE stk.StockStock >0
   GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto
   ) stk ON stk.EfectoId=efeind.EfectoId AND stk.EfectoEfectoIndividualId=efeind.EfectoEfectoIndividualId
 
@@ -392,8 +382,7 @@ AND sucper.PersonalSucursalPrincipalId =
    WHERE a.PersonalId = per.PersonalId)
 LEFT JOIN Sucursal sucp ON sucp.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
 LEFT JOIN Sucursal suco ON suco.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, sucper.PersonalSucursalPrincipalSucursalId)
-   
- WHERE stk.StockStock > 0
+ WHERE 1=1
 
            AND (${filterSql}) ${orderBy}`,
       [fecha, anio, mes])
