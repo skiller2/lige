@@ -274,9 +274,17 @@ export class MovimientoStockController extends BaseController {
     // El efecto no es columna de la grilla se saca del filtrosToSql y se
     // resuelve como EXISTS sobre MovimientoStockDetalle.
     const filtros = listOptions?.filtros ?? []
-    const efectoId = Number(filtros.find((f: any) => f?.index === 'EfectoId')?.valor?.[0]?.EfectoId)
+    // El valor del filtro de efecto es compuesto ({ EfectoId, EfectoEfectoIndividualId }), igual que
+    // en filtrosToSql: el individual también forma parte del filtro. En el detalle la columna del
+    // individual se llama EfectoIndividualId. Sin individual, se filtran los movimientos del efecto
+    const valorEfecto: any = filtros.find((f: any) => f?.index === 'EfectoId')?.valor?.[0]
+    const efectoId = Number(valorEfecto?.EfectoId)
+    const individualId = valorEfecto?.EfectoEfectoIndividualId
+    const individualSql = (individualId === null || individualId === undefined || individualId === '')
+      ? 'det.EfectoIndividualId IS NULL'
+      : `det.EfectoIndividualId = ${Number(individualId)}`
     const filterSql = filtrosToSql(filtros.filter((f: any) => f?.index !== 'EfectoId'), listaColumnasMovimientos)
-    const efectoSql = efectoId ? ` AND EXISTS (SELECT 1 FROM MovimientoStockDetalle det WHERE det.MovimientoStockCodigo = m.MovimientoStockCodigo AND det.EfectoId = ${efectoId})` : ''
+    const efectoSql = efectoId ? ` AND EXISTS (SELECT 1 FROM MovimientoStockDetalle det WHERE det.MovimientoStockCodigo = m.MovimientoStockCodigo AND det.EfectoId = ${efectoId} AND ${individualSql})` : ''
     return queryRunner.query(`
       SELECT ROW_NUMBER() OVER (ORDER BY m.MovimientoStockCodigo DESC) AS id,
           m.MovimientoStockCodigo,
