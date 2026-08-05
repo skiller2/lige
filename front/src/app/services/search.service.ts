@@ -537,7 +537,7 @@ export class SearchService {
       
       // Validar el address
       const address = item.address
-      let verAddress:any = {PaisId: 1, ProvinciaId:0, LocalidadId:0, BarrioId:0}
+      let verAddress:any = {PaisId: 1, ProvinciaId:null, LocalidadId:null, BarrioId:null}
       if(address.state){
         await firstValueFrom(this.getProvinciaFromName('Descripcion', address.state, verAddress.PaisId)
           .pipe(map(res => {

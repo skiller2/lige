@@ -310,10 +310,10 @@ CROSS APPLY
 JOIN EfectoIndividualDescripcion efeinddes ON efeinddes.EfectoId = efeind.EfectoId AND efeinddes.EfectoEfectoIndividualId = efeind.EfectoEfectoIndividualId
 
 JOIN (
-  SELECT stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto, SUM(stk.StockStock) StockStock
+  SELECT stk.EfectoId, stk.EfectoEfectoIndividualId, SUM(stk.StockStock) StockStock
   FROM StockReal stk 
   WHERE stk.StockStock >0
-  GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId, stk.EfectoDescripcionCompleto
+  GROUP BY stk.EfectoId, stk.EfectoEfectoIndividualId
   ) stk ON stk.EfectoId=efeind.EfectoId AND stk.EfectoEfectoIndividualId=efeind.EfectoEfectoIndividualId
 
 

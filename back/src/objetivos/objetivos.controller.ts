@@ -3,9 +3,9 @@ import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
-import { domicilioController } from "../controller/controller.module.ts"
 import type { QueryRunner } from "typeorm";
 import { personalController } from "../controller/controller.module.ts";
+import { domicilioController } from "../controller/controller.module.ts";
 import { logger } from "../logger/logger.ts";
 
 const getOptions: any[] = [
@@ -1395,8 +1395,6 @@ outer APPLY (SELECT
                         , Obj.DomicilioProvinciaId
                         , Obj.DomicilioLocalidadId
                         , Obj.DomicilioBarrioId
-                        , Obj.DomicilioCompleto
-                        , Obj.DomicilioJson
                     )
 
                 }
@@ -2023,7 +2021,7 @@ outer APPLY (SELECT
             await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, Obj.CoberturaServicio)
             await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
             await this.addElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
-                Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId, Obj.DomicilioCompleto, Obj.DomicilioJson)
+                Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
 
             //await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
             await this.insertObjetivoSql(queryRunner, Number(Obj.ClienteId), Obj.Descripcion, ClienteElementoDependienteUltNro, Obj.SucursalId)
@@ -2101,27 +2099,40 @@ outer APPLY (SELECT
     }
 
     async addElementoDependienteDomicilio(queryRunner: any, ClienteId: any, ClienteElementoDependienteId: any, DomicilioDomLugar: any, DomicilioDomCalle: any,
-        DomicilioDomNro: any, DomicilioCodigoPostal: any, DomicilioProvinciaId: any, DomicilioLocalidadId: any, DomicilioBarrioId: any,
-        DomicilioCompleto:string, DomicilioJson:string) {
+        DomicilioDomNro: any, DomicilioCodigoPostal: any, DomicilioProvinciaId: any, DomicilioLocalidadId: any, DomicilioBarrioId: any) {
         const DomicilioPaisId:number = 1 //Argentina
 
         await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual = 0 WHERE ClienteElementoDependienteId = @0 AND ClienteId = @1 `, [ClienteElementoDependienteId, ClienteId])
-
-        const domicilio = await domicilioController.checkDomicilioJSON(queryRunner, {DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioJson})
 
         const domicilioBarrioIdValue = DomicilioBarrioId ? DomicilioBarrioId : null
         await queryRunner.query(
             `INSERT INTO Domicilio (
                 DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
-                DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId,
-                DomicilioCompleto, DomicilioJson) 
+                DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId) 
             VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, 
             [ DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro,
-            DomicilioCodigoPostal, DomicilioPaisId, DomicilioProvinciaId, domicilio? domicilio.DomicilioLocalidadId : DomicilioLocalidadId,
-            domicilioBarrioIdValue, DomicilioCompleto, DomicilioJson ]
+            DomicilioCodigoPostal, DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId,
+            domicilioBarrioIdValue]
         )
         const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
         const DomicilioId = resDomicilio[0]['']
+
+        await queryRunner.query(
+            `INSERT INTO NexoDomicilio (
+                DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ClienteId, ClienteElementoDependienteId
+            ) 
+            VALUES ( @0,@1,@2,@3,@4,@5,@6,@7)`, 
+            [ DomicilioId, 1, 0, 1, 0, 0, ClienteId, ClienteElementoDependienteId]
+        )
+    }
+    //Esta funcion esta preparada para cuando se habilite el search-addr
+    async newAddElementoDependienteDomicilio(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, DomicilioDomLugar: string, Domicilio:any) {
+    
+        await domicilioController.valObjDomicilio(queryRunner, Domicilio)
+
+        await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual = 0 WHERE ClienteElementoDependienteId = @0 AND ClienteId = @1 `, [ClienteElementoDependienteId, ClienteId])
+        
+        const DomicilioId = await domicilioController.addDomicilio(queryRunner, Domicilio, DomicilioDomLugar)
 
         await queryRunner.query(
             `INSERT INTO NexoDomicilio (
