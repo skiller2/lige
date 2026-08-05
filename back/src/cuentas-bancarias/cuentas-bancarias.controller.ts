@@ -270,6 +270,27 @@ export class CuentasBancariasController extends BaseController {
     }
   }
 
+  //Totalizador de cuentas pendientes de CBU del banco. Sólo cuenta: no filtra por vigencia ni mira el CBU, el pendiente lo define IndNuevaCuenta
+  async getCuentasPendientesCBU(req: any, res: Response, next: NextFunction) {
+    const BancoId = Number(req.params.BancoId)
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      if (!BancoId) return this.jsonRes({ Pendientes: 0 }, res)
+
+      const result: any[] = await queryRunner.query(`
+        SELECT COUNT(*) Pendientes
+        FROM PersonalBanco pb
+        WHERE pb.IndNuevaCuenta = 1 AND pb.PersonalBancoBancoId = @0
+      `, [BancoId])
+
+      this.jsonRes({ Pendientes: result[0]?.Pendientes || 0 }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async handleXLSUpload(req: Request, res: Response, next: NextFunction) {
     const bancoIdRequest = Number(req.body.BancoId)
     const file = req.body.file

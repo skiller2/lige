@@ -2321,6 +2321,14 @@ export class ApiService {
     );
   }
 
+  getCuentasPendientesCBU(BancoId: number) {
+    if (!BancoId) return of(null);
+    return this.http.get<ResponseJSON<any>>(`api/cuentas-bancarias/pendientes/${BancoId}`).pipe(
+      map((res: any) => res.data),
+      catchError(() => of(null))
+    );
+  }
+
   importXLSCuentasBancarias(file: any, periodo: any, BancoId: number) {
     const parameter = { file, periodo, BancoId }
     return this.http.post<ResponseJSON<any>>(`api/cuentas-bancarias/import-xls`, parameter).pipe(
