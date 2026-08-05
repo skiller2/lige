@@ -109,18 +109,6 @@ const columns: any[] = [
     searchHidden: false
   },
   {
-    id: "ImporteTranferido",
-    field: "ImporteTranferido",
-    name: "Importe Tranferido",
-    type: "currency",
-    fieldName: "mo.importe",
-    searchComponent: "inputForNumberAdvancedSearch",
-    searchType: "numberAdvanced",
-    sortable: true,
-    hidden: false,
-    searchHidden: false
-  },
-  {
     id: "PersonalBancoDesde",
     field: "PersonalBancoDesde",
     name: "Desde",
@@ -207,29 +195,19 @@ export class CuentasBancariasController extends BaseController {
     return this.jsonRes(columns, res)
   }
 
-  async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any, periodo: Date, sitRevistaPeriodo: Date, liqmaperiodo: Date) {
+  async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any, periodo: Date) {
     return await queryRunner.query(`
-      SELECT ROW_NUMBER() OVER (ORDER BY pb.PersonalId) AS id,
-        pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(ISNULL(pb.IndNuevaCuenta, 0) AS CHAR(1)) AS IndNuevaCuenta
+      SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
+        per.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(ISNULL(pb.IndNuevaCuenta, 0) AS CHAR(1)) AS IndNuevaCuenta
         , CASE WHEN pb.PersonalId IS NULL THEN '1' ELSE '0' END AS SinCuentaBancaria
         , CONCAT(TRIM(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, sitrev.sitRevCom, sitrev.PersonalSituacionRevistaSituacionId
         , cuit.PersonalCUITCUILCUIT, suc.SucursalDescripcion, ga.GrupoActividadId, ga.GrupoActividadDetalle,
-        mo.importe as ImporteTranferido,
-		  1
+        1
       FROM Personal per
-      LEFT JOIN PersonalBanco pb on per.PersonalId=pb.PersonalId and ((@0 >= pb.PersonalBancoDesde AND @0 <= ISNULL(pb.PersonalBancoHasta, '9999-12-31')) OR @0 <= pb.PersonalBancoDesde)
+      LEFT JOIN PersonalBanco pb on per.PersonalId=pb.PersonalId and ((@0 >= pb.PersonalBancoDesde AND @0 <= ISNULL(pb.PersonalBancoHasta, '9999-12-31')) OR pb.IndNuevaCuenta=1)
       LEFT JOIN Banco b on b.BancoId=pb.PersonalBancoBancoId 
 
-      LEFT JOIN (
-        SELECT mov.persona_id, mov.periodo_id, pe.anio, pe.mes, SUM(importe) importe  
-        FROM lige.dbo.liqmamovimientos mov 
-        JOIN lige.dbo.liqmaperiodo pe ON pe.periodo_id = mov.periodo_id AND pe.anio=DATEPART(YEAR, @2) AND pe.mes=DATEPART(MONTH, @2)
-        WHERE mov.tipo_movimiento_id=11 
-        GROUP BY mov.persona_id, mov.periodo_id, pe.anio, pe.mes
-		  
-		  ) mo ON mo.persona_id = per.PersonalId
-      
-      LEFT JOIN (
+        LEFT JOIN (
         SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
           CASE 
             WHEN p.PersonalSituacionRevistaId IS NOT NULL THEN  
@@ -243,7 +221,7 @@ export class CuentasBancariasController extends BaseController {
           END AS sitRevCom
         FROM PersonalSituacionRevista p
         JOIN SituacionRevista s
-        ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= @1 AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= @1
+        ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= @0 AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= @0
       ) sitrev ON sitrev.PersonalId = per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
@@ -271,7 +249,7 @@ export class CuentasBancariasController extends BaseController {
 
       WHERE (${filterSql})
       ${orderBy}
-    `, [periodo, sitRevistaPeriodo, liqmaperiodo])
+    `, [periodo])
   }
 
   async getCuentasBancarias(req: any, res: Response, next: NextFunction) {
@@ -281,10 +259,8 @@ export class CuentasBancariasController extends BaseController {
       const filterSql = filtrosToSql(options.filtros, columns);
       const orderBy = orderToSQL(options.sort)
       const periodo = new Date(req.body.periodo)
-      const sitRevistaPeriodo = new Date(req.body.sitRevistaPeriodo)
-      const liqmaperiodo = new Date(req.body.liqmaperiodo)
 
-      const lista: any[] = await this.getCuentasBancariasQuery(queryRunner, filterSql, orderBy, periodo, sitRevistaPeriodo, liqmaperiodo)
+      const lista: any[] = await this.getCuentasBancariasQuery(queryRunner, filterSql, orderBy, periodo)
 
       this.jsonRes(lista, res);
     } catch (error) {

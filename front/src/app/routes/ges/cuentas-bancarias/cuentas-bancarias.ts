@@ -29,8 +29,6 @@ import { CuentasBancariasAltaDrawerComponent } from '../cuentas-bancarias-alta-d
 })
 export class CuentasBancariasComponent {
   periodo = signal<Date>(new Date())
-  periodoSR = signal<Date>(new Date())
-  periodoIT = signal<Date>(new Date())
   tabIndex = signal<number>(0)
   angularGrid!: AngularGridInstance;
   gridOptions!: GridOption;
@@ -58,7 +56,7 @@ export class CuentasBancariasComponent {
   private filtrosInicializados = false
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), periodo: this.periodo(), sitRevistaPeriodo: this.periodoSR(), liqmaperiodo: this.periodoIT() }),
+    params: () => ({ options: this.listOptions(), periodo: this.periodo() }),
     loader: async ({ params }) => {
       if (!params.options.filtros.length && !this.filtrosInicializados)
         return []
@@ -69,9 +67,7 @@ export class CuentasBancariasComponent {
       try {
         response = await firstValueFrom(this.apiService.getCuentasBancarias({
           options: params.options,
-          periodo: params.periodo,
-          sitRevistaPeriodo: params.sitRevistaPeriodo,
-          liqmaperiodo: params.liqmaperiodo
+          periodo: params.periodo
         }));
       } catch (_e) { }
       this.loadingSrv.close()
