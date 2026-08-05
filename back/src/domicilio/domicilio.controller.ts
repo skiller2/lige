@@ -512,19 +512,64 @@ export class DomicilioController extends BaseController {
     });
   }
 
-  // Crea las localidades que no estan registradas usando DomicilioJSON. Ver tabla de Domicilio
-  async checkDomicilioJSON(queryRunner:any, domicilio:any){
-    if(!domicilio.DomicilioJson.length) return null
-    const address:any = JSON.parse(domicilio.DomicilioJson)
+  // Valida el objeto que devuelve AddrSearchComponent
+  async valObjDomicilio(queryRunner:any, domicilio:any){
+    if (!domicilio.address || Object.keys(domicilio.address).length === 0) {
+      throw new ClientException(`Domicilio invalido`)
+    }
+
+    if (!domicilio.display_name || domicilio.display_name.length === 0) {
+      throw new ClientException(`Domicilio invalido`)
+    }
+
+    if (!domicilio.place_id || isNaN(domicilio.place_id)) {
+      throw new ClientException(`Domicilio invalido`)
+    }
+  }
+
+  // Agrega un nuevo registro a la tabla Domicilio, devuelve el id del nuevo registro
+  async addDomicilio(queryRunner:any, domicilio:any, DomicilioDomLugar:string){
     
-    if (!domicilio.DomicilioLocalidadId && (address.state_district || address.city)) {
+    const address:any = domicilio.address
+    let {PaisId, ProvinciaId, LocalidadId, BarrioId} = domicilio.verAddress
+
+    //Crea la Provincia en caso de no estar registrada
+    if (!ProvinciaId && address.state) {
+      const ProvinciaDescripcion:string = address.state
+
+      const Pais = await queryRunner.query(`
+        SELECT ISNULL(PaisProvinciaUltNro, 0) AS PaisProvinciaUltNro, PaisId
+        FROM Pais
+        WHERE PaisId IN (@0)
+      `, [PaisId])
+      const newProvinciaId:number = Pais[0].PaisProvinciaUltNro+1
+
+      await queryRunner.query(`
+        UPDATE Pais
+        SET PaisProvinciaUltNro = @0
+        WHERE PaisId IN (@1)
+
+        INSERT INTO Provincia (
+          ProvinciaId,
+          PaisId,
+          ProvinciaId,
+          ProvinciaDescripcion,
+          ProvinciaLocalidadUltNro ) 
+        VALUES (@0, @1, @2, @3, 0)
+      `, [newProvinciaId, PaisId, ProvinciaId, ProvinciaDescripcion])
+
+      ProvinciaId = newProvinciaId
+    }
+    
+    //Crea la localidad en caso de no estar registrada
+    if (ProvinciaId && !LocalidadId && (address.state_district || address.city)) {
       const LocalidadDescripcion:string = address.state_district? address.state_district : address.city
 
       const Provincia = await queryRunner.query(`
         SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
         FROM Provincia
         WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
-      `, [domicilio.DomicilioPaisId, domicilio.DomicilioProvinciaId])
+      `, [PaisId, ProvinciaId])
       const newLocalidadId:number = Provincia[0].ProvinciaLocalidadUltNro+1
 
       await queryRunner.query(`
@@ -539,12 +584,24 @@ export class DomicilioController extends BaseController {
           LocalidadDescripcion,
           LocalidadBarrioUltNro ) 
         VALUES (@0, @1, @2, @3, 0)
-      `, [newLocalidadId, domicilio.DomicilioPaisId, domicilio.DomicilioProvinciaId, LocalidadDescripcion])
+      `, [newLocalidadId, PaisId, ProvinciaId, LocalidadDescripcion])
 
-      domicilio.DomicilioLocalidadId = newLocalidadId
+      LocalidadId = newLocalidadId
     }
 
-    return domicilio
+    await queryRunner.query(
+      `INSERT INTO Domicilio (
+          DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
+          DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId,
+          DomicilioCompleto, DomicilioJson) 
+      VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, 
+      [ DomicilioDomLugar, address.road, address.house_number,
+      address.postcode, PaisId, ProvinciaId, LocalidadId,
+      BarrioId, domicilio.display_name, JSON.stringify(address) ]
+    )
+    const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
+
+    return resDomicilio[0][''] // New DomicilioId
   }
 }
 

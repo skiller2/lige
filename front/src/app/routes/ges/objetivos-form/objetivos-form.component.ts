@@ -18,7 +18,7 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
-import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
+// import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
 
 export interface CoordinadorCuenta {
   ObjetivoId: number,
@@ -52,11 +52,9 @@ export interface Objetivo {
   ContratoId: number,
   ClienteElementoDependienteContratoUltNro: number,
   RubroUltNro: number,
-  DomicilioId: number, DomicilioDomCalle: string,
-  DomicilioFulllAdress: string,
-  DomicilioDomNro: number, DomicilioCodigoPostal: number, DomicilioDomLugar: string,
+  DomicilioId: number, DomicilioDomLugar: string, Domicilio: any,
+  DomicilioDomCalle: string, DomicilioDomNro: number, DomicilioCodigoPostal: number, 
   DomicilioProvinciaId: number, DomicilioLocalidadId: number, DomicilioBarrioId: number,
-  DomicilioCompleto: string, DomicilioJson: string,
   infoCoordinadorCuenta: CoordinadorCuenta[],
   rubrosCliente: any[],
   docsRequerido: any[],
@@ -94,7 +92,7 @@ export interface Objetivo {
     GrupoActividadSearchComponent,
     DetallePersonaComponent,
     TableObjetivoDocumentoComponent,
-    AddrSearchComponent,
+    // AddrSearchComponent,
     FormField
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -151,11 +149,9 @@ export class ObjetivosFormComponent {
     ContratoId: 0,
     ClienteElementoDependienteContratoUltNro: 0,
     RubroUltNro: 0,
-    DomicilioId: 0, DomicilioDomCalle: "",
-    DomicilioFulllAdress: "",
-    DomicilioDomNro: NaN, DomicilioCodigoPostal: NaN, DomicilioDomLugar: '',
+    DomicilioId: 0, DomicilioDomLugar: '', Domicilio: {},
+    DomicilioDomCalle: "", DomicilioDomNro: NaN, DomicilioCodigoPostal: NaN, 
     DomicilioProvinciaId: 0, DomicilioLocalidadId: 0, DomicilioBarrioId: 0,
-    DomicilioCompleto: "", DomicilioJson: "",
     infoCoordinadorCuenta: [structuredClone(this.coordinadorCuentaDefault)],
     rubrosCliente: [],
     docsRequerido: [],
@@ -178,12 +174,6 @@ export class ObjetivosFormComponent {
   readonly objetivo = signal<Objetivo>(this.objetivoDefault);
   readonly formObjetivo = form(this.objetivo, (p) => {
     disabled(p, () => this.readonly()),
-    disabled(p.DomicilioDomCalle, () => this.direccion()?.address? true : false),
-    disabled(p.DomicilioDomNro, () => this.direccion()?.address? true : false),
-    disabled(p.DomicilioCodigoPostal, () => this.direccion()?.address? true : false),
-    disabled(p.DomicilioProvinciaId, () => this.direccion()?.address? true : false),
-    disabled(p.DomicilioLocalidadId, () => this.direccion()?.address? true : false),
-    disabled(p.DomicilioBarrioId, () => this.direccion()?.address? true : false),
     disabled(p.codigo, () => true),
     applyEach(p.infoActividad, (infoActividad) => {
       disabled(infoActividad.GrupoActividadId, () => (this.ObjetivoId() ? true : false))
@@ -204,34 +194,6 @@ export class ObjetivosFormComponent {
   effect = effect(() => {
     const pristine = !this.formObjetivo().dirty()
     this.pristineChange.emit(pristine)
-  })
-
-  inputDireccion = effect(async () => {
-    
-    if (!this.direccion() || Object.keys(this.direccion()).length === 0){
-      this.objetivo.update(m => ({
-        ...m,
-        DomicilioCompleto: "",
-        DomicilioJson: "",
-      }));
-      return
-    }
-    const address:any = this.direccion().address
-    const verAddress:any = this.direccion().verAddress
-    this.objetivo.update(m => ({
-      ...m,
-      DomicilioDomCalle: address.road? address.road : '',
-      DomicilioFulllAdress: this.direccion().display_name,
-      DomicilioDomNro: address.house_number? address.house_number : NaN, 
-      DomicilioCodigoPostal: address.postcode? address.postcode : NaN, 
-      DomicilioProvinciaId: verAddress.ProvinciaId, 
-      DomicilioLocalidadId: verAddress.LocalidadId, 
-      DomicilioBarrioId: verAddress.BarrioId,
-      DomicilioCompleto: address.display_name,
-      DomicilioJson: JSON.stringify(address),
-    }))
-    
-    // setTimeout(() => { this.formObjetivo().reset() }, 400);
   })
 
   onChangePeriodo = effect(() => {
