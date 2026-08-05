@@ -19,13 +19,13 @@ import { CuentasBancariasImportacionMasivaComponent } from '../cuentas-bancarias
 import { CuentasBancariasAltaDrawerComponent } from '../cuentas-bancarias-alta-drawer/cuentas-bancarias-alta-drawer'
 
 @Component({
-    selector: 'app-cuentas-bancarias',
-    templateUrl: './cuentas-bancarias.html',
-    styleUrl: './cuentas-bancarias.less',
-    providers: [AngularUtilService, provideNzIconsPatch([BankOutline, ])],
-    imports: [SHARED_IMPORTS, CommonModule, NzIconModule, FiltroBuilderComponent
-      , PersonalBancoDrawerComponent, CuentasBancariasImportacionMasivaComponent
-      , CuentasBancariasAltaDrawerComponent],
+  selector: 'app-cuentas-bancarias',
+  templateUrl: './cuentas-bancarias.html',
+  styleUrl: './cuentas-bancarias.less',
+  providers: [AngularUtilService, provideNzIconsPatch([BankOutline,])],
+  imports: [SHARED_IMPORTS, CommonModule, NzIconModule, FiltroBuilderComponent
+    , PersonalBancoDrawerComponent, CuentasBancariasImportacionMasivaComponent
+    , CuentasBancariasAltaDrawerComponent],
 })
 export class CuentasBancariasComponent {
   periodo = signal<Date>(new Date())
@@ -44,8 +44,8 @@ export class CuentasBancariasComponent {
   personalId = signal<number>(0)
   visiblePersonalBanco = model<boolean>(false)
   visibleCuentasBancariasAlta = model<boolean>(false)
-  anio = computed(() => this.periodo()? this.periodo().getFullYear() : 0)
-  mes = computed(() => this.periodo()? this.periodo().getMonth()+1 : 0)
+  anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
+  mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
 
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
@@ -54,16 +54,23 @@ export class CuentasBancariasComponent {
 
   columns = toSignal(this.apiService.getCols('/api/cuentas-bancarias/cols/'), { initialValue: [] as Column[] })
 
+  // Los startFilters se aplican después del primer render, evita la carga inicial sin filtros
+  private filtrosInicializados = false
+
   gridData = resource({
     params: () => ({ options: this.listOptions(), periodo: this.periodo(), sitRevistaPeriodo: this.periodoSR(), liqmaperiodo: this.periodoIT() }),
     loader: async ({ params }) => {
+      if (!params.options.filtros.length && !this.filtrosInicializados)
+        return []
+      this.filtrosInicializados = true
+
       let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
         response = await firstValueFrom(this.apiService.getCuentasBancarias({
-          options: params.options, 
-          periodo: params.periodo, 
-          sitRevistaPeriodo: params.sitRevistaPeriodo, 
+          options: params.options,
+          periodo: params.periodo,
+          sitRevistaPeriodo: params.sitRevistaPeriodo,
           liqmaperiodo: params.liqmaperiodo
         }));
       } catch (_e) { }
@@ -83,7 +90,14 @@ export class CuentasBancariasComponent {
     this.gridOptions.createFooterRow = true
     this.gridOptions.enableCheckboxSelector = true
     this.gridOptions.forceFitColumns = true
-    
+
+    const dateToday = new Date();
+    this.startFilters.set([
+      // { index: 'PersonalBancoDesde', condition: 'AND', operator: '<=', value: dateToday, closeable: true },
+      // { index: 'PersonalBancoHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true },
+      { index: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', closeable: true }
+    ])
+
     // this.settingsService.setLayout('collapsed', true)
   }
 
@@ -120,5 +134,5 @@ export class CuentasBancariasComponent {
   openDrawerforNewsCuentasBancarias(): void {
     this.visibleCuentasBancariasAlta.set(true)
   }
-  
+
 }

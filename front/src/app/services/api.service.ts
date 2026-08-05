@@ -2309,8 +2309,9 @@ export class ApiService {
   }
 
   getCuentasBancarias(filters: any) {
-    if (!filters.periodo) {
-      this.notification.warning('Advertencia', `Por favor, ingrese el periodo para visualizar los datos.`);
+
+    if (!filters.options.filtros.length || !filters.periodo) {
+      this.notification.warning('Advertencia', `Por favor, ingrese el periodo para visualizar los datos y al menos un filtro.`);
       return of([]);
     }
     const parameter = filters

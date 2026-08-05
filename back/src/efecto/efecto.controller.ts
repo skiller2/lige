@@ -1804,10 +1804,7 @@ export class EfectoController extends BaseController {
       console.log('Efecto modificacion - formulario devuelto:');
       console.log(JSON.stringify(formulario, null, 2));
 
-      if (true)
-        await this.rollbackTransaction(queryRunner);
-
-      //await queryRunner.commitTransaction();
+      await queryRunner.commitTransaction();
       return this.jsonRes(formulario, res, 'Efecto guardado');
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
