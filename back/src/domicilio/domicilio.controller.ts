@@ -8,18 +8,18 @@ export class DomicilioController extends BaseController {
     throw new Error("Method not implemented.");
   }
 
-  async getProvinciaId(queryRunner: QueryRunner, state: string) {
-    const provincias = await queryRunner.query(`SELECT ProvinciaId,ProvinciaDescripcion FROM Provincia WHERE PaisId  = 1 AND ProvinciaDescripcion COLLATE Latin1_General_CI_AI = @0`, [state])
+  async getProvinciaId(queryRunner: QueryRunner, PaisId: number, state: string) {
+    const provincias = await queryRunner.query(`SELECT ProvinciaId,ProvinciaDescripcion FROM Provincia WHERE PaisId  = @0 AND ProvinciaDescripcion COLLATE Latin1_General_CI_AI = @1`, [PaisId, state])
     if (provincias.length !== 1)
       throw new Error(`Provincia "${state}" no encontrada.`);
     return provincias[0].ProvinciaId;
   }
 
-  async getLocalidadId(queryRunner: QueryRunner, ProvinciaId: number, LocalidadDescripcion1: string, LocalidadDescripcion2: string, LocalidadDescripcion3: string) {
+  async getLocalidadId(queryRunner: QueryRunner, PaisId: number, ProvinciaId: number, LocalidadDescripcion1: string, LocalidadDescripcion2: string, LocalidadDescripcion3: string) {
     const limpiarLocalidad = (texto) =>
       String(texto)
         //.replace(/^(Partido|Departamento)\s+(del|de)\s*/i, "")
-        .replace(/^(Partido|Departamento)\s*(?:de(?:l)?\s+)?/i, "")
+        .replace(/^(Municipio|Partido|Departamento)\s*(?:de(?:l)?\s+)?/i, "")
         .trim();
 
     LocalidadDescripcion1 = limpiarLocalidad(LocalidadDescripcion1);
@@ -37,9 +37,9 @@ export class DomicilioController extends BaseController {
     if (LocalidadDescripcion1 == '' && LocalidadDescripcion2 == '' && LocalidadDescripcion3 == '')
       throw new Error(`Localidad vacia provinciaid: ${ProvinciaId}.`);
 
-    const localidades = await queryRunner.query(`SELECT LocalidadId,LocalidadDescripcion FROM Localidad WHERE ProvinciaId = @0 AND (LocalidadDescripcion COLLATE Latin1_General_CI_AI LIKE '${LocalidadDescripcion1}' OR LocalidadDescripcion COLLATE Latin1_General_CI_AI LIKE '${LocalidadDescripcion2}' OR LocalidadDescripcion COLLATE Latin1_General_CI_AI LIKE '${LocalidadDescripcion3}')`, [ProvinciaId, LocalidadDescripcion1, LocalidadDescripcion2, LocalidadDescripcion3])
+    const localidades = await queryRunner.query(`SELECT LocalidadId,LocalidadDescripcion FROM Localidad WHERE ProvinciaId = @0 AND PaisId = @1 AND (LocalidadDescripcion COLLATE Latin1_General_CI_AI LIKE '${LocalidadDescripcion1}' OR LocalidadDescripcion COLLATE Latin1_General_CI_AI LIKE '${LocalidadDescripcion2}' OR LocalidadDescripcion COLLATE Latin1_General_CI_AI LIKE '${LocalidadDescripcion3}')`, [ProvinciaId, PaisId, LocalidadDescripcion1, LocalidadDescripcion2, LocalidadDescripcion3])
     if (localidades.length == 0)
-      throw new Error(`Localidad "${LocalidadDescripcion1} o ${LocalidadDescripcion2}" no encontrada provinciaid: ${ProvinciaId}.`);
+      throw new Error(`Localidad "${LocalidadDescripcion1} o ${LocalidadDescripcion2} o ${LocalidadDescripcion3}" no encontrada provinciaid: ${ProvinciaId}.`);
     return localidades[0].LocalidadId;
   }
 
@@ -152,8 +152,8 @@ export class DomicilioController extends BaseController {
                 LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
 
                 WHERE 
-                -- dom.DomicilioJson IS NULL 
-                dom.DomicilioJson LIKE 'ERROR L%'
+                dom.DomicilioJson IS NULL 
+                -- dom.DomicilioJson LIKE 'ERROR L%'
                 -- AND nex.NexoDomicilioActual = 1
             `)
 
@@ -183,10 +183,12 @@ export class DomicilioController extends BaseController {
         const DomicilioCompleto = DomicilioJson.display_name
         const DomicilioDomCalle = DomicilioJson.address.road
         const DomicilioDomNro = DomicilioJson.address.house_number
+        const DomicilioPaisId = 1 // Argentina
+
         let DomicilioProvinciaId = null
         let DomicilioLocalidadId = null
         try {
-          DomicilioProvinciaId = await this.getProvinciaId(queryRunner, DomicilioJson.address.state) // Buscarlo en provincias
+          DomicilioProvinciaId = await this.getProvinciaId(queryRunner,  DomicilioPaisId, DomicilioJson.address.state) // Buscarlo en provincias
         } catch (error) {
           await queryRunner.query(`
                                     UPDATE Domicilio SET DomicilioJson = @1
@@ -195,7 +197,7 @@ export class DomicilioController extends BaseController {
           continue
         }
         try {
-          DomicilioLocalidadId = (DomicilioProvinciaId == 25) ? 1 : await this.getLocalidadId(queryRunner, DomicilioProvinciaId, DomicilioJson.address.city || '', DomicilioJson.address.state_district || '', DomicilioJson.address.town || '') //Busco  LocalidadId en base a la provincia y el nombre de la localidad
+          DomicilioLocalidadId = (DomicilioProvinciaId == 25) ? 1 : await this.getLocalidadId(queryRunner, DomicilioPaisId, DomicilioProvinciaId, DomicilioJson.address.city || '', DomicilioJson.address.state_district || '', DomicilioJson.address.town || '') //Busco  LocalidadId en base a la provincia y el nombre de la localidad
         } catch (error) {
           console.log(JSON.stringify(DomicilioJson))
           await queryRunner.query(`
@@ -206,12 +208,12 @@ export class DomicilioController extends BaseController {
         }
 
         const DomicilioBarrioId = await this.getBarrioId(queryRunner, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioJson.address.suburb)
-        const DomicilioPaisId = 1 // Argentina
+        try {
         await queryRunner.query(`
                                     UPDATE Domicilio SET DomicilioJson = @1,  DomicilioCompleto = @2, DomicilioCodigoPostal = @3, DomicilioDomCalle = @4, DomicilioDomNro = @5, DomicilioProvinciaId = @6, DomicilioLocalidadId = @7, DomicilioBarrioId = @8, DomicilioPaisId =@9
                                     WHERE DomicilioId =@0
                                 `, [DomicilioId, JSON.stringify(DomicilioJson), DomicilioCompleto, DomicilioCodigoPostal, DomicilioDomCalle, DomicilioDomNro, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId, DomicilioPaisId])
-
+        } catch (error) {continue}
         registrosActualizados++
       }
 
