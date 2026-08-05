@@ -161,7 +161,7 @@ const listaColumnasMovimientos: any[] = [
   // si hay pendiente toma el destino real de MovimientoStockPendiente, si no el de MovimientoStock.
   {
     id: "PersonalId",
-    name: "Persona",
+    name: "Persona destino",
     field: "PersonalId",
     fieldName: "m.PersonalIdDest",
     type: "number",
@@ -172,7 +172,7 @@ const listaColumnasMovimientos: any[] = [
   },
   {
     id: "ObjetivoId",
-    name: "Objetivo",
+    name: "Objetivo destino",
     field: "ObjetivoId",
     fieldName: "(SELECT TOP 1 o.ObjetivoId FROM Objetivo o WHERE o.ClienteId = m.ClienteIdDest AND o.ClienteElementoDependienteId = m.ClienteElemDepDest)",
     type: "number",
@@ -183,7 +183,7 @@ const listaColumnasMovimientos: any[] = [
   },
   {
     id: "ProveedorId",
-    name: "Proveedor",
+    name: "Proveedor destino",
     field: "ProveedorId",
     fieldName: "m.ProveedorIdDest",
     type: "number",
@@ -194,7 +194,7 @@ const listaColumnasMovimientos: any[] = [
   },
   {
     id: "DepositoId",
-    name: "Depósito",
+    name: "Depósito destino",
     field: "DepositoId",
     fieldName: "m.DepositoIdDest",
     type: "number",
