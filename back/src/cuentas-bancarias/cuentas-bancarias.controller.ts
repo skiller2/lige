@@ -147,17 +147,22 @@ const columns: any[] = [
   {
     id: "IndNuevaCuenta",
     field: "IndNuevaCuenta",
-    name: "Nueva Cuenta",
+    name: "CBU Pendiente",
     type: "string",
-    fieldName: "pb.IndNuevaCuenta",
+    fieldName: "CAST(ISNULL(pb.IndNuevaCuenta, 0) AS CHAR(1))",
     formatter: 'collectionFormatter',
     params: { collection: getOptionsSINO },
-    // searchComponent: "inputForFechaSearch",
-    searchType: "number",
+    exportWithFormatter: true,
+    searchComponent: "inputForActivo",
+
     sortable: true,
     hidden: false,
-    searchHidden: false
+    searchHidden: false,
+    cssClass: 'text-center',
+    minWidth: 100,
+    maxWidth: 100,
   },
+
 ]
 
 export class CuentasBancariasController extends BaseController {
@@ -187,7 +192,7 @@ export class CuentasBancariasController extends BaseController {
   async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any, periodo: Date, sitRevistaPeriodo: Date, liqmaperiodo: Date) {
     return await queryRunner.query(`
       SELECT CONCAT(pb.PersonalId, '-',PersonalBancoId, '-', pb.PersonalBancoCBU) id,
-        pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(pb.IndNuevaCuenta AS VARCHAR(1)) AS IndNuevaCuenta
+        pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(ISNULL(pb.IndNuevaCuenta, 0) AS CHAR(1)) AS IndNuevaCuenta
         , CONCAT(TRIM(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, sitrev.sitRevCom, sitrev.PersonalSituacionRevistaSituacionId
         , cuit.PersonalCUITCUILCUIT, suc.SucursalDescripcion, ga.GrupoActividadId, ga.GrupoActividadDetalle,
         mo.importe as ImporteTranferido,
@@ -473,8 +478,10 @@ export class CuentasBancariasController extends BaseController {
         queryRunner,
         EventoLogCodigo,
         'COM',
-        { res: successMessage, 'Alta': altaCuentasBancarias, 'Pendientes de CBU': resCBUPendientes.length - altaCuentasBancarias, 
-          list: JSON.stringify(dataset), cuentasAActualizar: JSON.stringify(cuentasAActualizar),  resCBUPendientes: JSON.stringify(resCBUPendientes) },
+        {
+          res: successMessage, 'Alta': altaCuentasBancarias, 'Pendientes de CBU': resCBUPendientes.length - altaCuentasBancarias,
+          list: JSON.stringify(dataset), cuentasAActualizar: JSON.stringify(cuentasAActualizar), resCBUPendientes: JSON.stringify(resCBUPendientes)
+        },
         usuario,
         ip
       );
