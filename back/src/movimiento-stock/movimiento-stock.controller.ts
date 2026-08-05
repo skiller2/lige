@@ -202,6 +202,50 @@ const listaColumnasMovimientos: any[] = [
     sortable: false,
     hidden: true,
     searchHidden: false,
+  },
+ {
+    id: "PersonalIdOrigen",
+    name: "Persona origen",
+    field: "PersonalIdOrigen",
+    fieldName: "det.PersonalIdOrigen",
+    type: "number",
+    searchComponent: "inputForPersonalSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "ObjetivoIdOrigen",
+    name: "Objetivo origen",
+    field: "ObjetivoIdOrigen",
+    fieldName: "det.ClienteIdOrigen",
+    type: "number",
+    searchComponent: "inputForObjetivoSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "ProveedorIdOrigen",
+    name: "Proveedor origen",
+    field: "ProveedorIdOrigen",
+    fieldName: "det.ProveedorIdOrigen",
+    type: "number",
+    searchComponent: "inputForProveedorSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "DepositoIdOrigen",
+    name: "Depósito origen",
+    field: "DepositoIdOrigen",
+    fieldName: "det.DepositoIdOrigen",
+    type: "number",
+    searchComponent: "inputForDepositoSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false,
   }, {
     id: "EfectoId",
     name: "Efecto",
@@ -283,7 +327,21 @@ export class MovimientoStockController extends BaseController {
     const individualSql = (individualId === null || individualId === undefined || individualId === '')
       ? 'det.EfectoIndividualId IS NULL'
       : `det.EfectoIndividualId = ${Number(individualId)}`
-    const filterSql = filtrosToSql(filtros.filter((f: any) => f?.index !== 'EfectoId'), listaColumnasMovimientos)
+    // Filtros de origen: el origen es de cada línea del detalle, no del movimiento. Se resuelven
+    // como EXISTS igual que el efecto (el movimiento entra si alguna línea viene de ese origen).
+    // El objetivo se guarda como Cliente + ElementoDependiente, así que se traduce contra Objetivo.
+    const ORIGEN_INDEX = ['PersonalIdOrigen', 'DepositoIdOrigen', 'ProveedorIdOrigen', 'ObjetivoIdOrigen']
+    const origenSql = ORIGEN_INDEX.map((index: string) => {
+      const valor = Number(filtros.find((f: any) => f?.index === index)?.valor?.[0])
+      if (!valor) return ''
+      const condicion = index === 'ObjetivoIdOrigen'
+        ? `EXISTS (SELECT 1 FROM Objetivo o WHERE o.ClienteId = det.ClienteIdOrigen
+             AND o.ClienteElementoDependienteId = det.ClienteElementoDependienteOrigen AND o.ObjetivoId = ${valor})`
+        : `det.${index} = ${valor}`
+      return ` AND EXISTS (SELECT 1 FROM MovimientoStockDetalle det WHERE det.MovimientoStockCodigo = m.MovimientoStockCodigo AND ${condicion})`
+    }).join('')
+    const sinSqlPropio = ['EfectoId', ...ORIGEN_INDEX]
+    const filterSql = filtrosToSql(filtros.filter((f: any) => !sinSqlPropio.includes(f?.index)), listaColumnasMovimientos)
     const efectoSql = efectoId ? ` AND EXISTS (SELECT 1 FROM MovimientoStockDetalle det WHERE det.MovimientoStockCodigo = m.MovimientoStockCodigo AND det.EfectoId = ${efectoId} AND ${individualSql})` : ''
     return queryRunner.query(`
       SELECT ROW_NUMBER() OVER (ORDER BY m.MovimientoStockCodigo DESC) AS id,
@@ -341,7 +399,7 @@ export class MovimientoStockController extends BaseController {
       LEFT JOIN Sucursal sucobj ON sucobj.SucursalId = eled.ClienteElementoDependienteSucursalId
       LEFT JOIN Personal peri ON peri.PersonalId = m.IntermediarioPersonalId
       LEFT JOIN Proveedor proi ON proi.ProveedorId = m.IntermediarioProveedorId
-      WHERE ${filterSql}${efectoSql} `)
+      WHERE ${filterSql}${efectoSql}${origenSql} `)
   }
 
   // Detalle de efectos de un movimiento (MovimientoStockDetalle): descripción del efecto, origen
