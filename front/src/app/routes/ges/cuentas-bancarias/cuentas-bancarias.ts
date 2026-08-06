@@ -1,6 +1,6 @@
 import { Component, inject, model, signal, resource, computed } from '@angular/core';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { BehaviorSubject, firstValueFrom, } from 'rxjs';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { AngularGridInstance, AngularUtilService, Column, GridOption } from 'angular-slickgrid';
@@ -17,6 +17,7 @@ import { BankOutline, } from '@ant-design/icons-angular/icons';
 import { PersonalBancoDrawerComponent } from '../personal-banco-drawer/personal-banco-drawer.component';
 import { CuentasBancariasImportacionMasivaComponent } from '../cuentas-bancarias-importacion-masiva/cuentas-bancarias-importacion-masiva'
 import { CuentasBancariasAltaDrawerComponent } from '../cuentas-bancarias-alta-drawer/cuentas-bancarias-alta-drawer'
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-cuentas-bancarias',
@@ -29,8 +30,6 @@ import { CuentasBancariasAltaDrawerComponent } from '../cuentas-bancarias-alta-d
 })
 export class CuentasBancariasComponent {
   periodo = signal<Date>(new Date())
-  periodoSR = signal<Date>(new Date())
-  periodoIT = signal<Date>(new Date())
   tabIndex = signal<number>(0)
   angularGrid!: AngularGridInstance;
   gridOptions!: GridOption;
@@ -47,6 +46,9 @@ export class CuentasBancariasComponent {
   anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
 
+  private route = inject(ActivatedRoute)
+  private router = inject(Router)
+  private location = inject(Location)
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
@@ -58,7 +60,7 @@ export class CuentasBancariasComponent {
   private filtrosInicializados = false
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), periodo: this.periodo(), sitRevistaPeriodo: this.periodoSR(), liqmaperiodo: this.periodoIT() }),
+    params: () => ({ options: this.listOptions(), periodo: this.periodo() }),
     loader: async ({ params }) => {
       if (!params.options.filtros.length && !this.filtrosInicializados)
         return []
@@ -69,9 +71,7 @@ export class CuentasBancariasComponent {
       try {
         response = await firstValueFrom(this.apiService.getCuentasBancarias({
           options: params.options,
-          periodo: params.periodo,
-          sitRevistaPeriodo: params.sitRevistaPeriodo,
-          liqmaperiodo: params.liqmaperiodo
+          periodo: params.periodo
         }));
       } catch (_e) { }
       this.loadingSrv.close()
@@ -97,6 +97,25 @@ export class CuentasBancariasComponent {
       // { index: 'PersonalBancoHasta', condition: 'AND', operator: '>=', value: dateToday, closeable: true },
       { index: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', closeable: true }
     ])
+
+    // TODO: REVISAR SI ESTA BIEN HECHO 
+    
+    // Entrada desde el cartel de pendientes de la solapa Importación: /listado?IndNuevaCuenta=1
+    this.route.queryParams.subscribe(params => {
+      if (params['IndNuevaCuenta'] != '1') return
+
+      const aplicados = this.listOptions().filtros
+      if (aplicados.some((filtro: any) => filtro.index == 'IndNuevaCuenta')) return
+
+      const filtroPendientes: Selections = { index: 'IndNuevaCuenta', condition: 'AND', operator: '=', value: '1', closeable: true }
+      // El filtro-builder re-aplica todo el array cada vez que cambia y no controla duplicados:
+      // si ya tiene filtros puestos le mando sólo el nuevo, si todavía no se creó le mando también los iniciales
+      this.startFilters.set(aplicados.length ? [filtroPendientes] : [...this.startFilters(), filtroPendientes])
+
+      // Consumo el parámetro y lo borro de la URL, así un F5 o un ingreso posterior arranca sin este filtro.
+      // Uso Location y no router.navigate para no re-navegar y que no se re-evalúe la solapa activa.
+      this.location.replaceState(this.router.url.split('?')[0])
+    })
 
     // this.settingsService.setLayout('collapsed', true)
   }

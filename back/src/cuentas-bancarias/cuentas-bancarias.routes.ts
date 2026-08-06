@@ -12,6 +12,10 @@ cuentasBancariasRouter.post("/list", [authMiddleware.verifyToken, authMiddleware
   cuentasBancariasController.getCuentasBancarias(req, res, next);
 });
 
+cuentasBancariasRouter.get("/pendientes/:BancoId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  cuentasBancariasController.getCuentasPendientesCBU(req, res, next);
+});
+
 cuentasBancariasRouter.post("/import-xls", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
     cuentasBancariasController.handleXLSUpload(req, res, next);
 });
