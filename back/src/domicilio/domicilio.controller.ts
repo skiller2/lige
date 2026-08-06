@@ -174,7 +174,7 @@ export class DomicilioController extends BaseController {
           await queryRunner.query(`
                                     UPDATE Domicilio SET DomicilioJson = @1
                                     WHERE DomicilioId =@0
-                                `, [DomicilioId, `ERROR Coincidencias ${nominatimResult.length}`])
+                                `, [DomicilioId, `ERROR Coincidencias ${nominatimResult.length}, ${domNormalizar}`])
           continue
         }
 
