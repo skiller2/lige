@@ -443,7 +443,12 @@ export class InaesController extends BaseController {
   }
 
   private async getAltasBajasQuery(queryRunner: any, filterSql: any, orderBy: any, cuits:string|null ) {
-    let flags = cuits? `CASE WHEN cuit.PersonalCUITCUILCUIT IN (${cuits}) THEN '1' ELSE '0' END AS Estado` : `'0' AS Estado`
+    let flags = '1' 
+    let filterCUITs = '(1=1)'
+    if (cuits) {
+      flags = `CASE WHEN (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN '1' ELSE '0' END AS Estado`
+      filterCUITs = ` cuit.PersonalCUITCUILCUIT NOT IN (${cuits}) OR sitrev.PersonalSituacionRevistaSituacionId IN (3)`
+    }
     return await queryRunner.query(`
       SELECT
         per.PersonalId AS id,
@@ -517,7 +522,7 @@ export class InaesController extends BaseController {
       LEFT JOIN PersonalEmail email on email.PersonalId=per.PersonalId AND email.PersonalEmailInactivo=0
 
       WHERE (1=1)
-      AND (${filterSql})
+      AND (${filterSql}) AND (${filterCUITs})
       ${orderBy}`)
   }
   

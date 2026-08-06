@@ -84,7 +84,6 @@ export class INAESComponent {
     this.gridOptions.forceFitColumns = true
     this.gridOptions.enableExcelExport = false
 
-    this.startFilters.set([{ index: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', closeable: true },])
   }
 
   async angularGridReady(angularGrid: any) {
@@ -122,6 +121,7 @@ export class INAESComponent {
         return
     }
 
+    const saveData:any[] = this.gridData.value()
     //Filtro los datos
     let dataExport:any[] = await this.gridData.value().filter(
       (row: any) => (row.Estado === Estado)
@@ -133,17 +133,19 @@ export class INAESComponent {
       return
     }
     this.gridData.value.set(dataExport)
-
+    
     //Muestro solo las columnas que se van a exportar
     if (this.hiddenColumnIds.length > 0) 
       this.angularGrid.gridService.showColumnByIds(this.columnsForExport)
-    //Validaciones
+    //------ Validaciones ------
     //Campos vacios
     const emptyFields = this.getEmptyFields()
     if (emptyFields.length) {
       let errorMsg = 'Campos Vacios:\n'
-      errorMsg += emptyFields.map((x:any) => `[Fila ${x.row + 1}] ${this.gridData.value()[x.row].ApellidoNombre}: ${x.names.join(", ")}.`).join('\n');
+      
+      errorMsg += emptyFields.map((x:any) => { return `[Fila ${x.row + 1}] ${this.gridData.value()[x.row].ApellidoNombre}: ${x.names.join(", ")}.`}).join('\n');
       this.notification.warning('Advertencia', errorMsg);
+      this.gridData.value.set(saveData)
       this.loadingExport.set(false)
       return
     }
@@ -152,18 +154,20 @@ export class INAESComponent {
       filename: `INAES-${filter}`,
       format: 'xlsx',
     });
-    this.gridData.reload()
+    this.gridData.value.set(saveData)
 
     // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
     if (this.hiddenColumnIds.length > 0)
       this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
-
+    
     this.loadingExport.set(false)
   }
 
-  getEmptyFields():any[] {
+  getEmptyFields():{ row: number, fields: string[], names: string[] }[] {
+
     const result: { row: number, fields: string[], names: string[] }[] = [];
-    this.angularGrid.dataView.getItems().forEach((item, index) => {
+    
+    this.gridData.value().forEach((item:any, index:number) => {
       let fields:string[] = []
       let names:string[] = []
       this.columns().forEach((column:any) => {
