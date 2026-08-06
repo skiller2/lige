@@ -1927,6 +1927,15 @@ export class ApiService {
   }
 
 
+  getListPrecioEfectos(filters: any) {
+
+    return this.http.post<ResponseJSON<any>>('/api/precio-efectos/list', { filters }).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of([]))
+    );
+  }
+
+
   setListAdministradores(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/administradores/list', parameter).pipe(

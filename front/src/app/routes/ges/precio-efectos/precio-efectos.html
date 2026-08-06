@@ -1,1 +1,35 @@
-<p>precio-efectos works!</p>
+<nz-card class="small-margin">
+
+  <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+
+    <div nz-col style="flex: 1;"></div>
+
+    <div nz-col class="listStyle">
+      <ul nz-menu nzMode="horizontal" style="display: flex; justify-content: center; border-bottom: none;">
+        <li nz-menu-item nzMatchRouter>
+          <span nz-icon nzType=""></span>
+          <a [routerLink]="['/', 'ges', 'precio-efectos', 'listado']">{{ 'app.listado' | i18n }} </a>
+        </li>
+      </ul>
+    </div>
+
+    <div nz-col style="flex: 1; display: flex; flex-direction: row-reverse;">
+      <nz-button-group nz-button nzButtonGroup>
+        <button nz-button nzType="default" (click)="refreshGridNow()"><span nz-icon nzType="reload" nzTheme="outline"
+            nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></button>
+      </nz-button-group>
+    </div>
+  </div>
+
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+    <nz-tab></nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/precio-efectos/listado">{{ 'app.listado' | i18n }} </a>
+      <ng-template nz-tab>
+        <app-table-precio-efectos #tablePrecioEfectos
+          [refreshPrecios]="refreshPrecios()"></app-table-precio-efectos>
+      </ng-template>
+    </nz-tab>
+  </nz-tabs>
+
+</nz-card>

@@ -1,0 +1,15 @@
+<nz-card #tabprecioefectos class="small-margin">
+
+  <ng-container>
+    <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()"
+      [keyLocalstorage]="constructor.name" [(options)]="listOptions" />
+
+    <div class="gridContainerPrecioEfectos container-fluid">
+      @if (columns().length){
+      <angular-slickgrid gridId="gridPrecioEfectos" [columns]="columns() | colsFilter" [options]="gridOptions"
+        [dataset]="gridData()" (onAngularGridCreated)="angularGridReady($event)">
+      </angular-slickgrid>
+      }
+    </div>
+  </ng-container>
+</nz-card>
