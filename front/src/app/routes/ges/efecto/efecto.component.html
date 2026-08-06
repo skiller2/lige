@@ -40,6 +40,11 @@
         <span nz-icon nzType="reload" nzTheme="outline"></span>
       </button>
 
+      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.stock' | i18n }}"
+        [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
+        <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
+      </button>
+
       <button nz-button nzType="default" nz-tooltip nzTooltipTitle="Ingreso de Stock"
         [routerLink]="['/', 'ges', 'efecto', 'ingreso-stock']">
         <nz-icon nzType="plus" nzTheme="outline" />
@@ -48,11 +53,6 @@
       <button nz-button nzType="default" nz-tooltip nzTooltipTitle="Intermediario"
         [routerLink]="['/', 'ges', 'efecto', 'intermediario']">
         <nz-icon nzType="swap" nzTheme="outline" />
-      </button>
-
-      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.stock' | i18n }}"
-        [routerLink]="['/', 'ges', 'efecto', 'movimiento']">
-        <span nz-icon nzType="rotate-left" nzTheme="outline"></span>
       </button>
 
       <!-- Consultar efecto (solo lectura). Habilitado con un efecto seleccionado en la grilla activa. -->
@@ -66,8 +66,7 @@
         <span nz-icon nzType="edit" nzTheme="outline"></span>
       </button>
 
-      <button nz-button nzType="default" type="button" nz-tooltip nzTooltipTitle="Alta de efecto"
-        (click)="abrirAlta()">
+      <button nz-button nzType="default" type="button" nz-tooltip nzTooltipTitle="Alta de efecto" (click)="abrirAlta()">
         <span nz-icon nzType="file" nzTheme="outline"></span>
       </button>
       <button nz-button nzType="default" type="button" nz-tooltip nzTooltipTitle="Alta de efecto individual"
@@ -122,7 +121,8 @@
       (efectoSelected)="seleccionarEfecto('proveedores', $event)" />
   </div>
   }
-  @if (activeTab() === 'formulario' || activeTab() === 'consulta' || activeTab() === 'alta' || activeTab() === 'alta-individual') {
+  @if (activeTab() === 'formulario' || activeTab() === 'consulta' || activeTab() === 'alta' || activeTab() ===
+  'alta-individual') {
   <app-efecto-form [efecto]="efectoSeleccionado()" [modo]="activeTab()" (guardadoAlta)="onGuardadoAlta($event)" />
   }
   @if (visitedTabs().has('movimientos')) {
