@@ -1,4 +1,4 @@
-import { Component, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, ChangeDetectionStrategy, resource, untracked } from '@angular/core';
+import { Component, viewChild, inject, signal, model, computed, ViewEncapsulation, input, effect, ChangeDetectionStrategy, resource, untracked, output } from '@angular/core';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, Subject, firstValueFrom } from 'rxjs';
 import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { SHARED_IMPORTS } from '@shared';
@@ -45,6 +45,7 @@ export class CuentasBancariasImportacionMasivaComponent {
   excelExportService = new ExcelExportService();
   fileUploadComponent = viewChild.required(FileUploadComponent);
   periodo = input<Date|null>(null);
+  onAddorUpdate = output<void>();
 
   private readonly loadingSrv = inject(LoadingService);
   private apiService = inject(ApiService)
@@ -84,8 +85,9 @@ export class CuentasBancariasImportacionMasivaComponent {
       
       try {
         await firstValueFrom(this.apiService.importXLSCuentasBancarias(file, this.periodo(), BancoId))
-        
+
         this.fileUploadComponent().DeleteFileByExporterror(file)
+        this.onAddorUpdate.emit()
       } catch (e: any) {
         this.fileUploadComponent().DeleteFileByExporterror(file)
         if (e.error?.data?.list) {
@@ -119,8 +121,16 @@ export class CuentasBancariasImportacionMasivaComponent {
       id: 'CUIT', name: 'CUIT', field: 'CUIT',
       type: 'number',
       sortable: true,
-      hidden: false,
+      hidden: true,
       searchHidden: true,
+    },
+    {
+      id: 'Persona', name: 'Persona', field: 'Persona',
+      type: 'string',
+      searchType: 'string',
+      sortable: true,
+      hidden: false,
+      searchHidden: false,
     },
     {
       id: 'Detalle', name: 'Detalle', field: 'Detalle',

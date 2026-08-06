@@ -372,8 +372,10 @@ export class CuentasBancariasController extends BaseController {
 
       //Personas con cuenta nueva (IndNuevaCuenta = 1) vigente para este banco: son las únicas actualizables
       const resCBUPendientes: any[] = await queryRunner.query(`
-        SELECT pb.PersonalId, cuit.PersonalCUITCUILCUIT
+        SELECT pb.PersonalId, cuit.PersonalCUITCUILCUIT,
+          CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre), ' (CUIT: ', cuit.PersonalCUITCUILCUIT, ')') Persona
         FROM PersonalBanco pb
+        LEFT JOIN Personal per ON per.PersonalId = pb.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = pb.PersonalId AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = pb.PersonalId)
         WHERE pb.IndNuevaCuenta = 1 AND pb.PersonalBancoBancoId = @0 and pb.PersonalBancoCBU is null
       `, [bancoIdRequest])
@@ -402,21 +404,22 @@ export class CuentasBancariasController extends BaseController {
       //Validaciones del archivo en una sola pasada. Los duplicados se detectan contra lo ya recorrido.
       const cuits = new Set<string>()
       const cuitXCBU = new Map<string, string>()
-      const cuentasAActualizar: { PersonalId: number, CUIT: string, CBU: string }[] = []
+      const cuentasAActualizar: { PersonalId: number, CUIT: string, CBU: string, Persona: string }[] = []
 
       for (const { CUIT, CBU } of filasExcel) {
         const pendientes = CBUPendientes.get(CUIT)
+        const Persona = pendientes[0].Persona
         let filaValida = true
 
         //Formato de CBU (22 dígitos numéricos), antes de ir a buscarlo a la base
         if (!this.isCBU(CBU)) {
-          dataset.push({ id: idError++, CUIT, Detalle: `El CBU debe ser de 22 dígitos. (${CBU})` })
+          dataset.push({ id: idError++, CUIT, Persona, Detalle: `El CBU debe ser de 22 dígitos. (${CBU})` })
           filaValida = false
         }
 
         //El banco mandó más de una fila para la misma persona: no se sabe cuál CBU corresponde
         if (cuits.has(CUIT)) {
-          dataset.push({ id: idError++, CUIT, Detalle: `El CUIT viene más de una vez en el archivo.` })
+          dataset.push({ id: idError++, CUIT, Persona, Detalle: `El CUIT viene más de una vez en el archivo.` })
           filaValida = false
         }
         cuits.add(CUIT)
@@ -424,18 +427,18 @@ export class CuentasBancariasController extends BaseController {
         //Mismo CBU en dos CUIT distintos: no lo detecta la base porque ninguno está grabado todavía
         const resCUIT = cuitXCBU.get(CBU)
         if (resCUIT && resCUIT != CUIT) {
-          dataset.push({ id: idError++, CUIT, Detalle: `El CBU ${CBU} ya viene en el archivo para el CUIT ${resCUIT}.` })
+          dataset.push({ id: idError++, CUIT, Persona, Detalle: `El CBU ${CBU} ya viene en el archivo para el CUIT ${resCUIT}.` })
           filaValida = false
         }
         cuitXCBU.set(CBU, CUIT)
 
         //Una persona no puede tener más de una cuenta pendiente de CBU vigente
         if (pendientes.length > 1) {
-          dataset.push({ id: idError++, CUIT, Detalle: `El CUIT tiene ${pendientes.length} cuentas pendientes de CBU en la base (Inconsistencia de datos).` })
+          dataset.push({ id: idError++, CUIT, Persona, Detalle: `El CUIT tiene ${pendientes.length} cuentas pendientes de CBU en la base (Inconsistencia de datos).` })
           filaValida = false
         }
 
-        if (filaValida) cuentasAActualizar.push({ PersonalId: pendientes[0].PersonalId, CUIT, CBU })
+        if (filaValida) cuentasAActualizar.push({ PersonalId: pendientes[0].PersonalId, CUIT, CBU, Persona })
       }
 
       //Vienen sin repetir y con formato válido: a cuentasAActualizar sólo entran filas que pasaron isCBU()
@@ -457,9 +460,11 @@ export class CuentasBancariasController extends BaseController {
       //El CBU ya está registrado y vigente en alguien. Es error incluso si ese alguien es la misma persona
       //del archivo: una cuenta nueva tiene que traer un CBU nuevo.
       for (const cbu of ExistCbu) {
+        const cuentaAActualizar = cuentasAActualizar.find((cuenta) => cuenta.CBU == cbu.PersonalBancoCBU)
         dataset.push({
           id: idError++,
-          CUIT: cbu.PersonalCUITCUILCUIT,
+          CUIT: cuentaAActualizar?.CUIT,
+          Persona: cuentaAActualizar?.Persona,
           Detalle: `El CBU ${cbu.PersonalBancoCBU} ya se encuentra registrado y vigente en la persona ${cbu.ApellidoNombre} (CUIT: ${cbu.PersonalCUITCUILCUIT}).`
         })
       }
@@ -469,13 +474,13 @@ export class CuentasBancariasController extends BaseController {
         throw new ClientException(`Hubo ${dataset.length} errores que no permiten importar el archivo.`, { list: dataset })
       }
 
-      for (const { PersonalId, CUIT, CBU } of cuentasAActualizar) {
+      for (const { PersonalId, CUIT, CBU, Persona } of cuentasAActualizar) {
         try {
           const result = await this.updateCuentasPendientesQuerys(queryRunner, PersonalId, bancoIdRequest, CBU, fechaActual, usuario, ip)
           altaCuentasBancarias += result?.cuentasModificadas || 0
 
         } catch (error) {
-          dataset.push({ id: idError++, CUIT, Detalle: `${error.message || error}` })
+          dataset.push({ id: idError++, CUIT, Persona, Detalle: `${error.message || error}` })
           continue
         }
 
@@ -804,6 +809,8 @@ export class CuentasBancariasController extends BaseController {
   }
 
   async setCuentasPendientes(queryRunner: any, PersonalId: number, BancoId: number, Desde: Date, FechaActual: Date, usuario: string, ip: string) {
+    FechaActual.setHours(0, 0, 0, 0)
+    Desde.setHours(0, 0, 0, 0)
 
     // se bloquea la carga de cuentas bancarias con CBU pendiente para todos los bancos menos el Banco Patagonia (BancoId = 4). Solo el patagonia tiene importador de CBU pendientes
     if (BancoId != 4) throw new ClientException(`No se encuentra habilitada la carga de cuentas bancarias con CBU pendiente. Solo esta disponible para el Banco Patagonia.`)
@@ -815,31 +822,49 @@ export class CuentasBancariasController extends BaseController {
         left JOIN Banco ban ON ban.BancoId = pb.PersonalBancoBancoId
         Left JOIN Personal per ON per.PersonalId = pb.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-        WHERE ((@0 <= isnull(pb.PersonalBancoHasta, '9999-12-31') and @0 >= pb.PersonalBancoDesde) OR pb.PersonalBancoDesde >= @0) AND pb.PersonalId = @1
-      `, [FechaActual, PersonalId])
+        WHERE pb.PersonalId = @0
+        `, [PersonalId])
 
-    const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU == ''))
+    let pendiente: any = null
+    let regFechaMin: { fecha: Date, reg: any } | null = null
+    let vigentes: number = 0
+    let vigente: any = null
+
+    for (const r of PersonalBanco) {
+      // Fecha tope del registro: su Hasta, o su Desde si esta abierto (ese se cierra solo al completar el CBU, ver updateCuentasPendientesQuerys)
+      const fechaMin: Date = r.PersonalBancoHasta == null ? r.PersonalBancoDesde : r.PersonalBancoHasta
+
+      if (r.IndNuevaCuenta == 1 && !r.PersonalBancoCBU && !pendiente) pendiente = r
+
+      // Se busca la fecha tope mas alta de todas para informar la realmente limitante y no la del primer registro que solape
+      if (fechaMin.getTime() >= Desde.getTime() && (!regFechaMin || fechaMin.getTime() > regFechaMin.fecha.getTime()))
+        regFechaMin = { fecha: fechaMin, reg: r }
+
+      // Vigente = arranca hoy o antes y no esta cerrado. A futuro = arranca despues de hoy
+      if (r.IndNuevaCuenta == 0 && (r.PersonalBancoDesde.getTime() > FechaActual.getTime() || (r.PersonalBancoDesde.getTime() <= FechaActual.getTime() && r.PersonalBancoHasta == null) || (r.PersonalBancoDesde.getTime() <= FechaActual.getTime() && r.PersonalBancoHasta.getTime() >= FechaActual.getTime()))) {
+        vigentes++
+        if (!vigente) vigente = r
+      }
+    }
+
     // Mientras esa cuenta siga pendiente no se permite generar otra: hay que completar el CBU de la existente, ya sea por la importación del XLS o manualmente desde el drawer
-    if (cuentaNuevaPendiente.length > 0) throw new ClientException(`La persona ${cuentaNuevaPendiente[0].ApellidoNombre} - CUIT: ${cuentaNuevaPendiente[0].CUIT ? cuentaNuevaPendiente[0].CUIT : ''} cuenta con CBU pendiente de carga.`)
+    if (pendiente) throw new ClientException(`La persona ${pendiente.ApellidoNombre} - CUIT: ${pendiente.CUIT} cuenta con cuenta pendiente de CBU.`)
 
+    // El desde de la cuenta pendiente no puede caer dentro ni antes de ningun periodo ya registrado
+    if (regFechaMin) throw new ClientException(`La fecha desde debe ser mayor a la fecha ${regFechaMin.fecha.toLocaleDateString()}. (${regFechaMin.reg.ApellidoNombre} - CUIT: ${regFechaMin.reg.CUIT})`)
 
-    // valido que no haya mas de un registro vigente o a futuro que tenga desde mayor o igual a la fecha desde de la cuenta pendiente que se quiere dar de alta
-    const res = PersonalBanco.filter((r: any) => r.PersonalBancoDesde >= Desde)
-    if (res.length > 0) throw new ClientException(`La fecha desde de la cuenta pendiente debe ser mayor a ${res[0].PersonalBancoDesde.toLocaleDateString()}. (${res[0].ApellidoNombre} - CUIT: ${res[0].CUIT ? res[0].CUIT : ''})`)
+    // El completado del CBU cierra como maximo un vigente, por eso mas de uno es inconsistencia de datos
+    if (vigentes > 1) throw new ClientException(`No se puede dar de alta la cuenta. La persona cuenta con mas de un CBU vigente o a futuro. Cantidad: ${vigentes} (${vigente.ApellidoNombre} - CUIT: ${vigente.CUIT }) (Inconsistencia de datos).`)
 
-    const Personal: any = await queryRunner.query(`
-        SELECT ISNULL(PersonalBancoUltNro, 0)+1 UltNro
-        FROM Personal 
-        WHERE PersonalId IN (@0)
-      `, [PersonalId])
-    const newPersonalBancoId: number = Personal[0].UltNro
     await queryRunner.query(`
+        DECLARE @nuevo int = (SELECT ISNULL(PersonalBancoUltNro, 0) + 1 FROM Personal WHERE PersonalId = @0)
+
         INSERT INTO PersonalBanco (PersonalId, PersonalBancoId, PersonalBancoBancoId, PersonalBancoCBU, PersonalBancoDesde, IndNuevaCuenta,
         AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
-        VALUES (@0, @1, @2, @3, @4, @5, @6, @6, @7, @7, @8, @8)
+        VALUES (@0, @nuevo, @1, @2, @3, @4, @5, @5, @6, @6, @7, @7)
 
-        UPDATE Personal SET PersonalBancoUltNro = @1 WHERE PersonalId IN (@0)
-      `, [PersonalId, newPersonalBancoId, BancoId, null, Desde, 1, FechaActual, usuario, ip])
+        UPDATE Personal SET PersonalBancoUltNro = @nuevo WHERE PersonalId = @0
+      `, [PersonalId, BancoId, null, Desde, 1, FechaActual, usuario, ip])
   }
 }
 

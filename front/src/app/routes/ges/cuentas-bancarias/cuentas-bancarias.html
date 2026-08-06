@@ -34,6 +34,12 @@
       </li>
     </ul>
     <nz-button-group nz-button nzButtonGroup style="flex: 1; justify-content: flex-end; display: flex;">
+      <!-- Recarga de grilla -->
+      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
+        (click)="gridData.reload()">
+        <span nz-icon nzType="reload" nzTheme="outline"></span>
+      </button>
+
       <!-- btn cargar cuantas bancarias -->
       <button nz-button nzType="default" (click)="openDrawerforNewsCuentasBancarias()" nz-tooltip
         nzTooltipTitle="{{ 'app.cuentasBancarias.altaMasiva' | i18n }}"><span nz-icon nzType="plus"
@@ -65,7 +71,8 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cuentas-bancarias/importacion">Importación</a>
       <ng-template nz-tab>
-        <app-cuentas-bancarias-importacion-masiva [periodo]="periodo()"></app-cuentas-bancarias-importacion-masiva>
+        <app-cuentas-bancarias-importacion-masiva [periodo]="periodo()"
+          (onAddorUpdate)="onAddorUpdate($event)"></app-cuentas-bancarias-importacion-masiva>
       </ng-template>
     </nz-tab>
 
