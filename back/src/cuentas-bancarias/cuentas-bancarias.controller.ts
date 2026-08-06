@@ -109,23 +109,11 @@ const columns: any[] = [
     searchHidden: false
   },
   {
-    id: "ImporteTranferido",
-    field: "ImporteTranferido",
-    name: "Importe Tranferido",
-    type: "currency",
-    fieldName: "mo.importe",
-    searchComponent: "inputForNumberAdvancedSearch",
-    searchType: "numberAdvanced",
-    sortable: true,
-    hidden: false,
-    searchHidden: false
-  },
-  {
     id: "PersonalBancoDesde",
     field: "PersonalBancoDesde",
     name: "Desde",
     type: "date",
-    fieldName: "pb.PersonalBancoDesde",
+    fieldName: "ISNULL(pb.PersonalBancoDesde, '9999-12-31')",
     searchComponent: "inputForFechaSearch",
     searchType: "date",
     sortable: true,
@@ -150,6 +138,24 @@ const columns: any[] = [
     name: "CBU Pendiente",
     type: "string",
     fieldName: "CAST(ISNULL(pb.IndNuevaCuenta, 0) AS CHAR(1))",
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsSINO },
+    exportWithFormatter: true,
+    searchComponent: "inputForActivo",
+
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    cssClass: 'text-center',
+    minWidth: 100,
+    maxWidth: 100,
+  },
+  {
+    id: "SinCuentaBancaria",
+    field: "SinCuentaBancaria",
+    name: "Sin Cuenta",
+    type: "string",
+    fieldName: "CASE WHEN pb.PersonalId IS NULL THEN '1' ELSE '0' END",
     formatter: 'collectionFormatter',
     params: { collection: getOptionsSINO },
     exportWithFormatter: true,
@@ -189,28 +195,19 @@ export class CuentasBancariasController extends BaseController {
     return this.jsonRes(columns, res)
   }
 
-  async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any, periodo: Date, sitRevistaPeriodo: Date, liqmaperiodo: Date) {
+  async getCuentasBancariasQuery(queryRunner: any, filterSql: any, orderBy: any, periodo: Date) {
     return await queryRunner.query(`
-      SELECT CONCAT(pb.PersonalId, '-',PersonalBancoId, '-', pb.PersonalBancoCBU) id,
-        pb.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(ISNULL(pb.IndNuevaCuenta, 0) AS CHAR(1)) AS IndNuevaCuenta
+      SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
+        per.PersonalId, PersonalBancoId, pb.PersonalBancoBancoId, pb.PersonalBancoCBU, b.BancoDescripcion, pb.PersonalBancoDesde, pb.PersonalBancoHasta, CAST(ISNULL(pb.IndNuevaCuenta, 0) AS CHAR(1)) AS IndNuevaCuenta
+        , CASE WHEN pb.PersonalId IS NULL THEN '1' ELSE '0' END AS SinCuentaBancaria
         , CONCAT(TRIM(per.PersonalApellido), ', ', trim(per.PersonalNombre)) ApellidoNombre, sitrev.sitRevCom, sitrev.PersonalSituacionRevistaSituacionId
         , cuit.PersonalCUITCUILCUIT, suc.SucursalDescripcion, ga.GrupoActividadId, ga.GrupoActividadDetalle,
-        mo.importe as ImporteTranferido,
-		  1
-      FROM PersonalBanco pb
-      JOIN Banco b on b.BancoId=pb.PersonalBancoBancoId
-      JOIN Personal per on per.PersonalId=pb.PersonalId
-      
-      LEFT JOIN (
-        SELECT mov.persona_id, mov.periodo_id, pe.anio, pe.mes, SUM(importe) importe  
-        FROM lige.dbo.liqmamovimientos mov 
-        JOIN lige.dbo.liqmaperiodo pe ON pe.periodo_id = mov.periodo_id AND pe.anio=DATEPART(YEAR, @2) AND pe.mes=DATEPART(MONTH, @2)
-        WHERE mov.tipo_movimiento_id=11 
-        GROUP BY mov.persona_id, mov.periodo_id, pe.anio, pe.mes
-		  
-		  ) mo ON mo.persona_id = per.PersonalId
-      
-      LEFT JOIN (
+        1
+      FROM Personal per
+      LEFT JOIN PersonalBanco pb on per.PersonalId=pb.PersonalId and ((@0 >= pb.PersonalBancoDesde AND @0 <= ISNULL(pb.PersonalBancoHasta, '9999-12-31')) OR pb.IndNuevaCuenta=1)
+      LEFT JOIN Banco b on b.BancoId=pb.PersonalBancoBancoId 
+
+        LEFT JOIN (
         SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
           CASE 
             WHEN p.PersonalSituacionRevistaId IS NOT NULL THEN  
@@ -224,7 +221,7 @@ export class CuentasBancariasController extends BaseController {
           END AS sitRevCom
         FROM PersonalSituacionRevista p
         JOIN SituacionRevista s
-        ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= @1 AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= @1
+        ON p.PersonalSituacionRevistaSituacionId = s.SituacionRevistaId AND p.PersonalSituacionRevistaDesde <= @0 AND ISNULL(p.PersonalSituacionRevistaHasta,'9999-12-31') >= @0
       ) sitrev ON sitrev.PersonalId = per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
@@ -250,10 +247,9 @@ export class CuentasBancariasController extends BaseController {
           AND ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= @0
       ) ga ON ga.GrupoActividadPersonalPersonalId = per.PersonalId
 
-      WHERE ((@0 >= pb.PersonalBancoDesde AND @0 <= ISNULL(pb.PersonalBancoHasta, '9999-12-31')) OR @0 <= pb.PersonalBancoDesde) 
-      AND (${filterSql})
+      WHERE (${filterSql})
       ${orderBy}
-    `, [periodo, sitRevistaPeriodo, liqmaperiodo])
+    `, [periodo])
   }
 
   async getCuentasBancarias(req: any, res: Response, next: NextFunction) {
@@ -263,12 +259,31 @@ export class CuentasBancariasController extends BaseController {
       const filterSql = filtrosToSql(options.filtros, columns);
       const orderBy = orderToSQL(options.sort)
       const periodo = new Date(req.body.periodo)
-      const sitRevistaPeriodo = new Date(req.body.sitRevistaPeriodo)
-      const liqmaperiodo = new Date(req.body.liqmaperiodo)
 
-      const lista: any[] = await this.getCuentasBancariasQuery(queryRunner, filterSql, orderBy, periodo, sitRevistaPeriodo, liqmaperiodo)
+      const lista: any[] = await this.getCuentasBancariasQuery(queryRunner, filterSql, orderBy, periodo)
 
       this.jsonRes(lista, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  //Totalizador de cuentas pendientes de CBU del banco. Sólo cuenta: no filtra por vigencia ni mira el CBU, el pendiente lo define IndNuevaCuenta
+  async getCuentasPendientesCBU(req: any, res: Response, next: NextFunction) {
+    const BancoId = Number(req.params.BancoId)
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      if (!BancoId) return this.jsonRes({ Pendientes: 0 }, res)
+
+      const result: any[] = await queryRunner.query(`
+        SELECT COUNT(*) Pendientes
+        FROM PersonalBanco pb
+        WHERE pb.IndNuevaCuenta = 1 AND pb.PersonalBancoBancoId = @0
+      `, [BancoId])
+
+      this.jsonRes({ Pendientes: result[0]?.Pendientes || 0 }, res);
     } catch (error) {
       return next(error)
     } finally {
@@ -750,18 +765,18 @@ export class CuentasBancariasController extends BaseController {
     const cuentaNuevaPendiente = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 1 && (r.PersonalBancoCBU == null || r.PersonalBancoCBU == '') && r.PersonalBancoBancoId == BancoId)
 
     // buscar si tiene vigente mas de un cbu, si encuentra mas de uno, no se permite dar de alta la cuenta nueva. Se debera cerrar el vigente y luego dar de alta la nueva
-    const cbuVigentes = PersonalBanco.filter((r: any) => (r.PersonalBancoCBU != null && r.PersonalBancoCBU != '') && r.IndNuevaCuenta == 0)
+    const cbuVigenteFuturos = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 0)
 
     // NO SE CONTEMPLA SI SE TIENE MAS DE UN REGISTRO VIGENTE, YA QUE NO DEBERIA EXISTIR MAS DE UNO
-    if (cbuVigentes.length > 1)
-      throw new ClientException(`No se puede dar de alta la cuenta. Registros vigentes y a futuros: ${cbuVigentes.length} (Inconsistencia de datos).`)
+    if (cbuVigenteFuturos.length > 1)
+      throw new ClientException(`No se puede dar de alta la cuenta. Registros vigentes y a futuros: ${cbuVigenteFuturos.length} (Inconsistencia de datos).`)
 
     const newHasta: Date = new Date(cuentaNuevaPendiente[0].PersonalBancoDesde)
     newHasta.setDate(newHasta.getDate() - 1)
     newHasta.setHours(0, 0, 0, 0)
 
-    if (cbuVigentes.length == 1 && newHasta.getTime() < cbuVigentes[0].PersonalBancoDesde.getTime()) {
-      throw new ClientException(`La fecha de cierre del CBU vigente no puede ser menor a la fecha desde del mismo (Desde: ${cbuVigentes[0].PersonalBancoDesde.toLocaleDateString()} / Nuevo Hasta: ${newHasta.toLocaleDateString()})`)
+    if (cbuVigenteFuturos.length == 1 && newHasta.getTime() < cbuVigenteFuturos[0].PersonalBancoDesde.getTime()) {
+      throw new ClientException(`La fecha de cierre del CBU vigente no puede ser menor a la fecha desde del mismo (Desde: ${cbuVigenteFuturos[0].PersonalBancoDesde.toLocaleDateString()} / Nuevo Hasta: ${newHasta.toLocaleDateString()})`)
     }
 
     await queryRunner.query(`
@@ -775,7 +790,7 @@ export class CuentasBancariasController extends BaseController {
       `, [cuentaNuevaPendiente[0].PersonalId, cuentaNuevaPendiente[0].PersonalBancoId, CBU, FechaActual, usuario, ip, BancoId])
 
     // cerrar el registro vigente, ya que ahora se completa la cuenta nueva con un CBU
-    if (cbuVigentes.length == 1) {
+    if (cbuVigenteFuturos.length == 1) {
       await queryRunner.query(`
           UPDATE PersonalBanco SET
           PersonalBancoHasta = @2,
@@ -783,7 +798,7 @@ export class CuentasBancariasController extends BaseController {
           AudUsuarioMod = @4,
           AudIpMod=@5
           WHERE PersonalId = @0 AND PersonalBancoId = @1 and PersonalBancoDesde <= @3 AND isnull(PersonalBancoHasta, '9999-12-31')>= @3 and IndNuevaCuenta = 0
-        `, [PersonalId, cbuVigentes[0].PersonalBancoId, newHasta, FechaActual, usuario, ip])
+        `, [PersonalId, cbuVigenteFuturos[0].PersonalBancoId, newHasta, FechaActual, usuario, ip])
     }
     return { cuentasModificadas: 1 }
   }

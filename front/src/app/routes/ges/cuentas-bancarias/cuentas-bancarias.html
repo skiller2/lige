@@ -18,17 +18,9 @@
   <div nz-row style="align-items: center; display: flex;">
     <div nz-row style="flex: 1;">
       <nz-form-label [nzMd]="3">Periodo</nz-form-label>
-    <nz-form-control [nzMd]="5">
-      <nz-date-picker [(ngModel)]="periodo" nzFormat="dd/MM/yyyy" />
-    </nz-form-control>
-    <nz-form-label [nzMd]="3">Situación revista</nz-form-label>
-    <nz-form-control [nzMd]="5">
-      <nz-date-picker [(ngModel)]="periodoSR" nzFormat="dd/MM/yyyy" />
-    </nz-form-control>
-    <nz-form-label [nzMd]="3">Importe transferido</nz-form-label>
-    <nz-form-control [nzMd]="5">
-      <nz-date-picker [(ngModel)]="periodoIT" nzMode="month" nzFormat="MM/yyyy" />
-    </nz-form-control>
+      <nz-form-control [nzMd]="5">
+        <nz-date-picker [(ngModel)]="periodo" nzFormat="dd/MM/yyyy" />
+      </nz-form-control>
     </div>
 
     <ul nz-menu nzMode="horizontal" style="display: flex; justify-content: center; flex: 1;">
@@ -44,7 +36,8 @@
     <nz-button-group nz-button nzButtonGroup style="flex: 1; justify-content: flex-end; display: flex;">
       <!-- btn cargar cuantas bancarias -->
       <button nz-button nzType="default" (click)="openDrawerforNewsCuentasBancarias()" nz-tooltip
-        nzTooltipTitle="{{ 'app.cuentasBancarias.altaMasiva' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
+        nzTooltipTitle="{{ 'app.cuentasBancarias.altaMasiva' | i18n }}"><span nz-icon nzType="plus"
+          nzTheme="outline"></span></button>
       <!-- btn cargar datos bancarios de la persona -->
       <button nz-button nzType="default" (click)="openDrawerforPersonalBanco()" nz-tooltip
         nzTooltipTitle="{{ 'app.icon.bank' | i18n }}"><span nz-icon nzType="bank" nzTheme="outline"></span></button>
@@ -52,7 +45,7 @@
     </nz-button-group>
   </div>
 
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex" [nzLinkExact]="false">
     <nz-tab>
       <a nz-tab-link routerLink="/ges/cuentas-bancarias/listado">Listado</a>
 
@@ -79,7 +72,7 @@
   </nz-tabs>
 </nz-card>
 
-<app-cuentas-bancarias-alta-drawer [(visible)]="visibleCuentasBancariasAlta" 
+<app-cuentas-bancarias-alta-drawer [(visible)]="visibleCuentasBancariasAlta"
   (onAddorUpdate)="onAddorUpdate($event)"></app-cuentas-bancarias-alta-drawer>
 <app-personal-banco-drawer [(visibleBanco)]="visiblePersonalBanco" [PersonalId]="personalId()"
   (onAddorUpdate)="onAddorUpdate($event)"></app-personal-banco-drawer>

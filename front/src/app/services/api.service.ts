@@ -2309,14 +2309,23 @@ export class ApiService {
   }
 
   getCuentasBancarias(filters: any) {
-    if (!filters.periodo) {
-      this.notification.warning('Advertencia', `Por favor, ingrese el periodo para visualizar los datos.`);
+
+    if (!filters.options.filtros.length || !filters.periodo) {
+      this.notification.warning('Advertencia', `Por favor, ingrese el periodo para visualizar los datos y al menos un filtro.`);
       return of([]);
     }
     const parameter = filters
     return this.http.post<ResponseJSON<any>>(`api/cuentas-bancarias/list`, parameter).pipe(
       map(res => res.data),
       catchError(() => of([]))
+    );
+  }
+
+  getCuentasPendientesCBU(BancoId: number) {
+    if (!BancoId) return of(null);
+    return this.http.get<ResponseJSON<any>>(`api/cuentas-bancarias/pendientes/${BancoId}`).pipe(
+      map((res: any) => res.data),
+      catchError(() => of(null))
     );
   }
 

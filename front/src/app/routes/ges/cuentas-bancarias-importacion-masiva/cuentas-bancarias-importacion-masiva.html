@@ -2,27 +2,51 @@
   <br>
 
   <form>
+    <div nz-row [nzGutter]="16" nzType="flex" nzAlign="middle">
 
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="3">Banco</nz-form-label>
-      <nz-form-control [nzMd]="5">
-        <nz-select [formField]="formCuentasBancariasImportacion.BancoId" nzPlaceHolder=""
-        nzAllowClear [nzDropdownMatchSelectWidth]="false" nzShowSearch>
-          @for (option of optionsBanco(); track option.value) {
-          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-    </nz-form-item>
+      <div nz-col nzXs="24" nzMd="6">
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="8">Banco</nz-form-label>
+          <nz-form-control [nzXs]="16">
+            <nz-select [formField]="formCuentasBancariasImportacion.BancoId" nzPlaceHolder="" nzAllowClear
+              [nzDropdownMatchSelectWidth]="false" nzShowSearch>
+              @for (option of optionsBanco(); track option.value) {
+              <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
 
-    <nz-form-item class="marginElement">
-      
-      <nz-form-label [nzXs]="3" class="inputText">Archivo</nz-form-label>
-      <app-file-upload [formField]="formCuentasBancariasImportacion.file" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'ALTCUE'"
-        [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'" [showTipoDocs]="false"></app-file-upload>
-      
-    </nz-form-item>
-    
+      <div nz-col nzXs="24" nzMd="7">
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="9" class="inputText">Archivo</nz-form-label>
+          <nz-form-control [nzXs]="15">
+            <app-file-upload [formField]="formCuentasBancariasImportacion.file" [idForSearh]="0" [cantMaxFiles]="1"
+              [textForSearch]="'ALTCUE'" [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'"
+              [showTipoDocs]="false"></app-file-upload>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div nz-col nzFlex="auto">
+        @if (cuentasPendientes.value(); as context) {
+        @if (context.Pendientes) {
+        <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
+          <div nz-col nzSpan="24" class="p-md text-white">
+            <div class="h2 mt0">
+              <a class="text-white" [routerLink]="['/', 'ges', 'cuentas-bancarias', 'listado']"
+                [queryParams]="{ IndNuevaCuenta: 1 }" nz-tooltip nzTooltipTitle="Ver en el listado">
+                Cuentas Pendientes de CBU: {{ context.Pendientes }}
+              </a>
+            </div>
+          </div>
+        </div>
+        }
+        }
+      </div>
+
+    </div>
   </form>
 
   <!-- <nz-form-item>
@@ -32,12 +56,12 @@
         <div class="containerAnterioresDescuentos" nz-tooltip
           nzTooltipTitle="Fecha Importacion: {{movimiento.DocumentoAudFechaIng}}">
           <ng-container> -->
-            <!-- Eliminar importacion -->
-            <!-- <a (click)="openDrawerforBajaImportacion(movimiento.DocumentoId)">
+  <!-- Eliminar importacion -->
+  <!-- <a (click)="openDrawerforBajaImportacion(movimiento.DocumentoId)">
               <span nz-icon nzType="delete" nzTheme="outline" class="trash-color"></span>
             </a> -->
-            <!-- Descargar importacion -->
-            <!-- <a app-down-file httpUrl="/api/file-upload/downloadFile/{{movimiento.DocumentoId}}/Documento/original">
+  <!-- Descargar importacion -->
+  <!-- <a app-down-file httpUrl="/api/file-upload/downloadFile/{{movimiento.DocumentoId}}/Documento/original">
               <span nz-icon nzType="download"></span>
             </a>
           </ng-container>
@@ -46,10 +70,10 @@
       }
     </nz-form-control>
   </nz-form-item> -->
-  
+
   <div class="gridError container-fluid">
     <angular-slickgrid gridId="gridImport" [columns]="columns | colsFilter" [options]="gridOptions"
-    [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
+      [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
     </angular-slickgrid>
   </div>
 </nz-card>

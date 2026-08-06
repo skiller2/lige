@@ -63,6 +63,17 @@ export class CuentasBancariasImportacionMasivaComponent {
 
   optionsBanco = toSignal(this.searchService.getBancosOptions(), { initialValue: [] })
 
+  //Aislado en un computed para que el resource no se recargue cuando cambia el archivo
+  readonly BancoId = computed(() => Number(this.importacion().BancoId))
+
+  cuentasPendientes = resource({
+    params: () => ({ BancoId: this.BancoId() }),
+    loader: async ({ params }) => {
+      return await firstValueFrom(this.apiService.getCuentasPendientesCBU(params.BancoId))
+    },
+    defaultValue: null
+  });
+
   effect1 = effect(async () => {
     const file = this.importacion().file
     if (file.length > 0) {
@@ -83,6 +94,8 @@ export class CuentasBancariasImportacionMasivaComponent {
         this.uploading$.next({ loading: false, event: null })
       }
       this.loadingSrv.close()
+      //Refresco el totalizador tanto si importó como si falló: en el error parcial igual pudo bajar
+      this.cuentasPendientes.reload()
     }
   })
 
