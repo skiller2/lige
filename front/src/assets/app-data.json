@@ -165,6 +165,11 @@
           "icon": "anticon-profile"
         },
         {
+          "text": "Precio Efectos",
+          "link": "/ges/precio-efectos",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Permisos",
           "icon": "anticon-profile",
           "children": [

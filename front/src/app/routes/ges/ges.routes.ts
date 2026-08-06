@@ -165,6 +165,13 @@ export const GesRoutes: Routes = [
     path: 'parametros-venta/:tab',
     loadComponent: () => import('./parametro-venta/parametro-venta').then(c => c.ParametroVentaComponent),
   },
+
+  { path: 'precio-efectos', redirectTo: 'precio-efectos/listado' },
+  {
+    path: 'precio-efectos/:tab',
+    loadComponent: () => import('./precio-efectos/precio-efectos').then(c => c.PrecioEfectosComponent),
+  },
+
   { path: 'facturacion', redirectTo: 'facturacion/listado' },
   {
     path: 'facturacion/:tab',
