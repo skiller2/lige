@@ -65,11 +65,17 @@ export class INAESComponent {
   gridData = resource({
     params: () => ({ options: this.listOptions() }),
     loader: async ({ params }) => {
+      let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
-      const res = await firstValueFrom(this.apiService.getINAESAltasBajas({ options: params.options })
+      try {
+        response = await firstValueFrom(this.apiService.getINAESAltasBajas({ options: params.options })
         .pipe(map(data => { return data })));
+      } catch (error) {
+        
+      }
+      
       this.loadingSrv.close()
-      return res;
+      return response || [];
     },
     defaultValue: []
   });
