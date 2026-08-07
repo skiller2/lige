@@ -1454,7 +1454,7 @@ LEFT JOIN banco banc
     const anio = fechaActual.getFullYear()
     const mes = fechaActual.getMonth() + 1
 
-    const queryRunner = await getConnection(res.locals.userName);
+    const queryRunner = await getConnection(usuario);
 
     try {
       ({ EventoLogCodigo } = await this.eventoLogInicio(
@@ -1470,7 +1470,7 @@ LEFT JOIN banco banc
 
 
       const cuentalimite = await queryRunner.query(`
-        WITH Movimientos AS (
+WITH Movimientos AS (
         SELECT 
           liq.persona_id PersonaId,
           liq.tipocuenta_id,
@@ -1496,11 +1496,13 @@ LEFT JOIN banco banc
         WHERE val.ValorLiquidacionDesde <= DATEFROMPARTS(@1,@2,1)
           AND ISNULL(val.ValorLiquidacionHasta,'9999-12-31') > DATEFROMPARTS(@1,@2,1)
       )
+      
       SELECT mov.*, val.*, ROUND(mov.importe / val.ValorLiquidacionHoraNormal,0) PonHoras, per.HorasAutorizadasMax 
       FROM Movimientos mov
-      JOIN Personal per ON per.PersonalId=mov.persona_id
+      JOIN Personal per ON per.PersonalId=mov.PersonaId
       CROSS JOIN ValorHora val
-`, [fechaActual, anio, mes])
+      WHERE per.HorasAutorizadasMax IS NULL
+      `, [fechaActual, anio, mes])
 
       for (const limite of cuentalimite) {
         const PersonalId = limite.PersonaId

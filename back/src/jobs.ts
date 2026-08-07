@@ -17,7 +17,7 @@ import { GestionDescuentosController } from "./gestion-descuentos/gestion-descue
 
 import { version, GlobalWorkerOptions, getDocument } from "pdfjs-dist";
 import { ClientException } from './controller/base.controller.ts';
-import { domicilioController, movimientoStockController } from './controller/controller.module.ts';
+import { domicilioController, liquidacionesBancoController, liquidacionesController, movimientoStockController } from './controller/controller.module.ts';
 
 
 
@@ -70,7 +70,10 @@ async function main() {
       headers: {},
       socket: { remoteAddress: '127.0.0.1' }
     }
-    await domicilioController.jobUpdateDirecciones(mockReq, null, (ret: any) => ret)
+    //await domicilioController.jobUpdateDirecciones(mockReq, null, (ret: any) => ret)
+
+    await liquidacionesBancoController.jobLimiteImporteBanco(mockReq, null, (ret: any) => ret)
+
 
 }
 
