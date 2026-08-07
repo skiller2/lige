@@ -235,7 +235,7 @@
   "app.btn.new.validate": "Iniciar Nueva Validación",
   "app.validate.attempt": "Superó los intentos de validación",
   "app.grupos": "Grupos",
-  "app.cuentasBancarias.altaMasiva": "Alta Cuentas Bancarios",
+  "app.cuentasBancarias.altaPendientes": "Alta Cuentas Sin CBU",
   "app.jerarquicos": "Jerárquicos",
   "app.supervisores": "Supervisores",
   "app.objetivos": "Objetivos",
