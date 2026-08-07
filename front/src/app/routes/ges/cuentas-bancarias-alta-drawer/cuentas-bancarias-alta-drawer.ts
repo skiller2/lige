@@ -28,6 +28,7 @@ export interface CuentasBancarias {
   
 export class CuentasBancariasAltaDrawerComponent {
     visible = model<boolean>(false)
+    cuitIniciales = input<string>('')
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
 
@@ -42,6 +43,22 @@ export class CuentasBancariasAltaDrawerComponent {
     
     readonly cuentasBancarias = signal<CuentasBancarias>(this.defaultCuentasBancariasForm)
     readonly formCuentasBancarias = form(this.cuentasBancarias)
+    readonly cuitsIngresados = computed(() =>
+        this.cuentasBancarias().CUITs
+            .split(';')
+            .map(cuit => cuit.trim())
+            .filter(Boolean)
+            .length
+    )
+
+    private readonly sincronizarCuitIniciales = effect(() => {
+        if (!this.visible()) return
+
+        this.cuentasBancarias.update(values => ({
+            ...values,
+            CUITs: this.cuitIniciales(),
+        }))
+    })
 
     optionsBanco = toSignal(this.searchService.getBancosOptions())
 

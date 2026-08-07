@@ -19,6 +19,11 @@ import { CuentasBancariasImportacionMasivaComponent } from '../cuentas-bancarias
 import { CuentasBancariasAltaDrawerComponent } from '../cuentas-bancarias-alta-drawer/cuentas-bancarias-alta-drawer'
 import { ActivatedRoute, Router } from '@angular/router';
 
+interface CuentaBancariaRow {
+  PersonalId?: number;
+  PersonalCUITCUILCUIT?: string | number | null;
+}
+
 @Component({
   selector: 'app-cuentas-bancarias',
   templateUrl: './cuentas-bancarias.html',
@@ -43,6 +48,14 @@ export class CuentasBancariasComponent {
   personalId = signal<number>(0)
   visiblePersonalBanco = model<boolean>(false)
   visibleCuentasBancariasAlta = model<boolean>(false)
+  selectedRows = signal<CuentaBancariaRow[]>([])
+  hasMultipleRowsSelected = computed(() => this.selectedRows().length > 1)
+  cuitSeleccionados = computed(() => [...new Set(
+    this.selectedRows()
+      .map(row => String(row.PersonalCUITCUILCUIT ?? '').trim())
+      .filter(Boolean)
+  )])
+  cuitIniciales = computed(() => this.cuitSeleccionados().join(';'))
   anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
 
@@ -89,6 +102,8 @@ export class CuentasBancariasComponent {
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
     this.gridOptions.enableCheckboxSelector = true
+    this.gridOptions.multiSelect = true
+    this.gridOptions.selectionOptions = { selectActiveRow: false }
     this.gridOptions.forceFitColumns = true
 
     const dateToday = new Date();
@@ -132,14 +147,13 @@ export class CuentasBancariasComponent {
   }
 
   handleSelectedRowsChanged(e: any): void {
-    if (e.detail.args.changedSelectedRows.length == 1) {
-      const rowNum = e.detail.args.changedSelectedRows[0]
-      const PersonalId = this.angularGrid.dataView.getItemByIdx(rowNum)?.PersonalId
-      this.personalId.set(PersonalId)
+    const rowIndexes: number[] = e.detail.args.rows ?? []
+    const rows = rowIndexes
+      .map(rowIndex => this.angularGrid.dataView.getItemByIdx(rowIndex) as CuentaBancariaRow | undefined)
+      .filter((row): row is CuentaBancariaRow => !!row)
 
-    } else {
-      this.personalId.set(0)
-    }
+    this.selectedRows.set(rows)
+    this.personalId.set(rows.length === 1 ? rows[0].PersonalId ?? 0 : 0)
   }
 
   onAddorUpdate(_e: any) {

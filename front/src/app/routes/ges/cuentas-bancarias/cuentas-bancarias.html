@@ -45,7 +45,8 @@
         nzTooltipTitle="{{ 'app.cuentasBancarias.altaPendientes' | i18n }}"><span nz-icon nzType="plus"
           nzTheme="outline"></span></button>
       <!-- btn cargar datos bancarios de la persona -->
-      <button nz-button nzType="default" (click)="openDrawerforPersonalBanco()" nz-tooltip
+      <button nz-button nzType="default" [disabled]="hasMultipleRowsSelected()"
+        (click)="openDrawerforPersonalBanco()" nz-tooltip
         nzTooltipTitle="{{ 'app.icon.bank' | i18n }}"><span nz-icon nzType="bank" nzTheme="outline"></span></button>
 
     </nz-button-group>
@@ -79,7 +80,7 @@
   </nz-tabs>
 </nz-card>
 
-<app-cuentas-bancarias-alta-drawer [(visible)]="visibleCuentasBancariasAlta"
+<app-cuentas-bancarias-alta-drawer [(visible)]="visibleCuentasBancariasAlta" [cuitIniciales]="cuitIniciales()"
   (onAddorUpdate)="onAddorUpdate($event)"></app-cuentas-bancarias-alta-drawer>
 <app-personal-banco-drawer [(visibleBanco)]="visiblePersonalBanco" [PersonalId]="personalId()"
   (onAddorUpdate)="onAddorUpdate($event)"></app-personal-banco-drawer>
