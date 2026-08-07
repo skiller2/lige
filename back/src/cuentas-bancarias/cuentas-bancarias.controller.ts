@@ -548,7 +548,16 @@ export class CuentasBancariasController extends BaseController {
       }
       Desde = new Date(Desde)
       Desde.setHours(0, 0, 0, 0)
-      const arrayCUITs: any[] = CUITs.split(/\D+/).filter(Boolean);
+      const arrayCUITs: string[] = CUITs.split(/\D+/).filter(Boolean);
+      const CUITsVistos = new Set<string>()
+      const CUITsDuplicados = [...new Set(arrayCUITs.filter(CUIT => {
+        const duplicado = CUITsVistos.has(CUIT)
+        CUITsVistos.add(CUIT)
+        return duplicado
+      }))]
+
+      if (CUITsDuplicados.length)
+        throw new ClientException(`Se encontraron CUITs duplicados: ${CUITsDuplicados.join('; ')}.`)
 
       for (const CUIT of arrayCUITs) {
 
