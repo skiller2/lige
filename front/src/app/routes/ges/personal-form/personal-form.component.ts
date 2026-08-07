@@ -11,6 +11,7 @@ import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkb
 import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+// import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
 
 export interface Telefono {
   PersonalTelefonoId: number;
@@ -87,7 +88,8 @@ export interface ParametroPersonalForm {
   templateUrl: './personal-form.component.html',
   styleUrl: './personal-form.component.less',
   imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule, FileUploadComponent, NzCheckboxModule,
-    FormField, FormsModule
+    FormField, FormsModule,
+    // AddrSearchComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

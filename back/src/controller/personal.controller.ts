@@ -6,7 +6,7 @@ import type { NextFunction } from "express";
 import { mkdirSync, renameSync, existsSync } from "node:fs";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
-import { habilitacionesController } from "../controller/controller.module.ts"
+import { habilitacionesController, domicilioController } from "../controller/controller.module.ts"
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
@@ -2161,6 +2161,49 @@ LEFT JOIN(
       }
 
     }
+  }
+  //Esta funcion esta preparada para cuando se habilite el search-addr
+  private async newUpdatePerDomicilio(queryRunner: any, PersonalId: number, Domicilio: any) {
+
+    await domicilioController.valObjDomicilio(queryRunner, Domicilio)
+
+    const NexoDomicilio = await queryRunner.query(
+      `SELECT nex.DomicilioId, nex.NexoDomicilioActual FROM NexoDomicilio AS nex WHERE nex.PersonalId = @0 AND nex.NexoDomicilioActual = 1`, 
+      [ PersonalId ]
+    )
+    const DomicilioId = NexoDomicilio[0] ? NexoDomicilio[0].DomicilioId : 0
+
+    if (DomicilioId) { // UPDATE
+      const Domicilio = await queryRunner.query(
+        `SELECT dom.DomicilioJson FROM Domicilio AS dom WHERE dom.DomicilioId = @0`, 
+        [DomicilioId]
+      )
+      let cambio: boolean = false
+      const oldDomicilio:any = JSON.parse(Domicilio[0].DomicilioJson)
+      const oldAddress:any = oldDomicilio.address
+
+      if (oldAddress.length !== Domicilio.address)
+        cambio = true
+
+      for (const key in oldAddress) {
+        if (Domicilio.address[key] != oldAddress[key]) {
+          cambio = true
+          break
+        }
+      }
+      if (cambio) {
+        await domicilioController.updateDomicilio(queryRunner, DomicilioId, Domicilio, null)
+      }
+      
+    } else { // ADD
+      const newDomicilioId = await domicilioController.addDomicilio(queryRunner, Domicilio, null)
+      await queryRunner.query(
+        `INSERT INTO NexoDomicilio (DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, PersonalId) 
+        VALUES ( @0,@1,@2,@3,@4,@5,@6)`, 
+        [newDomicilioId, 1, 1, 1, 1, 1, PersonalId]
+      )
+    }
+
   }
 
   private async updatePersonalTelefono(queryRunner: any, PersonalId: number, infoTelefono: any) {
