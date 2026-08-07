@@ -1936,6 +1936,12 @@ export class ApiService {
   }
 
 
+  modificarValorPrecioEfecto(precio: any) {
+
+    return this.http.post<ResponseJSON<any>>('/api/precio-efectos/modificar-valor', precio);
+  }
+
+
   setListAdministradores(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/administradores/list', parameter).pipe(

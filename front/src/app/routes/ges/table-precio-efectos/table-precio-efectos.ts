@@ -26,6 +26,9 @@ export class TablePrecioEfectosComponent implements OnInit {
   // Se usa para forzar el refresh de la grilla
   refreshPrecios = model<number>(0)
 
+  // Fila seleccionada (para modificar el valor)
+  precioSeleccionado = model<any | null>(null)
+
   // Grid (Angular SlickGrid)
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
@@ -99,6 +102,13 @@ export class TablePrecioEfectosComponent implements OnInit {
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
     });
+  }
+
+  // Selección de fila en la grilla
+  handleSelectedRowsChanged(e: any): void {
+    const rows: number[] = e.detail.args.rows ?? []
+    const row = rows.length === 1 ? this.angularGrid.slickGrid.getDataItem(rows[0]) : null
+    this.precioSeleccionado.set(row ?? null)
   }
 
   // Exporta la grilla a Excel

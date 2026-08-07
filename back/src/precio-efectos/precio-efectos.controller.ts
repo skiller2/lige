@@ -1,4 +1,4 @@
-import { BaseController } from "../controller/base.controller.ts";
+import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 
@@ -44,7 +44,7 @@ export class PrecioEfectosController extends BaseController {
       type: "string",
       sortable: true,
       hidden: false,
-      searchHidden: false
+      searchHidden: true
     },
     {
       id: "Importe",
@@ -128,5 +128,123 @@ export class PrecioEfectosController extends BaseController {
     } finally {
       await queryRunner.release()
     }
+  }
+
+  async modificarValor(req: any, res: any, next: any) {
+    const queryRunner = await getConnection(res.locals.userName);
+    const EfectoId = Number(req.body.EfectoId) || null
+    const EfectoEfectoIndividualId = (req.body.EfectoEfectoIndividualId === null || req.body.EfectoEfectoIndividualId === undefined || req.body.EfectoEfectoIndividualId === '')
+      ? null : Number(req.body.EfectoEfectoIndividualId)
+    const Importe = Number(req.body.Importe)
+
+    try {
+      if (!EfectoId)
+        throw new ClientException("Debe indicar el efecto")
+
+      if (!req.body.FechaDesde)
+        throw new ClientException("Debe indicar la fecha desde")
+
+      if (!Importe || Importe <= 0)
+        throw new ClientException("Ingrese un importe válido distinto de 0")
+
+      const FechaDesde = new Date(req.body.FechaDesde)
+      FechaDesde.setHours(0, 0, 0, 0)
+
+      const FechaHastaAnterior = new Date(FechaDesde)
+      FechaHastaAnterior.setDate(FechaHastaAnterior.getDate() - 1)
+
+      await queryRunner.startTransaction()
+
+      if (EfectoEfectoIndividualId === null)
+        await this.setListaPrecio(queryRunner, EfectoId, Importe, FechaDesde, FechaHastaAnterior)
+      else
+        await this.setListaPrecioIndividual(queryRunner, EfectoId, EfectoEfectoIndividualId, Importe, FechaDesde, FechaHastaAnterior)
+
+      await queryRunner.commitTransaction()
+      return this.jsonRes({}, res, 'Valor modificado');
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  private async setListaPrecio(queryRunner: any, EfectoId: number, Importe: number, FechaDesde: Date, FechaHastaAnterior: Date) {
+    const mismaFecha = await queryRunner.query(`
+      SELECT ListaPrecioId FROM ListaPrecio WHERE EfectoId = @0 AND ListaPrecioDesde = @1
+    `, [EfectoId, FechaDesde])
+
+    if (mismaFecha.length) {
+      await queryRunner.query(`
+        UPDATE ListaPrecio SET ListaPrecioPrecio = @0
+        WHERE EfectoId = @1 AND ListaPrecioId = @2
+      `, [Importe, EfectoId, mismaFecha[0].ListaPrecioId])
+      return
+    }
+
+    const anterior = await queryRunner.query(`
+      SELECT TOP 1 ListaPrecioId FROM ListaPrecio
+      WHERE EfectoId = @0 AND ListaPrecioDesde < @1 AND ISNULL(ListaPrecioHasta,'9999-12-31') >= @1
+      ORDER BY ListaPrecioDesde DESC
+    `, [EfectoId, FechaDesde])
+
+    if (anterior.length) {
+      await queryRunner.query(`
+        UPDATE ListaPrecio SET ListaPrecioHasta = @0
+        WHERE EfectoId = @1 AND ListaPrecioId = @2
+      `, [FechaHastaAnterior, EfectoId, anterior[0].ListaPrecioId])
+    }
+
+    // ListaPrecioId es secuencial por efecto: MAX+1 del efecto.
+    const maxId = await queryRunner.query(`
+      SELECT ISNULL(MAX(ListaPrecioId), 0) AS MaxId FROM ListaPrecio WHERE EfectoId = @0
+    `, [EfectoId])
+
+    await queryRunner.query(`
+      INSERT INTO ListaPrecio (ListaPrecioId, EfectoId, ListaPrecioPrecio, ListaPrecioDesde, ListaPrecioHasta)
+      VALUES (@0, @1, @2, @3, NULL)
+    `, [Number(maxId[0]?.MaxId ?? 0) + 1, EfectoId, Importe, FechaDesde])
+  }
+
+  private async setListaPrecioIndividual(queryRunner: any, EfectoId: number, EfectoEfectoIndividualId: number, Importe: number, FechaDesde: Date, FechaHastaAnterior: Date) {
+    const mismaFecha = await queryRunner.query(`
+      SELECT ListaPrecioIndividualId FROM ListaPrecioIndividual
+      WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1 AND ListaPrecioIndividualDesde = @2
+    `, [EfectoId, EfectoEfectoIndividualId, FechaDesde])
+
+    if (mismaFecha.length) {
+      await queryRunner.query(`
+        UPDATE ListaPrecioIndividual SET ListaPrecioIndividualPrecio = @0
+        WHERE EfectoId = @1 AND EfectoEfectoIndividualId = @2 AND ListaPrecioIndividualId = @3
+      `, [Importe, EfectoId, EfectoEfectoIndividualId, mismaFecha[0].ListaPrecioIndividualId])
+      return
+    }
+
+    const anterior = await queryRunner.query(`
+      SELECT TOP 1 ListaPrecioIndividualId FROM ListaPrecioIndividual
+      WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+        AND ListaPrecioIndividualDesde < @2 AND ISNULL(ListaPrecioIndividualHasta,'9999-12-31') >= @2
+      ORDER BY ListaPrecioIndividualDesde DESC
+    `, [EfectoId, EfectoEfectoIndividualId, FechaDesde])
+
+    if (anterior.length) {
+      await queryRunner.query(`
+        UPDATE ListaPrecioIndividual SET ListaPrecioIndividualHasta = @0
+        WHERE EfectoId = @1 AND EfectoEfectoIndividualId = @2 AND ListaPrecioIndividualId = @3
+      `, [FechaHastaAnterior, EfectoId, EfectoEfectoIndividualId, anterior[0].ListaPrecioIndividualId])
+    }
+
+    // ListaPrecioIndividualId es secuencial por efecto/individual (parte de la PK compuesta): MAX+1.
+    const maxId = await queryRunner.query(`
+      SELECT ISNULL(MAX(ListaPrecioIndividualId), 0) AS MaxId FROM ListaPrecioIndividual
+      WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+    `, [EfectoId, EfectoEfectoIndividualId])
+
+    await queryRunner.query(`
+      INSERT INTO ListaPrecioIndividual (ListaPrecioIndividualId, EfectoId, EfectoEfectoIndividualId, ListaPrecioIndividualPrecio, ListaPrecioIndividualDesde, ListaPrecioIndividualHasta)
+      VALUES (@0, @1, @2, @3, @4, NULL)
+    `, [Number(maxId[0]?.MaxId ?? 0) + 1, EfectoId, EfectoEfectoIndividualId, Importe, FechaDesde])
   }
 }

@@ -1,0 +1,45 @@
+<nz-drawer [nzClosable]="false" [nzVisible]="visible()" [nzPlacement]="placement" [nzWidth]="700"
+  [nzTitle]="'Modificar Valor'" (nzOnClose)="visible.set(false)">
+  <ng-container *nzDrawerContent>
+    <form (ngSubmit)="save()">
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="6">Efecto</nz-form-label>
+        <nz-form-control [nzMd]="16">
+          <span>{{ descripcion() }}</span>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="6">Importe Vigente</nz-form-label>
+        <nz-form-control [nzMd]="16">
+          <span>{{ importeVigente() | currency }}</span>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="6">Nuevo Importe</nz-form-label>
+        <nz-form-control [nzMd]="16">
+          <input nz-input type="number" [formField]="formPrecioEfecto.Importe" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="6">Desde</nz-form-label>
+        <nz-form-control [nzMd]="16">
+          <nz-date-picker [formField]="formPrecioEfecto.FechaDesde" nzFormat="dd/MM/yyyy"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+          <button nzType="primary" nz-button [nzLoading]="formPrecioEfecto().submitting()"
+            [disabled]="formPrecioEfecto().submitting() || formPrecioEfecto().dirty()==false">
+            {{ 'app.btn.save' | i18n }}
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+  </ng-container>
+</nz-drawer>

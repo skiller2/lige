@@ -11,3 +11,7 @@ precioEfectosRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.has
 precioEfectosRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   precioEfectosController.listPrecioEfectos(req, res, next);
 });
+
+precioEfectosRouter.post("/modificar-valor", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  precioEfectosController.modificarValor(req, res, next);
+});
