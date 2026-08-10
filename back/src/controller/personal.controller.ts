@@ -2165,8 +2165,6 @@ LEFT JOIN(
   //Esta funcion esta preparada para cuando se habilite el search-addr
   private async newUpdatePerDomicilio(queryRunner: any, PersonalId: number, Domicilio: any) {
 
-    await domicilioController.valObjDomicilio(queryRunner, Domicilio)
-
     const NexoDomicilio = await queryRunner.query(
       `SELECT nex.DomicilioId, nex.NexoDomicilioActual FROM NexoDomicilio AS nex WHERE nex.PersonalId = @0 AND nex.NexoDomicilioActual = 1`, 
       [ PersonalId ]
@@ -2977,6 +2975,11 @@ LEFT JOIN(
       campos_vacios.unshift('Debe completar los siguientes campos: ')
       return new ClientException(campos_vacios)
     }
+
+    // if (personalForm.domicilio.Domicilio) {
+    //   const res = await domicilioController.valObjDomicilio(queryRunner, personalForm.domicilio.Domicilio)
+    //   if (res instanceof ClientException) return res
+    // }
   }
 
   async getDocumentosByPersonalId(req: any, res: Response, next: NextFunction) {
