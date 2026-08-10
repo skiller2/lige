@@ -1,6 +1,8 @@
 <nz-modal [nzVisible]="isVisible()" (nzOnCancel)="isVisible.set(false)" nzTitle="Descarga Monotributos">
 
     <div *nzModalContent>
+        <nz-form-item class="marginElement">
+        <nz-form-control [nzMd]="6">
         <nz-select [(ngModel)]="selectedOption" nzPlaceHolder="Selecciona una opción"
             [nzDropdownMatchSelectWidth]="false">
             <nz-option [nzLabel]="'Todos'" nzValue="T"></nz-option>
@@ -8,7 +10,11 @@
             <nz-option [nzLabel]="'Sucursal'" nzValue="S"></nz-option>
             <nz-option [nzLabel]="'Persona'" nzValue="P"></nz-option>
             <nz-option [nzLabel]="'Grupo'" nzValue="G"></nz-option>
+            <!-- <nz-option [nzLabel]="'Objetivo'" nzValue="O"></nz-option> -->
         </nz-select>
+        </nz-form-control>
+        <nz-form-control [nzMd]="1"></nz-form-control>
+        <nz-form-control [nzMd]="17">
         @switch (selectedOption()) {
         @case ("C") {
         <app-cliente-search [(ngModel)]="ClienteIdWithSearch"></app-cliente-search>
@@ -28,7 +34,12 @@
         <app-grupo-actividad-search [(ngModel)]="GrupoIdWithSearch"
             (valueExtendedChange)="onGrupoChange($event)"></app-grupo-actividad-search>
         }
+        <!-- @case ("O") {
+        <app-objetivo-search [(ngModel)]="ObjetivoIdWithSearch"></app-objetivo-search>
+        } -->
         }
+        </nz-form-control>
+        </nz-form-item>
     </div>
     <div *nzModalFooter style="text-align: right;">
         <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'" [httpBody]="buildBody()"

@@ -6,6 +6,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { SearchService } from '../../../services/search.service';
 
 @Component({
@@ -19,6 +20,7 @@ import { SearchService } from '../../../services/search.service';
     ClienteSearchComponent,
     PersonalSearchComponent,
     GrupoActividadSearchComponent,
+    ObjetivoSearchComponent,
   ],
 })
 export class MonotributosModalComponent {
@@ -30,6 +32,7 @@ export class MonotributosModalComponent {
   SucursalIdWithSearch = model(0)
   PersonalIdWithSearch = model(0)
   GrupoIdWithSearch = model(0)
+  ObjetivoIdWithSearch = model(0)
   grupoDetalle = signal('')
 
   mes = input(0)
@@ -64,6 +67,10 @@ export class MonotributosModalComponent {
         if (this.grupoDetalle())
           filtros.push({ index: 'GrupoDetalleOBJ', operador: '=', condition: 'AND', valor: [this.grupoDetalle()] })
         break;
+      // case "O":
+      //   if (this.ObjetivoIdWithSearch())
+      //     filtros.push({ index: 'ObjetivoId', operador: '=', condition: 'AND', valor: [String(this.ObjetivoIdWithSearch())] })
+      //   break;
       // "T" -> sin filtros (todos)
     }
     return { anio: this.anio(), mes: this.mes(), cantxpag: 1, options: { filtros, sort: [] } }
