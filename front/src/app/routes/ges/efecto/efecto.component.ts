@@ -51,7 +51,7 @@ export class EfectoComponent {
 
   readonly movimientoComprobanteCodigo = signal<number | null>(null)
 
- readonly comprobanteCodigo = computed(() =>
+  readonly comprobanteCodigo = computed(() =>
     this.activeTab() === 'movimientos'
       ? this.movimientoComprobanteCodigo()
       : this.movimientoStock()?.comprobanteCodigo() ?? null
@@ -119,6 +119,15 @@ export class EfectoComponent {
     if (!efecto) return
     this.seleccionarEfecto(this.ultimaGrilla(), efecto)
     this.router.navigate(['/', 'ges', 'efecto', 'formulario'])
+  }
+
+  handleAddOrUpdate() {
+    this.refreshTickGeneral.update(n => n + 1)
+    this.refreshTickPersonal.update(n => n + 1)
+    this.refreshTickObjetivos.update(n => n + 1)
+    this.refreshTickDeposito.update(n => n + 1)
+    this.refreshTickProveedores.update(n => n + 1)
+    this.refreshTickMovimientos.update(n => n + 1)
   }
 
   // Body que se manda al generar el comprobante. Si ya hay un movimiento confirmado, el backend lo
@@ -196,10 +205,10 @@ export class EfectoComponent {
 
   reloadGrid() {
     switch (this.activeTab()) {
-      case 'general':     this.refreshTickGeneral.update(n => n + 1); break
-      case 'personal':    this.refreshTickPersonal.update(n => n + 1); break
-      case 'objetivos':   this.refreshTickObjetivos.update(n => n + 1); break
-      case 'deposito':    this.refreshTickDeposito.update(n => n + 1); break
+      case 'general': this.refreshTickGeneral.update(n => n + 1); break
+      case 'personal': this.refreshTickPersonal.update(n => n + 1); break
+      case 'objetivos': this.refreshTickObjetivos.update(n => n + 1); break
+      case 'deposito': this.refreshTickDeposito.update(n => n + 1); break
       case 'proveedores': this.refreshTickProveedores.update(n => n + 1); break
       case 'movimientos': this.refreshTickMovimientos.update(n => n + 1); break
     }

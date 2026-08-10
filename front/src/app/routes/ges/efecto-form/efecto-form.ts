@@ -63,6 +63,8 @@ export class EfectoFormComponent {
 
   // Tras un alta exitosa emite el efecto ya persistido; el padre lo selecciona y navega a modificación.
   readonly guardadoAlta = output<any>();
+  // Informa cualquier persistencia exitosa para que el contenedor sincronice sus grillas.
+  readonly onAddorUpdate = output<any>();
 
   private search = inject(SearchService);
   private apiService = inject(ApiService);
@@ -376,6 +378,8 @@ export class EfectoFormComponent {
 
       const guardado = res?.data;
       if (!guardado) return;
+
+      this.onAddorUpdate.emit(guardado);
 
       // Alta: el efecto ya quedó persistido. Se avisa al padre para que lo seleccione y pase el
       // formulario a modificación de ese efecto (queda con su nuevo EfectoId, editable).
