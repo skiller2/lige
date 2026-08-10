@@ -2441,10 +2441,16 @@ export class SearchService {
   }
 
   getEfectoProveedores(listOptions: any) {
-    if (!Array.isArray(listOptions?.filtros) || !listOptions.filtros.some((filter: any) => filter?.index !== 'SucursalDescripcion')) {
-      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro adicional al de sucursal para visualizar los datos.`);
+    // if (!Array.isArray(listOptions?.filtros) || !listOptions.filtros.some((filter: any) => filter?.index !== 'SucursalDescripcion')) {
+    //   this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro adicional al de sucursal para visualizar los datos.`);
+    //   return of([]);
+    // }
+
+     if (!listOptions.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
       return of([]);
     }
+
 
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoProveedores`, { listOptions }).pipe(
       map(res => res.data),

@@ -1228,7 +1228,7 @@ export class EfectoController extends BaseController {
       condition: 'AND',
       operator: '=',
       value: filterSucursal,
-      closeable: (grupoActividadIds.length > 0 && !authADGroup) ? true : false, // solo se puede eliminar filtro de sucursal si hay grupoActividad y no tiene authADGroup
+      closeable: (authADGroup && sucursalIds.includes(1)) ? true : false, // solo se puede eliminar filtro de sucursal si tiene authADGroup y la sucursal 1 (central)
       label: '',
       originIdx: null
     })
