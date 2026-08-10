@@ -1694,6 +1694,8 @@ outer APPLY (SELECT
         //  }
 
         //Domicilio
+        // const res = await domicilioController.valObjDomicilio(queryRunner, form.Domicilio)
+        // if (res instanceof ClientException) throw res
 
         if (!form.DomicilioDomCalle) {
             msgError.push('- Dirección Calle.')
@@ -2127,8 +2129,6 @@ outer APPLY (SELECT
     }
     //Esta funcion esta preparada para cuando se habilite el search-addr
     async newAddElementoDependienteDomicilio(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, DomicilioDomLugar: string, Domicilio:any) {
-    
-        await domicilioController.valObjDomicilio(queryRunner, Domicilio)
 
         await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual = 0 WHERE ClienteElementoDependienteId = @0 AND ClienteId = @1 `, [ClienteElementoDependienteId, ClienteId])
         
