@@ -216,10 +216,10 @@ export class EfectoFormComponent {
 
     // En el alta de efecto el individual es opcional: la descripción solo se exige si hay atributos
     // cargados. En el resto de los modos sigue siendo obligatoria siempre que haya individual.
-    required(p.EfectoEfectoIndividualDescripcion, {
-      message: 'La descripción individual es obligatoria',
-      when: () => this.esAltaCompleta() ? this.hayAtributosIndividual() : this.esIndividual(),
-    });
+    // required(p.EfectoEfectoIndividualDescripcion, {
+    //   message: 'La descripción individual es obligatoria',
+    //   when: () => this.esAltaCompleta() ? this.hayAtributosIndividual() : this.esIndividual(),
+    // });
     maxLength(p.EfectoEfectoIndividualDescripcion, 60, {
       message: 'La descripción individual no puede superar los 60 caracteres',
     });
