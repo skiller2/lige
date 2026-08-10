@@ -156,29 +156,37 @@ export class EfectoFormComponent {
   // Filas de atributo ingreso del efecto individual.
   readonly atributosIngreso = computed(() => this.formulario.value()?.atributos ?? []);
 
-  // El modelo se rearma solo cuando cambia el modo, el efecto o llegan sus atributos; entre medio es
-  // escribible y se queda con lo que edita el usuario. Reemplaza al effect que reseteaba control
-  // por control. Tras guardar no se recarga: el back devuelve el formulario persistido y se aplica
-  // sobre el modelo (ver guardar()).
-  // El modo entra en la fuente porque al cambiar de solapa (p. ej. alta -> alta individual) el efecto
-  // sigue siendo null y los atributos siguen vacíos: sin él, lo cargado a mano en el modo anterior
-  // sobrevive al cambio.
-  private readonly modelo = linkedSignal<{ modo: string; ef: any; rows: EfectoIndividualAtributo[] }, EfectoFormModel>({
-    source: () => ({ modo: this.modo(), ef: this.efectoActivo(), rows: this.atributosIngreso() }),
-    computation: ({ ef, rows }) => ({
-      EfectoId: ef?.EfectoId ?? null,
-      // La columna editable de Efecto, no la compuesta que muestra la grilla.
-      EfectoDescripcion: texto(ef?.EfectoDescripcion),
-      RubroId: ef?.RubroId ?? null,
-      SubrubroId: ef?.SubrubroId ?? null,
-      EfectoStockMinimo: ef?.EfectoStockMinimo ?? null,
-      EfectoEfectoIndividualDescripcion: texto(ef?.EfectoEfectoIndividualDescripcion),
-      atributos: rows.map(row => ({
-        EfectoEfectoIndividualAtributoIngresoId: row.EfectoEfectoIndividualAtributoIngresoId ?? null,
-        EfectoAtributoAtributoIngresoId: row.EfectoAtributoAtributoIngresoId ?? null,
-        EfectoAtributoIngresoValor: texto(row.EfectoAtributoIngresoValor),
-      })),
+  // Se rearma por modo, identidad estable o atributos
+  private readonly modelo = linkedSignal<{
+    modo: string;
+    efectoId: number | null;
+    individualId: number | null;
+    rows: EfectoIndividualAtributo[];
+  }, EfectoFormModel>({
+    source: () => ({
+      modo: this.modo(),
+      efectoId: this.efectoId(),
+      individualId: this.individualId(),
+      rows: this.atributosIngreso(),
     }),
+    computation: ({ rows }) => {
+      // Lee los valores sin convertir la referencia del objeto en dependencia.
+      const ef = untracked(() => this.efectoActivo());
+      return {
+        EfectoId: ef?.EfectoId ?? null,
+        // La columna editable de Efecto, no la compuesta que muestra la grilla.
+        EfectoDescripcion: texto(ef?.EfectoDescripcion),
+        RubroId: ef?.RubroId ?? null,
+        SubrubroId: ef?.SubrubroId ?? null,
+        EfectoStockMinimo: ef?.EfectoStockMinimo ?? null,
+        EfectoEfectoIndividualDescripcion: texto(ef?.EfectoEfectoIndividualDescripcion),
+        atributos: rows.map(row => ({
+          EfectoEfectoIndividualAtributoIngresoId: row.EfectoEfectoIndividualAtributoIngresoId ?? null,
+          EfectoAtributoAtributoIngresoId: row.EfectoAtributoAtributoIngresoId ?? null,
+          EfectoAtributoIngresoValor: texto(row.EfectoAtributoIngresoValor),
+        })),
+      };
+    },
   });
 
   // Los largos espejan los de las columnas; el back los revalida y es la autoridad.
@@ -362,7 +370,6 @@ export class EfectoFormComponent {
         // Filas de EfectoAtributo: persisten en su propia tabla, aparte del modelo del form.
         EfectoAtributos: this.efectoAtributos(),
       };
-      console.log('[efecto-form] payload enviado:', JSON.parse(JSON.stringify(values)));
 
       // Cada modo tiene su endpoint: alta de efecto completo, alta de efecto individual o
       // modificación de un efecto existente.
@@ -374,7 +381,6 @@ export class EfectoFormComponent {
           : this.apiService.guardarEfectoForm(values);
       const res = await firstValueFrom(guardado$);
 
-      console.log('[efecto-form] formulario recibido:', res?.data);
 
       const guardado = res?.data;
       if (!guardado) return;

@@ -94,6 +94,9 @@ export class EfectoComponent {
   })
 
   seleccionarEfecto(tab: string, efecto: any | null) {
+    // El refresh de la grilla oculta emite null antes de restaurar su seleccion.
+    const conservaSeleccion = ['formulario', 'consulta'].includes(this.activeTab()) && tab === this.ultimaGrilla()
+    if (efecto == null && conservaSeleccion) return
     this.seleccionPorTab.update(sel => ({ ...sel, [tab]: efecto }))
   }
 

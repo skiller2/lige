@@ -2346,7 +2346,6 @@ export class EfectoController extends BaseController {
     if (!descripcion) camposVacios.push('- Descripción');
     if (!rubroId) camposVacios.push('- Rubro');
     if (!subrubroId) camposVacios.push('- Subrubro');
-    if (individualId != null && !individualDescripcion) camposVacios.push('- Descripción individual');
     if (camposVacios.length) {
       camposVacios.unshift('Debe completar los siguientes campos:');
       throw new ClientException(camposVacios);
