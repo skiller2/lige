@@ -1727,9 +1727,6 @@ export class EfectoController extends BaseController {
   }
 
   async guardarEfectoForm(req: any, res: Response, next: NextFunction) {
-    console.log('Efecto modificacion - body recibido:');
-    console.log(JSON.stringify(req.body, null, 2));
-
     const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.startTransaction();
@@ -1801,9 +1798,6 @@ export class EfectoController extends BaseController {
       // Se relee dentro de la transacción, antes de cerrarla: es lo que se le devuelve al front.
       const formulario = await this.formularioEfectoForm(queryRunner, efectoId!, individualId);
 
-      console.log('Efecto modificacion - formulario devuelto:');
-      console.log(JSON.stringify(formulario, null, 2));
-
       await queryRunner.commitTransaction();
       return this.jsonRes(formulario, res, 'Efecto guardado');
     } catch (error) {
@@ -1815,8 +1809,6 @@ export class EfectoController extends BaseController {
   }
   
   async altaEfecto(req: any, res: Response, next: NextFunction) {
-    console.log('Efecto alta (completo) - body recibido:');
-    console.log(JSON.stringify(req.body, null, 2));
 
     const queryRunner = await getConnection(res.locals.userName);
     try {
@@ -1892,9 +1884,7 @@ export class EfectoController extends BaseController {
       await this.validarDescripcionCompletaUnica(queryRunner, efectoId, individualId, null);
 
       const formulario = await this.formularioEfectoForm(queryRunner, efectoId, individualId);
-      console.log('Efecto alta (completo) - formulario dado de alta:');
-      console.log(JSON.stringify(formulario, null, 2));
-
+     
       const PROBANDO: boolean = false;
       if (PROBANDO)
         throw new ClientException(`PRUEBA OK: efecto ${efectoId}${individualId != null ? ` / individual ${individualId}` : ''} armado sin impactar las tablas.`);
@@ -1914,8 +1904,6 @@ export class EfectoController extends BaseController {
   // sólo un EfectoEfectoIndividual nuevo (+ sus atributos de ingreso). No toca el Efecto ni sus
   // EfectoAtributo.
   async altaEfectoIndividual(req: any, res: Response, next: NextFunction) {
-    console.log('Efecto individual alta - body recibido:');
-    console.log(JSON.stringify(req.body, null, 2));
 
     const queryRunner = await getConnection(res.locals.userName);
     try {
@@ -1969,9 +1957,7 @@ export class EfectoController extends BaseController {
       await this.validarDescripcionCompletaUnica(queryRunner, efectoId!, individualId, null);
 
       const formulario = await this.formularioEfectoForm(queryRunner, efectoId!, individualId);
-      console.log('Efecto individual alta - formulario dado de alta:');
-      console.log(JSON.stringify(formulario, null, 2));
-
+   
       // Poné PROBANDO = true para volver al modo prueba (arma todo pero hace rollback sin impactar).
       const PROBANDO: boolean = false;
       if (PROBANDO)
