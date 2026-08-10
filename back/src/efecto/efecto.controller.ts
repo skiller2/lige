@@ -994,7 +994,7 @@ const listaColumnasProveedores: any[] = [
 export class EfectoController extends BaseController {
 
   async searchEfecto(req: any, res: Response, next: NextFunction) {
-    const { fieldName, value, soloConStock, soloConIndividual, soloConEfecto } = req.body;    
+    const { fieldName, value, soloConStock, soloConIndividual, soloConEfecto } = req.body;
     const queryRunner = await getConnection(res.locals.userName);
 
     let buscar = false;
@@ -1807,39 +1807,31 @@ export class EfectoController extends BaseController {
       await queryRunner.release();
     }
   }
-  
+
   async altaEfecto(req: any, res: Response, next: NextFunction) {
 
     const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.startTransaction();
-
       const body = req.body ?? {};
       const descripcion = String(body.EfectoDescripcion ?? '').trim();
       const rubroId = Number(body.RubroId) || null;
       const subrubroId = Number(body.SubrubroId) || null;
       const stockMinimo = body.EfectoStockMinimo == null || body.EfectoStockMinimo === '' ? null : Number(body.EfectoStockMinimo);
       const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').trim();
-      const crearIndividual = individualDescripcion.length > 0;
-      const efectoAtributos = (Array.isArray(body.EfectoAtributos) ? body.EfectoAtributos : [])
-        .map((row: any) => {
-          const atributoId = row?.EfectoAtributoAtributoId == null || row?.EfectoAtributoAtributoId === ''
-            ? null
-            : Number(row.EfectoAtributoAtributoId);
-          const valorId = atributoId == null || row?.EfectoAtributoValorId == null || row?.EfectoAtributoValorId === ''
-            ? null
-            : Number(row.EfectoAtributoValorId);
-          return { EfectoAtributoId: null, EfectoAtributoAtributoId: atributoId, EfectoAtributoValorId: valorId };
-        })
-        .filter((row: any) => row.EfectoAtributoAtributoId != null);
-      
-        const atributos = crearIndividual && Array.isArray(body.atributos) ? body.atributos : [];
+      const atributosEfectoIndividual = Array.isArray(body.atributos) ? body.atributos : [];
+      const crearEfectoIndividual = individualDescripcion.length > 0 || atributosEfectoIndividual.length > 0;
+      const efectoAtributos = (Array.isArray(body.EfectoAtributos) ? body.EfectoAtributos : []).map((row: any) => {
+        const atributoId = row?.EfectoAtributoAtributoId == null || row?.EfectoAtributoAtributoId === '' ? null : Number(row.EfectoAtributoAtributoId);
+        const valorId = atributoId == null || row?.EfectoAtributoValorId == null || row?.EfectoAtributoValorId === '' ? null : Number(row.EfectoAtributoValorId);
+        return { EfectoAtributoId: null, EfectoAtributoAtributoId: atributoId, EfectoAtributoValorId: valorId };
+      }).filter((row: any) => row.EfectoAtributoAtributoId != null);
 
       const usuario = res.locals.userName;
       const ip = this.getRemoteAddress(req);
       const now = new Date();
 
-      await this.validarAltaEfectoForm(queryRunner, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos, crearIndividual, individualDescripcion, atributos);
+      await this.validarAltaEfectoForm(queryRunner, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos, crearEfectoIndividual, individualDescripcion, atributosEfectoIndividual);
 
       const nuevo = await queryRunner.query(`
         INSERT INTO Efecto
@@ -1848,14 +1840,16 @@ export class EfectoController extends BaseController {
            AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
         VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @6, @7, @8);
         SELECT CAST(SCOPE_IDENTITY() AS DECIMAL(12, 0)) AS EfectoId;
-      `, [descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos.length, crearIndividual ? 1 : 0, now, usuario, ip]);
+        SELECT CAST(SCOPE_IDENTITY() AS DECIMAL(12, 0)) AS EfectoId;
+      `, [descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos.length, crearEfectoIndividual ? 1 : 0, now, usuario, ip]);
+      
       const efectoId = Number(nuevo?.[0]?.EfectoId);
       if (!efectoId) throw new ClientException('No se pudo obtener el EfectoId asignado por la base.');
 
       await this.guardarEfectoAtributos(queryRunner, efectoId, efectoAtributos, now, usuario, ip);
 
       let individualId: number | null = null;
-      if (crearIndividual) {
+      if (crearEfectoIndividual) {
         // EfectoEfectoIndividualId es secuencial por efecto; para el primero arranca en 1.
         individualId = 1;
         // SuDescripcion es NOT NULL: se inserta un placeholder y se recalcula con la descripción
@@ -1868,7 +1862,7 @@ export class EfectoController extends BaseController {
           VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @5, @6, @7)
         `, [individualId, efectoId, individualDescripcion, individualDescripcion, 0, now, usuario, ip]);
 
-        await this.guardarAtributosIngreso(queryRunner, efectoId, individualId, atributos, now, usuario, ip);
+        await this.guardarAtributosIngreso(queryRunner, efectoId, individualId, atributosEfectoIndividual, now, usuario, ip);
 
         await queryRunner.query(`UPDATE Efecto SET EfectoEfectoIndividualUltNro = 1 WHERE EfectoId = @0`, [efectoId]);
 
@@ -1884,10 +1878,6 @@ export class EfectoController extends BaseController {
       await this.validarDescripcionCompletaUnica(queryRunner, efectoId, individualId, null);
 
       const formulario = await this.formularioEfectoForm(queryRunner, efectoId, individualId);
-     
-      const PROBANDO: boolean = false;
-      if (PROBANDO)
-        throw new ClientException(`PRUEBA OK: efecto ${efectoId}${individualId != null ? ` / individual ${individualId}` : ''} armado sin impactar las tablas.`);
 
       await queryRunner.commitTransaction();
       // Devuelve el formulario ya persistido: el front lo usa para pasar a modificación del nuevo efecto.
@@ -1957,7 +1947,7 @@ export class EfectoController extends BaseController {
       await this.validarDescripcionCompletaUnica(queryRunner, efectoId!, individualId, null);
 
       const formulario = await this.formularioEfectoForm(queryRunner, efectoId!, individualId);
-   
+
       // Poné PROBANDO = true para volver al modo prueba (arma todo pero hace rollback sin impactar).
       const PROBANDO: boolean = false;
       if (PROBANDO)
@@ -1996,9 +1986,6 @@ export class EfectoController extends BaseController {
   ) {
     if (!efectoId)
       throw new ClientException('No se recibió el efecto de partida.');
-
-    if (!individualDescripcion)
-      throw new ClientException(['Debe completar los siguientes campos:', '- Descripción individual']);
 
     const errores: string[] = [];
 
