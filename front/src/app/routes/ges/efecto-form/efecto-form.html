@@ -3,8 +3,8 @@
   <form nz-form nzLayout="horizontal" (ngSubmit)="guardar()">
     <!-- <span style="color: rgba(0,0,0,0.45);">{{ descripcionCompleta() }}</span> -->
 
-    <nz-form-item style="margin-top: 5px;">     
-        <span style="color: rgba(0,0,0,0.45);">{{ descripcionCompleta() }}</span>
+    <nz-form-item style="margin-top: 5px;">
+      <span style="color: rgba(0,0,0,0.45);">{{ descripcionCompleta() }}</span>
     </nz-form-item>
 
 
@@ -189,13 +189,10 @@
     }
     }
 
-    @if (esConsulta()) {
-    <p style="color: rgba(0,0,0,0.45);">Modo consulta (solo lectura).</p>
-    } @else {
+    @if (!esConsulta()) {
     <div style="text-align: center; margin-top: 20px;">
       <button nz-button nzType="primary" type="submit">Guardar</button>
-    </div>
-    }
+    </div> }
   </form>
   } @else {
   <p>Seleccione un efecto en una grilla (General, Personal, Objetivos, Depósitos o Proveedores)
