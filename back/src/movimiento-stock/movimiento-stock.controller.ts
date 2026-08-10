@@ -514,6 +514,30 @@ export class MovimientoStockController extends BaseController {
     }
   }
 
+  async getMovimientoAuditoria(req: any, res: Response, next: NextFunction) {
+    const movimientoCodigo = Number(req.params.codigo);
+    if (!movimientoCodigo) {
+      this.jsonRes(null, res);
+      return;
+    }
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const rows = await queryRunner.query(`
+        SELECT mov.MovimientoStockCodigo,
+          mov.AudUsuarioIng, mov.AudFechaIng, mov.AudIpIng,
+          mov.AudUsuarioMod, mov.AudFechaMod, mov.AudIpMod
+        FROM MovimientoStock mov
+        WHERE mov.MovimientoStockCodigo = @0
+      `, [movimientoCodigo]);
+
+      this.jsonRes(rows[0] ?? null, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async getMovimientosPendientes(req: any, res: Response, next: NextFunction) {
     const tipoDestino = String(req.params.tipoDestino ?? '');
     const destinoId = Number(req.params.destinoId) || null;

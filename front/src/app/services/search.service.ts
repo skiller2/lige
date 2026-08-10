@@ -2497,6 +2497,16 @@ export class SearchService {
     );
   }
 
+  getMovimientoAuditoria(movimientoStockCodigo: number) {
+    if (!movimientoStockCodigo) return of(null);
+    return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/datos-auditoria/${movimientoStockCodigo}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        return of(null);
+      })
+    );
+  }
+
   getStockEfectoTiposDestino(intermediario: boolean = false) {
     return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/tipos-destino`, { intermediario }).pipe(
       map(res => res.data),
