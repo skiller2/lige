@@ -12,6 +12,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { Router } from '@angular/router';
 import { TableClienteDocumentoComponent } from '../../../routes/ges/table-cliente-documentos/table-cliente-documentos';
+// import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
 
 interface Provincia {
   ProvinciaId: number;
@@ -44,7 +45,8 @@ interface Barrio {
         NzAutocompleteModule,
         NzSelectModule,
         FileUploadComponent,
-        TableClienteDocumentoComponent
+        TableClienteDocumentoComponent,
+        // AddrSearchComponent,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -82,11 +84,12 @@ export class ClientesFormComponent {
 
   objDomiclio = {
     DomicilioId: 0,
+    // Domicilio: {},
+    DomicilioDomLugar: null,
     DomicilioDomCalle: "",
     DomicilioDomNro: "",
     referencia: "",
     DomicilioCodigoPostal: "",
-    DomicilioDomLugar: null,
     domiciliopais: "",
     DomicilioProvinciaId: null,
     DomicilioLocalidadId: null,

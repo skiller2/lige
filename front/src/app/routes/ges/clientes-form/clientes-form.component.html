@@ -58,6 +58,14 @@
     <!-- TODO: quitar objeto de track  -->
     @for (control of infoDomicilio().controls; track control; let i = $index) {
     <div [formGroupName]="i" [ngClass]="{'even-background': i % 2 !== 0}">
+      
+      <!-- <nz-form-item class="marginElement">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">Dirección</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+          <app-addr-search [formField]="formObjetivo.Domicilio"></app-addr-search>
+        </nz-form-control>
+      </nz-form-item> -->
+      
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Dirección Calle</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">

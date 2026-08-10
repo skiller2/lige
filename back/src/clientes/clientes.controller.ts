@@ -5,6 +5,7 @@ import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuesto
 import type { Options } from "../schemas/filtro.ts";
 import type { QueryRunner } from "typeorm";
 import { FileUploadController } from "../controller/file-upload.controller.ts"
+import { domicilioController } from "../controller/controller.module.ts"
 
 export class ClientesController extends BaseController {
 
@@ -720,6 +721,38 @@ ${orderBy}`, [fechaActual])
         }
         return domicilios
     }
+    //Esta funcion esta preparada para cuando se habilite el search-addr
+    async newClienteDomicilioUpdate(queryRunner: any, domicilios: any[], ClienteId: number) {
+        const DomicilioIds = domicilios.map((row: { DomicilioId: any; }) => row.DomicilioId).filter((id) => id !== null && id !== undefined);
+
+        if (DomicilioIds.length > 0) {
+            await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')}) AND ClienteElementoDependienteId IS NULL`, [ClienteId])
+            await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0 WHERE nex.ClienteElementoDependienteId IS NULL and dom.DomicilioId NOT IN(${DomicilioIds.join(',')})`, [ClienteId])
+        }
+
+        for (const [idx, obj] of domicilios.entries()) {
+            
+            if (obj.DomicilioId) {
+
+                await domicilioController.updateDomicilio(queryRunner, obj.DomicilioId, obj.Domicilio, obj.DomicilioDomLugar)
+            
+            } else {
+
+                const newDomicilioId = await domicilioController.addDomicilio(queryRunner, obj.Domicilio, obj.DomicilioDomLugar)
+                
+                //Agregar nexo tambien
+                await queryRunner.query(
+                    `INSERT INTO NexoDomicilio (
+                        DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ClienteId
+                    ) VALUES ( @0,@1,@2,@3,@4,@5,@6)`, 
+                    [ newDomicilioId, 1, 1, 1, 1, 1, ClienteId ]
+                )
+
+                domicilios[idx].DomicilioId = newDomicilioId
+            }
+        }
+        return domicilios
+    }
 
     async ClienteContactoUpdate(queryRunner: any, contactos: any, ClienteId: number) {
         const ContactoIds = contactos.map((row: { ContactoId: any; }) => row.ContactoId).filter((id) => id !== null && id !== undefined);
@@ -1195,6 +1228,13 @@ ${orderBy}`, [fechaActual])
 
 
         }
+        // DOMICILIO
+        // for (const [idx, obj] of form.infoDomicilio.entries()) {
+        //     const res = await domicilioController.valObjDomicilio(queryRunner, obj.Domicilio)
+        //     if (res instanceof ClientException) {
+        //         throw new ClientException(`Dirección ${idx+1}: ${res.messageArr}`)
+        //     }
+        // }
 
         // CLIENTE CONTACTO
 
