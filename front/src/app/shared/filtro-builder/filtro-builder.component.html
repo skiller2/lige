@@ -163,6 +163,16 @@
       }
     </nz-select>
     }
+    @if (selections.field.searchComponent=='inputForProveedorSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Proveedor" nzShowSearch
+      (ngModelChange)="selectedValueProveedor($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      <!-- TODO: quitar objeto de track  -->
+      @for (option of $optionsProveedores | async; track option) {
+      <nz-option [nzValue]="option" [nzLabel]="option.ProveedorRazonSocial"></nz-option>
+      }
+    </nz-select>
+    }
     @if (selections.field.searchComponent=='inputForRubroSearch') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Rubro" nzShowSearch
       (ngModelChange)="selectedValueRubro($event)" [nzDropdownMatchSelectWidth]="false"

@@ -874,7 +874,7 @@ const listaColumnasProveedores: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false,
+    searchHidden: true,
   },
   {
     name: "Sucursal",
