@@ -2559,17 +2559,17 @@ export class EfectoController extends BaseController {
       const valor = String(row?.EfectoAtributoIngresoValor ?? '').trim();
 
       if (!atributoId) {
-        errores.push(`Atributo #${nro}: debe seleccionar el atributo.`);
+        errores.push(`Fila Atributo #${nro}: debe seleccionar el atributo.`);
         continue;
       }
       if (!valor) {
-        errores.push(`Atributo #${nro}: debe ingresar el valor.`);
+        errores.push(`Fila Atributo #${nro}: debe ingresar el valor.`);
         continue;
       }
       if (valor.length > 40)
-        errores.push(`Atributo #${nro}: el valor no puede superar los 40 caracteres (tiene ${valor.length}).`);
+        errores.push(`Fila Atributo #${nro}: el valor no puede superar los 40 caracteres (tiene ${valor.length}).`);
       if (atributosVistos.has(atributoId))
-        errores.push(`Atributo #${nro}: el atributo está repetido.`);
+        errores.push(`Fila Atributo #${nro}: el atributo está repetido.`);
       atributosVistos.add(atributoId);
     }
 
