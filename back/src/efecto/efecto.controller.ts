@@ -2492,13 +2492,13 @@ export class EfectoController extends BaseController {
       errores.push(`No existe el efecto ${efectoId}.`);
 
     const isUsado = await queryRunner.query(`
-      SELECT ef.EfectoId, ed.EfectoDescripcion 
+      SELECT ef.EfectoId, ed.EfectoDescripcion, ed.EfectoAtrDescripcion
       FROM Efecto ef
       left join EfectoDescripcion ed on ed.EfectoId = ef.EfectoId
       WHERE ef.EfectoEfectoTransformacionEfectoId=@0
     `, [efectoId]);
 
-    if (isUsado.length) errores.push(`No se puede modificar el efecto. Debe modificar el efecto Original ${isUsado[0].EfectoId}. (${isUsado[0].EfectoDescripcion})`);
+    if (isUsado.length) throw new ClientException(`No se puede modificar el efecto. Debe modificar el efecto Original: ${isUsado[0].EfectoDescripcion} (${isUsado[0].EfectoAtrDescripcion})`);
 
     if (individualId != null) {
       const individual = await queryRunner.query(`
