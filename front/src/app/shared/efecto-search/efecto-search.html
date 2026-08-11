@@ -5,12 +5,12 @@
   @for (option of opciones.value() ?? []; track option.EfectoId + '|' + (option['EfectoEfectoIndividualId'] ?? '')) {
     @if (!opciones.isLoading()) {
       <nz-option [nzValue]="option.EfectoId + '|' + (option['EfectoEfectoIndividualId'] ?? '')"
-        [nzLabel]="option.EfectoDescripcion" />
+        [nzLabel]="option.EfectoDescripcion + ' (' + option.EfectoId + (option['EfectoEfectoIndividualId'] ? '/' + option['EfectoEfectoIndividualId'] : '') + ')'" />
     }
   }
   @if (extendedOption().EfectoId > 0) {
     <nz-option [nzValue]="extendedOption().EfectoId + '|' + (extendedOption().EfectoEfectoIndividualId ?? '')"
-      [nzLabel]="extendedOption().fullName" />
+      [nzLabel]="extendedOption().fullName + ' (' + extendedOption().EfectoId + (extendedOption().EfectoEfectoIndividualId ? '/' + extendedOption().EfectoEfectoIndividualId : '') + ')'" />
   }
   @if (opciones.isLoading()) {
     <nz-option nzDisabled nzCustomContent>
