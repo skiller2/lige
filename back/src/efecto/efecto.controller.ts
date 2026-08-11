@@ -1842,7 +1842,7 @@ export class EfectoController extends BaseController {
         SELECT CAST(SCOPE_IDENTITY() AS DECIMAL(12, 0)) AS EfectoId;
         SELECT CAST(SCOPE_IDENTITY() AS DECIMAL(12, 0)) AS EfectoId;
       `, [descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos.length, crearEfectoIndividual ? 1 : 0, now, usuario, ip]);
-      
+
       const efectoId = Number(nuevo?.[0]?.EfectoId);
       if (!efectoId) throw new ClientException('No se pudo obtener el EfectoId asignado por la base.');
 
@@ -1964,7 +1964,6 @@ export class EfectoController extends BaseController {
     }
   }
 
- 
   async eliminarEfectoForm(req: any, res: any, next: any) {
     const queryRunner = await getConnection(res.locals.userName);
     const efectoId = Number(req.body.EfectoId) || null;
@@ -2182,6 +2181,12 @@ export class EfectoController extends BaseController {
         continue;
       }
       atributosEfectoVistos.add(atributoId);
+
+      // El estado "Usado" no se carga a mano: lo determina la transformación del efecto original.
+      if (atributoId === 11 && valorId === 2) {
+        errores.push(`Atributo/Valor #${nro}: no se puede asignar el atributo "Usado" a un efecto.`);
+        continue;
+      }
 
       const atr = await queryRunner.query(`SELECT AtributoId FROM Atributo WHERE AtributoId = @0`, [atributoId]);
       if (!atr.length) {
@@ -2475,16 +2480,25 @@ export class EfectoController extends BaseController {
     const descripcionRepetida = await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, efectoId);
     if (descripcionRepetida) errores.push(descripcionRepetida);
 
-    if (stockMinimo != null) {
-      if (!Number.isFinite(stockMinimo))
-        errores.push('El stock mínimo debe ser un número.');
-      else if (stockMinimo < 0)
-        errores.push('El stock mínimo no puede ser negativo.');
-    }
+    // if (stockMinimo != null) {
+    //   if (!Number.isFinite(stockMinimo))
+    //     errores.push('El stock mínimo debe ser un número.');
+    //   else if (stockMinimo < 0)
+    //     errores.push('El stock mínimo no puede ser negativo.');
+    // }
 
     const efecto = await queryRunner.query(`SELECT EfectoId FROM Efecto WHERE EfectoId = @0`, [efectoId]);
     if (!efecto.length)
       errores.push(`No existe el efecto ${efectoId}.`);
+
+    const isUsado = await queryRunner.query(`
+      SELECT ef.EfectoId, ed.EfectoDescripcion 
+      FROM Efecto ef
+      left join EfectoDescripcion ed on ed.EfectoId = ef.EfectoId
+      WHERE ef.EfectoEfectoTransformacionEfectoId=@0
+    `, [efectoId]);
+
+    if (isUsado.length) errores.push(`No se puede modificar el efecto. Debe modificar el efecto Original ${isUsado[0].EfectoId}. (${isUsado[0].EfectoDescripcion})`);
 
     if (individualId != null) {
       const individual = await queryRunner.query(`
@@ -2516,6 +2530,12 @@ export class EfectoController extends BaseController {
         continue;
       }
       atributosEfectoVistos.add(atributoId);
+
+      // El estado "Usado" no se carga a mano: lo determina la transformación del efecto original.
+      if (atributoId === 11 && valorId === 2) {
+        errores.push(`Atributo/Valor #${nro}: no se puede asignar el atributo "Usado" a un efecto.`);
+        continue;
+      }
 
       const atr = await queryRunner.query(`SELECT AtributoId FROM Atributo WHERE AtributoId = @0`, [atributoId]);
       if (!atr.length) {
