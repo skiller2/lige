@@ -2177,20 +2177,20 @@ export class EfectoController extends BaseController {
       if (!atributoId) continue;
 
       if (atributosEfectoVistos.has(atributoId)) {
-        errores.push(`Atributo/Valor #${nro}: el atributo está repetido.`);
+        errores.push(`Fila Atributo #${nro}: el atributo está repetido.`);
         continue;
       }
       atributosEfectoVistos.add(atributoId);
 
       // El estado "Usado" no se carga a mano: lo determina la transformación del efecto original.
       if (atributoId === 11 && valorId === 2) {
-        errores.push(`Atributo/Valor #${nro}: no se puede asignar el atributo "Usado" a un efecto.`);
+        errores.push(`Fila Atributo #${nro}: no se puede asignar el atributo "Usado" a un efecto.`);
         continue;
       }
 
       const atr = await queryRunner.query(`SELECT AtributoId FROM Atributo WHERE AtributoId = @0`, [atributoId]);
       if (!atr.length) {
-        errores.push(`Atributo/Valor #${nro}: no existe el atributo ${atributoId}.`);
+        errores.push(`Fila Atributo #${nro}: no existe el atributo ${atributoId}.`);
         continue;
       }
       if (valorId != null) {
@@ -2198,7 +2198,7 @@ export class EfectoController extends BaseController {
           SELECT ValorId FROM Valor WHERE ValorId = @0 AND AtributoId = @1
         `, [valorId, atributoId]);
         if (!val.length)
-          errores.push(`Atributo/Valor #${nro}: el valor no pertenece al atributo seleccionado.`);
+          errores.push(`Fila Atributo #${nro}: el valor no pertenece al atributo seleccionado.`);
       }
     }
 
@@ -2211,17 +2211,17 @@ export class EfectoController extends BaseController {
         const valor = String(row?.EfectoAtributoIngresoValor ?? '').trim();
 
         if (!atributoId) {
-          errores.push(`Atributo #${nro}: debe seleccionar el atributo.`);
+          errores.push(`Fila Atributo #${nro}: debe seleccionar el atributo.`);
           continue;
         }
         if (!valor) {
-          errores.push(`Atributo #${nro}: debe ingresar el valor.`);
+          errores.push(`Fila Atributo #${nro}: debe ingresar el valor.`);
           continue;
         }
         if (valor.length > 40)
-          errores.push(`Atributo #${nro}: el valor no puede superar los 40 caracteres (tiene ${valor.length}).`);
+          errores.push(`Fila Atributo #${nro}: el valor no puede superar los 40 caracteres (tiene ${valor.length}).`);
         if (atributosVistos.has(atributoId))
-          errores.push(`Atributo #${nro}: el atributo está repetido.`);
+          errores.push(`Fila Atributo #${nro}: el atributo está repetido.`);
         atributosVistos.add(atributoId);
       }
 
