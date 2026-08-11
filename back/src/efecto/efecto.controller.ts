@@ -1966,22 +1966,98 @@ export class EfectoController extends BaseController {
 
  
   async eliminarEfectoForm(req: any, res: any, next: any) {
-   const queryRunner = await getConnection(res.locals.userName);
+    const queryRunner = await getConnection(res.locals.userName);
+    const efectoId = Number(req.body.EfectoId) || null;
+    const individualId = (req.body.EfectoEfectoIndividualId === null || req.body.EfectoEfectoIndividualId === undefined || req.body.EfectoEfectoIndividualId === '')
+      ? null : Number(req.body.EfectoEfectoIndividualId);
+
     try {
+      await this.validarBajaEfectoForm(queryRunner, efectoId, individualId);
+
       await queryRunner.startTransaction();
-      console.log('eliminarEfectoForm', req.body);
 
-      throw new ClientException(`PRUEBA `);
-      await this.rollbackTransaction(queryRunner);
+      if (individualId != null) {
+        await queryRunner.query(`
+          DELETE FROM EfectoEfectoIndividualAtributoIngreso
+          WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+        `, [efectoId, individualId]);
 
-      //await queryRunner.commitTransaction();
-      return this.jsonRes({}, res, 'Datos recibidos');
-     } catch (error) {
+        await queryRunner.query(`
+          DELETE FROM EfectoEfectoIndividual
+          WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+        `, [efectoId, individualId]);
+      } else {
+        await queryRunner.query(`DELETE FROM EfectoAtributo WHERE EfectoId = @0`, [efectoId]);
+        await queryRunner.query(`DELETE FROM Efecto WHERE EfectoId = @0`, [efectoId]);
+      }
+
+      await queryRunner.commitTransaction();
+
+      return this.jsonRes(
+        { EfectoId: efectoId, EfectoEfectoIndividualId: individualId },
+        res,
+        individualId != null ? 'Efecto individual eliminado' : 'Efecto eliminado'
+      );
+    } catch (error) {
       await this.rollbackTransaction(queryRunner);
       return next(error);
     } finally {
       await queryRunner.release();
     }
+  }
+
+  // Un efecto (o individual) solo se puede borrar si no quedó nada colgando: sin stock en ninguna
+  // ubicación (vista StockReal) y sin aparecer en ningún detalle de movimiento de stock.
+  private async validarBajaEfectoForm(
+    queryRunner: any, efectoId: number | null, individualId: number | null
+  ) {
+    if (!efectoId)
+      throw new ClientException('No se recibió el efecto a eliminar.');
+
+    const errores: string[] = [];
+
+    if (individualId != null) {
+      const individual = await queryRunner.query(`
+        SELECT EfectoEfectoIndividualId FROM EfectoEfectoIndividual
+        WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+      `, [efectoId, individualId]);
+      if (!individual.length)
+        throw new ClientException(`No existe el efecto individual ${individualId} para el efecto ${efectoId}.`);
+    } else {
+      const efecto = await queryRunner.query(`SELECT EfectoId FROM Efecto WHERE EfectoId = @0`, [efectoId]);
+      if (!efecto.length)
+        throw new ClientException(`No existe el efecto ${efectoId}.`);
+
+      // Borrar el efecto dejaría huérfanos a sus individuales: primero hay que dar de baja cada uno.
+      const individuales = await queryRunner.query(`
+        SELECT COUNT(*) AS Cantidad FROM EfectoEfectoIndividual WHERE EfectoId = @0
+      `, [efectoId]);
+      if (Number(individuales[0]?.Cantidad ?? 0) > 0)
+        errores.push(`El efecto tiene ${individuales[0].Cantidad} efecto(s) individual(es) asociado(s): debe eliminarlos primero.`);
+    }
+
+    // Al borrar el efecto entero se mira el stock y los movimientos de todos sus individuales; al
+    // borrar un individual, solo los de ese individual.
+    const filtroStock = individualId != null ? 'AND stk.EfectoEfectoIndividualId = @1' : '';
+    const filtroDetalle = individualId != null ? 'AND det.EfectoIndividualId = @1' : '';
+    const params = individualId != null ? [efectoId, individualId] : [efectoId];
+
+    const conStock = await queryRunner.query(`
+      SELECT TOP 1 1 AS Existe FROM StockReal stk
+      WHERE stk.EfectoId = @0 ${filtroStock} AND ISNULL(stk.StockStock, 0) <> 0
+    `, params);
+    if (conStock.length)
+      errores.push('No se puede eliminar: todavía tiene stock en alguna ubicación.');
+
+    const enMovimientos = await queryRunner.query(`
+      SELECT TOP 1 1 AS Existe FROM MovimientoStockDetalle det
+      WHERE det.EfectoId = @0 ${filtroDetalle}
+    `, params);
+    if (enMovimientos.length)
+      errores.push('No se puede eliminar: está asociado a movimientos de stock.');
+
+    if (errores.length)
+      throw new ClientException(errores);
   }
 
   // Descripción completa (efecto + individual + atributos) leída de las vistas, igual que claveEfecto
@@ -2074,6 +2150,9 @@ export class EfectoController extends BaseController {
       errores.push(`La descripción no puede superar los 100 caracteres (tiene ${descripcion.length}).`);
     if (crearIndividual && individualDescripcion.length > 60)
       errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
+
+    const descripcionRepetida = await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, null);
+    if (descripcionRepetida) errores.push(descripcionRepetida);
 
     if (stockMinimo != null) {
       if (!Number.isFinite(stockMinimo))
@@ -2319,6 +2398,20 @@ export class EfectoController extends BaseController {
     return rows[0]?.Clave ?? null;
   }
 
+  private async buscarEfectoConMismaDescripcion(
+    queryRunner: any, descripcion: string, efectoId: number | null
+  ) {
+    const dup = await queryRunner.query(`
+      SELECT TOP 1 EfectoId, EfectoDescripcion FROM Efecto
+      WHERE UPPER(TRIM(EfectoDescripcion)) = UPPER(TRIM(@0))
+        AND (@1 IS NULL OR EfectoId <> @1)
+    `, [descripcion, efectoId ?? null]);
+
+    return dup.length
+      ? `Ya existe el efecto ${dup[0].EfectoId} con la descripción "${String(dup[0].EfectoDescripcion).trim()}".`
+      : null;
+  }
+
   private async validarDescripcionCompletaUnica(
     queryRunner: any, efectoId: number, individualId: number | null, claveAntes: string | null
   ) {
@@ -2378,6 +2471,9 @@ export class EfectoController extends BaseController {
       errores.push(`La descripción no puede superar los 100 caracteres (tiene ${descripcion.length}).`);
     if (individualId != null && individualDescripcion.length > 60)
       errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
+
+    const descripcionRepetida = await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, efectoId);
+    if (descripcionRepetida) errores.push(descripcionRepetida);
 
     if (stockMinimo != null) {
       if (!Number.isFinite(stockMinimo))

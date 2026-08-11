@@ -368,8 +368,10 @@ export class EfectoFormComponent {
       EfectoAtributos: this.efectoAtributos(),
     };
 
-    console.log('eliminar efecto', values);
-    await firstValueFrom(this.apiService.eliminarEfectoForm(values));
+    const res = await firstValueFrom(this.apiService.eliminarEfectoForm(values));
+    if (!res?.data) return;
+
+    this.onAddorUpdate.emit(res.data);
   }
 
   async guardar(): Promise<void> {
