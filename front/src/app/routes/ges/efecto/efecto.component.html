@@ -124,7 +124,7 @@
   @if (activeTab() === 'formulario' || activeTab() === 'consulta' || activeTab() === 'alta' || activeTab() ===
   'alta-individual') {
   <app-efecto-form [efecto]="efectoSeleccionado()" [modo]="activeTab()" (onAddorUpdate)="handleAddOrUpdate()"
-    (guardadoAlta)="onGuardadoAlta($event)" />
+    (guardadoAlta)="onGuardadoAlta($event)" (eliminado)="onEliminado()" />
   }
   @if (visitedTabs().has('movimientos')) {
   <div [hidden]="activeTab() !== 'movimientos'">

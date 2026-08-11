@@ -124,6 +124,13 @@ export class EfectoComponent {
     this.router.navigate(['/', 'ges', 'efecto', 'formulario'])
   }
 
+  onEliminado() {
+    const grilla = this.ultimaGrilla()
+    this.seleccionPorTab.update(sel => ({ ...sel, [grilla]: null }))
+    this.handleAddOrUpdate()
+    this.router.navigate(['/', 'ges', 'efecto', grilla])
+  }
+
   handleAddOrUpdate() {
     this.refreshTickGeneral.update(n => n + 1)
     this.refreshTickPersonal.update(n => n + 1)

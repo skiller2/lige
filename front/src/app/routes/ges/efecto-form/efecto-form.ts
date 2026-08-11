@@ -66,6 +66,8 @@ export class EfectoFormComponent {
   readonly guardadoAlta = output<any>();
   // Informa cualquier persistencia exitosa para que el contenedor sincronice sus grillas.
   readonly onAddorUpdate = output<any>();
+  // Baja exitosa: el contenedor suelta la selección, refresca y vuelve a la grilla.
+  readonly eliminado = output<any>();
 
   private search = inject(SearchService);
   private apiService = inject(ApiService);
@@ -376,7 +378,9 @@ export class EfectoFormComponent {
     const res = await firstValueFrom(this.apiService.eliminarEfectoForm(values));
     if (!res?.data) return;
 
-    this.onAddorUpdate.emit(res.data);
+    // El registro ya no existe: el contenedor limpia la selección, recarga las grillas y vuelve a la
+    // grilla desde la que se abrió el formulario.
+    this.eliminado.emit(res.data);
   }
 
   async guardar(): Promise<void> {
