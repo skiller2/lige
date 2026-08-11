@@ -354,6 +354,24 @@ export class EfectoFormComponent {
     this.modelo.update(m => ({ ...m, atributos: m.atributos.filter((_, i) => i !== index) }));
   }
 
+  readonly puedeEliminar = computed(() => !this.esConsulta() && !this.esAltaCompleta() && !this.esAltaIndividual() && this.efectoId() != null);
+
+  async eliminar(): Promise<void> {
+    if (!this.puedeEliminar()) return;
+
+    const m = this.formEfecto().value();
+    const values = {
+      ...m,
+      EfectoDescripcion: texto(m.EfectoDescripcion),
+      EfectoEfectoIndividualDescripcion: texto(m.EfectoEfectoIndividualDescripcion),
+      EfectoEfectoIndividualId: this.individualId(),
+      EfectoAtributos: this.efectoAtributos(),
+    };
+
+    console.log('eliminar efecto', values);
+    await firstValueFrom(this.apiService.eliminarEfectoForm(values));
+  }
+
   async guardar(): Promise<void> {
     if (this.esConsulta()) return;
     // Alta individual: hay que elegir primero el efecto de partida en el buscador; sin él no hay nada

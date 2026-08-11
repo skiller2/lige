@@ -1223,6 +1223,12 @@ export class ApiService {
     );
   }
 
+  eliminarEfectoForm(payload: any) {
+    return this.http.post<ResponseJSON<any>>('api/efecto/formulario/eliminar', payload).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    );
+  }
+
   delAdelanto(adelanto: { PersonalId: string; monto: number, anio: number, mes: number }) {
     return this.http
       .delete<ResponseJSON<any>>(`api/adelantos/${adelanto.PersonalId}`, adelanto)

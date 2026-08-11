@@ -1964,6 +1964,26 @@ export class EfectoController extends BaseController {
     }
   }
 
+ 
+  async eliminarEfectoForm(req: any, res: any, next: any) {
+   const queryRunner = await getConnection(res.locals.userName);
+    try {
+      await queryRunner.startTransaction();
+      console.log('eliminarEfectoForm', req.body);
+
+      throw new ClientException(`PRUEBA `);
+      await this.rollbackTransaction(queryRunner);
+
+      //await queryRunner.commitTransaction();
+      return this.jsonRes({}, res, 'Datos recibidos');
+     } catch (error) {
+      await this.rollbackTransaction(queryRunner);
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   // Descripción completa (efecto + individual + atributos) leída de las vistas, igual que claveEfecto
   // pero con COMPLETO_EXPR. Se usa para poblar EfectoEfectoIndividualSuDescripcion en el alta.
   private async descripcionCompletaDe(
