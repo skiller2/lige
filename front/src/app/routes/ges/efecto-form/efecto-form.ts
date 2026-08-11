@@ -8,7 +8,7 @@ import { applyEach, disabled, form, FormField, maxLength, required, submit, vali
 import { Observable, firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
-import { Atributo, AtributoIngreso, EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro, Valor } from '../../../shared/schemas/efecto.schemas';
+import { Atributo, AtributoIngreso, EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro, UnidadMedida, Valor } from '../../../shared/schemas/efecto.schemas';
 import { AtributoSearchComponent } from '../../../shared/atributo-search/atributo-search';
 import { ValorSearchComponent } from '../../../shared/valor-search/valor-search';
 import { EfectoSearchComponent } from '../../../shared/efecto-search/efecto-search';
@@ -27,6 +27,7 @@ interface EfectoFormModel {
   EfectoDescripcion: string;
   RubroId: number | null;
   SubrubroId: number | null;
+  EfectoUnidadMedidaPrincipalId: number | null;
   EfectoStockMinimo: number | null;
   EfectoEfectoIndividualDescripcion: string;
   atributos: AtributoLinea[];
@@ -78,6 +79,8 @@ export class EfectoFormComponent {
   readonly valores = toSignal(this.search.getValores(), { initialValue: [] as Valor[] });
 
   readonly atributosIngresoCatalogo = toSignal(this.search.getAtributosIngreso(), { initialValue: [] as AtributoIngreso[] });
+
+  readonly unidadesMedida = toSignal(this.search.getUnidadesMedida(), { initialValue: [] as UnidadMedida[] });
 
   // Los subrubros se filtran por rubro en el front, así que hace falta la lista completa.
   private readonly todosLosSubrubros = toSignal(
@@ -178,6 +181,7 @@ export class EfectoFormComponent {
         EfectoDescripcion: texto(ef?.EfectoDescripcion),
         RubroId: ef?.RubroId ?? null,
         SubrubroId: ef?.SubrubroId ?? null,
+        EfectoUnidadMedidaPrincipalId: ef?.EfectoUnidadMedidaPrincipalId ?? null,
         EfectoStockMinimo: ef?.EfectoStockMinimo ?? null,
         EfectoEfectoIndividualDescripcion: texto(ef?.EfectoEfectoIndividualDescripcion),
         atributos: rows.map(row => ({
@@ -213,6 +217,7 @@ export class EfectoFormComponent {
     });
     required(p.RubroId, { message: 'El rubro es obligatorio', when: () => !this.esAltaIndividual() });
     required(p.SubrubroId, { message: 'El subrubro es obligatorio', when: () => !this.esAltaIndividual() });
+    required(p.EfectoUnidadMedidaPrincipalId, { message: 'La unidad de medida es obligatoria', when: () => !this.esAltaIndividual() });
 
     // Columna NULL-able: vacío es "sin mínimo definido" y es válido.
     validate(p.EfectoStockMinimo, ({ value }) => {
@@ -423,6 +428,7 @@ export class EfectoFormComponent {
         EfectoDescripcion: texto(guardado.EfectoDescripcion),
         RubroId: guardado.RubroId ?? null,
         SubrubroId: guardado.SubrubroId ?? null,
+        EfectoUnidadMedidaPrincipalId: guardado.EfectoUnidadMedidaPrincipalId ?? null,
         EfectoStockMinimo: guardado.EfectoStockMinimo ?? null,
         EfectoEfectoIndividualDescripcion: texto(guardado.EfectoEfectoIndividualDescripcion),
         atributos: (guardado.atributos ?? []).map((row: EfectoIndividualAtributo) => ({

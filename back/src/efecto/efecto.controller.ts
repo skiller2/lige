@@ -1648,6 +1648,22 @@ export class EfectoController extends BaseController {
     }
   }
 
+  async getUnidadesMedida(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const list = await queryRunner.query(`
+        SELECT UnidadMedidaId, TRIM(UnidadMedidaDescripcion) AS UnidadMedidaDescripcion
+        FROM UnidadMedida
+        ORDER BY UnidadMedidaDescripcion
+      `);
+      this.jsonRes(list, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   // Las lecturas de abajo las comparten el GET inicial del form y la respuesta del guardado, así
   // el front recibe siempre la misma forma y no hace falta que vuelva a consultar tras guardar.
   private async efectoAtributosDe(queryRunner: any, efectoId: number) {
@@ -1677,7 +1693,8 @@ export class EfectoController extends BaseController {
     queryRunner: any, efectoId: number, individualId: number | null
   ) {
     const efecto = await queryRunner.query(`
-      SELECT EfectoId, TRIM(EfectoDescripcion) AS EfectoDescripcion, RubroId, SubrubroId, EfectoStockMinimo
+      SELECT EfectoId, TRIM(EfectoDescripcion) AS EfectoDescripcion, RubroId, SubrubroId, EfectoStockMinimo,
+             EfectoUnidadMedidaPrincipalId
       FROM Efecto
       WHERE EfectoId = @0
     `, [efectoId]);
@@ -1736,6 +1753,7 @@ export class EfectoController extends BaseController {
       const descripcion = String(body.EfectoDescripcion ?? '').trim();
       const rubroId = Number(body.RubroId) || null;
       const subrubroId = Number(body.SubrubroId) || null;
+      const unidadMedidaId = Number(body.EfectoUnidadMedidaPrincipalId) || null;
       // La columna es NULL-able: vacío significa "sin mínimo definido", que no es lo mismo que 0.
       const stockMinimo = body.EfectoStockMinimo == null || body.EfectoStockMinimo === '' ? null : Number(body.EfectoStockMinimo);
       const individualId = body.EfectoEfectoIndividualId == null || body.EfectoEfectoIndividualId === ''
@@ -1763,7 +1781,7 @@ export class EfectoController extends BaseController {
       const ip = this.getRemoteAddress(req);
       const now = new Date();
 
-      await this.validarEfectoForm(queryRunner, efectoId, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos, individualId, individualDescripcion, atributos);
+      await this.validarEfectoForm(queryRunner, efectoId, descripcion, rubroId, subrubroId, unidadMedidaId, stockMinimo, efectoAtributos, individualId, individualDescripcion, atributos);
 
       const claveAntes = await this.claveEfecto(queryRunner, efectoId!, individualId);
 
@@ -1771,9 +1789,10 @@ export class EfectoController extends BaseController {
       await queryRunner.query(`
         UPDATE Efecto
         SET EfectoDescripcion = @1, RubroId = @2, SubrubroId = @3, -- EfectoStockMinimo = @4,
+            EfectoUnidadMedidaPrincipalId = @8,
             AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7
         WHERE EfectoId = @0
-      `, [efectoId, descripcion, rubroId, subrubroId, stockMinimo, now, usuario, ip]);
+      `, [efectoId, descripcion, rubroId, subrubroId, stockMinimo, now, usuario, ip, unidadMedidaId]);
 
       await this.guardarEfectoAtributos(queryRunner, efectoId!, efectoAtributos, now, usuario, ip);
 
@@ -1817,6 +1836,7 @@ export class EfectoController extends BaseController {
       const descripcion = String(body.EfectoDescripcion ?? '').trim();
       const rubroId = Number(body.RubroId) || null;
       const subrubroId = Number(body.SubrubroId) || null;
+      const unidadMedidaId = Number(body.EfectoUnidadMedidaPrincipalId) || null;
       const stockMinimo = body.EfectoStockMinimo == null || body.EfectoStockMinimo === '' ? null : Number(body.EfectoStockMinimo);
       const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').trim();
       const atributosEfectoIndividual = Array.isArray(body.atributos) ? body.atributos : [];
@@ -1831,17 +1851,17 @@ export class EfectoController extends BaseController {
       const ip = this.getRemoteAddress(req);
       const now = new Date();
 
-      await this.validarAltaEfectoForm(queryRunner, descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos, crearEfectoIndividual, individualDescripcion, atributosEfectoIndividual);
+      await this.validarAltaEfectoForm(queryRunner, descripcion, rubroId, subrubroId, unidadMedidaId, stockMinimo, efectoAtributos, crearEfectoIndividual, individualDescripcion, atributosEfectoIndividual);
 
       const nuevo = await queryRunner.query(`
         INSERT INTO Efecto
-          (EfectoDescripcion, RubroId, SubrubroId, EfectoStockMinimo,
+          (EfectoDescripcion, RubroId, SubrubroId, EfectoUnidadMedidaPrincipalId, EfectoStockMinimo,
            EfectoAtributoUltNro, EfectoEfectoIndividualUltNro,
            AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
-        VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @6, @7, @8);
+        VALUES (@0, @1, @2, @9, @3, @4, @5, @6, @7, @8, @6, @7, @8);
         SELECT CAST(SCOPE_IDENTITY() AS DECIMAL(12, 0)) AS EfectoId;
         SELECT CAST(SCOPE_IDENTITY() AS DECIMAL(12, 0)) AS EfectoId;
-      `, [descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos.length, crearEfectoIndividual ? 1 : 0, now, usuario, ip]);
+      `, [descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos.length, crearEfectoIndividual ? 1 : 0, now, usuario, ip, unidadMedidaId]);
       
       const efectoId = Number(nuevo?.[0]?.EfectoId);
       if (!efectoId) throw new ClientException('No se pudo obtener el EfectoId asignado por la base.');
@@ -2131,7 +2151,7 @@ export class EfectoController extends BaseController {
   // (el efecto/individual todavía no existen) ni de Ids propios (las filas son todas nuevas).
   private async validarAltaEfectoForm(
     queryRunner: any, descripcion: string, rubroId: number | null, subrubroId: number | null,
-    stockMinimo: number | null, efectoAtributos: any[],
+    unidadMedidaId: number | null, stockMinimo: number | null, efectoAtributos: any[],
     crearIndividual: boolean, individualDescripcion: string, atributos: any[]
   ) {
     // Todas estas columnas son NOT NULL.
@@ -2139,6 +2159,7 @@ export class EfectoController extends BaseController {
     if (!descripcion) camposVacios.push('- Descripción');
     if (!rubroId) camposVacios.push('- Rubro');
     if (!subrubroId) camposVacios.push('- Subrubro');
+    if (!unidadMedidaId) camposVacios.push('- Unidad de medida');
     if (camposVacios.length) {
       camposVacios.unshift('Debe completar los siguientes campos:');
       throw new ClientException(camposVacios);
@@ -2167,6 +2188,12 @@ export class EfectoController extends BaseController {
     `, [rubroId, subrubroId]);
     if (!subrubro.length)
       errores.push('El subrubro seleccionado no pertenece al rubro seleccionado.');
+
+    const unidadMedida = await queryRunner.query(`
+      SELECT UnidadMedidaId FROM UnidadMedida WHERE UnidadMedidaId = @0
+    `, [unidadMedidaId]);
+    if (!unidadMedida.length)
+      errores.push('No existe la unidad de medida seleccionada.');
 
     // Filas de EfectoAtributo. Cada atributo tiene que existir y su valor (si viene) pertenecer a él
     // (Valor.AtributoId). El atributo no puede repetirse entre filas.
@@ -2447,7 +2474,7 @@ export class EfectoController extends BaseController {
 
   private async validarEfectoForm(
     queryRunner: any, efectoId: number | null, descripcion: string, rubroId: number | null,
-    subrubroId: number | null, stockMinimo: number | null, efectoAtributos: any[],
+    subrubroId: number | null, unidadMedidaId: number | null, stockMinimo: number | null, efectoAtributos: any[],
     individualId: number | null,
     individualDescripcion: string, atributos: any[]
   ) {
@@ -2459,6 +2486,7 @@ export class EfectoController extends BaseController {
     if (!descripcion) camposVacios.push('- Descripción');
     if (!rubroId) camposVacios.push('- Rubro');
     if (!subrubroId) camposVacios.push('- Subrubro');
+    if (!unidadMedidaId) camposVacios.push('- Unidad de medida');
     if (camposVacios.length) {
       camposVacios.unshift('Debe completar los siguientes campos:');
       throw new ClientException(camposVacios);
@@ -2501,6 +2529,12 @@ export class EfectoController extends BaseController {
     `, [rubroId, subrubroId]);
     if (!subrubro.length)
       errores.push('El subrubro seleccionado no pertenece al rubro seleccionado.');
+
+    const unidadMedida = await queryRunner.query(`
+      SELECT UnidadMedidaId FROM UnidadMedida WHERE UnidadMedidaId = @0
+    `, [unidadMedidaId]);
+    if (!unidadMedida.length)
+      errores.push('No existe la unidad de medida seleccionada.');
 
     // Filas de EfectoAtributo. Cada atributo tiene que existir y su valor (si viene) pertenecer a él
     // (Valor.AtributoId). El atributo no puede repetirse entre filas.

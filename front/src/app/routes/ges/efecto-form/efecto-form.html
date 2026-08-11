@@ -60,6 +60,18 @@
       </nz-form-control>
     </nz-form-item>
 
+    <nz-form-item>
+      <nz-form-label [nzSpan]="6">Unidad de medida</nz-form-label>
+      <nz-form-control [nzSpan]="14" nzHasFeedback sfErrorTip>
+        <nz-select [formField]="formEfecto.EfectoUnidadMedidaPrincipalId" nzShowSearch nzAllowClear
+          nzPlaceHolder="Unidad de medida" [nzDropdownMatchSelectWidth]="false">
+          @for (option of unidadesMedida(); track option.UnidadMedidaId) {
+          <nz-option [nzValue]="option.UnidadMedidaId" [nzLabel]="option.UnidadMedidaDescripcion"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
     <!-- Deshabilitado momentaneamente -->
     <!-- <nz-form-item>
       <nz-form-label [nzSpan]="6">Stock mínimo</nz-form-label>

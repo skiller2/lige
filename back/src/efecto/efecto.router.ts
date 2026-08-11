@@ -74,6 +74,10 @@ efectoRouter.get("/atributosIngreso", [authMiddleware.verifyToken, authMiddlewar
   efectoController.getAtributosIngreso(req, res, next);
 });
 
+efectoRouter.get("/unidadesMedida", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  efectoController.getUnidadesMedida(req, res, next);
+});
+
 efectoRouter.get("/formulario/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   efectoController.getFormularioEfectoForm(req, res, next);
 });
