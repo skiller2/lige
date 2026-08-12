@@ -1611,6 +1611,7 @@ export class MovimientoStockController extends BaseController {
     return queryRunner.query(`
       SELECT det.MovimientoStockDetalleCodigo, det.Cantidad, det.IndEfectoUsado,
           CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
+          efe.EfectoId, efeind.EfectoEfectoIndividualId,
         COALESCE(
           TRIM(depo.DepositoNombre),
           IIF(det.PersonalIdOrigen IS NULL, NULL, CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre))),
@@ -1682,7 +1683,7 @@ export class MovimientoStockController extends BaseController {
         // Solo si el detalle quedó marcado como usado (IndEfectoUsado): leyenda chica debajo del efecto.
         const usado = linea.IndEfectoUsado ? `<br><span style="font-size: 9px; color: #666;">convertido a usado</span>` : '';
         totalCantidad += Number(linea.Cantidad) || 0;
-        textefectos += `<tr><td>${linea.EfectoDescripcionCompleto ?? ''}${usado}</td><td>${linea.Origen ?? ''}</td><td class="cant">${linea.Cantidad}</td></tr>`;
+        textefectos += `<tr><td>${linea.EfectoDescripcionCompleto ?? ''} (${linea.EfectoId ?? ''}${linea.EfectoEfectoIndividualId ? `/${linea.EfectoEfectoIndividualId}` : ''})${usado}</td><td>${linea.Origen ?? ''}</td><td class="cant">${linea.Cantidad}</td></tr>`;
       }
       if (textefectos) textefectos += this.filaTotalEfectos(totalCantidad);
 
