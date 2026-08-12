@@ -999,6 +999,9 @@ export class EfectoController extends BaseController {
 
     let buscar = false;
     let query: string = null
+    // Valores de los términos de búsqueda. Van como parámetros (@0, @1, ...) y no interpolados en el
+    // SQL: el texto lo tipea el usuario y una comilla simple rompía la query.
+    const params: any[] = [];
 
     switch (table) {
       case "StockReal":
@@ -1013,8 +1016,8 @@ export class EfectoController extends BaseController {
           const valueArray: Array<string> = value.split(/[\s,.]+/);
           valueArray.forEach((element, index) => {
             if (element.trim().length > 1) {
-              //            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
-              query += `(EfectoDescripcionCompleto LIKE '%${element.trim()}%') AND `;
+              query += `(EfectoDescripcionCompleto LIKE @${params.length}) AND `;
+              params.push(`%${element.trim()}%`);
               buscar = true;
             }
           });
@@ -1040,8 +1043,8 @@ export class EfectoController extends BaseController {
           const valueArray: Array<string> = value.split(/[\s,.]+/);
           valueArray.forEach((element, index) => {
             if (element.trim().length > 1) {
-              //            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
-              query += `(CONCAT(TRIM(EfectoDescripcion), ' (', EfectoAtrDescripcion, ' )' ) LIKE '%${element.trim()}%') AND `;
+              query += `(CONCAT(TRIM(EfectoDescripcion), ' (', EfectoAtrDescripcion, ' )' ) LIKE @${params.length}) AND `;
+              params.push(`%${element.trim()}%`);
               buscar = true;
             }
           });
@@ -1064,7 +1067,7 @@ export class EfectoController extends BaseController {
     }
 
     try {
-      const records = await queryRunner.query((query += " 1=1"));
+      const records = await queryRunner.query((query += " 1=1"), params);
       this.jsonRes({ recordsArray: records }, res);
     } catch (error) {
       return next(error);
