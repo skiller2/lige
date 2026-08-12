@@ -415,6 +415,7 @@ export class MovimientoStockController extends BaseController {
       const list = await queryRunner.query(`
         SELECT det.MovimientoStockDetalleCodigo, det.Cantidad, det.IndEfectoUsado,
           CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) AS EfectoDescripcionCompleto,
+          efe.EfectoId, efeind.EfectoEfectoIndividualId,
           LTRIM(CONCAT(
             CASE
               WHEN det.DepositoIdOrigen IS NOT NULL THEN 'Depósito'
