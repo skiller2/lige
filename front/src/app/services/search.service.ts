@@ -17,7 +17,7 @@ import {
 import { SearchGrup, ResponseBySearchGrup } from '../shared/schemas/grupoActividad.shemas';
 import { ResponseBySearchCliente, SearchClient } from '../shared/schemas/cliente.schemas';
 import { ResponseBySearchAdministrador, SearchAdmind } from '../shared/schemas/administrador.schemas';
-import { Atributo, AtributoIngreso, EfectoFormulario, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, Valor } from '../shared/schemas/efecto.schemas';
+import { Atributo, AtributoIngreso, EfectoFormulario, EfectoRelacionEfecto, ResponseBySearchEfecto, ResponseBySearchEfectoIndividual, SearchEfecto, SearchEfectoIndividual, UnidadMedida, Valor } from '../shared/schemas/efecto.schemas';
 import { ResponseBySearchTipoAsociadoCategoria, SearchTipoAsociadoCategoria } from '../shared/schemas/tipo-asociado-categoria.schemas';
 import { ResponseBySearchRubro, SearchRubro } from '../shared/schemas/rubro.schemas';
 import { ResponseBySearchSeguro, SearchSeguro } from '../shared/schemas/seguro.schemas';
@@ -2441,10 +2441,16 @@ export class SearchService {
   }
 
   getEfectoProveedores(listOptions: any) {
-    if (!Array.isArray(listOptions?.filtros) || !listOptions.filtros.some((filter: any) => filter?.index !== 'SucursalDescripcion')) {
-      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro adicional al de sucursal para visualizar los datos.`);
+    // if (!Array.isArray(listOptions?.filtros) || !listOptions.filtros.some((filter: any) => filter?.index !== 'SucursalDescripcion')) {
+    //   this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro adicional al de sucursal para visualizar los datos.`);
+    //   return of([]);
+    // }
+
+     if (!listOptions.filtros.length) {
+      this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
       return of([]);
     }
+
 
     return this.http.post<ResponseJSON<any>>(`api/efecto/getEfectoProveedores`, { listOptions }).pipe(
       map(res => res.data),
@@ -2487,6 +2493,16 @@ export class SearchService {
       map(res => res.data),
       catchError((err, caught) => {
         return of({ cabecera: null, detalle: [] });
+      })
+    );
+  }
+
+  getMovimientoAuditoria(movimientoStockCodigo: number) {
+    if (!movimientoStockCodigo) return of(null);
+    return this.http.get<ResponseJSON<any>>(`api/movimiento-stock/datos-auditoria/${movimientoStockCodigo}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+        return of(null);
       })
     );
   }
@@ -2705,6 +2721,14 @@ export class SearchService {
   // Catálogo de tipos de atributo de ingreso (Select "Tipo" de las filas del efecto individual).
   getAtributosIngreso(): Observable<AtributoIngreso[]> {
     return this.http.get<ResponseJSON<AtributoIngreso[]>>(`api/efecto/atributosIngreso`).pipe(
+      map(res => res.data ?? []),
+      catchError(() => of([]))
+    );
+  }
+
+  // Opciones del Select de Unidad de Medida del efecto.
+  getUnidadesMedida(): Observable<UnidadMedida[]> {
+    return this.http.get<ResponseJSON<UnidadMedida[]>>(`api/efecto/unidadesMedida`).pipe(
       map(res => res.data ?? []),
       catchError(() => of([]))
     );

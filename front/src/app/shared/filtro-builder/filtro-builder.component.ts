@@ -147,6 +147,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsProcAutoEstado = this.searchService.getProcAutoEstadosOptions();
   $optionsSucursales = this.searchService.getSucursales();
   $optionsDepositos = this.searchService.getDepositos();
+  $optionsProveedores = this.searchService.getStockEfectoProveedores();
   $optionsRubros = this.searchService.getRubros();
   $optionsSubrubros = this.searchService.getSubrubros();
   $optionsMetodologias = this.searchService.getMetodologia();
@@ -560,6 +561,13 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     if (val) {
       this.selections.value = val.DepositoId;
       this.valueExtended = { fullName: val.DepositoNombre };
+    }
+  }
+
+  selectedValueProveedor(val: any) {
+    if (val) {
+      this.selections.value = val.ProveedorId;
+      this.valueExtended = { fullName: val.ProveedorRazonSocial };
     }
   }
 

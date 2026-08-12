@@ -542,15 +542,15 @@ export class DomicilioController extends BaseController {
   // Valida el objeto que devuelve AddrSearchComponent
   async valObjDomicilio(queryRunner: any, domicilio: any) {
     if (!domicilio.address || Object.keys(domicilio.address).length === 0) {
-      throw new ClientException(`Domicilio invalido`)
+      return new ClientException(`Domicilio invalido`)
     }
 
     if (!domicilio.display_name || domicilio.display_name.length === 0) {
-      throw new ClientException(`Domicilio invalido`)
+      return new ClientException(`Domicilio invalido`)
     }
 
     if (!domicilio.place_id || isNaN(domicilio.place_id)) {
-      throw new ClientException(`Domicilio invalido`)
+      return new ClientException(`Domicilio invalido`)
     }
   }
 

@@ -1,4 +1,5 @@
-<nz-drawer [nzVisible]="visible()" [nzTitle]="titulo()" [nzWidth]="'min(100vw, 1000px)'" (nzOnClose)="close()">
+<nz-drawer [nzVisible]="visible()" [nzTitle]="titulo()" [nzWidth]="'min(100vw, 1000px)'" (nzOnClose)="close()"
+  [nzFooter]="drawerFooter">
   <ng-container *nzDrawerContent>
     @if (esIngresoStock()) {
     <div style="margin-bottom: 4px;">
@@ -42,7 +43,7 @@
       <tbody>
         @for (item of detalleTable.data; track item.MovimientoStockDetalleCodigo) {
         <tr>
-          <td>{{ item.EfectoDescripcionCompleto }}</td>
+          <td>{{ item.EfectoDescripcionCompleto }} ({{ item.EfectoId }}{{ item.EfectoEfectoIndividualId ? '/' + item.EfectoEfectoIndividualId : '' }})</td>
           <td>{{ item.Origen }}</td>
           <td nzAlign="right">{{ item.Cantidad }}</td>
           <td nzAlign="center">{{ item.IndEfectoUsado ? 'Sí' : 'No' }}</td>
@@ -52,3 +53,42 @@
     </nz-table>
   </ng-container>
 </nz-drawer>
+
+<!-- Footer del drawer: acceso a la auditoría del registro.-->
+<ng-template #drawerFooter>
+  <div style="text-align: right;">
+    <span nz-tooltip nzTooltipTitle="Datos de Auditoría">
+      <a nz-button nzType="default" nz-popover nzPopoverTrigger="click" nzPopoverPlacement="topRight"
+       [nzPopoverContent]="auditoriaTemplate" (click)="loadAuditoria()">
+        <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
+      </a>
+    </span>
+  </div>
+  <ng-template #auditoriaTemplate>
+    <div style="max-width: 640px; max-height: 240px; overflow: auto;">
+      @if (auditoriaFilas().length > 0) {
+      <nz-table #auditoriaTable [nzData]="auditoriaFilas()" nzSize="small" [nzShowPagination]="false"
+        [nzFrontPagination]="false">
+        <thead>
+          <tr>
+            <th>Evento</th>
+            <th>Usuario</th>
+            <th>Fecha</th>
+            <th>IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of auditoriaTable.data; track item.Evento) {
+          <tr>
+            <td>{{ item.Evento }}</td>
+            <td>{{ item.Usuario }}</td>
+            <td>{{ item.Fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ item.Ip }}</td>
+          </tr>
+          }
+        </tbody>
+      </nz-table>
+      }
+    </div>
+  </ng-template>
+</ng-template>

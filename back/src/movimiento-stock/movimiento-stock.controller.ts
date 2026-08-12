@@ -415,6 +415,7 @@ export class MovimientoStockController extends BaseController {
       const list = await queryRunner.query(`
         SELECT det.MovimientoStockDetalleCodigo, det.Cantidad, det.IndEfectoUsado,
           CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) AS EfectoDescripcionCompleto,
+          efe.EfectoId, efeind.EfectoEfectoIndividualId,
           LTRIM(CONCAT(
             CASE
               WHEN det.DepositoIdOrigen IS NOT NULL THEN 'Depósito'
@@ -507,6 +508,30 @@ export class MovimientoStockController extends BaseController {
       `, [movimientoCodigo]);
 
       this.jsonRes({ cabecera: cabecera[0] ?? null, detalle: list }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async getMovimientoAuditoria(req: any, res: Response, next: NextFunction) {
+    const movimientoCodigo = Number(req.params.codigo);
+    if (!movimientoCodigo) {
+      this.jsonRes(null, res);
+      return;
+    }
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const rows = await queryRunner.query(`
+        SELECT mov.MovimientoStockCodigo,
+          mov.AudUsuarioIng, mov.AudFechaIng, mov.AudIpIng,
+          mov.AudUsuarioMod, mov.AudFechaMod, mov.AudIpMod
+        FROM MovimientoStock mov
+        WHERE mov.MovimientoStockCodigo = @0
+      `, [movimientoCodigo]);
+
+      this.jsonRes(rows[0] ?? null, res);
     } catch (error) {
       return next(error);
     } finally {
@@ -1587,6 +1612,7 @@ export class MovimientoStockController extends BaseController {
     return queryRunner.query(`
       SELECT det.MovimientoStockDetalleCodigo, det.Cantidad, det.IndEfectoUsado,
           CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto,
+          efe.EfectoId, efeind.EfectoEfectoIndividualId,
         COALESCE(
           TRIM(depo.DepositoNombre),
           IIF(det.PersonalIdOrigen IS NULL, NULL, CONCAT(TRIM(pero.PersonalApellido), ', ', TRIM(pero.PersonalNombre))),
@@ -1658,7 +1684,7 @@ export class MovimientoStockController extends BaseController {
         // Solo si el detalle quedó marcado como usado (IndEfectoUsado): leyenda chica debajo del efecto.
         const usado = linea.IndEfectoUsado ? `<br><span style="font-size: 9px; color: #666;">convertido a usado</span>` : '';
         totalCantidad += Number(linea.Cantidad) || 0;
-        textefectos += `<tr><td>${linea.EfectoDescripcionCompleto ?? ''}${usado}</td><td>${linea.Origen ?? ''}</td><td class="cant">${linea.Cantidad}</td></tr>`;
+        textefectos += `<tr><td>${linea.EfectoDescripcionCompleto ?? ''} (${linea.EfectoId ?? ''}${linea.EfectoEfectoIndividualId ? `/${linea.EfectoEfectoIndividualId}` : ''})${usado}</td><td>${linea.Origen ?? ''}</td><td class="cant">${linea.Cantidad}</td></tr>`;
       }
       if (textefectos) textefectos += this.filaTotalEfectos(totalCantidad);
 

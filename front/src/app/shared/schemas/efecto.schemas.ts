@@ -61,6 +61,11 @@ export interface Subrubro {
     SubrubroDescripcion: string;
 }
 
+export interface UnidadMedida {
+    UnidadMedidaId: number;
+    UnidadMedidaDescripcion: string;
+}
+
 export interface EfectoIndividualAtributo {
     EfectoEfectoIndividualAtributoIngresoId: number;
     EfectoAtributoAtributoIngresoId: number;

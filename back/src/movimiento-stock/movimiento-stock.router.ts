@@ -36,6 +36,10 @@ movimientoStockRouter.get("/movimientoDetalle/:codigo", [authMiddleware.verifyTo
   movimientoStockController.getEfectoMovimientoDetalle(req, res, next);
 });
 
+movimientoStockRouter.get("/datos-auditoria/:codigo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  movimientoStockController.getMovimientoAuditoria(req, res, next);
+});
+
 movimientoStockRouter.post("/confirmar", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica'])], (req, res, next) => {
   movimientoStockController.confirmarMovimiento(req, res, next);
 });

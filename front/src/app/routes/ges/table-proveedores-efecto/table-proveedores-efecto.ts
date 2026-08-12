@@ -41,7 +41,6 @@ export class TableProveedoresEfectoComponent {
     filtros: [],
     sort: null,
   })
-  filtersReady = signal(false)
   startFilters = signal<Selections[]>([])
   startFiltersReady = signal(false)
   filtroVisible = signal(true)
@@ -62,12 +61,9 @@ export class TableProveedoresEfectoComponent {
   columns = toSignal(this.apiService.getCols('/api/efecto/colsProveedores'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    // Espera a que FiltroBuilder emita los filtros iniciales para evitar el warning duplicado al ingresar.
-    params: () => this.filtersReady()
-      ? { options: this.listOptions(), refresh: this.refreshGrid() }
-      : undefined,
+    params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
     loader: async ({ params }) => {
-      
+
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
         const response = await firstValueFrom(this.searchService.getEfectoProveedores(params.options))
@@ -83,8 +79,6 @@ export class TableProveedoresEfectoComponent {
 
   async ngOnInit(): Promise<void> {
     this.initializeGridOptions();
-    const filters = await firstValueFrom(this.searchService.getEfectoFilters())
-    this.startFilters.set(filters)
     this.startFiltersReady.set(true)
   }
 
@@ -105,7 +99,6 @@ export class TableProveedoresEfectoComponent {
 
   listOptionsChange(options: any): void {
     this.listOptions.set(options);
-    if (!this.filtersReady()) this.filtersReady.set(true);
   }
 
   angularGridReady(angularGrid: any): void {

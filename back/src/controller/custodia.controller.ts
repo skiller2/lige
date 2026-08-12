@@ -7,6 +7,7 @@ import type { QueryRunner } from "typeorm";
 import { AsistenciaController } from "./asistencia.controller.ts";
 import { AccesoBotController } from "../acceso-bot/acceso-bot.controller.ts";
 import { logger } from "../logger/logger.ts";
+import { domicilioController } from "./controller.module.ts";
 
 const columnsObjCustodia: any[] = [
     {
@@ -540,8 +541,10 @@ export class CustodiaController extends BaseController {
         const Descripcion = objetivoCustodia.Descripcion ? objetivoCustodia.Descripcion : null
         const FechaInicio = new Date(objetivoCustodia.FechaInicio)
         const Origen = objetivoCustodia.Origen
+        // const Origen = JSON.stringify(objetivoCustodia.Origen)
         const FechaFin = objetivoCustodia.FechaFin ? new Date(objetivoCustodia.FechaFin) : null
         const Destino = objetivoCustodia.Destino ? objetivoCustodia.Destino : null
+        // const Destino = JSON.stringify(objetivoCustodia.Destino)
         const CantidadModulos = objetivoCustodia.CantidadModulos ? objetivoCustodia.CantidadModulos : null
         const ImporteModulo = objetivoCustodia.ImporteModulo ? objetivoCustodia.ImporteModulo : null
         const CantidadHorasExcedente = objetivoCustodia.CantidadHorasExcedente ? objetivoCustodia.CantidadHorasExcedente : null
@@ -713,8 +716,10 @@ export class CustodiaController extends BaseController {
         const Descripcion = objetivoCustodia.Descripcion ? objetivoCustodia.Descripcion : null
         const FechaInicio = new Date(objetivoCustodia.FechaInicio)
         const Origen = objetivoCustodia.Origen
+        // const Origen = JSON.stringify(objetivoCustodia.Origen)
         const FechaFin = objetivoCustodia.FechaFin ? new Date(objetivoCustodia.FechaFin) : null
         const Destino = objetivoCustodia.Destino
+        // const Destino = JSON.stringify(objetivoCustodia.Destino)
         const CantidadModulos = Number(objetivoCustodia.CantidadModulos) ? Number(objetivoCustodia.CantidadModulos) : null
         const ImporteModulo = Number(objetivoCustodia.ImporteModulo) ? Number(objetivoCustodia.ImporteModulo) : null
         const CantidadHorasExcedente = Number(objetivoCustodia.CantidadHorasExcedente) ? Number(objetivoCustodia.CantidadHorasExcedente) : null
@@ -1384,6 +1389,16 @@ export class CustodiaController extends BaseController {
         if (custodiaForm.FechaFin && custodiaForm.FechaFin <= custodiaForm.FechaInicio) {
             errores.push(`La Fecha Final no puede ser menor o igual a la Fecha Inicial.`)
         }
+
+        // if (custodiaForm.Origen) {
+        //     const res = await domicilioController.valObjDomicilio(queryRunner, custodiaForm.Origen)
+        //     if (res instanceof ClientException) errores.push(`Origen: ${res.messageArr}`)
+        // }
+
+        // if (custodiaForm.Destino) {
+        //     const res = await domicilioController.valObjDomicilio(queryRunner, custodiaForm.Destino)
+        //     if (res instanceof ClientException) errores.push(`Destino: ${res.messageArr}`)
+        // }
 
         if (errores.length) {
             return new ClientException(errores)

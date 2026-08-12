@@ -8,7 +8,7 @@ import { applyEach, disabled, form, FormField, maxLength, required, submit, vali
 import { Observable, firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
-import { Atributo, AtributoIngreso, EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro, Valor } from '../../../shared/schemas/efecto.schemas';
+import { Atributo, AtributoIngreso, EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro, UnidadMedida, Valor } from '../../../shared/schemas/efecto.schemas';
 import { AtributoSearchComponent } from '../../../shared/atributo-search/atributo-search';
 import { ValorSearchComponent } from '../../../shared/valor-search/valor-search';
 import { EfectoSearchComponent } from '../../../shared/efecto-search/efecto-search';
@@ -27,6 +27,7 @@ interface EfectoFormModel {
   EfectoDescripcion: string;
   RubroId: number | null;
   SubrubroId: number | null;
+  EfectoUnidadMedidaPrincipalId: number | null;
   EfectoStockMinimo: number | null;
   EfectoEfectoIndividualDescripcion: string;
   atributos: AtributoLinea[];
@@ -63,6 +64,10 @@ export class EfectoFormComponent {
 
   // Tras un alta exitosa emite el efecto ya persistido; el padre lo selecciona y navega a modificación.
   readonly guardadoAlta = output<any>();
+  // Informa cualquier persistencia exitosa para que el contenedor sincronice sus grillas.
+  readonly onAddorUpdate = output<any>();
+  // Baja exitosa: el contenedor suelta la selección, refresca y vuelve a la grilla.
+  readonly eliminado = output<any>();
 
   private search = inject(SearchService);
   private apiService = inject(ApiService);
@@ -76,6 +81,8 @@ export class EfectoFormComponent {
   readonly valores = toSignal(this.search.getValores(), { initialValue: [] as Valor[] });
 
   readonly atributosIngresoCatalogo = toSignal(this.search.getAtributosIngreso(), { initialValue: [] as AtributoIngreso[] });
+
+  readonly unidadesMedida = toSignal(this.search.getUnidadesMedida(), { initialValue: [] as UnidadMedida[] });
 
   // Los subrubros se filtran por rubro en el front, así que hace falta la lista completa.
   private readonly todosLosSubrubros = toSignal(
@@ -154,29 +161,38 @@ export class EfectoFormComponent {
   // Filas de atributo ingreso del efecto individual.
   readonly atributosIngreso = computed(() => this.formulario.value()?.atributos ?? []);
 
-  // El modelo se rearma solo cuando cambia el modo, el efecto o llegan sus atributos; entre medio es
-  // escribible y se queda con lo que edita el usuario. Reemplaza al effect que reseteaba control
-  // por control. Tras guardar no se recarga: el back devuelve el formulario persistido y se aplica
-  // sobre el modelo (ver guardar()).
-  // El modo entra en la fuente porque al cambiar de solapa (p. ej. alta -> alta individual) el efecto
-  // sigue siendo null y los atributos siguen vacíos: sin él, lo cargado a mano en el modo anterior
-  // sobrevive al cambio.
-  private readonly modelo = linkedSignal<{ modo: string; ef: any; rows: EfectoIndividualAtributo[] }, EfectoFormModel>({
-    source: () => ({ modo: this.modo(), ef: this.efectoActivo(), rows: this.atributosIngreso() }),
-    computation: ({ ef, rows }) => ({
-      EfectoId: ef?.EfectoId ?? null,
-      // La columna editable de Efecto, no la compuesta que muestra la grilla.
-      EfectoDescripcion: texto(ef?.EfectoDescripcion),
-      RubroId: ef?.RubroId ?? null,
-      SubrubroId: ef?.SubrubroId ?? null,
-      EfectoStockMinimo: ef?.EfectoStockMinimo ?? null,
-      EfectoEfectoIndividualDescripcion: texto(ef?.EfectoEfectoIndividualDescripcion),
-      atributos: rows.map(row => ({
-        EfectoEfectoIndividualAtributoIngresoId: row.EfectoEfectoIndividualAtributoIngresoId ?? null,
-        EfectoAtributoAtributoIngresoId: row.EfectoAtributoAtributoIngresoId ?? null,
-        EfectoAtributoIngresoValor: texto(row.EfectoAtributoIngresoValor),
-      })),
+  // Se rearma por modo, identidad estable o atributos
+  private readonly modelo = linkedSignal<{
+    modo: string;
+    efectoId: number | null;
+    individualId: number | null;
+    rows: EfectoIndividualAtributo[];
+  }, EfectoFormModel>({
+    source: () => ({
+      modo: this.modo(),
+      efectoId: this.efectoId(),
+      individualId: this.individualId(),
+      rows: this.atributosIngreso(),
     }),
+    computation: ({ rows }) => {
+      // Lee los valores sin convertir la referencia del objeto en dependencia.
+      const ef = untracked(() => this.efectoActivo());
+      return {
+        EfectoId: ef?.EfectoId ?? null,
+        // La columna editable de Efecto, no la compuesta que muestra la grilla.
+        EfectoDescripcion: texto(ef?.EfectoDescripcion),
+        RubroId: ef?.RubroId ?? null,
+        SubrubroId: ef?.SubrubroId ?? null,
+        EfectoUnidadMedidaPrincipalId: ef?.EfectoUnidadMedidaPrincipalId ?? null,
+        EfectoStockMinimo: ef?.EfectoStockMinimo ?? null,
+        EfectoEfectoIndividualDescripcion: texto(ef?.EfectoEfectoIndividualDescripcion),
+        atributos: rows.map(row => ({
+          EfectoEfectoIndividualAtributoIngresoId: row.EfectoEfectoIndividualAtributoIngresoId ?? null,
+          EfectoAtributoAtributoIngresoId: row.EfectoAtributoAtributoIngresoId ?? null,
+          EfectoAtributoIngresoValor: texto(row.EfectoAtributoIngresoValor),
+        })),
+      };
+    },
   });
 
   // Los largos espejan los de las columnas; el back los revalida y es la autoridad.
@@ -203,6 +219,7 @@ export class EfectoFormComponent {
     });
     required(p.RubroId, { message: 'El rubro es obligatorio', when: () => !this.esAltaIndividual() });
     required(p.SubrubroId, { message: 'El subrubro es obligatorio', when: () => !this.esAltaIndividual() });
+    required(p.EfectoUnidadMedidaPrincipalId, { message: 'La unidad de medida es obligatoria', when: () => !this.esAltaIndividual() });
 
     // Columna NULL-able: vacío es "sin mínimo definido" y es válido.
     validate(p.EfectoStockMinimo, ({ value }) => {
@@ -214,10 +231,10 @@ export class EfectoFormComponent {
 
     // En el alta de efecto el individual es opcional: la descripción solo se exige si hay atributos
     // cargados. En el resto de los modos sigue siendo obligatoria siempre que haya individual.
-    required(p.EfectoEfectoIndividualDescripcion, {
-      message: 'La descripción individual es obligatoria',
-      when: () => this.esAltaCompleta() ? this.hayAtributosIndividual() : this.esIndividual(),
-    });
+    // required(p.EfectoEfectoIndividualDescripcion, {
+    //   message: 'La descripción individual es obligatoria',
+    //   when: () => this.esAltaCompleta() ? this.hayAtributosIndividual() : this.esIndividual(),
+    // });
     maxLength(p.EfectoEfectoIndividualDescripcion, 60, {
       message: 'La descripción individual no puede superar los 60 caracteres',
     });
@@ -344,6 +361,28 @@ export class EfectoFormComponent {
     this.modelo.update(m => ({ ...m, atributos: m.atributos.filter((_, i) => i !== index) }));
   }
 
+  readonly puedeEliminar = computed(() => !this.esConsulta() && !this.esAltaCompleta() && !this.esAltaIndividual() && this.efectoId() != null);
+
+  async eliminar(): Promise<void> {
+    if (!this.puedeEliminar()) return;
+
+    const m = this.formEfecto().value();
+    const values = {
+      ...m,
+      EfectoDescripcion: texto(m.EfectoDescripcion),
+      EfectoEfectoIndividualDescripcion: texto(m.EfectoEfectoIndividualDescripcion),
+      EfectoEfectoIndividualId: this.individualId(),
+      EfectoAtributos: this.efectoAtributos(),
+    };
+
+    const res = await firstValueFrom(this.apiService.eliminarEfectoForm(values));
+    if (!res?.data) return;
+
+    // El registro ya no existe: el contenedor limpia la selección, recarga las grillas y vuelve a la
+    // grilla desde la que se abrió el formulario.
+    this.eliminado.emit(res.data);
+  }
+
   async guardar(): Promise<void> {
     if (this.esConsulta()) return;
     // Alta individual: hay que elegir primero el efecto de partida en el buscador; sin él no hay nada
@@ -360,7 +399,6 @@ export class EfectoFormComponent {
         // Filas de EfectoAtributo: persisten en su propia tabla, aparte del modelo del form.
         EfectoAtributos: this.efectoAtributos(),
       };
-      console.log('[efecto-form] payload enviado:', JSON.parse(JSON.stringify(values)));
 
       // Cada modo tiene su endpoint: alta de efecto completo, alta de efecto individual o
       // modificación de un efecto existente.
@@ -372,10 +410,11 @@ export class EfectoFormComponent {
           : this.apiService.guardarEfectoForm(values);
       const res = await firstValueFrom(guardado$);
 
-      console.log('[efecto-form] formulario recibido:', res?.data);
 
       const guardado = res?.data;
       if (!guardado) return;
+
+      this.onAddorUpdate.emit(guardado);
 
       // Alta: el efecto ya quedó persistido. Se avisa al padre para que lo seleccione y pase el
       // formulario a modificación de ese efecto (queda con su nuevo EfectoId, editable).
@@ -393,6 +432,7 @@ export class EfectoFormComponent {
         EfectoDescripcion: texto(guardado.EfectoDescripcion),
         RubroId: guardado.RubroId ?? null,
         SubrubroId: guardado.SubrubroId ?? null,
+        EfectoUnidadMedidaPrincipalId: guardado.EfectoUnidadMedidaPrincipalId ?? null,
         EfectoStockMinimo: guardado.EfectoStockMinimo ?? null,
         EfectoEfectoIndividualDescripcion: texto(guardado.EfectoEfectoIndividualDescripcion),
         atributos: (guardado.atributos ?? []).map((row: EfectoIndividualAtributo) => ({

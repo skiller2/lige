@@ -138,8 +138,13 @@
           "icon": "anticon-profile",
           "children": [
             {
-              "text": "Efectos #",
+              "text": "Efectos",
               "link": "/ges/efecto",
+              "icon": "anticon-profile"
+            },
+            {
+              "text": "Precio Efectos",
+              "link": "/ges/precio-efectos",
               "icon": "anticon-profile"
             },
             {
@@ -162,11 +167,6 @@
         {
           "text": "Parámetros Venta",
           "link": "/ges/parametros-venta",
-          "icon": "anticon-profile"
-        },
-        {
-          "text": "Precio Efectos",
-          "link": "/ges/precio-efectos",
           "icon": "anticon-profile"
         },
         {
@@ -211,7 +211,7 @@
               "icon": "anticon-profile"
             },
             {
-              "text": "INAES",
+              "text": "INAES #",
               "link": "/ges/inaes",
               "icon": "anticon-profile"
             },

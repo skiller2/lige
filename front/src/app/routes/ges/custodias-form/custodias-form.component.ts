@@ -11,13 +11,16 @@ import { SearchService } from '../../../services/search.service';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
+// import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
 
 @Component({
     selector: 'app-custodias-form',
     templateUrl: './custodias-form.component.html',
     styleUrls: ['./custodias-form.component.less'],
     encapsulation: ViewEncapsulation.None,
-    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule],
+    imports: [SHARED_IMPORTS, CommonModule, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule, 
+        // AddrSearchComponent,
+    ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [CurrencyPipe]
 })

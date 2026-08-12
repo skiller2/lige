@@ -17,6 +17,8 @@
       <nz-button-group nz-button nzButtonGroup>
         <button nz-button nzType="default" (click)="refreshGridNow()"><span nz-icon nzType="reload" nzTheme="outline"
             nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span></button>
+        <button nz-button nzType="default" [disabled]="!modificar()" (click)="visibleModificarValor.set(true)"><span
+            nz-icon nzType="edit" nzTheme="outline" nz-tooltip nzTooltipTitle="Modificar Valor"></span></button>
       </nz-button-group>
     </div>
   </div>
@@ -26,10 +28,13 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/precio-efectos/listado">{{ 'app.listado' | i18n }} </a>
       <ng-template nz-tab>
-        <app-table-precio-efectos #tablePrecioEfectos
-          [refreshPrecios]="refreshPrecios()"></app-table-precio-efectos>
+        <app-table-precio-efectos #tablePrecioEfectos [refreshPrecios]="refreshPrecios()"
+          [(precioSeleccionado)]="precioSeleccionado"></app-table-precio-efectos>
       </ng-template>
     </nz-tab>
   </nz-tabs>
+
+  <app-precio-efectos-drawer [(visible)]="visibleModificarValor" [efecto]="precioSeleccionado()"
+    (onAddorUpdate)="refreshGridNow()" />
 
 </nz-card>

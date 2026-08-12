@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, model, resource } from '@angular/core';
+import { Component, computed, inject, input, model, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { firstValueFrom } from 'rxjs';
@@ -20,6 +20,10 @@ export class TableMovimientosEfectoDetalleComponent {
   visible = model<boolean>(false);
 
   private searchService = inject(SearchService);
+
+  // Auditoría de cabecera (alta / última modificación).
+  auditoria = signal<any>(null);
+  auditoriaCargando = signal<boolean>(false);
 
   data = resource({
     params: () => ({ codigo: this.movimientoStockCodigo(), visible: this.visible() }),
@@ -50,7 +54,30 @@ export class TableMovimientosEfectoDetalleComponent {
     this.filas().reduce((acc: number, it: any) => acc + (Number(it.Cantidad) || 0), 0)
   );
 
+  // Se arma como filas para reutilizar el patrón de nz-table del popover de legajo.
+  auditoriaFilas = computed(() => {
+    const a = this.auditoria();
+    if (!a) return [];
+    return [
+      { Evento: 'Alta', Usuario: a.AudUsuarioIng, Fecha: a.AudFechaIng, Ip: a.AudIpIng },
+      { Evento: 'Última modificación', Usuario: a.AudUsuarioMod, Fecha: a.AudFechaMod, Ip: a.AudIpMod }
+    ];
+  });
+
+  async loadAuditoria(): Promise<void> {
+    const codigo = this.movimientoStockCodigo();
+    if (!codigo) return;
+    this.auditoriaCargando.set(true);
+    try {
+      this.auditoria.set(await firstValueFrom(this.searchService.getMovimientoAuditoria(codigo)));
+    } finally {
+      this.auditoriaCargando.set(false);
+    }
+  }
+
   close(): void {
+    // Se limpia para que al abrir otro movimiento no se vea la auditoría del anterior.
+    this.auditoria.set(null);
     this.visible.set(false);
   }
 }

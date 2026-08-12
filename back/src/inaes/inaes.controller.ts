@@ -448,7 +448,7 @@ export class InaesController extends BaseController {
     let filterCUITs = '(1=1)'
     if (cuits) {
       flags = `CASE WHEN (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN '1' ELSE '0' END AS Estado`
-      filterCUITs = ` cuit.PersonalCUITCUILCUIT NOT IN (${cuits}) OR sitrev.PersonalSituacionRevistaSituacionId IN (3)`
+      filterCUITs = `(cuit.PersonalCUITCUILCUIT IN (${cuits}) AND sitrev.PersonalSituacionRevistaSituacionId IN (3)) OR (cuit.PersonalCUITCUILCUIT NOT IN (${cuits}) AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12))`
     }
     return await queryRunner.query(`
       SELECT
