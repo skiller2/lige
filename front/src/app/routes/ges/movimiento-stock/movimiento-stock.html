@@ -261,6 +261,11 @@
     </ng-template>
   </ng-template>
 
+  @if (mostrarSinPendientes()) {
+  <nz-alert nzShowIcon nzType="info" nzMessage="El destino seleccionado no tiene movimientos pendientes"
+    style="margin-bottom: 10px;"></nz-alert>
+  }
+
   @for (ef of formEfectoStock.efectos; track trackByTrackId(ef); let i = $index, last = $last){
   <div nz-row nzAlign="middle" [nzGutter]="8">
     <div nz-col [nzSpan]="21">
@@ -292,13 +297,13 @@
       </button>
       <button style="margin-right: 10px;" nzType="primary" nz-button type="submit"
         [nzLoading]="formEfectoStock().submitting()"
-        [disabled]="formEfectoStock().submitting() || formEfectoStock().dirty()==false || formEfectoStock().valid()==false">
+        [disabled]="formEfectoStock().submitting() || formEfectoStock().dirty()==false || formEfectoStock().valid()==false || sinPendientes()">
         {{ 'app.btn.save' | i18n }}
       </button>
 
       <button style="margin-right: 10px;" nz-button nzType="default" type="button"
         [nzLoading]="formEfectoStock().submitting()"
-        [disabled]="formEfectoStock().submitting() || formEfectoStock().dirty()==false || formEfectoStock().valid()==false"
+        [disabled]="formEfectoStock().submitting() || formEfectoStock().dirty()==false || formEfectoStock().valid()==false || sinPendientes()"
         (click)="confirmar(true)">
         Simular
       </button>

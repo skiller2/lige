@@ -220,7 +220,7 @@ export class MovimientoStockComponent {
     this.personaBuscadaId = null;
     this.objetivoBuscadoId = null;
     this.cargadoDesdeBusqueda.set(false);
-    this.parametroStock.update(s => ({ ...s, efectos: [nuevaEfectoLinea()] }));
+    this.parametroStock.update(s => ({ ...s, efectos: this.IndIntermediario() ? [] : [nuevaEfectoLinea()] }));
   }
 
   // Resetea solo la sección Destino: tipo de destino, su selección, intermediario y observaciones.
@@ -370,7 +370,7 @@ export class MovimientoStockComponent {
   });
 
   // Al resolverse la búsqueda de pendientes se reemplazan las líneas de origen. Si no hay pendientes
-  // para ese destino, queda una línea vacía.
+  // para ese destino, no queda ninguna línea (ver sinPendientes: deshabilita Guardar / Simular).
   private readonly precargarPendientes = effect(() => {
     if (!this.IndIntermediario()) return;
     const rows = this.pendientes.value();
@@ -393,13 +393,20 @@ export class MovimientoStockComponent {
       MovimientoStockCodigoOrigen: r.MovimientoStockCodigo ?? null,
     }));
 
-    this.parametroStock.update(s => ({ ...s, efectos: efectos.length ? efectos : [nuevaEfectoLinea()] }));
+    // En Intermediario las líneas no se cargan a mano: sin pendientes se queda sin filas.
+    this.parametroStock.update(s => ({ ...s, efectos }));
 
     if (efectos.length) {
       this.formEfectoStock().markAsTouched();
       this.formEfectoStock().markAsDirty();
     }
   }
+
+  readonly sinPendientes = computed(() => this.IndIntermediario() && this.parametroStock().efectos.length === 0);
+
+  readonly mostrarSinPendientes = computed(() =>
+    this.sinPendientes() && !!this.destinoIdSig() && !this.pendientes.isLoading()
+  );
 
   async confirmar(simular = false) {
     this.parametroStock.update(m => ({
@@ -446,8 +453,11 @@ export class MovimientoStockComponent {
         break
     }
 
-    if (this.parametroStock().efectos.length == 0)
+    if (this.IndIntermediario()) {
+      if (this.sinPendientes()) return
+    } else if (this.parametroStock().efectos.length == 0) {
       this.addEfectoLinea(null)
+    }
 
 
     await submit(this.formEfectoStock, async (form) => {

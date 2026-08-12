@@ -21,6 +21,8 @@
     }
 
     @if (!esAltaIndividual()) {
+    <nz-divider nzText="Efecto" nzOrientation="center" style="margin-bottom: 20px;"></nz-divider>
+
     <nz-form-item style="margin-top: 20px;">
       <nz-form-label [nzSpan]="6">Efecto ID</nz-form-label>
       <nz-form-control [nzSpan]="14">
@@ -143,7 +145,7 @@
 
     <!-- Bloque de efecto individual: descripción + atributos de ingreso. -->
     @if (esIndividual()) {
-    <nz-divider nzText="Efecto individual" nzOrientation="center" style="margin-bottom: 20px;"></nz-divider>
+    <nz-divider nzText="Efecto individual" nzOrientation="center" style="margin: 50px 0px 30px 0px;"></nz-divider>
 
     <nz-form-item>
       <nz-form-label [nzSpan]="6">Descripción</nz-form-label>
