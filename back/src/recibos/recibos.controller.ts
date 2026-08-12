@@ -159,8 +159,8 @@ export class RecibosController extends BaseController {
         directorPathUnique = existRecibo[0].DocumentoPath
       }
 
-      const movimientosPendientes = await this.getLiquidacionCuentaGeneral(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaRecibo)
-      const movimientosPendientesC = await this.getLiquidacionCuentaCoordinador(queryRunner, periodo_id, periodo.year, periodo.month, personalId, fechaRecibo)
+      const movimientosPendientes = await this.getLiquidacionCuentaGeneral(queryRunner, periodo.year, periodo.month, personalId, fechaRecibo)
+      const movimientosPendientesC = await this.getLiquidacionCuentaCoordinador(queryRunner, periodo.year, periodo.month, personalId, fechaRecibo)
 
       var directorPath = String(periodo.year) + String(periodo.month).padStart(2, '0')
       if (!existsSync(this.directoryRecibo + '/' + directorPath)) {
@@ -405,7 +405,7 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getLiquidacionCuentaCoordinador(queryRunner: QueryRunner, periodo_id: Number, anio: number, mes: number, personalId: number, fecha: Date) {
+  async getLiquidacionCuentaCoordinador(queryRunner: QueryRunner, anio: number, mes: number, personalId: number, fecha: Date) {
 
     let createSelect = `SELECT
     per.PersonalId, per.PersonalNroLegajo, 
@@ -444,8 +444,9 @@ export class RecibosController extends BaseController {
   
       SELECT DISTINCT liq.persona_id
       FROM lige.dbo.liqmamovimientos liq
+      left join lige.dbo.liqmaperiodo peri on peri.periodo_id=liq.periodo_id
 
-      WHERE liq.tipocuenta_id = 'C' AND liq.periodo_id = @0`
+      WHERE liq.tipocuenta_id = 'C' and peri.anio=@1 AND peri.mes=@2`
 
     if (personalId != 0 && personalId != undefined)
       createSelect += ` AND per.PersonalId = @3`
@@ -454,19 +455,20 @@ export class RecibosController extends BaseController {
         select distinct doc.PersonalId
         from Documento doc 
         left join lige.dbo.liqmaperiodo peri on peri.mes=doc.DocumentoMes and peri.anio=doc.DocumentoAnio
-        where doc.DocumentoTipoCodigo='RECC' and peri.periodo_id=@0
+        where doc.DocumentoTipoCodigo='RECC' and peri.anio=@1 AND peri.mes=@2
       )  ORDER BY per.PersonalId ASC`
 
 
 
-    return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId, fecha])
+    return queryRunner.query(createSelect, [null, anio, mes, personalId, fecha])
   }
 
 
 
-  async getLiquidacionCuentaGeneral(queryRunner: QueryRunner, periodo_id: Number, anio: number, mes: number, personalId: number, fecha: Date) {
+  async getLiquidacionCuentaGeneral(queryRunner: QueryRunner, anio: number, mes: number, personalId: number, fecha: Date) {
 
     let createSelect = `SELECT
+    per.PersonalId as id,
     per.PersonalId, per.PersonalNroLegajo, 
     CONCAT(TRIM(per.PersonalNombre), ' ', TRIM(per.PersonalApellido)) AS PersonalNombre,
   
@@ -503,7 +505,8 @@ export class RecibosController extends BaseController {
   
       SELECT DISTINCT liq.persona_id
       FROM lige.dbo.liqmamovimientos liq
-      WHERE liq.tipocuenta_id = 'G' AND liq.periodo_id = @0`
+      left join lige.dbo.liqmaperiodo peri on peri.periodo_id=liq.periodo_id
+      WHERE liq.tipocuenta_id = 'G' and peri.anio=@1 AND peri.mes=@2`
 
     if (personalId != 0 && personalId != undefined)
       createSelect += ` AND per.PersonalId = @3`
@@ -513,11 +516,11 @@ export class RecibosController extends BaseController {
         select distinct doc.PersonalId
         from Documento doc 
         left join lige.dbo.liqmaperiodo peri on peri.mes=doc.DocumentoMes and peri.anio=doc.DocumentoAnio
-        where doc.DocumentoTipoCodigo='REC' and peri.periodo_id=@0
+        where doc.DocumentoTipoCodigo='REC' and peri.anio=@1 AND peri.mes=@2
       )
       ORDER BY per.PersonalId ASC`
 
-    return queryRunner.query(createSelect, [periodo_id, anio, mes, personalId, fecha])
+    return queryRunner.query(createSelect, [0, anio, mes, personalId, fecha])
   }
 
   async getUsuariosLiquidacionMovimientos(queryRunner: QueryRunner, periodo_id: Number, user_id: Number, tipocuenta_id: string) {
@@ -925,8 +928,8 @@ export class RecibosController extends BaseController {
                         opacity: 0.6;">PRUEBA</div>`
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       const recibosPersonal = (tipocuenta_id == 'G') ?
-        await this.getLiquidacionCuentaGeneral(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual) :
-        await this.getLiquidacionCuentaCoordinador(queryRunner, periodo_id, anio, mes, PersonalId, fechaActual)
+        await this.getLiquidacionCuentaGeneral(queryRunner, anio, mes, PersonalId, fechaActual) :
+        await this.getLiquidacionCuentaCoordinador(queryRunner, anio, mes, PersonalId, fechaActual)
 
 
 

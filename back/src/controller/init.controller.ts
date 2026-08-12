@@ -666,15 +666,19 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
 
       WHERE`
+    // Los términos del usuario van como parámetros, no interpolados en el SQL.
+    const params: any[] = [];
     switch (fieldName) {
       case 'Nombre':
         const valueArray: Array<string> = value.split(" ");
         valueArray.forEach((element, index) => {
-          query += `(per.PersonalNombre LIKE '%${element}%' OR per.PersonalApellido LIKE '%${element}%') AND `;
+          query += `(per.PersonalNombre LIKE @${params.length} OR per.PersonalApellido LIKE @${params.length}) AND `;
+          params.push(`%${element}%`);
         });
         break;
       case 'CUIT':
-        query += ` cuit.PersonalCUITCUILCUIT LIKE '%${value}%' AND `
+        query += ` cuit.PersonalCUITCUILCUIT LIKE @${params.length} AND `
+        params.push(`%${value}%`)
       default:
         break;
     }
@@ -682,7 +686,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
     const queryRunner = await getConnection(res.locals.userName)
 
     queryRunner
-      .query((query += " 1=1"))
+      .query((query += " 1=1"), params)
       .then((records) => {
         this.jsonRes({ recordsArray: records }, res);
       })

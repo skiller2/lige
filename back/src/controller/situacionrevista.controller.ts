@@ -7,16 +7,17 @@ export class SituacionRevistaController extends BaseController {
 
   async search(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
-    const queryRunner = await getConnection(res.locals.userName);
-
     let buscar = false;
+    // Los términos del usuario van como parámetros, no interpolados en el SQL.
+    const params: any[] = [];
     let query: string = `SELECT SituacionRevistaId, TRIM(SituacionRevistaDescripcion) SituacionRevistaDescripcion FROM SituacionRevista WHERE 1=1 AND `;
     switch (fieldName) {
       case "SituacionRevistaDescripcion":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length >= 1) {
-            query += ` SituacionRevistaDescripcion LIKE '%${element.trim()}%' AND `;
+            query += ` SituacionRevistaDescripcion LIKE @${params.length} AND `;
+            params.push(`%${element.trim()}%`);
             buscar = true;
           }
         });
@@ -36,17 +37,15 @@ export class SituacionRevistaController extends BaseController {
       return;
     }
 
-    queryRunner
-      .query((query += " 1=1"))
-      .then(async (records) => {
-
-        await queryRunner.release()
-
-        this.jsonRes({ recordsArray: records }, res);
-      })
-      .catch((error) => {
-        return next(error)
-      });
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const records = await queryRunner.query((query += " 1=1"), params);
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
   }
   async execProcedure(someParam: number) {
   }

@@ -1315,16 +1315,18 @@ UNION
   }
 
   async search(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection(res.locals.userName);
     const { fieldName, value } = req.body;
     let buscar = false;
+    // Los términos del usuario van como parámetros, no interpolados en el SQL.
+    const params: any[] = [];
     let query: string = `SELECT TipoSeguroCodigo, TipoSeguroNombre from TipoSeguro WHERE 1=1 AND `;
     switch (fieldName) {
       case "TipoSeguroNombre":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length >= 1) {
-            query += ` TipoSeguroNombre LIKE '%${element.trim()}%' AND `;
+            query += ` TipoSeguroNombre LIKE @${params.length} AND `;
+            params.push(`%${element.trim()}%`);
             buscar = true;
           }
         });
@@ -1339,17 +1341,20 @@ UNION
         break;
     }
 
+    if (!buscar) {
+      return this.jsonRes({ recordsArray: [] }, res);
+    }
 
 
-    queryRunner
-      .query((query += " 1=1"))
-      .then(async (records) => {
-        await queryRunner.release();
-        this.jsonRes({ recordsArray: records }, res);
-      })
-      .catch((error) => {
-        return next(error)
-      });
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const records = await queryRunner.query((query += " 1=1"), params);
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
 
   }
 

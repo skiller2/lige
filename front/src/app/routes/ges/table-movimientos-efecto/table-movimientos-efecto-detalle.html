@@ -43,7 +43,7 @@
       <tbody>
         @for (item of detalleTable.data; track item.MovimientoStockDetalleCodigo) {
         <tr>
-          <td>{{ item.EfectoDescripcionCompleto }}</td>
+          <td>{{ item.EfectoDescripcionCompleto }} ({{ item.EfectoId }}{{ item.EfectoEfectoIndividualId ? '/' + item.EfectoEfectoIndividualId : '' }})</td>
           <td>{{ item.Origen }}</td>
           <td nzAlign="right">{{ item.Cantidad }}</td>
           <td nzAlign="center">{{ item.IndEfectoUsado ? 'Sí' : 'No' }}</td>

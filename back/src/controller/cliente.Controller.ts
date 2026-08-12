@@ -7,7 +7,8 @@ export class ClienteController extends BaseController {
   async search(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
     let buscar = false;
-    const queryRunner = await getConnection(res.locals.userName);
+    // Los términos del usuario van como parámetros, no interpolados en el SQL.
+    const params: any[] = [];
 
     let query: string = `SELECT ClienteId,ClienteDenominacion  FROM cliente WHERE`;
     switch (fieldName) {
@@ -15,8 +16,8 @@ export class ClienteController extends BaseController {
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
-            //            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
-            query += `(CONCAT(ClienteNombreFantasia, ClienteDenominacion) LIKE '%${element.trim()}%') AND `;
+            query += `(CONCAT(ClienteNombreFantasia, ClienteDenominacion) LIKE @${params.length}) AND `;
+            params.push(`%${element.trim()}%`);
             buscar = true;
           }
         });
@@ -35,16 +36,16 @@ export class ClienteController extends BaseController {
       this.jsonRes({ recordsArray: [] }, res);
       return;
     }
-
-    queryRunner
-      .query((query += " 1=1"))
-      .then(async (records) => {
-        await queryRunner.release();
-        this.jsonRes({ recordsArray: records }, res);
-      })
-      .catch((error) => {
-        return next(error)
-      });
+    
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const records = await queryRunner.query((query += " 1=1"), params);
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
   }
   async execProcedure(someParam: number) {
     /*

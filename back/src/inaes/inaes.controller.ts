@@ -10,6 +10,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { TextItem } from "pdfjs-dist/types/src/display/api.d.ts";
 import { logger } from "../logger/logger.ts";
+import { RecibosController } from "../recibos/recibos.controller.ts";
 
 const getOptionsSexo: any[] = [
   { label: 'Masculino', value: 'M' },
@@ -324,9 +325,9 @@ const recibosColumns: any[] = [
   {
     id: "ApellidoNombre",
     name: "Apellido Nombre",
-    field: "ApellidoNombre",
+    field: "PersonalNombre",
     type: "string",
-    fieldName: "mov1.PersonalId",
+    fieldName: "per.PersonalId",
     searchComponent: "inputForPersonalSearch",
     searchType: "number",
     sortable: true,
@@ -552,185 +553,26 @@ export class InaesController extends BaseController {
     }
   }
 
-  private async getRecibosQuery(queryRunner: any, filterSql: any, orderBy: any, year:number, month:number) {
-    return await queryRunner.query(`
-      SELECT 
-        ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) id,
-        mov1.persona_id,
-        30643445510 AS CUITEntidad,
-        cuit.PersonalCUITCUILCUIT,
-        doc.DocumentoAudFechaIng,
-        'Banco' AS MedioPago,
-        CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-        perban.PersonalBancoCBU,
-
-        --viginorm.importe AS importe_vigil, viginorm.horas AS horas_vigil,
-        --viginormart14.importe AS importe_vigilart14, viginormart14.horas AS horas_vigilart14, 
-        -- adminorm.importe AS importe_admin, adminorm.horas AS horas_admin,
-        --vigiar42.importe AS importe_vigilar42, vigiar42.horas AS horas_vigilar42,
-        --admiar42.importe AS importe_adminar42, admiar42.horas AS horas_adminar42,
-        --vigiextra.importe AS importe_extra, vigiextra.horas AS horas_extra,
-
-        --(ISNULL(viginorm.importe,0) + ISNULL(viginormart14.importe,0) + ISNULL(vigiextra.importe,0) + ISNULL(vigiar42.importe,0) + ISNULL(admiar42.importe,0)) AS total_ingresos,
-
-        --mdesc.importe AS descuentos,
-        --motro.importe AS otros_desc,
-        --mayud.importe AS ayuda_asis,
-        --mrent.importe AS rentas,
-        --mddjj.importe AS ddjj,
-        --madel.importe AS adelantos,
-        --mprep.importe AS prepaga,
-        --mtele.importe AS telefonia,
-
-        --ISNULL(mdesc.importe,0) + ISNULL(motro.importe,0) + ISNULL(mayud.importe,0) + ISNULL(mrent.importe,0) + ISNULL(mddjj.importe,0) + ISNULL(mprep.importe,0) + ISNULL(mtele.importe,0) AS total_egresos,
-
-        --ISNULL(viginorm.importe,0) + ISNULL(viginormart14.importe,0) + ISNULL(vigiextra.importe,0) + ISNULL(vigiar42.importe,0) + ISNULL(admiar42.importe,0) - ISNULL(mdesc.importe,0) - ISNULL(motro.importe,0) - ISNULL(mayud.importe,0) - ISNULL(mrent.importe,0) - ISNULL(mddjj.importe,0) - ISNULL(mprep.importe,0) - ISNULL(mtele.importe,0) AS retiro,
-        --supri.PersonalSucursalPrincipalSucursalId, suc.SucursalDescripcion,
-        --g.GrupoActividadId, g.GrupoActividadNumero, g.GrupoActividadDetalle,
-        --banc.BancoDescripcion,
-        --detsitrev.detsituacionrevista,
-        1
-
-      FROM Personal per 
-      JOIN (
-        SELECT DISTINCT per.PersonalId persona_id
-        FROM Personal per
-        JOIN lige.dbo.liqmaperiodo am ON am.anio=@1 AND am.mes=@2 
-        LEFT JOIN lige.dbo.liqmamovimientos m ON m.persona_id = per.PersonalId AND m.periodo_id = am.periodo_id
-        LEFT JOIN PersonalSituacionRevista sit ON sit.PersonalId=per.PersonalId AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
-            AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)  AND sit.PersonalSituacionRevistaSituacionId IN (2,5,11,12,14,20,26,28)
-            
-            
-        WHERE (sit.PersonalId IS NOT NULL OR m.persona_id IS NOT NULL)
-      ) mov1 ON mov1.persona_id = per.PersonalId
-
-      LEFT JOIN lige.dbo.liqmaperiodo mov ON mov.anio=@1 AND mov.mes=@2 
-
-      LEFT JOIN PersonalSucursalPrincipal supri ON supri.PersonalId = per.PersonalId
-      LEFT JOIN Sucursal suc ON suc.SucursalId = supri.PersonalSucursalPrincipalSucursalId
-      LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
-
-      LEFT JOIN GrupoActividadPersonal ga ON ga.GrupoActividadPersonalPersonalId = per.PersonalId AND DATEFROMPARTS(@1,@2,1) <  ISNULL(ga.GrupoActividadPersonalHasta, '9999-12-31') AND ga.GrupoActividadPersonalDesde = (
-        SELECT MAX(ga.GrupoActividadPersonalDesde) GrupoActividadPersonalDesde FROM GrupoActividadPersonal ga
-        WHERE DATEFROMPARTS(@1,@2,28) > ga.GrupoActividadPersonalDesde AND DATEFROMPARTS(@1,@2,1) < ISNULL(ga.GrupoActividadPersonalHasta, '9999-12-31')
-          AND ga.GrupoActividadPersonalPersonalId = per.PersonalId
-        GROUP BY ga.GrupoActividadPersonalPersonalId
-      )
-
-      LEFT JOIN GrupoActividad g ON g.GrupoActividadId = ga.GrupoActividadId           
-      LEFT JOIN PersonalBanco AS perban ON perban.PersonalId = per.PersonalId AND perban.PersonalBancoDesde = (SELECT MAX(perbanmax.PersonalBancoDesde) FROM PersonalBanco perbanmax WHERE perbanmax.PersonalId = per.PersonalId) 
-        AND perban.PersonalBancoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
-        AND ISNULL(perban.PersonalBancoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1)
-      LEFT JOIN banco AS banc ON banc.BancoId = perban.PersonalBancoBancoId
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe 
-        FROM lige.dbo.liqmamovimientos ingvig 
-        JOIN lige.dbo.liqcotipomovimiento tipo ON tipo.tipo_movimiento_id = ingvig.tipo_movimiento_id
-        WHERE ingvig.tipocuenta_id = 'G' AND tipo.tipo_movimiento = 'I'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingresos Extra
-      ) AS vigiextra ON vigiextra.persona_id=per.PersonalId AND vigiextra.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=8 AND ingvig.detalle NOT LIKE 'Art14%' AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingreso Vigilancia
-      ) AS viginorm ON viginorm.persona_id=per.PersonalId AND viginorm.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=8 AND ingvig.detalle LIKE 'Art14%' AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingreso Vigilancia Art14
-      ) AS viginormart14 ON viginormart14.persona_id=per.PersonalId AND  viginormart14.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=9 AND ingvig.tipocuenta_id = 'G' 
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingreso Administracion
-      ) AS adminorm ON adminorm.persona_id=per.PersonalId AND  adminorm.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=12 AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingreso Art42 Vigilancia
-      ) AS vigiar42 ON vigiar42.persona_id=per.PersonalId AND  vigiar42.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, SUM (ingvig.horas) as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=13 AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ingreso Art42 Adminis
-      ) AS admiar42 ON admiar42.persona_id=per.PersonalId AND  admiar42.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=4 AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Descuento
-      ) AS mdesc ON mdesc.persona_id=per.PersonalId AND  mdesc.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=5 AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Otro Descuento
-      ) AS motro ON motro.persona_id=per.PersonalId AND  motro.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=15 AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Adelanto
-      ) AS madel ON madel.persona_id=per.PersonalId AND  madel.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=7 AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Ayuda
-      ) AS mayud ON mayud.persona_id=per.PersonalId AND  mayud.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=14  AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Prepaga
-      ) AS mprep ON mprep.persona_id=per.PersonalId AND  mprep.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=6 AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --Rentas
-      ) AS mrent ON mrent.persona_id=per.PersonalId AND  mrent.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=16 AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --DDJJ
-      ) AS mddjj ON mddjj.persona_id=per.PersonalId AND  mddjj.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT ingvig.periodo_id, ingvig.persona_id, 0 as horas,SUM(ingvig.importe) AS importe FROM lige.dbo.liqmamovimientos ingvig WHERE ingvig.tipo_movimiento_id=17 AND ingvig.tipocuenta_id = 'G'
-        GROUP BY ingvig.periodo_id, ingvig.persona_id --TELE
-      ) AS mtele ON mtele.persona_id=per.PersonalId AND  mtele.periodo_id = mov.periodo_id
-
-      LEFT JOIN (
-        SELECT sit.PersonalId, STRING_AGG(CONCAT(TRIM(sr.SituacionRevistaDescripcion), ' ',FORMAT(sit.PersonalSituacionRevistaDesde,'dd/MM/yyyy'),' - ',FORMAT(sit.PersonalSituacionRevistaHasta,'dd/MM/yyyy')), '\n') detsituacionrevista
-        FROM PersonalSituacionRevista sit
-        JOIN SituacionRevista sr ON sr.SituacionRevistaId = sit.PersonalSituacionRevistaSituacionId 
-        -- WHERE sit.PersonalSituacionRevistaSituacionId NOT IN (2,4,5,6,10,11,12,20,23,26)
-          AND sit.PersonalSituacionRevistaDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) 
-          AND ISNULL(sit.PersonalSituacionRevistaHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) 
-        GROUP BY sit.PersonalId
-      ) AS detsitrev ON detsitrev.PersonalId=per.PersonalId 
-
-      LEFT JOIN Documento doc ON doc.PersonalId = per.PersonalId AND doc.DocumentoTipoCodigo = 'REC' AND doc.DocumentoAnio = @1 AND doc.DocumentoMes = @2
-      
-      /*
-      WHERE g.GrupoActividadId IN (
-        SELECT g.GrupoActividadId FROM GrupoActividad g 
-        JOIN GrupoActividadJerarquico gaj ON gaj.GrupoActividadId = g.GrupoActividadId
-        WHERE gaj.GrupoActividadJerarquicoPersonalId = @3 
-      ) OR @3 IS NULL
-      */
-      WHERE (${filterSql})
-      ${orderBy}`, [null, year, month, null])
-  }
-
-
   async getRecibos(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     try {
+      const recibosController = new RecibosController()
       const periodo:Date|null = req.body.periodo? new Date(req.body.periodo) : null
-      if (!periodo) throw new ClientException('Ingrese un Periodo') 
+      if (!periodo) throw new ClientException('Ingrese un Periodo')
+        
+      const anio = periodo.getFullYear()
+      const mes = periodo.getMonth() + 1
+      
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
       const filterSql = filtrosToSql(options.filtros, altasBajasColumns);
       const orderBy = orderToSQL(options.sort)
 
-      const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
+      const movimientosRecibos = await recibosController.getLiquidacionCuentaGeneral(queryRunner, anio, mes, 0, null)
 
+
+      //const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
+      console.log('movimientosRecibos', movimientosRecibos)
+      const lista=movimientosRecibos
       this.jsonRes(lista, res);
     } catch (error) {
       return next(error)

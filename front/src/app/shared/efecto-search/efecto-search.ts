@@ -27,6 +27,9 @@ export class EfectoSearchComponent implements ControlValueAccessor {
   private searchService = inject(SearchService);
 
   readonly valueExtended = input<any>()
+  // Tabla y campo contra los que busca el backend. Los define el padre; los defaults mantienen el comportamiento previo.
+  readonly table = input('StockReal')
+  readonly fieldName = input('EfectoDescripcionCompleto')
   // Param 1 (opcional): si es true, el buscador solo trae efectos con StockStock > 0. Por defecto
   // false para NO afectar a los demás usos del componente (p. ej. el buscador de filtros de grillas).
   readonly soloConStock = input(false)
@@ -60,11 +63,11 @@ export class EfectoSearchComponent implements ControlValueAccessor {
   private readonly termino = signal('')
   private readonly terminoDebounced = signal('')
   readonly opciones = resource({
-    params: () => ({ q: this.terminoDebounced(), stock: this.soloConStock(), indiv: this.soloConIndividual(), efecto: this.soloConEfecto() }),
+    params: () => ({ q: this.terminoDebounced(), table: this.table(), field: this.fieldName(), stock: this.soloConStock(), indiv: this.soloConIndividual(), efecto: this.soloConEfecto() }),
     loader: async ({ params }) => {
       if (!params.q) return [] as SearchEfecto[]
       return (await firstValueFrom(
-        this.searchService.getEfectoFromName('EfectoDescripcion', params.q, params.stock, params.indiv, params.efecto)
+        this.searchService.getEfectoFromName(params.table, params.field, params.q, params.stock, params.indiv, params.efecto)
       )) ?? []
     },
   })
@@ -146,7 +149,7 @@ export class EfectoSearchComponent implements ControlValueAccessor {
       return
     }
 
-    const res = await firstValueFrom(this.searchService.getEfectoFromName('EfectoId', id, this.soloConStock(), this.soloConIndividual(), this.soloConEfecto()))
+    const res = await firstValueFrom(this.searchService.getEfectoFromName(this.table(), 'EfectoId', id, this.soloConStock(), this.soloConIndividual(), this.soloConEfecto()))
     if (res && res.length > 0) {
       // Elegimos el registro del individual indicado; si no se indicó (o no está), caemos al primero.
       const match = res.find(r => (r.EfectoEfectoIndividualId ?? null) === this.individualId()) ?? res[0]

@@ -2746,12 +2746,12 @@ export class SearchService {
     );
   }
 
-  getEfectoFromName(fieldName: string, values: string, soloConStock: boolean, soloConIndividual: boolean, soloConEfecto: boolean): Observable<SearchEfecto[]> {
+  getEfectoFromName(table: string, fieldName: string, values: string, soloConStock: boolean, soloConIndividual: boolean, soloConEfecto: boolean): Observable<SearchEfecto[]> {
     if (!values || values == '') {
       return of([]);
     }
     return this.http
-      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', { fieldName: fieldName, value: values, soloConStock, soloConIndividual, soloConEfecto }).pipe(map(res => {
+      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', {table: table, fieldName: fieldName, value: values, soloConStock, soloConIndividual, soloConEfecto }).pipe(map(res => {
         if (res.data.recordsArray) return res.data.recordsArray;
         else return [];
       }),
