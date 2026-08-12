@@ -468,7 +468,6 @@ export class RecibosController extends BaseController {
   async getLiquidacionCuentaGeneral(queryRunner: QueryRunner, anio: number, mes: number, personalId: number, fecha: Date) {
 
     let createSelect = `SELECT
-    per.PersonalId as id,
     per.PersonalId, per.PersonalNroLegajo, 
     CONCAT(TRIM(per.PersonalNombre), ' ', TRIM(per.PersonalApellido)) AS PersonalNombre,
   
@@ -498,7 +497,7 @@ export class RecibosController extends BaseController {
     LEFT JOIN Sucursal suc ON suc.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
     LEFT JOIN (SELECT grp.GrupoActividadPersonalPersonalId, MAX(grp.GrupoActividadPersonalDesde) AS GrupoActividadPersonalDesde, MAX(ISNULL(grp.GrupoActividadPersonalHasta,'9999-12-31')) GrupoActividadPersonalHasta FROM GrupoActividadPersonal AS grp WHERE @4 >= grp.GrupoActividadPersonalDesde AND @4 <= ISNULL(grp.GrupoActividadPersonalHasta, '9999-12-31') GROUP BY grp.GrupoActividadPersonalPersonalId) as grupodesde ON grupodesde.GrupoActividadPersonalPersonalId = per.PersonalId
     LEFT JOIN GrupoActividadPersonal grupo ON grupo.GrupoActividadPersonalPersonalId = per.PersonalId AND grupo.GrupoActividadPersonalDesde = grupodesde.GrupoActividadPersonalDesde AND ISNULL(grupo.GrupoActividadPersonalHasta,'9999-12-31') = grupodesde.GrupoActividadPersonalHasta 
-        
+    LEFT JOIN Documento doc ON doc.PersonalId = per.PersonalId AND doc.DocumentoTipoCodigo='REC' AND doc.DocumentoAnio=@1 AND doc.DocumentoMes=@2    
     
     LEFT JOIN GrupoActividad act ON act.GrupoActividadId= grupo.GrupoActividadId
     WHERE per.PersonalId IN ( 
@@ -521,6 +520,40 @@ export class RecibosController extends BaseController {
       ORDER BY per.PersonalId ASC`
 
     return queryRunner.query(createSelect, [0, anio, mes, personalId, fecha])
+  }
+
+  async getListaRecibosGenerados(queryRunner: QueryRunner, anio: number, mes: number, tipoCuentaId:string) {
+
+    
+    return queryRunner.query(`SELECT
+    per.PersonalId id,
+    per.PersonalId, per.PersonalNroLegajo, 
+    CONCAT(TRIM(per.PersonalNombre), ' ', TRIM(per.PersonalApellido)) AS PersonalNombre,
+  
+    cuit.PersonalCUITCUILCUIT,
+    TRIM(CONCAT(
+      TRIM(dom.DomicilioDomCalle), ' ',
+      TRIM(dom.DomicilioDomNro), ' ',
+      TRIM(dom.DomicilioDomPiso), ' ',
+      TRIM(dom.DomicilioDomDpto), ' (',
+      TRIM(dom.DomicilioCodigoPostal), ') ',
+      TRIM(loc.LocalidadDescripcion), ' ',
+      IIF((loc.LocalidadDescripcion!=pro.ProvinciaDescripcion),TRIM(pro.ProvinciaDescripcion),''), ' '
+    )) AS DomicilioCompleto,
+    doc.DocumentoDenominadorDocumento,
+    doc.DocumentoFecha,
+    1
+    
+    FROM Personal per
+    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
+    LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1 AND nex.NexoDomicilioId = (SELECT MAX(nexmax.NexoDomicilioId) FROM NexoDomicilio nexmax WHERE nexmax.PersonalId=per.PersonalId AND nex.NexoDomicilioActual = 1)
+    LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId 
+    LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.DomicilioLocalidadId AND loc.PaisId = dom.DomicilioPaisId AND loc.ProvinciaId = dom.DomicilioProvinciaId
+    LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.DomicilioProvinciaId AND pro.PaisId = dom.DomicilioPaisId
+    JOIN Documento doc ON doc.PersonalId = per.PersonalId AND doc.DocumentoTipoCodigo='REC' AND doc.DocumentoAnio=@1 AND doc.DocumentoMes=@2    
+  
+  
+    `, [0, anio, mes, tipoCuentaId])
   }
 
   async getUsuariosLiquidacionMovimientos(queryRunner: QueryRunner, periodo_id: Number, user_id: Number, tipocuenta_id: string) {

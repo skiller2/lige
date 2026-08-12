@@ -336,12 +336,23 @@ const recibosColumns: any[] = [
     excludeFromExport: true,
   },
   {
-    id: 'DocumentoAudFechaIng', 
+    id: 'DocumentoFecha', 
     name: 'Fecha Recibo', 
-    field: 'DocumentoAudFechaIng',
-    fieldName: "doc.DocumentoAudFechaIng",
+    field: 'DocumentoFecha',
+    fieldName: "doc.DocumentoFecha",
     type: 'date',
-    searchType: "string",
+    searchType: "date",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
+  {
+    id: 'DocumentoDenominadorDocumento', 
+    name: 'Número Recibo', 
+    field: 'DocumentoDenominadorDocumento',
+    fieldName: "doc.DocumentoDenominadorDocumento",
+    type: 'number',
+    searchType: "number",
     sortable: true,
     searchHidden: true,
     hidden: false,
@@ -567,7 +578,7 @@ export class InaesController extends BaseController {
       const filterSql = filtrosToSql(options.filtros, altasBajasColumns);
       const orderBy = orderToSQL(options.sort)
 
-      const movimientosRecibos = await recibosController.getLiquidacionCuentaGeneral(queryRunner, anio, mes, 0, null)
+      const movimientosRecibos = await recibosController.getListaRecibosGenerados(queryRunner, anio, mes, 'G')
 
 
       //const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
