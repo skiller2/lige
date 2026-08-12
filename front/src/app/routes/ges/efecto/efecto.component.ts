@@ -94,9 +94,7 @@ export class EfectoComponent {
   })
 
   seleccionarEfecto(tab: string, efecto: any | null) {
-    // El refresh de la grilla oculta emite null antes de restaurar su seleccion.
-    const conservaSeleccion = ['formulario', 'consulta'].includes(this.activeTab()) && tab === this.ultimaGrilla()
-    if (efecto == null && conservaSeleccion) return
+    if (tab !== this.activeTab()) return
     this.seleccionPorTab.update(sel => ({ ...sel, [tab]: efecto }))
   }
 
@@ -120,7 +118,7 @@ export class EfectoComponent {
 
   onGuardadoAlta(efecto: any) {
     if (!efecto) return
-    this.seleccionarEfecto(this.ultimaGrilla(), efecto)
+    this.seleccionPorTab.update(sel => ({ ...sel, [this.ultimaGrilla()]: efecto }))
     this.router.navigate(['/', 'ges', 'efecto', 'formulario'])
   }
 
