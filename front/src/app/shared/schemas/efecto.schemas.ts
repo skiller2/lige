@@ -78,6 +78,7 @@ export interface EfectoFormulario {
     EfectoDescripcion: string;
     RubroId: number | null;
     SubrubroId: number | null;
+    EfectoUnidadMedidaPrincipalId: number | null;
     EfectoStockMinimo: number | null;
     EfectoEfectoIndividualId: number | null;
     EfectoEfectoIndividualDescripcion: string;
