@@ -8,7 +8,7 @@ import { applyEach, disabled, form, FormField, maxLength, required, submit, vali
 import { Observable, firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
 import { ApiService } from '../../../services/api.service';
-import { Atributo, AtributoIngreso, EfectoAtributo, EfectoIndividualAtributo, Rubro, Subrubro, UnidadMedida, Valor } from '../../../shared/schemas/efecto.schemas';
+import { Atributo, AtributoIngreso, EfectoAtributo, EfectoFormulario, EfectoIndividualAtributo, Rubro, Subrubro, UnidadMedida, Valor } from '../../../shared/schemas/efecto.schemas';
 import { AtributoSearchComponent } from '../../../shared/atributo-search/atributo-search';
 import { ValorSearchComponent } from '../../../shared/valor-search/valor-search';
 import { EfectoSearchComponent } from '../../../shared/efecto-search/efecto-search';
@@ -167,14 +167,16 @@ export class EfectoFormComponent {
     efectoId: number | null;
     individualId: number | null;
     rows: EfectoIndividualAtributo[];
+    detalle: EfectoFormulario | null;
   }, EfectoFormModel>({
     source: () => ({
       modo: this.modo(),
       efectoId: this.efectoId(),
       individualId: this.individualId(),
       rows: this.atributosIngreso(),
+      detalle: this.formulario.value() ?? null,
     }),
-    computation: ({ rows }) => {
+    computation: ({ rows, detalle }) => {
       // Lee los valores sin convertir la referencia del objeto en dependencia.
       const ef = untracked(() => this.efectoActivo());
       return {
@@ -183,7 +185,7 @@ export class EfectoFormComponent {
         EfectoDescripcion: texto(ef?.EfectoDescripcion),
         RubroId: ef?.RubroId ?? null,
         SubrubroId: ef?.SubrubroId ?? null,
-        EfectoUnidadMedidaPrincipalId: ef?.EfectoUnidadMedidaPrincipalId ?? null,
+        EfectoUnidadMedidaPrincipalId: detalle?.EfectoUnidadMedidaPrincipalId ?? ef?.EfectoUnidadMedidaPrincipalId ?? null,
         EfectoStockMinimo: ef?.EfectoStockMinimo ?? null,
         EfectoEfectoIndividualDescripcion: texto(ef?.EfectoEfectoIndividualDescripcion),
         atributos: rows.map(row => ({
