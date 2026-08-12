@@ -20,7 +20,7 @@ import { SearchService } from '../../../services/search.service';
     ClienteSearchComponent,
     PersonalSearchComponent,
     GrupoActividadSearchComponent,
-    ObjetivoSearchComponent,
+   
   ],
 })
 export class MonotributosModalComponent {

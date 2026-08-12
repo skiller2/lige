@@ -325,9 +325,9 @@ const recibosColumns: any[] = [
   {
     id: "ApellidoNombre",
     name: "Apellido Nombre",
-    field: "ApellidoNombre",
+    field: "PersonalNombre",
     type: "string",
-    fieldName: "mov1.PersonalId",
+    fieldName: "per.PersonalId",
     searchComponent: "inputForPersonalSearch",
     searchType: "number",
     sortable: true,
@@ -567,11 +567,12 @@ export class InaesController extends BaseController {
       const filterSql = filtrosToSql(options.filtros, altasBajasColumns);
       const orderBy = orderToSQL(options.sort)
 
-      //const movimientosPendientes = await recibosController.getLiquidacionCuentaGeneral(queryRunner, periodo_id, anio, mes, personalId, fechaRecibo)
+      const movimientosRecibos = await recibosController.getLiquidacionCuentaGeneral(queryRunner, anio, mes, 0, null)
 
 
       //const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
-      const lista=[]
+      console.log('movimientosRecibos', movimientosRecibos)
+      const lista=movimientosRecibos
       this.jsonRes(lista, res);
     } catch (error) {
       return next(error)
