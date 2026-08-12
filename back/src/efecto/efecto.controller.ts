@@ -994,54 +994,84 @@ const listaColumnasProveedores: any[] = [
 export class EfectoController extends BaseController {
 
   async searchEfecto(req: any, res: Response, next: NextFunction) {
-    const { fieldName, value, soloConStock, soloConIndividual, soloConEfecto } = req.body;
+    const { table, fieldName, value, soloConStock, soloConIndividual, soloConEfecto } = req.body;
     const queryRunner = await getConnection(res.locals.userName);
 
     let buscar = false;
-    let query: string = `SELECT DISTINCT EfectoId,EfectoEfectoIndividualId,EfectoDescripcionCompleto as EfectoDescripcion  FROM stockreal WHERE`;
-    switch (fieldName) {
-      case "EfectoDescripcion":
-        const valueArray: Array<string> = value.split(/[\s,.]+/);
-        valueArray.forEach((element, index) => {
-          if (element.trim().length > 1) {
-            //            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
-            query += `(EfectoDescripcionCompleto LIKE '%${element.trim()}%') AND `;
-            buscar = true;
-          }
-        });
-        break;
-      case "EfectoId":
-        if (value > 0) {
+    let query: string = null
+
+    switch (table) {
+      case "StockReal":
+        query = `SELECT DISTINCT EfectoId,EfectoEfectoIndividualId,EfectoDescripcionCompleto as EfectoDescripcion  FROM stockreal WHERE`;
+
+        if (fieldName == "EfectoId" && value > 0) {
           query += ` EfectoId = '${value}' AND `;
           buscar = true;
         }
+
+        if (fieldName == "EfectoDescripcionCompleto") {
+          const valueArray: Array<string> = value.split(/[\s,.]+/);
+          valueArray.forEach((element, index) => {
+            if (element.trim().length > 1) {
+              //            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
+              query += `(EfectoDescripcionCompleto LIKE '%${element.trim()}%') AND `;
+              buscar = true;
+            }
+          });
+        }
+
+        // Param 1 (opcional): solo efectos con stock disponible. Lo manda únicamente "Efecto:" del Origen.
+        if (soloConStock) query += ` StockStock > 0 AND `;
+        // Param 2 (opcional): solo efectos individuales (con EfectoEfectoIndividualId). Lo manda "Relacionado con".
+        if (soloConIndividual) query += ` EfectoEfectoIndividualId IS NOT NULL AND `;
+
+        if (soloConEfecto) query += ` EfectoEfectoIndividualId IS NULL AND `;
+
         break;
+
+      case "EfectoDescripcion":
+        query = `SELECT DISTINCT EfectoId,CONCAT(TRIM(EfectoDescripcion), ' (', EfectoAtrDescripcion, ' )' ) as EfectoDescripcion  FROM EfectoDescripcion WHERE`;
+
+         if (fieldName == "EfectoId" && value > 0) {
+          query += ` EfectoId = '${value}' AND `;
+          buscar = true;
+        }
+        if (fieldName == "EfectoDescripcion") {
+          const valueArray: Array<string> = value.split(/[\s,.]+/);
+          valueArray.forEach((element, index) => {
+            if (element.trim().length > 1) {
+              //            query += `(ClienteDenominacion LIKE '%${element.trim()}%') AND `;
+              query += `(CONCAT(TRIM(EfectoDescripcion), ' (', EfectoAtrDescripcion, ' )' ) LIKE '%${element.trim()}%') AND `;
+              buscar = true;
+            }
+          });
+        }
+        break;
+
+      // Pendiente de implementar. Comentado a propósito: si el case existe vacío, query queda en null
+      // y el endpoint devuelve [] como si no hubiera resultados. Así cae en el default y avisa.
+      // case "EfectoIndividualDescripcion":
+      //   break;
+
       default:
-        break;
+        throw new ClientException(`No se determino el formato de busqueda del efecto correctamente.`);
     }
+
 
     if (buscar == false) {
       this.jsonRes({ recordsArray: [] }, res);
       return;
     }
 
-    // Param 1 (opcional): solo efectos con stock disponible. Lo manda únicamente "Efecto:" del Origen.
-    if (soloConStock) query += ` StockStock > 0 AND `;
-    // Param 2 (opcional): solo efectos individuales (con EfectoEfectoIndividualId). Lo manda "Relacionado con".
-    if (soloConIndividual) query += ` EfectoEfectoIndividualId IS NOT NULL AND `;
-
-    if (soloConEfecto) query += ` EfectoEfectoIndividualId IS NULL AND `;
-
-
-    queryRunner
-      .query((query += " 1=1"))
-      .then(async (records) => {
-        await queryRunner.release()
-        this.jsonRes({ recordsArray: records }, res);
-      })
-      .catch((error) => {
-        return next(error)
-      });
+    try {
+      const records = await queryRunner.query((query += " 1=1"));
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      // El release va en finally: con .catch() la conexión quedaba tomada en cada error de SQL.
+      await queryRunner.release();
+    }
   }
 
   async getEfectoRelaciones(req: any, res: Response, next: NextFunction) {
@@ -1862,7 +1892,7 @@ export class EfectoController extends BaseController {
         SELECT CAST(SCOPE_IDENTITY() AS DECIMAL(12, 0)) AS EfectoId;
         SELECT CAST(SCOPE_IDENTITY() AS DECIMAL(12, 0)) AS EfectoId;
       `, [descripcion, rubroId, subrubroId, stockMinimo, efectoAtributos.length, crearEfectoIndividual ? 1 : 0, now, usuario, ip, unidadMedidaId]);
-      
+
       const efectoId = Number(nuevo?.[0]?.EfectoId);
       if (!efectoId) throw new ClientException('No se pudo obtener el EfectoId asignado por la base.');
 
@@ -1984,7 +2014,7 @@ export class EfectoController extends BaseController {
     }
   }
 
- 
+
   async eliminarEfectoForm(req: any, res: any, next: any) {
     const queryRunner = await getConnection(res.locals.userName);
     const efectoId = Number(req.body.EfectoId) || null;
