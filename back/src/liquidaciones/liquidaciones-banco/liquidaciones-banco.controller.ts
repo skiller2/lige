@@ -1046,6 +1046,7 @@ LEFT JOIN banco banc
           array.findIndex(p => p.PersonalId === item.PersonalId) !== index
       );
 
+
       const bancoExcede = banco.filter(
         (p) =>
           p.ExcedeImporte == '1'
@@ -1057,10 +1058,13 @@ LEFT JOIN banco banc
         throw new ClientException(`Existen registros duplicados para : ${dupIds}.`)
       }
 
+
+      /*  Se comentó por orden de Marcelo
       if (bancoExcede.length > 0) {
         const excedeIds = bancoExcede.map((p: any) => p.PersonalApellidoNombre).join(', ')
         throw new ClientException(`Existen registros que exceden el importe autorizado para : ${excedeIds}.`)
       }
+      */
 
       if (banco.length == 0)
         throw new ClientException('No hay registros para generar archivo')
