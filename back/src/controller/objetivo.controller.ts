@@ -353,12 +353,16 @@ WHERE  `;
       if (sucursalId > 0)
         query += ' suc.SucursalId = @1 AND '
 
+      // @0 y @1 ya están tomados por la fecha y la sucursal: los términos del usuario siguen desde ahí.
+      const params: any[] = [new Date(), sucursalId];
+
       switch (fieldName) {
         case "Descripcion":
           const valueArray: Array<string> = value.split(/[\s,.-]+/);
           valueArray.forEach((element, index) => {
             if (element.trim().length > 1) {
-              query += `(clidep.ClienteElementoDependienteDescripcion LIKE '%${element.trim()}%' OR cli.ClienteDenominacion LIKE '%${element.trim()}%') AND `;
+              query += `(clidep.ClienteElementoDependienteDescripcion LIKE @${params.length} OR cli.ClienteDenominacion LIKE @${params.length}) AND `;
+              params.push(`%${element.trim()}%`);
               buscar = true;
             }
           });
@@ -367,14 +371,15 @@ WHERE  `;
           break;
         case "Codigo":
           buscar = true;
-          query = `${query} CONCAT(obj.ClienteId, '/', ISNULL(clidep.ClienteElementoDependienteId, 0)) LIKE '%${value}%'`;
+          query = `${query} CONCAT(obj.ClienteId, '/', ISNULL(clidep.ClienteElementoDependienteId, 0)) LIKE @${params.length}`;
+          params.push(`%${value}%`);
           break;
         default:
           break;
       }
 
       if (buscar) {
-        const result = await queryRunner.query(query, [new Date(), sucursalId]);
+        const result = await queryRunner.query(query, params);
         this.jsonRes({ objetivos: result }, res);
       } else this.jsonRes({ objetivos: [] }, res);
     } catch (error) {

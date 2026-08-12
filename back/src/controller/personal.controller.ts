@@ -816,7 +816,9 @@ export class PersonalController extends BaseController {
     const { fieldName, value } = req.body;
 
     let buscar = false;
-    let query: string = `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName, ISNULL(sucper.PersonalSucursalPrincipalSucursalId,1) SucursalId 
+    // Los términos del usuario van como parámetros, no interpolados en el SQL.
+    const params: any[] = [];
+    let query: string = `SELECT per.PersonalId, CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) fullName, ISNULL(sucper.PersonalSucursalPrincipalSucursalId,1) SucursalId
     FROM dbo.Personal per 
     LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
     LEFT JOIN PersonalSucursalPrincipal sucper ON sucper.PersonalId = per.PersonalId AND sucper.PersonalSucursalPrincipalId = (SELECT MAX(a.PersonalSucursalPrincipalId) PersonalSucursalPrincipalId FROM PersonalSucursalPrincipal a WHERE a.PersonalId = per.PersonalId)
@@ -827,14 +829,16 @@ export class PersonalController extends BaseController {
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
-            query += `(per.PersonalNombre LIKE '%${element.trim()}%' OR per.PersonalApellido LIKE '%${element.trim()}%') AND `;
+            query += `(per.PersonalNombre LIKE @${params.length} OR per.PersonalApellido LIKE @${params.length}) AND `;
+            params.push(`%${element.trim()}%`);
             buscar = true;
           }
         });
         break;
       case "CUIT":
         if (value.trim().length > 1) {
-          query += ` (cuit.PersonalCUITCUILCUIT LIKE '%${value.trim()}%' OR per.PersonalId = '${value.trim()}') AND `;
+          query += ` (cuit.PersonalCUITCUILCUIT LIKE @${params.length} OR per.PersonalId = @${params.length + 1}) AND `;
+          params.push(`%${value.trim()}%`, value.trim());
           buscar = true;
         }
         break;
@@ -854,16 +858,14 @@ export class PersonalController extends BaseController {
     }
 
     const queryRunner = await getConnection(res.locals.userName);
-    queryRunner
-      .query((query += " 1=1"))
-      .then(async (records) => {
-        await queryRunner.release()
-
-        this.jsonRes({ recordsArray: records }, res);
-      })
-      .catch((error) => {
-        return next(error)
-      });
+    try {
+      const records = await queryRunner.query((query += " 1=1"), params);
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
   }
   async execProcedure(someParam: number) {
     /*
@@ -4034,8 +4036,9 @@ UNION ALL
 
   async searchTipoAsociadoCategoria(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
-    const queryRunner = await getConnection(res.locals.userName);
     let buscar = false;
+    // Los términos del usuario van como parámetros, no interpolados en el SQL.
+    const params: any[] = [];
     let query: string = `SELECT cat.TipoAsociadoId, cat.CategoriaPersonalId,
         CONCAT(TRIM(tip.TipoAsociadoDescripcion), ' - ', TRIM(cat.CategoriaPersonalDescripcion)) Label,
         CONCAT(cat.TipoAsociadoId,'/', cat.CategoriaPersonalId) id
@@ -4047,7 +4050,8 @@ UNION ALL
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
-            query += `(CONCAT(TRIM(tip.TipoAsociadoDescripcion), ' - ', TRIM(cat.CategoriaPersonalDescripcion)) LIKE '%${element.trim()}%') AND `;
+            query += `(CONCAT(TRIM(tip.TipoAsociadoDescripcion), ' - ', TRIM(cat.CategoriaPersonalDescripcion)) LIKE @${params.length}) AND `;
+            params.push(`%${element.trim()}%`);
             buscar = true;
           }
         });
@@ -4057,10 +4061,12 @@ UNION ALL
           // El id tiene formato TipoAsociadoId/CategoriaPersonalId
           const parts = value.split('/');
           if (parts.length === 2) {
-            query += `cat.TipoAsociadoId = '${parts[0]}' AND cat.CategoriaPersonalId = '${parts[1]}' AND `;
+            query += `cat.TipoAsociadoId = @${params.length} AND cat.CategoriaPersonalId = @${params.length + 1} AND `;
+            params.push(parts[0], parts[1]);
             buscar = true;
           } else {
-            query += `CONCAT(cat.TipoAsociadoId,'/', cat.CategoriaPersonalId) LIKE '%${value}%' AND `;
+            query += `CONCAT(cat.TipoAsociadoId,'/', cat.CategoriaPersonalId) LIKE @${params.length} AND `;
+            params.push(`%${value}%`);
             buscar = true;
           }
         }
@@ -4074,17 +4080,16 @@ UNION ALL
       return;
     }
 
-    queryRunner
-      .query((query += " 1=1"))
-      .then(async (records) => {
-
-        await queryRunner.release()
-
-        this.jsonRes({ recordsArray: records }, res);
-      })
-      .catch((error) => {
-        return next(error)
-      });
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const records = await queryRunner.query((query += " 1=1"), params);
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      // En finally: con .catch() la conexión quedaba tomada en cada error de SQL.
+      await queryRunner.release()
+    }
   }
 
   async getExencionesByPersonalId(req: any, res: Response, next: NextFunction) {

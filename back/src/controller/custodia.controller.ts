@@ -1414,7 +1414,7 @@ export class CustodiaController extends BaseController {
             const list = await queryRunner.query(`
                 SELECT reg.Patente, reg.PersonalId
                 FROM VehiculoCustodia reg
-                WHERE reg.Patente LIKE '%${patente}%'`)
+                WHERE reg.Patente LIKE @0`, [`%${patente}%`])
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res);
         } catch (error) {
@@ -1482,7 +1482,7 @@ export class CustodiaController extends BaseController {
             const list = await queryRunner.query(`
                 SELECT DISTINCT obj.DescripcionRequirente fullName
                 FROM Custodia obj
-                WHERE obj.DescripcionRequirente LIKE '%${value}%'`)
+                WHERE obj.DescripcionRequirente LIKE @0`, [`%${value}%`])
 
             await queryRunner.commitTransaction()
             return this.jsonRes(list, res);

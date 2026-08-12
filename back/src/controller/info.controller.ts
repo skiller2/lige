@@ -14,19 +14,16 @@ export class InfoController extends BaseController {
       random: Math.floor(Math.random() * (100000000000 + 1)),
     };
 
-    queryRunner
-      .query("SELECT 1 + @0", [2])
-      .then(async (records) => {
-        data.sqltest = records;
-        data.connected = true;
-
-        await queryRunner.release()
-
-        this.jsonRes(data, res);
-      })
-      .catch(error => {
-        return next(error)
-      });
+    try {
+      const records = await queryRunner.query("SELECT 1 + @0", [2]);
+      data.sqltest = records;
+      data.connected = true;
+      this.jsonRes(data, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   async execProcedure(someParam: number) {

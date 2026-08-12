@@ -420,10 +420,14 @@ export class DomicilioController extends BaseController {
     if (PaisId > 0)
       query += 'pro.PaisId IN (@0) AND '
 
+    // @0 ya está tomado por el país: el término del usuario sigue desde ahí, como parámetro.
+    const params: any[] = [PaisId];
+
     switch (fieldName) {
       case "Descripcion":
         if (value.trim().length > 1) {
-          query += ` (pro.ProvinciaDescripcion LIKE '%${value.trim()}%') AND `;
+          query += ` (pro.ProvinciaDescripcion LIKE @${params.length}) AND `;
+          params.push(`%${value.trim()}%`);
           buscar = true;
         }
         break;
@@ -437,14 +441,14 @@ export class DomicilioController extends BaseController {
     }
 
     const queryRunner = await getConnection(res.locals.userName);
-    queryRunner.query((query += " 1=1"), [PaisId])
-      .then(async (records) => {
-        await queryRunner.release()
-
-        this.jsonRes({ recordsArray: records }, res);
-      }).catch((error) => {
-        return next(error)
-      });
+    try {
+      const records = await queryRunner.query((query += " 1=1"), params);
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   async searchLocalidad(req: any, res: Response, next: NextFunction) {
@@ -465,10 +469,14 @@ export class DomicilioController extends BaseController {
     if (ProvinciaId > 0)
       query += 'loc.ProvinciaId IN (@1) AND '
 
+    // @0 y @1 ya están tomados por país y provincia: el término del usuario sigue desde ahí.
+    const params: any[] = [PaisId, ProvinciaId];
+
     switch (fieldName) {
       case "Descripcion":
         if (value.trim().length > 1) {
-          query += ` (loc.LocalidadDescripcion LIKE '%${value.trim()}') AND `;
+          query += ` (loc.LocalidadDescripcion LIKE @${params.length}) AND `;
+          params.push(`%${value.trim()}`);
           buscar = true;
         }
         break;
@@ -482,14 +490,15 @@ export class DomicilioController extends BaseController {
     }
 
     const queryRunner = await getConnection(res.locals.userName);
-    queryRunner.query((query += " 1=1"), [PaisId, ProvinciaId])
-      .then(async (records) => {
-        await queryRunner.release()
-
-        this.jsonRes({ recordsArray: records }, res);
-      }).catch((error) => {
-        return next(error)
-      });
+    try {
+      const records = await queryRunner.query((query += " 1=1"), params);
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      // En finally: con .catch() la conexión quedaba tomada en cada error de SQL.
+      await queryRunner.release()
+    }
   }
 
   async searchBarrio(req: any, res: Response, next: NextFunction) {
@@ -510,12 +519,16 @@ export class DomicilioController extends BaseController {
     if (ProvinciaId > 0)
       query += 'bar.ProvinciaId IN (@1) AND '
     if (LocalidadId > 0)
-      query += 'bar.LocalidadId IN (@1) AND '
+      query += 'bar.LocalidadId IN (@2) AND '
+
+    // @0, @1 y @2 ya están tomados por país, provincia y localidad: el término del usuario sigue ahí.
+    const params: any[] = [PaisId, ProvinciaId, LocalidadId];
 
     switch (fieldName) {
       case "Descripcion":
         if (value.trim().length > 1) {
-          query += ` (bar.BarrioDescripcion LIKE '%${value.trim()}') AND `;
+          query += ` (bar.BarrioDescripcion LIKE @${params.length}) AND `;
+          params.push(`%${value.trim()}`);
           buscar = true;
         }
         break;
@@ -529,14 +542,15 @@ export class DomicilioController extends BaseController {
     }
 
     const queryRunner = await getConnection(res.locals.userName);
-    queryRunner.query((query += " 1=1"), [PaisId, ProvinciaId, LocalidadId])
-      .then(async (records) => {
-        await queryRunner.release()
-
-        this.jsonRes({ recordsArray: records }, res);
-      }).catch((error) => {
-        return next(error)
-      });
+    try {
+      const records = await queryRunner.query((query += " 1=1"), params);
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      // En finally: con .catch() la conexión quedaba tomada en cada error de SQL.
+      await queryRunner.release()
+    }
   }
 
   // Valida el objeto que devuelve AddrSearchComponent

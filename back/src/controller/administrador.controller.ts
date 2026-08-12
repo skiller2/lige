@@ -1,20 +1,22 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import { getConnection } from "../data-source.ts";
-import type { Response,NextFunction } from "express";
+import type { Response, NextFunction } from "express";
 
 export class AdministradorController extends BaseController {
-  
-  async search(req: any, res: Response, next:NextFunction) {
-    const queryRunner = await getConnection(res.locals.userName);
+
+  async search(req: any, res: Response, next: NextFunction) {
     const { fieldName, value } = req.body;
     let buscar = false;
+    // Los términos del usuario van como parámetros, no interpolados en el SQL.
+    const params: any[] = [];
     let query: string = `SELECT AdministradorId, AdministradorApellidoNombre FROM Administrador WHERE`;
     switch (fieldName) {
       case "AdministradorApellidoNombre":
         const valueArray: Array<string> = value.split(/[\s,.]+/);
         valueArray.forEach((element, index) => {
           if (element.trim().length > 1) {
-            query += `(CONCAT(AdministradorDenominacion, AdministradorNombreFantasia, AdministradorApellidoNombre) LIKE '%${element.trim()}%') AND `;
+            query += `(CONCAT(AdministradorDenominacion, AdministradorNombreFantasia, AdministradorApellidoNombre) LIKE @${params.length}) AND `;
+            params.push(`%${element.trim()}%`);
             buscar = true;
           }
         });
@@ -34,16 +36,16 @@ export class AdministradorController extends BaseController {
       return;
     }
 
-    queryRunner
-      .query((query += " 1=1"))
-      .then(async (records) => {
-        await queryRunner.release();
-    
-        this.jsonRes({ recordsArray: records }, res);
-      })
-      .catch((error) => {
-        return next(error)
-      })
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      const records = await queryRunner.query((query += " 1=1"), params);
+      this.jsonRes({ recordsArray: records }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
   }
 
 }

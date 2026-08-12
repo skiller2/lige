@@ -995,7 +995,6 @@ export class EfectoController extends BaseController {
 
   async searchEfecto(req: any, res: Response, next: NextFunction) {
     const { table, fieldName, value, soloConStock, soloConIndividual, soloConEfecto } = req.body;
-    const queryRunner = await getConnection(res.locals.userName);
 
     let buscar = false;
     let query: string = null
@@ -1066,13 +1065,13 @@ export class EfectoController extends BaseController {
       return;
     }
 
+    const queryRunner = await getConnection(res.locals.userName);
     try {
       const records = await queryRunner.query((query += " 1=1"), params);
       this.jsonRes({ recordsArray: records }, res);
     } catch (error) {
       return next(error);
     } finally {
-      // El release va en finally: con .catch() la conexión quedaba tomada en cada error de SQL.
       await queryRunner.release();
     }
   }
