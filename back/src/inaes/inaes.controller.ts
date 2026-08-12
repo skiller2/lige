@@ -325,7 +325,7 @@ const recibosColumns: any[] = [
   {
     id: "ApellidoNombre",
     name: "Apellido Nombre",
-    field: "PersonalNombre",
+    field: "ApellidoNombre",
     type: "string",
     fieldName: "per.PersonalId",
     searchComponent: "inputForPersonalSearch",
@@ -369,10 +369,10 @@ const recibosColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'PersonalBancoCBU', 
-    name: 'Cbu/Alias', 
-    field: 'PersonalBancoCBU',
-    fieldName: "perban.PersonalBancoCBU",
+    id: 'CBU', 
+    name: 'CBU', 
+    field: 'CBU',
+    fieldName: "CBU",
     type: 'string',
     searchType: "string",
     sortable: true,
@@ -380,29 +380,29 @@ const recibosColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'total_ingresos', 
+    id: 'SumaRetribucion', 
     name: 'Retribución',
-    field: 'total_ingresos',
-    fieldName: "total_ingresos",
+    field: 'SumaRetribucion',
+    fieldName: "SumaRetribucion",
     type: 'currency',
     sortable: true,
     searchHidden: true,
     hidden: false,
   },
   {
-    id: 'Excedentes', 
+    id: 'SumaExcedentes', 
     name: 'Excedentes',
-    field: 'Excedentes',
-    fieldName: '',
+    field: 'SumaExcedentes',
+    fieldName: 'SumaExcedentes',
     type: 'currency',
     sortable: true,
     searchHidden: true,
     hidden: false,
   },
   {
-    id: "RetencionMonotributo",
-    name: "Retencion Monotributo",
-    field: "RetencionMonotributo",
+    id: "SumaMonotributoRetencion",
+    name: "Retención Monotributo",
+    field: "SumaMonotributoRetencion",
     type: "currency",
     fieldName: "",
     sortable: true,
@@ -410,9 +410,9 @@ const recibosColumns: any[] = [
     searchHidden: true,
   },
   {
-    id: 'OtrasRetenciones', 
+    id: 'SumaOtrasRetenciones', 
     name: 'Otras Retenciones',
-    field: 'OtrasRetenciones',
+    field: 'SumaOtrasRetenciones',
     fieldName: "",
     type: 'currency',
     sortable: true,
@@ -420,9 +420,9 @@ const recibosColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'DetalleOtrasRetenciones', 
+    id: 'DescOtrasRetenciones', 
     name: 'Detalle Otras Retenciones',
-    field: 'DetalleOtrasRetenciones',
+    field: 'DescOtrasRetenciones',
     fieldName: "",
     type: 'string',
     searchComponent: "",
@@ -432,9 +432,9 @@ const recibosColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'DetalledeRetribucion', 
+    id: 'DescRetribucion', 
     name: 'Detalle de Retribucion',
-    field: 'DetalledeRetribucion',
+    field: 'DescRetribucion',
     fieldName: "",
     type: 'string',
     searchType: "string",
@@ -582,7 +582,7 @@ export class InaesController extends BaseController {
 
 
       //const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
-      console.log('movimientosRecibos', movimientosRecibos)
+      console.log('movimientosRecibos', movimientosRecibos.length)
       const lista=movimientosRecibos
       this.jsonRes(lista, res);
     } catch (error) {

@@ -525,34 +525,54 @@ export class RecibosController extends BaseController {
   async getListaRecibosGenerados(queryRunner: QueryRunner, anio: number, mes: number, tipoCuentaId:string) {
 
     
-    return queryRunner.query(`SELECT
-    per.PersonalId id,
-    per.PersonalId, per.PersonalNroLegajo, 
-    CONCAT(TRIM(per.PersonalNombre), ' ', TRIM(per.PersonalApellido)) AS PersonalNombre,
-  
-    cuit.PersonalCUITCUILCUIT,
-    TRIM(CONCAT(
-      TRIM(dom.DomicilioDomCalle), ' ',
-      TRIM(dom.DomicilioDomNro), ' ',
-      TRIM(dom.DomicilioDomPiso), ' ',
-      TRIM(dom.DomicilioDomDpto), ' (',
-      TRIM(dom.DomicilioCodigoPostal), ') ',
-      TRIM(loc.LocalidadDescripcion), ' ',
-      IIF((loc.LocalidadDescripcion!=pro.ProvinciaDescripcion),TRIM(pro.ProvinciaDescripcion),''), ' '
-    )) AS DomicilioCompleto,
-    doc.DocumentoDenominadorDocumento,
-    doc.DocumentoFecha,
-    1
+    return queryRunner.query(`
+            SELECT 
+      liq.persona_id AS id,
+      liq.persona_id AS PersonalId, 
+		CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+
+      cuit.PersonalCUITCUILCUIT,
+      doc.DocumentoDenominadorDocumento,
+      doc.DocumentoFecha,
+      SUM(CASE WHEN tip.indicador_recibo = 'A' THEN liq.importe ELSE 0 END) AS SumaAdelanto,
+      SUM(CASE WHEN tip.indicador_recibo = 'R' AND liq.detalle LIKE'%MONOTRIBUTO%' THEN liq.importe ELSE 0 END) AS SumaMonotributoRetencion,
+      SUM(CASE WHEN tip.indicador_recibo = 'R' AND liq.detalle NOT LIKE'%MONOTRIBUTO%' THEN liq.importe ELSE 0 END) AS SumaOtrasRetenciones,
+      SUM(CASE WHEN tip.indicador_recibo = 'I' AND liq.detalle NOT LIKE'Art%' THEN liq.importe ELSE 0 END) AS SumaRetribucion,
+      SUM(CASE WHEN tip.indicador_recibo = 'I' AND liq.detalle LIKE'Art%' THEN liq.importe ELSE 0 END) AS SumaExcedentes,
+      SUM(CASE WHEN tip.indicador_recibo = 'D' THEN liq.importe ELSE 0 END) AS SumaRetiros,
+      STRING_AGG( CASE WHEN tip.indicador_recibo = 'A' THEN liq.detalle ELSE NULL END,'; ') AS DescAdelanto,
+      STRING_AGG(CASE WHEN tip.indicador_recibo = 'R' AND liq.detalle NOT LIKE'%MONOTRIBUTO%' THEN liq.detalle ELSE NULL END,'; ') AS DescOtrasRetenciones,
+      STRING_AGG(CASE WHEN tip.indicador_recibo = 'I' THEN liq.detalle ELSE NULL END,'; ') AS DescRetribucion,
+      -- STRING_AGG(CASE WHEN tip.indicador_recibo = 'I' AND liq.detalle LIKE'Art%' THEN liq.detalle ELSE NULL END,'; ') AS DescExcedentes,
+      
+      STRING_AGG(CASE WHEN tip.indicador_recibo = 'D' THEN liq.detalle ELSE NULL END,'; ') AS DescRetiros,
+
+      STRING_AGG(CASE WHEN tip.indicador_recibo = 'D' AND CHARINDEX('CBU ', liq.detalle) > 0 THEN LTRIM(RTRIM(SUBSTRING(liq.detalle,CHARINDEX('CBU ', liq.detalle) + 4,LEN(liq.detalle))))END,'; ') AS CBU,
+
+      1  
+
+    FROM  lige.dbo.liqmamovimientos AS liq
+    JOIN Personal per ON per.PersonalId = liq.persona_id
+        JOIN  lige.dbo.liqcotipomovimiento AS tip ON tip.tipo_movimiento_id = liq.tipo_movimiento_id
+        JOIN lige.dbo.liqmaperiodo peri on peri.anio = @1 AND peri.mes = @2 AND peri.periodo_id = liq.periodo_id
+        JOIN Documento doc ON doc.PersonalId = liq.persona_id AND doc.DocumentoTipoCodigo= IIF(liq.tipocuenta_id = 'G', 'REC', 'RECC') AND doc.DocumentoAnio=peri.anio AND doc.DocumentoMes=peri.mes    
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = liq.persona_id AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = liq.persona_id) 
+      
+      
+      
+      WHERE  liq.tipocuenta_id = @3
+      GROUP BY 
+      liq.persona_id,
+      per.PersonalApellido,
+      per.PersonalNombre,
+      cuit.PersonalCUITCUILCUIT,
+      doc.DocumentoDenominadorDocumento,
+      doc.DocumentoFecha
+      
     
-    FROM Personal per
-    LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-    LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1 AND nex.NexoDomicilioId = (SELECT MAX(nexmax.NexoDomicilioId) FROM NexoDomicilio nexmax WHERE nexmax.PersonalId=per.PersonalId AND nex.NexoDomicilioActual = 1)
-    LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId 
-    LEFT JOIN Localidad loc ON loc.LocalidadId  =  dom.DomicilioLocalidadId AND loc.PaisId = dom.DomicilioPaisId AND loc.ProvinciaId = dom.DomicilioProvinciaId
-    LEFT JOIN Provincia pro ON pro.ProvinciaId  =  dom.DomicilioProvinciaId AND pro.PaisId = dom.DomicilioPaisId
-    JOIN Documento doc ON doc.PersonalId = per.PersonalId AND doc.DocumentoTipoCodigo='REC' AND doc.DocumentoAnio=@1 AND doc.DocumentoMes=@2    
-  
-  
+      ORDER BY liq.persona_id ASC
+
+
     `, [0, anio, mes, tipoCuentaId])
   }
 
