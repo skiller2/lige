@@ -24,8 +24,8 @@ const getOptionsEstado: any[] = [
 
 const altasBajasColumns: any[] = [
   {
-    id: 'id', 
-    name: 'id', 
+    id: 'id',
+    name: 'id',
     field: 'id',
     type: 'string',
     fieldName: "per.PersonalId",
@@ -62,8 +62,8 @@ const altasBajasColumns: any[] = [
     excludeFromExport: true,
   },
   {
-    id: 'CUITEntidad', 
-    name: 'CUIT Entidad', 
+    id: 'CUITEntidad',
+    name: 'CUIT Entidad',
     field: 'CUITEntidad',
     fieldName: "",
     type: 'string',
@@ -99,8 +99,8 @@ const altasBajasColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'TipoPersona', 
-    name: 'Tipo Persona', 
+    id: 'TipoPersona',
+    name: 'Tipo Persona',
     field: 'TipoPersona',
     fieldName: "",
     type: 'string',
@@ -111,8 +111,8 @@ const altasBajasColumns: any[] = [
     showGridColumn: false,
   },
   {
-    id: 'RazonSocial', 
-    name: 'Razon Social', 
+    id: 'RazonSocial',
+    name: 'Razon Social',
     field: 'RazonSocial',
     fieldName: "",
     type: 'string',
@@ -123,8 +123,8 @@ const altasBajasColumns: any[] = [
     showGridColumn: false,
   },
   {
-    id: 'PersonalApellido', 
-    name: 'Apellido', 
+    id: 'PersonalApellido',
+    name: 'Apellido',
     field: 'PersonalApellido',
     fieldName: "per.PersonalApellido",
     type: 'string',
@@ -134,7 +134,7 @@ const altasBajasColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'PersonalNombre', 
+    id: 'PersonalNombre',
     name: 'Nombre',
     field: 'PersonalNombre',
     fieldName: "per.PersonalNombre",
@@ -145,7 +145,7 @@ const altasBajasColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'PersonalSexo', 
+    id: 'PersonalSexo',
     name: 'Sexo',
     field: 'PersonalSexo',
     fieldName: "per.PersonalSexo",
@@ -172,7 +172,7 @@ const altasBajasColumns: any[] = [
     showGridColumn: false,
   },
   {
-    id: 'ProvinciaDescripcion', 
+    id: 'ProvinciaDescripcion',
     name: 'Provincia',
     field: 'ProvinciaDescripcion',
     fieldName: "perdom.ProvinciaId",
@@ -184,7 +184,7 @@ const altasBajasColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'LocalidadDescripcion', 
+    id: 'LocalidadDescripcion',
     name: 'Localidad',
     field: 'LocalidadDescripcion',
     fieldName: "perdom.LocalidadId",
@@ -196,7 +196,7 @@ const altasBajasColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'DomicilioCodigoPostal', 
+    id: 'DomicilioCodigoPostal',
     name: 'Codigo Postal',
     field: 'DomicilioCodigoPostal',
     fieldName: "perdom.DomicilioCodigoPostal",
@@ -273,8 +273,8 @@ const altasBajasColumns: any[] = [
     hidden: false,
   },
   {
-    id: 'Estado', 
-    name: 'Estado', 
+    id: 'Estado',
+    name: 'Estado',
     field: 'Estado',
     type: 'string',
     sortable: true,
@@ -289,8 +289,8 @@ const altasBajasColumns: any[] = [
 
 const recibosColumns: any[] = [
   {
-    id: 'id', 
-    name: 'id', 
+    id: 'id',
+    name: 'id',
     field: 'id',
     type: 'string',
     fieldName: "",
@@ -301,26 +301,28 @@ const recibosColumns: any[] = [
     excludeFromExport: true,
   },
   {
-    id: 'CUITEntidad', 
-    name: 'CUIT Entidad', 
+    id: 'CUITEntidad',
+    name: 'CUIT Entidad',
     field: 'CUITEntidad',
-    fieldName: "",
+    fieldName: "CUITEntidad",
     type: 'string',
     searchType: "number",
     sortable: true,
     searchHidden: true,
     hidden: false,
     showGridColumn: false,
+    params: { exportHeader: 'Cuit Entidad' }
   },
   {
     id: "PersonalCUITCUILCUIT",
-    name: "Cuit / Cuil / Cdi",
+    name: "CUIT",
     field: "PersonalCUITCUILCUIT",
     type: "string",
     fieldName: "cuit.PersonalCUITCUILCUIT",
     sortable: true,
     searchHidden: true,
     hidden: false,
+    params: { exportHeader: 'Cuit / Cuil / Cdi' }
   },
   {
     id: "ApellidoNombre",
@@ -336,8 +338,8 @@ const recibosColumns: any[] = [
     excludeFromExport: true,
   },
   {
-    id: 'DocumentoFecha', 
-    name: 'Fecha Recibo', 
+    id: 'DocumentoFecha',
+    name: 'Fecha Recibo',
     field: 'DocumentoFecha',
     fieldName: "doc.DocumentoFecha",
     type: 'date',
@@ -345,10 +347,11 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    params: { exportHeader: 'Fecha Recibo (DD/MM/AAAA)' }
   },
   {
-    id: 'DocumentoDenominadorDocumento', 
-    name: 'Número Recibo', 
+    id: 'DocumentoDenominadorDocumento',
+    name: 'Número Recibo',
     field: 'DocumentoDenominadorDocumento',
     fieldName: "doc.DocumentoDenominadorDocumento",
     type: 'number',
@@ -359,8 +362,8 @@ const recibosColumns: any[] = [
     excludeFromExport: true,
   },
   {
-    id: 'MedioPago', 
-    name: 'Medio Pago', 
+    id: 'MedioPago',
+    name: 'Medio Pago',
     field: 'MedioPago',
     fieldName: "",
     type: 'string',
@@ -368,10 +371,11 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    params: { exportHeader: 'Medio Pago (Banco o Efectivo)' }
   },
   {
-    id: 'CBU', 
-    name: 'CBU', 
+    id: 'CBU',
+    name: 'CBU',
     field: 'CBU',
     fieldName: "CBU",
     type: 'string',
@@ -379,9 +383,10 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    params: { exportHeader: 'Cbu/Alias' }
   },
   {
-    id: 'SumaRetribucion', 
+    id: 'SumaRetribucion',
     name: 'Retribución',
     field: 'SumaRetribucion',
     fieldName: "SumaRetribucion",
@@ -389,9 +394,10 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    params: { exportHeader: 'Retribucion' }
   },
   {
-    id: 'SumaExcedentes', 
+    id: 'SumaExcedentes',
     name: 'Excedentes',
     field: 'SumaExcedentes',
     fieldName: 'SumaExcedentes',
@@ -399,6 +405,7 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    params: { exportHeader: 'Excedentes' }
   },
   {
     id: "SumaMonotributoRetencion",
@@ -409,9 +416,10 @@ const recibosColumns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
+    params: { exportHeader: 'Retencion Monotributo' }
   },
   {
-    id: 'SumaOtrasRetenciones', 
+    id: 'SumaOtrasRetenciones',
     name: 'Otras Retenciones',
     field: 'SumaOtrasRetenciones',
     fieldName: "",
@@ -419,9 +427,10 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
+    params: { exportHeader: 'Otras Retenciones' }
   },
   {
-    id: 'DescOtrasRetenciones', 
+    id: 'DescOtrasRetenciones',
     name: 'Detalle Otras Retenciones',
     field: 'DescOtrasRetenciones',
     fieldName: "",
@@ -431,9 +440,10 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
+    params: { exportHeader: 'Detalle Otras Retenciones' }
   },
   {
-    id: 'DescRetribucion', 
+    id: 'DescRetribucion',
     name: 'Detalle Retribución',
     field: 'DescRetribucion',
     fieldName: "",
@@ -442,11 +452,12 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
+    params: { exportHeader: 'Detalle de Retribucion' }
   },
 ]
 
 export class InaesController extends BaseController {
-  
+
   async getColumnsAltaBajasGrid(req: any, res: Response, next: NextFunction) {
     return this.jsonRes(altasBajasColumns, res)
   }
@@ -455,8 +466,8 @@ export class InaesController extends BaseController {
     return this.jsonRes(recibosColumns, res)
   }
 
-  private async getAltasBajasQuery(queryRunner: any, filterSql: any, orderBy: any, cuits:string|null ) {
-    let flags = '1' 
+  private async getAltasBajasQuery(queryRunner: any, filterSql: any, orderBy: any, cuits: string | null) {
+    let flags = '1'
     let filterCUITs = '(1=1)'
     if (cuits) {
       flags = `CASE WHEN (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN '1' ELSE '0' END AS Estado`
@@ -538,16 +549,16 @@ export class InaesController extends BaseController {
       AND (${filterSql}) AND (${filterCUITs})
       ${orderBy}`)
   }
-  
+
   async getAltasBajas(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     try {
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
 
-      const index = options.filtros.findIndex((p:any) => p.index === "PersonalCUITCUILCUIT");
-      let CUITs:string = null
+      const index = options.filtros.findIndex((p: any) => p.index === "PersonalCUITCUILCUIT");
+      let CUITs: string = null
       if (index !== -1) {
-        let CUITsFromFile:any = null;
+        let CUITsFromFile: any = null;
         [CUITsFromFile] = options.filtros.splice(index, 1);
         CUITs = CUITsFromFile.valor[0].split(";").join(",")
       }
@@ -569,12 +580,12 @@ export class InaesController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     try {
       const recibosController = new RecibosController()
-      const periodo:Date|null = req.body.periodo? new Date(req.body.periodo) : null
+      const periodo: Date | null = req.body.periodo ? new Date(req.body.periodo) : null
       if (!periodo) throw new ClientException('Ingrese un Periodo')
-        
+
       const anio = periodo.getFullYear()
       const mes = periodo.getMonth() + 1
-      
+
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
       const filterSql = filtrosToSql(options.filtros, altasBajasColumns);
       const orderBy = orderToSQL(options.sort)
@@ -584,12 +595,12 @@ export class InaesController extends BaseController {
         SELECT cli.ClienteId, fac.ClienteFacturacionCUIT 
         FROM Cliente cli 
         JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
-        WHERE cli.ClienteId=@0`,[ClienteIdPropio]
+        WHERE cli.ClienteId=@0`, [ClienteIdPropio]
       )
       const CUITEntidad = clientePropio[0].ClienteFacturacionCUIT
 
       const movimientosRecibos = await recibosController.getListaRecibosGenerados(queryRunner, filterSql, orderBy, anio, mes, 'G')
-      movimientosRecibos.map((mov:any) => {
+      movimientosRecibos.map((mov: any) => {
         mov.CUITEntidad = CUITEntidad
         mov.CBU = mov.CBU ? mov.CBU : 'N/D'
         mov.DescRetribucion = mov.DescRetribucion ? mov.DescRetribucion : 'N/D'
@@ -598,7 +609,7 @@ export class InaesController extends BaseController {
 
       //const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
       console.log('movimientosRecibos', movimientosRecibos.length)
-      const lista=movimientosRecibos
+      const lista = movimientosRecibos
       this.jsonRes(lista, res);
     } catch (error) {
       return next(error)
@@ -609,14 +620,14 @@ export class InaesController extends BaseController {
 
   async getCUITsByINAESFile(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
-    const file:any[] = req.body.file
+    const file: any[] = req.body.file
     try {
       await queryRunner.startTransaction()
       if (!file.length) throw new ClientException("Debes de ingresar un archivo");
-      const CUITs:string[] = await this.getCUITsByFile(file[0].tempfilename)
+      const CUITs: string[] = await this.getCUITsByFile(file[0].tempfilename)
 
       await queryRunner.commitTransaction()
-      this.jsonRes({cuits: CUITs, length: CUITs.length}, res);
+      this.jsonRes({ cuits: CUITs, length: CUITs.length }, res);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -626,15 +637,15 @@ export class InaesController extends BaseController {
   }
 
   async getCUITsByFile(tempfilename: any) {
-    let CUITs:any[] = []
+    let CUITs: any[] = []
     const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${tempfilename}`)
     const document = await loadingTask.promise;//Error
     for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
       const page = await document.getPage(pagenum);
       const textContent = await page.getTextContent();
 
-      for (let index = 0; index < textContent.items.length-6; index++) { // Para no recorrer el Pie de Pagina -6
-        const item:any = textContent.items[index];
+      for (let index = 0; index < textContent.items.length - 6; index++) { // Para no recorrer el Pie de Pagina -6
+        const item: any = textContent.items[index];
         if (item.str == '' || item.str == ' ') continue
         if (item.str.length == 11 && !isNaN(item.str)) CUITs.push(item.str)
       }

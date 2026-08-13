@@ -397,13 +397,13 @@ export class ApiService {
           } else if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters['currency']
             col.type = 'float'
-            col.params = { maxDecimal: 2, minDecimal: 2 }
+            col.params = {...col.params, maxDecimal: 2, minDecimal: 2 }
             col.cssClass = 'text-right'
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
             col.exportWithFormatter = false
           } else if (String(col.type) == 'float' || String(col.type) == 'decimal') {
             col.formatter = Formatters['decimal'],
-              col.params = { maxDecimal: 2, minDecimal: 0 }
+              col.params = {...col.params, maxDecimal: 2, minDecimal: 0 }
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
             col.type = 'float'
             col.cssClass = 'text-right'
@@ -411,7 +411,7 @@ export class ApiService {
 
           } else if (col.type == 'number') {
             col.formatter = Formatters['decimal']
-            col.params = { maxDecimal: 4, minDecimal: 0 }
+            col.params = {...col.params, maxDecimal: 4, minDecimal: 0 }
             col.cssClass = 'text-right'
             col.exportWithFormatter = false
           } else if (col.type == 'object')
