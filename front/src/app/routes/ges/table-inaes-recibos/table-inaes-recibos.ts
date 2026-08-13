@@ -45,17 +45,18 @@ export class TableINAESRecibosComponent {
   loadingExport = signal<boolean>(false)
 
   hiddenColumnIds: string[] = [];
-  columnsForExport: string[] = [];
+  //columnsForExport: string[] = [];
 
   columns = toSignal(this.apiService.getCols('/api/inaes/recibos/cols')
-  .pipe(map((cols) => {
+  .pipe(map((cols:Column[]) => {
     // Guardar IDs de columnas que tienen showGridColumn: false
     this.hiddenColumnIds = cols
+    
       .filter((col: any) => col.showGridColumn === false)
       .map((col: Column) => col.id as string);
-    this.columnsForExport = cols
-        .filter((col: any) => col.excludeFromExport != true)
-        .map((col: Column) => col.id as string);
+//    this.columnsForExport = cols
+//        .filter((col: any) => col.excludeFromExport != true)
+//        .map((col: Column) => col.id as string);
     
     return cols;
   })), { initialValue: [] as Column[] })
@@ -111,8 +112,8 @@ export class TableINAESRecibosComponent {
     this.loadingExport.set(true)
 
     //Muestro solo las columnas que se van a exportar
-    if (this.hiddenColumnIds.length > 0) 
-      this.angularGrid.gridService.showColumnByIds(this.columnsForExport)
+//    if (this.hiddenColumnIds.length > 0) 
+//      this.angularGrid.gridService.showColumnByIds(this.columnsForExport)
 
     //Validaciones
     //Campos vacios
