@@ -186,7 +186,8 @@ export class INAESComponent {
         }
           
       });
-      result.push({ row: index, fields, names });
+      if (names.length > 0)
+        result.push({ row: index, fields, names });
     });
 
     return result;

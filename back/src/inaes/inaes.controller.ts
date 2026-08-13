@@ -434,7 +434,7 @@ const recibosColumns: any[] = [
   },
   {
     id: 'DescRetribucion', 
-    name: 'Detalle de Retribucion',
+    name: 'Detalle Retribución',
     field: 'DescRetribucion',
     fieldName: "",
     type: 'string',
