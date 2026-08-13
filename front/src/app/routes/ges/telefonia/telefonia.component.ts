@@ -18,6 +18,7 @@ import { FileUploadComponent } from "../../../shared/file-upload/file-upload.com
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Selections } from '../../../shared/schemas/filtro';
 import { TelefoniaImpuestoDrawerComponent } from '../telefonia-impuesto-drawer/telefonia-impuesto-drawer';
+import { TableMovimientosEfectoDetalleComponent } from '../table-movimientos-efecto/table-movimientos-efecto-detalle';
 import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
 
 export interface ImportacionTelefono {
@@ -38,6 +39,7 @@ export interface ImportacionTelefono {
     NzUploadModule,
     FileUploadComponent,
     TelefoniaImpuestoDrawerComponent,
+    TableMovimientosEfectoDetalleComponent,
     FormField
   ],
   standalone: true,
@@ -70,6 +72,15 @@ export class TelefoniaComponent {
   tabIndex = signal(0)
   visibleImpuesto = signal<boolean>(false)
   ImpuestoInternoTelefoniaImpuesto = signal(0)
+
+  // Movimiento de stock de la fila seleccionada en la grilla de listado (para el drawer de detalle).
+  movimientoStockCodigo = signal<number | null>(null)
+  detalleVisible = signal<boolean>(false)
+
+  // El botón de detalle solo se habilita en la solapa Listado con una fila seleccionada que tenga movimiento.
+  detalleMovimientoDeshabilitado = computed(() =>
+    this.tabIndex() !== 0 || this.movimientoStockCodigo() === null
+  )
 
   private readonly loadingSrv = inject(LoadingService);
   private readonly apiService = inject(ApiService);
@@ -249,6 +260,21 @@ export class TelefoniaComponent {
       this.startFilters.set([newFilter])
       this.router.navigate(['/ges/telefonia/listado'], { queryParams: {  } })
     }
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+    const rows: number[] = e.detail.args.rows ?? []
+    if (rows.length === 1) {
+      const item = this.angularGrid.dataView.getItem(rows[0])
+      this.movimientoStockCodigo.set(Number(item?.MovimientoStockCodigo) || null)
+    } else {
+      this.movimientoStockCodigo.set(null)
+    }
+  }
+
+  abrirDetalleMovimiento(): void {
+    if (this.detalleMovimientoDeshabilitado()) return
+    this.detalleVisible.set(true)
   }
 
   reloadGrid() {
