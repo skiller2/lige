@@ -310,7 +310,6 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
-    showGridColumn: false,
     params: { exportHeader: 'Cuit Entidad' }
   },
   {
