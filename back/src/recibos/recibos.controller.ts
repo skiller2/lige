@@ -733,8 +733,8 @@ export class RecibosController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName)
     const {
       Usuario,
-      Anio,
-      Mes,
+      desde,
+      hasta,
       isfull,
       lista,
       isDuplicate,
@@ -753,22 +753,48 @@ export class RecibosController extends BaseController {
     const ip = this.getRemoteAddress(req)
     const fechaActual = new Date();
 
+    if(!desde) 
+      throw new ClientException(`Periodo invalido`)
+
+    let fechaDesde = new Date(desde)
+    fechaDesde.setMinutes(0,0,0)
+    let fechaHasta = hasta? new Date(hasta) : new Date(desde)
+    fechaHasta.setMinutes(0,0,0)
+
+    if(fechaDesde.getTime() >= fechaHasta.getTime()) 
+      throw new ClientException(`Periodo Desde-Hasta invalido`)
     try {
-      const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, Anio, parseInt(Mes), user, ip);
-      let recibosListaFiltroSuc = []
-      const recibosLista = (lista)
-        ? await this.getparthFile(queryRunner, Number(Anio), Number(Mes), lista)
-        : await this.getGrupFilterDowload(queryRunner, periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch, SeachField)
+      let recibosListaFiltroSuc:any[] = []
+      let msgErrors:string[] = []
 
-      if (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) {
-        recibosListaFiltroSuc = recibosLista.filter((r: { PersonalSucursalPrincipalSucursalId: number }) => res.locals.filterSucursal.includes(r.PersonalSucursalPrincipalSucursalId))
-      } else {
-        recibosListaFiltroSuc = recibosLista
+      for (
+        let fecha = new Date(fechaDesde.getFullYear(), fechaDesde.getMonth(), 1);
+        fecha <= fechaHasta;
+        fecha.setMonth(fecha.getMonth() + 1)
+      ){
+        const anio:number = fecha.getFullYear()
+        const mes:number = fecha.getMonth() + 1
+        const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, user, ip);
+        let recibosListaFiltroSucByPeriodo = []
+        const recibosLista = (lista)
+          ? await this.getparthFile(queryRunner, anio, mes, lista)
+          : await this.getGrupFilterDowload(queryRunner, periodo_id, ObjetivoIdWithSearch, ClienteIdWithSearch, SucursalIdWithSearch, PersonalIdWithSearch, SeachField)
+
+        if (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) {
+          recibosListaFiltroSucByPeriodo = recibosLista.filter((r: { PersonalSucursalPrincipalSucursalId: number }) => res.locals.filterSucursal.includes(r.PersonalSucursalPrincipalSucursalId))
+        } else {
+          recibosListaFiltroSucByPeriodo = recibosLista
+        }
+        const sucursalesFiltroMsg = (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) ? 'Sucursales: ' + res.locals.filterSucursal.join(',') : ''
+        if (recibosListaFiltroSucByPeriodo.length == 0)
+          msgErrors.push(`No se encontraron recibos para el periodo ${mes}/${anio} y los filtros seleccionados. (${recibosLista.length}) ${sucursalesFiltroMsg}`);
+
+        recibosListaFiltroSuc.push(...recibosListaFiltroSucByPeriodo)
       }
-      const sucursalesFiltroMsg = (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) ? 'Sucursales: ' + res.locals.filterSucursal.join(',') : ''
-      if (recibosListaFiltroSuc.length == 0)
-        throw new ClientException(`No se encontraron recibos para el periodo ${Mes}/${Anio} y los filtros seleccionados. (${recibosLista.length}) ${sucursalesFiltroMsg}`);
 
+      if (msgErrors.length) {
+        throw new ClientException(msgErrors)
+      }
 
       const mergedPdf = await PDFDocument.create();
 
@@ -817,7 +843,12 @@ export class RecibosController extends BaseController {
 
       const resBuffer = Buffer.from(await mergedPdf.save());
 
-      res.attachment(`Recibos-${Anio}-${Mes}.pdf`);
+      if (fechaDesde.getTime() === fechaHasta.getTime()) {
+        res.attachment(`Recibos-${fechaDesde.getFullYear()}-${fechaDesde.getMonth()+1}.pdf`);
+      } else {
+        res.attachment(`Recibos-${fechaDesde.getFullYear()}-${fechaDesde.getMonth()+1}-${fechaHasta.getFullYear()}-${fechaHasta.getMonth()+1}.pdf`);
+      }
+      
       res.setHeader('Content-Length', resBuffer.length);
       res.write(resBuffer, 'binary');
       res.end();
