@@ -757,11 +757,11 @@ export class RecibosController extends BaseController {
       throw new ClientException(`Periodo invalido`)
 
     let fechaDesde = new Date(desde)
-    fechaDesde.setMinutes(0,0,0)
+    fechaDesde.setHours(0,0,0,0)
     let fechaHasta = hasta? new Date(hasta) : new Date(desde)
-    fechaHasta.setMinutes(0,0,0)
+    fechaHasta.setHours(0,0,0,0)
 
-    if(fechaDesde.getTime() >= fechaHasta.getTime()) 
+    if(fechaDesde.getTime() > fechaHasta.getTime()) 
       throw new ClientException(`Periodo Desde-Hasta invalido`)
     try {
       let recibosListaFiltroSuc:any[] = []
