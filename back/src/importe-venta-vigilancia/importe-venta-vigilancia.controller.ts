@@ -440,7 +440,7 @@ export class ImporteVentaVigilanciaController extends BaseController {
     this.jsonRes(columnsImport, res);
   }
 
-  async getListOrdenesDeVenta(req: Request, res: Response, next: NextFunction) {
+  async getListImporteVentaVigilancia(req: Request, res: Response, next: NextFunction) {
 
     const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
 
@@ -866,7 +866,7 @@ LEFT JOIN (
     }
   }
 
-  async getImportacionesOrdenesDeVentaAnteriores(req: Request, res: Response, next: NextFunction) {
+  async getImportacionesImporteVentaVigilanciaAnteriores(req: Request, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
 
     try {

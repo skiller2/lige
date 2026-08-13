@@ -37,7 +37,6 @@ Leyenda:
 | novedades | Sin documentar | Pendiente | |
 | objetivos | Sin documentar | Pendiente | |
 | objetivos-pendasis | Sin documentar | Pendiente | |
-| ordenes-de-venta | Sin documentar | Pendiente | |
 | parametro-venta | Sin documentar | Pendiente | |
 | personal-objetivo | Sin documentar | Pendiente | |
 | precios-productos | Sin documentar | Pendiente | |

@@ -142,7 +142,7 @@ export class ApiService {
     );
   }
 
-  getImportacionesOrdenesDeVentaAnteriores(anio: number, mes: number, DocumentoTipoCodigo: string) {
+  getImportacionesImporteVentaVigilanciaAnteriores(anio: number, mes: number, DocumentoTipoCodigo: string) {
     return this.http.get(`/api/importe-venta-vigilancia/importaciones_anteriores/${anio}/${mes}/${DocumentoTipoCodigo}`).pipe(
       map((res: any) => res.data.list),
       catchError((err, caught) => {
@@ -690,7 +690,7 @@ export class ApiService {
 
   }
 
-  getListOrdenesDeVenta(options: any, anio: any, mes: any) {
+  getListImporteVentaVigilancia(options: any, anio: any, mes: any) {
     const parameter = { options, anio, mes }
     return this.http.post<ResponseJSON<any>>('/api/importe-venta-vigilancia/list', parameter).pipe(
       map((res: { data: any; }) => res.data),

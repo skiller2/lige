@@ -9,7 +9,7 @@ importeVentaVigilanciaRouter.get("/cols", authMiddleware.verifyToken,authMiddlew
   });
 
 importeVentaVigilanciaRouter.post('/list', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas','Liquidaciones', 'Liquidaciones Consultas', 'gComercial', 'gComercialCon'])], (req, res, next) => {
-    importeVentaVigilanciaController.getListOrdenesDeVenta(req, res, next)
+    importeVentaVigilanciaController.getListImporteVentaVigilancia(req, res, next)
 })
 
 importeVentaVigilanciaRouter.get("/cols-import", authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas', 'gComercial', 'gComercialCon']), (req, res) => {
@@ -17,7 +17,7 @@ importeVentaVigilanciaRouter.get("/cols-import", authMiddleware.verifyToken,auth
 })
 
 importeVentaVigilanciaRouter.get("/importaciones_anteriores/:anio/:mes/:DocumentoTipoCodigo", [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones', 'Liquidaciones Consultas', 'gComercial', 'gComercialCon'])], (req, res, next) => {
-  importeVentaVigilanciaController.getImportacionesOrdenesDeVentaAnteriores(req, res, next);
+  importeVentaVigilanciaController.getImportacionesImporteVentaVigilanciaAnteriores(req, res, next);
 })
 
 importeVentaVigilanciaRouter.post('/import-xls', [authMiddleware.verifyToken,authMiddleware.hasGroup(['gSistemas', 'Liquidaciones','gComercial'])], (req, res, next) => {

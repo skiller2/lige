@@ -25,7 +25,7 @@ type listOptionsT = {
 }
 
 @Component({
-  selector: 'app-table-ordenes-de-venta',
+  selector: 'app-table-importe-venta-vigilancia',
   standalone: true,
   imports: [SHARED_IMPORTS,
     CommonModule,
@@ -33,10 +33,10 @@ type listOptionsT = {
     FiltroBuilderComponent,
   ],
   providers: [AngularUtilService],
-  templateUrl: './table-ordenes-de-venta.html',
-  styleUrl: './table-ordenes-de-venta.less'
+  templateUrl: './table-importe-venta-vigilancia.html',
+  styleUrl: './table-importe-venta-vigilancia.less'
 })
-export class TableOrdenesDeVentaComponent {
+export class TableImporteVentaVigilanciaComponent {
 
   anio = input<any>(0)
   mes = input<any>(0)
@@ -98,7 +98,7 @@ export class TableOrdenesDeVentaComponent {
       this.loadingSrv.open({ type: 'spin', text: '' })
 
       return this.apiService
-        .getListOrdenesDeVenta(this.listOptions, this.anio(), this.mes())
+        .getListImporteVentaVigilancia(this.listOptions, this.anio(), this.mes())
         .pipe(
           map(data => {
             this.dataAngularGrid = data.list
@@ -228,7 +228,7 @@ export class TableOrdenesDeVentaComponent {
 
   exportGrid() {
     this.excelExportService.exportToExcel({
-      filename: 'lista-ordenes-de-venta',
+      filename: 'lista-importe-venta-vigilancia',
       format: 'xlsx'
     });
   }
