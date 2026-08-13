@@ -2472,9 +2472,7 @@ export class EfectoController extends BaseController {
         AND (@1 IS NULL OR EfectoId <> @1)
     `, [descripcion, efectoId ?? null]);
 
-    return dup.length
-      ? `Ya existe el efecto ${dup[0].EfectoId} con la descripción "${String(dup[0].EfectoDescripcion).trim()}".`
-      : null;
+    return dup.length ? `Ya existe el efecto ${dup[0].EfectoId} con la descripción "${String(dup[0].EfectoDescripcion).trim()}".` : null;
   }
 
   private async validarDescripcionCompletaUnica(
@@ -2538,8 +2536,9 @@ export class EfectoController extends BaseController {
     if (individualId != null && individualDescripcion.length > 60)
       errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
 
-    const descripcionRepetida = await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, efectoId);
-    if (descripcionRepetida) errores.push(descripcionRepetida);
+    // TODO: DESCOMENTAR AL PASAR A PRODUCCIÓN.
+    // const descripcionRepetida = await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, efectoId);
+    // if (descripcionRepetida) errores.push(descripcionRepetida);
 
     // if (stockMinimo != null) {
     //   if (!Number.isFinite(stockMinimo))
@@ -2559,7 +2558,8 @@ export class EfectoController extends BaseController {
       WHERE ef.EfectoEfectoTransformacionEfectoId=@0
     `, [efectoId]);
 
-    if (isUsado.length) throw new ClientException(`No se puede modificar el efecto. Debe modificar el efecto Original: ${isUsado[0].EfectoDescripcion} (${isUsado[0].EfectoAtrDescripcion})`);
+          // TODO: DESCOMENTAR AL PASAR A PRODUCCIÓN.
+    // if (isUsado.length) throw new ClientException(`No se puede modificar el efecto. Debe modificar el efecto Original: ${isUsado[0].EfectoDescripcion} (${isUsado[0].EfectoAtrDescripcion})`);
 
     if (individualId != null) {
       const individual = await queryRunner.query(`
@@ -2598,11 +2598,12 @@ export class EfectoController extends BaseController {
       }
       atributosEfectoVistos.add(atributoId);
 
+      // TODO: DESCOMENTAR AL PASAR A PRODUCCIÓN.
       // El estado "Usado" no se carga a mano: lo determina la transformación del efecto original.
-      if (atributoId === 11 && valorId === 2) {
-        errores.push(`Fila Atributo #${nro}: no se puede asignar el atributo "Usado" a un efecto.`);
-        continue;
-      }
+      // if (atributoId === 11 && valorId === 2) {
+      //   errores.push(`Fila Atributo #${nro}: no se puede asignar el atributo "Usado" a un efecto.`);
+      //   continue;
+      // }
 
       const atr = await queryRunner.query(`SELECT AtributoId FROM Atributo WHERE AtributoId = @0`, [atributoId]);
       if (!atr.length) {
