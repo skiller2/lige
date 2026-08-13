@@ -2559,7 +2559,8 @@ export class EfectoController extends BaseController {
       WHERE ef.EfectoEfectoTransformacionEfectoId=@0
     `, [efectoId]);
 
-    if (isUsado.length) throw new ClientException(`No se puede modificar el efecto. Debe modificar el efecto Original: ${isUsado[0].EfectoDescripcion} (${isUsado[0].EfectoAtrDescripcion})`);
+          // TODO: DESCOMENTAR AL PASAR A PRODUCCIÓN.
+    // if (isUsado.length) throw new ClientException(`No se puede modificar el efecto. Debe modificar el efecto Original: ${isUsado[0].EfectoDescripcion} (${isUsado[0].EfectoAtrDescripcion})`);
 
     if (individualId != null) {
       const individual = await queryRunner.query(`
@@ -2598,11 +2599,12 @@ export class EfectoController extends BaseController {
       }
       atributosEfectoVistos.add(atributoId);
 
+      // TODO: DESCOMENTAR AL PASAR A PRODUCCIÓN.
       // El estado "Usado" no se carga a mano: lo determina la transformación del efecto original.
-      if (atributoId === 11 && valorId === 2) {
-        errores.push(`Fila Atributo #${nro}: no se puede asignar el atributo "Usado" a un efecto.`);
-        continue;
-      }
+      // if (atributoId === 11 && valorId === 2) {
+      //   errores.push(`Fila Atributo #${nro}: no se puede asignar el atributo "Usado" a un efecto.`);
+      //   continue;
+      // }
 
       const atr = await queryRunner.query(`SELECT AtributoId FROM Atributo WHERE AtributoId = @0`, [atributoId]);
       if (!atr.length) {
