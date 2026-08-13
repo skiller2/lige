@@ -1,4 +1,16 @@
-<div class="datosStyle">
-  <p>Periodo: {{ mes() }}/{{ anio() }}</p>
-  <p>Objetivo: {{ objetivoId() }}</p>
-</div>
+<nz-spin [nzSpinning]="isLoading()">
+  <nz-descriptions nzBordered nzSize="small" [nzColumn]="2">
+    <nz-descriptions-item nzTitle="Período">
+      {{ mes() | number:'2.0-0' }}/{{ anio() }}
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Objetivo">
+      {{ cabecera().ObjetivoNombre }}
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Total Hs. Normales">
+      {{ cabecera().TotalHorasNormales | number:'1.2-2' }}
+    </nz-descriptions-item>
+    <nz-descriptions-item nzTitle="Estado Orden Venta">
+      {{ cabecera().EstadoOrdenVenta ?? 'Sin orden de venta' }}
+    </nz-descriptions-item>
+  </nz-descriptions>
+</nz-spin>

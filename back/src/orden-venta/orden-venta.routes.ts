@@ -11,3 +11,7 @@ ordenVentaRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGro
 ordenVentaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   ordenVentaController.getListOrdenVenta(req, res, next);
 });
+
+ordenVentaRouter.get("/cabecera/:ObjetivoId/:anio/:mes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.getCabecera(req, res, next);
+});
