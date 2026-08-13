@@ -13,4 +13,6 @@
       {{ cabecera().EstadoOrdenVenta ?? 'Sin orden de venta' }}
     </nz-descriptions-item>
   </nz-descriptions>
+
+  <app-table-orden-venta [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" />
 </nz-spin>

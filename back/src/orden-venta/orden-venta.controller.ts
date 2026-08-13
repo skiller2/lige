@@ -3,7 +3,92 @@ import { getConnection } from "../data-source.ts";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 
-const columnasGrilla: any[] = [];
+const columnasGrilla: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "ProductoCodigo",
+    name: "Cód. Producto",
+    field: "ProductoCodigo",
+    fieldName: "fac.ProductoCodigo",
+    type: "string",
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "Producto",
+    name: "Producto",
+    field: "Producto",
+    fieldName: "prod.Nombre",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: "Cantidad",
+    name: "Cantidad",
+    field: "Cantidad",
+    fieldName: "fac.Cantidad",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    maxWidth: 120
+  },
+  {
+    id: "ImporteUnitario",
+    name: "Importe Unitario",
+    field: "ImporteUnitario",
+    fieldName: "ImporteUnitario",
+    type: "currency",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    maxWidth: 160
+  },
+  {
+    id: "TextoFactura",
+    name: "Texto de Factura",
+    field: "TextoFactura",
+    fieldName: "fac.TextoFactura",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: "CantidadEnFactura",
+    name: "Cantidad en Factura",
+    field: "CantidadEnFactura",
+    fieldName: "CantidadEnFactura",
+    type: "number",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    maxWidth: 160
+  },
+  {
+    id: "ImporteTotal",
+    name: "Importe Total",
+    field: "ImporteTotal",
+    fieldName: "ImporteTotal",
+    type: "currency",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    maxWidth: 160
+  }
+];
 
 export class OrdenVentaController extends BaseController {
 
@@ -11,17 +96,50 @@ export class OrdenVentaController extends BaseController {
     this.jsonRes(columnasGrilla, res);
   }
 
+  // El detalle por producto vive en Facturacion: ItemOrdenVenta solo tiene el objetivo y el período.
   async getListOrdenVenta(req: Request, res: Response, next: NextFunction) {
+    const ObjetivoId = Number(req.body.ObjetivoId);
+    const anio = Number(req.body.anio);
+    const mes = Number(req.body.mes);
+    const queryRunner = await getConnection(res.locals.userName);
+
     try {
+      const items = await queryRunner.query(`
+        SELECT
+          fac.FacturacionCodigo AS id,
+          fac.ProductoCodigo,
+          prod.Nombre AS Producto,
+          fac.Cantidad,
+          ISNULL(pre.Importe, fac.PrecioUnitario) AS ImporteUnitario,
+          fac.TextoFactura,
+          IIF(fac.ComprobanteNro IS NULL, NULL, fac.Cantidad) AS CantidadEnFactura,
+          ISNULL(fac.Cantidad,0) * ISNULL(ISNULL(pre.Importe, fac.PrecioUnitario),0) AS ImporteTotal
+        FROM Facturacion fac
+        JOIN Objetivo obj ON obj.ClienteId = fac.ClienteId AND obj.ClienteElementoDependienteId = fac.ClienteElementoDependienteId
+        LEFT JOIN Producto prod ON prod.ProductoCodigo = fac.ProductoCodigo
+        OUTER APPLY (
+          SELECT TOP 1 pp.Importe
+          FROM ProductoPrecio pp
+          WHERE pp.ProductoCodigo = fac.ProductoCodigo
+            AND pp.ClienteId = fac.ClienteId
+            AND pp.PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(@1,@2,1))
+          ORDER BY pp.PeriodoDesdeAplica DESC
+        ) pre
+        WHERE obj.ObjetivoId = @0 AND fac.Anio = @1 AND fac.Mes = @2
+      `, [ObjetivoId, anio, mes]);
+
       this.jsonRes(
         {
-          total: 0,
-          list: [],
+          total: items.length,
+          list: items,
         },
         res
       );
+
     } catch (error) {
       return next(error);
+    } finally {
+      await queryRunner.release();
     }
   }
 

@@ -1947,6 +1947,14 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/precio-efectos/modificar-valor', precio);
   }
 
+  getListOrdenVenta(ObjetivoId: number, anio: number, mes: number) {
+
+    return this.http.post<ResponseJSON<any>>('/api/orden-venta/list', { ObjetivoId, anio, mes }).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of({ total: 0, list: [] }))
+    );
+  }
+
   getCabeceraOrdenVenta(ObjetivoId: number, anio: number, mes: number) {
 
     return this.http.get<ResponseJSON<any>>(`/api/orden-venta/cabecera/${ObjetivoId}/${anio}/${mes}`).pipe(

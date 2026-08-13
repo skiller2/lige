@@ -2,13 +2,14 @@ import { Component, effect, inject, input, signal } from '@angular/core'
 import { DecimalPipe } from '@angular/common'
 import { SHARED_IMPORTS } from '@shared'
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions'
+import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta'
 import { firstValueFrom } from 'rxjs'
 import { ApiService } from '../../../services/api.service'
 
 @Component({
   selector: 'app-orden-venta',
   standalone: true,
-  imports: [...SHARED_IMPORTS, NzDescriptionsModule, DecimalPipe],
+  imports: [...SHARED_IMPORTS, NzDescriptionsModule, DecimalPipe, TableOrdenVentaComponent],
   templateUrl: './orden-venta.html',
   styleUrl: './orden-venta.less'
 })
