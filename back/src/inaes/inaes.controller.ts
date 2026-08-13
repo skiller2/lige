@@ -356,6 +356,7 @@ const recibosColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    excludeFromExport: true,
   },
   {
     id: 'MedioPago', 
@@ -577,9 +578,23 @@ export class InaesController extends BaseController {
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
       const filterSql = filtrosToSql(options.filtros, altasBajasColumns);
       const orderBy = orderToSQL(options.sort)
+      //TODO: Mover a Parametro de Configuracion
+      const ClienteIdPropio = 934
+      const clientePropio = await queryRunner.query(`
+        SELECT cli.ClienteId, fac.ClienteFacturacionCUIT 
+        FROM Cliente cli 
+        JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
+        WHERE cli.ClienteId=@0`,[ClienteIdPropio]
+      )
+      const CUITEntidad = clientePropio[0].ClienteFacturacionCUIT
 
-      const movimientosRecibos = await recibosController.getListaRecibosGenerados(queryRunner, anio, mes, 'G')
-
+      const movimientosRecibos = await recibosController.getListaRecibosGenerados(queryRunner, filterSql, orderBy, anio, mes, 'G')
+      movimientosRecibos.map((mov:any) => {
+        mov.CUITEntidad = CUITEntidad
+        mov.CBU = mov.CBU ? mov.CBU : 'N/D'
+        mov.DescRetribucion = mov.DescRetribucion ? mov.DescRetribucion : 'N/D'
+        mov.DescOtrasRetenciones = mov.DescOtrasRetenciones ? mov.DescOtrasRetenciones : 'N/D'
+      })
 
       //const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
       console.log('movimientosRecibos', movimientosRecibos.length)

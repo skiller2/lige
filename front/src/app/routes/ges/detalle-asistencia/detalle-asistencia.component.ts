@@ -60,6 +60,7 @@ export class DetalleAsistenciaComponent {
 
   selectedDate = null;
   selectedPeriod = signal({ year: 0, month: 0 });
+  periodo = signal<Date>(new Date());
 
   visibleDrawer = signal(false)
   //  selectedSucursalId = '';
@@ -475,7 +476,7 @@ export class DetalleAsistenciaComponent {
           : now.getMonth() + 1;
 
       this.asistencia.form.get('periodo')?.setValue(new Date(anio, mes - 1, 1));
-
+      
     }, 1);
 
     setTimeout(() => {
@@ -542,7 +543,8 @@ export class DetalleAsistenciaComponent {
 
   dateChange(result: Date): void {
     this.selectedPeriod.set({ year: result.getFullYear(), month: result.getMonth() + 1 })
-
+    this.periodo.set(new Date(result))
+    
     localStorage.setItem('anio', String(this.selectedPeriod().year));
     localStorage.setItem('mes', String(this.selectedPeriod().month));
 

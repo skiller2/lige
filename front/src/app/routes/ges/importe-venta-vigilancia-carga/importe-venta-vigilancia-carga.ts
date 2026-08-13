@@ -79,7 +79,7 @@ export class ImporteVentaVigilanciaCarga {
     debounceTime(500),
     switchMap(() => {
       return this.apiService
-        .getImportacionesOrdenesDeVentaAnteriores(
+        .getImportacionesImporteVentaVigilanciaAnteriores(
           this.anio(), this.mes(), this.DocumentoTipoCodigo
         )
         .pipe()

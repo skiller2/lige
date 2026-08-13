@@ -1,4 +1,4 @@
-import { Component, inject, model, signal, input } from '@angular/core';
+import { Component, inject, model, signal, input, computed, effect } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { AngularUtilService } from 'angular-slickgrid';
@@ -40,12 +40,21 @@ export class RecibosModalComponent {
   SucursalIdWithSearch = model(0)
   PersonalIdWithSearch = model(0)
 
-  mes = input(0)
-  anio = input(0)
+  periodo = input<Date>(new Date())
+  periodoLocal = signal<Date>(new Date())
+  hasta = signal<Date>(new Date())
+  anio = computed(() => this.periodo()? this.periodo()!.getFullYear(): 0 )
+  mes = computed(() => this.periodo()? this.periodo()!.getMonth()+1 : 0)
 
-
+  changePeriodo = effect(() => {
+      this.periodoLocal.set(new Date(this.periodo()));
+  })
+  
   public searchService = inject(SearchService);
 
   $optionsSucursales = this.searchService.getSucursales();
 
+  valHasta(){
+    return this.selectedOption() != "P" ? null : this.hasta()
+  }
 }

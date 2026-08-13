@@ -68,7 +68,7 @@
 
         @if (personalIdlist().length > 0) {
         <li nz-menu-item app-down-file [httpMethod]="'POST'"
-          [httpBody]="{'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'lista':personalIdlist() }"
+          [httpBody]="{'desde':periodo(), 'lista':personalIdlist() }"
           httpUrl="/api/recibos/downloadfull" notificationMsg="Descarga Recibos Listado">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga Recibos por
             Responsable</span>
@@ -77,7 +77,7 @@
 
         <!-- @if (selectedPersonalId()) {
         <li nz-menu-item app-down-file [httpMethod]="'POST'"
-          [httpBody]="{'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'lista':[selectedPersonalId] }"
+          [httpBody]="{'desde':periodo(), 'lista':[selectedPersonalId] }"
           httpUrl="/api/recibos/downloadfull" notificationMsg="Descarga Recibo de persona">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga recibo de Persona</span>
         </li>
@@ -85,7 +85,7 @@
 <!-- 
         @if (selectedObjetivoId()) {
         <li nz-menu-item app-down-file [httpMethod]="'POST'"
-          [httpBody]="{'Anio':selectedPeriod().year,'Mes':selectedPeriod().month, 'ObjetivoIdWithSearch':selectedObjetivoId(), 'SeachField': 'O', 'ObjetivoId': selectedObjetivoId() }"
+          [httpBody]="{'desde':periodo(), 'ObjetivoIdWithSearch':selectedObjetivoId(), 'SeachField': 'O', 'ObjetivoId': selectedObjetivoId() }"
           httpUrl="/api/recibos/downloadfull" notificationMsg="Descarga Recibos por Objetivo">
           <span nz-icon nzType="download"></span><span style="white-space: normal;">Descarga Recibos por Objetivo</span>
         </li>
@@ -1020,8 +1020,7 @@
   </nz-option>
 </ng-template>
 
-<app-recibos-modal [(isVisible)]='isVisibleRecibo' [anio]="this.selectedPeriod().year"
-  [mes]="this.selectedPeriod().month"></app-recibos-modal>
+<app-recibos-modal [(isVisible)]='isVisibleRecibo' [periodo]="periodo()"></app-recibos-modal>
 
 <app-monotributos-modal [(isVisible)]='isVisibleMonot' [anio]="this.selectedPeriod().year"
   [mes]="this.selectedPeriod().month"></app-monotributos-modal>

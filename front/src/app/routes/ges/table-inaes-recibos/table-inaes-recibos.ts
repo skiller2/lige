@@ -116,9 +116,11 @@ export class TableINAESRecibosComponent {
 
     //Validaciones
     //Campos vacios
-    const emptyFields = this.getEmptyFields()
+    const emptyFields = this.getEmptyFieldsRecibo()
+
+
     if (emptyFields.length) {
-      let errorMsg = 'Campos Vacios:\n'
+      let errorMsg = 'Campos Vacíos:\n'
       errorMsg += emptyFields.map(
         (x:any) => `[Fila ${x.row + 1}] ${this.gridData.value()[x.row].ApellidoNombre}: ${x.names.join(", ")}.`
       ).join('\n');
@@ -141,22 +143,21 @@ export class TableINAESRecibosComponent {
     this.loadingExport.set(false)
   }
 
-  getEmptyFields():any[] {
-    const result: { row: number, fields: string[], names: string[] }[] = [];
+  getEmptyFieldsRecibo():any[] {
+    const result: { row: number, names: string[] }[] = [];
     this.angularGrid.dataView.getItems().forEach((item, index) => {
-      let fields:string[] = []
       let names:string[] = []
       this.columns().forEach((column:any) => {
         if (column.excludeFromExport) return //Excluir las columnas que no se van a exportan
         const value = item[column.field];
 
         if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')){
-          fields.push(column.field)
           names.push(column.name)
         }
           
       });
-      result.push({ row: index, fields, names });
+      if (names.length > 0)
+        result.push({ row: index, names });
     });
 
     return result;
