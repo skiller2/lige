@@ -526,7 +526,76 @@ export class RecibosController extends BaseController {
 
     
     return queryRunner.query(`
-WITH MovimientosUnicos AS
+
+WITH Adelantos AS
+(
+    SELECT
+        l.movimiento_id,
+        l.persona_id,
+        l.periodo_id,
+        l.importe,
+        ROW_NUMBER() OVER (
+            PARTITION BY l.persona_id, l.periodo_id, l.importe
+            ORDER BY l.movimiento_id
+        ) AS rn
+    FROM lige.dbo.liqmamovimientos l
+    INNER JOIN lige.dbo.liqcotipomovimiento tip
+        ON tip.tipo_movimiento_id = l.tipo_movimiento_id
+    INNER JOIN lige.dbo.liqmaperiodo peri
+        ON peri.periodo_id = l.periodo_id
+       AND peri.anio = @1
+       AND peri.mes = @2
+    WHERE l.tipocuenta_id = @3
+      AND tip.indicador_recibo = 'A'
+),
+Retiros AS
+(
+    SELECT
+        l.movimiento_id,
+        l.persona_id,
+        l.periodo_id,
+        l.importe,
+        ROW_NUMBER() OVER (
+            PARTITION BY l.persona_id, l.periodo_id, l.importe
+            ORDER BY l.movimiento_id
+        ) AS rn
+    FROM lige.dbo.liqmamovimientos l
+    INNER JOIN lige.dbo.liqcotipomovimiento tip
+        ON tip.tipo_movimiento_id = l.tipo_movimiento_id
+    INNER JOIN lige.dbo.liqmaperiodo peri
+        ON peri.periodo_id = l.periodo_id
+       AND peri.anio = @1
+       AND peri.mes = @2
+    WHERE l.tipocuenta_id = @3
+      AND tip.indicador_recibo = 'R'
+),
+AdelantosCompensados AS
+(
+    SELECT a.movimiento_id AS movimiento_id_1, d.movimiento_id AS movimiento_id_2
+    FROM Adelantos a
+    INNER JOIN Retiros d
+        ON d.persona_id = a.persona_id
+       AND d.periodo_id = a.periodo_id
+       AND d.importe = a.importe
+       AND d.rn = a.rn
+),
+MovimientosFiltrados AS
+(
+    SELECT l.*
+    FROM lige.dbo.liqmamovimientos l
+    INNER JOIN lige.dbo.liqmaperiodo peri
+        ON peri.periodo_id = l.periodo_id
+       AND peri.anio = @1
+       AND peri.mes = @2
+    WHERE l.tipocuenta_id = @3
+      AND NOT EXISTS
+      (
+          SELECT 1
+          FROM AdelantosCompensados c
+          WHERE c.movimiento_id_1 = l.movimiento_id  OR c.movimiento_id_2 = l.movimiento_id
+      )
+), 
+MovimientosUnicos AS
 (
     SELECT DISTINCT
         liq.persona_id,
@@ -534,7 +603,7 @@ WITH MovimientosUnicos AS
         tip.indicador_recibo,
         liq.tipo_movimiento_id,
         liq.detalle
-    FROM lige.dbo.liqmamovimientos liq
+    FROM MovimientosFiltrados liq
     INNER JOIN lige.dbo.liqcotipomovimiento tip
         ON tip.tipo_movimiento_id = liq.tipo_movimiento_id
 ),
@@ -644,7 +713,7 @@ SELECT
 
     1
 
-FROM lige.dbo.liqmamovimientos liq
+FROM MovimientosFiltrados liq
 
 INNER JOIN Personal per
     ON per.PersonalId = liq.persona_id
@@ -652,17 +721,13 @@ INNER JOIN Personal per
 INNER JOIN lige.dbo.liqcotipomovimiento tip
     ON tip.tipo_movimiento_id = liq.tipo_movimiento_id
 
-INNER JOIN lige.dbo.liqmaperiodo peri
-    ON peri.anio = @1
-   AND peri.mes = @2
-   AND peri.periodo_id = liq.periodo_id
 
 INNER JOIN Documento doc
     ON doc.PersonalId = liq.persona_id
    AND doc.DocumentoTipoCodigo =
        IIF(liq.tipocuenta_id = 'G', 'REC', 'RECC')
-   AND doc.DocumentoAnio = peri.anio
-   AND doc.DocumentoMes = peri.mes
+   AND doc.DocumentoAnio = @1
+   AND doc.DocumentoMes = @2
 
 LEFT JOIN PersonalCUITCUIL cuit
     ON cuit.PersonalId = liq.persona_id
@@ -677,9 +742,7 @@ LEFT JOIN Descripciones d
     ON d.persona_id = liq.persona_id
    AND d.periodo_id = liq.periodo_id
 
-WHERE liq.tipocuenta_id = @3
-      AND (${filterSql}) 
-      
+WHERE ${filterSql} 
 
 GROUP BY
     liq.persona_id,
