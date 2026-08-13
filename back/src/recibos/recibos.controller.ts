@@ -522,7 +522,7 @@ export class RecibosController extends BaseController {
     return queryRunner.query(createSelect, [0, anio, mes, personalId, fecha])
   }
 
-  async getListaRecibosGenerados(queryRunner: QueryRunner, anio: number, mes: number, tipoCuentaId:string) {
+  async getListaRecibosGenerados(queryRunner: QueryRunner, filterSql: any, orderBy: any, anio: number, mes: number, tipoCuentaId:string) {
 
     
     return queryRunner.query(`
@@ -678,6 +678,8 @@ LEFT JOIN Descripciones d
    AND d.periodo_id = liq.periodo_id
 
 WHERE liq.tipocuenta_id = @3
+      AND (${filterSql}) 
+      
 
 GROUP BY
     liq.persona_id,
@@ -692,7 +694,10 @@ GROUP BY
     d.DescRetiros,
     d.CBU
 
-ORDER BY liq.persona_id;
+
+    ${orderBy}
+    
+
     `, [0, anio, mes, tipoCuentaId])
   }
 
