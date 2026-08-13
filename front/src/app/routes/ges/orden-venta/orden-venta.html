@@ -1,0 +1,38 @@
+
+  <nz-card class="small-margin">
+    <div nz-row>
+
+      <div nz-col nzSpan="24" style="display: flex;flex-direction: row-reverse;">
+        <nz-form-control>
+          <nz-date-picker nzMode="month" [(ngModel)]="periodo" (ngModelChange)="dateChange($event)" />
+        </nz-form-control>
+      </div>
+
+    </div>
+    <div nz-row class="contentStyle">
+      <div nz-col nzSpan="13" class="listStyle">
+        <ul nz-menu nzMode="horizontal" style="display: flex;">
+          <li nz-menu-item nzMatchRouter>
+            <span nz-icon nzType=""></span>
+            <a [routerLink]="['/', 'ges', 'orden-venta', 'listado']" (click)="resetForm()">Listado</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div nz-row>
+      <div nz-col nzSpan="24" class="objetivoSearchStyle">
+        <app-objetivo-search [(ngModel)]="objetivoIdSelected" [ngModelOptions]="{ standalone: true }" />
+      </div>
+    </div>
+
+    <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+      <nz-tab></nz-tab>
+      <nz-tab>
+        <a nz-tab-link routerLink="/ges/orden-venta/listado">Listado</a>
+        <ng-template nz-tab>
+          <span>Órdenes de Venta</span>
+        </ng-template>
+      </nz-tab>
+
+    </nz-tabs>
+  </nz-card>
