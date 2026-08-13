@@ -526,53 +526,173 @@ export class RecibosController extends BaseController {
 
     
     return queryRunner.query(`
-            SELECT 
-      liq.persona_id AS id,
-      liq.persona_id AS PersonalId, 
-		CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+WITH MovimientosUnicos AS
+(
+    SELECT DISTINCT
+        liq.persona_id,
+        liq.periodo_id,
+        tip.indicador_recibo,
+        liq.tipo_movimiento_id,
+        liq.detalle
+    FROM lige.dbo.liqmamovimientos liq
+    INNER JOIN lige.dbo.liqcotipomovimiento tip
+        ON tip.tipo_movimiento_id = liq.tipo_movimiento_id
+),
+Descripciones AS
+(
+    SELECT
+        mu.persona_id,
+        mu.periodo_id,
 
-      cuit.PersonalCUITCUILCUIT,
-      doc.DocumentoDenominadorDocumento,
-      doc.DocumentoFecha,
-      SUM(CASE WHEN tip.indicador_recibo = 'A' THEN liq.importe ELSE 0 END) AS SumaAdelanto,
-      SUM(CASE WHEN tip.indicador_recibo = 'R' AND liq.detalle LIKE'%MONOTRIBUTO%' THEN liq.importe ELSE 0 END) AS SumaMonotributoRetencion,
-      SUM(CASE WHEN tip.indicador_recibo = 'R' AND liq.detalle NOT LIKE'%MONOTRIBUTO%' THEN liq.importe ELSE 0 END) AS SumaOtrasRetenciones,
-      SUM(CASE WHEN tip.indicador_recibo = 'I' AND liq.detalle NOT LIKE'Art%' THEN liq.importe ELSE 0 END) AS SumaRetribucion,
-      SUM(CASE WHEN tip.indicador_recibo = 'I' AND liq.detalle LIKE'Art%' THEN liq.importe ELSE 0 END) AS SumaExcedentes,
-      SUM(CASE WHEN tip.indicador_recibo = 'D' THEN liq.importe ELSE 0 END) AS SumaRetiros,
-      STRING_AGG( CASE WHEN tip.indicador_recibo = 'A' THEN liq.detalle ELSE NULL END,'; ') AS DescAdelanto,
-      STRING_AGG(CASE WHEN tip.indicador_recibo = 'R' AND liq.detalle NOT LIKE'%MONOTRIBUTO%' THEN liq.detalle ELSE NULL END,'; ') AS DescOtrasRetenciones,
-      STRING_AGG(CASE WHEN tip.indicador_recibo = 'I' THEN liq.detalle ELSE NULL END,'; ') AS DescRetribucion,
-      -- STRING_AGG(CASE WHEN tip.indicador_recibo = 'I' AND liq.detalle LIKE'Art%' THEN liq.detalle ELSE NULL END,'; ') AS DescExcedentes,
-      
-      STRING_AGG(CASE WHEN tip.indicador_recibo = 'D' THEN liq.detalle ELSE NULL END,'; ') AS DescRetiros,
+        STRING_AGG(
+            CASE
+                WHEN mu.indicador_recibo = 'A'
+                THEN mu.detalle
+            END,
+            '; '
+        ) AS DescAdelanto,
 
-      STRING_AGG(CASE WHEN tip.indicador_recibo = 'D' AND CHARINDEX('CBU ', liq.detalle) > 0 THEN LTRIM(RTRIM(SUBSTRING(liq.detalle,CHARINDEX('CBU ', liq.detalle) + 4,LEN(liq.detalle))))END,'; ') AS CBU,
+        STRING_AGG(
+            CASE
+                WHEN mu.indicador_recibo = 'R'
+                 AND mu.detalle NOT LIKE '%MONOTRIBUTO%'
+                THEN mu.detalle
+            END,
+            '; '
+        ) AS DescOtrasRetenciones,
 
-      1  
+        STRING_AGG(
+            CASE
+                WHEN mu.indicador_recibo = 'I'
+                THEN mu.detalle
+            END,
+            '; '
+        ) AS DescRetribucion,
 
-    FROM  lige.dbo.liqmamovimientos AS liq
-    JOIN Personal per ON per.PersonalId = liq.persona_id
-        JOIN  lige.dbo.liqcotipomovimiento AS tip ON tip.tipo_movimiento_id = liq.tipo_movimiento_id
-        JOIN lige.dbo.liqmaperiodo peri on peri.anio = @1 AND peri.mes = @2 AND peri.periodo_id = liq.periodo_id
-        JOIN Documento doc ON doc.PersonalId = liq.persona_id AND doc.DocumentoTipoCodigo= IIF(liq.tipocuenta_id = 'G', 'REC', 'RECC') AND doc.DocumentoAnio=peri.anio AND doc.DocumentoMes=peri.mes    
-        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = liq.persona_id AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = liq.persona_id) 
-      
-      
-      
-      WHERE  liq.tipocuenta_id = @3
-      GROUP BY 
-      liq.persona_id,
-      per.PersonalApellido,
-      per.PersonalNombre,
-      cuit.PersonalCUITCUILCUIT,
-      doc.DocumentoDenominadorDocumento,
-      doc.DocumentoFecha
-      
-    
-      ORDER BY liq.persona_id ASC
+        STRING_AGG(
+            CASE
+                WHEN mu.indicador_recibo = 'D'
+                THEN mu.detalle
+            END,
+            '; '
+        ) AS DescRetiros,
 
+        (
+            SELECT STRING_AGG(c.CBU, '; ')
+            FROM
+            (
+                SELECT DISTINCT
+                    LTRIM(RTRIM(
+                        SUBSTRING(
+                            mu2.detalle,
+                            CHARINDEX('CBU ', mu2.detalle) + 4,
+                            LEN(mu2.detalle)
+                        )
+                    )) AS CBU
+                FROM MovimientosUnicos mu2
+                WHERE mu2.persona_id = mu.persona_id
+                  AND mu2.periodo_id = mu.periodo_id
+                  AND mu2.indicador_recibo = 'D'
+                  AND CHARINDEX('CBU ', mu2.detalle) > 0
+            ) c
+        ) AS CBU
 
+    FROM MovimientosUnicos mu
+    GROUP BY
+        mu.persona_id,
+        mu.periodo_id
+)
+
+SELECT
+    liq.persona_id AS id,
+    liq.persona_id AS PersonalId,
+    CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
+
+    cuit.PersonalCUITCUILCUIT,
+    doc.DocumentoDenominadorDocumento,
+    doc.DocumentoFecha,
+
+    SUM(CASE WHEN tip.indicador_recibo = 'A'
+        THEN liq.importe ELSE 0 END) AS SumaAdelanto,
+
+    SUM(CASE WHEN tip.indicador_recibo = 'R'
+              AND liq.detalle LIKE '%MONOTRIBUTO%'
+        THEN liq.importe ELSE 0 END) AS SumaMonotributoRetencion,
+
+    SUM(CASE WHEN tip.indicador_recibo = 'R'
+              AND liq.detalle NOT LIKE '%MONOTRIBUTO%'
+        THEN liq.importe ELSE 0 END) AS SumaOtrasRetenciones,
+
+    SUM(CASE WHEN tip.indicador_recibo = 'I'
+              AND liq.tipo_movimiento_id <> 23
+        THEN liq.importe ELSE 0 END) AS SumaRetribucion,
+
+    SUM(CASE WHEN tip.indicador_recibo = 'I'
+              AND liq.tipo_movimiento_id = 23
+        THEN liq.importe ELSE 0 END) AS SumaExcedentes,
+
+    SUM(CASE WHEN tip.indicador_recibo = 'D'
+        THEN liq.importe ELSE 0 END) AS SumaRetiros,
+
+    IIF(ISNULL(d.CBU,'') <> '', 'Banco', 'Efectivo') AS MedioPago,
+
+    d.DescAdelanto,
+    d.DescOtrasRetenciones,
+    d.DescRetribucion,
+    d.DescRetiros,
+    d.CBU,
+
+    1
+
+FROM lige.dbo.liqmamovimientos liq
+
+INNER JOIN Personal per
+    ON per.PersonalId = liq.persona_id
+
+INNER JOIN lige.dbo.liqcotipomovimiento tip
+    ON tip.tipo_movimiento_id = liq.tipo_movimiento_id
+
+INNER JOIN lige.dbo.liqmaperiodo peri
+    ON peri.anio = @1
+   AND peri.mes = @2
+   AND peri.periodo_id = liq.periodo_id
+
+INNER JOIN Documento doc
+    ON doc.PersonalId = liq.persona_id
+   AND doc.DocumentoTipoCodigo =
+       IIF(liq.tipocuenta_id = 'G', 'REC', 'RECC')
+   AND doc.DocumentoAnio = peri.anio
+   AND doc.DocumentoMes = peri.mes
+
+LEFT JOIN PersonalCUITCUIL cuit
+    ON cuit.PersonalId = liq.persona_id
+   AND cuit.PersonalCUITCUILId =
+   (
+       SELECT MAX(cuitmax.PersonalCUITCUILId)
+       FROM PersonalCUITCUIL cuitmax
+       WHERE cuitmax.PersonalId = liq.persona_id
+   )
+
+LEFT JOIN Descripciones d
+    ON d.persona_id = liq.persona_id
+   AND d.periodo_id = liq.periodo_id
+
+WHERE liq.tipocuenta_id = @3
+
+GROUP BY
+    liq.persona_id,
+    per.PersonalApellido,
+    per.PersonalNombre,
+    cuit.PersonalCUITCUILCUIT,
+    doc.DocumentoDenominadorDocumento,
+    doc.DocumentoFecha,
+    d.DescAdelanto,
+    d.DescOtrasRetenciones,
+    d.DescRetribucion,
+    d.DescRetiros,
+    d.CBU
+
+ORDER BY liq.persona_id;
     `, [0, anio, mes, tipoCuentaId])
   }
 

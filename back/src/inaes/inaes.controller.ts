@@ -579,7 +579,7 @@ export class InaesController extends BaseController {
       const orderBy = orderToSQL(options.sort)
 
       const movimientosRecibos = await recibosController.getListaRecibosGenerados(queryRunner, anio, mes, 'G')
-
+      
 
       //const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
       console.log('movimientosRecibos', movimientosRecibos.length)
