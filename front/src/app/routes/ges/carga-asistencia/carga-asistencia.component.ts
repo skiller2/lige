@@ -19,6 +19,7 @@ import { EditorCategoriaComponent } from '../../../shared/editor-categoria/edito
 import { LoadingService } from '@delon/abc/loading';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { OrdenVentaDrawerComponent } from '../orden-venta-drawer/orden-venta-drawer';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 
@@ -36,7 +37,7 @@ enum Busqueda {
     styleUrls: ['./carga-asistencia.component.less'],
     encapsulation: ViewEncapsulation.None,
     providers: [AngularUtilService],
-    imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, DetallePersonaComponent, ViewResponsableComponent]
+    imports: [...SHARED_IMPORTS, CommonModule, ObjetivoSearchComponent, DetallePersonaComponent, ViewResponsableComponent, OrdenVentaDrawerComponent]
 })
 export class CargaAsistenciaComponent {
     @ViewChild('carasistForm', { static: true }) carasistForm: NgForm =
@@ -71,6 +72,7 @@ export class CargaAsistenciaComponent {
     contratos: any[] = []
     controlAccesoDisabled = signal(false)
     visibleDrawer: boolean = false
+    visibleOrdenVenta = signal(false)
     personalApellidoNombre: any;
     rowLocked: boolean = false;
 //    objetivoInfo = signal({})

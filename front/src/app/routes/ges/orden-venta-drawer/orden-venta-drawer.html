@@ -1,0 +1,8 @@
+<nz-drawer [nzClosable]="true" [nzVisible]="visible()" [nzOffsetX]="0" [nzPlacement]="placement" [nzWidth]="900"
+  nzTitle="Órdenes de Venta" (nzOnClose)="visible.set(false)">
+  <ng-container *nzDrawerContent>
+    @if (visible()) {
+      <app-orden-venta [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" />
+    }
+  </ng-container>
+</nz-drawer>
