@@ -1,0 +1,13 @@
+import { Router } from "express"
+import { authMiddleware } from "../middlewares/middleware.module.ts";
+import { ordenVentaController } from "../controller/controller.module.ts";
+
+export const ordenVentaRouter = Router();
+
+ordenVentaRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
+  ordenVentaController.getGridCols(req, res);
+});
+
+ordenVentaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.getListOrdenVenta(req, res, next);
+});

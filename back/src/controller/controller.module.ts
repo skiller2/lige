@@ -63,6 +63,7 @@ import { MovimientoStockController } from "../movimiento-stock/movimiento-stock.
 import { HabilitacionesController } from "../habilitaciones/habilitaciones.controller.ts";
 import { ParametrosVentaController } from "../parametro-venta/parametro-venta.controller.ts";
 import { PrecioEfectosController } from "../precio-efectos/precio-efectos.controller.ts";
+import { OrdenVentaController } from "../orden-venta/orden-venta.controller.ts";
 import { SalarioMinimoVitalMovilController } from "../salario-minimo-vital-movil/salario-minimo-vital-movil.controller.ts";
 import { AvisoController } from "../aviso/aviso.controller.ts";
 import { VehiculoController } from "../vehiculo/vehiculo.controller.ts";
@@ -137,6 +138,7 @@ export const movimientoStockController = new MovimientoStockController()
 export const habilitacionesController = new HabilitacionesController()
 export const parametrosVentaController = new ParametrosVentaController()
 export const precioEfectosController = new PrecioEfectosController()
+export const ordenVentaController = new OrdenVentaController()
 export const salarioMinimoVitalMovilController = new SalarioMinimoVitalMovilController()
 export const avisoController = new AvisoController()
 export const vehiculoController = new VehiculoController()

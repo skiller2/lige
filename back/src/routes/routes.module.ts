@@ -61,7 +61,7 @@ import { valorHoraRouter } from "../valor-hora/valor-hora.routes.ts";
 import { cuentasBancariasRouter } from "../cuentas-bancarias/cuentas-bancarias.routes.ts";
 import { domicilioRouter } from "../domicilio/domicilio.routes.ts";
 import { inaesRouter } from "../inaes/inaes.routes.ts";
-import { ordenesDeVentaRouter } from "../ordenes-de-venta/ordenes-de-venta.routes.ts";
+import { ordenVentaRouter } from "../orden-venta/orden-venta.routes.ts";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -126,5 +126,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/cuentas-bancarias", cuentasBancariasRouter);
   server.setRoute("/api/inaes", inaesRouter);
   server.setRoute("/api/domicilio", domicilioRouter);
-  server.setRoute("/api/orden-venta", ordenesDeVentaRouter);
+  server.setRoute("/api/orden-venta", ordenVentaRouter);
 }
