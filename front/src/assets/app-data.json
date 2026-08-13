@@ -155,6 +155,11 @@
           ]
         },
         {
+          "text": "Órdenes de Venta",
+          "link": "/ges/orden-venta",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Novedades",
           "icon": "anticon-profile",
           "link": "/ges/novedades"
