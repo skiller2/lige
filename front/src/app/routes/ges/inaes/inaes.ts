@@ -147,7 +147,7 @@ export class INAESComponent {
     //Campos vacios
     const emptyFields = this.getEmptyFields()
     if (emptyFields.length) {
-      let errorMsg = 'Campos Vacios:\n'
+      let errorMsg = 'Campos Vacíos:\n'
       
       errorMsg += emptyFields.map((x:any) => { return `[Fila ${x.row + 1}] ${this.gridData.value()[x.row].ApellidoNombre}: ${x.names.join(", ")}.`}).join('\n');
       this.notification.warning('Advertencia', errorMsg);
