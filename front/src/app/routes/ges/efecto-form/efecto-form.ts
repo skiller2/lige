@@ -155,6 +155,25 @@ export class EfectoFormComponent {
         : null,
   });
 
+  // Un efecto transformado no guarda la FK en su propio registro: el original apunta a él.
+  readonly efectoOriginal = computed(() => this.formulario.value()?.efectoOriginal ?? null);
+  readonly esTransformado = computed(() => this.efectoOriginal() != null);
+  readonly formularioNoDisponible = computed(() =>
+    !this.esAltaCompleta()
+    && !this.esAltaIndividual()
+    && this.efectoId() != null
+    && this.formulario.value() == null
+  );
+  readonly soloLectura = computed(() =>
+    this.esConsulta() || this.esTransformado() || this.formularioNoDisponible()
+  );
+  readonly tituloTransformado = computed(() => 'Efecto transformado — solo lectura');
+  readonly avisoTransformado = computed(() => {
+    const original = this.efectoOriginal();
+    if (!original) return '';
+    return `Este efecto fue generado desde #${original.EfectoId} — ${texto(original.EfectoDescripcion)}. Para modificarlo, edite el efecto original; al guardarlo, los cambios se actualizarán en este efecto usado.`;
+  });
+
   // Efecto relacionado (solo mostrar). DescripcionCon = el efecto del "otro lado" de la relación.
   readonly relaciones = computed(() => this.formulario.value()?.relaciones ?? []);
 
@@ -200,7 +219,7 @@ export class EfectoFormComponent {
   // Los largos espejan los de las columnas; el back los revalida y es la autoridad.
   readonly formEfecto = form(this.modelo, p => {
     // El modo es una regla derivada, no un estado que haya que rearmar en cada carga.
-    disabled(p, () => this.esConsulta());
+    disabled(p, () => this.soloLectura());
     disabled(p.EfectoId);
 
     // Bloque de efecto individual: visible siempre en alta individual, pero deshabilitado hasta que
@@ -333,37 +352,39 @@ export class EfectoFormComponent {
   });
 
   onEfectoAtributoChange(index: number, atributoId: number | null): void {
+    if (this.soloLectura()) return;
     // Al cambiar el atributo de la fila, su valor anterior pertenece a otro atributo: se limpia.
     this.efectoAtributos.update(rows => rows.map((r, i) =>
       i === index ? { ...r, EfectoAtributoAtributoId: atributoId ?? null, EfectoAtributoValorId: null } : r));
   }
 
   onEfectoValorChange(index: number, valorId: number | null): void {
+    if (this.soloLectura()) return;
     this.efectoAtributos.update(rows => rows.map((r, i) =>
       i === index ? { ...r, EfectoAtributoValorId: valorId ?? null } : r));
   }
 
   agregarEfectoAtributo(): void {
-    if (this.esConsulta()) return;
+    if (this.soloLectura()) return;
     this.efectoAtributos.update(rows => [...rows, nuevaEfectoAtributoLinea()]);
   }
 
   quitarEfectoAtributo(index: number): void {
-    if (this.esConsulta()) return;
+    if (this.soloLectura()) return;
     this.efectoAtributos.update(rows => rows.filter((_, i) => i !== index));
   }
 
   agregarAtributo(): void {
-    if (this.esConsulta() || this.individualDeshabilitado()) return;
+    if (this.soloLectura() || this.individualDeshabilitado()) return;
     this.modelo.update(m => ({ ...m, atributos: [...m.atributos, nuevaAtributoLinea()] }));
   }
 
   quitarAtributo(index: number): void {
-    if (this.esConsulta() || this.individualDeshabilitado()) return;
+    if (this.soloLectura() || this.individualDeshabilitado()) return;
     this.modelo.update(m => ({ ...m, atributos: m.atributos.filter((_, i) => i !== index) }));
   }
 
-  readonly puedeEliminar = computed(() => !this.esConsulta() && !this.esAltaCompleta() && !this.esAltaIndividual() && this.efectoId() != null);
+  readonly puedeEliminar = computed(() => !this.soloLectura() && !this.esAltaCompleta() && !this.esAltaIndividual() && this.efectoId() != null);
 
   async eliminar(): Promise<void> {
     if (!this.puedeEliminar()) return;
@@ -386,7 +407,7 @@ export class EfectoFormComponent {
   }
 
   async guardar(): Promise<void> {
-    if (this.esConsulta()) return;
+    if (this.soloLectura()) return;
     // Alta individual: hay que elegir primero el efecto de partida en el buscador; sin él no hay nada
     // que dar de alta (y el bloque de efecto individual todavía está oculto).
     if (this.esAltaIndividual() && !this.efectoActivo()) return;

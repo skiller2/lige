@@ -73,6 +73,11 @@ export interface EfectoIndividualAtributo {
     AtributoDescripcion: string;
 }
 
+export interface EfectoOriginalTransformacion {
+    EfectoId: number;
+    EfectoDescripcion: string;
+}
+
 export interface EfectoFormulario {
     EfectoId: number;
     EfectoDescripcion: string;
@@ -85,4 +90,5 @@ export interface EfectoFormulario {
     EfectoAtributos: EfectoAtributo[];
     atributos: EfectoIndividualAtributo[];
     relaciones: EfectoRelacionEfecto[];
+    efectoOriginal: EfectoOriginalTransformacion | null;
 }
