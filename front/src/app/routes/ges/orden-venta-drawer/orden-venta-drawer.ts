@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, model } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model, signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { OrdenVentaComponent } from '../orden-venta/orden-venta';
@@ -17,4 +17,10 @@ export class OrdenVentaDrawerComponent {
 
   visible = model<boolean>(false)
   placement: NzDrawerPlacement = 'right';
+
+  objetivoNombre = signal<string>('')
+  titulo = computed(() => {
+    const nombre = this.objetivoNombre()
+    return nombre ? ` ${nombre}` : 'Órdenes de Venta'
+  })
 }

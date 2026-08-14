@@ -1,4 +1,4 @@
-import { Component, inject, model, signal, input } from '@angular/core';
+import { Component, inject, model, signal, input, computed, effect } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { NzModalModule } from 'ng-zorro-antd/modal';
@@ -6,7 +6,6 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
-import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { SearchService } from '../../../services/search.service';
 
 @Component({
@@ -20,7 +19,6 @@ import { SearchService } from '../../../services/search.service';
     ClienteSearchComponent,
     PersonalSearchComponent,
     GrupoActividadSearchComponent,
-   
   ],
 })
 export class MonotributosModalComponent {
@@ -35,8 +33,15 @@ export class MonotributosModalComponent {
   ObjetivoIdWithSearch = model(0)
   grupoDetalle = signal('')
 
-  mes = input(0)
-  anio = input(0)
+  periodo = input<Date>(new Date())
+  desde = signal<Date>(new Date())
+  hasta = signal<Date>(new Date())
+  anio = computed(() => this.desde()? this.desde()!.getFullYear(): 0 )
+  mes = computed(() => this.desde()? this.desde()!.getMonth()+1 : 0)
+
+  changePeriodo = effect(() => {
+      this.desde.set(new Date(this.periodo()));
+  })
 
   public searchService = inject(SearchService);
   $optionsSucursales = this.searchService.getSucursales();
@@ -67,13 +72,9 @@ export class MonotributosModalComponent {
         if (this.grupoDetalle())
           filtros.push({ index: 'GrupoDetalleOBJ', operador: '=', condition: 'AND', valor: [this.grupoDetalle()] })
         break;
-      // case "O":
-      //   if (this.ObjetivoIdWithSearch())
-      //     filtros.push({ index: 'ObjetivoId', operador: '=', condition: 'AND', valor: [String(this.ObjetivoIdWithSearch())] })
-      //   break;
       // "T" -> sin filtros (todos)
     }
-    return { anio: this.anio(), mes: this.mes(), cantxpag: 1, options: { filtros, sort: [] } }
+    return { desde: this.desde(), hasta: (this.selectedOption() != "P" ? null : this.hasta()), cantxpag: 1, options: { filtros, sort: [] } }
   }
 
 }

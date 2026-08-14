@@ -41,13 +41,13 @@ export class RecibosModalComponent {
   PersonalIdWithSearch = model(0)
 
   periodo = input<Date>(new Date())
-  periodoLocal = signal<Date>(new Date())
+  desde = signal<Date>(new Date())
   hasta = signal<Date>(new Date())
-  anio = computed(() => this.periodo()? this.periodo()!.getFullYear(): 0 )
-  mes = computed(() => this.periodo()? this.periodo()!.getMonth()+1 : 0)
+  anio = computed(() => this.desde()? this.desde()!.getFullYear(): 0 )
+  mes = computed(() => this.desde()? this.desde()!.getMonth()+1 : 0)
 
   changePeriodo = effect(() => {
-      this.periodoLocal.set(new Date(this.periodo()));
+      this.desde.set(new Date(this.periodo()));
   })
   
   public searchService = inject(SearchService);

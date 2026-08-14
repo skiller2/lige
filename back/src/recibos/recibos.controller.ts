@@ -941,19 +941,18 @@ GROUP BY
     const ip = this.getRemoteAddress(req)
     const fechaActual = new Date();
 
+    // Valido el periodo Desde-Hasta
     if(!desde) 
       throw new ClientException(`Periodo invalido`)
-
     let fechaDesde = new Date(desde)
     fechaDesde.setHours(0,0,0,0)
     let fechaHasta = hasta? new Date(hasta) : new Date(desde)
     fechaHasta.setHours(0,0,0,0)
-
     if(fechaDesde.getTime() > fechaHasta.getTime()) 
       throw new ClientException(`Periodo Desde-Hasta invalido`)
+    
     try {
       let recibosListaFiltroSuc:any[] = []
-      let msgErrors:string[] = []
 
       for (
         let fecha = new Date(fechaDesde.getFullYear(), fechaDesde.getMonth(), 1);
@@ -973,16 +972,13 @@ GROUP BY
         } else {
           recibosListaFiltroSucByPeriodo = recibosLista
         }
-        const sucursalesFiltroMsg = (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) ? 'Sucursales: ' + res.locals.filterSucursal.join(',') : ''
-        if (recibosListaFiltroSucByPeriodo.length == 0)
-          msgErrors.push(`No se encontraron recibos para el periodo ${mes}/${anio} y los filtros seleccionados. (${recibosLista.length}) ${sucursalesFiltroMsg}`);
 
         recibosListaFiltroSuc.push(...recibosListaFiltroSucByPeriodo)
       }
 
-      if (msgErrors.length) {
-        throw new ClientException(msgErrors)
-      }
+      const sucursalesFiltroMsg = (res.locals.filterSucursal && res.locals.filterSucursal.length > 0) ? 'Sucursales: ' + res.locals.filterSucursal.join(',') : ''
+      if (recibosListaFiltroSuc.length == 0)
+        throw new ClientException(`No se encontraron recibos para el periodo selecionado y los filtros seleccionados. (${recibosListaFiltroSuc.length}) ${sucursalesFiltroMsg}`);
 
       const mergedPdf = await PDFDocument.create();
 

@@ -1022,7 +1022,6 @@
 
 <app-recibos-modal [(isVisible)]='isVisibleRecibo' [periodo]="periodo()"></app-recibos-modal>
 
-<app-monotributos-modal [(isVisible)]='isVisibleMonot' [anio]="this.selectedPeriod().year"
-  [mes]="this.selectedPeriod().month"></app-monotributos-modal>
+<app-monotributos-modal [(isVisible)]='isVisibleMonot' [periodo]="periodo()"></app-monotributos-modal>
 
 <app-datos-bot-drawer [visible]="visibleDrawer()" (onClose)="visibleDrawer.set($event)" [personalId]="selectedPersonalId()"></app-datos-bot-drawer>

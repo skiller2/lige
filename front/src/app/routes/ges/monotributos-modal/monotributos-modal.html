@@ -2,19 +2,28 @@
 
     <div *nzModalContent>
         <nz-form-item class="marginElement">
-        <nz-form-control [nzMd]="6">
-        <nz-select [(ngModel)]="selectedOption" nzPlaceHolder="Selecciona una opción"
-            [nzDropdownMatchSelectWidth]="false">
-            <nz-option [nzLabel]="'Todos'" nzValue="T"></nz-option>
-            <nz-option [nzLabel]="'Cliente'" nzValue="C"></nz-option>
-            <nz-option [nzLabel]="'Sucursal'" nzValue="S"></nz-option>
-            <nz-option [nzLabel]="'Persona'" nzValue="P"></nz-option>
-            <nz-option [nzLabel]="'Grupo'" nzValue="G"></nz-option>
-            <!-- <nz-option [nzLabel]="'Objetivo'" nzValue="O"></nz-option> -->
-        </nz-select>
-        </nz-form-control>
-        <nz-form-control [nzMd]="1"></nz-form-control>
-        <nz-form-control [nzMd]="17">
+        <!-- <nz-form-control [nzMd]="6"> -->
+            <nz-select [(ngModel)]="selectedOption" nzPlaceHolder="Selecciona una opción"
+                [nzDropdownMatchSelectWidth]="false">
+                <!-- <nz-option [nzLabel]="'Todos'" nzValue="T"></nz-option> -->
+                <nz-option [nzLabel]="'Cliente'" nzValue="C"></nz-option>
+                <!-- <nz-option [nzLabel]="'Sucursal'" nzValue="S"></nz-option> -->
+                <nz-option [nzLabel]="'Persona'" nzValue="P"></nz-option>
+                <!-- <nz-option [nzLabel]="'Grupo'" nzValue="G"></nz-option> -->
+            </nz-select>
+            <nz-form-label [nzSpan]="4">{{selectedOption()!="P" ? 'Periodo' : 'Desde'}}</nz-form-label>
+            <nz-form-control [nzSpan]="5">
+                <nz-date-picker nzMode="month" [(ngModel)]="desde" [nzAllowClear]="false" />
+            </nz-form-control>
+        <!-- </nz-form-control> -->
+            @if(selectedOption()=="P"){
+            <nz-form-label [nzSpan]="4">Hasta</nz-form-label>
+            <nz-form-control [nzSpan]="5">
+                <nz-date-picker nzMode="month" [(ngModel)]="hasta" [nzAllowClear]="false" />
+            </nz-form-control>
+            }
+        </nz-form-item>
+        <!-- <nz-form-control [nzMd]="17"> -->
         @switch (selectedOption()) {
         @case ("C") {
         <app-cliente-search [(ngModel)]="ClienteIdWithSearch"></app-cliente-search>
@@ -34,12 +43,8 @@
         <app-grupo-actividad-search [(ngModel)]="GrupoIdWithSearch"
             (valueExtendedChange)="onGrupoChange($event)"></app-grupo-actividad-search>
         }
-        <!-- @case ("O") {
-        <app-objetivo-search [(ngModel)]="ObjetivoIdWithSearch"></app-objetivo-search>
-        } -->
         }
-        </nz-form-control>
-        </nz-form-item>
+        <!-- </nz-form-control> -->
     </div>
     <div *nzModalFooter style="text-align: right;">
         <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'" [httpBody]="buildBody()"
