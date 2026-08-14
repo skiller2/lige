@@ -71,8 +71,9 @@
 
   @if (formOrdenVenta.enabled) {
     <div class="acciones-detalle">
-      <button nz-button nzType="primary" class="add-button" (click)="addItem($event)" nz-tooltip
-        nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+      <button nz-button nzType="primary" class="add-button" (click)="addItem($event)"
+        [disabled]="hayItemVacio()" nz-tooltip
+        nzTooltipTitle="{{ hayItemVacio() ? 'Complete el ítem actual antes de agregar otro' : ('app.icon.add' | i18n) }}">
         <span nz-icon nzType="plus"></span>
       </button>
     </div>

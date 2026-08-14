@@ -57,6 +57,13 @@ export class OrdenVentaFormComponent {
 
   importes = computed<number[]>(() => this.itemsValue().map(item => Number(item?.ImporteTotal ?? 0)))
 
+  // Un ítem sin producto ni cantidad todavía no se cargó: no se agrega otro hasta completarlo
+  hayItemVacio = computed<boolean>(() =>
+    this.itemsValue().some(item =>
+      !String(item?.ProductoCodigo ?? '').trim() && !Number(item?.Cantidad ?? 0)
+    )
+  )
+
   constructor() {
     // Carga el detalle recibido en el FormArray
     effect(() => {
@@ -108,6 +115,7 @@ export class OrdenVentaFormComponent {
 
   addItem(event?: Event) {
     event?.preventDefault()
+    if (this.hayItemVacio()) return
     this.itemsArray.push(this.nuevoItem())
     this.panelAbierto.set(this.itemsArray.length - 1)
     this.formOrdenVenta.markAsDirty()
