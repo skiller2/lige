@@ -1034,7 +1034,7 @@ export class EfectoController extends BaseController {
       case "EfectoDescripcion":
         query = `SELECT DISTINCT EfectoId,CONCAT(TRIM(EfectoDescripcion), ' (', EfectoAtrDescripcion, ' )' ) as EfectoDescripcion  FROM EfectoDescripcion WHERE`;
 
-         if (fieldName == "EfectoId" && value > 0) {
+        if (fieldName == "EfectoId" && value > 0) {
           query += ` EfectoId = '${value}' AND `;
           buscar = true;
         }
@@ -1739,6 +1739,16 @@ export class EfectoController extends BaseController {
         `, [efectoId, individualId])
       : [];
 
+    const efectoOriginal = await queryRunner.query(`
+      SELECT
+        eo.EfectoId,
+        CONCAT(ed.EfectoDescripcion,' (', ed.EfectoAtrDescripcion, ')') AS EfectoDescripcion
+      FROM Efecto eo
+      left join EfectoDescripcion ed on ed.EfectoId=eo.EfectoId
+      WHERE eo.EfectoEfectoTransformacionEfectoId = @0
+      ORDER BY eo.EfectoId
+    `, [efectoId])
+
     return {
       ...(efecto[0] ?? {}),
       EfectoEfectoIndividualId: individualId,
@@ -1747,6 +1757,7 @@ export class EfectoController extends BaseController {
       atributos: individualId != null
         ? await this.atributosIngresoDe(queryRunner, efectoId, individualId)
         : [],
+      efectoOriginal: efectoOriginal[0] ?? null,
     };
   }
 
@@ -1827,6 +1838,9 @@ export class EfectoController extends BaseController {
       `, [efectoId, descripcion, rubroId, subrubroId, stockMinimo, now, usuario, ip, unidadMedidaId]);
 
       await this.guardarEfectoAtributos(queryRunner, efectoId!, efectoAtributos, now, usuario, ip);
+
+      // Si el efecto modificado es original de uno usado, se copia lo mismo en el efecto transformado
+      await this.sincronizarEfectoTransformado(queryRunner, efectoId!, now, usuario, ip);
 
       // El bloque de efecto individual solo aparece en el form si el efecto tiene individual.
       // La PK es el par (EfectoEfectoIndividualId, EfectoId).
@@ -2066,6 +2080,22 @@ export class EfectoController extends BaseController {
     if (!efectoId)
       throw new ClientException('No se recibió el efecto a eliminar.');
 
+    const efectoOriginal = await queryRunner.query(`
+      SELECT
+        eo.EfectoId,
+        CONCAT(ed.EfectoDescripcion,' (', ed.EfectoAtrDescripcion, ')') AS EfectoDescripcion
+      FROM Efecto eo
+      left join EfectoDescripcion ed on ed.EfectoId=eo.EfectoId
+      WHERE eo.EfectoEfectoTransformacionEfectoId = @0
+      ORDER BY eo.EfectoId
+    `, [efectoId]);
+    if (efectoOriginal.length) {
+      const original = efectoOriginal[0];
+      throw new ClientException(
+        `No se puede eliminar un efecto transformado. Debe eliminar el efecto original: #${original.EfectoId} — ${(original.EfectoDescripcion ?? '')}.`
+      );
+    }
+
     const errores: string[] = [];
 
     if (individualId != null) {
@@ -2204,8 +2234,7 @@ export class EfectoController extends BaseController {
     if (crearIndividual && individualDescripcion.length > 60)
       errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
 
-    const descripcionRepetida = await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, null);
-    if (descripcionRepetida) errores.push(descripcionRepetida);
+    await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, null);
 
     if (stockMinimo != null) {
       if (!Number.isFinite(stockMinimo))
@@ -2348,6 +2377,89 @@ export class EfectoController extends BaseController {
     }
   }
 
+  private async sincronizarEfectoTransformado(
+    queryRunner: any, efectoOriginalId: number, now: Date, usuario: string, ip: string
+  ) {
+    const relacion = await queryRunner.query(`
+      SELECT EfectoEfectoTransformacionEfectoId AS EfectoTransformadoId
+      FROM Efecto
+      WHERE EfectoId = @0
+    `, [efectoOriginalId]);
+
+    const efectoTransformadoId = Number(relacion[0]?.EfectoTransformadoId) || null;
+    if (!efectoTransformadoId) return;
+
+    const originales = await queryRunner.query(`
+      SELECT
+        original.EfectoId,
+        TRIM(original.EfectoDescripcion) AS EfectoDescripcion
+      FROM Efecto original
+      WHERE original.EfectoEfectoTransformacionEfectoId = @0
+      ORDER BY original.EfectoId
+    `, [efectoTransformadoId]);
+    if (originales.length > 1) {
+      const ids = originales.map((row: any) => row.EfectoId).join(', ');
+      throw new ClientException(
+        `No se puede sincronizar el efecto transformado ${efectoTransformadoId}: esta asociado a mas de un efecto original (${ids}).`
+      );
+    }
+
+    const transformado = await queryRunner.query(`
+      SELECT EfectoId, EfectoEfectoTransformacionEfectoId
+      FROM Efecto
+      WHERE EfectoId = @0
+    `, [efectoTransformadoId]);
+    if (!transformado.length)
+      throw new ClientException(`No existe el efecto transformado ${efectoTransformadoId}.`);
+    if (transformado[0].EfectoEfectoTransformacionEfectoId != null)
+      throw new ClientException(`El efecto transformado ${efectoTransformadoId} apunta a otro efecto (inconsistencia de datos).`);
+
+    await queryRunner.query(`
+      UPDATE usado
+      SET usado.EfectoDescripcion = original.EfectoDescripcion,
+          usado.RubroId = original.RubroId,
+          usado.SubrubroId = original.SubrubroId,
+          usado.EfectoUnidadMedidaPrincipalId = original.EfectoUnidadMedidaPrincipalId,
+          usado.EfectoAtributoUltNro = (
+            SELECT COUNT(*) + 1
+            FROM EfectoAtributo ea
+            WHERE ea.EfectoId = original.EfectoId
+              AND ea.EfectoAtributoAtributoId <> 11
+          ),
+          usado.AudFechaMod = @2,
+          usado.AudUsuarioMod = @3,
+          usado.AudIpMod = @4
+      FROM Efecto usado
+      JOIN Efecto original ON original.EfectoId = @0
+      WHERE usado.EfectoId = @1
+    `, [efectoOriginalId, efectoTransformadoId, now, usuario, ip]);
+
+    // Se reconstruyen los atributos para que ambos conjuntos sean identicos salvo por el estado:
+    // cualquier atributo 11 del original se omite y el transformado recibe siempre USADO (11 = 2).
+    await queryRunner.query(`DELETE FROM EfectoAtributo WHERE EfectoId = @0`, [efectoTransformadoId]);
+    await queryRunner.query(`
+      INSERT INTO EfectoAtributo
+        (EfectoAtributoId, EfectoId, EfectoAtributoAtributoId, EfectoAtributoValorId,
+         AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
+      SELECT
+        ROW_NUMBER() OVER (ORDER BY datos.EfectoAtributoAtributoId, datos.EfectoAtributoValorId),
+        @1,
+        datos.EfectoAtributoAtributoId,
+        datos.EfectoAtributoValorId,
+        @2, @3, @4, @2, @3, @4
+      FROM (
+        SELECT EfectoAtributoAtributoId, EfectoAtributoValorId
+        FROM EfectoAtributo
+        WHERE EfectoId = @0
+          AND EfectoAtributoAtributoId <> 11
+
+        UNION ALL
+
+        SELECT 11, 2
+      ) datos
+    `, [efectoOriginalId, efectoTransformadoId, now, usuario, ip]);
+  }
+
   private idsAtributosIngreso(atributos: any[]): number[] {
     return atributos
       .map(row => Number(row?.EfectoEfectoIndividualAtributoIngresoId))
@@ -2472,7 +2584,8 @@ export class EfectoController extends BaseController {
         AND (@1 IS NULL OR EfectoId <> @1)
     `, [descripcion, efectoId ?? null]);
 
-    return dup.length ? `Ya existe el efecto ${dup[0].EfectoId} con la descripción "${String(dup[0].EfectoDescripcion).trim()}".` : null;
+    if (dup.length) throw new ClientException(`Ya existe otro efecto con la misma descripción: "${String(dup[0].EfectoDescripcion).trim()}".`);
+
   }
 
   private async validarDescripcionCompletaUnica(
@@ -2536,30 +2649,28 @@ export class EfectoController extends BaseController {
     if (individualId != null && individualDescripcion.length > 60)
       errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
 
-    // TODO: DESCOMENTAR AL PASAR A PRODUCCIÓN.
-    // const descripcionRepetida = await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, efectoId);
-    // if (descripcionRepetida) errores.push(descripcionRepetida);
+    // validacion de duplicados: no puede haber otro efecto con la misma descripción (sin contar el propio).
+    await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, efectoId);
 
-    // if (stockMinimo != null) {
-    //   if (!Number.isFinite(stockMinimo))
-    //     errores.push('El stock mínimo debe ser un número.');
-    //   else if (stockMinimo < 0)
-    //     errores.push('El stock mínimo no puede ser negativo.');
-    // }
 
     const efecto = await queryRunner.query(`SELECT EfectoId FROM Efecto WHERE EfectoId = @0`, [efectoId]);
     if (!efecto.length)
       errores.push(`No existe el efecto ${efectoId}.`);
 
-    const isUsado = await queryRunner.query(`
-      SELECT ef.EfectoId, ed.EfectoDescripcion, ed.EfectoAtrDescripcion
-      FROM Efecto ef
-      left join EfectoDescripcion ed on ed.EfectoId = ef.EfectoId
-      WHERE ef.EfectoEfectoTransformacionEfectoId=@0
-    `, [efectoId]);
+    const efectoOriginal = await queryRunner.query(`
+      SELECT eo.EfectoId,
+        CONCAT(ed.EfectoDescripcion,' (', ed.EfectoAtrDescripcion, ')') AS EfectoDescripcion
+      FROM Efecto eo
+      left join EfectoDescripcion ed on ed.EfectoId=eo.EfectoId
+      WHERE eo.EfectoEfectoTransformacionEfectoId = @0
+      ORDER BY eo.EfectoId
+    `, [efectoId])
 
-          // TODO: DESCOMENTAR AL PASAR A PRODUCCIÓN.
-    // if (isUsado.length) throw new ClientException(`No se puede modificar el efecto. Debe modificar el efecto Original: ${isUsado[0].EfectoDescripcion} (${isUsado[0].EfectoAtrDescripcion})`);
+    if (efectoOriginal.length) {
+      const original = efectoOriginal[0];
+      throw new ClientException(`No se puede modificar un efecto transformado. Debe modificar el efecto original: ${original.EfectoId} - ${original.EfectoDescripcion ?? ''}.`
+      )
+    }
 
     if (individualId != null) {
       const individual = await queryRunner.query(`
@@ -2598,12 +2709,11 @@ export class EfectoController extends BaseController {
       }
       atributosEfectoVistos.add(atributoId);
 
-      // TODO: DESCOMENTAR AL PASAR A PRODUCCIÓN.
       // El estado "Usado" no se carga a mano: lo determina la transformación del efecto original.
-      // if (atributoId === 11 && valorId === 2) {
-      //   errores.push(`Fila Atributo #${nro}: no se puede asignar el atributo "Usado" a un efecto.`);
-      //   continue;
-      // }
+      if (atributoId === 11 && valorId === 2) {
+        errores.push(`Fila Atributo #${nro}: no se puede asignar el atributo "Usado" a un efecto.`);
+        continue;
+      }
 
       const atr = await queryRunner.query(`SELECT AtributoId FROM Atributo WHERE AtributoId = @0`, [atributoId]);
       if (!atr.length) {
