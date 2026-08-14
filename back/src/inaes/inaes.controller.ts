@@ -248,7 +248,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false,
+    showGridColumn: true,
   },
   {
     id: "CapitalIntegrado",
@@ -259,7 +259,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false,
+    showGridColumn: true,
   },
   {
     id: "PersonalNroLegajo",
@@ -472,14 +472,26 @@ export class InaesController extends BaseController {
       flags = `CASE WHEN (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN '1' ELSE '0' END AS Estado`
       filterCUITs = `(cuit.PersonalCUITCUILCUIT IN (${cuits}) AND sitrev.PersonalSituacionRevistaSituacionId IN (3)) OR (cuit.PersonalCUITCUILCUIT NOT IN (${cuits}) AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12))`
     }
+
+    const ClienteIdPropio = 934
+    const clientePropio = await queryRunner.query(`
+      SELECT cli.ClienteId, fac.ClienteFacturacionCUIT, cli.ClienteDenominacion 
+      FROM Cliente cli 
+      JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
+      WHERE cli.ClienteId=@0`, [ClienteIdPropio]
+    )
+    const CUITEntidad = clientePropio[0].ClienteFacturacionCUIT
+    const RazonSocial = clientePropio[0].ClienteDenominacion
+
+
     return await queryRunner.query(`
       SELECT
         per.PersonalId AS id,
-        30643445510 AS CUITEntidad,
+        @1 AS CUITEntidad,
         ing.PersonalFechaIngreso,
         cuit.PersonalCUITCUILCUIT,
         'Humana' AS TipoPersona,
-        'COOP DE TRABAJO LINCE SEGURIDAD LTDA' AS RazonSocial,
+        @2 AS RazonSocial,
         per.PersonalApellido,
         per.PersonalNombre,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
@@ -494,6 +506,7 @@ export class InaesController extends BaseController {
         per.PersonalNroLegajo,
         perdom.domCompleto,
         sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion,
+        sal.SalarioMinimoVitalMovilSMVM AS CapitalSuscripto, 		  sal.SalarioMinimoVitalMovilSuscripcionInicial * sal.SalarioMinimoVitalMovilSMVM /100 AS CapitalIntegrado,
         ${flags}
       FROM Personal per
 
@@ -542,11 +555,18 @@ export class InaesController extends BaseController {
         LEFT JOIN Barrio bar ON bar.PaisId = pais.PaisId AND prov.ProvinciaId = bar.ProvinciaId AND loc.LocalidadId = bar.LocalidadId AND dom.DomicilioBarrioId = bar.BarrioId
       ) AS perdom ON perdom.PersonalId = per.PersonalId
 
-      LEFT JOIN PersonalEmail email on email.PersonalId=per.PersonalId AND email.PersonalEmailInactivo=0
+      LEFT JOIN PersonalEmail email on email.PersonalId=per.PersonalId AND ISNULL(email.PersonalEmailInactivo,0)=0
+		OUTER APPLY
+		(
+		    SELECT TOP (1) smv.SalarioMinimoVitalMovilSMVM, smv.SalarioMinimoVitalMovilSuscripcionInicial, smv.SalarioMinimoVitalMovilDesde
+		    FROM SalarioMinimoVitalMovil smv
+		    WHERE smv.SalarioMinimoVitalMovilDesde <= @0
+		    ORDER BY smv.SalarioMinimoVitalMovilDesde DESC
+		) sal
 
       WHERE (1=1)
       AND (${filterSql}) AND (${filterCUITs})
-      ${orderBy}`)
+      ${orderBy}`,[new Date(),CUITEntidad,RazonSocial])
   }
 
   async getAltasBajas(req: any, res: Response, next: NextFunction) {
