@@ -20,7 +20,7 @@ import {
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService } from '../../../services/api.service';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { totalRecords } from '../../../shared/custom-search/custom-search';
+import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
@@ -101,6 +101,7 @@ export class TableOrdenVentaComponent implements OnInit {
 
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
+      columnTotal('ImporteTotal', this.angularGrid);
     });
 
     if (this.hiddenColumnIds.length > 0) {

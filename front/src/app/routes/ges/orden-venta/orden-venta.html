@@ -1,18 +1,36 @@
 <nz-spin [nzSpinning]="isLoading()">
-  <nz-descriptions nzBordered nzSize="small" [nzColumn]="2">
-    <nz-descriptions-item nzTitle="Período">
-      {{ mes() | number:'2.0-0' }}/{{ anio() }}
-    </nz-descriptions-item>
-    <nz-descriptions-item nzTitle="Objetivo">
-      {{ cabecera().ObjetivoNombre }}
-    </nz-descriptions-item>
-    <nz-descriptions-item nzTitle="Total Hs. Normales">
-      {{ cabecera().TotalHorasNormales | number:'1.2-2' }}
-    </nz-descriptions-item>
-    <nz-descriptions-item nzTitle="Estado Orden Venta">
-      {{ cabecera().EstadoOrdenVenta ?? 'Sin orden de venta' }}
-    </nz-descriptions-item>
-  </nz-descriptions>
 
-  <app-table-orden-venta [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" />
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Período</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <input nz-input [value]="(mes() | number:'2.0-0') + '/' + anio()" [disabled]="true" />
+    </nz-form-control>
+
+  </nz-form-item>
+
+  <nz-form-item class="marginElement">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Total Hs. Normales</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <input nz-input [value]="cabecera().TotalHorasNormales | number:'1.2-2'" [disabled]="true" />
+    </nz-form-control>
+
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estado Orden Venta</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <input nz-input [value]="cabecera().EstadoOrdenVenta ?? 'Sin orden de venta'" [disabled]="true" />
+    </nz-form-control>
+  </nz-form-item>
+
+  <!-- <app-table-orden-venta [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" /> -->
+
+  <app-orden-venta-form [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="itemsResource.value()"
+    (detalleChange)="detalle.set($event)" (guardado)="itemsResource.reload()" />
+
+  <nz-divider></nz-divider>
+
+  <nz-form-item class="marginElement totalOrdenVenta">
+    <nz-form-label [nzXs]="12" [nzSm]="12" [nzMd]="6">Total Orden de Venta</nz-form-label>
+    <nz-form-control [nzXs]="12" [nzSm]="12" [nzMd]="6">
+      <input nz-input [value]="importeTotal() | currency" [disabled]="true" />
+    </nz-form-control>
+  </nz-form-item>
 </nz-spin>

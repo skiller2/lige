@@ -1,0 +1,89 @@
+<form [formGroup]="formOrdenVenta">
+
+  <nz-collapse nzAccordion formArrayName="items">
+    @for (item of itemsArray.controls; let i = $index; track item) {
+      <nz-collapse-panel [formGroupName]="i" [nzHeader]="tituloItem(i)"
+        [nzExtra]="'Importe Total ' + (importeItem(i) | currency)" [nzActive]="panelAbierto() === i"
+        (nzActiveChange)="$event ? panelAbierto.set(i) : null">
+
+        <nz-form-item style="display:none">
+          <nz-form-label [nzSpan]="3">id</nz-form-label>
+          <nz-form-control [nzSpan]="19">
+            <input nz-input formControlName="id" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Producto</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+            <app-producto-search formControlName="ProductoCodigo"
+              (valueExtendedChange)="productoChange(i, $event)"></app-producto-search>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+            <input nz-input formControlName="Cantidad" type="number" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Importe Unitario</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+            <input nz-input formControlName="ImporteUnitario" type="number" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Texto de Factura</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+            <textarea nz-input formControlName="TextoFactura"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad en Factura</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+            <input nz-input formControlName="CantidadEnFactura" type="number" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Importe Total</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+            <input nz-input formControlName="ImporteTotal" type="number" readonly />
+          </nz-form-control>
+        </nz-form-item>
+
+        @if (formOrdenVenta.enabled) {
+          <div class="acciones-item">
+            <button nz-button nzType="default" (click)="removeItem(i, $event)" nz-tooltip
+              nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+              <span nz-icon nzType="delete" nzTheme="outline"></span>
+            </button>
+          </div>
+        }
+
+      </nz-collapse-panel>
+    }
+  </nz-collapse>
+
+  @if (formOrdenVenta.enabled) {
+    <div class="acciones-detalle">
+      <button nz-button nzType="primary" class="add-button" (click)="addItem($event)" nz-tooltip
+        nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <span nz-icon nzType="plus"></span>
+      </button>
+    </div>
+
+    <nz-form-item>
+      <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+        <button nzType="primary" nz-button (click)="save()" [disabled]="formOrdenVenta.pristine">
+          {{ 'app.btn.save' | i18n }}
+        </button>
+      </nz-form-control>
+    </nz-form-item>
+  }
+
+</form>
