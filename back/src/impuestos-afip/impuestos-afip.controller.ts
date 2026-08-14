@@ -85,35 +85,57 @@ export class ImpuestosAfipController extends BaseController {
       const descuentoId = process.env.OTRO_DESCUENTO_ID;
       req.body.options.sort = [{ fieldName: 'ApellidoNombre', direction: 'ASC' }]
 
-      const periodo = getPeriodoFromRequest(req);
+      // const periodo = getPeriodoFromRequest(req);
+      // Valido el periodo Desde-Hasta
+      if (!req.body.desde) 
+        throw new ClientException(`Falto ingresar el Periodo`)
+      let fechaDesde = new Date(req.body.desde)
+      fechaDesde.setHours(0,0,0,0)
+      let fechaHasta = req.body.hasta? new Date(req.body.hasta) : new Date(req.body.desde)
+      fechaHasta.setHours(0,0,0,0)
+      if(fechaDesde.getTime() > fechaHasta.getTime()) 
+        throw new ClientException(`Periodo Desde-Hasta invalido`)
+      
       const options = getOptionsFromRequest(req);
       const cantxpag = req.body.cantxpag
+      let files:any[] = []
 
-      const formattedMonth = String(periodo.month).padStart(2, "0");
+      for(
+        let fecha = new Date(fechaDesde.getFullYear(), fechaDesde.getMonth(), 1);
+        fecha <= fechaHasta;
+        fecha.setMonth(fecha.getMonth() + 1)
+      ){
+        const anio:number = fecha.getFullYear()
+        const mes:number = fecha.getMonth() + 1
+        const formattedMonth = String(mes).padStart(2, "0");
 
-      const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
-        anio: String(periodo.year),
-        mes: String(periodo.month),
-        descuentoId: descuentoId,
-        options,
-      }, queryRunner);
-      const files = descuentos
-        .filter(
-          (descuento) => descuento.PersonalComprobantePagoAFIPId !== null
-        )
-        .map((descuento, index) => {
-          return {
-            name: `${periodo.year}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
-            DocumentoId: descuento.DocumentoId,
-            DocumentoPath: descuento.DocumentoPath,
-            apellidoNombre: descuento.ApellidoNombre,
-            GrupoActividadDetalle: descuento.GrupoActividadDetalle,
-          };
-        });
+        const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
+          anio: String(anio),
+          mes: String(mes),
+          descuentoId: descuentoId,
+          options,
+        }, queryRunner);
+        const filesByPeriodo = descuentos
+          .filter(
+            (descuento) => descuento.PersonalComprobantePagoAFIPId !== null
+          )
+          .map((descuento, index) => {
+            return {
+              name: `${anio}-${formattedMonth}-${descuento.CUIT}-${descuento.PersonalId}.pdf`,
+              DocumentoId: descuento.DocumentoId,
+              DocumentoPath: descuento.DocumentoPath,
+              apellidoNombre: descuento.ApellidoNombre,
+              GrupoActividadDetalle: descuento.GrupoActividadDetalle,
+            };
+          });
+        files.push(...filesByPeriodo)
+      }
 
       const fileUploadController = new FileUploadController()
       const responsePDFBuffer = await this.PDFmergeFromFiles(files, cantxpag);
-      const filename = `${periodo.year}-${formattedMonth}-filtrado.pdf`;
+      const filename = ( fechaDesde.getTime() === fechaHasta.getTime()? 
+        `${fechaDesde.getFullYear()}-${String(fechaDesde.getMonth()+1).padStart(2, "0")}-filtrado.pdf`: 
+        `${fechaDesde.getFullYear()}-${String(fechaDesde.getMonth()+1).padStart(2, "0")}-${fechaHasta.getFullYear()}-${String(fechaHasta.getMonth()+1).padStart(2, "0")}-filtrado.pdf`)
       const tmpfilename = fileUploadController.getRandomTempFileName('.pdf')
 
       writeFileSync(tmpfilename, responsePDFBuffer);

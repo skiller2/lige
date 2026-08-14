@@ -4,15 +4,15 @@
         <nz-form-item>
             <nz-select [(ngModel)]="selectedOption" nzPlaceHolder="Selecciona una opción"
                 [nzDropdownMatchSelectWidth]="false">
-                <nz-option [nzLabel]="'Todos'" nzValue="T"></nz-option>
+                <!-- <nz-option [nzLabel]="'Todos'" nzValue="T"></nz-option> -->
                 <nz-option [nzLabel]="'Objetivo'" nzValue="O"></nz-option>
                 <nz-option [nzLabel]="'Cliente'" nzValue="C"></nz-option>
-                <nz-option [nzLabel]="'Sucursal'" nzValue="S"></nz-option>
+                <!-- <nz-option [nzLabel]="'Sucursal'" nzValue="S"></nz-option> -->
                 <nz-option [nzLabel]="'Persona'" nzValue="P"></nz-option>
             </nz-select>
             <nz-form-label [nzSpan]="4">{{selectedOption()!="P" ? 'Periodo' : 'Desde'}}</nz-form-label>
             <nz-form-control [nzSpan]="5">
-                <nz-date-picker nzMode="month" [(ngModel)]="periodoLocal" [nzAllowClear]="false" />
+                <nz-date-picker nzMode="month" [(ngModel)]="desde" [nzAllowClear]="false" />
             </nz-form-control>
             @if(selectedOption()=="P"){
             <nz-form-label [nzSpan]="4">Hasta</nz-form-label>
@@ -43,7 +43,7 @@
     </div>
     <div *nzModalFooter style="text-align: right;">
         <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
-            [httpBody]="{'desde':periodoLocal(), 'hasta':valHasta(), isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch(),'PersonalIdWithSearch':PersonalIdWithSearch(),'SeachField':selectedOption() }"
+            [httpBody]="{'desde':desde(), 'hasta':valHasta(), isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch(),'PersonalIdWithSearch':PersonalIdWithSearch(),'SeachField':selectedOption() }"
             httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado"
             (click)="isVisible.set(false)">Aceptar</a>
     </div>
