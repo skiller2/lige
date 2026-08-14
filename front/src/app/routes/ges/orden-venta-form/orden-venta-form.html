@@ -2,8 +2,8 @@
 
   <nz-collapse nzAccordion formArrayName="items">
     @for (item of itemsArray.controls; let i = $index; track item) {
-      <nz-collapse-panel [formGroupName]="i" [nzHeader]="tituloItem(i)"
-        [nzExtra]="'Importe Total ' + (importeItem(i) | currency)" [nzActive]="panelAbierto() === i"
+      <nz-collapse-panel [formGroupName]="i" [nzHeader]="titulos()[i]"
+        [nzExtra]="'Importe Total ' + (importes()[i] | currency)" [nzActive]="panelAbierto() === i"
         (nzActiveChange)="$event ? panelAbierto.set(i) : null">
 
         <nz-form-item style="display:none">
