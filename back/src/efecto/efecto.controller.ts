@@ -1826,8 +1826,6 @@ export class EfectoController extends BaseController {
 
       await this.validarEfectoForm(queryRunner, efectoId, descripcion, rubroId, subrubroId, unidadMedidaId, stockMinimo, efectoAtributos, individualId, individualDescripcion, atributos);
 
-      const claveAntes = await this.claveEfecto(queryRunner, efectoId!, individualId);
-
       // se comenta modificacion de stock minimo
       await queryRunner.query(`
         UPDATE Efecto
@@ -1838,9 +1836,6 @@ export class EfectoController extends BaseController {
       `, [efectoId, descripcion, rubroId, subrubroId, stockMinimo, now, usuario, ip, unidadMedidaId]);
 
       await this.guardarEfectoAtributos(queryRunner, efectoId!, efectoAtributos, now, usuario, ip);
-
-      // Si el efecto modificado es original de uno usado, se copia lo mismo en el efecto transformado
-      await this.sincronizarEfectoTransformado(queryRunner, efectoId!, now, usuario, ip);
 
       // El bloque de efecto individual solo aparece en el form si el efecto tiene individual.
       // La PK es el par (EfectoEfectoIndividualId, EfectoId).
@@ -1855,10 +1850,12 @@ export class EfectoController extends BaseController {
         await this.guardarAtributosIngreso(queryRunner, efectoId, individualId, atributos, now, usuario, ip);
       }
 
-      // Con los cambios ya aplicados en la transacción, la clave del efecto (descripción + individual
-      // + atributos ordenados) ya refleja lo que se acaba de guardar. Recién acá se puede verificar
-      // que no colisione con la de otro efecto del catálogo.
-      await this.validarDescripcionCompletaUnica(queryRunner, efectoId!, individualId, claveAntes);
+      // La identidad se valida con los datos ya persistidos en la transacción y antes de tocar la
+      // copia usada: descripción + conjuntos exactos de atributos, siempre sin el atributo 11.
+      await this.validarIdentidadEfectoUnica(queryRunner, efectoId!, individualId);
+
+      // Si el efecto modificado es original de uno usado, recién después de validar se sincroniza.
+      await this.sincronizarEfectoTransformado(queryRunner, efectoId!, now, usuario, ip);
 
       // Se relee dentro de la transacción, antes de cerrarla: es lo que se le devuelve al front.
       const formulario = await this.formularioEfectoForm(queryRunner, efectoId!, individualId);
@@ -1941,7 +1938,7 @@ export class EfectoController extends BaseController {
         }
       }
 
-      await this.validarDescripcionCompletaUnica(queryRunner, efectoId, individualId, null);
+      await this.validarIdentidadEfectoUnica(queryRunner, efectoId, individualId);
 
       const formulario = await this.formularioEfectoForm(queryRunner, efectoId, individualId);
 
@@ -2009,8 +2006,8 @@ export class EfectoController extends BaseController {
         `, [efectoId, individualId, String(completo).substring(0, 250)]);
       }
 
-      // La descripción completa del nuevo individual no debe colisionar con otro del catálogo.
-      await this.validarDescripcionCompletaUnica(queryRunner, efectoId!, individualId, null);
+      // La identidad completa del nuevo individual no debe colisionar con otro del catálogo.
+      await this.validarIdentidadEfectoUnica(queryRunner, efectoId!, individualId);
 
       const formulario = await this.formularioEfectoForm(queryRunner, efectoId!, individualId);
 
@@ -2142,8 +2139,7 @@ export class EfectoController extends BaseController {
       throw new ClientException(errores);
   }
 
-  // Descripción completa (efecto + individual + atributos) leída de las vistas, igual que claveEfecto
-  // pero con COMPLETO_EXPR. Se usa para poblar EfectoEfectoIndividualSuDescripcion en el alta.
+  // Descripción completa (efecto + individual + atributos) leída de las vistas
   private async descripcionCompletaDe(
     queryRunner: any, efectoId: number, individualId: number | null
   ): Promise<string | null> {
@@ -2233,8 +2229,6 @@ export class EfectoController extends BaseController {
       errores.push(`La descripción no puede superar los 100 caracteres (tiene ${descripcion.length}).`);
     if (crearIndividual && individualDescripcion.length > 60)
       errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
-
-    await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, null);
 
     if (stockMinimo != null) {
       if (!Number.isFinite(stockMinimo))
@@ -2534,90 +2528,155 @@ export class EfectoController extends BaseController {
   // que es la fuente de verdad del string; se lee de la base en vez de rearmarlo en código.
   private static readonly COMPLETO_EXPR = `CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )')`;
 
-  private static readonly CLAVE_EXPR = (() => {
-    // Cada atributo del efecto se identifica por su par (descripción del atributo, descripción del
-    // valor). ValorId es secuencial dentro de su Atributo, así que el join va por las dos columnas.
-    const parEfecto = `CONCAT(UPPER(TRIM(atr.AtributoDescripcion)), ' ', UPPER(TRIM(val.ValorDescripcion)))`;
-    // En el individual el valor es texto libre cargado en la propia fila.
-    const parIngreso = `CONCAT(UPPER(TRIM(atring.AtributoIngresoDescripcion)), ' ', UPPER(TRIM(efeatr.EfectoAtributoIngresoValor)))`;
-    return `CONCAT(
-      UPPER(TRIM(efe.EfectoDescripcion)), '|',
-      ISNULL(UPPER(TRIM(efeind.EfectoEfectoIndividualDescripcion)), ''), '|',
-      ISNULL((
-        SELECT STRING_AGG(${parEfecto}, ',') WITHIN GROUP (ORDER BY ${parEfecto})
-        FROM EfectoAtributo efeatr
-        LEFT JOIN Atributo atr ON atr.AtributoId = efeatr.EfectoAtributoAtributoId
-        LEFT JOIN Valor val ON val.AtributoId = efeatr.EfectoAtributoAtributoId
-          AND val.ValorId = efeatr.EfectoAtributoValorId
-        WHERE efeatr.EfectoId = efe.EfectoId
-      ), ''), '|',
-      ISNULL((
-        SELECT STRING_AGG(${parIngreso}, ',') WITHIN GROUP (ORDER BY ${parIngreso})
-        FROM EfectoEfectoIndividualAtributoIngreso efeatr
-        LEFT JOIN AtributoIngreso atring
-          ON atring.AtributoIngresoId = efeatr.EfectoAtributoAtributoIngresoId
-        WHERE efeatr.EfectoId = efeind.EfectoId
-          AND efeatr.EfectoEfectoIndividualId = efeind.EfectoEfectoIndividualId
-      ), '')
-    )`;
-  })();
-
-  private async claveEfecto(
+  // TODO: MEJORAR QUERYS
+  private async validarIdentidadEfectoUnica(
     queryRunner: any, efectoId: number, individualId: number | null
-  ): Promise<string | null> {
-    const rows = await queryRunner.query(`
-      SELECT ${EfectoController.CLAVE_EXPR} AS Clave
-      FROM EfectoDescripcion efe
-      LEFT JOIN EfectoIndividualDescripcion efeind
-        ON efeind.EfectoId = efe.EfectoId AND efeind.EfectoEfectoIndividualId = @1
-      WHERE efe.EfectoId = @0
-    `, [efectoId, individualId ?? null]);
-    return rows[0]?.Clave ?? null;
-  }
-
-  private async buscarEfectoConMismaDescripcion(
-    queryRunner: any, descripcion: string, efectoId: number | null
   ) {
-    const dup = await queryRunner.query(`
-      SELECT TOP 1 EfectoId, EfectoDescripcion FROM Efecto
-      WHERE UPPER(TRIM(EfectoDescripcion)) = UPPER(TRIM(@0))
-        AND (@1 IS NULL OR EfectoId <> @1)
-    `, [descripcion, efectoId ?? null]);
+    if (individualId == null) {
+      const duplicado = await queryRunner.query(`
+        SELECT TOP 1
+          otro.EfectoId,
+          TRIM(otro.EfectoDescripcion) AS EfectoDescripcion
+        FROM Efecto actual
+        JOIN Efecto otro ON otro.EfectoId <> actual.EfectoId
+        WHERE actual.EfectoId = @0
+          AND UPPER(TRIM(otro.EfectoDescripcion)) = UPPER(TRIM(actual.EfectoDescripcion))
+          -- El original y su copia usada forman una sola identidad de negocio.
+          AND (actual.EfectoEfectoTransformacionEfectoId IS NULL
+               OR otro.EfectoId <> actual.EfectoEfectoTransformacionEfectoId)
+          AND (otro.EfectoEfectoTransformacionEfectoId IS NULL
+               OR otro.EfectoEfectoTransformacionEfectoId <> actual.EfectoId)
+          -- Ningún atributo del actual, salvo el 11, puede faltar en el otro.
+          AND NOT EXISTS (
+            SELECT eaActual.EfectoAtributoAtributoId, eaActual.EfectoAtributoValorId
+            FROM EfectoAtributo eaActual
+            WHERE eaActual.EfectoId = actual.EfectoId
+              AND eaActual.EfectoAtributoAtributoId <> 11
 
-    if (dup.length) throw new ClientException(`Ya existe otro efecto con la misma descripción: "${String(dup[0].EfectoDescripcion).trim()}".`);
+            EXCEPT
 
-  }
+            SELECT eaOtro.EfectoAtributoAtributoId, eaOtro.EfectoAtributoValorId
+            FROM EfectoAtributo eaOtro
+            WHERE eaOtro.EfectoId = otro.EfectoId
+              AND eaOtro.EfectoAtributoAtributoId <> 11
+          )
+          -- Tampoco puede haber atributos adicionales en el otro.
+          AND NOT EXISTS (
+            SELECT eaOtro.EfectoAtributoAtributoId, eaOtro.EfectoAtributoValorId
+            FROM EfectoAtributo eaOtro
+            WHERE eaOtro.EfectoId = otro.EfectoId
+              AND eaOtro.EfectoAtributoAtributoId <> 11
 
-  private async validarDescripcionCompletaUnica(
-    queryRunner: any, efectoId: number, individualId: number | null, claveAntes: string | null
-  ) {
-    const clave = await this.claveEfecto(queryRunner, efectoId, individualId);
-    if (!clave) return;
-    if (clave === claveAntes) return;
+            EXCEPT
 
-    // La descripción es el primer tramo de la clave. Se compara aparte para que el filtro descarte
-    // la mayoría del catálogo antes de tener que armar los STRING_AGG de atributos de cada efecto.
-    const descripcionNorm = clave.split('|')[0];
+            SELECT eaActual.EfectoAtributoAtributoId, eaActual.EfectoAtributoValorId
+            FROM EfectoAtributo eaActual
+            WHERE eaActual.EfectoId = actual.EfectoId
+              AND eaActual.EfectoAtributoAtributoId <> 11
+          )
+        ORDER BY otro.EfectoId
+      `, [efectoId]);
 
-    const dup = await queryRunner.query(`
-      SELECT TOP 1 efe.EfectoId, efeind.EfectoEfectoIndividualId, ${EfectoController.COMPLETO_EXPR} AS Completo
-      FROM EfectoDescripcion efe
-      LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = efe.EfectoId
-      WHERE UPPER(TRIM(efe.EfectoDescripcion)) = @3
-        AND ${EfectoController.CLAVE_EXPR} = @1
-        AND NOT (efe.EfectoId = @0 AND (
-          efeind.EfectoEfectoIndividualId = @2
-          OR (efeind.EfectoEfectoIndividualId IS NULL AND @2 IS NULL)
-        ))
-    `, [efectoId, clave, individualId ?? null, descripcionNorm]);
+      if (duplicado.length) {
+        const otro = duplicado[0];
+        throw new ClientException(
+          `Ya existe el efecto #${otro.EfectoId} con la misma descripción y los mismos atributos: "${String(otro.EfectoDescripcion).trim()}".`
+        );
+      }
+      return;
+    }
 
-    if (dup.length) {
-      const otro = dup[0];
+    const duplicadoIndividual = await queryRunner.query(`
+      SELECT TOP 1
+        otro.EfectoId,
+        otroIndividual.EfectoEfectoIndividualId,
+        TRIM(otro.EfectoDescripcion) AS EfectoDescripcion,
+        TRIM(otroIndividual.EfectoEfectoIndividualDescripcion) AS EfectoIndividualDescripcion
+      FROM Efecto actual
+      JOIN EfectoEfectoIndividual actualIndividual
+        ON actualIndividual.EfectoId = actual.EfectoId
+       AND actualIndividual.EfectoEfectoIndividualId = @1
+      JOIN Efecto otro
+        ON UPPER(TRIM(otro.EfectoDescripcion)) = UPPER(TRIM(actual.EfectoDescripcion))
+      JOIN EfectoEfectoIndividual otroIndividual
+        ON otroIndividual.EfectoId = otro.EfectoId
+       AND UPPER(TRIM(otroIndividual.EfectoEfectoIndividualDescripcion)) =
+           UPPER(TRIM(actualIndividual.EfectoEfectoIndividualDescripcion))
+      WHERE actual.EfectoId = @0
+        AND NOT (
+          otro.EfectoId = actual.EfectoId
+          AND otroIndividual.EfectoEfectoIndividualId = actualIndividual.EfectoEfectoIndividualId
+        )
+        -- Los atributos del efecto base también forman parte de la identidad del individual.
+        AND NOT EXISTS (
+          SELECT eaActual.EfectoAtributoAtributoId, eaActual.EfectoAtributoValorId
+          FROM EfectoAtributo eaActual
+          WHERE eaActual.EfectoId = actual.EfectoId
+            AND eaActual.EfectoAtributoAtributoId <> 11
 
-      throw new ClientException([
-        'Ya existe otro efecto con la misma descripción completa:',
-        `"${String(otro.Completo).trim()}"`
-      ]);
+          EXCEPT
+
+          SELECT eaOtro.EfectoAtributoAtributoId, eaOtro.EfectoAtributoValorId
+          FROM EfectoAtributo eaOtro
+          WHERE eaOtro.EfectoId = otro.EfectoId
+            AND eaOtro.EfectoAtributoAtributoId <> 11
+        )
+        AND NOT EXISTS (
+          SELECT eaOtro.EfectoAtributoAtributoId, eaOtro.EfectoAtributoValorId
+          FROM EfectoAtributo eaOtro
+          WHERE eaOtro.EfectoId = otro.EfectoId
+            AND eaOtro.EfectoAtributoAtributoId <> 11
+
+          EXCEPT
+
+          SELECT eaActual.EfectoAtributoAtributoId, eaActual.EfectoAtributoValorId
+          FROM EfectoAtributo eaActual
+          WHERE eaActual.EfectoId = actual.EfectoId
+            AND eaActual.EfectoAtributoAtributoId <> 11
+        )
+        -- Y los atributos de ingreso del individual deben coincidir en ambos sentidos.
+        AND NOT EXISTS (
+          SELECT
+            iaActual.EfectoAtributoAtributoIngresoId,
+            UPPER(TRIM(ISNULL(iaActual.EfectoAtributoIngresoValor, '')))
+          FROM EfectoEfectoIndividualAtributoIngreso iaActual
+          WHERE iaActual.EfectoId = actualIndividual.EfectoId
+            AND iaActual.EfectoEfectoIndividualId = actualIndividual.EfectoEfectoIndividualId
+
+          EXCEPT
+
+          SELECT
+            iaOtro.EfectoAtributoAtributoIngresoId,
+            UPPER(TRIM(ISNULL(iaOtro.EfectoAtributoIngresoValor, '')))
+          FROM EfectoEfectoIndividualAtributoIngreso iaOtro
+          WHERE iaOtro.EfectoId = otroIndividual.EfectoId
+            AND iaOtro.EfectoEfectoIndividualId = otroIndividual.EfectoEfectoIndividualId
+        )
+        AND NOT EXISTS (
+          SELECT
+            iaOtro.EfectoAtributoAtributoIngresoId,
+            UPPER(TRIM(ISNULL(iaOtro.EfectoAtributoIngresoValor, '')))
+          FROM EfectoEfectoIndividualAtributoIngreso iaOtro
+          WHERE iaOtro.EfectoId = otroIndividual.EfectoId
+            AND iaOtro.EfectoEfectoIndividualId = otroIndividual.EfectoEfectoIndividualId
+
+          EXCEPT
+
+          SELECT
+            iaActual.EfectoAtributoAtributoIngresoId,
+            UPPER(TRIM(ISNULL(iaActual.EfectoAtributoIngresoValor, '')))
+          FROM EfectoEfectoIndividualAtributoIngreso iaActual
+          WHERE iaActual.EfectoId = actualIndividual.EfectoId
+            AND iaActual.EfectoEfectoIndividualId = actualIndividual.EfectoEfectoIndividualId
+        )
+      ORDER BY otro.EfectoId, otroIndividual.EfectoEfectoIndividualId
+    `, [efectoId, individualId]);
+
+    if (duplicadoIndividual.length) {
+      const otro = duplicadoIndividual[0];
+      throw new ClientException(
+        `Ya existe el efecto individual #${otro.EfectoEfectoIndividualId} del efecto #${otro.EfectoId} con la misma descripción y los mismos atributos.`
+      );
     }
   }
 
@@ -2648,10 +2707,6 @@ export class EfectoController extends BaseController {
       errores.push(`La descripción no puede superar los 100 caracteres (tiene ${descripcion.length}).`);
     if (individualId != null && individualDescripcion.length > 60)
       errores.push(`La descripción individual no puede superar los 60 caracteres (tiene ${individualDescripcion.length}).`);
-
-    // validacion de duplicados: no puede haber otro efecto con la misma descripción (sin contar el propio).
-    await this.buscarEfectoConMismaDescripcion(queryRunner, descripcion, efectoId);
-
 
     const efecto = await queryRunner.query(`SELECT EfectoId FROM Efecto WHERE EfectoId = @0`, [efectoId]);
     if (!efecto.length)
