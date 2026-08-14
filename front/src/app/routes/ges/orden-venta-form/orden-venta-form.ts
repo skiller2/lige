@@ -44,6 +44,19 @@ export class OrdenVentaFormComponent {
 
   itemsValue = computed<any[]>(() => (this.formValue() as any)?.items ?? [])
 
+  titulos = computed<string[]>(() =>
+    this.itemsValue().map(item => {
+      // La cantidad en cero es un ítem recién creado, no se muestra
+      const cantidad = Number(item?.Cantidad ?? 0) || ''
+      return [cantidad, item?.ProductoCodigo, item?.Producto]
+        .map(valor => String(valor ?? '').trim())
+        .filter(Boolean)
+        .join(' - ')
+    })
+  )
+
+  importes = computed<number[]>(() => this.itemsValue().map(item => Number(item?.ImporteTotal ?? 0)))
+
   constructor() {
     // Carga el detalle recibido en el FormArray
     effect(() => {
@@ -86,16 +99,6 @@ export class OrdenVentaFormComponent {
     })
 
     return group
-  }
-
-  tituloItem(index: number): string {
-    const item = this.itemsValue()[index] ?? {}
-    const nombre = [item.ProductoCodigo, item.Producto].filter(Boolean).join(' - ')
-    return `${index + 1}. ${nombre || 'Nuevo ítem'}`
-  }
-
-  importeItem(index: number): number {
-    return Number(this.itemsValue()[index]?.ImporteTotal ?? 0)
   }
 
   // Al elegir el producto se guarda también el nombre, que es lo que se muestra en la grilla
