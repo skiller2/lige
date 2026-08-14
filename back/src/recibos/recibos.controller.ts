@@ -75,7 +75,7 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getReciboHtmlContentGeneral(fechaRecibo: Date, titulo: string, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
+  async getReciboHtmlContentGeneral(titulo: string, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
 
     const imgPath = `./assets/logo-lince-full.svg`
     const imgBuffer = await fsPromises.readFile(imgPath);
@@ -100,7 +100,7 @@ export class RecibosController extends BaseController {
       header = header.replace(/\${titulo}/g, titulo);
       header = header.replace(/\${anio}/g, anio.toString());
       header = header.replace(/\${mes}/g, mes.toString());
-      header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fechaRecibo));
+      //      header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fechaRecibo));
     }
     return { header, body, footer }
   }
@@ -110,133 +110,152 @@ export class RecibosController extends BaseController {
 
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
-    let isUnique = req.body.isUnique
+    const queryRunner = await getConnection(usuario)
+
+    const isUnique = req.body.isUnique
     const personalId = req.body?.personalId
-    const queryRunner = await getConnection(res.locals.userName)
-    let persona_id = 0
     //estas  variables se usan solo si el recibo previamente ya existe 
     let fechaRecibo = new Date(req.body.fechaRecibo)
     let DocumentoId: number
-    let den_documento: number
-    let directorPathUnique = ""
+    let ReciboNumero: number
+    let nombre_archivo: string
     const fechaActual = new Date();
     let EventoLogCodigo = 0
-
+    let directorPath = ''
     try {
       ({ EventoLogCodigo } = await this.eventoLogInicio(queryRunner, "Generación Recibos", req.body, usuario, ip, 'REC'))
 
       const periodo = getPeriodoFromRequest(req);
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, periodo.year, periodo.month, usuario, ip)
 
-      const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(periodo.year, periodo.month, 3, queryRunner)
-      if (resPendLiq.length > 0) {
-        const FechaLimite = resPendLiq[0].FechaLimite
-        throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(FechaLimite)}`)
-      }
-
-      const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(periodo.year, periodo.month, queryRunner)
-      if (resPendAsisCierre.length > 0)
-        throw new ClientException(`Existen ${resPendAsisCierre.length} objetivos pendientes de cierre o sin asistencia para el período ${periodo.month}/${periodo.year}`)
 
       if (!isUnique) {
+        const resPendLiq = await CustodiaController.listCustodiasPendientesLiqui(periodo.year, periodo.month, 3, queryRunner)
+        if (resPendLiq.length > 0) {
+          const FechaLimite = resPendLiq[0].FechaLimite
+          throw new ClientException(`Existen ${resPendLiq.length} custodias pendientes con fecha de inicio anterior o igual al ${this.dateOutputFormat(FechaLimite)}`)
+        }
+
+        const resPendAsisCierre = await AsistenciaController.objetivosPendAsis(periodo.year, periodo.month, queryRunner)
+        if (resPendAsisCierre.length > 0)
+          throw new ClientException(`Existen ${resPendAsisCierre.length} objetivos pendientes de cierre o sin asistencia para el período ${periodo.month}/${periodo.year}`)
+
         // codigo para cuenado es recibo general
         const getRecibosGenerados = await this.getRecibosGenerados(queryRunner, periodo_id)
         if (getRecibosGenerados[0].ind_recibos_generados == 1)
           throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
       } else {
-        throw new ClientException(`El código proporcionado falla al generar el recibo único. Por favor, contacte al administrador del sistema.`)
 
         // codigo para cuando es unico recibo bebe validar que el recibo exista para poder regenerarlo, caso contrario arrojar error
-        const existRecibo = await this.existReciboId(queryRunner, fechaActual, periodo.year, periodo.month, personalId);
-
-        if (existRecibo.length <= 0)
-          throw new ClientException(`Recibo no existe para el periodo seleccionado`)
-
-        fechaRecibo = existRecibo[0].DocumentoFecha;
-        den_documento = existRecibo[0].DocumentoDenominadorDocumento
-        DocumentoId = existRecibo[0].DocumentoId
-        directorPathUnique = existRecibo[0].DocumentoPath
       }
+      directorPath = String(periodo.year) + String(periodo.month).padStart(2, '0')
 
-      const movimientosPendientes = await this.getLiquidacionCuentaGeneral(queryRunner, periodo.year, periodo.month, personalId, fechaRecibo)
-      const movimientosPendientesC = await this.getLiquidacionCuentaCoordinador(queryRunner, periodo.year, periodo.month, personalId, fechaRecibo)
+      if (isUnique)
+        fechaRecibo = new Date()
 
-      var directorPath = String(periodo.year) + String(periodo.month).padStart(2, '0')
+
+      const movimientosPendientes = await this.getLiquidacionCuentaGeneral(queryRunner, periodo.year, periodo.month, personalId, fechaRecibo, !isUnique)
+      const movimientosPendientesC = await this.getLiquidacionCuentaCoordinador(queryRunner, periodo.year, periodo.month, personalId, fechaRecibo, !isUnique)
+
+
       if (!existsSync(this.directoryRecibo + '/' + directorPath)) {
         mkdirSync(this.directoryRecibo + '/' + directorPath, { recursive: true });
       }
 
       // await this.cleanDirectories(queryRunner, this.directoryRecibo + '/' + directorPath, periodo.year, periodo.month, isUnique, directorPathUnique, den_documento)
 
-      const htmlContentGeneral = await this.getReciboHtmlContentGeneral(fechaRecibo, '', periodo.year, periodo.month)
-      const htmlContentCoordinador = await this.getReciboHtmlContentGeneral(fechaRecibo, 'Coordinador', periodo.year, periodo.month)
+      const htmlContentGeneral = await this.getReciboHtmlContentGeneral('', periodo.year, periodo.month)
+      const htmlContentCoordinador = await this.getReciboHtmlContentGeneral('Coordinador', periodo.year, periodo.month)
 
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
 
       for (const movimiento of movimientosPendientes) {
-        persona_id = movimiento.PersonalId
-        DocumentoId = await BaseController.getProxNumero(queryRunner, `Documento`, usuario, ip)
-        const nombre_archivo = String(DocumentoId) + '-G-' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+        const PersonalId = movimiento.PersonalId
 
-        const filesPath = directorPath + '/' + nombre_archivo
+        if (!isUnique) {
+          DocumentoId = await BaseController.getProxNumero(queryRunner, `Documento`, usuario, ip)
+          ReciboNumero = await BaseController.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
+          nombre_archivo = String(DocumentoId) + '-G-' + PersonalId + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+        } else {
+          const existRecibo = await this.existReciboId(queryRunner, periodo.year, periodo.month, personalId, 'REC');
 
-        if (!isUnique)
-          den_documento = await BaseController.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
+          if (existRecibo.length <= 0)
+            throw new ClientException(`Recibo no existe para el periodo seleccionado`)
 
-        await this.setUsuariosLiquidacionDocumento(
-          queryRunner,
-          DocumentoId,
-          periodo.year,
-          periodo.month,
-          fechaRecibo,
-          persona_id,
-          null,
-          nombre_archivo,
-          filesPath,
-          usuario,
-          ip,
-          fechaActual,
-          "REC",
-          den_documento
+          ReciboNumero = existRecibo[0].DocumentoDenominadorDocumento
+          DocumentoId = existRecibo[0].DocumentoId
+          nombre_archivo = existRecibo[0].DocumentoNombreArchivo
+          fechaRecibo = existRecibo[0].DocumentoFecha;
+        }
 
-        )
+        if (!isUnique) {
 
-        await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
-          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContentGeneral.body, htmlContentGeneral.header, htmlContentGeneral.footer, 'G')
+          await this.setUsuariosLiquidacionDocumento(
+            queryRunner,
+            DocumentoId,
+            periodo.year,
+            periodo.month,
+            fechaRecibo,
+            PersonalId,
+            null,
+            nombre_archivo,
+            directorPath + '/' + nombre_archivo,
+            usuario,
+            ip,
+            fechaActual,
+            "REC",
+            ReciboNumero
+
+          )
+        }
+        await this.createPdf(queryRunner, this.directoryRecibo + '/' + directorPath + '/' + nombre_archivo, PersonalId, ReciboNumero, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContentGeneral.body, htmlContentGeneral.header, htmlContentGeneral.footer, 'G', fechaRecibo)
       }
 
       for (const movimiento of movimientosPendientesC) {
-        persona_id = movimiento.PersonalId
-        DocumentoId = await BaseController.getProxNumero(queryRunner, `Documento`, usuario, ip)
-        const nombre_archivo = String(DocumentoId) + '-C-' + persona_id + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+        const PersonalId = movimiento.PersonalId
+
+        if (!isUnique) {
+          DocumentoId = await BaseController.getProxNumero(queryRunner, `Documento`, usuario, ip)
+          ReciboNumero = await BaseController.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
+          nombre_archivo = String(DocumentoId) + '-G-' + PersonalId + '-' + String(periodo.month) + "-" + String(periodo.year) + ".pdf"
+        } else {
+          const existRecibo = await this.existReciboId(queryRunner, periodo.year, periodo.month, personalId, 'RECC');
+
+          if (existRecibo.length <= 0)
+            throw new ClientException(`Recibo no existe para el periodo seleccionado`)
+
+          ReciboNumero = existRecibo[0].DocumentoDenominadorDocumento
+          DocumentoId = existRecibo[0].DocumentoId
+          nombre_archivo = existRecibo[0].DocumentoNombreArchivo
+          fechaRecibo = existRecibo[0].DocumentoFecha;
+        }
 
         const filesPath = directorPath + '/' + nombre_archivo
 
-        if (!isUnique)
-          den_documento = await BaseController.getProxNumero(queryRunner, `idrecibo`, usuario, ip)
+        if (!isUnique) {
+          await this.setUsuariosLiquidacionDocumento(
+            queryRunner,
+            DocumentoId,
+            periodo.year,
+            periodo.month,
+            fechaRecibo,
+            PersonalId,
+            null,
+            nombre_archivo,
+            filesPath,
+            usuario,
+            ip,
+            fechaActual,
+            "RECC",
+            ReciboNumero
+          )
+        }
 
-        await this.setUsuariosLiquidacionDocumento(
-          queryRunner,
-          DocumentoId,
-          periodo.year,
-          periodo.month,
-          fechaRecibo,
-          persona_id,
-          null,
-          nombre_archivo,
-          filesPath,
-          usuario,
-          ip,
-          fechaActual,
-          "RECC",
-          den_documento
-
-        )
-
-        await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, persona_id, den_documento, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
-          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContentCoordinador.body, htmlContentCoordinador.header, htmlContentCoordinador.footer, 'C')
+        await this.createPdf(queryRunner, this.directoryRecibo + '/' + filesPath, PersonalId, ReciboNumero, movimiento.PersonalNombre, movimiento.PersonalCUITCUILCUIT, movimiento.DomicilioCompleto, movimiento.SucursalDescripcion, movimiento.PersonalNroLegajo,
+          movimiento.GrupoActividadDetalle, periodo_id, page, htmlContentCoordinador.body, htmlContentCoordinador.header, htmlContentCoordinador.footer, 'C', fechaRecibo)
       }
 
       if (!isUnique)
@@ -279,8 +298,8 @@ export class RecibosController extends BaseController {
   }
 
 
-  existReciboId(queryRunner: QueryRunner, fechaActual: Date, anio: number, mes: number, personalId: number) {
-    return queryRunner.query(`SELECT * from Documento WHERE DocumentoAnio= @1 AND DocumentoMes=@2 AND PersonalId = @0`, [personalId, anio, mes])
+  existReciboId(queryRunner: QueryRunner, anio: number, mes: number, personalId: number, DocumentoTipoCodigo: string) {
+    return queryRunner.query(`SELECT * from Documento WHERE DocumentoAnio= @1 AND DocumentoMes=@2 AND PersonalId = @0 AND DocumentoTipoCodigo = @3`, [personalId, anio, mes, DocumentoTipoCodigo])
   }
 
 
@@ -314,14 +333,15 @@ export class RecibosController extends BaseController {
     headerContent: string,
     footerContent: string,
     tipocuenta_id: string,
+    fechaRecibo: Date
   ) {
     Domicilio = (Domicilio && Domicilio != '()') ? Domicilio : 'Sin especificar'
     Asociado = (Asociado) ? Asociado.toString() : 'Pendiente'
     Grupo = (Grupo) ? Grupo : 'Sin asignar'
     Cuit = (Cuit) ? Cuit.toString() : 'Sin especificar'
 
-
     headerContent = headerContent.replace(/\${idrecibo}/g, den_documento.toString());
+    headerContent = headerContent.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fechaRecibo));
     htmlContent = htmlContent.replace(/\${PersonaNombre}/g, PersonaNombre);
     htmlContent = htmlContent.replace(/\${Cuit}/g, Cuit);
     htmlContent = htmlContent.replace(/\${Domicilio}/g, Domicilio);
@@ -405,7 +425,7 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getLiquidacionCuentaCoordinador(queryRunner: QueryRunner, anio: number, mes: number, personalId: number, fecha: Date) {
+  async getLiquidacionCuentaCoordinador(queryRunner: QueryRunner, anio: number, mes: number, personalId: number, fecha: Date, checkReciboExists: boolean) {
 
     let createSelect = `SELECT
     per.PersonalId, per.PersonalNroLegajo, 
@@ -449,23 +469,26 @@ export class RecibosController extends BaseController {
       WHERE liq.tipocuenta_id = 'C' and peri.anio=@1 AND peri.mes=@2`
 
     if (personalId != 0 && personalId != undefined)
-      createSelect += ` AND per.PersonalId = @3`
+      createSelect += ` AND per.PersonalId = @3 ) `
 
-    createSelect += `)  and per.PersonalId not in (
+
+    if (checkReciboExists)
+      createSelect += ` and
+      per.PersonalId not in (
         select distinct doc.PersonalId
         from Documento doc 
         left join lige.dbo.liqmaperiodo peri on peri.mes=doc.DocumentoMes and peri.anio=doc.DocumentoAnio
         where doc.DocumentoTipoCodigo='RECC' and peri.anio=@1 AND peri.mes=@2
-      )  ORDER BY per.PersonalId ASC`
+      )`
 
-
+    createSelect += `ORDER BY per.PersonalId ASC`
 
     return queryRunner.query(createSelect, [null, anio, mes, personalId, fecha])
   }
 
 
 
-  async getLiquidacionCuentaGeneral(queryRunner: QueryRunner, anio: number, mes: number, personalId: number, fecha: Date) {
+  async getLiquidacionCuentaGeneral(queryRunner: QueryRunner, anio: number, mes: number, personalId: number, fecha: Date, checkReciboExists: boolean) {
 
     let createSelect = `SELECT
     per.PersonalId, per.PersonalNroLegajo, 
@@ -508,23 +531,25 @@ export class RecibosController extends BaseController {
       WHERE liq.tipocuenta_id = 'G' and peri.anio=@1 AND peri.mes=@2`
 
     if (personalId != 0 && personalId != undefined)
-      createSelect += ` AND per.PersonalId = @3`
+      createSelect += ` AND per.PersonalId = @3 )`
 
-    createSelect += `)  and
+    if (checkReciboExists)
+      createSelect += `and
       per.PersonalId not in (
         select distinct doc.PersonalId
         from Documento doc 
         left join lige.dbo.liqmaperiodo peri on peri.mes=doc.DocumentoMes and peri.anio=doc.DocumentoAnio
         where doc.DocumentoTipoCodigo='REC' and peri.anio=@1 AND peri.mes=@2
-      )
-      ORDER BY per.PersonalId ASC`
+      )`
+
+    createSelect += `ORDER BY per.PersonalId ASC`
 
     return queryRunner.query(createSelect, [0, anio, mes, personalId, fecha])
   }
 
-  async getListaRecibosGenerados(queryRunner: QueryRunner, filterSql: any, orderBy: any, anio: number, mes: number, tipoCuentaId:string) {
+  async getListaRecibosGenerados(queryRunner: QueryRunner, filterSql: any, orderBy: any, anio: number, mes: number, tipoCuentaId: string) {
 
-    
+
     return queryRunner.query(`
 
 WITH Adelantos AS
@@ -942,25 +967,25 @@ GROUP BY
     const fechaActual = new Date();
 
     // Valido el periodo Desde-Hasta
-    if(!desde) 
+    if (!desde)
       throw new ClientException(`Periodo invalido`)
     let fechaDesde = new Date(desde)
-    fechaDesde.setHours(0,0,0,0)
-    let fechaHasta = hasta? new Date(hasta) : new Date(desde)
-    fechaHasta.setHours(0,0,0,0)
-    if(fechaDesde.getTime() > fechaHasta.getTime()) 
+    fechaDesde.setHours(0, 0, 0, 0)
+    let fechaHasta = hasta ? new Date(hasta) : new Date(desde)
+    fechaHasta.setHours(0, 0, 0, 0)
+    if (fechaDesde.getTime() > fechaHasta.getTime())
       throw new ClientException(`Periodo Desde-Hasta invalido`)
-    
+
     try {
-      let recibosListaFiltroSuc:any[] = []
+      let recibosListaFiltroSuc: any[] = []
 
       for (
         let fecha = new Date(fechaDesde.getFullYear(), fechaDesde.getMonth(), 1);
         fecha <= fechaHasta;
         fecha.setMonth(fecha.getMonth() + 1)
-      ){
-        const anio:number = fecha.getFullYear()
-        const mes:number = fecha.getMonth() + 1
+      ) {
+        const anio: number = fecha.getFullYear()
+        const mes: number = fecha.getMonth() + 1
         const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, user, ip);
         let recibosListaFiltroSucByPeriodo = []
         const recibosLista = (lista)
@@ -1028,11 +1053,11 @@ GROUP BY
       const resBuffer = Buffer.from(await mergedPdf.save());
 
       if (fechaDesde.getTime() === fechaHasta.getTime()) {
-        res.attachment(`Recibos-${fechaDesde.getFullYear()}-${fechaDesde.getMonth()+1}.pdf`);
+        res.attachment(`Recibos-${fechaDesde.getFullYear()}-${fechaDesde.getMonth() + 1}.pdf`);
       } else {
-        res.attachment(`Recibos-${fechaDesde.getFullYear()}-${fechaDesde.getMonth()+1}-${fechaHasta.getFullYear()}-${fechaHasta.getMonth()+1}.pdf`);
+        res.attachment(`Recibos-${fechaDesde.getFullYear()}-${fechaDesde.getMonth() + 1}-${fechaHasta.getFullYear()}-${fechaHasta.getMonth() + 1}.pdf`);
       }
-      
+
       res.setHeader('Content-Length', resBuffer.length);
       res.write(resBuffer, 'binary');
       res.end();
@@ -1160,7 +1185,7 @@ GROUP BY
   async getReciboConfig(req: Request, res: Response, next: NextFunction) {
     const prev: boolean = (req.params.prev === 'true')
     try {
-      const htmlContent = await this.getReciboHtmlContentGeneral(new Date(), '', 0, 0, '', '', '', true, prev)
+      const htmlContent = await this.getReciboHtmlContentGeneral('', 0, 0, '', '', '', true, prev)
       this.jsonRes({ header: htmlContent.header, body: htmlContent.body, footer: htmlContent.footer }, res);
 
     } catch (error) {
@@ -1196,12 +1221,12 @@ GROUP BY
                         opacity: 0.6;">PRUEBA</div>`
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anio, mes, usuario, ip)
       const recibosPersonal = (tipocuenta_id == 'G') ?
-        await this.getLiquidacionCuentaGeneral(queryRunner, anio, mes, PersonalId, fechaActual) :
-        await this.getLiquidacionCuentaCoordinador(queryRunner, anio, mes, PersonalId, fechaActual)
+        await this.getLiquidacionCuentaGeneral(queryRunner, anio, mes, PersonalId, fechaActual, false) :
+        await this.getLiquidacionCuentaCoordinador(queryRunner, anio, mes, PersonalId, fechaActual, false)
 
 
 
-      const htmlContent = await this.getReciboHtmlContentGeneral(fechaActual, (tipocuenta_id == 'C') ? 'Coordinador Cuenta' : '', anio, mes, header, body, footer)
+      const htmlContent = await this.getReciboHtmlContentGeneral((tipocuenta_id == 'C') ? 'Coordinador Cuenta' : '', anio, mes, header, body, footer)
 
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
@@ -1215,7 +1240,7 @@ GROUP BY
         filesPath = (process.env.PATH_RECIBO_HTML_TEST) ? process.env.PATH_RECIBO_HTML_TEST : 'tmp' + '/' + persona_id + '-' + String(anio) + "-" + String(mes) + ".pdf"
         const den_documento = Math.floor(10000 + Math.random() * 90000);
         await this.createPdf(queryRunner, filesPath, persona_id, den_documento, recibo.PersonalNombre, recibo.PersonalCUITCUILCUIT, recibo.DomicilioCompleto, recibo.SucursalDescripcion, recibo.PersonalNroLegajo,
-          recibo.GrupoActividadDetalle, periodo_id, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer, tipocuenta_id)
+          recibo.GrupoActividadDetalle, periodo_id, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer, tipocuenta_id, fechaActual)
       }
 
 
