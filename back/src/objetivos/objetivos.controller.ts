@@ -2111,7 +2111,7 @@ outer APPLY (SELECT
             `INSERT INTO Domicilio (
                 DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
                 DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId) 
-            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`, 
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`, 
             [ DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro,
             DomicilioCodigoPostal, DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId,
             domicilioBarrioIdValue]
