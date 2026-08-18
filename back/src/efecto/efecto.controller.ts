@@ -1852,7 +1852,7 @@ export class EfectoController extends BaseController {
 
       // La identidad se valida con los datos ya persistidos en la transacción y antes de tocar la
       // copia usada: descripción + conjuntos exactos de atributos, siempre sin el atributo 11.
-      await this.validarIdentidadEfectoUnica(queryRunner, efectoId!, individualId);
+      await this.validarEfectoDuplicado(queryRunner, efectoId, individualId);
 
       // Si el efecto modificado es original de uno usado, recién después de validar se sincroniza.
       await this.sincronizarEfectoTransformado(queryRunner, efectoId!, now, usuario, ip);
@@ -1938,7 +1938,7 @@ export class EfectoController extends BaseController {
         }
       }
 
-      await this.validarIdentidadEfectoUnica(queryRunner, efectoId, individualId);
+      await this.validarEfectoDuplicado(queryRunner, efectoId, individualId);
 
       const formulario = await this.formularioEfectoForm(queryRunner, efectoId, individualId);
 
@@ -2006,8 +2006,7 @@ export class EfectoController extends BaseController {
         `, [efectoId, individualId, String(completo).substring(0, 250)]);
       }
 
-      // La identidad completa del nuevo individual no debe colisionar con otro del catálogo.
-      await this.validarIdentidadEfectoUnica(queryRunner, efectoId!, individualId);
+      await this.validarEfectoDuplicado(queryRunner, efectoId, individualId);
 
       const formulario = await this.formularioEfectoForm(queryRunner, efectoId!, individualId);
 
@@ -2529,53 +2528,22 @@ export class EfectoController extends BaseController {
   private static readonly COMPLETO_EXPR = `CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )')`;
 
   // TODO: MEJORAR QUERYS
-  private async validarIdentidadEfectoUnica(
+  private async validarEfectoDuplicado(
     queryRunner: any, efectoId: number, individualId: number | null
   ) {
     if (individualId == null) {
-      const duplicado = await queryRunner.query(`
-        SELECT TOP 1
-          otro.EfectoId,
-          TRIM(otro.EfectoDescripcion) AS EfectoDescripcion
-        FROM Efecto actual
-        JOIN Efecto otro ON otro.EfectoId <> actual.EfectoId
-        WHERE actual.EfectoId = @0
-          AND UPPER(TRIM(otro.EfectoDescripcion)) = UPPER(TRIM(actual.EfectoDescripcion))
-          -- El original y su copia usada forman una sola identidad de negocio.
-          AND (actual.EfectoEfectoTransformacionEfectoId IS NULL
-               OR otro.EfectoId <> actual.EfectoEfectoTransformacionEfectoId)
-          AND (otro.EfectoEfectoTransformacionEfectoId IS NULL
-               OR otro.EfectoEfectoTransformacionEfectoId <> actual.EfectoId)
-          -- Ningún atributo del actual, salvo el 11, puede faltar en el otro.
-          AND NOT EXISTS (
-            SELECT eaActual.EfectoAtributoAtributoId, eaActual.EfectoAtributoValorId
-            FROM EfectoAtributo eaActual
-            WHERE eaActual.EfectoId = actual.EfectoId
-              AND eaActual.EfectoAtributoAtributoId <> 11
 
-            EXCEPT
-
-            SELECT eaOtro.EfectoAtributoAtributoId, eaOtro.EfectoAtributoValorId
-            FROM EfectoAtributo eaOtro
-            WHERE eaOtro.EfectoId = otro.EfectoId
-              AND eaOtro.EfectoAtributoAtributoId <> 11
-          )
-          -- Tampoco puede haber atributos adicionales en el otro.
-          AND NOT EXISTS (
-            SELECT eaOtro.EfectoAtributoAtributoId, eaOtro.EfectoAtributoValorId
-            FROM EfectoAtributo eaOtro
-            WHERE eaOtro.EfectoId = otro.EfectoId
-              AND eaOtro.EfectoAtributoAtributoId <> 11
-
-            EXCEPT
-
-            SELECT eaActual.EfectoAtributoAtributoId, eaActual.EfectoAtributoValorId
-            FROM EfectoAtributo eaActual
-            WHERE eaActual.EfectoId = actual.EfectoId
-              AND eaActual.EfectoAtributoAtributoId <> 11
-          )
-        ORDER BY otro.EfectoId
+      // busco como quedo la descripcion completa del efecto
+      const EfectoDescripcionCompleta = await queryRunner.query(`
+      Select efe.EfectoId, efeind.EfectoEfectoIndividualId, CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto
+      from EfectoDescripcion efe
+      left join EfectoIndividualDescripcion efeind on efeind.EfectoId=efe.EfectoId
+      where efe.EfectoId=@0
       `, [efectoId]);
+
+      const duplicado = await queryRunner.query(`
+        
+        `, [EfectoDescripcionCompleta[0]?.EfectoDescripcionCompleto])
 
       if (duplicado.length) {
         const otro = duplicado[0];
@@ -2587,89 +2555,7 @@ export class EfectoController extends BaseController {
     }
 
     const duplicadoIndividual = await queryRunner.query(`
-      SELECT TOP 1
-        otro.EfectoId,
-        otroIndividual.EfectoEfectoIndividualId,
-        TRIM(otro.EfectoDescripcion) AS EfectoDescripcion,
-        TRIM(otroIndividual.EfectoEfectoIndividualDescripcion) AS EfectoIndividualDescripcion
-      FROM Efecto actual
-      JOIN EfectoEfectoIndividual actualIndividual
-        ON actualIndividual.EfectoId = actual.EfectoId
-       AND actualIndividual.EfectoEfectoIndividualId = @1
-      JOIN Efecto otro
-        ON UPPER(TRIM(otro.EfectoDescripcion)) = UPPER(TRIM(actual.EfectoDescripcion))
-      JOIN EfectoEfectoIndividual otroIndividual
-        ON otroIndividual.EfectoId = otro.EfectoId
-       AND UPPER(TRIM(otroIndividual.EfectoEfectoIndividualDescripcion)) =
-           UPPER(TRIM(actualIndividual.EfectoEfectoIndividualDescripcion))
-      WHERE actual.EfectoId = @0
-        AND NOT (
-          otro.EfectoId = actual.EfectoId
-          AND otroIndividual.EfectoEfectoIndividualId = actualIndividual.EfectoEfectoIndividualId
-        )
-        -- Los atributos del efecto base también forman parte de la identidad del individual.
-        AND NOT EXISTS (
-          SELECT eaActual.EfectoAtributoAtributoId, eaActual.EfectoAtributoValorId
-          FROM EfectoAtributo eaActual
-          WHERE eaActual.EfectoId = actual.EfectoId
-            AND eaActual.EfectoAtributoAtributoId <> 11
-
-          EXCEPT
-
-          SELECT eaOtro.EfectoAtributoAtributoId, eaOtro.EfectoAtributoValorId
-          FROM EfectoAtributo eaOtro
-          WHERE eaOtro.EfectoId = otro.EfectoId
-            AND eaOtro.EfectoAtributoAtributoId <> 11
-        )
-        AND NOT EXISTS (
-          SELECT eaOtro.EfectoAtributoAtributoId, eaOtro.EfectoAtributoValorId
-          FROM EfectoAtributo eaOtro
-          WHERE eaOtro.EfectoId = otro.EfectoId
-            AND eaOtro.EfectoAtributoAtributoId <> 11
-
-          EXCEPT
-
-          SELECT eaActual.EfectoAtributoAtributoId, eaActual.EfectoAtributoValorId
-          FROM EfectoAtributo eaActual
-          WHERE eaActual.EfectoId = actual.EfectoId
-            AND eaActual.EfectoAtributoAtributoId <> 11
-        )
-        -- Y los atributos de ingreso del individual deben coincidir en ambos sentidos.
-        AND NOT EXISTS (
-          SELECT
-            iaActual.EfectoAtributoAtributoIngresoId,
-            UPPER(TRIM(ISNULL(iaActual.EfectoAtributoIngresoValor, '')))
-          FROM EfectoEfectoIndividualAtributoIngreso iaActual
-          WHERE iaActual.EfectoId = actualIndividual.EfectoId
-            AND iaActual.EfectoEfectoIndividualId = actualIndividual.EfectoEfectoIndividualId
-
-          EXCEPT
-
-          SELECT
-            iaOtro.EfectoAtributoAtributoIngresoId,
-            UPPER(TRIM(ISNULL(iaOtro.EfectoAtributoIngresoValor, '')))
-          FROM EfectoEfectoIndividualAtributoIngreso iaOtro
-          WHERE iaOtro.EfectoId = otroIndividual.EfectoId
-            AND iaOtro.EfectoEfectoIndividualId = otroIndividual.EfectoEfectoIndividualId
-        )
-        AND NOT EXISTS (
-          SELECT
-            iaOtro.EfectoAtributoAtributoIngresoId,
-            UPPER(TRIM(ISNULL(iaOtro.EfectoAtributoIngresoValor, '')))
-          FROM EfectoEfectoIndividualAtributoIngreso iaOtro
-          WHERE iaOtro.EfectoId = otroIndividual.EfectoId
-            AND iaOtro.EfectoEfectoIndividualId = otroIndividual.EfectoEfectoIndividualId
-
-          EXCEPT
-
-          SELECT
-            iaActual.EfectoAtributoAtributoIngresoId,
-            UPPER(TRIM(ISNULL(iaActual.EfectoAtributoIngresoValor, '')))
-          FROM EfectoEfectoIndividualAtributoIngreso iaActual
-          WHERE iaActual.EfectoId = actualIndividual.EfectoId
-            AND iaActual.EfectoEfectoIndividualId = actualIndividual.EfectoEfectoIndividualId
-        )
-      ORDER BY otro.EfectoId, otroIndividual.EfectoEfectoIndividualId
+    
     `, [efectoId, individualId]);
 
     if (duplicadoIndividual.length) {

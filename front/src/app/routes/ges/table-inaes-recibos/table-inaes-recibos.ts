@@ -79,8 +79,20 @@ export class TableINAESRecibosComponent {
     defaultValue: []
   })
 
-  ngOnInit(): void {
-    this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent);
+  async ngOnInit() {
+    const now = new Date(); //date
+    const anio =
+      Number(localStorage.getItem('anio')) > 0
+        ? Number(localStorage.getItem('anio'))
+        : now.getFullYear();
+    const mes =
+      Number(localStorage.getItem('mes')) > 0
+        ? Number(localStorage.getItem('mes'))
+        : now.getMonth() + 1;
+    this.periodo.set(new Date(anio, mes - 1, 1))
+
+    // Grid Options
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridRecibos', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent);
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
@@ -139,9 +151,7 @@ export class TableINAESRecibosComponent {
     );
 
     for (const col of columns) {
-      console.log('col ',col.params)
       if (col.params?.exportHeader) {
-        console.log('col ',col.params.exportHeader)
         col.name = col.params.exportHeader;
       }
     }
@@ -187,5 +197,10 @@ export class TableINAESRecibosComponent {
     });
 
     return result;
+  }
+
+  dateChange(result: Date): void {
+    localStorage.setItem('anio', String(result.getFullYear()));
+    localStorage.setItem('mes', String(result.getMonth() + 1));
   }
 } 

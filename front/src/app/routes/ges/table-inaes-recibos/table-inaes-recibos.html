@@ -1,12 +1,11 @@
 <nz-card class="small-margin">
-  <ng-container>
-    @if (columns().length) {
+  @if (columns().length) {
+  <div nz-tab>
     <div nz-row>
       <div nz-col nzSpan="12">
         <nz-form-control>
           <nz-form-label>Periodo</nz-form-label>
-          <!-- <nz-date-picker nzMode="month"/> -->
-          <nz-date-picker nzMode="month" [(ngModel)]="periodo" />
+          <nz-date-picker nzMode="month" [(ngModel)]="periodo" (ngModelChange)="dateChange($event)"/>
         </nz-form-control>
       </div>
 
@@ -26,14 +25,13 @@
       </div>
     </div>
 
-    <div class="gridContainer container-fluid">
+    <div class="gridRecibos container-fluid">
       <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions"/>
       <angular-slickgrid gridId="gridRecibos" [columns]="columns() | colsFilter"
         [options]="gridOptions" [dataset]="gridData.value()"
         (onAngularGridCreated)="angularGridReady($event)">
       </angular-slickgrid>
     </div>
-    }
-  </ng-container>
-
+  </div>
+  }
 </nz-card>

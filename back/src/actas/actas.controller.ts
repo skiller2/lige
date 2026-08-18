@@ -285,10 +285,13 @@ export class ActasController extends BaseController {
   }
 
   async addActa(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection(res.locals.userName);
+    const user = res.locals.userName;
+    const queryRunner = await getConnection(user);
     const ActaNroActa: number = req.body.ActaNroActa;
     const ActaDescripcion: string = req.body.ActaDescripcion;
     const ActaFechaActa: Date = req.body.ActaFechaActa ? new Date(req.body.ActaFechaActa) : null;
+    const ip = this.getRemoteAddress(req);
+    const now = new Date();
     try {
       await queryRunner.startTransaction()
 
@@ -299,9 +302,15 @@ export class ActasController extends BaseController {
         INSERT INTO Acta (
           ActaNroActa,
           ActaDescripcion,
-          ActaFechaActa
-        ) VALUES (@0,@1,@2)
-      `, [ActaNroActa, ActaDescripcion, ActaFechaActa])
+          ActaFechaActa,
+          AudFechaIng,
+          AudFechaMod,
+          AudIpIng,
+          AudIpMod,
+          AudUsuarioIng,
+          AudUsuarioMod
+        ) VALUES (@0,@1,@2,@3,@3,@4,@4,@5,@5)
+      `, [ActaNroActa, ActaDescripcion, ActaFechaActa, now, ip, user])
 
       const Acta = await queryRunner.query(`
         SELECT ActaId FROM Acta
@@ -320,7 +329,9 @@ export class ActasController extends BaseController {
   }
 
   async updateActa(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection(res.locals.userName);
+    const user = res.locals.userName;
+    const queryRunner = await getConnection(user);
+    const ip = this.getRemoteAddress(req);
     const ActaId = req.body.ActaId;
     const ActaNroActa = req.body.ActaNroActa;
     const ActaDescripcion = req.body.ActaDescripcion;
@@ -331,13 +342,22 @@ export class ActasController extends BaseController {
       //Validaciones:
       await this.validateFormActa(req.body, 'U', queryRunner)
 
+      const res= await queryRunner.query(`
+        SELECT COUNT(*) AS count FROM PersonalActa WHERE ActaId=@0
+        `, [ActaId])
+
+      if (res[0].count > 0) throw new ClientException(`No se puede modificar el acta porque tiene registros asociados en Personal: ${res[0].count}.`)
+      
       await queryRunner.query(`
         UPDATE Acta SET
           ActaNroActa = @1,
           ActaDescripcion = @2,
-          ActaFechaActa = @3
+          ActaFechaActa = @3,
+          AudFechaMod=@4,
+          AudIpMod=@5,
+          AudUsuarioMod=@6
         WHERE ActaId IN (@0)
-      `, [ActaId, ActaNroActa, ActaDescripcion, ActaFechaActa])
+      `, [ActaId, ActaNroActa, ActaDescripcion, ActaFechaActa, new Date(), ip, user])
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Actualización de registro exitoso');
     } catch (error) {
