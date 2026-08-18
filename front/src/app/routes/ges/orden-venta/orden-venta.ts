@@ -26,17 +26,29 @@ export class OrdenVentaComponent {
   private apiService = inject(ApiService)
 
   // Detalle de la orden (ítems). Se recarga solo al cambiar objetivo/período.
+  // Si la orden del período no existe, el detalle viene inicializado con el mes anterior.
   itemsResource = resource({
     params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
-      if (!params.objetivoId || !params.anio || !params.mes) return []
+      if (!params.objetivoId || !params.anio || !params.mes) return { list: [], esNueva: false }
 
       const response = await firstValueFrom(
         this.apiService.getListOrdenVenta(params.objetivoId, params.anio, params.mes)
       )
-      return response.list ?? []
+      return { ...response, list: response.list ?? [] }
     },
-    defaultValue: []
+    defaultValue: { list: [], esNueva: false } as any
+  })
+
+  items = computed<any[]>(() => this.itemsResource.value()?.list ?? [])
+
+  // Una orden que todavía no se generó no tiene estado propio
+  estado = computed<string>(() => {
+    const detalle = this.itemsResource.value()
+    if (this.cabecera().EstadoOrdenVenta) return this.cabecera().EstadoOrdenVenta
+    if (detalle?.esNueva && detalle?.list?.length)
+      return `Nueva, inicializada con ${String(detalle.origenMes).padStart(2, '0')}/${detalle.origenAnio}`
+    return 'Sin orden de venta'
   })
 
   // Detalle tal cual está en el form (incluye ítems agregados/editados sin guardar)
@@ -60,6 +72,14 @@ export class OrdenVentaComponent {
         this.objetivoNombre.emit('')
       }
     })
+  }
+
+  // Después de guardar cambian tanto el detalle (ítems nuevos con su código) como la
+  // cabecera (nro. de orden y estado)
+  recargar() {
+    this.itemsResource.reload()
+    if (this.objetivoId() > 0 && this.anio() > 0 && this.mes() > 0)
+      this.getCabecera(this.objetivoId(), this.anio(), this.mes())
   }
 
   async getCabecera(objetivoId: number, anio: number, mes: number) {
