@@ -4,6 +4,8 @@ import { SHARED_IMPORTS } from '@shared';
 import { ProductoSearchComponent } from '../../../shared/producto-search/producto-search.component';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
+import { ApiService } from '../../../services/api.service';
 
 @Component({
   selector: 'app-orden-venta-form',
@@ -28,6 +30,7 @@ export class OrdenVentaFormComponent {
 
   private fb = inject(FormBuilder)
   private destroyRef = inject(DestroyRef)
+  private apiService = inject(ApiService)
 
   // Un item por cada producto de la orden. Los campos son las columnas de la grilla
   // (/api/orden-venta/cols)
@@ -108,9 +111,26 @@ export class OrdenVentaFormComponent {
     return group
   }
 
-  // Al elegir el producto se guarda también el nombre, que es lo que se muestra en la grilla
-  productoChange(index: number, producto: { value: string; label: string } | null) {
-    this.itemsArray.at(index)?.patchValue({ Producto: producto?.label ?? '' })
+  // Al elegir el producto se guarda también el nombre, que es lo que se muestra en la grilla,
+  // y se sugiere el importe unitario según el precio vigente del cliente para el período.
+  async productoChange(index: number, producto: { value: string; label: string } | null) {
+    const item = this.itemsArray.at(index)
+    if (!item) return
+
+    item.patchValue({ Producto: producto?.label ?? '' })
+
+    const productoCodigo = producto?.value ?? ''
+    if (!productoCodigo || !this.objetivoId() || !this.anio() || !this.mes()) return
+
+    const precio = await firstValueFrom(
+      this.apiService.getPrecioProductoOrdenVenta(this.objetivoId(), this.anio(), this.mes(), productoCodigo)
+    )
+
+    if (precio?.ImporteUnitario == null) return
+    if (String(item.getRawValue()?.ProductoCodigo ?? '') !== productoCodigo) return
+
+    item.patchValue({ ImporteUnitario: Number(precio.ImporteUnitario) })
+    this.formOrdenVenta.markAsDirty()
   }
 
   addItem(event?: Event) {

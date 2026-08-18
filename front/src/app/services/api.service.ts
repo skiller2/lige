@@ -1963,6 +1963,14 @@ export class ApiService {
     );
   }
 
+  getPrecioProductoOrdenVenta(ObjetivoId: number, anio: number, mes: number, ProductoCodigo: string) {
+
+    return this.http.get<ResponseJSON<any>>(`/api/orden-venta/precio/${ObjetivoId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of({ ImporteUnitario: null }))
+    );
+  }
+
 
   setListAdministradores(filters: any) {
     const parameter = filters
