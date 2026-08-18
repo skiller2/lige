@@ -80,7 +80,8 @@
 
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-        <button nzType="primary" nz-button (click)="save()" [disabled]="formOrdenVenta.pristine">
+        <button nzType="primary" nz-button (click)="save()" [nzLoading]="guardando()"
+          [disabled]="formOrdenVenta.pristine || guardando()">
           {{ 'app.btn.save' | i18n }}
         </button>
       </nz-form-control>

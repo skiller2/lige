@@ -16,14 +16,14 @@
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estado Orden Venta</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-      <input nz-input [value]="cabecera().EstadoOrdenVenta ?? 'Sin orden de venta'" [disabled]="true" />
+      <input nz-input [value]="estado()" [disabled]="true" />
     </nz-form-control>
   </nz-form-item>
 
   <!-- <app-table-orden-venta [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" /> -->
 
-  <app-orden-venta-form [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="itemsResource.value()"
-    (detalleChange)="detalle.set($event)" (guardado)="itemsResource.reload()" />
+  <app-orden-venta-form [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
+    (detalleChange)="detalle.set($event)" (guardado)="recargar()" />
 
   <nz-divider></nz-divider>
 

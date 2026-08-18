@@ -41,6 +41,8 @@ export class OrdenVentaFormComponent {
   // Panel abierto del acordeón (uno solo a la vez, para no colapsar la vista)
   panelAbierto = signal<number>(0)
 
+  guardando = signal(false)
+
   private formValue = toSignal(this.formOrdenVenta.valueChanges, {
     initialValue: this.formOrdenVenta.getRawValue()
   })
@@ -90,6 +92,7 @@ export class OrdenVentaFormComponent {
   }
 
   private nuevoItem(item: any = {}): FormGroup {
+    // id = ItemOrdenVentaCodigo. En cero es un ítem nuevo, todavía sin persistir.
     const group = this.fb.group({
       id: item.id ?? 0,
       ProductoCodigo: item.ProductoCodigo ?? '',
@@ -98,7 +101,12 @@ export class OrdenVentaFormComponent {
       ImporteUnitario: item.ImporteUnitario ?? 0,
       TextoFactura: item.TextoFactura ?? '',
       CantidadEnFactura: item.CantidadEnFactura ?? 0,
-      ImporteTotal: item.ImporteTotal ?? 0
+      ImporteTotal: item.ImporteTotal ?? 0,
+      // No se editan en pantalla, pero viajan de vuelta al guardar
+      TipoCantidad: item.TipoCantidad ?? '',
+      TipoImporte: item.TipoImporte ?? '',
+      CantidadEstandar: item.CantidadEstandar ?? null,
+      Bonificacion: item.Bonificacion ?? null
     })
 
     // Importe Total = Cantidad * Importe Unitario
@@ -151,8 +159,27 @@ export class OrdenVentaFormComponent {
     this.formOrdenVenta.markAsDirty()
   }
 
-  save() {
-    // TODO: falta el endpoint de alta/modificación en /api/orden-venta
-    this.guardado.emit()
+  async save() {
+    if (this.guardando()) return
+
+    // Los ítems sin producto son filas que quedaron abiertas sin completar
+    const items = this.itemsArray.getRawValue().filter((item: any) => String(item?.ProductoCodigo ?? '').trim())
+    if (!items.length) return
+
+    this.guardando.set(true)
+    try {
+      await firstValueFrom(this.apiService.setOrdenVenta({
+        ObjetivoId: this.objetivoId(),
+        anio: this.anio(),
+        mes: this.mes(),
+        items
+      }))
+
+      this.formOrdenVenta.markAsPristine()
+      // Recarga el detalle: los ítems nuevos vuelven con su ItemOrdenVentaCodigo
+      this.guardado.emit()
+    } finally {
+      this.guardando.set(false)
+    }
   }
 }
