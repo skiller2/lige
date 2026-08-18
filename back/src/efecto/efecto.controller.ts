@@ -2522,47 +2522,52 @@ export class EfectoController extends BaseController {
     `, [efectoId, individualId, ultNro]);
   }
 
-  // Concatenación que muestra el buscador (descripción + descripción individual + atributos del
-  // efecto e individual). La arman las vistas EfectoDescripcion / EfectoIndividualDescripcion, así
-  // que es la fuente de verdad del string; se lee de la base en vez de rearmarlo en código.
+  // Concatenación que muestra el buscador (descripción + descripción individual + atributos del efecto e individual). La arman las vistas EfectoDescripcion / EfectoIndividualDescripcion, se lee de la base en vez de rearmarlo en código.
   private static readonly COMPLETO_EXPR = `CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )')`;
 
-  // TODO: MEJORAR QUERYS
+  // Descripción a nivel efecto (sin individual): la misma forma que muestra el buscador de efectos.
+  private static readonly BASE_EXPR = `CONCAT(TRIM(efe.EfectoDescripcion), ' (', efe.EfectoAtrDescripcion, ' )')`;
+
   private async validarEfectoDuplicado(
     queryRunner: any, efectoId: number, individualId: number | null
   ) {
-    if (individualId == null) {
 
-      // busco como quedo la descripcion completa del efecto
-      const EfectoDescripcionCompleta = await queryRunner.query(`
-      Select efe.EfectoId, efeind.EfectoEfectoIndividualId, CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )' ) EfectoDescripcionCompleto
-      from EfectoDescripcion efe
-      left join EfectoIndividualDescripcion efeind on efeind.EfectoId=efe.EfectoId
-      where efe.EfectoId=@0
-      `, [efectoId]);
+    if (individualId != null) {
+ 
+      const completo = await this.descripcionCompletaDe(queryRunner, efectoId, individualId);
+      if (!completo) return;
 
-      const duplicado = await queryRunner.query(`
-        
-        `, [EfectoDescripcionCompleta[0]?.EfectoDescripcionCompleto])
+      const dupIndividual = await queryRunner.query(`
+      SELECT TOP 1 efe.EfectoId, efeind.EfectoEfectoIndividualId,
+             ${EfectoController.COMPLETO_EXPR} AS Descripcion
+      FROM EfectoDescripcion efe
+      JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = efe.EfectoId
+      WHERE ${EfectoController.COMPLETO_EXPR} = @0
+        AND NOT (efe.EfectoId = @1 AND efeind.EfectoEfectoIndividualId = @2)
+    `, [completo, efectoId, individualId]);
 
-      if (duplicado.length) {
-        const otro = duplicado[0];
+      if (dupIndividual.length)
         throw new ClientException(
-          `Ya existe el efecto #${otro.EfectoId} con la misma descripción y los mismos atributos: "${String(otro.EfectoDescripcion).trim()}".`
-        );
-      }
-      return;
+          `Ya existe el efecto #${dupIndividual[0].EfectoId}/${dupIndividual[0].EfectoEfectoIndividualId} con la misma descripción y los mismos atributos: "${String(dupIndividual[0].Descripcion).trim()}".`
+        )
     }
 
-    const duplicadoIndividual = await queryRunner.query(`
-    
-    `, [efectoId, individualId]);
+    const base = await queryRunner.query(`
+      SELECT TOP 1 ${EfectoController.BASE_EXPR} AS Descripcion
+      FROM EfectoDescripcion efe WHERE efe.EfectoId = @0
+    `, [efectoId]);
 
-    if (duplicadoIndividual.length) {
-      const otro = duplicadoIndividual[0];
-      throw new ClientException(
-        `Ya existe el efecto individual #${otro.EfectoEfectoIndividualId} del efecto #${otro.EfectoId} con la misma descripción y los mismos atributos.`
-      );
+    if (base.length) {
+      const dupEfecto = await queryRunner.query(`
+        SELECT TOP 1 efe.EfectoId, ${EfectoController.BASE_EXPR} AS Descripcion
+        FROM EfectoDescripcion efe
+        WHERE ${EfectoController.BASE_EXPR} = @0 AND efe.EfectoId <> @1
+      `, [base[0].Descripcion, efectoId]);
+
+      if (dupEfecto.length)
+        throw new ClientException(
+          `Ya existe el efecto #${dupEfecto[0].EfectoId} con la misma descripción y los mismos atributos: "${String(dupEfecto[0].Descripcion).trim()}".`
+        );
     }
   }
 
