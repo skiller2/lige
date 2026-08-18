@@ -16,6 +16,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Selections } from '../../../shared/schemas/filtro';
 import { LoadingService } from '@delon/abc/loading';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 
 @Component({
   selector: 'app-table-inaes-recibos',
@@ -57,6 +58,10 @@ export class TableINAESRecibosComponent {
       //    this.columnsForExport = cols
       //        .filter((col: any) => col.excludeFromExport != true)
       //        .map((col: Column) => col.id as string);
+
+      cols
+      .filter((col: Column) => ['ApellidoNombre'].includes(String(col.id)))
+      .forEach((col: Column) => col.asyncPostRender = this.renderAngularComponent.bind(this))
 
       return cols;
     })), { initialValue: [] as Column[] })
@@ -202,5 +207,21 @@ export class TableINAESRecibosComponent {
   dateChange(result: Date): void {
     localStorage.setItem('anio', String(result.getFullYear()));
     localStorage.setItem('mes', String(result.getMonth() + 1));
+  }
+
+  renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
+    const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
+    switch (colDef.id) {
+      case 'ApellidoNombre':
+        Object.assign(componentOutput.componentRef.instance, {
+          link: '/ges/detalle_asistencia/persona', params: { PersonalId: dataContext.PersonalId }, detail: cellNode.innerText
+        })
+        break;
+
+      default:
+        return;
+    }
+
+    cellNode.replaceChildren(componentOutput.domElement)
   }
 } 
