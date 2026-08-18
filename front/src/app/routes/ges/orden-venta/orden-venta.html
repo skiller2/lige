@@ -23,6 +23,8 @@
   <!-- <app-table-orden-venta [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" /> -->
 
   <app-orden-venta-form [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
+    [clienteId]="cabecera().ClienteId ?? null"
+    [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
     (detalleChange)="detalle.set($event)" (guardado)="recargar()" />
 
   <nz-divider></nz-divider>

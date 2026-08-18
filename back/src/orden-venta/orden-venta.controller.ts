@@ -199,7 +199,7 @@ export class OrdenVentaController extends BaseController {
         SELECT
           @1 AS Anio,
           @2 AS Mes,
-          obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
+          obj.ObjetivoId, obj.ClienteId, ISNULL(obj.ClienteElementoDependienteId,0) AS ClienteElementoDependienteId,
           CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',TRIM(ISNULL(cli.ClienteDenominacion,'')),' ',TRIM(ISNULL(eledep.ClienteElementoDependienteDescripcion,''))) AS ObjetivoNombre,
           ord.NroOrdenVenta,
           ord.EstadoOrdenVentaCodigo,
@@ -242,6 +242,8 @@ export class OrdenVentaController extends BaseController {
     const ObjetivoId = Number(req.body.ObjetivoId);
     const anio = Number(req.body.anio);
     const mes = Number(req.body.mes);
+    const ClienteId = Number(req.body.ClienteId);
+    const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
     const detalle: any[] = Array.isArray(req.body.items) ? req.body.items : [];
     const Observaciones = req.body.Observaciones ?? null;
 
@@ -252,9 +254,68 @@ export class OrdenVentaController extends BaseController {
       const ip = this.getRemoteAddress(req);
       const ahora = new Date();
 
+      const errores: string[] = [];
+
+      if (req.body.anio == null || String(req.body.anio).trim() === '')
+        errores.push('El año es obligatorio');
+
+      if (req.body.mes == null || String(req.body.mes).trim() === '')
+        errores.push('El mes es obligatorio');
+
+      if (req.body.ClienteId == null || String(req.body.ClienteId).trim() === '')
+        errores.push('El cliente es obligatorio');
+
+      // Cero es un valor válido: es el objetivo sin elemento dependiente
+      if (req.body.ClienteElementoDependienteId == null || String(req.body.ClienteElementoDependienteId).trim() === '')
+        errores.push('El elemento dependiente del cliente es obligatorio');
+
+      if (errores.length)
+        throw new ClientException(errores);
+
       const items = detalle.filter(item => String(item?.ProductoCodigo ?? '').trim());
       if (!items.length)
         throw new ClientException('La orden de venta debe tener al menos un producto');
+
+      // Los códigos del detalle tienen que existir en Producto: una sola consulta para todos
+      const codigos = [...new Set(items.map(item => String(item.ProductoCodigo).trim()))];
+      const productos = await queryRunner.query(
+        `SELECT ProductoCodigo FROM Producto WHERE ProductoCodigo IN (${codigos.map((_, indice) => `@${indice}`).join(',')})`,
+        codigos);
+
+      const existentes = new Set(productos.map((producto: any) => String(producto.ProductoCodigo).trim().toUpperCase()));
+      const inexistentes = codigos.filter(codigo => !existentes.has(codigo.toUpperCase()));
+      if (inexistentes.length)
+        throw new ClientException(inexistentes.map(codigo => `El producto ${codigo} no existe`));
+
+      // De la cantidad y el importe unitario sale el importe a facturar: tienen que ser números
+      // no negativos en todos los ítems
+      const camposNumericos = [
+        { campo: 'Cantidad', nombre: 'La cantidad', obligatorio: 'obligatoria', negativo: 'negativa' },
+        { campo: 'ImporteUnitario', nombre: 'El importe unitario', obligatorio: 'obligatorio', negativo: 'negativo' }
+      ];
+      const erroresItems: string[] = [];
+
+      for (const [indice, item] of items.entries()) {
+        const donde = `Ítem ${indice + 1} (${String(item.ProductoCodigo).trim()})`;
+
+        for (const { campo, nombre, obligatorio, negativo } of camposNumericos) {
+          const valor = item[campo];
+
+          if (valor == null || String(valor).trim() === '') {
+            erroresItems.push(`${donde}: ${nombre} es ${obligatorio}`);
+            continue;
+          }
+
+          const numero = Number(valor);
+          if (!Number.isFinite(numero))
+            erroresItems.push(`${donde}: ${nombre} '${valor}' no es un número válido`);
+          else if (numero < 0)
+            erroresItems.push(`${donde}: ${nombre} no puede ser ${negativo}`);
+        }
+      }
+
+      if (erroresItems.length)
+        throw new ClientException(erroresItems);
 
       const objetivos = await queryRunner.query(`
         SELECT obj.ClienteId, ISNULL(obj.ClienteElementoDependienteId,0) AS ClienteElementoDependienteId
@@ -264,6 +325,15 @@ export class OrdenVentaController extends BaseController {
       const objetivo = objetivos[0];
       if (!objetivo)
         throw new ClientException(`No se encontró el objetivo ${ObjetivoId}`);
+
+      // La orden se guarda contra el cliente del objetivo: si no es el de la pantalla, los datos
+      // terminarían en un cliente distinto al que se está editando
+      if (Number(objetivo.ClienteId) !== ClienteId)
+        throw new ClientException(`El objetivo ${ObjetivoId} no pertenece al cliente ${ClienteId}`);
+
+      if (Number(objetivo.ClienteElementoDependienteId) !== ClienteElementoDependienteId)
+        throw new ClientException(
+          `El objetivo ${ObjetivoId} no corresponde al elemento dependiente ${ClienteElementoDependienteId} del cliente ${ClienteId}`);
 
       await queryRunner.startTransaction();
 

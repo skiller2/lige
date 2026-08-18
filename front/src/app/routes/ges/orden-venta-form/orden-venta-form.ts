@@ -21,6 +21,10 @@ export class OrdenVentaFormComponent {
   mes = input<number>(0)
   objetivoId = input<number>(0)
 
+  // Salen de la cabecera. El back valida que el objetivo pertenezca a este cliente antes de guardar
+  clienteId = input<number | null>(null)
+  clienteElementoDependienteId = input<number | null>(null)
+
   // Ítems que vienen del detalle (/api/orden-venta/list)
   items = input<any[]>([])
 
@@ -172,6 +176,8 @@ export class OrdenVentaFormComponent {
         ObjetivoId: this.objetivoId(),
         anio: this.anio(),
         mes: this.mes(),
+        ClienteId: this.clienteId(),
+        ClienteElementoDependienteId: this.clienteElementoDependienteId(),
         items
       }))
 
