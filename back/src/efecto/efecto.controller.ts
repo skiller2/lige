@@ -1793,7 +1793,8 @@ export class EfectoController extends BaseController {
 
       const body = req.body ?? {};
       const efectoId = Number(body.EfectoId) || null;
-      const descripcion = String(body.EfectoDescripcion ?? '').trim();
+      // Colapsa espacios repetidos: si no, parten el stock en dos efectos iguales en pantalla.
+      const descripcion = String(body.EfectoDescripcion ?? '').replace(/\s+/g, ' ').trim();
       const rubroId = Number(body.RubroId) || null;
       const subrubroId = Number(body.SubrubroId) || null;
       const unidadMedidaId = Number(body.EfectoUnidadMedidaPrincipalId) || null;
@@ -1802,7 +1803,7 @@ export class EfectoController extends BaseController {
       const individualId = body.EfectoEfectoIndividualId == null || body.EfectoEfectoIndividualId === ''
         ? null
         : Number(body.EfectoEfectoIndividualId);
-      const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').trim();
+      const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').replace(/\s+/g, ' ').trim();
       // Los atributos de ingreso cuelgan del efecto individual: sin individual no hay filas.
       const atributos = individualId != null && Array.isArray(body.atributos) ? body.atributos : [];
       // Atributos/valores del efecto (filas de EfectoAtributo, 1:N). Se descartan las filas sin
@@ -1876,12 +1877,12 @@ export class EfectoController extends BaseController {
     try {
       await queryRunner.startTransaction();
       const body = req.body ?? {};
-      const descripcion = String(body.EfectoDescripcion ?? '').trim();
+      const descripcion = String(body.EfectoDescripcion ?? '').replace(/\s+/g, ' ').trim();
       const rubroId = Number(body.RubroId) || null;
       const subrubroId = Number(body.SubrubroId) || null;
       const unidadMedidaId = Number(body.EfectoUnidadMedidaPrincipalId) || null;
       const stockMinimo = body.EfectoStockMinimo == null || body.EfectoStockMinimo === '' ? null : Number(body.EfectoStockMinimo);
-      const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').trim();
+      const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').replace(/\s+/g, ' ').trim();
       const atributosEfectoIndividual = Array.isArray(body.atributos) ? body.atributos : [];
       const crearEfectoIndividual = individualDescripcion.length > 0 || atributosEfectoIndividual.length > 0;
       const efectoAtributos = (Array.isArray(body.EfectoAtributos) ? body.EfectoAtributos : []).map((row: any) => {
@@ -1964,7 +1965,7 @@ export class EfectoController extends BaseController {
 
       const body = req.body ?? {};
       const efectoId = Number(body.EfectoId) || null;
-      const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').trim();
+      const individualDescripcion = String(body.EfectoEfectoIndividualDescripcion ?? '').replace(/\s+/g, ' ').trim();
       const atributos = Array.isArray(body.atributos) ? body.atributos : [];
 
       const usuario = res.locals.userName;
@@ -2174,7 +2175,7 @@ export class EfectoController extends BaseController {
     for (const [idx, row] of atributos.entries()) {
       const nro = idx + 1;
       const atributoId = Number(row?.EfectoAtributoAtributoIngresoId) || null;
-      const valor = String(row?.EfectoAtributoIngresoValor ?? '').trim();
+      const valor = String(row?.EfectoAtributoIngresoValor ?? '').replace(/\s+/g, ' ').trim();
 
       if (!atributoId) {
         errores.push(`Atributo #${nro}: debe seleccionar el atributo.`);
@@ -2290,7 +2291,7 @@ export class EfectoController extends BaseController {
       for (const [idx, row] of atributos.entries()) {
         const nro = idx + 1;
         const atributoId = Number(row?.EfectoAtributoAtributoIngresoId) || null;
-        const valor = String(row?.EfectoAtributoIngresoValor ?? '').trim();
+        const valor = String(row?.EfectoAtributoIngresoValor ?? '').replace(/\s+/g, ' ').trim();
 
         if (!atributoId) {
           errores.push(`Fila Atributo #${nro}: debe seleccionar el atributo.`);
@@ -2493,7 +2494,7 @@ export class EfectoController extends BaseController {
     for (const row of atributos) {
       const id = Number(row?.EfectoEfectoIndividualAtributoIngresoId);
       const atributoId = Number(row?.EfectoAtributoAtributoIngresoId);
-      const valor = String(row?.EfectoAtributoIngresoValor ?? '').trim();
+      const valor = String(row?.EfectoAtributoIngresoValor ?? '').replace(/\s+/g, ' ').trim();
 
       if (Number.isFinite(id) && id > 0) {
         await queryRunner.query(`
@@ -2542,7 +2543,7 @@ export class EfectoController extends BaseController {
              ${EfectoController.COMPLETO_EXPR} AS Descripcion
       FROM EfectoDescripcion efe
       JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = efe.EfectoId
-      WHERE ${EfectoController.COMPLETO_EXPR} = @0
+      WHERE ${EfectoController.COMPLETO_EXPR} COLLATE Latin1_General_CI_AI = @0
         AND NOT (efe.EfectoId = @1 AND efeind.EfectoEfectoIndividualId = @2)
     `, [completo, efectoId, individualId]);
 
@@ -2561,7 +2562,8 @@ export class EfectoController extends BaseController {
       const dupEfecto = await queryRunner.query(`
         SELECT TOP 1 efe.EfectoId, ${EfectoController.BASE_EXPR} AS Descripcion
         FROM EfectoDescripcion efe
-        WHERE ${EfectoController.BASE_EXPR} = @0 AND efe.EfectoId <> @1
+        WHERE ${EfectoController.BASE_EXPR} COLLATE Latin1_General_CI_AI = @0
+          AND efe.EfectoId <> @1
       `, [base[0].Descripcion, efectoId]);
 
       if (dupEfecto.length)
@@ -2680,7 +2682,7 @@ export class EfectoController extends BaseController {
     for (const [idx, row] of atributos.entries()) {
       const nro = idx + 1;
       const atributoId = Number(row?.EfectoAtributoAtributoIngresoId) || null;
-      const valor = String(row?.EfectoAtributoIngresoValor ?? '').trim();
+      const valor = String(row?.EfectoAtributoIngresoValor ?? '').replace(/\s+/g, ' ').trim();
 
       if (!atributoId) {
         errores.push(`Fila Atributo #${nro}: debe seleccionar el atributo.`);
