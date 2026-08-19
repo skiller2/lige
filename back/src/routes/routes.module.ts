@@ -62,6 +62,7 @@ import { cuentasBancariasRouter } from "../cuentas-bancarias/cuentas-bancarias.r
 import { domicilioRouter } from "../domicilio/domicilio.routes.ts";
 import { inaesRouter } from "../inaes/inaes.routes.ts";
 import { ordenVentaRouter } from "../orden-venta/orden-venta.routes.ts";
+import { proveedoresRouter } from "../proveedores/proveedores.routes.ts";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -127,4 +128,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/inaes", inaesRouter);
   server.setRoute("/api/domicilio", domicilioRouter);
   server.setRoute("/api/orden-venta", ordenVentaRouter);
+  server.setRoute("/api/proveedores", proveedoresRouter);
 }

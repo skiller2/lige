@@ -2424,6 +2424,13 @@ export class ApiService {
     );
   }
 
+  getProveedores(parameters: any) {
+    return this.http.post<ResponseJSON<any>>(`api/proveedores/list`, parameters).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {
