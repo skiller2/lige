@@ -38,7 +38,8 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-            <input nz-input formControlName="Cantidad" type="number" />
+            <input nz-input placeholder="" formControlName="Cantidad" type="text" appDotToComma
+              mask="separator.2" />
           </nz-form-control>
         </nz-form-item>
 
@@ -58,7 +59,8 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Importe Unitario</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-            <input nz-input formControlName="ImporteUnitario" type="number" />
+            <input nz-input placeholder="" formControlName="ImporteUnitario" type="text" appDotToComma
+              mask="separator.2" />
           </nz-form-control>
         </nz-form-item>
 
@@ -72,14 +74,16 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad en Factura</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-            <input nz-input formControlName="CantidadEnFactura" type="number" />
+            <input nz-input placeholder="" formControlName="CantidadEnFactura" type="text" appDotToComma
+              mask="separator.2" />
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Importe Total</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-            <input nz-input formControlName="ImporteTotal" type="number" readonly />
+            <input nz-input placeholder="" formControlName="ImporteTotal" type="text" appDotToComma
+              mask="separator.2" [readonly]="true" />
           </nz-form-control>
         </nz-form-item>
 
