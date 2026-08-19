@@ -2,7 +2,8 @@
 
   <nz-collapse nzAccordion formArrayName="items">
     @for (item of itemsArray.controls; let i = $index; track item) {
-      <nz-collapse-panel [formGroupName]="i" [nzHeader]="titulos()[i]"
+      <nz-collapse-panel [formGroupName]="i" [class.item-incompleto]="validado() && faltantes()[i]"
+        [nzHeader]="titulos()[i]"
         [nzExtra]="'Importe Total ' + (importes()[i] | currency)" [nzActive]="panelAbierto() === i"
         (nzActiveChange)="$event ? panelAbierto.set(i) : null">
 
@@ -22,9 +23,35 @@
         </nz-form-item>
 
         <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Tipo Cantidad</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback
+            nzErrorTip="Tipo de cantidad es requerido">
+            <nz-select formControlName="TipoCantidad" style="width: 100%" nzPlaceholder="Seleccione"
+              [nzDropdownMatchSelectWidth]="false">
+              @for (option of optionsTipoCantidad(); track option.value) {
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
             <input nz-input formControlName="Cantidad" type="number" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Tipo Importe</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback
+            nzErrorTip="Tipo de importe es requerido">
+            <nz-select formControlName="TipoImporte" style="width: 100%" nzPlaceholder="Seleccione"
+              [nzDropdownMatchSelectWidth]="false">
+              @for (option of optionsTipoImporte(); track option.value) {
+                <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+              }
+            </nz-select>
           </nz-form-control>
         </nz-form-item>
 

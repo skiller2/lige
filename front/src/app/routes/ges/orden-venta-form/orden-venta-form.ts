@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { ProductoSearchComponent } from '../../../shared/producto-search/producto-search.component';
-import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
+import { SearchService } from '../../../services/search.service';
 
 @Component({
   selector: 'app-orden-venta-form',
@@ -35,6 +36,11 @@ export class OrdenVentaFormComponent {
   private fb = inject(FormBuilder)
   private destroyRef = inject(DestroyRef)
   private apiService = inject(ApiService)
+  private searchService = inject(SearchService)
+  private cdr = inject(ChangeDetectorRef)
+
+  optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(), { initialValue: [] })
+  optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
 
   // Un item por cada producto de la orden. Los campos son las columnas de la grilla
   // (/api/orden-venta/cols)
@@ -65,6 +71,17 @@ export class OrdenVentaFormComponent {
   )
 
   importes = computed<number[]>(() => this.itemsValue().map(item => Number(item?.ImporteTotal ?? 0)))
+
+  // Se prende al intentar guardar: recién ahí se señalan los ítems incompletos
+  validado = signal(false)
+
+  // Ítems que se cargaron pero les falta algún campo obligatorio
+  faltantes = computed<boolean[]>(() =>
+    this.itemsValue().map(item =>
+      !!String(item?.ProductoCodigo ?? '').trim() &&
+      (!String(item?.TipoCantidad ?? '').trim() || !String(item?.TipoImporte ?? '').trim())
+    )
+  )
 
   // Un ítem sin producto ni cantidad todavía no se cargó: no se agrega otro hasta completarlo
   hayItemVacio = computed<boolean>(() =>
@@ -106,9 +123,9 @@ export class OrdenVentaFormComponent {
       TextoFactura: item.TextoFactura ?? '',
       CantidadEnFactura: item.CantidadEnFactura ?? 0,
       ImporteTotal: item.ImporteTotal ?? 0,
-      // No se editan en pantalla, pero viajan de vuelta al guardar
-      TipoCantidad: item.TipoCantidad ?? '',
-      TipoImporte: item.TipoImporte ?? '',
+      // Se eligen en la pantalla (mismos dominios que parámetros de venta)
+      TipoCantidad: [item.TipoCantidad || '', Validators.required],
+      TipoImporte: [item.TipoImporte || '', Validators.required],
       CantidadEstandar: item.CantidadEstandar ?? null,
       Bonificacion: item.Bonificacion ?? null
     })
@@ -163,12 +180,36 @@ export class OrdenVentaFormComponent {
     this.formOrdenVenta.markAsDirty()
   }
 
+  // nz-form-control solo repinta el mensaje de error cuando el control emite statusChanges, y
+  // markAsTouched no emite nada: hay que revalidar cada control para que se vea el "es requerido".
+  private marcarInvalidos() {
+    for (const item of this.itemsArray.controls) {
+      for (const control of Object.values((item as FormGroup).controls)) {
+        control.markAsTouched()
+        control.updateValueAndValidity({ onlySelf: true, emitEvent: true })
+      }
+    }
+  }
+
   async save() {
     if (this.guardando()) return
 
     // Los ítems sin producto son filas que quedaron abiertas sin completar
     const items = this.itemsArray.getRawValue().filter((item: any) => String(item?.ProductoCodigo ?? '').trim())
     if (!items.length) return
+
+    // Los ítems que sí se cargaron tienen que estar completos. Se marcan todos para que cada panel
+    // muestre sus faltantes, y se abre el primero incompleto.
+    const incompleto = this.itemsArray.controls.findIndex(item =>
+      String(item.getRawValue()?.ProductoCodigo ?? '').trim() && item.invalid)
+
+    if (incompleto >= 0) {
+      this.validado.set(true)
+      this.marcarInvalidos()
+      this.panelAbierto.set(incompleto)
+      this.cdr.markForCheck()
+      return
+    }
 
     this.guardando.set(true)
     try {

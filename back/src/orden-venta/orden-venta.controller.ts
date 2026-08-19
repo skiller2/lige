@@ -295,8 +295,19 @@ export class OrdenVentaController extends BaseController {
       ];
       const erroresItems: string[] = [];
 
+      // TipoCantidad y TipoImporte son NOT NULL en la tabla
+      const camposTipo = [
+        { campo: 'TipoCantidad', nombre: 'El tipo de cantidad', obligatorio: 'obligatorio' },
+        { campo: 'TipoImporte', nombre: 'El tipo de importe', obligatorio: 'obligatorio' }
+      ];
+
       for (const [indice, item] of items.entries()) {
         const donde = `Ítem ${indice + 1} (${String(item.ProductoCodigo).trim()})`;
+
+        for (const { campo, nombre, obligatorio } of camposTipo) {
+          if (String(item[campo] ?? '').trim() === '')
+            erroresItems.push(`${donde}: ${nombre} es ${obligatorio}`);
+        }
 
         for (const { campo, nombre, obligatorio, negativo } of camposNumericos) {
           const valor = item[campo];
@@ -401,9 +412,9 @@ export class OrdenVentaController extends BaseController {
           indice + 1,
           item.ProductoCodigo,
           item.TextoFactura ?? null,
-          String(item.TipoCantidad ?? '').trim() || null, // Se ignora el tipo de cantidad: es manual en la pantalla
+          String(item.TipoCantidad).trim(),
           item.Cantidad != null ? Number(item.Cantidad) : null,
-          String(item.TipoImporte ?? '').trim() || null,
+          String(item.TipoImporte).trim(),
           item.ImporteUnitario != null ? Number(item.ImporteUnitario) : null,
           item.CantidadEstandar != null ? Number(item.CantidadEstandar) : null,
           item.Bonificacion != null ? Number(item.Bonificacion) : null,
