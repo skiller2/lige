@@ -1,0 +1,56 @@
+<nz-card class="small-margin">
+  <div style="align-items: end; display: flex; justify-content: space-between;">
+    <ul nz-menu nzMode="horizontal">
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'proveedores','listado']">Listado</a>
+      </li>
+      <!-- <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'proveedores','detalle']">Detalle</a>
+      </li> -->
+    </ul>
+    <nz-button-group nz-button nzButtonGroup>
+      @if(tabIndex() == 1){
+      <!-- btn  reload -->
+      <button nz-button nzType="default" (click)="gridData.reload()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}">
+        <span nz-icon nzType="reload" nzTheme="outline"></span>
+      </button>
+      <!-- btn  add -->
+      <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+        <span nz-icon nzType="plus" nzTheme="outline"></span>
+      </button>
+      <!-- btn  modify -->
+      <button nz-button nzType="default" [disabled]="ProveedorId()? false : true"
+        [routerLink]="['/', 'ges', 'personal','editar']" nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span
+      nz-icon nzType="edit" nzTheme="outline"></span>
+      </button>
+      <!-- btn  detalle -->
+      <!-- <button nz-button nzType="default" [disabled]="ProveedorId() == 0"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.people' | i18n }}"><span nz-icon nzType="user"
+      nzTheme="outline"></span></button> -->
+      }
+      </nz-button-group>
+  </div>
+
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
+    <nz-tab></nz-tab>
+    <nz-tab>
+      <a nz-tab-link routerLink="/ges/proveedores/listado">Listado</a>
+      @if (columns().length) {
+        <ng-template nz-tab>
+          <shared-filtro-builder  [fieldsToSelect]="columns()" [startFilters]="startFilters()"
+            [(options)]="listOptions" />
+          <div class="gridContainer container-fluid">
+            <angular-slickgrid gridId="grid" class="" [columns]="columns() | colsFilter"
+              [options]="gridOptions" [dataset]="gridData.value()"
+              (onAngularGridCreated)="angularGridReady($event)"
+              (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+            </angular-slickgrid>
+          </div>
+        </ng-template>
+      }
+    </nz-tab>
+  </nz-tabs>
+
+</nz-card>

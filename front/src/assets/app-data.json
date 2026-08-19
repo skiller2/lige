@@ -148,6 +148,11 @@
               "icon": "anticon-profile"
             },
             {
+              "text": "Proveedores #",
+              "link": "/ges/proveedores",
+              "icon": "anticon-profile"
+            },
+            {
               "text": "Telefonia",
               "link": "/ges/telefonia",
               "icon": "anticon-profile"

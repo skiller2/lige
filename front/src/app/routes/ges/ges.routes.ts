@@ -222,5 +222,10 @@ export const GesRoutes: Routes = [
     path: 'inaes/:tab',
     loadComponent: () => import('./inaes/inaes').then(c => c.INAESComponent),
   },
+  { path: 'proveedores', redirectTo: 'proveedores/listado' },
+  {
+    path: 'proveedores/:tab',
+    loadComponent: () => import('./proveedores/proveedores').then(c => c.ProveedoresComponent),
+  },
   
 ];
