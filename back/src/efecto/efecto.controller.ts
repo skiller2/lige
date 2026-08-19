@@ -2414,12 +2414,6 @@ export class EfectoController extends BaseController {
           usado.RubroId = original.RubroId,
           usado.SubrubroId = original.SubrubroId,
           usado.EfectoUnidadMedidaPrincipalId = original.EfectoUnidadMedidaPrincipalId,
-          usado.EfectoAtributoUltNro = (
-            SELECT COUNT(*) + 1
-            FROM EfectoAtributo ea
-            WHERE ea.EfectoId = original.EfectoId
-              AND ea.EfectoAtributoAtributoId <> 11
-          ),
           usado.AudFechaMod = @2,
           usado.AudUsuarioMod = @3,
           usado.AudIpMod = @4
@@ -2428,8 +2422,7 @@ export class EfectoController extends BaseController {
       WHERE usado.EfectoId = @1
     `, [efectoOriginalId, efectoTransformadoId, now, usuario, ip]);
 
-    // Se reconstruyen los atributos para que ambos conjuntos sean identicos salvo por el estado:
-    // cualquier atributo 11 del original se omite y el transformado recibe siempre USADO (11 = 2).
+    // Se reconstruyen los atributos para que ambos conjuntos sean identicos salvo por el estado
     await queryRunner.query(`DELETE FROM EfectoAtributo WHERE EfectoId = @0`, [efectoTransformadoId]);
     await queryRunner.query(`
       INSERT INTO EfectoAtributo
@@ -2442,14 +2435,14 @@ export class EfectoController extends BaseController {
         datos.EfectoAtributoValorId,
         @2, @3, @4, @2, @3, @4
       FROM (
-        SELECT EfectoAtributoAtributoId, EfectoAtributoValorId
-        FROM EfectoAtributo
-        WHERE EfectoId = @0
-          AND EfectoAtributoAtributoId <> 11
+          SELECT EfectoAtributoAtributoId, EfectoAtributoValorId
+          FROM EfectoAtributo
+          WHERE EfectoId = @0
+            AND EfectoAtributoAtributoId <> 11
 
-        UNION ALL
+          UNION ALL
 
-        SELECT 11, 2
+          SELECT 11, 2
       ) datos
     `, [efectoOriginalId, efectoTransformadoId, now, usuario, ip]);
   }
