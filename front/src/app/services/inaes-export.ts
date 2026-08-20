@@ -24,6 +24,7 @@ export class InaesCsvExportService extends TextExportService {
    * Override complete output generation
    */
   protected override getDataOutput(): string {
+    
     const columns = this._grid.getColumns() || [];
 
     this._delimiter = ';';
@@ -39,7 +40,6 @@ export class InaesCsvExportService extends TextExportService {
     output += '\r\n';
 
     output += this.getRows(columns);
-console.log('output',output)
     return output;
   }
 
@@ -57,12 +57,16 @@ console.log('output',output)
       if (!item) {
         continue;
       }
-
       const values = columns
         .filter(col => !col.excludeFromExport)
         .map(col => {
           const value = item[col.field!];
-          return this.formatExportValue(value);
+          if (col.id == "SumaRetribucion" || col.id =="SumaExcedentes"|| col.id =="SumaMonotributoRetencion"|| col.id =="SumaOtrasRetenciones")
+            return value.toFixed(2).replace('.', ',')
+        else if (col.id == "DocumentoFecha") 
+            return new Date(value).toLocaleDateString('en-GB');
+        else 
+            return value 
         });
 
       rows.push(values.join(this._delimiter));
