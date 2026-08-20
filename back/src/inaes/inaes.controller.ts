@@ -619,16 +619,19 @@ export class InaesController extends BaseController {
       const CUITEntidad = clientePropio[0].ClienteFacturacionCUIT
 
       const movimientosRecibos = await recibosController.getListaRecibosGenerados(queryRunner, filterSql, orderBy, anio, mes, 'G')
-      movimientosRecibos.map((mov: any) => {
+      movimientosRecibos
+      .map((mov: any) => {
         mov.CUITEntidad = CUITEntidad
-        mov.CBU = mov.CBU ? mov.CBU : 'N/D'
-        mov.DescRetribucion = mov.DescRetribucion ? mov.DescRetribucion : 'N/D'
+        mov.CBU = mov.CBU ? mov.CBU : ''
+        //mov.DescRetribucion = mov.DescRetribucion ? mov.DescRetribucion : 'N/D'
+        mov.DescRetribucion = mov.DescRetribucion ? `Por tareas realizadas durante el periodo ${mes}/${anio}.  Asociado: ${mov.PersonalNroLegajo}` : 'N/D' 
         mov.DescOtrasRetenciones = mov.DescOtrasRetenciones ? mov.DescOtrasRetenciones : 'N/D'
       })
 
       //const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
-      console.log('movimientosRecibos', movimientosRecibos.length)
-      const lista = movimientosRecibos
+      //console.log('movimientosRecibos', movimientosRecibos.length)
+      const lista = movimientosRecibos.filter((mov: any) => mov.SumaRetiros >0 && mov.PersonalNroLegajo)
+
       this.jsonRes(lista, res);
     } catch (error) {
       return next(error)
