@@ -17,6 +17,7 @@ import { Selections } from '../../../shared/schemas/filtro';
 import { LoadingService } from '@delon/abc/loading';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
+import { InaesCsvExportService } from '../../../services/inaes-export';
 
 @Component({
   selector: 'app-table-inaes-recibos',
@@ -31,7 +32,7 @@ export class TableINAESRecibosComponent {
   private angularGrid!: AngularGridInstance;
   private readonly detailViewRowCount = 1;
   private excelExportService = new ExcelExportService();
-  private textExportService: ExternalResource | TextExportService = new TextExportService();
+  private textExportService: ExternalResource | TextExportService = new InaesCsvExportService();
   gridOptions!: GridOption;
 
   private readonly loadingSrv = inject(LoadingService)
@@ -105,7 +106,6 @@ export class TableINAESRecibosComponent {
     //Habilitando exportación de .CSV
     this.gridOptions.textExportOptions = { exportWithFormatter: true }
     this.gridOptions.externalResources = [this.textExportService as ExternalResource]
-
   }
 
   angularGridReady(angularGrid: any): void {
@@ -161,10 +161,10 @@ export class TableINAESRecibosComponent {
       }
     }
 
-    await (this.textExportService as TextExportService).exportToFile({
+    await (this.textExportService as InaesCsvExportService).exportToFile({
       delimiter: ';',
-      filename: `inaes-recibos-${this.periodo().getFullYear()}-${this.periodo().getMonth() + 1}`,
-      format: 'csv'
+      filename: `inaes-recibos-${this.periodo().getFullYear()}-${this.periodo().getMonth() + 1}.csv`,
+      format: 'csv',
     });
 
     // Restaurar nombres originales
@@ -175,7 +175,7 @@ export class TableINAESRecibosComponent {
       }
     });
 
-    this.gridData.reload()
+    //this.gridData.reload()
 
     // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
     if (this.hiddenColumnIds.length > 0)
@@ -191,11 +191,11 @@ export class TableINAESRecibosComponent {
       this.columns().forEach((column: any) => {
         if (column.excludeFromExport) return //Excluir las columnas que no se van a exportan
         const value = item[column.field];
-
+        if (column.name != "CBU") {
         if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')) {
           names.push(column.name)
         }
-
+      }
       });
       if (names.length > 0)
         result.push({ row: index, names });

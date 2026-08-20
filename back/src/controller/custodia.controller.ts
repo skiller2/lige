@@ -1125,7 +1125,7 @@ export class CustodiaController extends BaseController {
             const orderBy = orderToSQL(options.sort)
 
             let result: any
-            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas')) {
+            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas') || await this.hasGroup(req, 'mCustodias')) {
                 result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo)
             } else {
                 result = await this.listObjetivoCustodiaByResponsableQuery(queryRunner, filterSql, orderBy, periodo, ResponsableId)
@@ -1199,8 +1199,8 @@ export class CustodiaController extends BaseController {
                 infoCustodia.FechaLiquidacion = null
             }
 
-            if (!(await this.hasGroup(req, 'Liquidaciones')) && ResponsableId != infoCustodia.ResponsableId) {
-                throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.Responsable} o pertenecer al grupo 'Liquidaciones'.`)
+            if (!(await this.hasGroup(req, 'Liquidaciones')) && !(await this.hasGroup(req, 'mCustodias')) && ResponsableId != infoCustodia.ResponsableId) {
+                throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.Responsable} o pertenecer al grupo 'Liquidaciones' o 'mCustodias'.`)
             }
 
             if (infoCustodia.EstadoCodigo == 4) {
@@ -1510,7 +1510,8 @@ export class CustodiaController extends BaseController {
                 const EstadoCodigo: number = form.EstadoCodigo
                 const NumeroFactura: number = form.NumeroFactura
 
-                const authEditAdmin: boolean = await this.hasGroup(req, 'Liquidaciones')
+                const authEditLiquidaciones: boolean = await this.hasGroup(req, 'Liquidaciones')
+                const authModuleEdit: boolean = await this.hasGroup(req, 'mCustodias')
                 const fullEdit: boolean = await this.hasGroup(req, 'gSistemas')
 
                 if (EstadoCodigo == 4 && !NumeroFactura) {
@@ -1521,12 +1522,12 @@ export class CustodiaController extends BaseController {
                     let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
                     infoCustodia = infoCustodia[0]
 
-                    if (!authEditAdmin && infoCustodia.ResponsableId != ResponsableId) {
-                        errores.push(`Codigo ${id}: Solo el responsable puede modificar la custodia o grupo 'Liquidaciones'.`)
+                    if (!authEditLiquidaciones && !authModuleEdit && infoCustodia.ResponsableId != ResponsableId) {
+                        errores.push(`Codigo ${id}: Solo el responsable, los usuarios con grupo 'mCustodias' o 'Liquidaciones' pueden modificar la custodia.`)
                         continue
                     }
 
-                    if (!authEditAdmin && EstadoCodigo == 4) {
+                    if (!authEditLiquidaciones && EstadoCodigo == 4) {
                         errores.push(`Codigo ${id}: Solo el grupo 'Liquidaciones', pueden grabar estado Facturado`)
                         continue
                     }
@@ -1735,7 +1736,7 @@ export class CustodiaController extends BaseController {
             const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
 
             let result: any
-            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'Liquidaciones Consultas')) {
+            if (await this.hasGroup(req, 'Liquidaciones') || await this.hasGroup(req, 'mCustodias') || await this.hasGroup(req, 'Liquidaciones Consultas')) {
                 result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, 0)
             } else {
                 result = await CustodiaController.listPersonalCustodiaQuery(options, queryRunner, anio, mes, responsableId)

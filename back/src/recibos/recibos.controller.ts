@@ -643,7 +643,7 @@ Descripciones AS
                 WHEN mu.indicador_recibo = 'A'
                 THEN mu.detalle
             END,
-            '; '
+            '| '
         ) AS DescAdelanto,
 
         STRING_AGG(
@@ -652,7 +652,7 @@ Descripciones AS
                  AND mu.detalle NOT LIKE '%MONOTRIBUTO%'
                 THEN mu.detalle
             END,
-            '; '
+            '| '
         ) AS DescOtrasRetenciones,
 
         STRING_AGG(
@@ -660,7 +660,7 @@ Descripciones AS
                 WHEN mu.indicador_recibo = 'I'
                 THEN mu.detalle
             END,
-            '; '
+            '| '
         ) AS DescRetribucion,
 
         STRING_AGG(
@@ -668,7 +668,7 @@ Descripciones AS
                 WHEN mu.indicador_recibo = 'D'
                 THEN mu.detalle
             END,
-            '; '
+            '| '
         ) AS DescRetiros,
 
         (
@@ -701,7 +701,7 @@ SELECT
     liq.persona_id AS id,
     liq.persona_id AS PersonalId,
     CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-
+    per.PersonalNroLegajo,
     cuit.PersonalCUITCUILCUIT,
     doc.DocumentoDenominadorDocumento,
     doc.DocumentoFecha,
@@ -773,6 +773,7 @@ GROUP BY
     liq.persona_id,
     per.PersonalApellido,
     per.PersonalNombre,
+    per.PersonalNroLegajo,
     cuit.PersonalCUITCUILCUIT,
     doc.DocumentoDenominadorDocumento,
     doc.DocumentoFecha,

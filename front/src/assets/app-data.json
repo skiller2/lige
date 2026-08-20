@@ -143,7 +143,7 @@
               "icon": "anticon-profile"
             },
             {
-              "text": "Precio Efectos",
+              "text": "Precio Efectos #",
               "link": "/ges/precio-efectos",
               "icon": "anticon-profile"
             },
@@ -216,7 +216,7 @@
               "icon": "anticon-profile"
             },
             {
-              "text": "INAES #",
+              "text": "INAES",
               "link": "/ges/inaes",
               "icon": "anticon-profile"
             },
