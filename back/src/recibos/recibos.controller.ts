@@ -701,7 +701,7 @@ SELECT
     liq.persona_id AS id,
     liq.persona_id AS PersonalId,
     CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-
+    per.PersonalNroLegajo,
     cuit.PersonalCUITCUILCUIT,
     doc.DocumentoDenominadorDocumento,
     doc.DocumentoFecha,

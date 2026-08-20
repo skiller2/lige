@@ -505,7 +505,7 @@ export class SearchService {
     url.searchParams.append("polygon_geojson", "1");
     url.searchParams.append("countrycodes", "AR");
     url.searchParams.append("layer", "address");
-    url.searchParams.append("limit", "10");
+    url.searchParams.append("limit", "30");
     url.searchParams.append("format", "jsonv2");
     url.searchParams.append("addressdetails", "1");
 
@@ -582,7 +582,11 @@ export class SearchService {
     const params = new URLSearchParams({
       text: direccion,
       apiKey: 'f5cdd3892a38432fbcd0edc786268446',
-      limit: '5'
+      limit: '5',
+      lang: 'es',
+      filter: 'countrycode=ar',
+      format:'json' 
+
     });
 
     return new Observable<any[]>(observer => {

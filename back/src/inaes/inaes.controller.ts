@@ -622,7 +622,8 @@ export class InaesController extends BaseController {
       movimientosRecibos.map((mov: any) => {
         mov.CUITEntidad = CUITEntidad
         mov.CBU = mov.CBU ? mov.CBU : 'N/D'
-        mov.DescRetribucion = mov.DescRetribucion ? mov.DescRetribucion : 'N/D'
+        //mov.DescRetribucion = mov.DescRetribucion ? mov.DescRetribucion : 'N/D'
+        mov.DescRetribucion = `Por tareas realizadas durante el periodo ${mes}/${anio}.  Asociado: ${mov.PersonalNroLegajo}`
         mov.DescOtrasRetenciones = mov.DescOtrasRetenciones ? mov.DescOtrasRetenciones : 'N/D'
       })
 
