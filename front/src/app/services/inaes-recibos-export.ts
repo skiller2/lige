@@ -1,5 +1,4 @@
 import { TextExportService } from '@slickgrid-universal/text-export';
-//import type { Column } from '@slickgrid-universal/common';
 
 export class InaesRecibosCsvExportService extends TextExportService {
 
@@ -24,7 +23,7 @@ export class InaesRecibosCsvExportService extends TextExportService {
    * Override complete output generation
    */
   protected override getDataOutput(): string {
-    
+
     const columns = this._grid.getColumns() || [];
 
     this._delimiter = ';';
@@ -57,19 +56,32 @@ export class InaesRecibosCsvExportService extends TextExportService {
       if (!item) {
         continue;
       }
+
+      const decimalColumns = new Set([
+        'SumaRetribucion',
+        'SumaExcedentes',
+        'SumaMonotributoRetencion',
+        'SumaOtrasRetenciones'
+      ]);
+
       const values = columns
         .filter(col => !col.excludeFromExport)
         .map(col => {
           const value = item[col.field!];
-          if (col.id == "SumaRetribucion" || col.id =="SumaExcedentes"|| col.id =="SumaMonotributoRetencion"|| col.id =="SumaOtrasRetenciones")
-            return value.toFixed(2).replace('.', ',')
-        else if (col.id == "DocumentoFecha") 
+
+          if (decimalColumns.has(col.id!)) {
+            return Number(value).toFixed(2).replace('.', ',');
+          }
+
+          if (col.id === 'DocumentoFecha') {
             return new Date(value).toLocaleDateString('en-GB');
-        else 
-            return value 
+          }
+
+          return value;
         });
 
       rows.push(values.join(this._delimiter));
+
     }
 
     return rows.join('\r\n');
