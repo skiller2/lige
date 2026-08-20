@@ -115,13 +115,8 @@ export class OrdenVentaFormComponent {
     // Carga el detalle recibido en el FormArray
     effect(() => {
       const items = this.items()
-
-      this.itemsArray.clear({ emitEvent: false })
-      for (const item of items) this.itemsArray.push(this.nuevoItem(item), { emitEvent: false })
       // Siempre hay al menos un ítem para cargar
-      if (!this.itemsArray.length) this.itemsArray.push(this.nuevoItem(), { emitEvent: false })
-      this.itemsArray.updateValueAndValidity()
-
+      this.sincronizarItems(items.length ? items : [{}])
       this.panelAbierto.set(0)
     })
 
@@ -133,25 +128,76 @@ export class OrdenVentaFormComponent {
     return this.formOrdenVenta.get('items') as FormArray
   }
 
-  private nuevoItem(item: any = {}): FormGroup {
+  private sincronizarItems(items: any[]) {
+    while (this.itemsArray.length > items.length)
+      this.itemsArray.removeAt(this.itemsArray.length - 1, { emitEvent: false })
+
+    items.forEach((item, indice) => {
+      if (indice < this.itemsArray.length)
+        this.actualizarItem(this.itemsArray.at(indice) as FormGroup, item)
+      else
+        this.itemsArray.push(this.nuevoItem(item), { emitEvent: false })
+    })
+
+    // El detalle recién traído todavía no tiene cambios del usuario
+    this.validado.set(false)
+    this.formOrdenVenta.markAsPristine()
+    this.formOrdenVenta.markAsUntouched()
+    this.itemsArray.updateValueAndValidity()
+  }
+
+  private actualizarItem(group: FormGroup, item: any) {
+    const valores = OrdenVentaFormComponent.valoresItem(item)
+    group.setValue(valores, { emitEvent: false })
+
+    const importeUnitario = group.get('ImporteUnitario')!
+    if (valores.PrecioDeLista) importeUnitario.disable({ emitEvent: false })
+    else importeUnitario.enable({ emitEvent: false })
+  }
+
+  // Valores iniciales de un ítem, para crearlo o para refrescar uno ya existente
+  private static valoresItem(item: any = {}) {
+    // Con precio de lista vigente el importe unitario lo fija la lista y no se puede editar.
+    // Sin precio se arrastra el del mes anterior y queda a mano.
     const precioDeLista = !!Number(item.PrecioDeLista ?? 0)
 
-    // id = ItemOrdenVentaCodigo. En cero es un ítem nuevo, todavía sin persistir.
-    const group = this.fb.group({
+    return {
+      // id = ItemOrdenVentaCodigo. En cero es un ítem nuevo, todavía sin persistir.
       id: item.id ?? 0,
-      ProductoCodigo: [item.ProductoCodigo ?? '', Validators.required],
+      ProductoCodigo: item.ProductoCodigo ?? '',
       Producto: item.Producto ?? '',
-      Cantidad: [vacioSiCero(item.Cantidad), numeroRequerido],
-      ImporteUnitario: [{ value: vacioSiCero(item.ImporteUnitario), disabled: precioDeLista }, numeroRequerido],
+      Cantidad: vacioSiCero(item.Cantidad),
+      ImporteUnitario: vacioSiCero(item.ImporteUnitario),
       PrecioDeLista: precioDeLista,
       TextoFactura: item.TextoFactura ?? '',
       CantidadEnFactura: vacioSiCero(item.CantidadEnFactura),
       ImporteTotal: vacioSiCero(item.ImporteTotal),
       // Ocultos en la pantalla: van con valor fijo
-      TipoCantidad: [item.TipoCantidad || TIPO_CANTIDAD_MANUAL, Validators.required],
-      TipoImporte: [item.TipoImporte || (precioDeLista ? TIPO_IMPORTE_LISTA_PRECIO : TIPO_IMPORTE_MANUAL), Validators.required],
+      TipoCantidad: item.TipoCantidad || TIPO_CANTIDAD_MANUAL,
+      TipoImporte: item.TipoImporte || (precioDeLista ? TIPO_IMPORTE_LISTA_PRECIO : TIPO_IMPORTE_MANUAL),
       CantidadEstandar: item.CantidadEstandar ?? null,
       Bonificacion: item.Bonificacion ?? null
+    }
+  }
+
+  private nuevoItem(item: any = {}): FormGroup {
+    const valores = OrdenVentaFormComponent.valoresItem(item)
+
+    const group = this.fb.group({
+      id: valores.id,
+      ProductoCodigo: [valores.ProductoCodigo, Validators.required],
+      Producto: valores.Producto,
+      Cantidad: [valores.Cantidad, numeroRequerido],
+      ImporteUnitario: [{ value: valores.ImporteUnitario, disabled: valores.PrecioDeLista }, numeroRequerido],
+      PrecioDeLista: valores.PrecioDeLista,
+      TextoFactura: valores.TextoFactura,
+      CantidadEnFactura: valores.CantidadEnFactura,
+      ImporteTotal: valores.ImporteTotal,
+      // Ocultos en la pantalla: van con valor fijo
+      TipoCantidad: [valores.TipoCantidad, Validators.required],
+      TipoImporte: [valores.TipoImporte, Validators.required],
+      CantidadEstandar: valores.CantidadEstandar,
+      Bonificacion: valores.Bonificacion
     })
 
     // Importe Total = Cantidad * Importe Unitario
