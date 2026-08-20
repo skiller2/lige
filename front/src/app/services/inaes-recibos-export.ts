@@ -1,7 +1,7 @@
 import { TextExportService } from '@slickgrid-universal/text-export';
 //import type { Column } from '@slickgrid-universal/common';
 
-export class InaesCsvExportService extends TextExportService {
+export class InaesRecibosCsvExportService extends TextExportService {
 
   /**
    * Format exported values
@@ -34,7 +34,7 @@ export class InaesCsvExportService extends TextExportService {
     // Headers without quotes
     const headers = columns
       .filter(col => !col.excludeFromExport)
-      .map(col => col.name || '');
+      .map(col => col.params.exportHeader || col.name || '');
 
     output += headers.join(this._delimiter);
     output += '\r\n';
