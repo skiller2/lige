@@ -15,14 +15,14 @@
         </nz-form-item>
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Producto</nz-form-label>
-          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Producto</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19" nzErrorTip="El producto es requerido">
             <app-producto-search formControlName="ProductoCodigo"
               (valueExtendedChange)="productoChange(i, $event)"></app-producto-search>
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item class="marginElement">
+        <nz-form-item class="marginElement" style="display:none">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Tipo Cantidad</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback
             nzErrorTip="Tipo de cantidad es requerido">
@@ -35,15 +35,7 @@
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad</nz-form-label>
-          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-            <input nz-input placeholder="" formControlName="Cantidad" type="text" appDotToComma
-              mask="separator.2" />
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item class="marginElement">
+        <nz-form-item class="marginElement" style="display:none">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Tipo Importe</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback
             nzErrorTip="Tipo de importe es requerido">
@@ -57,8 +49,17 @@
         </nz-form-item>
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Importe Unitario</nz-form-label>
-          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Cantidad</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback
+            nzErrorTip="La cantidad es requerida">
+            <input nz-input placeholder="" formControlName="Cantidad" type="text" appDotToComma
+              mask="separator.2" />
+          </nz-form-control>
+
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Importe Unitario</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" nzHasFeedback
+            nzErrorTip="El importe unitario es requerido"
+            [nzExtra]="precioDeLista()[i] ? 'Precio de lista del cliente para el período' : ''">
             <input nz-input placeholder="" formControlName="ImporteUnitario" type="text" appDotToComma
               mask="separator.2" />
           </nz-form-control>
@@ -108,15 +109,6 @@
         <span nz-icon nzType="plus"></span>
       </button>
     </div>
-
-    <nz-form-item>
-      <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-        <button nzType="primary" nz-button (click)="save()" [nzLoading]="guardando()"
-          [disabled]="formOrdenVenta.pristine || guardando()">
-          {{ 'app.btn.save' | i18n }}
-        </button>
-      </nz-form-control>
-    </nz-form-item>
   }
 
 </form>

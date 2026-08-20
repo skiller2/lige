@@ -1,38 +1,43 @@
 <nz-spin [nzSpinning]="isLoading()">
 
   <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Período</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Período</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
       <input nz-input [value]="(mes() | number:'2.0-0') + '/' + anio()" [disabled]="true" />
     </nz-form-control>
 
-  </nz-form-item>
-
-  <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Total Hs. Normales</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-      <input nz-input [value]="cabecera().TotalHorasNormales | number:'1.2-2'" [disabled]="true" />
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Estado Orden Venta</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <input nz-input [value]="estado()" [disabled]="true" />
     </nz-form-control>
 
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Estado Orden Venta</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
-      <input nz-input [value]="estado()" [disabled]="true" />
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Total Hs. Normales</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
+      <input nz-input [value]="cabecera().TotalHorasNormales | number:'1.2-2'" [disabled]="true" />
     </nz-form-control>
   </nz-form-item>
 
   <!-- <app-table-orden-venta [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" /> -->
 
-  <app-orden-venta-form [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
+  <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
     [clienteId]="cabecera().ClienteId ?? null"
     [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
     (detalleChange)="detalle.set($event)" (guardado)="recargar()" />
 
   <nz-divider></nz-divider>
 
-  <nz-form-item class="marginElement totalOrdenVenta">
-    <nz-form-label [nzXs]="12" [nzSm]="12" [nzMd]="6">Total Orden de Venta</nz-form-label>
-    <nz-form-control [nzXs]="12" [nzSm]="12" [nzMd]="6">
+  <div class="filaTotal marginElement">
+    <div class="espacio"></div>
+
+    <button nzType="primary" nz-button (click)="ordenVentaForm.save()"
+      [nzLoading]="ordenVentaForm.guardando()"
+      [disabled]="ordenVentaForm.formOrdenVenta.pristine || ordenVentaForm.guardando()">
+      {{ 'app.btn.save' | i18n }}
+    </button>
+
+    <div class="totalOrdenVenta">
+      <label>Total Orden de Venta</label>
       <input nz-input [value]="importeTotal() | currency" [disabled]="true" />
-    </nz-form-control>
-  </nz-form-item>
+    </div>
+  </div>
 </nz-spin>

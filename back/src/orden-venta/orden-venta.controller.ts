@@ -91,6 +91,7 @@ const columnasGrilla: any[] = [
 ];
 
 const ESTADO_ORDEN_VENTA_INICIAL = 'PEN';
+const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
 
 export class OrdenVentaController extends BaseController {
 
@@ -145,7 +146,8 @@ export class OrdenVentaController extends BaseController {
             item.ProductoCodigo,
             prod.Nombre AS Producto,
             item.TipoCantidad,
-            item.TipoImporte,
+            IIF(pre.Importe IS NULL, 'V', 'LP') AS TipoImporte,
+            IIF(pre.Importe IS NULL, 0, 1) AS PrecioDeLista,
             item.Cantidad,
             item.CantidadEstandar,
             item.Bonificacion,
@@ -287,6 +289,50 @@ export class OrdenVentaController extends BaseController {
       if (inexistentes.length)
         throw new ClientException(inexistentes.map(codigo => `El producto ${codigo} no existe`));
 
+      const objetivos = await queryRunner.query(`
+        SELECT obj.ClienteId, ISNULL(obj.ClienteElementoDependienteId,0) AS ClienteElementoDependienteId
+        FROM Objetivo obj WHERE obj.ObjetivoId = @0
+      `, [ObjetivoId]);
+
+      const objetivo = objetivos[0];
+      if (!objetivo)
+        throw new ClientException(`No se encontró el objetivo ${ObjetivoId}`);
+
+      // La orden se guarda contra el cliente del objetivo: si no es el de la pantalla, los datos
+      // terminarían en un cliente distinto al que se está editando
+      if (Number(objetivo.ClienteId) !== ClienteId)
+        throw new ClientException(`El objetivo ${ObjetivoId} no pertenece al cliente ${ClienteId}`);
+
+      if (Number(objetivo.ClienteElementoDependienteId) !== ClienteElementoDependienteId)
+        throw new ClientException(
+          `El objetivo ${ObjetivoId} no corresponde al elemento dependiente ${ClienteElementoDependienteId} del cliente ${ClienteId}`);
+
+      // El importe unitario de un producto con precio de lista lo fija la lista, no la pantalla:
+      // el input llega deshabilitado, así que lo que mande el cliente para esos ítems se descarta.
+      const precios = await queryRunner.query(`
+        SELECT pp.ProductoCodigo, pp.Importe
+        FROM ProductoPrecio pp
+        JOIN (
+          SELECT ProductoCodigo, MAX(PeriodoDesdeAplica) AS PeriodoDesdeAplica
+          FROM ProductoPrecio
+          WHERE ClienteId = @0
+            AND PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(@1,@2,1))
+            AND ProductoCodigo IN (${codigos.map((_, indice) => `@${indice + 3}`).join(',')})
+          GROUP BY ProductoCodigo
+        ) ult ON ult.ProductoCodigo = pp.ProductoCodigo AND ult.PeriodoDesdeAplica = pp.PeriodoDesdeAplica
+        WHERE pp.ClienteId = @0
+      `, [objetivo.ClienteId, anio, mes, ...codigos]);
+
+      const preciosLista = new Map<string, number>(precios.map(
+        (precio: any) => [String(precio.ProductoCodigo).trim().toUpperCase(), Number(precio.Importe)]));
+
+      for (const item of items) {
+        const precio = preciosLista.get(String(item.ProductoCodigo).trim().toUpperCase());
+        if (precio == null) continue;
+        item.ImporteUnitario = precio;
+        item.TipoImporte = TIPO_IMPORTE_LISTA_PRECIO;
+      }
+
       // De la cantidad y el importe unitario sale el importe a facturar: tienen que ser números
       // no negativos en todos los ítems
       const camposNumericos = [
@@ -328,23 +374,6 @@ export class OrdenVentaController extends BaseController {
       if (erroresItems.length)
         throw new ClientException(erroresItems);
 
-      const objetivos = await queryRunner.query(`
-        SELECT obj.ClienteId, ISNULL(obj.ClienteElementoDependienteId,0) AS ClienteElementoDependienteId
-        FROM Objetivo obj WHERE obj.ObjetivoId = @0
-      `, [ObjetivoId]);
-
-      const objetivo = objetivos[0];
-      if (!objetivo)
-        throw new ClientException(`No se encontró el objetivo ${ObjetivoId}`);
-
-      // La orden se guarda contra el cliente del objetivo: si no es el de la pantalla, los datos
-      // terminarían en un cliente distinto al que se está editando
-      if (Number(objetivo.ClienteId) !== ClienteId)
-        throw new ClientException(`El objetivo ${ObjetivoId} no pertenece al cliente ${ClienteId}`);
-
-      if (Number(objetivo.ClienteElementoDependienteId) !== ClienteElementoDependienteId)
-        throw new ClientException(
-          `El objetivo ${ObjetivoId} no corresponde al elemento dependiente ${ClienteElementoDependienteId} del cliente ${ClienteId}`);
 
       await queryRunner.startTransaction();
 
@@ -458,7 +487,12 @@ export class OrdenVentaController extends BaseController {
         ORDER BY pre.PeriodoDesdeAplica DESC
       `, [ObjetivoId, anio, mes, ProductoCodigo]);
 
-      this.jsonRes(precio[0] ?? { ProductoCodigo, ImporteUnitario: null }, res);
+      // PrecioDeLista: el importe unitario sale de la lista del cliente y no se edita
+      this.jsonRes(
+        precio[0]
+          ? { ...precio[0], PrecioDeLista: 1 }
+          : { ProductoCodigo, ImporteUnitario: null, PrecioDeLista: 0 },
+        res);
 
     } catch (error) {
       return next(error);
