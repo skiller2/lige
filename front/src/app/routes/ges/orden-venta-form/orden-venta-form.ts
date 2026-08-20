@@ -2,11 +2,26 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, Destro
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { ProductoSearchComponent } from '../../../shared/producto-search/producto-search.component';
-import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+
+function numeroRequerido(control: AbstractControl): ValidationErrors | null {
+  const valor = control.value
+  if (valor == null || String(valor).trim() === '') return { required: true }
+  return Number.isFinite(Number(String(valor).replace(/\./g, '').replace(',', '.'))) ? null : { numero: true }
+}
+
+function vacioSiCero(valor: any): number | null {
+  return valor == null || String(valor).trim() === '' || Number(valor) === 0 ? null : valor
+}
+
+const TIPO_CANTIDAD_MANUAL = 'V'
+const TIPO_IMPORTE_LISTA_PRECIO = 'LP'
+const TIPO_IMPORTE_MANUAL = 'V'
 
 @Component({
   selector: 'app-orden-venta-form',
@@ -38,6 +53,7 @@ export class OrdenVentaFormComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private cdr = inject(ChangeDetectorRef)
+  private notification = inject(NzNotificationService)
 
   optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(), { initialValue: [] })
   optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
@@ -53,9 +69,10 @@ export class OrdenVentaFormComponent {
 
   guardando = signal(false)
 
-  private formValue = toSignal(this.formOrdenVenta.valueChanges, {
-    initialValue: this.formOrdenVenta.getRawValue()
-  })
+  private formValue = toSignal(
+    this.formOrdenVenta.valueChanges.pipe(map(() => this.formOrdenVenta.getRawValue())),
+    { initialValue: this.formOrdenVenta.getRawValue() }
+  )
 
   itemsValue = computed<any[]>(() => (this.formValue() as any)?.items ?? [])
 
@@ -72,14 +89,18 @@ export class OrdenVentaFormComponent {
 
   importes = computed<number[]>(() => this.itemsValue().map(item => Number(item?.ImporteTotal ?? 0)))
 
+  // Ítems cuyo importe unitario sale de la lista de precios del cliente: no se editan
+  precioDeLista = computed<boolean[]>(() => this.itemsValue().map(item => !!item?.PrecioDeLista))
+
   // Se prende al intentar guardar: recién ahí se señalan los ítems incompletos
   validado = signal(false)
 
-  // Ítems que se cargaron pero les falta algún campo obligatorio
+  // Ítems a los que les falta algún campo obligatorio
   faltantes = computed<boolean[]>(() =>
     this.itemsValue().map(item =>
-      !!String(item?.ProductoCodigo ?? '').trim() &&
-      (!String(item?.TipoCantidad ?? '').trim() || !String(item?.TipoImporte ?? '').trim())
+      !String(item?.ProductoCodigo ?? '').trim() ||
+      String(item?.Cantidad ?? '').trim() === '' ||
+      String(item?.ImporteUnitario ?? '').trim() === ''
     )
   )
 
@@ -113,25 +134,30 @@ export class OrdenVentaFormComponent {
   }
 
   private nuevoItem(item: any = {}): FormGroup {
+    const precioDeLista = !!Number(item.PrecioDeLista ?? 0)
+
     // id = ItemOrdenVentaCodigo. En cero es un ítem nuevo, todavía sin persistir.
     const group = this.fb.group({
       id: item.id ?? 0,
-      ProductoCodigo: item.ProductoCodigo ?? '',
+      ProductoCodigo: [item.ProductoCodigo ?? '', Validators.required],
       Producto: item.Producto ?? '',
-      Cantidad: item.Cantidad ?? 0,
-      ImporteUnitario: item.ImporteUnitario ?? 0,
+      Cantidad: [vacioSiCero(item.Cantidad), numeroRequerido],
+      ImporteUnitario: [{ value: vacioSiCero(item.ImporteUnitario), disabled: precioDeLista }, numeroRequerido],
+      PrecioDeLista: precioDeLista,
       TextoFactura: item.TextoFactura ?? '',
-      CantidadEnFactura: item.CantidadEnFactura ?? 0,
-      ImporteTotal: item.ImporteTotal ?? 0,
-      // Se eligen en la pantalla (mismos dominios que parámetros de venta)
-      TipoCantidad: [item.TipoCantidad || '', Validators.required],
-      TipoImporte: [item.TipoImporte || '', Validators.required],
+      CantidadEnFactura: vacioSiCero(item.CantidadEnFactura),
+      ImporteTotal: vacioSiCero(item.ImporteTotal),
+      // Ocultos en la pantalla: van con valor fijo
+      TipoCantidad: [item.TipoCantidad || TIPO_CANTIDAD_MANUAL, Validators.required],
+      TipoImporte: [item.TipoImporte || (precioDeLista ? TIPO_IMPORTE_LISTA_PRECIO : TIPO_IMPORTE_MANUAL), Validators.required],
       CantidadEstandar: item.CantidadEstandar ?? null,
       Bonificacion: item.Bonificacion ?? null
     })
 
     // Importe Total = Cantidad * Importe Unitario
-    group.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(valor => {
+    group.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      // getRawValue: el importe unitario puede estar deshabilitado por precio de lista
+      const valor = group.getRawValue()
       const total = Number(valor.Cantidad ?? 0) * Number(valor.ImporteUnitario ?? 0)
       if (Number(valor.ImporteTotal ?? 0) !== total)
         group.patchValue({ ImporteTotal: total }, { emitEvent: false })
@@ -141,7 +167,7 @@ export class OrdenVentaFormComponent {
   }
 
   // Al elegir el producto se guarda también el nombre, que es lo que se muestra en la grilla,
-  // y se sugiere el importe unitario según el precio vigente del cliente para el período.
+  // y se toma el importe unitario del precio vigente del cliente para el período.
   async productoChange(index: number, producto: { value: string; label: string } | null) {
     const item = this.itemsArray.at(index)
     if (!item) return
@@ -149,17 +175,31 @@ export class OrdenVentaFormComponent {
     item.patchValue({ Producto: producto?.label ?? '' })
 
     const productoCodigo = producto?.value ?? ''
-    if (!productoCodigo || !this.objetivoId() || !this.anio() || !this.mes()) return
+    if (!productoCodigo || !this.objetivoId() || !this.anio() || !this.mes())
+      return this.aplicarPrecioDeLista(item, null)
 
     const precio = await firstValueFrom(
       this.apiService.getPrecioProductoOrdenVenta(this.objetivoId(), this.anio(), this.mes(), productoCodigo)
     )
 
-    if (precio?.ImporteUnitario == null) return
     if (String(item.getRawValue()?.ProductoCodigo ?? '') !== productoCodigo) return
 
-    item.patchValue({ ImporteUnitario: Number(precio.ImporteUnitario) })
+    this.aplicarPrecioDeLista(item, precio?.ImporteUnitario ?? null)
     this.formOrdenVenta.markAsDirty()
+  }
+
+  private aplicarPrecioDeLista(item: AbstractControl, importeUnitario: number | null) {
+    const precioDeLista = importeUnitario != null
+    const control = item.get('ImporteUnitario')!
+
+    item.patchValue({
+      PrecioDeLista: precioDeLista,
+      TipoImporte: precioDeLista ? TIPO_IMPORTE_LISTA_PRECIO : TIPO_IMPORTE_MANUAL,
+      ...(precioDeLista ? { ImporteUnitario: Number(importeUnitario) } : {})
+    })
+
+    if (precioDeLista) control.disable()
+    else control.enable()
   }
 
   addItem(event?: Event) {
@@ -186,28 +226,55 @@ export class OrdenVentaFormComponent {
     for (const item of this.itemsArray.controls) {
       for (const control of Object.values((item as FormGroup).controls)) {
         control.markAsTouched()
+        control.markAsDirty()
         control.updateValueAndValidity({ onlySelf: true, emitEvent: true })
       }
     }
   }
 
+  // Nombre visible de cada campo obligatorio, para el mensaje de error
+  private static readonly ETIQUETAS: Record<string, string> = {
+    ProductoCodigo: 'Producto',
+    Cantidad: 'Cantidad',
+    ImporteUnitario: 'Importe Unitario',
+    TipoCantidad: 'Tipo Cantidad',
+    TipoImporte: 'Tipo Importe'
+  }
+
+  // Qué le falta a cada ítem cargado, para avisarlo junto con los carteles de cada campo
+  private mensajeFaltantes(): string {
+    const detalle: string[] = []
+
+    this.itemsArray.controls.forEach((item, indice) => {
+      const valor = item.getRawValue()
+      if (item.valid) return
+
+      const campos = Object.entries((item as FormGroup).controls)
+        .filter(([, control]) => control.invalid)
+        .map(([nombre]) => OrdenVentaFormComponent.ETIQUETAS[nombre] ?? nombre)
+
+      const producto = String(valor?.ProductoCodigo ?? '').trim()
+      detalle.push(`Ítem ${indice + 1}${producto ? ` (${producto})` : ''}: ${campos.join(', ')}`)
+    })
+
+    return detalle.length ? `Complete los campos requeridos. ${detalle.join(' | ')}` : 'Complete los campos requeridos'
+  }
+
   async save() {
     if (this.guardando()) return
 
-    // Los ítems sin producto son filas que quedaron abiertas sin completar
-    const items = this.itemsArray.getRawValue().filter((item: any) => String(item?.ProductoCodigo ?? '').trim())
-    if (!items.length) return
+    const items = this.itemsArray.getRawValue()
 
-    // Los ítems que sí se cargaron tienen que estar completos. Se marcan todos para que cada panel
-    // muestre sus faltantes, y se abre el primero incompleto.
-    const incompleto = this.itemsArray.controls.findIndex(item =>
-      String(item.getRawValue()?.ProductoCodigo ?? '').trim() && item.invalid)
+    // Todos los ítems tienen que estar completos, incluida la fila que quedó abierta sin producto.
+    // Se marcan todos para que cada panel muestre sus faltantes, y se abre el primero incompleto.
+    const incompleto = this.itemsArray.controls.findIndex(item => item.invalid)
 
     if (incompleto >= 0) {
       this.validado.set(true)
       this.marcarInvalidos()
       this.panelAbierto.set(incompleto)
       this.cdr.markForCheck()
+      this.notification.error('Orden de venta', this.mensajeFaltantes())
       return
     }
 

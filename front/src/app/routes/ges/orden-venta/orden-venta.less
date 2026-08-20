@@ -2,11 +2,31 @@
   margin-bottom: 16px;
 }
 
-.totalOrdenVenta {
-  justify-content: flex-end;
+// Botón centrado en la fila y total pegado a la derecha: las dos puntas ocupan lo mismo
+.filaTotal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
-  nz-form-label,
-  input {
-    font-weight: 600;
+  .espacio,
+  .totalOrdenVenta {
+    flex: 1;
+  }
+
+  .totalOrdenVenta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+
+    label,
+    input {
+      font-weight: 600;
+    }
+
+    input {
+      max-width: 160px;
+      text-align: right;
+    }
   }
 }

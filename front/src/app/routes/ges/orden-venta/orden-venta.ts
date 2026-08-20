@@ -48,7 +48,7 @@ export class OrdenVentaComponent {
     if (this.cabecera().EstadoOrdenVenta) return this.cabecera().EstadoOrdenVenta
     if (detalle?.esNueva && detalle?.list?.length)
       return `Nueva, inicializada con ${String(detalle.origenMes).padStart(2, '0')}/${detalle.origenAnio}`
-    return 'Sin orden de venta'
+    return 'Nueva'
   })
 
   // Detalle tal cual está en el form (incluye ítems agregados/editados sin guardar)
