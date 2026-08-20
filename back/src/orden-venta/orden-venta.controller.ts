@@ -132,8 +132,8 @@ export class OrdenVentaController extends BaseController {
       const orden = await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ObjetivoId, anio, mes);
       const anterior = OrdenVentaController.periodoAnterior(anio, mes);
 
-      // Sin orden propia se copia la del mes anterior: los ítems son nuevos (id 0) y lo
-      // facturado no se arrastra.
+      // Sin orden propia se copia la del mes anterior: los ítems son nuevos (id 0), pero el
+      // detalle se arrastra completo.
       const ordenBase = orden ?? await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ObjetivoId, anterior.anio, anterior.mes);
       const esNueva = !orden;
 
@@ -153,7 +153,7 @@ export class OrdenVentaController extends BaseController {
             item.Bonificacion,
             ISNULL(pre.Importe, item.ImporteUnitario) AS ImporteUnitario,
             item.TextoFactura,
-            IIF(@1 = 1, NULL, item.CantidadEnFactura) AS CantidadEnFactura,
+            item.CantidadEnFactura,
             ISNULL(item.Cantidad,0) * ISNULL(ISNULL(pre.Importe, item.ImporteUnitario),0) AS ImporteTotal
           FROM ItemOrdenVenta item
           LEFT JOIN Producto prod ON prod.ProductoCodigo = item.ProductoCodigo

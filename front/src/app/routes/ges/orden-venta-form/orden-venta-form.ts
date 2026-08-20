@@ -69,10 +69,9 @@ export class OrdenVentaFormComponent {
 
   guardando = signal(false)
 
-  private formValue = toSignal(
-    this.formOrdenVenta.valueChanges.pipe(map(() => this.formOrdenVenta.getRawValue())),
-    { initialValue: this.formOrdenVenta.getRawValue() }
-  )
+  private formValue = toSignal(this.formOrdenVenta.valueChanges, {
+    initialValue: this.formOrdenVenta.getRawValue()
+  })
 
   itemsValue = computed<any[]>(() => (this.formValue() as any)?.items ?? [])
 
@@ -147,12 +146,7 @@ export class OrdenVentaFormComponent {
   }
 
   private actualizarItem(group: FormGroup, item: any) {
-    const valores = OrdenVentaFormComponent.valoresItem(item)
-    group.setValue(valores, { emitEvent: false })
-
-    const importeUnitario = group.get('ImporteUnitario')!
-    if (valores.PrecioDeLista) importeUnitario.disable({ emitEvent: false })
-    else importeUnitario.enable({ emitEvent: false })
+    group.setValue(OrdenVentaFormComponent.valoresItem(item), { emitEvent: false })
   }
 
   // Valores iniciales de un ítem, para crearlo o para refrescar uno ya existente
@@ -188,7 +182,7 @@ export class OrdenVentaFormComponent {
       ProductoCodigo: [valores.ProductoCodigo, Validators.required],
       Producto: valores.Producto,
       Cantidad: [valores.Cantidad, numeroRequerido],
-      ImporteUnitario: [{ value: valores.ImporteUnitario, disabled: valores.PrecioDeLista }, numeroRequerido],
+      ImporteUnitario: [valores.ImporteUnitario, numeroRequerido],
       PrecioDeLista: valores.PrecioDeLista,
       TextoFactura: valores.TextoFactura,
       CantidadEnFactura: valores.CantidadEnFactura,
@@ -201,9 +195,7 @@ export class OrdenVentaFormComponent {
     })
 
     // Importe Total = Cantidad * Importe Unitario
-    group.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      // getRawValue: el importe unitario puede estar deshabilitado por precio de lista
-      const valor = group.getRawValue()
+    group.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(valor => {
       const total = Number(valor.Cantidad ?? 0) * Number(valor.ImporteUnitario ?? 0)
       if (Number(valor.ImporteTotal ?? 0) !== total)
         group.patchValue({ ImporteTotal: total }, { emitEvent: false })
@@ -236,16 +228,12 @@ export class OrdenVentaFormComponent {
 
   private aplicarPrecioDeLista(item: AbstractControl, importeUnitario: number | null) {
     const precioDeLista = importeUnitario != null
-    const control = item.get('ImporteUnitario')!
 
     item.patchValue({
       PrecioDeLista: precioDeLista,
       TipoImporte: precioDeLista ? TIPO_IMPORTE_LISTA_PRECIO : TIPO_IMPORTE_MANUAL,
       ...(precioDeLista ? { ImporteUnitario: Number(importeUnitario) } : {})
     })
-
-    if (precioDeLista) control.disable()
-    else control.enable()
   }
 
   addItem(event?: Event) {

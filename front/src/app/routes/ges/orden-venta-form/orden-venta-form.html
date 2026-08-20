@@ -58,10 +58,9 @@
 
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Importe Unitario</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" nzHasFeedback
-            nzErrorTip="El importe unitario es requerido"
-            [nzExtra]="precioDeLista()[i] ? 'Precio de lista del cliente para el período' : ''">
+            nzErrorTip="El importe unitario es requerido">
             <input nz-input placeholder="" formControlName="ImporteUnitario" type="text" appDotToComma
-              mask="separator.2" />
+              mask="separator.2" [attr.readonly]="precioDeLista()[i] ? '' : null" />
           </nz-form-control>
         </nz-form-item>
 
@@ -84,7 +83,7 @@
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Importe Total</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
             <input nz-input placeholder="" formControlName="ImporteTotal" type="text" appDotToComma
-              mask="separator.2" [readonly]="true" />
+              mask="separator.2" [attr.readonly]="''" />
           </nz-form-control>
         </nz-form-item>
 
