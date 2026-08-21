@@ -61,7 +61,7 @@
           <div><button nz-button nzType="default" (click)="exportGrid()"><span nz-icon nzType="download"></span>{{
             'app.btn.name.xls' | i18n }}</button></div>
           }
-          <div><button nz-button nzType="default" (click)="visibleOrdenVenta.set(true)"><span nz-icon
+          <div><button nz-button nzType="default" (click)="abrirOrdenVenta()"><span nz-icon
               nzType="profile" nzTheme="outline"></span>Órdenes de Venta</button></div>
           <div><button nz-button nzType="default"
             [routerLink]="['/ges/asistencia_excepcion',{ObjetivoId:this.selectedObjetivoId()}]"><span nz-icon
@@ -309,6 +309,8 @@
   </div>
 </nz-card>
 <app-orden-venta-drawer [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
-  [objetivoId]="selectedObjetivoId()" [(visible)]="visibleOrdenVenta"></app-orden-venta-drawer>
+  [objetivoId]="selectedObjetivoId()" [horasAFacturarA]="horasAFacturarA()"
+  [horasAFacturarABloqueada]="horasAFacturarABloqueada"
+  (guardado)="ordenVentaGuardada($event)" [(visible)]="visibleOrdenVenta"></app-orden-venta-drawer>
 <app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId()"
   [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

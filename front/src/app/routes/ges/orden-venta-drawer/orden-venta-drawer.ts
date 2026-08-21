@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model, output, signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { OrdenVentaComponent } from '../orden-venta/orden-venta';
@@ -14,6 +14,10 @@ export class OrdenVentaDrawerComponent {
   anio = input<number>(0)
   mes = input<number>(0)
   objetivoId = input<number>(0)
+  horasAFacturarA = input<number>(0)
+  horasAFacturarABloqueada = input<boolean>(false)
+
+  guardado = output<number | null>()
 
   visible = model<boolean>(false)
   placement: NzDrawerPlacement = 'right';

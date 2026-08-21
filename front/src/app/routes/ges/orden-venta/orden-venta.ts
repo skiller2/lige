@@ -17,8 +17,11 @@ export class OrdenVentaComponent {
   anio = input<number>(0)
   mes = input<number>(0)
   objetivoId = input<number>(0)
+  horasAFacturarA = input<number>(0)
+  horasAFacturarABloqueada = input<boolean>(false)
 
   objetivoNombre = output<string>()
+  guardado = output<number | null>()
 
   cabecera = signal<any>({})
   isLoading = signal(false)
@@ -76,6 +79,11 @@ export class OrdenVentaComponent {
 
   // Después de guardar cambian tanto el detalle (ítems nuevos con su código) como la
   // cabecera (nro. de orden y estado)
+  ordenVentaGuardada(horasAFacturarA: number | null) {
+    this.recargar()
+    this.guardado.emit(horasAFacturarA)
+  }
+
   recargar() {
     this.itemsResource.reload()
     if (this.objetivoId() > 0 && this.anio() > 0 && this.mes() > 0)

@@ -1,5 +1,5 @@
 <nz-select [ngModel]="selectedId()" [ngModelOptions]="{ standalone: true }" (ngModelChange)="modelChange($event)"
-  (blur)="onBlur()" [nzDisabled]="isDisabled()" [nzDropdownMatchSelectWidth]="false" nzAllowClear nzShowSearch
+  (blur)="onBlur()" [nzDisabled]="isDisabled() || bloqueado()" [nzDropdownMatchSelectWidth]="false" nzAllowClear nzShowSearch
   nzPlaceHolder="Producto" style="width: 100%;">
   @for (option of productos(); track option.value) {
     <nz-option [nzValue]="option.value" [nzLabel]="option.value + ' - ' + option.label" />

@@ -20,9 +20,10 @@
   <!-- <app-table-orden-venta [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" /> -->
 
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
+    [horasAFacturarA]="horasAFacturarA()" [horasAFacturarABloqueada]="horasAFacturarABloqueada()"
     [clienteId]="cabecera().ClienteId ?? null"
     [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
-    (detalleChange)="detalle.set($event)" (guardado)="recargar()" />
+    (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)" />
 
   <nz-divider></nz-divider>
 

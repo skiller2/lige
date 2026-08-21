@@ -73,6 +73,7 @@ export class CargaAsistenciaComponent {
     controlAccesoDisabled = signal(false)
     visibleDrawer: boolean = false
     visibleOrdenVenta = signal(false)
+    horasAFacturarA = signal(0)
     personalApellidoNombre: any;
     rowLocked: boolean = false;
 //    objetivoInfo = signal({})
@@ -87,6 +88,36 @@ export class CargaAsistenciaComponent {
     $selectedObjetivoIdChange = new BehaviorSubject({objetivoId:0,periodo:{}});
     isLoadingCheck = signal(false);
     customHeaderExcel: any[] = []
+
+    // Las horas a facturar 'A' se congelan al abrir: la orden de venta tiene que incluir el
+    // producto de horas 'A' si en la asistencia se cargaron.
+    abrirOrdenVenta() {
+        this.horasAFacturarA.set(Number(this.carasistForm.form.get('TotalHoraA')?.value) || 0)
+        this.visibleOrdenVenta.set(true)
+    }
+
+    // La cantidad con la que se guardó el producto de horas en la orden de venta pasa a ser las
+    // horas a facturar 'A' de la asistencia, y se persiste por el mismo camino que el input.
+    // Período cerrado: el input de horas a facturar 'A' está deshabilitado y el back rechaza
+    // cualquier cambio, así que el ítem de horas de la orden tampoco se puede tocar
+    get horasAFacturarABloqueada(): boolean {
+        return this.carasistForm.form.get('TotalHoraA')?.disabled ?? false
+    }
+
+    async ordenVentaGuardada(horasAFacturarA: number | null) {
+        const control = this.carasistForm.form.get('TotalHoraA')
+        if (horasAFacturarA == null || !control) return
+        if (Number(control.value) === horasAFacturarA) return
+
+        // El campo deshabilitado es el período cerrado: setHorasFacturacion lo rechaza, así que
+        // las horas quedan como estaban
+        if (this.horasAFacturarABloqueada) return
+
+        control.setValue(horasAFacturarA)
+        control.markAsDirty()
+        this.horasAFacturarA.set(horasAFacturarA)
+        await this.setValFact(null)
+    }
 
     getHorasNormales(data: any) {
         const totalHorasN = data.map((row: { forma: { id: string; }; total: any; }) => { return (row.forma.id == 'N') ? row.total : 0 }).reduce((prev: number, curr: number) => prev + curr, 0)
@@ -152,7 +183,7 @@ export class CargaAsistenciaComponent {
                 this.getHorasNormales(this.gridDataInsert)
                 this.carasistForm.form.patchValue({ TotalHoraA: data[2][0]?.TotalHoraA, TotalHoraB: data[2][0]?.TotalHoraB, Observaciones: data[2][0]?.Observaciones }, { emitEvent: false })
                 this.carasistForm.form.markAsPristine()
-                this.formPrevVals = this.carasistForm.form.value
+                this.formPrevVals = this.carasistForm.form.getRawValue()
 
                 const values = this.carasistForm.form.getRawValue()
 
@@ -730,10 +761,10 @@ export class CargaAsistenciaComponent {
         if (!this.carasistForm.form.get('TotalHoraB')?.pristine || !this.carasistForm.form.get('TotalHoraA')?.pristine || !this.carasistForm.form.get('Observaciones')?.pristine) {
             try {
                 await firstValueFrom(this.apiService.setHorasFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.selectedObjetivoId(), this.carasistForm.form.get('TotalHoraA')?.value, this.carasistForm.form.get('TotalHoraB')?.value, this.carasistForm.form.get('Observaciones')?.value))
-                this.formPrevVals = this.carasistForm.form.value
+                this.formPrevVals = this.carasistForm.form.getRawValue()
             } catch (_e) {
                 this.carasistForm.form.get('TotalHoraA')?.setValue(this.formPrevVals.TotalHoraA)
-                this.carasistForm.form.get('TotalHoraB')?.setValue(this.formPrevVals.TotalHoraA)
+                this.carasistForm.form.get('TotalHoraB')?.setValue(this.formPrevVals.TotalHoraB)
                 this.carasistForm.form.get('Observaciones')?.setValue(this.formPrevVals.Observaciones)
             }
             this.carasistForm.form.get('TotalHoraA')?.markAsPristine()

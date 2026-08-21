@@ -3,7 +3,8 @@
   <ng-container *nzDrawerContent>
     @if (visible()) {
       <app-orden-venta [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()"
-        (objetivoNombre)="objetivoNombre.set($event)" />
+        [horasAFacturarA]="horasAFacturarA()" [horasAFacturarABloqueada]="horasAFacturarABloqueada()"
+        (objetivoNombre)="objetivoNombre.set($event)" (guardado)="guardado.emit($event)" />
     }
   </ng-container>
 </nz-drawer>

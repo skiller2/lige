@@ -23,6 +23,9 @@ const TIPO_CANTIDAD_MANUAL = 'V'
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP'
 const TIPO_IMPORTE_MANUAL = 'V'
 
+// Producto que factura las horas 'A' cargadas en la asistencia
+const PRODUCTO_HORAS_A = 'SSF'
+
 @Component({
   selector: 'app-orden-venta-form',
   standalone: true,
@@ -44,8 +47,15 @@ export class OrdenVentaFormComponent {
   // Ítems que vienen del detalle (/api/orden-venta/list)
   items = input<any[]>([])
 
+  // Horas a Facturar 'A' de la carga de asistencia, tomadas al abrir el drawer
+  horasAFacturarA = input<number>(0)
+
+  // Período cerrado en la asistencia: el ítem del producto de horas no se puede editar
+  horasAFacturarABloqueada = input<boolean>(false)
+
   // Avisa al contenedor que el detalle cambió, para recalcular el total de la orden
-  guardado = output<void>()
+  // Cantidad guardada del producto de horas 'A', o null si la orden no lo incluye
+  guardado = output<number | null>()
   detalleChange = output<any[]>()
 
   private fb = inject(FormBuilder)
@@ -91,6 +101,18 @@ export class OrdenVentaFormComponent {
   // Ítems cuyo importe unitario sale de la lista de precios del cliente: no se editan
   precioDeLista = computed<boolean[]>(() => this.itemsValue().map(item => !!item?.PrecioDeLista))
 
+  // El producto de horas lo pone el sistema a partir de la asistencia: nunca se cambia a mano
+  esProductoHoras = computed<boolean[]>(() =>
+    this.itemsValue().map(item =>
+      String(item?.ProductoCodigo ?? '').trim().toUpperCase() === PRODUCTO_HORAS_A)
+  )
+
+  // Con el período cerrado el resto del ítem tampoco se toca: su cantidad son las horas a
+  // facturar 'A' de la asistencia, que ya no admiten cambios
+  horasBloqueadas = computed<boolean[]>(() =>
+    this.esProductoHoras().map(esHoras => esHoras && this.horasAFacturarABloqueada())
+  )
+
   // Se prende al intentar guardar: recién ahí se señalan los ítems incompletos
   validado = signal(false)
 
@@ -114,9 +136,11 @@ export class OrdenVentaFormComponent {
     // Carga el detalle recibido en el FormArray
     effect(() => {
       const items = this.items()
+      const horasAFacturarA = this.horasAFacturarA()
       // Siempre hay al menos un ítem para cargar
       this.sincronizarItems(items.length ? items : [{}])
       this.panelAbierto.set(0)
+      void this.agregarProductoHorasA(horasAFacturarA)
     })
 
     // El total de la orden se recalcula ante cualquier modificación del detalle
@@ -143,6 +167,40 @@ export class OrdenVentaFormComponent {
     this.formOrdenVenta.markAsPristine()
     this.formOrdenVenta.markAsUntouched()
     this.itemsArray.updateValueAndValidity()
+  }
+
+  // Con horas a facturar 'A' cargadas, la orden tiene que incluir el producto que las factura.
+  // Si el detalle no lo trae, se agrega: se aprovecha un ítem sin producto y, si no hay ninguno,
+  // se suma uno al final.
+  private async agregarProductoHorasA(horasAFacturarA: number) {
+    if (!horasAFacturarA) return
+
+    const codigoDe = (item: AbstractControl) =>
+      String(item.getRawValue()?.ProductoCodigo ?? '').trim().toUpperCase()
+
+    if (this.itemsArray.controls.some(item => codigoDe(item) === PRODUCTO_HORAS_A)) return
+
+    let indice = this.itemsArray.controls.findIndex(item => !codigoDe(item))
+    if (indice < 0) {
+      this.itemsArray.push(this.nuevoItem())
+      indice = this.itemsArray.length - 1
+    }
+
+    // El código sale de las mismas opciones que usa app-producto-search, para tomar el nombre
+    const productos = await firstValueFrom(this.searchService.getProductos())
+    const producto = (productos ?? []).find(
+      (opcion: any) => String(opcion?.value ?? '').trim().toUpperCase() === PRODUCTO_HORAS_A)
+
+    // La cantidad son las horas a facturar 'A' que se cargaron en la asistencia
+    this.itemsArray.at(indice).patchValue({
+      ProductoCodigo: producto?.value ?? PRODUCTO_HORAS_A,
+      Cantidad: horasAFacturarA
+    })
+    // Trae el nombre del producto y el importe unitario vigente, igual que si se hubiera elegido a mano
+    await this.productoChange(indice, producto ?? { value: PRODUCTO_HORAS_A, label: '' })
+
+    this.panelAbierto.set(indice)
+    this.formOrdenVenta.markAsDirty()
   }
 
   private actualizarItem(group: FormGroup, item: any) {
@@ -223,6 +281,8 @@ export class OrdenVentaFormComponent {
     if (String(item.getRawValue()?.ProductoCodigo ?? '') !== productoCodigo) return
 
     this.aplicarPrecioDeLista(item, precio?.ImporteUnitario ?? null)
+    // El producto de horas trae además el texto de factura de las observaciones del objetivo
+    if (precio?.TextoFactura) item.patchValue({ TextoFactura: precio.TextoFactura })
     this.formOrdenVenta.markAsDirty()
   }
 
@@ -324,8 +384,11 @@ export class OrdenVentaFormComponent {
       }))
 
       this.formOrdenVenta.markAsPristine()
+
       // Recarga el detalle: los ítems nuevos vuelven con su ItemOrdenVentaCodigo
-      this.guardado.emit()
+      const horasA = items.find((item: any) =>
+        String(item.ProductoCodigo ?? '').trim().toUpperCase() === PRODUCTO_HORAS_A)
+      this.guardado.emit(horasA ? Number(horasA.Cantidad ?? 0) : null)
     } finally {
       this.guardando.set(false)
     }

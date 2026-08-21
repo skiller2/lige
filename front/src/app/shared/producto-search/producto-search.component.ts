@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, forwardRef, inject, signal } from '@angular/core'
+import { Component, EventEmitter, Output, forwardRef, inject, input, signal } from '@angular/core'
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { noop, Observable } from 'rxjs'
@@ -31,6 +31,9 @@ export class ProductoSearchComponent implements ControlValueAccessor {
   productos = toSignal(this.searchService.getProductos() as Observable<ProductoOption[]>, {
     initialValue: [] as ProductoOption[]
   })
+
+  // Bloqueo desde la pantalla, independiente del disabled del FormControl
+  bloqueado = input(false)
 
   selectedId = signal<string>('')
   isDisabled = signal(false)

@@ -93,6 +93,10 @@ const columnasGrilla: any[] = [
 const ESTADO_ORDEN_VENTA_INICIAL = 'PEN';
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
 
+// Producto que factura las horas 'A'. Su importe no sale de la lista de precios sino de
+// ObjetivoImporteVenta.ImporteHoraA, del último Anio/Mes <= al período del cliente/elemento.
+const PRODUCTO_HORAS_A = 'SSF';
+
 export class OrdenVentaController extends BaseController {
 
   async getGridCols(req: Request, res: Response) {
@@ -146,15 +150,17 @@ export class OrdenVentaController extends BaseController {
             item.ProductoCodigo,
             prod.Nombre AS Producto,
             item.TipoCantidad,
-            IIF(pre.Importe IS NULL, 'V', 'LP') AS TipoImporte,
-            IIF(pre.Importe IS NULL, 0, 1) AS PrecioDeLista,
+            IIF(COALESCE(hs.ImporteHoraA, pre.Importe) IS NULL, 'V', 'LP') AS TipoImporte,
+            IIF(COALESCE(hs.ImporteHoraA, pre.Importe) IS NULL, 0, 1) AS PrecioDeLista,
             item.Cantidad,
             item.CantidadEstandar,
             item.Bonificacion,
-            ISNULL(pre.Importe, item.ImporteUnitario) AS ImporteUnitario,
-            item.TextoFactura,
+            COALESCE(hs.ImporteHoraA, pre.Importe, item.ImporteUnitario) AS ImporteUnitario,
+            -- El texto de factura del producto de horas siempre sale de las observaciones del
+            -- objetivo; el resto de los productos conserva el suyo
+            IIF(item.ProductoCodigo = @6, hs.Observaciones, item.TextoFactura) AS TextoFactura,
             item.CantidadEnFactura,
-            ISNULL(item.Cantidad,0) * ISNULL(ISNULL(pre.Importe, item.ImporteUnitario),0) AS ImporteTotal
+            ISNULL(item.Cantidad,0) * ISNULL(COALESCE(hs.ImporteHoraA, pre.Importe, item.ImporteUnitario),0) AS ImporteTotal
           FROM ItemOrdenVenta item
           LEFT JOIN Producto prod ON prod.ProductoCodigo = item.ProductoCodigo
           OUTER APPLY (
@@ -165,9 +171,19 @@ export class OrdenVentaController extends BaseController {
               AND pp.PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(@3,@4,1))
             ORDER BY pp.PeriodoDesdeAplica DESC
           ) pre
+          OUTER APPLY (
+            SELECT TOP 1 oiv.ImporteHoraA, oiv.Observaciones
+            FROM ObjetivoImporteVenta oiv
+            WHERE item.ProductoCodigo = @6
+              AND oiv.ClienteId = @2
+              AND oiv.ClienteElementoDependienteId = @5
+              AND (oiv.Anio < @3 OR (oiv.Anio = @3 AND oiv.Mes <= @4))
+            ORDER BY oiv.Anio DESC, oiv.Mes DESC
+          ) hs
           WHERE item.NroOrdenVenta = @0
           ORDER BY item.ItemOrdenVentaCodigo
-        `, [ordenBase.NroOrdenVenta, esNueva ? 1 : 0, ordenBase.ClienteId, anio, mes]);
+        `, [ordenBase.NroOrdenVenta, esNueva ? 1 : 0, ordenBase.ClienteId, anio, mes,
+            ordenBase.ClienteElementoDependienteId, PRODUCTO_HORAS_A]);
       }
 
       this.jsonRes(
@@ -326,8 +342,20 @@ export class OrdenVentaController extends BaseController {
       const preciosLista = new Map<string, number>(precios.map(
         (precio: any) => [String(precio.ProductoCodigo).trim().toUpperCase(), Number(precio.Importe)]));
 
+      // El producto de horas factura con el importe del objetivo, que le gana a la lista de precios
+      const importesObjetivo = await queryRunner.query(`
+        SELECT TOP 1 oiv.ImporteHoraA
+        FROM ObjetivoImporteVenta oiv
+        WHERE oiv.ClienteId = @0 AND oiv.ClienteElementoDependienteId = @1
+          AND (oiv.Anio < @2 OR (oiv.Anio = @2 AND oiv.Mes <= @3))
+        ORDER BY oiv.Anio DESC, oiv.Mes DESC
+      `, [objetivo.ClienteId, objetivo.ClienteElementoDependienteId, anio, mes]);
+
+      const importeHorasA = importesObjetivo[0]?.ImporteHoraA ?? null;
+
       for (const item of items) {
-        const precio = preciosLista.get(String(item.ProductoCodigo).trim().toUpperCase());
+        const codigo = String(item.ProductoCodigo).trim().toUpperCase();
+        const precio = codigo === PRODUCTO_HORAS_A ? importeHorasA : preciosLista.get(codigo);
         if (precio == null) continue;
         item.ImporteUnitario = precio;
         item.TipoImporte = TIPO_IMPORTE_LISTA_PRECIO;
@@ -465,7 +493,8 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
-  // Precio sugerido del producto para el cliente del objetivo: el último vigente al cierre del período.
+  // Precio del producto para el cliente del objetivo: el último vigente al cierre del período.
+  // El producto de horas 'A' se resuelve aparte, contra ObjetivoImporteVenta.
   async getPrecioProducto(req: Request, res: Response, next: NextFunction) {
     const ObjetivoId = Number(req.params.ObjetivoId);
     const anio = Number(req.params.anio);
@@ -474,6 +503,25 @@ export class OrdenVentaController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
+      if (ProductoCodigo.trim().toUpperCase() === PRODUCTO_HORAS_A) {
+        const horas = await queryRunner.query(`
+          SELECT TOP 1 oiv.ImporteHoraA AS ImporteUnitario, oiv.Observaciones AS TextoFactura
+          FROM Objetivo obj
+          JOIN ObjetivoImporteVenta oiv ON oiv.ClienteId = obj.ClienteId
+            AND oiv.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
+          WHERE obj.ObjetivoId = @0
+            AND (oiv.Anio < @1 OR (oiv.Anio = @1 AND oiv.Mes <= @2))
+          ORDER BY oiv.Anio DESC, oiv.Mes DESC
+        `, [ObjetivoId, anio, mes]);
+
+        return this.jsonRes({
+          ProductoCodigo,
+          ImporteUnitario: horas[0]?.ImporteUnitario ?? null,
+          TextoFactura: horas[0]?.TextoFactura ?? null,
+          PrecioDeLista: horas[0]?.ImporteUnitario == null ? 0 : 1
+        }, res);
+      }
+
       const precio = await queryRunner.query(`
         SELECT TOP 1
           pre.ProductoCodigo,
