@@ -653,6 +653,7 @@ export class MovimientoStockController extends BaseController {
       await this.validateForm(queryRunner, body.fecha, depositoId, personalId, personalIdInter, objetivoId, proveedorId, proveedorIdInter, observaciones, efectos, indIngresoStock);
 
       const fecha = new Date(body.fecha)
+      fecha.setHours(0, 0, 0, 0);
 
       // Alta del movimiento (cabecera MovimientoStock + detalle). Consume el numerador.
 

@@ -85,6 +85,26 @@ const altasBajasColumns: any[] = [
     searchHidden: false,
     hidden: false,
   },
+{
+    id: "SituacionRevistaDescripcion",
+    name: "Situación Revista",
+    field: "SituacionRevistaDescripcion",
+    type: "string",
+    fieldName: "sitrev.SituacionRevistaDescripcion",
+    sortable: true,
+    excludeFromExport: true,
+  },
+
+  {
+    id: "PersonalSituacionRevistaMotivo",
+    name: "Motivo",
+    field: "PersonalSituacionRevistaMotivo",
+    type: "string",
+    fieldName: "sitrev.PersonalSituacionRevistaMotivo",
+    sortable: true,
+    excludeFromExport: true,
+  },
+
   {
     id: "PersonalCUITCUILCUIT",
     name: "CUIT",
@@ -505,13 +525,13 @@ export class InaesController extends BaseController {
         tel.Telefono,
         per.PersonalNroLegajo,
         perdom.domCompleto,
-        sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion,
+        sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaMotivo,
         sal.SalarioMinimoVitalMovilSMVM AS CapitalSuscripto, 		  sal.SalarioMinimoVitalMovilSuscripcionInicial * sal.SalarioMinimoVitalMovilSMVM /100 AS CapitalIntegrado,
         ${flags}
       FROM Personal per
 
       LEFT JOIN (
-        SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion, p.PersonalSituacionRevistaDesde
+        SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion, p.PersonalSituacionRevistaMotivo, p.PersonalSituacionRevistaDesde
         /*CASE 
           WHEN p.PersonalSituacionRevistaId IS NOT NULL THEN  
             CONCAT(TRIM(s.SituacionRevistaDescripcion), ' (Desde: ', FORMAT(p.PersonalSituacionRevistaDesde, 'dd/MM/yyyy'), ' - Hasta: ', 
@@ -564,7 +584,7 @@ export class InaesController extends BaseController {
 		    ORDER BY smv.SalarioMinimoVitalMovilDesde DESC
 		) sal
 
-      WHERE (1=1)
+      WHERE (per.PersonalNroLegajo IS NOT NULL)
       AND (${filterSql}) AND (${filterCUITs})
       ${orderBy}`,[new Date(),CUITEntidad,RazonSocial])
   }

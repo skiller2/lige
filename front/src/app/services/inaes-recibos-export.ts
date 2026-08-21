@@ -1,7 +1,6 @@
 import { TextExportService } from '@slickgrid-universal/text-export';
-//import type { Column } from '@slickgrid-universal/common';
 
-export class InaesCsvExportService extends TextExportService {
+export class InaesRecibosCsvExportService extends TextExportService {
 
   /**
    * Format exported values
@@ -20,11 +19,20 @@ export class InaesCsvExportService extends TextExportService {
       .replace(/\n/g, ' ');
   }
 
+  protected encoder = new TextEncoder();
+  protected decoder = new TextDecoder();
+
+  truncateBytes(str: string, bytes: number): string {
+    const buffer = new Uint8Array(bytes);
+    const { written } = this.encoder.encodeInto(str, buffer);
+    return this.decoder.decode(buffer.subarray(0, written));
+  }
+
   /**
    * Override complete output generation
    */
   protected override getDataOutput(): string {
-    
+
     const columns = this._grid.getColumns() || [];
 
     this._delimiter = ';';
@@ -34,7 +42,7 @@ export class InaesCsvExportService extends TextExportService {
     // Headers without quotes
     const headers = columns
       .filter(col => !col.excludeFromExport)
-      .map(col => col.name || '');
+      .map(col => col.params.exportHeader || col.name || '');
 
     output += headers.join(this._delimiter);
     output += '\r\n';
@@ -57,19 +65,37 @@ export class InaesCsvExportService extends TextExportService {
       if (!item) {
         continue;
       }
+
+      const decimalColumns = new Set([
+        'SumaRetribucion',
+        'SumaExcedentes',
+        'SumaMonotributoRetencion',
+        'SumaOtrasRetenciones'
+      ]);
+
       const values = columns
         .filter(col => !col.excludeFromExport)
         .map(col => {
           const value = item[col.field!];
-          if (col.id == "SumaRetribucion" || col.id =="SumaExcedentes"|| col.id =="SumaMonotributoRetencion"|| col.id =="SumaOtrasRetenciones")
-            return value.toFixed(2).replace('.', ',')
-        else if (col.id == "DocumentoFecha") 
+
+          if (decimalColumns.has(col.id!)) {
+            return Number(value).toFixed(2).replace('.', ',');
+          }
+
+          else if (col.id === 'DocumentoFecha') {
             return new Date(value).toLocaleDateString('en-GB');
-        else 
-            return value 
+          }
+
+          else if (col.id === 'DescOtrasRetenciones') {
+            return this.truncateBytes(String(value), 120)
+          }
+
+          else
+            return value;
         });
 
       rows.push(values.join(this._delimiter));
+
     }
 
     return rows.join('\r\n');

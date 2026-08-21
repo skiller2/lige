@@ -17,7 +17,7 @@ import { Selections } from '../../../shared/schemas/filtro';
 import { LoadingService } from '@delon/abc/loading';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
-import { InaesCsvExportService } from '../../../services/inaes-export';
+import { InaesRecibosCsvExportService } from '../../../services/inaes-recibos-export';
 
 @Component({
   selector: 'app-table-inaes-recibos',
@@ -32,13 +32,12 @@ export class TableINAESRecibosComponent {
   private angularGrid!: AngularGridInstance;
   private readonly detailViewRowCount = 1;
   private excelExportService = new ExcelExportService();
-  private textExportService: ExternalResource | TextExportService = new InaesCsvExportService();
+  private INAESExportService: ExternalResource | InaesRecibosCsvExportService = new InaesRecibosCsvExportService();
   gridOptions!: GridOption;
 
   private readonly loadingSrv = inject(LoadingService)
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
-  // private searchService = inject(SearchService)
   private notification = inject(NzNotificationService)
 
   listOptions = signal<listOptionsT>({ filtros: [], sort: null })
@@ -47,7 +46,6 @@ export class TableINAESRecibosComponent {
   loadingExport = signal<boolean>(false)
 
   hiddenColumnIds: string[] = [];
-  //columnsForExport: string[] = [];
 
   columns = toSignal(this.apiService.getCols('/api/inaes/recibos/cols')
     .pipe(map((cols: Column[]) => {
@@ -105,7 +103,7 @@ export class TableINAESRecibosComponent {
     this.gridOptions.forceFitColumns = true;
     //Habilitando exportación de .CSV
     this.gridOptions.textExportOptions = { exportWithFormatter: true }
-    this.gridOptions.externalResources = [this.textExportService as ExternalResource]
+    this.gridOptions.externalResources = [this.INAESExportService as ExternalResource]
   }
 
   angularGridReady(angularGrid: any): void {
@@ -128,14 +126,7 @@ export class TableINAESRecibosComponent {
   async exportGrid(): Promise<void> {
     this.loadingExport.set(true)
 
-    //Muestro solo las columnas que se van a exportar
-    //    if (this.hiddenColumnIds.length > 0) 
-    //      this.angularGrid.gridService.showColumnByIds(this.columnsForExport)
-
-    //Validaciones
-    //Campos vacios
     const emptyFields = this.getEmptyFieldsRecibo()
-
 
     if (emptyFields.length) {
       let errorMsg = 'Campos Vacíos:\n'
@@ -147,33 +138,12 @@ export class TableINAESRecibosComponent {
       return
     }
 
-
-    const columns = this.angularGrid.slickGrid.getColumns();
-
-    // Guardar originales
-    const originalNames = new Map(
-      columns.map(col => [col.id, col.name])
-    );
-
-    for (const col of columns) {
-      if (col.params?.exportHeader) {
-        col.name = col.params.exportHeader;
-      }
-    }
-
-    await (this.textExportService as InaesCsvExportService).exportToFile({
+    await (this.INAESExportService as InaesRecibosCsvExportService).exportToFile({
       delimiter: ';',
-      filename: `inaes-recibos-${this.periodo().getFullYear()}-${this.periodo().getMonth() + 1}.csv`,
+      filename: `inaes-recibos-${this.periodo().getFullYear()}-${this.periodo().getMonth() + 1}`,
       format: 'csv',
     });
 
-    // Restaurar nombres originales
-    columns.forEach(col => {
-      const originalName = originalNames.get(col.id);
-      if (originalName) {
-        col.name = originalName;
-      }
-    });
 
     //this.gridData.reload()
 

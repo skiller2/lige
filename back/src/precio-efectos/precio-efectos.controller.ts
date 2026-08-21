@@ -1,5 +1,7 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
+import { recibosController } from "../controller/controller.module.ts";
+import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 
 export class PrecioEfectosController extends BaseController {
@@ -136,24 +138,37 @@ export class PrecioEfectosController extends BaseController {
     const EfectoEfectoIndividualId = (req.body.EfectoEfectoIndividualId === null || req.body.EfectoEfectoIndividualId === undefined || req.body.EfectoEfectoIndividualId === '')
       ? null : Number(req.body.EfectoEfectoIndividualId)
     const Importe = Number(req.body.Importe)
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
 
+    if (!EfectoId)
+      throw new ClientException("Debe indicar el efecto")
+
+    if (!req.body.FechaDesde)
+      throw new ClientException("Debe indicar la fecha desde")
+
+    if (!Importe || Importe <= 0)
+      throw new ClientException("Ingrese un importe válido distinto de 0")
+
+    const FechaDesde = new Date(req.body.FechaDesde)
+    FechaDesde.setHours(0, 0, 0, 0)
+
+    if (FechaDesde > hoy)
+      throw new ClientException(`No se puede cargar un precio con vigencia futura ${this.dateOutputFormat(FechaDesde)}.`)
+
+    const FechaHastaAnterior = new Date(FechaDesde)
+    FechaHastaAnterior.setDate(FechaHastaAnterior.getDate() - 1)
     try {
-      if (!EfectoId)
-        throw new ClientException("Debe indicar el efecto")
 
-      if (!req.body.FechaDesde)
-        throw new ClientException("Debe indicar la fecha desde")
-
-      if (!Importe || Importe <= 0)
-        throw new ClientException("Ingrese un importe válido distinto de 0")
-
-      const FechaDesde = new Date(req.body.FechaDesde)
-      FechaDesde.setHours(0, 0, 0, 0)
-
-      const FechaHastaAnterior = new Date(FechaDesde)
-      FechaHastaAnterior.setDate(FechaHastaAnterior.getDate() - 1)
 
       await queryRunner.startTransaction()
+
+      // No se puede modificar el precio si la vigencia cae en un período con los recibos generados
+      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), FechaDesde.getFullYear(), FechaDesde.getMonth() + 1, res.locals.userName, this.getRemoteAddress(req))
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0]?.ind_recibos_generados == 1)
+        throw new ClientException(`No se puede modificar el precio con vigencia ${this.dateOutputFormat(FechaDesde)}. Se encuentran generados los recibos para el período ${FechaDesde.getMonth() + 1}/${FechaDesde.getFullYear()}.`)
 
       if (EfectoEfectoIndividualId === null)
         await this.setListaPrecio(queryRunner, EfectoId, Importe, FechaDesde, FechaHastaAnterior)
@@ -172,6 +187,16 @@ export class PrecioEfectosController extends BaseController {
   }
 
   private async setListaPrecio(queryRunner: any, EfectoId: number, Importe: number, FechaDesde: Date, FechaHastaAnterior: Date) {
+    
+    // Solo se puede pisar el último precio cargado: una fecha anterior rompería la cadena de vigencias
+    const ultimo = await queryRunner.query(`
+      SELECT MAX(ListaPrecioDesde) AS UltimoDesde FROM ListaPrecio WHERE EfectoId = @0
+    `, [EfectoId])
+    
+    const UltimoDesde = ultimo[0]?.UltimoDesde ? new Date(ultimo[0].UltimoDesde) : null
+    if (UltimoDesde && FechaDesde < UltimoDesde)
+      throw new ClientException(`No se puede cargar un precio con vigencia ${this.dateOutputFormat(FechaDesde)}, anterior al último precio vigente desde ${this.dateOutputFormat(UltimoDesde)}.`)
+
     const mismaFecha = await queryRunner.query(`
       SELECT ListaPrecioId FROM ListaPrecio WHERE EfectoId = @0 AND ListaPrecioDesde = @1
     `, [EfectoId, FechaDesde])
@@ -209,6 +234,16 @@ export class PrecioEfectosController extends BaseController {
   }
 
   private async setListaPrecioIndividual(queryRunner: any, EfectoId: number, EfectoEfectoIndividualId: number, Importe: number, FechaDesde: Date, FechaHastaAnterior: Date) {
+    // Solo se puede pisar el último precio cargado: una fecha anterior rompería la cadena de vigencias
+    const ultimo = await queryRunner.query(`
+      SELECT MAX(ListaPrecioIndividualDesde) AS UltimoDesde FROM ListaPrecioIndividual
+      WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1
+    `, [EfectoId, EfectoEfectoIndividualId])
+
+    const UltimoDesde = ultimo[0]?.UltimoDesde ? new Date(ultimo[0].UltimoDesde) : null
+    if (UltimoDesde && FechaDesde < UltimoDesde)
+      throw new ClientException(`No se puede cargar un precio con vigencia ${this.dateOutputFormat(FechaDesde)}, anterior al último precio vigente desde ${this.dateOutputFormat(UltimoDesde)}.`)
+
     const mismaFecha = await queryRunner.query(`
       SELECT ListaPrecioIndividualId FROM ListaPrecioIndividual
       WHERE EfectoId = @0 AND EfectoEfectoIndividualId = @1 AND ListaPrecioIndividualDesde = @2

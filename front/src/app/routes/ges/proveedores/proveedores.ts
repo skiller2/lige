@@ -12,6 +12,7 @@ import { SearchService } from '../../../services/search.service';
 import { LoadingService } from '@delon/abc/loading';
 import { Selections } from '../../../shared/schemas/filtro';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { ProveedoresFormComponent } from './proveedores-form/proveedores-form';
 
 @Component({
   selector: 'app-proveedores',
@@ -19,7 +20,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
   styleUrl: './proveedores.less',
   standalone: true,
   providers: [AngularUtilService],
-  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent],
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, ProveedoresFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProveedoresComponent {
@@ -48,7 +49,7 @@ export class ProveedoresComponent {
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
         response = await firstValueFrom(this.apiService.getProveedores({options: params.options}));
-        console.log('response: ', response);
+        // console.log('response: ', response);
         
       } catch (_e) { }
       this.loadingSrv.close()
@@ -58,6 +59,9 @@ export class ProveedoresComponent {
 
     defaultValue: []
   });
+
+  childProForm = viewChild.required<ProveedoresFormComponent>('proForm')
+  childProDetalle = viewChild.required<ProveedoresFormComponent>('proDetalle')
 
   async ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -87,6 +91,21 @@ export class ProveedoresComponent {
 
     } else {
       this.ProveedorId.set(0)
+    }
+  }
+
+  onTabsetChange(_event: any) {
+    switch (_event.index) {
+      case 4: //DETALLE
+        this.childProDetalle().load()
+        break
+      case 3: //EDIT
+        this.childProForm().load()
+        break;
+      case 2:
+        break;
+      default:
+        break;
     }
   }
 }

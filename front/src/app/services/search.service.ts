@@ -2914,4 +2914,15 @@ export class SearchService {
       );
   }
 
+  //Proveedores
+  getProveedorInfoById(id: number): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/proveedores/info/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+
+        return of([]);
+      })
+    );
+  }
+
 }
