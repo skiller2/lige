@@ -48,17 +48,13 @@ export class AuthMiddleware {
         // si la consulta es mayor a 20 minutos, recarga
         const queryRunner = await getConnection(res.locals.userName)
         try {
-          res.locals.GrupoActividad = []
           const listGrupos = await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes);
-          for (const row of listGrupos) {
-            res.locals.GrupoActividad.push({ GrupoActividadNumero: row.GrupoActividadNumero, GrupoActividadId: row.GrupoActividadId })
-          }
+          res.locals.GrupoActividad = listGrupos.map((row: any) => ({ GrupoActividadNumero: row.GrupoActividadNumero, GrupoActividadId: row.GrupoActividadId }))
           res.locals.lastDbQueryTime = new Date()
         } catch (err) {
-          return res.status(500).json({ msg: "Error recargando grupos de actividad", error: err, stamp: new Date() });
+          logger.error({ err, userName: res.locals.userName, PersonalId: res.locals.PersonalId }, 'Error recargando grupos de actividad')
         } finally {
           await queryRunner.release();
-
         }
       }
       return next();
