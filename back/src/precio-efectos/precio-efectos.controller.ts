@@ -1,5 +1,7 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
+import { recibosController } from "../controller/controller.module.ts";
+import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 
 export class PrecioEfectosController extends BaseController {
@@ -154,6 +156,13 @@ export class PrecioEfectosController extends BaseController {
       FechaHastaAnterior.setDate(FechaHastaAnterior.getDate() - 1)
 
       await queryRunner.startTransaction()
+
+      // No se puede modificar el precio si la vigencia cae en un período con los recibos generados
+      const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), FechaDesde.getFullYear(), FechaDesde.getMonth() + 1, res.locals.userName, this.getRemoteAddress(req))
+      const getRecibosGenerados = await recibosController.getRecibosGenerados(queryRunner, periodo_id)
+
+      if (getRecibosGenerados[0]?.ind_recibos_generados == 1)
+        throw new ClientException(`No se puede modificar el precio con vigencia ${this.dateOutputFormat(FechaDesde)}. Se encuentran generados los recibos para el período ${FechaDesde.getMonth() + 1}/${FechaDesde.getFullYear()}.`)
 
       if (EfectoEfectoIndividualId === null)
         await this.setListaPrecio(queryRunner, EfectoId, Importe, FechaDesde, FechaHastaAnterior)
