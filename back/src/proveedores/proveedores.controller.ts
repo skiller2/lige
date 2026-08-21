@@ -105,4 +105,41 @@ export class ProveedoresController extends BaseController {
     }
   }
 
+  private async getProveedorByIdQuery(queryRunner: any, proveedorId: any) {
+    let data = await queryRunner.query(
+      `SELECT pro.ProveedorId, pro.ProveedorInactivo, TRIM(pro.ProveedorRazonSocial) ProveedorRazonSocial, pro.CUIT,
+      dom.DomicilioJson,
+      con.ContactoId, con.ContactoApellido, con.ContactoNombre, 
+      email.ContactoEmailId, email.ContactoEmailEmail,
+      tele.ContactoTelefonoId, tele.TipoTelefonoId, tele.ContactoTelefonoNro
+      FROM Proveedor pro
+      LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = pro.ProveedorId AND nex.NexoDomicilioActual = 1
+      LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
+      LEFT JOIN Contacto AS con ON con.ProveedorId = pro.ProveedorId
+      LEFT JOIN ContactoEmail AS email ON email.ContactoId = con.ContactoId AND email.ContactoEmailInactivo NOT IN(1)
+      LEFT JOIN ContactoTelefono AS tele ON tele.ContactoId = con.ContactoId AND tele.ContactoTelefonoInactivo NOT IN(1)
+      WHERE pro.ProveedorId = @0`, 
+      [proveedorId]
+    )
+    if (!data.length)  null
+    const Proveedor = data[0]
+    Proveedor.domicilio = JSON.parse(Proveedor.DomicilioJson)
+
+    return Proveedor
+  }
+
+  async getProveedorById(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName)
+    const ProveedorId = req.params.id
+    try {
+      let data = await this.getProveedorByIdQuery(queryRunner, ProveedorId)
+
+      this.jsonRes(data, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
 }

@@ -1,0 +1,79 @@
+<form (ngSubmit)="save()">
+  <br>
+  <fieldset [disabled]=this.formParametroProveedor().disabled()>
+
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Razón Social</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="7">
+        <input nz-input placeholder="" [formField]="formParametroProveedor.ProveedorRazonSocial" type="text" />
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">CUIT</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="7">
+        <input nz-input placeholder="" [formField]="formParametroProveedor.CUIT" type="number" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <div class="input-container1">
+      <div class="input-label">Domicilio</div>
+    </div>
+
+    <nz-form-item class="marginElement">
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Dirección</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" [nzLg]="5">
+        <app-addr-search [formField]="formParametroProveedor.domicilio"></app-addr-search>
+      </nz-form-control>
+
+    </nz-form-item>
+
+    <div class="input-container1">
+      <div class="input-label">Contacto</div>
+    </div>
+
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Apellido</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="7">
+        <input nz-input placeholder="" [formField]="formParametroProveedor.ContactoApellido" type="text" />
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Nombre</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="7">
+        <input nz-input placeholder="" [formField]="formParametroProveedor.ContactoNombre" type="text" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">Tipo de Telefono</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="2">
+        <nz-select [formField]="formParametroProveedor.TipoTelefonoId" nzPlaceHolder="" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+          @for (option of tipoTelefono(); track option.TipoTelefonoId) {
+          <nz-option [nzValue]="option.TipoTelefonoId" [nzLabel]="option.TipoTelefonoDescripcion"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Num. de Telefono</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="5">
+        <input nz-input placeholder="" [formField]="formParametroProveedor.ContactoTelefonoNro" type="text" />
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Email</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="5">
+        <input nz-input placeholder="" [formField]="formParametroProveedor.ContactoEmailEmail" type="text" />
+      </nz-form-control>
+    </nz-form-item>
+
+  </fieldset>
+
+  <nz-form-item>
+    <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+      <button nzType="primary" nz-button *ngIf="!this.formParametroProveedor().disabled()" type="submit"
+        [nzLoading]="isLoading()"
+        [disabled]="formParametroProveedor().submitting() || formParametroProveedor().dirty()==false">
+        {{ 'app.btn.save' | i18n }}
+      </button>
+    </nz-form-control>
+  </nz-form-item>
+</form>
