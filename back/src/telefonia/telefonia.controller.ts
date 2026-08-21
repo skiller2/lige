@@ -259,7 +259,6 @@ SELECT CONCAT(mov.MovimientoStockCodigo,'-',efeind.EfectoId, '-', efeind.EfectoE
 		 mov.PersonalIdDestino,
 		 mov.ClienteIdDestino,
 		 mov.ClienteElementoDependienteIdDestino,
-       
        -- conx.importe,
        -- conx.importesum,
        efeind.EfectoId,
@@ -382,7 +381,7 @@ AND sucper.PersonalSucursalPrincipalId =
    WHERE a.PersonalId = per.PersonalId)
 LEFT JOIN Sucursal sucp ON sucp.SucursalId=sucper.PersonalSucursalPrincipalSucursalId
 LEFT JOIN Sucursal suco ON suco.SucursalId = ISNULL(eledep.ClienteElementoDependienteSucursalId, sucper.PersonalSucursalPrincipalSucursalId)
- WHERE 1=1
+ WHERE 1=1 and (mov.DepositoIdDestino is null or mov.DepositoIdDestino !=5) -- filtro el deposito de baja
 
            AND (${filterSql}) ${orderBy}`,
       [fecha, anio, mes])
