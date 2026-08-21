@@ -77,6 +77,11 @@ export class InaesRecibosCsvExportService extends TextExportService {
             return new Date(value).toLocaleDateString('en-GB');
           }
 
+          if (col.id === 'DescOtrasRetenciones') {
+            return String(value).slice(0, 120)
+          }
+
+
           return value;
         });
 
