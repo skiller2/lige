@@ -20,11 +20,12 @@ export class InaesRecibosCsvExportService extends TextExportService {
   }
 
   protected encoder = new TextEncoder();
+  protected decoder = new TextDecoder();
 
   truncateBytes(str: string, bytes: number): string {
     const buffer = new Uint8Array(bytes);
     const { written } = this.encoder.encodeInto(str, buffer);
-    return new TextDecoder().decode(buffer.subarray(0, written)); 9
+    return this.decoder.decode(buffer.subarray(0, written));
   }
 
   /**
