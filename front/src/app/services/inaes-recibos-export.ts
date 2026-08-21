@@ -19,6 +19,14 @@ export class InaesRecibosCsvExportService extends TextExportService {
       .replace(/\n/g, ' ');
   }
 
+  protected encoder = new TextEncoder();
+
+  truncateBytes(str: string, bytes: number): string {
+    const buffer = new Uint8Array(bytes);
+    const { written } = this.encoder.encodeInto(str, buffer);
+    return new TextDecoder().decode(buffer.subarray(0, written)); 9
+  }
+
   /**
    * Override complete output generation
    */
@@ -73,16 +81,16 @@ export class InaesRecibosCsvExportService extends TextExportService {
             return Number(value).toFixed(2).replace('.', ',');
           }
 
-          if (col.id === 'DocumentoFecha') {
+          else if (col.id === 'DocumentoFecha') {
             return new Date(value).toLocaleDateString('en-GB');
           }
 
-          if (col.id === 'DescOtrasRetenciones') {
-            return String(value).slice(0, 120)
+          else if (col.id === 'DescOtrasRetenciones') {
+            return this.truncateBytes(String(value), 120)
           }
 
-
-          return value;
+          else
+            return value;
         });
 
       rows.push(values.join(this._delimiter));
