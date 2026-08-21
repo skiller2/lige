@@ -68,12 +68,12 @@ export class TablePrecioEfectosComponent implements OnInit {
     this.initializeGridOptions();
 
     // Por defecto se muestran los precios vigentes al día de hoy
-    // const hoy = new Date()
-    // hoy.setHours(0, 0, 0, 0)
-    // this.startFilters.set([
-    //   { index: 'FechaDesde', condition: 'AND', operator: '<=', value: hoy, closeable: true },
-    //   { index: 'FechaHasta', condition: 'AND', operator: '>=', value: hoy, closeable: true }
-    // ]);
+    const hoy = new Date()
+    hoy.setHours(0, 0, 0, 0)
+    this.startFilters.set([
+      { index: 'FechaDesde', condition: 'AND', operator: '<=', value: hoy, closeable: true },
+      { index: 'FechaHasta', condition: 'AND', operator: '>=', value: hoy, closeable: true }
+    ]);
   }
 
   // Configuración base de la grilla
