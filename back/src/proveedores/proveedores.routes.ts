@@ -15,3 +15,7 @@ proveedoresRouter.get("/info/:id", [authMiddleware.verifyToken, authMiddleware.h
 proveedoresRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   proveedoresController.listProveedores(req, res, next);
 });
+
+proveedoresRouter.post("/add", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  proveedoresController.addProveedor(req, res, next);
+});
