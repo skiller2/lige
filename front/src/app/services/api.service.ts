@@ -2424,11 +2424,18 @@ export class ApiService {
     );
   }
 
+  //Proveedores
   getProveedores(parameters: any) {
     return this.http.post<ResponseJSON<any>>(`api/proveedores/list`, parameters).pipe(
       map(res => res.data),
       catchError(() => of([]))
     );
+  }
+
+  addProveedor(provedor: any) {
+    return this.http.post<ResponseJSON<any>>('/api/proveedores/add', provedor).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
   }
 
 }
