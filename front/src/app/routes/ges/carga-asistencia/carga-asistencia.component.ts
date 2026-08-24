@@ -74,6 +74,7 @@ export class CargaAsistenciaComponent {
     visibleDrawer: boolean = false
     visibleOrdenVenta = signal(false)
     horasAFacturarA = signal(0)
+    horasAFacturarB = signal(0)
     personalApellidoNombre: any;
     rowLocked: boolean = false;
 //    objetivoInfo = signal({})
@@ -89,33 +90,44 @@ export class CargaAsistenciaComponent {
     isLoadingCheck = signal(false);
     customHeaderExcel: any[] = []
 
-    // Las horas a facturar 'A' se congelan al abrir: la orden de venta tiene que incluir el
-    // producto de horas 'A' si en la asistencia se cargaron.
+    // Las horas a facturar 'A' y 'B' se congelan al abrir: la orden de venta tiene que incluir el
+    // producto de horas 'A' y el de horas 'B' si en la asistencia se cargaron.
     abrirOrdenVenta() {
         this.horasAFacturarA.set(Number(this.carasistForm.form.get('TotalHoraA')?.value) || 0)
+        this.horasAFacturarB.set(Number(this.carasistForm.form.get('TotalHoraB')?.value) || 0)
         this.visibleOrdenVenta.set(true)
     }
 
-    // La cantidad con la que se guardó el producto de horas en la orden de venta pasa a ser las
-    // horas a facturar 'A' de la asistencia, y se persiste por el mismo camino que el input.
-    // Período cerrado: el input de horas a facturar 'A' está deshabilitado y el back rechaza
-    // cualquier cambio, así que el ítem de horas de la orden tampoco se puede tocar
+    // La cantidad con la que se guardó cada producto de horas en la orden de venta pasa a ser las
+    // horas a facturar de la asistencia, y se persiste por el mismo camino que el input.
+    // Período cerrado: los inputs de horas a facturar están deshabilitados y el back rechaza
+    // cualquier cambio, así que los ítems de horas de la orden tampoco se pueden tocar
     get horasAFacturarABloqueada(): boolean {
         return this.carasistForm.form.get('TotalHoraA')?.disabled ?? false
     }
 
-    async ordenVentaGuardada(horasAFacturarA: number | null) {
-        const control = this.carasistForm.form.get('TotalHoraA')
-        if (horasAFacturarA == null || !control) return
-        if (Number(control.value) === horasAFacturarA) return
+    get horasAFacturarBBloqueada(): boolean {
+        return this.carasistForm.form.get('TotalHoraB')?.disabled ?? false
+    }
 
-        // El campo deshabilitado es el período cerrado: setHorasFacturacion lo rechaza, así que
-        // las horas quedan como estaban
-        if (this.horasAFacturarABloqueada) return
+    async ordenVentaGuardada(horasAFacturar: { A: number | null, B: number | null }) {
+        // setHorasFacturacion manda las dos horas juntas: se actualiza lo que cambió y se
+        // persiste una sola vez
+        const cambio = [
+            { campo: 'TotalHoraA', horas: horasAFacturar.A, bloqueada: this.horasAFacturarABloqueada, congeladas: this.horasAFacturarA },
+            { campo: 'TotalHoraB', horas: horasAFacturar.B, bloqueada: this.horasAFacturarBBloqueada, congeladas: this.horasAFacturarB }
+        ].map(({ campo, horas, bloqueada, congeladas }) => {
+            const control = this.carasistForm.form.get(campo)
+            if (horas == null || !control || bloqueada) return false
+            if (Number(control.value) === horas) return false
 
-        control.setValue(horasAFacturarA)
-        control.markAsDirty()
-        this.horasAFacturarA.set(horasAFacturarA)
+            control.setValue(horas)
+            control.markAsDirty()
+            congeladas.set(horas)
+            return true
+        }).some(Boolean)
+
+        if (!cambio) return
         await this.setValFact(null)
     }
 

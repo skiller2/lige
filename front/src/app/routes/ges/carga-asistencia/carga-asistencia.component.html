@@ -310,7 +310,9 @@
 </nz-card>
 <app-orden-venta-drawer [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
   [objetivoId]="selectedObjetivoId()" [horasAFacturarA]="horasAFacturarA()"
+  [horasAFacturarB]="horasAFacturarB()"
   [horasAFacturarABloqueada]="horasAFacturarABloqueada"
+  [horasAFacturarBBloqueada]="horasAFacturarBBloqueada"
   (guardado)="ordenVentaGuardada($event)" [(visible)]="visibleOrdenVenta"></app-orden-venta-drawer>
 <app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId()"
   [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

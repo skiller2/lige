@@ -21,6 +21,7 @@
 
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
     [horasAFacturarA]="horasAFacturarA()" [horasAFacturarABloqueada]="horasAFacturarABloqueada()"
+    [horasAFacturarB]="horasAFacturarB()" [horasAFacturarBBloqueada]="horasAFacturarBBloqueada()"
     [clienteId]="cabecera().ClienteId ?? null"
     [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
     (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)" />

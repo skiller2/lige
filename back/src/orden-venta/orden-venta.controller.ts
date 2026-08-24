@@ -93,9 +93,11 @@ const columnasGrilla: any[] = [
 const ESTADO_ORDEN_VENTA_INICIAL = 'PEN';
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
 
-// Producto que factura las horas 'A'. Su importe no sale de la lista de precios sino de
-// ObjetivoImporteVenta.ImporteHoraA, del último Anio/Mes <= al período del cliente/elemento.
+// Productos que facturan las horas 'A' y 'B'. Su importe no sale de la lista de precios sino de
+// ObjetivoImporteVenta.ImporteHoraA / ImporteHoraB, del último Anio/Mes <= al período del
+// cliente/elemento.
 const PRODUCTO_HORAS_A = 'SSF';
+const PRODUCTO_HORAS_B = 'SSFB';
 
 export class OrdenVentaController extends BaseController {
 
@@ -150,17 +152,17 @@ export class OrdenVentaController extends BaseController {
             item.ProductoCodigo,
             prod.Nombre AS Producto,
             item.TipoCantidad,
-            IIF(COALESCE(hs.ImporteHoraA, pre.Importe) IS NULL, 'V', 'LP') AS TipoImporte,
-            IIF(COALESCE(hs.ImporteHoraA, pre.Importe) IS NULL, 0, 1) AS PrecioDeLista,
+            IIF(COALESCE(hs.ImporteHora, pre.Importe) IS NULL, 'V', 'LP') AS TipoImporte,
+            IIF(COALESCE(hs.ImporteHora, pre.Importe) IS NULL, 0, 1) AS PrecioDeLista,
             item.Cantidad,
             item.CantidadEstandar,
             item.Bonificacion,
-            COALESCE(hs.ImporteHoraA, pre.Importe, item.ImporteUnitario) AS ImporteUnitario,
-            -- El texto de factura del producto de horas siempre sale de las observaciones del
+            COALESCE(hs.ImporteHora, pre.Importe, item.ImporteUnitario) AS ImporteUnitario,
+            -- El texto de factura de los productos de horas siempre sale de las observaciones del
             -- objetivo; el resto de los productos conserva el suyo
-            IIF(item.ProductoCodigo = @6, hs.Observaciones, item.TextoFactura) AS TextoFactura,
+            IIF(item.ProductoCodigo IN (@6, @7), hs.Observaciones, item.TextoFactura) AS TextoFactura,
             item.CantidadEnFactura,
-            ISNULL(item.Cantidad,0) * ISNULL(COALESCE(hs.ImporteHoraA, pre.Importe, item.ImporteUnitario),0) AS ImporteTotal
+            ISNULL(item.Cantidad,0) * ISNULL(COALESCE(hs.ImporteHora, pre.Importe, item.ImporteUnitario),0) AS ImporteTotal
           FROM ItemOrdenVenta item
           LEFT JOIN Producto prod ON prod.ProductoCodigo = item.ProductoCodigo
           OUTER APPLY (
@@ -172,9 +174,11 @@ export class OrdenVentaController extends BaseController {
             ORDER BY pp.PeriodoDesdeAplica DESC
           ) pre
           OUTER APPLY (
-            SELECT TOP 1 oiv.ImporteHoraA, oiv.Observaciones
+            SELECT TOP 1
+              IIF(item.ProductoCodigo = @6, oiv.ImporteHoraA, oiv.ImporteHoraB) AS ImporteHora,
+              oiv.Observaciones
             FROM ObjetivoImporteVenta oiv
-            WHERE item.ProductoCodigo = @6
+            WHERE item.ProductoCodigo IN (@6, @7)
               AND oiv.ClienteId = @2
               AND oiv.ClienteElementoDependienteId = @5
               AND (oiv.Anio < @3 OR (oiv.Anio = @3 AND oiv.Mes <= @4))
@@ -183,7 +187,7 @@ export class OrdenVentaController extends BaseController {
           WHERE item.NroOrdenVenta = @0
           ORDER BY item.ItemOrdenVentaCodigo
         `, [ordenBase.NroOrdenVenta, esNueva ? 1 : 0, ordenBase.ClienteId, anio, mes,
-            ordenBase.ClienteElementoDependienteId, PRODUCTO_HORAS_A]);
+            ordenBase.ClienteElementoDependienteId, PRODUCTO_HORAS_A, PRODUCTO_HORAS_B]);
       }
 
       this.jsonRes(
@@ -342,9 +346,9 @@ export class OrdenVentaController extends BaseController {
       const preciosLista = new Map<string, number>(precios.map(
         (precio: any) => [String(precio.ProductoCodigo).trim().toUpperCase(), Number(precio.Importe)]));
 
-      // El producto de horas factura con el importe del objetivo, que le gana a la lista de precios
+      // Los productos de horas facturan con el importe del objetivo, que le gana a la lista de precios
       const importesObjetivo = await queryRunner.query(`
-        SELECT TOP 1 oiv.ImporteHoraA
+        SELECT TOP 1 oiv.ImporteHoraA, oiv.ImporteHoraB
         FROM ObjetivoImporteVenta oiv
         WHERE oiv.ClienteId = @0 AND oiv.ClienteElementoDependienteId = @1
           AND (oiv.Anio < @2 OR (oiv.Anio = @2 AND oiv.Mes <= @3))
@@ -352,10 +356,16 @@ export class OrdenVentaController extends BaseController {
       `, [objetivo.ClienteId, objetivo.ClienteElementoDependienteId, anio, mes]);
 
       const importeHorasA = importesObjetivo[0]?.ImporteHoraA ?? null;
+      const importeHorasB = importesObjetivo[0]?.ImporteHoraB ?? null;
+
+      const importesHoras = new Map<string, number | null>([
+        [PRODUCTO_HORAS_A, importeHorasA],
+        [PRODUCTO_HORAS_B, importeHorasB]
+      ]);
 
       for (const item of items) {
         const codigo = String(item.ProductoCodigo).trim().toUpperCase();
-        const precio = codigo === PRODUCTO_HORAS_A ? importeHorasA : preciosLista.get(codigo);
+        const precio = importesHoras.has(codigo) ? importesHoras.get(codigo) : preciosLista.get(codigo);
         if (precio == null) continue;
         item.ImporteUnitario = precio;
         item.TipoImporte = TIPO_IMPORTE_LISTA_PRECIO;
@@ -494,7 +504,7 @@ export class OrdenVentaController extends BaseController {
   }
 
   // Precio del producto para el cliente del objetivo: el último vigente al cierre del período.
-  // El producto de horas 'A' se resuelve aparte, contra ObjetivoImporteVenta.
+  // Los productos de horas 'A' y 'B' se resuelven aparte, contra ObjetivoImporteVenta.
   async getPrecioProducto(req: Request, res: Response, next: NextFunction) {
     const ObjetivoId = Number(req.params.ObjetivoId);
     const anio = Number(req.params.anio);
@@ -503,9 +513,16 @@ export class OrdenVentaController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      if (ProductoCodigo.trim().toUpperCase() === PRODUCTO_HORAS_A) {
+      const codigoHoras = ProductoCodigo.trim().toUpperCase();
+
+      if (codigoHoras === PRODUCTO_HORAS_A || codigoHoras === PRODUCTO_HORAS_B) {
+        // La columna sale de una constante, no de la request
+        const columnaImporte = codigoHoras === PRODUCTO_HORAS_A ? 'ImporteHoraA' : 'ImporteHoraB';
+
         const horas = await queryRunner.query(`
-          SELECT TOP 1 oiv.ImporteHoraA AS ImporteUnitario, oiv.Observaciones AS TextoFactura
+          SELECT TOP 1
+            oiv.${columnaImporte} AS ImporteUnitario,
+            oiv.Observaciones AS TextoFactura
           FROM Objetivo obj
           JOIN ObjetivoImporteVenta oiv ON oiv.ClienteId = obj.ClienteId
             AND oiv.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)

@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, input, output, resource, signal } 
 import { CurrencyPipe, DecimalPipe } from '@angular/common'
 import { SHARED_IMPORTS } from '@shared'
 // import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta'
-import { OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form'
+import { HorasAFacturar, OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form'
 import { firstValueFrom } from 'rxjs'
 import { ApiService } from '../../../services/api.service'
 
@@ -18,10 +18,12 @@ export class OrdenVentaComponent {
   mes = input<number>(0)
   objetivoId = input<number>(0)
   horasAFacturarA = input<number>(0)
+  horasAFacturarB = input<number>(0)
   horasAFacturarABloqueada = input<boolean>(false)
+  horasAFacturarBBloqueada = input<boolean>(false)
 
   objetivoNombre = output<string>()
-  guardado = output<number | null>()
+  guardado = output<HorasAFacturar>()
 
   cabecera = signal<any>({})
   isLoading = signal(false)
@@ -79,9 +81,9 @@ export class OrdenVentaComponent {
 
   // Después de guardar cambian tanto el detalle (ítems nuevos con su código) como la
   // cabecera (nro. de orden y estado)
-  ordenVentaGuardada(horasAFacturarA: number | null) {
+  ordenVentaGuardada(horasAFacturar: HorasAFacturar) {
     this.recargar()
-    this.guardado.emit(horasAFacturarA)
+    this.guardado.emit(horasAFacturar)
   }
 
   recargar() {
