@@ -12,6 +12,10 @@ proveedoresRouter.get("/info/:id", [authMiddleware.verifyToken, authMiddleware.h
   proveedoresController.getProveedorById(req, res, next);
 });
 
+proveedoresRouter.get("/baja/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  proveedoresController.setProveedorInactivo(req, res, next);
+});
+
 proveedoresRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   proveedoresController.listProveedores(req, res, next);
 });

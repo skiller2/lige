@@ -125,11 +125,11 @@
         {{ 'app.btn.save' | i18n }}
       </button>
       
-      <!-- <button type="button" nz-button
-        [disabled]="parametroProveedor().ProveedorInactivo"
-        nzType="primary" (click)="setProveedorInactivo()">
-        {{ 'app.btn.delete' | i18n }}
-      </button> -->
+      <button type="button" nz-button nzType="primary" 
+        [disabled]="parametroProveedor().ProveedorInactivo" nzDanger nz-popconfirm
+        nzPopconfirmTitle="Esta seguro de dar de baja al Proveedor?" (nzOnConfirm)="setProveedorInactivo()">
+        {{ 'app.btn.baja' | i18n }}
+      </button>
     </nz-form-control>
   </nz-form-item>
 </form>

@@ -103,7 +103,6 @@ export class ProveedoresFormComponent {
     await submit(this.formParametroProveedor, async (form) => {
       this.isLoading.set(true)
       const values: any = form().value()
-      console.log('form: ', values);
       try {
         //Filtra los array de los objeto no usados
         values.contactos = values.contactos.filter((c: Contacto) => { return !this.isEqualObject(c, this.defaultContacto) })
@@ -164,11 +163,9 @@ export class ProveedoresFormComponent {
 
   async setProveedorInactivo() {
     try {
-      // await firstValueFrom(this.apiService.cancelProveedor(this.ProveedorId()))
-      this.parametroProveedor.update(m => ({
-        ...m,
-        ProveedorInactivo: 1,
-      }))
+      await firstValueFrom(this.apiService.bajaProveedorInactivo(this.ProveedorId()))
+      this.load()
+      this.onAddorUpdate.emit()
     } catch (e) {
       
     }

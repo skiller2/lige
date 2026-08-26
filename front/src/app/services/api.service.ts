@@ -2432,16 +2432,26 @@ export class ApiService {
     );
   }
 
-  addProveedor(provedor: any) {
-    return this.http.post<ResponseJSON<any>>('/api/proveedores/add', provedor).pipe(
+  addProveedor(proveedor: any) {
+    return this.http.post<ResponseJSON<any>>('/api/proveedores/add', proveedor).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
   }
 
-  updateProveedor(provedor: any) {
-    return this.http.post<ResponseJSON<any>>('/api/proveedores/update', provedor).pipe(
+  updateProveedor(proveedor: any) {
+    return this.http.post<ResponseJSON<any>>('/api/proveedores/update', proveedor).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
+  }
+
+  bajaProveedorInactivo(ProveedorId: number) {
+    return this.http.get(`/api/proveedores/baja/${ProveedorId}`).pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+
+        return of([]);
+      })
+    );
   }
 
 }

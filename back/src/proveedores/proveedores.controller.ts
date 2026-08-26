@@ -181,8 +181,14 @@ export class ProveedoresController extends BaseController {
     // }
 
     switch (type) {
-      case 'D':
-        
+      case 'U':
+        let proveedor:any = await queryRunner.query(
+          `SELECT pro.ProveedorId, pro.ProveedorInactivo FROM Proveedor pro WHERE pro.ProveedorId = @0`, 
+          [form.ProveedorId]
+        )
+        if (proveedor.length && proveedor[0].ProveedorInactivo) {
+          return new ClientException('El proveedor esta inactivo')
+        }
         break;
     
       default:
@@ -218,7 +224,7 @@ export class ProveedoresController extends BaseController {
       await this.ProveedorContactoUpdate(queryRunner, body.contactos, ProveedorId)
       
       await queryRunner.commitTransaction()
-      this.jsonRes({ProveedorId}, res);
+      this.jsonRes({ProveedorId}, res, 'Carga Exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -290,7 +296,7 @@ export class ProveedoresController extends BaseController {
     try {
       await queryRunner.startTransaction()
       
-      const valForm = await this.valProveedoresForm(queryRunner, body, 'C')
+      const valForm = await this.valProveedoresForm(queryRunner, body, 'U')
       if (valForm instanceof ClientException) {
         throw valForm
       }
@@ -305,7 +311,7 @@ export class ProveedoresController extends BaseController {
       await this.updateProveedorQuery(queryRunner, body)
       
       await queryRunner.commitTransaction()
-      this.jsonRes({ProveedorId}, res);
+      this.jsonRes({ProveedorId}, res, 'Actualización Exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -319,6 +325,35 @@ export class ProveedoresController extends BaseController {
       `UPDATE Proveedor SET CUIT = @1, ProveedorRazonSocial= @2 WHERE ProveedorId = @0`, 
       [proveedor.ProveedorId, proveedor.CUIT, proveedor.ProveedorRazonSocial]
     )
+  }
+
+  async setProveedorInactivo(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName)
+    const ProveedorId = Number(req.params.id)
+    
+    try {
+      await queryRunner.startTransaction()
+
+      //Validar que no tenga movimientos relacionados.
+      await queryRunner.query(
+        `SELECT MovimientoStockCodigo FROM MovimientoStock WHERE ProveedorIdDestino = @0 AND FechaAnulacion IS NULL`, 
+        [ProveedorId]
+      )
+      
+      //Volver al proveedor inactivo
+      await queryRunner.query(
+        `UPDATE Proveedor SET ProveedorInactivo = 1 WHERE ProveedorId = @0`, 
+        [ProveedorId]
+      )
+      
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, "Proveedor Inactivo");
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
   }
 
 }
