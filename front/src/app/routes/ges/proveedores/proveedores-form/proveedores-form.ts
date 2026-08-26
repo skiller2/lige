@@ -1,4 +1,4 @@
-import { Component, inject, signal, model, effect, computed, ChangeDetectionStrategy, input, untracked } from '@angular/core';
+import { Component, inject, signal, model, effect, computed, ChangeDetectionStrategy, input, untracked, output } from '@angular/core';
 import { BehaviorSubject, debounceTime, switchMap, firstValueFrom } from 'rxjs';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { CommonModule } from '@angular/common';
@@ -28,6 +28,7 @@ export interface ProveedorForm {
   ProveedorId: number;
   ProveedorRazonSocial: string;
   CUIT: number;
+  DomicilioId: number;
   domicilio: any;
   ProveedorInactivo: number;
   contactos: Contacto[];
@@ -48,6 +49,7 @@ export class ProveedoresFormComponent {
   isLoading = signal(false);
   ProveedorId = model<number>(0);
   crudAccion = input<string>('');
+  onAddorUpdate = output()
 
   private readonly defaultContacto:Contacto = {
     ContactoId: 0,
@@ -66,6 +68,7 @@ export class ProveedoresFormComponent {
     ProveedorRazonSocial: '',
     CUIT: NaN,
     ProveedorInactivo: 0,
+    DomicilioId: 0,
     domicilio: {},
     contactos: [structuredClone(this.defaultContacto)],
   }
@@ -101,19 +104,19 @@ export class ProveedoresFormComponent {
       this.isLoading.set(true)
       const values: any = form().value()
       console.log('form: ', values);
-      
       try {
         //Filtra los array de los objeto no usados
-        values.contactos = values.telefonos.filter((c: Contacto) => { return !this.isEqualObject(c, this.defaultContacto) })
+        values.contactos = values.contactos.filter((c: Contacto) => { return !this.isEqualObject(c, this.defaultContacto) })
         if (this.ProveedorId()) {
-          // await firstValueFrom(this.apiService.updateProveedorId(this.ProveedorId(), values))
+          await firstValueFrom(this.apiService.updateProveedor(values))
         } else {
-          // const res = await firstValueFrom(this.apiService.addProveedor(values))
-          // this.ProveedorId.set(res.data.ProveedorId)
+          const res = await firstValueFrom(this.apiService.addProveedor(values))
+          this.ProveedorId.set(res.data.ProveedorId)
         }
         this.load()
+        this.onAddorUpdate.emit()
       } catch (e) {
-
+        if (!values.contactos.length) values.contactos = [structuredClone(this.defaultContacto)]
       }
       this.isLoading.set(false)
     })
@@ -156,6 +159,18 @@ export class ProveedoresFormComponent {
 
     if (this.parametroProveedor().contactos.length == 0) {
       this.addContacto(undefined)
+    }
+  }
+
+  async setProveedorInactivo() {
+    try {
+      // await firstValueFrom(this.apiService.cancelProveedor(this.ProveedorId()))
+      this.parametroProveedor.update(m => ({
+        ...m,
+        ProveedorInactivo: 1,
+      }))
+    } catch (e) {
+      
     }
   }
 

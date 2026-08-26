@@ -55,12 +55,12 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/proveedores/alta">Cargar</a>
-      <app-proveedores-form [ProveedorId]="0" [crudAccion]="'C'"></app-proveedores-form>
+      <app-proveedores-form [ProveedorId]="0" [crudAccion]="'C'" (onAddorUpdate)="handleAddOrUpdate()"></app-proveedores-form>
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/proveedores/editar">Editar</a>
-      <app-proveedores-form #proForm [ProveedorId]="ProveedorId()" [crudAccion]="'U'"></app-proveedores-form>
+      <app-proveedores-form #proForm [ProveedorId]="ProveedorId()" [crudAccion]="'U'" (onAddorUpdate)="handleAddOrUpdate()"></app-proveedores-form>
     </nz-tab>
 
     <nz-tab>

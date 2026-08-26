@@ -124,6 +124,12 @@
         [disabled]="formParametroProveedor().submitting() || formParametroProveedor().dirty()==false">
         {{ 'app.btn.save' | i18n }}
       </button>
+      
+      <!-- <button type="button" nz-button
+        [disabled]="parametroProveedor().ProveedorInactivo"
+        nzType="primary" (click)="setProveedorInactivo()">
+        {{ 'app.btn.delete' | i18n }}
+      </button> -->
     </nz-form-control>
   </nz-form-item>
 </form>

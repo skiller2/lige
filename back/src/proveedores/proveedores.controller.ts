@@ -109,9 +109,9 @@ export class ProveedoresController extends BaseController {
   private async getProveedorByIdQuery(queryRunner: QueryRunner, proveedorId: number) {
     let data = await queryRunner.query(
       `SELECT pro.ProveedorId, pro.ProveedorInactivo, TRIM(pro.ProveedorRazonSocial) ProveedorRazonSocial, pro.CUIT,
-      dom.DomicilioJson
+      nex.DomicilioId, dom.DomicilioJson
       FROM Proveedor pro
-      LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = pro.ProveedorId AND nex.NexoDomicilioActual = 1
+      LEFT JOIN NexoDomicilio AS nex ON nex.ProveedorId = pro.ProveedorId AND nex.NexoDomicilioActual = 1
       LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
       WHERE pro.ProveedorId = @0`, 
       [proveedorId]
@@ -175,10 +175,10 @@ export class ProveedoresController extends BaseController {
       return new ClientException(campos_vacios)
     }
 
-    const valDomicilio = await domicilioController.valObjDomicilio(queryRunner, form.domicilio)
-    if (valDomicilio instanceof ClientException) {
-      return valDomicilio
-    }
+    // const valDomicilio = await domicilioController.valObjDomicilio(queryRunner, form.domicilio)
+    // if (valDomicilio instanceof ClientException) {
+    //   return valDomicilio
+    // }
 
     switch (type) {
       case 'D':
@@ -195,28 +195,32 @@ export class ProveedoresController extends BaseController {
     const body = req.body
     
     try {
-      const valDomicilio = await this.valProveedoresForm(queryRunner, body, 'C')
-      if (valDomicilio instanceof ClientException) {
-        throw valDomicilio
+      await queryRunner.startTransaction()
+      
+      const valForm = await this.valProveedoresForm(queryRunner, body, 'C')
+      if (valForm instanceof ClientException) {
+        throw valForm
       }
 
       const usuario = res.locals.userName
       const ip = this.getRemoteAddress(req)
 
       const ProveedorId = await this.insertProveedor(queryRunner, body, usuario, ip)
-      const DomicilioId = await domicilioController.addDomicilio(queryRunner, body.domicilio, null)
+      // const DomicilioId = await domicilioController.addDomicilio(queryRunner, body.domicilio, null)
       //Agregar NexoDomicilio
-      await queryRunner.query(
-        `INSERT INTO NexoDomicilio (
-            DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ProveedorId
-        ) VALUES ( @0,@1,@2,@3,@4,@5,@6)`, 
-        [ DomicilioId, 1, 1, 1, 1, 1, ProveedorId ]
-      )
+      // await queryRunner.query(
+      //   `INSERT INTO NexoDomicilio (
+      //       DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ProveedorId
+      //   ) VALUES ( @0,@1,@2,@3,@4,@5,@6)`, 
+      //   [ DomicilioId, 1, 1, 1, 1, 1, ProveedorId ]
+      // )
       //Agregar Contactos de Provedor
       await this.ProveedorContactoUpdate(queryRunner, body.contactos, ProveedorId)
-
+      
+      await queryRunner.commitTransaction()
       this.jsonRes({ProveedorId}, res);
     } catch (error) {
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -256,11 +260,11 @@ export class ProveedoresController extends BaseController {
           ContactoId = resContacto[0][''];
       }
 
-      if (contacto.correo)
+      if (contacto.ContactoEmailEmail)
         await queryRunner.query(`INSERT INTO ContactoEmail (ContactoEmailId,ContactoId,ContactoEmailEmail,ContactoEmailInactivo) VALUES (
         @0,@1,@2,@3)`, [++ContactoEmailUltNro, ContactoId, contacto.ContactoEmailEmail, false])
 
-      if (contacto.telefono)
+      if (contacto.ContactoTelefonoNro)
         await queryRunner.query(`INSERT INTO ContactoTelefono (ContactoTelefonoId,ContactoId,TipoTelefonoId,ContactoTelefonoNro) 
           VALUES (@0,@1,@2,@3)`, [++ContactoTelefonoUltNro, contacto.ContactoId, contacto.TipoTelefonoId, contacto.ContactoTelefonoNro])
       await queryRunner.query(`UPDATE Contacto SET ContactoTelefonoUltNro=@1,ContactoEmailUltNro=@2  WHERE ContactoId=@0 `,
@@ -272,12 +276,49 @@ export class ProveedoresController extends BaseController {
     let insert:any = await queryRunner.query(`
       INSERT INTO Proveedor (
         CUIT, ProveedorRazonSocial, ProveedorTipoEmpresa, ProveedorInactivo
-      ) VALUES (@0,@1,@2,@3,@4)
+      ) VALUES (@0,@1,@2,@3)
       SELECT IDENT_CURRENT('Proveedor')`, 
       [proveedor.CUIT, proveedor.ProveedorRazonSocial, 'P', 0]
     )
     return insert[0][''] //ProveedorId
   }
   
+  async updateProveedor(req: any, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName)
+    const body = req.body
+    const ProveedorId = req.body.ProveedorId
+    try {
+      await queryRunner.startTransaction()
+      
+      const valForm = await this.valProveedoresForm(queryRunner, body, 'C')
+      if (valForm instanceof ClientException) {
+        throw valForm
+      }
+
+      // const usuario = res.locals.userName
+      // const ip = this.getRemoteAddress(req)
+
+      // await domicilioController.updateDomicilio(queryRunner, body.DomicilioId, body.domicilio, null)
+      //Agregar Contactos de Provedor
+      await this.ProveedorContactoUpdate(queryRunner, body.contactos, ProveedorId)
+
+      await this.updateProveedorQuery(queryRunner, body)
+      
+      await queryRunner.commitTransaction()
+      this.jsonRes({ProveedorId}, res);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async updateProveedorQuery(queryRunner:QueryRunner, proveedor:any){
+    await queryRunner.query(
+      `UPDATE Proveedor SET CUIT = @1, ProveedorRazonSocial= @2 WHERE ProveedorId = @0`, 
+      [proveedor.ProveedorId, proveedor.CUIT, proveedor.ProveedorRazonSocial]
+    )
+  }
 
 }

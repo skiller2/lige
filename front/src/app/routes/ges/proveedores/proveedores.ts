@@ -108,4 +108,9 @@ export class ProveedoresComponent {
         break;
     }
   }
+
+  async handleAddOrUpdate() {
+    this.gridData.reload()
+  }
+  
 }

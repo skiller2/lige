@@ -593,11 +593,10 @@ export class DomicilioController extends BaseController {
         INSERT INTO Provincia (
           ProvinciaId,
           PaisId,
-          ProvinciaId,
           ProvinciaDescripcion,
           ProvinciaLocalidadUltNro ) 
-        VALUES (@0, @1, @2, @3, 0)
-      `, [newProvinciaId, PaisId, ProvinciaId, ProvinciaDescripcion])
+        VALUES (@0, @1, @2, 0)
+      `, [newProvinciaId, PaisId, ProvinciaDescripcion])
 
       ProvinciaId = newProvinciaId
     }

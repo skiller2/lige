@@ -2438,6 +2438,12 @@ export class ApiService {
     )
   }
 
+  updateProveedor(provedor: any) {
+    return this.http.post<ResponseJSON<any>>('/api/proveedores/update', provedor).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {
