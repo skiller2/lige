@@ -117,6 +117,7 @@ export class ClientesFormComponent {
     //infoDomicilioOriginal :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
     estado: 0,
     files: [],
+    PermiteDescargaRecibos: false,
     codigo: ""
   })
 
@@ -200,7 +201,8 @@ export class ClientesFormComponent {
     // this.files = []
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
-
+    console.log('infoCliente: ', infoCliente);
+    
     this.infoClienteContacto().clear()
     this.infoDomicilio().clear()
 
@@ -239,6 +241,8 @@ export class ClientesFormComponent {
     this.isLoading.set(true)
     const isNewCliente = !this.idForm()
     let form = this.formCli.value
+    console.log('form: ', form);
+    
     try {
       if (this.idForm()) {
         let result = await firstValueFrom(this.apiService.updateCliente(form, this.idForm()))

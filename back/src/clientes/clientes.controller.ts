@@ -484,7 +484,7 @@ ${orderBy}`, [fechaActual])
             ,TRIM(adm.AdministradorNombre) AS AdministradorNombre
             ,TRIM(adm.AdministradorApellido) AS AdministradorApellido
             ,adm.AdministradorId
-
+            ,cli.PermiteDescargaRecibos
         FROM Cliente cli
         LEFT JOIN ClienteFacturacion fac 
             ON fac.ClienteId = cli.ClienteId
@@ -648,7 +648,7 @@ ${orderBy}`, [fechaActual])
             let ClienteAdministradorId = await this.ClienteAdministrador(queryRunner, ObjCliente, ClienteId)
 
             //se actualiza la tabla cliente
-            await this.updateClienteTable(queryRunner, ClienteId, ObjCliente.ClienteNombreFantasia, ObjCliente.ClienteDenominacion, ClienteFechaAlta, ClienteAdministradorId, ObjCliente.ClienteTerminoPago);
+            await this.updateClienteTable(queryRunner, ClienteId, ObjCliente.ClienteNombreFantasia, ObjCliente.ClienteDenominacion, ClienteFechaAlta, ClienteAdministradorId, ObjCliente.ClienteTerminoPago, ObjCliente.PermiteDescargaRecibos);
 
             //se actualiza lo relacionado a cliente facturacion
             const ClienteFacturacionId = await this.ClienteFacturacion(queryRunner, ObjCliente, ClienteId)
@@ -844,11 +844,11 @@ ${orderBy}`, [fechaActual])
     }
 
 
-    async updateClienteTable(queryRunner: any, ClienteId: number, ClienteNombreFantasia: string, ClienteDenominacion: string, ClienteFechaAlta: Date, ClienteAdministradorId: any, ClienteTerminoPago: any,) {
+    async updateClienteTable(queryRunner: any, ClienteId: number, ClienteNombreFantasia: string, ClienteDenominacion: string, ClienteFechaAlta: Date, ClienteAdministradorId: any, ClienteTerminoPago: any, PermiteDescargaRecibos:boolean) {
 
         await queryRunner.query(`UPDATE Cliente
-         SET ClienteNombreFantasia = @1, ClienteApellidoNombre = @2, ClienteDenominacion = @2, ClienteFechaAlta= @3, ClienteAdministradorUltNro = @4, ClienteTerminoPago=@5
-         WHERE ClienteId = @0`, [ClienteId, ClienteNombreFantasia, ClienteDenominacion, ClienteFechaAlta, ClienteAdministradorId, ClienteTerminoPago])
+         SET ClienteNombreFantasia = @1, ClienteApellidoNombre = @2, ClienteDenominacion = @2, ClienteFechaAlta= @3, ClienteAdministradorUltNro = @4, ClienteTerminoPago=@5, PermiteDescargaRecibos=@6
+         WHERE ClienteId = @0`, [ClienteId, ClienteNombreFantasia, ClienteDenominacion, ClienteFechaAlta, ClienteAdministradorId, ClienteTerminoPago, PermiteDescargaRecibos])
     }
 
     async updateClienteTableforFactura(queryRunner: any, ClienteId: any, ClienteFacturacionId: any) {
@@ -1020,7 +1020,7 @@ ${orderBy}`, [fechaActual])
 
             let ClienteAdministradorId = ObjCliente.AdministradorId != null && ObjCliente.AdministradorId != "" ? 1 : null
 
-            const ClienteId = await this.insertCliente(queryRunner, ObjCliente.ClienteNombreFantasia, ObjCliente.ClienteDenominacion, ClienteFechaAlta, ClienteAdministradorId, ObjCliente.ClienteTerminoPago)
+            const ClienteId = await this.insertCliente(queryRunner, ObjCliente.ClienteNombreFantasia, ObjCliente.ClienteDenominacion, ClienteFechaAlta, ClienteAdministradorId, ObjCliente.ClienteTerminoPago, ObjCliente.PermiteDescargaRecibos)
 
             ObjClienteNew.ClienteId = ClienteId
             ObjClienteNew.ClienteFacturacionId = ClienteFacturacionId
@@ -1054,7 +1054,9 @@ ${orderBy}`, [fechaActual])
     }
 
 
-    async insertCliente(queryRunner: any, ClienteNombreFantasia: any, ClienteDenominacion: any, ClienteFechaAlta: any, ClienteAdministradorUltNro: any, ClienteTerminoPago: any,
+    async insertCliente(
+        queryRunner: any, ClienteNombreFantasia: any, ClienteDenominacion: any, 
+        ClienteFechaAlta: any, ClienteAdministradorUltNro: any, ClienteTerminoPago: any, PermiteDescargaRecibos:boolean
     ) {
 
         await queryRunner.query(`INSERT INTO Cliente (
@@ -1063,16 +1065,16 @@ ${orderBy}`, [fechaActual])
             ClienteApellidoNombre,
             ClienteFechaAlta,
             ClienteAdministradorUltNro,
-            ClienteTerminoPago
-            ) VALUES (
-            @0,@1,@2,@3,@4,@5
-            )`, [
+            ClienteTerminoPago,
+            PermiteDescargaRecibos
+            ) VALUES ( @0,@1,@2,@3,@4,@5,@6 )`, [
             ClienteDenominacion,
             ClienteNombreFantasia,
             ClienteDenominacion,
             ClienteFechaAlta,
             ClienteAdministradorUltNro,
-            ClienteTerminoPago
+            ClienteTerminoPago,
+            PermiteDescargaRecibos
         ])
 
         const ContactoId = await queryRunner.query(`SELECT IDENT_CURRENT('Cliente')`)
