@@ -170,6 +170,11 @@
           "icon": "anticon-profile"
         },
         {
+          "text": "Órdenes de Venta",
+          "link": "/ges/ordenes-venta",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Parámetros Venta",
           "link": "/ges/parametros-venta",
           "icon": "anticon-profile"
