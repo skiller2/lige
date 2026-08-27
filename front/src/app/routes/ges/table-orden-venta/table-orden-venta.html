@@ -1,7 +1,16 @@
-<div class="gridContainerOrdenVenta container-fluid">
-  @if (columns().length) {
-    <angular-slickgrid gridId="gridOrdenVenta" [columns]="columns() | colsFilter" [options]="gridOptions"
-      [dataset]="gridData()" (onAngularGridCreated)="angularGridReady($event)">
-    </angular-slickgrid>
-  }
-</div>
+<nz-card #taborden class="small-margin">
+
+  <ng-container>
+    <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()" [keyLocalstorage]="constructor.name"
+      [(options)]="listOptions" />
+
+    <div class="gridContainerOrdenVenta container-fluid">
+      @if (columns().length){
+      <angular-slickgrid gridId="gridOrdenVenta" [columns]="columns() | colsFilter" [options]="gridOptions"
+        [dataset]="gridData()" (onAngularGridCreated)="angularGridReady($event)"
+        (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+      </angular-slickgrid>
+      }
+    </div>
+  </ng-container>
+</nz-card>

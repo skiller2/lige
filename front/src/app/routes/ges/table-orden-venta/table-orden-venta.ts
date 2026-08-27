@@ -1,32 +1,21 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  OnInit,
-  input,
-  inject,
-  resource
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, model, OnInit, resource, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SHARED_IMPORTS } from '@shared';
-import { firstValueFrom, map } from 'rxjs';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import {
-  AngularGridInstance,
-  AngularUtilService,
-  SlickGrid,
-  GridOption,
-  Column
-} from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService } from '../../../services/api.service';
+import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
+import { totalRecords } from '../../../shared/custom-search/custom-search';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
+import { Selections } from '../../../shared/schemas/filtro';
 
 @Component({
   selector: 'app-table-orden-venta',
   standalone: true,
-  imports: [SHARED_IMPORTS, CommonModule, NzAffixModule],
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzAffixModule],
   templateUrl: './table-orden-venta.html',
   styleUrl: './table-orden-venta.less',
   providers: [AngularUtilService],
@@ -34,42 +23,39 @@ import { toSignal } from '@angular/core/rxjs-interop';
 })
 export class TableOrdenVentaComponent implements OnInit {
 
-  anio = input<number>(0)
-  mes = input<number>(0)
-  objetivoId = input<number>(0)
-
   // Grid (Angular SlickGrid)
   angularGrid!: AngularGridInstance;
   gridObj!: SlickGrid;
   gridOptions!: GridOption;
   readonly detailViewRowCount = 9;
 
+  // Exportación a Excel
   excelExportService = new ExcelExportService();
 
-  hiddenColumnIds: string[] = [];
+  // Órdenes seleccionadas (selección múltiple)
+  ordenesSeleccionadas = model<any[]>([]);
+
+  // Por omisión no se muestran las órdenes ya facturadas
+  startFilters = signal<Selections[]>([
+    { index: 'Estado', condition: 'AND', operator: '<>', value: 'Facturado', closeable: true }
+  ])
+
+  // Filtros y orden de la grilla
+  listOptions = signal<listOptionsT>({
+    filtros: [],
+    sort: null
+  })
 
   private apiService = inject(ApiService)
   public angularUtilService = inject(AngularUtilService)
 
-  columns = toSignal(
-    this.apiService.getCols('/api/orden-venta/cols').pipe(
-      map((cols) => {
-        this.hiddenColumnIds = cols
-          .filter((col: any) => col.showGridColumn === false)
-          .map((col: Column) => col.id as string);
-
-        return cols;
-      }))
-    , { initialValue: [] as Column[] })
+  // Columnas configuradas desde el backend (controlador de orden de venta, el mismo de carga asistencia)
+  columns = toSignal(this.apiService.getCols('/api/orden-venta/cols-ordenes'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
-    loader: async ({ params }) => {
-      if (!params.objetivoId || !params.anio || !params.mes) return []
-
-      const response = await firstValueFrom(
-        this.apiService.getListOrdenVenta(params.objetivoId, params.anio, params.mes)
-      );
+    params: () => ({ options: this.listOptions() }),
+    loader: async () => {
+      const response = await firstValueFrom(this.apiService.getListOrdenesVenta(this.listOptions()));
       return response.list;
     },
     defaultValue: []
@@ -101,18 +87,25 @@ export class TableOrdenVentaComponent implements OnInit {
 
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
-      columnTotal('ImporteTotal', this.angularGrid);
     });
-
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds);
-    }
   }
 
   exportGrid(): void {
     this.excelExportService.exportToExcel({
-      filename: 'orden-venta',
+      filename: 'lista-ordenes-venta',
       format: 'xlsx'
     });
+  }
+
+  async handleSelectedRowsChanged(e: any): Promise<void> {
+    const selectedRows = e.detail.args.rows;
+    const selectedData: any[] = [];
+
+    selectedRows.forEach((rowIndex: number) => {
+      const row = this.angularGrid.slickGrid.getDataItem(rowIndex);
+      if (row) selectedData.push(row);
+    });
+
+    this.ordenesSeleccionadas.set(selectedData);
   }
 }

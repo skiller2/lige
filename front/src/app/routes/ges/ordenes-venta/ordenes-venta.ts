@@ -1,13 +1,18 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, model } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
+import { AngularUtilService } from 'angular-slickgrid';
+import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta';
 
 @Component({
   selector: 'app-ordenes-venta',
   standalone: true,
-  imports: [SHARED_IMPORTS, CommonModule],
+  providers: [AngularUtilService],
+  imports: [SHARED_IMPORTS, CommonModule, TableOrdenVentaComponent],
   templateUrl: './ordenes-venta.html',
   styleUrl: './ordenes-venta.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OrdenesVentaComponent {}
+export class OrdenesVentaComponent {
+  ordenesSeleccionadas = model<any[]>([])
+}

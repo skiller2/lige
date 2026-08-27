@@ -8,6 +8,14 @@ ordenVentaRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGro
   ordenVentaController.getGridCols(req, res);
 });
 
+ordenVentaRouter.get("/cols-ordenes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
+  ordenVentaController.getGridColsOrdenes(req, res);
+});
+
+ordenVentaRouter.post("/list-ordenes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.getListOrdenesVenta(req, res, next);
+});
+
 ordenVentaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   ordenVentaController.getListOrdenVenta(req, res, next);
 });

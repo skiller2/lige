@@ -1,6 +1,8 @@
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import type { Options } from "../schemas/filtro.ts";
 import type { NextFunction, Request, Response } from "express";
 
 const columnasGrilla: any[] = [
@@ -99,10 +101,196 @@ const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
 const PRODUCTO_HORAS_A = 'SSF';
 const PRODUCTO_HORAS_B = 'SSFB';
 
+// Columnas de la grilla de órdenes de venta (cabecera), usadas por la pantalla Órdenes de Venta.
+// El detalle de ítems usa columnasGrilla.
+const columnasGrillaOrdenes: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "id",
+    type: "number",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "NroOrdenVenta",
+    name: "Número",
+    field: "NroOrdenVenta",
+    fieldName: "ord.NroOrdenVenta",
+    type: "number",
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 110
+  },
+  {
+    id: "Fecha",
+    name: "Fecha",
+    field: "Fecha",
+    fieldName: "ord.AudFechaIng",
+    type: "date",
+    searchType: "date",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
+    id: "PeriodoAnio",
+    name: "Año",
+    field: "PeriodoAnio",
+    fieldName: "ord.PeriodoAnio",
+    type: "number",
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 90
+  },
+  {
+    id: "PeriodoMes",
+    name: "Mes",
+    field: "PeriodoMes",
+    fieldName: "ord.PeriodoMes",
+    type: "number",
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 90
+  },
+  {
+    id: "ClienteId",
+    name: "Cliente",
+    field: "ClienteId",
+    fieldName: "ord.ClienteId",
+    type: "number",
+    searchComponent: "inputForClientSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    id: "Cliente",
+    name: "Cliente",
+    field: "Cliente",
+    fieldName: "cli.ClienteDenominacion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: "ObjetivoId",
+    name: "Objetivo",
+    field: "ObjetivoId",
+    fieldName: "obj.ObjetivoId",
+    type: "number",
+    searchComponent: "inputForObjetivoSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
+  {
+    id: "Objetivo",
+    name: "Objetivo",
+    field: "Objetivo",
+    fieldName: "obj.ObjetivoDescripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true
+  },
+  {
+    id: "Estado",
+    name: "Estado",
+    field: "Estado",
+    fieldName: "est.Descripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 140
+  },
+  {
+    id: "ImporteTotalAFacturar",
+    name: "Importe Total",
+    field: "ImporteTotalAFacturar",
+    fieldName: "ord.ImporteTotalAFacturar",
+    type: "currency",
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 160
+  }
+];
+
 export class OrdenVentaController extends BaseController {
 
   async getGridCols(req: Request, res: Response) {
     this.jsonRes(columnasGrilla, res);
+  }
+
+  async getGridColsOrdenes(req: Request, res: Response) {
+    this.jsonRes(columnasGrillaOrdenes, res);
+  }
+
+  // Listado de cabeceras de órdenes de venta. El objetivo no está en OrdenVenta: se resuelve por
+  // cliente/elemento dependiente, la misma relación que usa getOrdenVentaPeriodo.
+  async getListOrdenesVenta(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
+      const filterSql = filtrosToSql(options.filtros, columnasGrillaOrdenes);
+      const orderBy = orderToSQL(options.sort);
+
+      const lista = await queryRunner.query(`
+        SELECT
+          ord.NroOrdenVenta AS id,
+          ord.NroOrdenVenta,
+          ord.AudFechaIng AS Fecha,
+          ord.PeriodoAnio,
+          ord.PeriodoMes,
+          ord.ClienteId,
+          ord.ClienteElementoDependienteId,
+          TRIM(ISNULL(cli.ClienteDenominacion,'')) AS Cliente,
+          obj.ObjetivoId,
+          CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(COALESCE(obj.ObjetivoDescripcion, eledep.ClienteElementoDependienteDescripcion, ''))) AS Objetivo,
+          ord.EstadoOrdenVentaCodigo,
+          ISNULL(est.Descripcion, ord.EstadoOrdenVentaCodigo) AS Estado,
+          ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar
+        FROM OrdenVenta ord
+        LEFT JOIN Cliente cli ON cli.ClienteId = ord.ClienteId
+        LEFT JOIN ClienteElementoDependiente eledep
+          ON eledep.ClienteId = ord.ClienteId
+          AND eledep.ClienteElementoDependienteId = ord.ClienteElementoDependienteId
+        LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
+        LEFT JOIN Objetivo obj
+          ON obj.ObjetivoId = (
+            SELECT MIN(o.ObjetivoId)
+            FROM Objetivo o
+            WHERE o.ClienteId = ord.ClienteId
+              AND ISNULL(o.ClienteElementoDependienteId,0) = ord.ClienteElementoDependienteId
+          )
+        WHERE (1=1)
+        AND (${filterSql})
+        ${orderBy ? orderBy : 'ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC'}
+      `);
+
+      this.jsonRes({ total: lista.length, list: lista }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   // Período anterior al recibido
