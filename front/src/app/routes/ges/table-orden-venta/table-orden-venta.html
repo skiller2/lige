@@ -1,8 +1,15 @@
 <nz-card #taborden class="small-margin">
 
   <ng-container>
-    <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()" [keyLocalstorage]="constructor.name"
-      [(options)]="listOptions" />
+    <div nz-row style="align-items: center; display: flex;">
+      <div style="flex: 1;">
+        <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()"
+          [keyLocalstorage]="constructor.name" [(options)]="listOptions" />
+      </div>
+      <div style="display: flex; flex-direction: row-reverse;">
+        <ng-content select="[botonera]" />
+      </div>
+    </div>
 
     <div class="gridContainerOrdenVenta container-fluid">
       @if (columns().length){
