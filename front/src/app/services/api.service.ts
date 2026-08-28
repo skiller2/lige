@@ -1266,12 +1266,11 @@ export class ApiService {
     )
   }
 
+  //CONFIGURACIONES
   setRecibo(parameter: any) {
-
     return this.http.post<ResponseJSON<any>>('/api/recibos/config', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
-
   }
 
   getValuesRecibo(prev: boolean) {
@@ -1279,13 +1278,10 @@ export class ApiService {
     return this.http.get<ResponseJSON<any>>(`/api/recibos/config/${prev}`, parameter).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of([])),
-
     )
-
   }
 
   setNovedad(parameter: any) {
-
     return this.http.post<ResponseJSON<any>>('/api/novedades/config', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
@@ -1313,6 +1309,7 @@ export class ApiService {
     )
   }
 
+  //
   getFacturas(ComprobanteNro: any, FacturacionCodigo: string[]) {
 
     return this.http.get<ResponseJSON<any>>(`/api/facturacion/facturas/${ComprobanteNro}/${FacturacionCodigo}`).pipe(

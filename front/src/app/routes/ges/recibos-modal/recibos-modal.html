@@ -45,6 +45,6 @@
         <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
             [httpBody]="{'desde':desde(), 'hasta':valHasta(), isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch(),'PersonalIdWithSearch':PersonalIdWithSearch(),'SeachField':selectedOption() }"
             httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado"
-            (click)="isVisible.set(false)">Aceptar</a>
+            >Aceptar</a>
     </div>
 </nz-modal>

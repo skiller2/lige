@@ -801,6 +801,7 @@ export class NovedadesController extends BaseController {
         const body = req.body.body
         const footer = req.body.footer
 
+        const queryRunner = await getConnection(res.locals.userName);
         try {
 
             if (body == "")
@@ -808,6 +809,20 @@ export class NovedadesController extends BaseController {
 
             if (header == "")
                 throw new ClientException(`La cabecera no puede estar vacia`)
+
+            await queryRunner.startTransaction();
+            // const ParametroGeneralCodigo = 0
+            // const usuario = this.getUser(res)
+            // const ip = this.getRemoteAddress(req)
+            // const fecha:Date = new Date()
+            // const Parametros = {Cabecera: header, Cuerpo:body, Pie:footer, OtrosParametros: null}
+
+            // await queryRunner.query(
+            //     `UPDATE ParametroGeneral 
+            //     SET Parametros = @1,  AudFechaMod= @2, AudUsuarioMod= @3, AudIpIng, AudIpMod= @4
+            //     WHERE ParametroGeneralCodigo =`, 
+            //     [ParametroGeneralCodigo, JSON.stringify(Parametros), fecha, usuario, ip]
+            // )
 
             try {
                 fs.renameSync(this.PathNovedadTemplate.header, this.PathNovedadTemplate.header + '.old')
@@ -820,11 +835,13 @@ export class NovedadesController extends BaseController {
             fs.writeFileSync(this.PathNovedadTemplate.body, body)
             fs.writeFileSync(this.PathNovedadTemplate.footer, footer)
 
+            await queryRunner.commitTransaction();
             this.jsonRes([], res, `Se guardo el nuevo formato de novedad`);
-
         } catch (error) {
+            await this.rollbackTransaction(queryRunner);
             return next(error)
         } finally {
+            await queryRunner.release();
         }
     }
 
