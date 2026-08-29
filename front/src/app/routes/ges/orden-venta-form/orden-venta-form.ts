@@ -78,8 +78,6 @@ export class OrdenVentaFormComponent {
   optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(), { initialValue: [] })
   optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
 
-  // Un item por cada producto de la orden. Los campos son las columnas de la grilla
-  // (/api/orden-venta/cols)
   formOrdenVenta = this.fb.group({
     items: this.fb.array([] as FormGroup[])
   })

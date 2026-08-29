@@ -5,92 +5,6 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import type { Options } from "../schemas/filtro.ts";
 import type { NextFunction, Request, Response } from "express";
 
-const columnasGrilla: any[] = [
-  {
-    id: "id",
-    name: "id",
-    field: "id",
-    fieldName: "id",
-    type: "number",
-    sortable: false,
-    hidden: true,
-    searchHidden: true
-  },
-  {
-    id: "ProductoCodigo",
-    name: "Cód. Producto",
-    field: "ProductoCodigo",
-    fieldName: "fac.ProductoCodigo",
-    type: "string",
-    sortable: true,
-    hidden: true,
-    searchHidden: true
-  },
-  {
-    id: "Producto",
-    name: "Producto",
-    field: "Producto",
-    fieldName: "prod.Nombre",
-    type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: true
-  },
-  {
-    id: "Cantidad",
-    name: "Cantidad",
-    field: "Cantidad",
-    fieldName: "fac.Cantidad",
-    type: "number",
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    maxWidth: 120
-  },
-  {
-    id: "ImporteUnitario",
-    name: "Importe Unitario",
-    field: "ImporteUnitario",
-    fieldName: "ImporteUnitario",
-    type: "currency",
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    maxWidth: 160
-  },
-  {
-    id: "TextoFactura",
-    name: "Texto de Factura",
-    field: "TextoFactura",
-    fieldName: "fac.TextoFactura",
-    type: "string",
-    sortable: true,
-    hidden: false,
-    searchHidden: true
-  },
-  {
-    id: "CantidadEnFactura",
-    name: "Cantidad en Factura",
-    field: "CantidadEnFactura",
-    fieldName: "CantidadEnFactura",
-    type: "number",
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    maxWidth: 160
-  },
-  {
-    id: "ImporteTotal",
-    name: "Importe Total",
-    field: "ImporteTotal",
-    fieldName: "ImporteTotal",
-    type: "currency",
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    maxWidth: 160
-  }
-];
 
 const ESTADO_ORDEN_VENTA_INICIAL = 'PEN';
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
@@ -101,8 +15,7 @@ const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
 const PRODUCTO_HORAS_A = 'SSF';
 const PRODUCTO_HORAS_B = 'SSFB';
 
-// Columnas de la grilla de órdenes de venta (cabecera), usadas por la pantalla Órdenes de Venta.
-// El detalle de ítems usa columnasGrilla.
+// Columnas de la grilla de órdenes de venta (cabecera), usadas por la pantalla Órdenes de Venta
 const columnasGrillaOrdenes: any[] = [
   {
     id: "id",
@@ -235,10 +148,6 @@ const columnasGrillaOrdenes: any[] = [
 
 export class OrdenVentaController extends BaseController {
 
-  async getGridCols(req: Request, res: Response) {
-    this.jsonRes(columnasGrilla, res);
-  }
-
   async getGridColsOrdenes(req: Request, res: Response) {
     this.jsonRes(columnasGrillaOrdenes, res);
   }
@@ -256,7 +165,7 @@ export class OrdenVentaController extends BaseController {
         SELECT
           ord.NroOrdenVenta AS id,
           ord.NroOrdenVenta,
-          ord.AudFechaIng AS Fecha,
+         CONVERT(varchar(10), ord.AudFechaIng, 23) AS Fecha,
           ord.PeriodoAnio,
           ord.PeriodoMes,
           ord.ClienteId,
@@ -273,13 +182,13 @@ export class OrdenVentaController extends BaseController {
           ON eledep.ClienteId = ord.ClienteId
           AND eledep.ClienteElementoDependienteId = ord.ClienteElementoDependienteId
         LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
-        LEFT JOIN Objetivo obj
-          ON obj.ObjetivoId = (
-            SELECT MIN(o.ObjetivoId)
-            FROM Objetivo o
-            WHERE o.ClienteId = ord.ClienteId
-              AND ISNULL(o.ClienteElementoDependienteId,0) = ord.ClienteElementoDependienteId
-          )
+       OUTER APPLY (
+          SELECT TOP 1 o.ObjetivoId, o.ObjetivoDescripcion
+          FROM Objetivo o
+          WHERE o.ClienteId = ord.ClienteId
+            AND ISNULL(o.ClienteElementoDependienteId,0) = ISNULL(ord.ClienteElementoDependienteId,0)
+          ORDER BY o.ObjetivoId
+        ) obj
         WHERE (1=1)
         AND (${filterSql})
         ${orderBy ? orderBy : 'ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC'}
@@ -287,6 +196,184 @@ export class OrdenVentaController extends BaseController {
 
       this.jsonRes({ total: lista.length, list: lista }, res);
     } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async getEstadosOrdenVenta(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const estados = await queryRunner.query(`
+        SELECT TRIM(est.EstadoOrdenVentaCod) AS value, TRIM(est.Descripcion) AS label
+        FROM EstadoOrdenVenta est
+        ORDER BY est.Descripcion
+      `);
+
+      this.jsonRes(estados, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // Modificación de la cabecera de una orden ya existente, desde la pantalla Órdenes de Venta.
+  // El detalle de ítems se sigue editando aparte, desde la carga de asistencia (setOrdenVenta).
+  async updateCabeceraOrdenVenta(req: Request, res: Response, next: NextFunction) {
+    const NroOrdenVenta = Number(req.body.NroOrdenVenta);
+    const ObjetivoId = Number(req.body.ObjetivoId);
+    const ClienteId = Number(req.body.ClienteId);
+    const EstadoOrdenVentaCodigo = String(req.body.EstadoOrdenVentaCodigo ?? '').trim();
+
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      const usuario = res.locals.userName;
+      const ip = this.getRemoteAddress(req);
+      const ahora = new Date();
+
+      const errores: string[] = [];
+
+      if (!NroOrdenVenta)
+        errores.push('El número de orden de venta es obligatorio');
+
+      if (!ObjetivoId)
+        errores.push('El objetivo es obligatorio');
+
+      if (!ClienteId)
+        errores.push('El cliente es obligatorio');
+
+      if (!EstadoOrdenVentaCodigo)
+        errores.push('El estado es obligatorio');
+
+      // El importe llega con la máscara de la pantalla (separator.2): punto de miles y coma decimal
+      const ImporteTotalAFacturar = Number(
+        String(req.body.ImporteTotalAFacturar ?? 0).replace(/\./g, '').replace(',', '.'));
+
+      if (!Number.isFinite(ImporteTotalAFacturar))
+        errores.push(`El importe total '${req.body.ImporteTotalAFacturar}' no es un número válido`);
+      else if (ImporteTotalAFacturar < 0)
+        errores.push('El importe total no puede ser negativo');
+
+      if (errores.length)
+        throw new ClientException(errores);
+
+      await queryRunner.startTransaction();
+
+      const ordenes = await queryRunner.query(`
+        SELECT ord.NroOrdenVenta, ord.PeriodoAnio, ord.PeriodoMes, ord.FechaGeneracionFactura
+        FROM OrdenVenta ord WHERE ord.NroOrdenVenta = @0
+      `, [NroOrdenVenta]);
+
+      const orden = ordenes[0];
+      if (!orden)
+        throw new ClientException(`No existe la orden de venta ${NroOrdenVenta}`);
+
+      // Una vez emitida la factura la orden ya no se toca, igual que el detalle
+      if (orden.FechaGeneracionFactura)
+        throw new ClientException(`La orden ${NroOrdenVenta} ya tiene factura generada, no se puede modificar`);
+
+      const objetivos = await queryRunner.query(`
+        SELECT obj.ClienteId, ISNULL(obj.ClienteElementoDependienteId,0) AS ClienteElementoDependienteId
+        FROM Objetivo obj WHERE obj.ObjetivoId = @0
+      `, [ObjetivoId]);
+
+      const objetivo = objetivos[0];
+      if (!objetivo)
+        throw new ClientException(`No se encontró el objetivo ${ObjetivoId}`);
+
+      // La orden se guarda contra el cliente del objetivo: si no es el de la pantalla, los datos
+      // terminarían en un cliente distinto al que se está editando (misma regla que setOrdenVenta)
+      if (Number(objetivo.ClienteId) !== ClienteId)
+        throw new ClientException(`El objetivo ${ObjetivoId} no pertenece al cliente ${ClienteId}`);
+
+      const estados = await queryRunner.query(`SELECT EstadoOrdenVentaCod FROM EstadoOrdenVenta`);
+      const codigos = estados.map((estado: any) => String(estado.EstadoOrdenVentaCod).trim());
+      if (!codigos.includes(EstadoOrdenVentaCodigo))
+        throw new ClientException(
+          `El estado '${EstadoOrdenVentaCodigo}' no existe en EstadoOrdenVenta. Estados válidos: ${codigos.join(', ')}`);
+
+      // Cambiar el objetivo mueve la orden a otro cliente/elemento: no puede quedar más de una orden
+      // para el mismo cliente/elemento y período, que es como la busca getOrdenVentaPeriodo
+      const duplicadas = await queryRunner.query(`
+        SELECT TOP 1 ord.NroOrdenVenta
+        FROM OrdenVenta ord
+        WHERE ord.ClienteId = @0 AND ord.ClienteElementoDependienteId = @1
+          AND ord.PeriodoAnio = @2 AND ord.PeriodoMes = @3
+          AND ord.NroOrdenVenta <> @4
+      `, [objetivo.ClienteId, objetivo.ClienteElementoDependienteId,
+          orden.PeriodoAnio, orden.PeriodoMes, NroOrdenVenta]);
+
+      if (duplicadas[0])
+        throw new ClientException(
+          `El objetivo ${ObjetivoId} ya tiene la orden de venta ${duplicadas[0].NroOrdenVenta} para el período ${String(orden.PeriodoMes).padStart(2, '0')}/${orden.PeriodoAnio}`);
+
+      // AudFechaIng no se toca: es el rastro de auditoría del alta, y la pantalla lo muestra como Fecha
+      await queryRunner.query(`
+        UPDATE OrdenVenta
+        SET ClienteId = @1, ClienteElementoDependienteId = @2,
+            EstadoOrdenVentaCodigo = @3, ImporteTotalAFacturar = @4,
+            AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7
+        WHERE NroOrdenVenta = @0
+      `, [
+        NroOrdenVenta, objetivo.ClienteId, objetivo.ClienteElementoDependienteId,
+        EstadoOrdenVentaCodigo, ImporteTotalAFacturar, ahora, usuario, ip
+      ]);
+
+     if (true)
+        throw new ClientException('test completado');
+
+      await queryRunner.commitTransaction();
+
+      return this.jsonRes({ NroOrdenVenta }, res, `Orden de venta ${NroOrdenVenta} actualizada`);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner);
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async deleteOrdenVenta(req: Request, res: Response, next: NextFunction) {
+    const NroOrdenVenta = Number(req.params.NroOrdenVenta);
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      if (!NroOrdenVenta)
+        throw new ClientException('El número de orden de venta es obligatorio');
+
+      await queryRunner.startTransaction();
+
+      const ordenes = await queryRunner.query(`
+        SELECT ord.NroOrdenVenta, ord.FechaGeneracionFactura
+        FROM OrdenVenta ord WHERE ord.NroOrdenVenta = @0
+      `, [NroOrdenVenta]);
+
+      const orden = ordenes[0];
+      if (!orden)
+        throw new ClientException(`No existe la orden de venta ${NroOrdenVenta}`);
+
+      // Una vez emitida la factura la orden ya no se puede dar de baja
+      if (orden.FechaGeneracionFactura)
+        throw new ClientException(`La orden ${NroOrdenVenta} ya tiene factura generada, no se puede eliminar`);
+
+      // ItemOrdenVenta referencia a OrdenVenta: sin borrar el detalle primero, el DELETE de la
+      // cabecera choca contra la foreign key
+      await queryRunner.query(`DELETE FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
+      await queryRunner.query(`DELETE FROM OrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
+
+      if (true)
+        throw new ClientException('test completado');
+
+      await queryRunner.commitTransaction();
+
+      return this.jsonRes({ NroOrdenVenta }, res, `Orden de venta ${NroOrdenVenta} eliminada`);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner);
       return next(error);
     } finally {
       await queryRunner.release();

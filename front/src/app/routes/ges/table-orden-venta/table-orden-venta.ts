@@ -1,8 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, model, OnInit, resource, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, input, model, OnInit, resource, signal } from '@angular/core';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { AngularGridInstance, AngularUtilService, Column, GridOption, SlickGrid } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, Column, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService } from '../../../services/api.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
@@ -15,9 +13,8 @@ import { Selections } from '../../../shared/schemas/filtro';
 @Component({
   selector: 'app-table-orden-venta',
   standalone: true,
-  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, NzAffixModule],
+  imports: [SHARED_IMPORTS, FiltroBuilderComponent],
   templateUrl: './table-orden-venta.html',
-  styleUrl: './table-orden-venta.less',
   providers: [AngularUtilService],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -25,7 +22,6 @@ export class TableOrdenVentaComponent implements OnInit {
 
   // Grid (Angular SlickGrid)
   angularGrid!: AngularGridInstance;
-  gridObj!: SlickGrid;
   gridOptions!: GridOption;
   readonly detailViewRowCount = 9;
 
@@ -34,6 +30,9 @@ export class TableOrdenVentaComponent implements OnInit {
 
   // Órdenes seleccionadas (selección múltiple)
   ordenesSeleccionadas = model<any[]>([]);
+
+  // Cambia al guardar desde el formulario: la fila modificada quedó vieja y hay que releer la lista
+  refreshGrid = input<number>(0);
 
   // Por omisión no se muestran las órdenes ya facturadas
   startFilters = signal<Selections[]>([
@@ -53,7 +52,7 @@ export class TableOrdenVentaComponent implements OnInit {
   columns = toSignal(this.apiService.getCols('/api/orden-venta/cols-ordenes'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => ({ options: this.listOptions() }),
+    params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
     loader: async () => {
       const response = await firstValueFrom(this.apiService.getListOrdenesVenta(this.listOptions()));
       return response.list;
@@ -83,17 +82,9 @@ export class TableOrdenVentaComponent implements OnInit {
 
   angularGridReady(angularGrid: any): void {
     this.angularGrid = angularGrid.detail;
-    this.gridObj = angularGrid.detail.slickGrid;
 
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
-    });
-  }
-
-  exportGrid(): void {
-    this.excelExportService.exportToExcel({
-      filename: 'lista-ordenes-venta',
-      format: 'xlsx'
     });
   }
 

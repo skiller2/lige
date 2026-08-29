@@ -1,22 +1,46 @@
-<app-table-orden-venta [(ordenesSeleccionadas)]="ordenesSeleccionadas">
+<nz-card class="small-margin">
 
-  <nz-button-group botonera nz-button nzButtonGroup style="text-align: right;">
-    <!-- btn alta -->
-    <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"
-      (click)="altaOrdenVenta()">
-      <span nz-icon nzType="plus" nzTheme="outline"></span></button>
-    <!-- btn baja -->
-    <button nz-button nzType="default" [disabled]="!ordenSeleccionada()" nz-tooltip
-      nzTooltipTitle="{{ 'app.icon.delete' | i18n }}" (click)="bajaOrdenVenta()">
-      <span nz-icon nzType="delete" nzTheme="outline"></span></button>
-    <!-- btn modificar -->
-    <button nz-button nzType="default" [disabled]="!ordenSeleccionada()" nz-tooltip
-      nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" (click)="modificarOrdenVenta()">
-      <span nz-icon nzType="edit" nzTheme="outline"></span></button>
-    <!-- btn consulta -->
-    <button nz-button nzType="default" [disabled]="!ordenSeleccionada()" nz-tooltip
-      nzTooltipTitle="{{ 'app.icon.consult' | i18n }}" (click)="consultaOrdenVenta()">
-      <span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
-  </nz-button-group>
+  <div nz-row style="display: flex; align-items: center;">
 
-</app-table-orden-venta>
+    <div style="flex: 1;"></div>
+
+    <ul nz-menu nzMode="horizontal" style="display: flex;">
+      <li nz-menu-item nzMatchRouter>
+        <a [routerLink]="['/', 'ges', 'ordenes-venta', 'listado']">Listado</a>
+      </li>
+    </ul>
+
+    <div style="flex: 1; display: flex; justify-content: flex-end;">
+      <nz-button-group nz-button nzButtonGroup>
+        <!-- btn alta -->
+        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"
+          (click)="altaOrdenVenta()">
+          <span nz-icon nzType="plus" nzTheme="outline"></span></button>
+        <!-- btn baja -->
+        <button nz-button nzType="default" [disabled]="sinSeleccion()" nz-popconfirm
+          nzPopconfirmTitle="Está seguro que quiere eliminar esta Orden de Venta?"
+          (nzOnConfirm)="bajaOrdenVenta()" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+          <span nz-icon nzType="delete" nzTheme="outline"></span></button>
+        <!-- btn modificar -->
+        <button nz-button nzType="default" [disabled]="sinSeleccion()" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" (click)="modificarOrdenVenta()">
+          <span nz-icon nzType="edit" nzTheme="outline"></span></button>
+        <!-- btn consulta -->
+        <button nz-button nzType="default" [disabled]="sinSeleccion()" nz-tooltip
+          nzTooltipTitle="{{ 'app.icon.consult' | i18n }}" (click)="consultaOrdenVenta()">
+          <span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
+      </nz-button-group>
+    </div>
+
+  </div>
+
+  <div [hidden]="!enListado()">
+    <app-table-orden-venta [(ordenesSeleccionadas)]="ordenesSeleccionadas" [refreshGrid]="refreshTick()" />
+  </div>
+
+  @if (!enListado()) {
+  <app-ordenes-venta-form [orden]="ordenSeleccionada()" [modo]="activeTab()"
+    (onAddorUpdate)="ordenVentaGuardada()" />
+  }
+
+</nz-card>

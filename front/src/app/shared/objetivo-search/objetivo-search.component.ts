@@ -90,7 +90,6 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   }
 
   set selectedId(val: string) {
-    this.osc?.focus()
     val = (val === null || val === undefined) ? '' : val
 
     if (val !== this._selectedId) {
@@ -138,6 +137,12 @@ export class ObjetivoSearchComponent implements ControlValueAccessor {
   )
 
   modelChange(val: string) {
+    // El foco se devuelve al select solo cuando el objetivo lo eligió el usuario. Hacerlo también
+    // desde writeValue rompía la carga de un objetivo ya guardado: al enfocarse, el nz-select dispara
+    // nzOnSearch(''), search() limpia extendedOption y con eso desaparece la única opción que tenía
+    // el valor actual, así que el buscador quedaba en blanco (solo si el control estaba habilitado,
+    // porque deshabilitado el focus no hace nada).
+    this.osc?.focus()
     this.selectedId = val
   }
 

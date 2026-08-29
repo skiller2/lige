@@ -1,0 +1,57 @@
+<nz-card class="small-margin">
+
+  <form nz-form nzLayout="horizontal" (ngSubmit)="guardar()">
+
+    <nz-form-item style="margin-top: 20px;">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Número</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+        <input nz-input type="number" [formField]="formOrdenVenta.NroOrdenVenta" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Fecha</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+        <input nz-input [value]="fechaTexto()" [disabled]="true" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Cliente</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip>
+        <app-cliente-search [formField]="formOrdenVenta.ClienteId" (valueExtendedChange)="onClienteChange($event)" />
+      </nz-form-control>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Objetivo</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip>
+        <app-objetivo-search [formField]="formOrdenVenta.ObjetivoId" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Estado</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip>
+        <nz-select [formField]="formOrdenVenta.EstadoOrdenVentaCodigo" nzShowSearch nzPlaceHolder="Estado"
+          [nzDropdownMatchSelectWidth]="false">
+          @for (option of estados(); track option.value) {
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label" />
+          }
+        </nz-select>
+      </nz-form-control>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Total</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip>
+        <input nz-input type="text" appDotToComma mask="separator.2" class="text-right"
+          [formField]="formOrdenVenta.ImporteTotalAFacturar" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <!-- Se habilita solo en modificación, con cambios y sin errores -->
+    <div style="text-align: center; margin-top: 40px; margin-bottom: 15px;">
+      <button nz-button nzType="primary" type="submit" [nzLoading]="formOrdenVenta().submitting()"
+        [disabled]="soloLectura() || formOrdenVenta().submitting() || formOrdenVenta().dirty() === false || formOrdenVenta().valid() === false">
+        {{ 'app.btn.save' | i18n }}
+      </button>
+    </div>
+
+  </form>
+
+</nz-card>
