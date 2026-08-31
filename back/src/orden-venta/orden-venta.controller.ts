@@ -255,9 +255,8 @@ export class OrdenVentaController extends BaseController {
             item.CantidadEstandar,
             item.Bonificacion,
             COALESCE(hs.ImporteHora, pre.Importe, item.ImporteUnitario) AS ImporteUnitario,
-            -- El texto de factura de los productos de horas siempre sale de las observaciones del
-            -- objetivo; el resto de los productos conserva el suyo
-            IIF(item.ProductoCodigo IN (@6, @7), hs.Observaciones, item.TextoFactura) AS TextoFactura,
+            -- Todos los productos conservan el texto de factura que se les cargó, los de horas incluidos
+            item.TextoFactura,
             item.CantidadEnFactura,
             ISNULL(item.Cantidad,0) * ISNULL(COALESCE(hs.ImporteHora, pre.Importe, item.ImporteUnitario),0) AS ImporteTotal
           FROM ItemOrdenVenta item
@@ -272,8 +271,7 @@ export class OrdenVentaController extends BaseController {
           ) pre
           OUTER APPLY (
             SELECT TOP 1
-              IIF(item.ProductoCodigo = @6, oiv.ImporteHoraA, oiv.ImporteHoraB) AS ImporteHora,
-              oiv.Observaciones
+              IIF(item.ProductoCodigo = @6, oiv.ImporteHoraA, oiv.ImporteHoraB) AS ImporteHora
             FROM ObjetivoImporteVenta oiv
             WHERE item.ProductoCodigo IN (@6, @7)
               AND oiv.ClienteId = @2

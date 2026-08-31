@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, model, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, model, resource, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -33,36 +33,12 @@ export class OrdenesVentaComponent {
   // La consulta abre el mismo detalle que la modificación, pero sin poder editarlo ni guardarlo
   soloLectura = signal(false)
 
-  // Período y objetivo arrancan en los de la fila de la grilla y, en modificación, se pueden cambiar:
-  // el detalle que se edita es el del objetivo y período elegidos
-  periodo = linkedSignal<any, Date | null>({
-    source: () => this.ordenAbierta(),
-    computation: orden => orden ? new Date(Number(orden.PeriodoAnio), Number(orden.PeriodoMes) - 1, 1) : null
-  })
-
-  objetivoId = linkedSignal<any, number>({
-    source: () => this.ordenAbierta(),
-    computation: orden => Number(orden?.ObjetivoId ?? 0)
-  })
-
-  anio = computed(() => this.periodo()?.getFullYear() ?? 0)
-  mes = computed(() => this.periodo() ? this.periodo()!.getMonth() + 1 : 0)
-
-  // El cliente sale del objetivo elegido, no de la fila: cambiar el objetivo lo cambia también, y el
-  // back rechaza la orden si el objetivo no pertenece al cliente que se le manda
-  private cabeceraResource = resource({
-    params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
-    loader: async ({ params }) => {
-      if (!params.objetivoId || !params.anio || !params.mes) return {}
-
-      return await firstValueFrom(
-        this.apiService.getCabeceraOrdenVenta(params.objetivoId, params.anio, params.mes)) ?? {}
-    },
-    defaultValue: {} as any
-  })
-
-  clienteId = computed(() => this.cabeceraResource.value()?.ClienteId ?? null)
-  clienteElementoDependienteId = computed(() => this.cabeceraResource.value()?.ClienteElementoDependienteId ?? null)
+  // Período y objetivo identifican a la orden: se muestran, pero no se editan en ningún modo
+  objetivoId = computed(() => Number(this.ordenAbierta()?.ObjetivoId ?? 0))
+  anio = computed(() => Number(this.ordenAbierta()?.PeriodoAnio ?? 0))
+  mes = computed(() => Number(this.ordenAbierta()?.PeriodoMes ?? 0))
+  clienteId = computed(() => this.ordenAbierta()?.ClienteId ?? null)
+  clienteElementoDependienteId = computed(() => this.ordenAbierta()?.ClienteElementoDependienteId ?? null)
 
   // Ítems de la orden (/api/orden-venta/list), el mismo detalle que edita la carga de asistencia
   private itemsResource = resource({
@@ -113,10 +89,11 @@ export class OrdenesVentaComponent {
     this.ordenAbierta.set(this.ordenSeleccionada())
   }
 
-  // Guardado el detalle cambia el importe total de la orden: se recarga la grilla y se vuelve al listado
+  // Guardado el detalle se sigue trabajando sobre él: se releen los ítems, que vuelven con su código,
+  // y se marca la grilla para que al volver al listado muestre el importe total nuevo
   ordenVentaGuardada() {
     this.refreshTick.update(n => n + 1)
-    this.volverAlListado()
+    this.itemsResource.reload()
   }
 
   volverAlListado() {

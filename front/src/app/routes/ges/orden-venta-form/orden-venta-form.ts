@@ -100,6 +100,10 @@ export class OrdenVentaFormComponent {
 
   itemsValue = computed<any[]>(() => (this.formValue() as any)?.items ?? [])
 
+  // El detalle tiene cambios sin guardar. dirty/pristine no son señales, así que el estado se
+  // refleja acá para que un contenedor OnPush pueda habilitar su botón de guardar.
+  conCambios = signal(false)
+
   titulos = computed<string[]>(() =>
     this.itemsValue().map(item => {
       // La cantidad en cero es un ítem recién creado, no se muestra
@@ -169,6 +173,11 @@ export class OrdenVentaFormComponent {
 
     // El total de la orden se recalcula ante cualquier modificación del detalle
     effect(() => this.detalleChange.emit(this.itemsValue()))
+
+    effect(() => {
+      this.formValue()
+      this.conCambios.set(this.formOrdenVenta.dirty)
+    })
   }
 
   get itemsArray(): FormArray {
@@ -189,6 +198,7 @@ export class OrdenVentaFormComponent {
     // El detalle recién traído todavía no tiene cambios del usuario
     this.validado.set(false)
     this.formOrdenVenta.markAsPristine()
+    this.conCambios.set(false)
     this.formOrdenVenta.markAsUntouched()
     this.itemsArray.updateValueAndValidity()
   }
@@ -434,6 +444,7 @@ export class OrdenVentaFormComponent {
       }))
 
       this.formOrdenVenta.markAsPristine()
+      this.conCambios.set(false)
 
       // Recarga el detalle: los ítems nuevos vuelven con su ItemOrdenVentaCodigo
       const cantidadDe = (productoHoras: string) => {
