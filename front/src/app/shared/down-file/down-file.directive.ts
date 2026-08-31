@@ -1,4 +1,4 @@
-import { Directive, ElementRef, EventEmitter, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, EventEmitter, HostListener, Input, output  } from '@angular/core';
 import { finalize } from 'rxjs';
 import { saveAs } from 'file-saver';
 import { HttpClient, HttpResponse } from '@angular/common/http';
@@ -15,6 +15,12 @@ export class AppDownFileDirective {
     @Input() notificationMsg: string = ""
     @Input() fileName?: string | ((rep: HttpResponse<Blob>) => string)
     @Input() pre?: (ev: MouseEvent) => Promise<boolean>;
+
+    readonly success = output<HttpResponse<Blob>>();
+    readonly error = output<any>();
+    // readonly success: EventEmitter<HttpResponse<Blob>>;
+    // readonly error: EventEmitter<any>;
+
     @HostListener('click', ['$event']) async onClick(ev: MouseEvent){
         if (!this.isFileSaverSupported || (typeof this.pre === 'function' && !(await this.pre(ev)))) {
             ev.stopPropagation();
@@ -59,15 +65,12 @@ export class AppDownFileDirective {
     } 
         
     isFileSaverSupported: boolean
-
-    readonly success: EventEmitter<HttpResponse<Blob>>;
-    readonly error: EventEmitter<any>;
     
     constructor(public el: ElementRef, public _http: HttpClient, public notificationService: NzNotificationService) {
         this.isFileSaverSupported = true;
         this.httpMethod = 'get';
-        this.success = new EventEmitter();
-        this.error = new EventEmitter();
+        // this.success = new EventEmitter();
+        // this.error = new EventEmitter();
         let isFileSaverSupported = false;
         try {
             isFileSaverSupported = !!new Blob();
