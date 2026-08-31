@@ -847,17 +847,19 @@ export class NovedadesController extends BaseController {
 
     async getNovedadConfig(req: Request, res: Response, next: NextFunction) {
         const prev: boolean = (req.params.prev === 'true')
+        const queryRunner = await getConnection(res.locals.userName);
         try {
-            const htmlContent = await this.getNovedadHtmlContentGeneral(new Date(), '', '', '', true, prev);
+            const htmlContent = await this.getNovedadHtmlContentGeneral(queryRunner, new Date(), '', '', '', true, prev);
             this.jsonRes({ header: htmlContent.header, body: htmlContent.body, footer: htmlContent.footer }, res);
 
         } catch (error) {
             return next(error)
         } finally {
+            await queryRunner.release();
         }
     }
 
-    async getNovedadHtmlContentGeneral(fechaNovedad: Date, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
+    async getNovedadHtmlContentGeneral(queryRunner:any, fechaNovedad: Date, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
 
         const imgPath = `./assets/logo-lince-full.svg`
         const imgBuffer = await fsPromises.readFile(imgPath);
@@ -869,6 +871,13 @@ export class NovedadesController extends BaseController {
         const imgPathinaes = `./assets/icons/inaes.png`
         const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
         const imgBase64inaes = imgBufferinaes.toString('base64');
+
+        // const ParametroGeneral =  await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, [ null ])
+        // const Parametros = JSON.parse(ParametroGeneral[0].Parametros)
+
+        // if (!header) header = Parametros.Cabecera
+        // if (!body) body = Parametros.Cuerpo
+        // if (!footer) footer = Parametros.Pie
 
         header = (header) ? header : (fs.existsSync(this.PathNovedadTemplate.header) ? fs.readFileSync(this.PathNovedadTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.headerDef, 'utf-8'))
         body = (body) ? body : (fs.existsSync(this.PathNovedadTemplate.body) ? fs.readFileSync(this.PathNovedadTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.bodyDef, 'utf-8'))
@@ -916,7 +925,7 @@ export class NovedadesController extends BaseController {
             const asociado = infoPersonal.PersonalNroLegajo;
             const grupo = infoPersonal.GrupoActividadDetalle;
 
-            const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, header, body, footer)
+            const htmlContent = await this.getNovedadHtmlContentGeneral(queryRunner, fechaActual, header, body, footer)
 
             const objetivoDomicilio = await new ObjetivosController().getDomicilio(queryRunner, NovedadInfo.ObjetivoId, NovedadInfo.ClienteId, NovedadInfo.ClienteElementoDependienteId);
             const browser = await puppeteer.launch({ headless: 'new' })
@@ -1094,7 +1103,7 @@ export class NovedadesController extends BaseController {
 
             const list = await this.listQuery(queryRunner, condition, filterSql, orderBy, year, month);
 
-            const htmlContent = await this.getNovedadHtmlContentGeneral(fechaActual, '', '', '')
+            const htmlContent = await this.getNovedadHtmlContentGeneral(queryRunner, fechaActual, '', '', '')
             const browser = await puppeteer.launch({ headless: 'new' })
             const page = await browser.newPage();
             const filesPath = `tmp/informe-novedad/${usuario}-${fechaActual.getTime()}`

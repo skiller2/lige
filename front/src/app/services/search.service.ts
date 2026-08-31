@@ -517,6 +517,7 @@ export class SearchService {
     });
 
     if (!response.ok) {
+      // return [{ place_id: 0, display_name: direccion }]
       throw new Error(`Error HTTP ${response.status}`);
     }
 
@@ -535,39 +536,14 @@ export class SearchService {
         .filter(Boolean)
         .join(", ");
       
-      // Validar el address
-      const address = item.address
-      let verAddress:any = {PaisId: 1, ProvinciaId:null, LocalidadId:null, BarrioId:null}
-      if(address.state){
-        await firstValueFrom(this.getProvinciaFromName('Descripcion', address.state, verAddress.PaisId)
-          .pipe(map(res => {
-            if (res.length) verAddress.ProvinciaId = res[0].ProvinciaId
-            else verAddress.ProvinciaId = 0
-          }))
-        )
-      }
-      if(address.state_district || address.city){
-        let array:any[] = address.state_district? address.state_district.split(" ") : (address.city? address.city.split(" "): [])
-        await firstValueFrom(this.getLocalidadFromName('Descripcion', array[array.length-1], verAddress.ProvinciaId, verAddress.PaisId)
-          .pipe(tap(res => {
-            if (res.length) verAddress.LocalidadId = res[0].LocalidadId
-            else verAddress.LocalidadId = 0
-          }))
-        )
-      }
-      if(address.town){
-        let array:any[] = address.town.split(" ")
-        await firstValueFrom(this.getBarrioFromName('Descripcion', array[array.length-1], verAddress.LocalidadId, verAddress.ProvinciaId, verAddress.PaisId)
-          .pipe(tap(res => {
-            if (res.length) verAddress.BarrioId = res[0].BarrioId
-            else verAddress.BarrioId = 0
-          }))
-        )
-      }
-
-      item.verAddress = verAddress
-      
     }
+
+    // if (direccion.trim().split(',').length >= 3) {
+    //   result.push({
+    //     place_id: 0,
+    //     display_name: direccion
+    //   })
+    // }
 
     return result
 
@@ -2872,7 +2848,7 @@ export class SearchService {
     return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/provincia', {
         fieldName: fieldName,
         value: provincia,
-        paisId: paisId? paisId: 0,
+        PaisId: paisId? paisId: 0,
       })
       .pipe(
         map(res => {
@@ -2890,8 +2866,8 @@ export class SearchService {
     return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/localidad', {
         fieldName: fieldName,
         value: localidad,
-        provinciaId: provinciaId,
-        paisId: paisId? paisId: 0
+        ProvinciaId: provinciaId,
+        PaisId: paisId? paisId: 0
       })
       .pipe(
         map(res => {
@@ -2909,9 +2885,9 @@ export class SearchService {
     return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/barrio', {
         fieldName: fieldName,
         value: barrio,
-        localidadId: localidadId,
-        provinciaId: provinciaId,
-        paisId: paisId? paisId: 0
+        LocalidadId: localidadId,
+        ProvinciaId: provinciaId,
+        PaisId: paisId? paisId: 0
       })
       .pipe(
         map(res => {

@@ -1578,19 +1578,27 @@ export class MovimientoStockController extends BaseController {
     const prev: boolean = (req.params.prev === 'true');
     const queryRunner = await getConnection(res.locals.userName);
     try {
-      const htmlContent = await this.getComprobanteHtmlContentGeneral(new Date(), '', '', '', true, prev);
+      const htmlContent = await this.getComprobanteHtmlContentGeneral(queryRunner, new Date(), '', '', '', true, prev);
       this.jsonRes({ header: htmlContent.header, body: htmlContent.body, footer: htmlContent.footer }, res);
     } catch (error) {
       return next(error);
     } finally {
+      await queryRunner.release();
     }
   }
 
   // Resuelve las tres partes de la plantilla. Si raw=false reemplaza las variables independientes
   // del movimiento (logo, fecha). Las variables que dependen del movimiento las reemplaza createPdf.
-  async getComprobanteHtmlContentGeneral(fecha: Date, header: string, body: string, footer: string, raw: boolean = false, prev: boolean = false) {
+  async getComprobanteHtmlContentGeneral(queryRunner:any, fecha: Date, header: string, body: string, footer: string, raw: boolean = false, prev: boolean = false) {
     const imgBuffer = readFileSync(`./assets/logo-lince-full.svg`);
     const imgBase64 = imgBuffer.toString('base64');
+
+    // const ParametroGeneral =  await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, [ null ])
+    // const Parametros = JSON.parse(ParametroGeneral[0].Parametros)
+
+    // if (!header) header = Parametros.Cabecera
+    // if (!body) body = Parametros.Cuerpo
+    // if (!footer) footer = Parametros.Pie
 
     header = (header) ? header : (existsSync(this.PathComprobanteTemplate.header) ? readFileSync(this.PathComprobanteTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.headerDef, 'utf-8'));
     body = (body) ? body : (existsSync(this.PathComprobanteTemplate.body) ? readFileSync(this.PathComprobanteTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.bodyDef, 'utf-8'));
@@ -1685,7 +1693,7 @@ export class MovimientoStockController extends BaseController {
       const detalle = await this.getMovimientoDetalle(queryRunner, movimientoCodigo)
 
       const fecha = cabecera?.Fecha ? new Date(cabecera.Fecha) : new Date();
-      content = await this.getComprobanteHtmlContentGeneral(fecha, header, body, footer);
+      content = await this.getComprobanteHtmlContentGeneral(queryRunner, fecha, header, body, footer);
 
       // Origen del movimiento: distintos orígenes del detalle (puede variar por renglón).
       const origenes = [...new Set((detalle ?? []).map((d: any) => d.Origen).filter(Boolean))];
@@ -1734,7 +1742,7 @@ export class MovimientoStockController extends BaseController {
 
     } else if (form) {
       const fecha = form.fecha ? new Date(form.fecha) : new Date();
-      content = await this.getComprobanteHtmlContentGeneral(fecha, header, body, footer);
+      content = await this.getComprobanteHtmlContentGeneral(queryRunner, fecha, header, body, footer);
 
       const tipoDestino = form.tipoDestino ?? '';
 

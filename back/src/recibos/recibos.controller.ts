@@ -75,7 +75,7 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getReciboHtmlContentGeneral(titulo: string, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
+  async getReciboHtmlContentGeneral(queryRunner:any, titulo: string, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
 
     const imgPath = `./assets/logo-lince-full.svg`
     const imgBuffer = await fsPromises.readFile(imgPath);
@@ -87,6 +87,13 @@ export class RecibosController extends BaseController {
     const imgPathinaes = `./assets/icons/inaes.png`
     const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
     const imgBase64inaes = imgBufferinaes.toString('base64');
+
+    // const ParametroGeneral =  await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, [ null ])
+    // const Parametros = JSON.parse(ParametroGeneral[0].Parametros)
+
+    // if (!header) header = Parametros.Cabecera
+    // if (!body) body = Parametros.Cuerpo
+    // if (!footer) footer = Parametros.Pie
 
     header = (header) ? header : (fs.existsSync(this.PathReciboTemplate.header) ? fs.readFileSync(this.PathReciboTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathReciboTemplate.headerDef, 'utf-8'))
     body = (body) ? body : (fs.existsSync(this.PathReciboTemplate.body) ? fs.readFileSync(this.PathReciboTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathReciboTemplate.bodyDef, 'utf-8'))
@@ -165,8 +172,8 @@ export class RecibosController extends BaseController {
 
       // await this.cleanDirectories(queryRunner, this.directoryRecibo + '/' + directorPath, periodo.year, periodo.month, isUnique, directorPathUnique, den_documento)
 
-      const htmlContentGeneral = await this.getReciboHtmlContentGeneral('', periodo.year, periodo.month)
-      const htmlContentCoordinador = await this.getReciboHtmlContentGeneral('Coordinador', periodo.year, periodo.month)
+      const htmlContentGeneral = await this.getReciboHtmlContentGeneral(queryRunner, '', periodo.year, periodo.month)
+      const htmlContentCoordinador = await this.getReciboHtmlContentGeneral(queryRunner, 'Coordinador', periodo.year, periodo.month)
 
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();
@@ -1202,13 +1209,15 @@ GROUP BY
 
   async getReciboConfig(req: Request, res: Response, next: NextFunction) {
     const prev: boolean = (req.params.prev === 'true')
+    const queryRunner = await getConnection(res.locals.userName)
     try {
-      const htmlContent = await this.getReciboHtmlContentGeneral('', 0, 0, '', '', '', true, prev)
+      const htmlContent = await this.getReciboHtmlContentGeneral(queryRunner, '', 0, 0, '', '', '', true, prev)
       this.jsonRes({ header: htmlContent.header, body: htmlContent.body, footer: htmlContent.footer }, res);
 
     } catch (error) {
       return next(error)
     } finally {
+      await queryRunner.release();
     }
   }
 
@@ -1244,7 +1253,7 @@ GROUP BY
 
 
 
-      const htmlContent = await this.getReciboHtmlContentGeneral((tipocuenta_id == 'C') ? 'Coordinador Cuenta' : '', anio, mes, header, body, footer)
+      const htmlContent = await this.getReciboHtmlContentGeneral(queryRunner, (tipocuenta_id == 'C') ? 'Coordinador Cuenta' : '', anio, mes, header, body, footer)
 
       const browser = await puppeteer.launch({ headless: 'new' })
       const page = await browser.newPage();

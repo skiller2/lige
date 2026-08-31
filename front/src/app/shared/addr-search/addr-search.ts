@@ -196,6 +196,42 @@ export class AddrSearchComponent
   }
 
   async modelChange(value: any | null): Promise<void> {
+    // Validar el address
+    if (value?.address) {
+      const address = value.address
+      let verAddress:any = {PaisId: 1, ProvinciaId:null, LocalidadId:null, BarrioId:null}
+      if(address.state){
+        await firstValueFrom(this.searchService.getProvinciaFromName('Descripcion', address.state, verAddress.PaisId)
+          .pipe(tap(res => {
+            if (res.length) verAddress.ProvinciaId = res[0].ProvinciaId
+            else verAddress.ProvinciaId = 0
+          }))
+        )
+      }
+      
+      if(address.state_district || address.city){
+        let array:any[] = address.state_district? address.state_district.split(" ") : (address.city? address.city.split(" "): [])
+        await firstValueFrom(this.searchService.getLocalidadFromName('Descripcion', array[array.length-1], verAddress.ProvinciaId, verAddress.PaisId)
+          .pipe(tap(res => {
+            if (res.length) verAddress.LocalidadId = res[0].LocalidadId
+            else verAddress.LocalidadId = 0
+          }))
+        )
+      }
+
+      if(address.town){
+        let array:any[] = address.town.split(" ")
+        await firstValueFrom(this.searchService.getBarrioFromName('Descripcion', array[array.length-1], verAddress.LocalidadId, verAddress.ProvinciaId, verAddress.PaisId)
+          .pipe(tap(res => {
+            if (res.length) verAddress.BarrioId = res[0].BarrioId
+            else verAddress.BarrioId = 0
+          }))
+        )
+      }
+
+      value.verAddress = verAddress
+    }
+    
     this.selectedItem.set(value);
     this.propagateChange(this.selectedItem());
   }

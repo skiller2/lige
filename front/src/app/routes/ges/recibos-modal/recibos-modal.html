@@ -42,9 +42,9 @@
         }
     </div>
     <div *nzModalFooter style="text-align: right;">
-        <a nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
-            [httpBody]="{'desde':desde(), 'hasta':valHasta(), isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch(),'PersonalIdWithSearch':PersonalIdWithSearch(),'SeachField':selectedOption() }"
-            httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado"
-            >Aceptar</a>
+        <button nz-button nzType="primary" app-down-file [httpMethod]="'POST'"
+        [httpBody]="{'desde':desde(), 'hasta':valHasta(), isWithDuplicado, 'ObjetivoIdWithSearch':ObjetivoIdWithSearch(),'ClienteIdWithSearch':ClienteIdWithSearch(),'SucursalIdWithSearch':SucursalIdWithSearch(),'PersonalIdWithSearch':PersonalIdWithSearch(),'SeachField':selectedOption() }"
+        httpUrl="/api/recibos/downloadfull" notificationMsg="Generando PDF unificado"
+        (success)="isVisible.set(false)">Aceptar</button>
     </div>
 </nz-modal>
