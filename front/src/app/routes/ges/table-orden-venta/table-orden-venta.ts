@@ -31,7 +31,7 @@ export class TableOrdenVentaComponent implements OnInit {
   // Órdenes seleccionadas (selección múltiple)
   ordenesSeleccionadas = model<any[]>([]);
 
-  // Cambia al guardar desde el formulario: la fila modificada quedó vieja y hay que releer la lista
+  // Cambia al guardar el detalle: la fila modificada quedó vieja y hay que releer la lista
   refreshGrid = input<number>(0);
 
   // Por omisión no se muestran las órdenes ya facturadas

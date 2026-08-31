@@ -787,15 +787,6 @@ export class SearchService {
     );
   }
 
-  getEstadosOrdenVenta(): Observable<any> {
-    return this.http.get<ResponseJSON<any>>(`/api/orden-venta/estados`).pipe(
-      map(res => res.data),
-      catchError((err, caught) => {
-
-        return of([]);
-      })
-    );
-  }
   getProcAutoEstadosOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/evento-log/estado/options`).pipe(
       map(res => res.data),

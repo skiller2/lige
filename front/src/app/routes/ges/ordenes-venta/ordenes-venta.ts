@@ -1,84 +1,125 @@
-import { ChangeDetectionStrategy, Component, computed, inject, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, model, resource, signal } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
-import { ActivatedRoute, Router } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { firstValueFrom, map } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta';
-import { OrdenesVentaFormComponent } from '../ordenes-venta-form/ordenes-venta-form';
+import { OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { ApiService } from '../../../services/api.service';
-
-// La solapa es el modo: 'listado' muestra la grilla, el resto abre el formulario de cabecera
-const TAB_LISTADO = 'listado'
 
 @Component({
   selector: 'app-ordenes-venta',
   standalone: true,
-  imports: [SHARED_IMPORTS, NzMenuModule, TableOrdenVentaComponent, OrdenesVentaFormComponent],
+  imports: [SHARED_IMPORTS, CurrencyPipe, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
+    ObjetivoSearchComponent],
   templateUrl: './ordenes-venta.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrdenesVentaComponent {
 
-  private route = inject(ActivatedRoute)
-  private router = inject(Router)
   private apiService = inject(ApiService)
 
   ordenesSeleccionadas = model<any[]>([])
 
   ordenSeleccionada = computed(() => this.ordenesSeleccionadas()?.length > 0 ? this.ordenesSeleccionadas()[0] : null)
 
-  // 'listado' | 'consulta' | 'modificacion' | 'alta'
-  activeTab = toSignal(
-    this.route.params.pipe(map(({ tab }) => tab || TAB_LISTADO)),
-    { initialValue: TAB_LISTADO }
-  )
-
-  // La grilla no se destruye al abrir el formulario: queda oculta para no perder filtros ni selección
-  enListado = computed(() => this.activeTab() === TAB_LISTADO)
-
+  // Baja, modificación y consulta trabajan sobre la orden seleccionada en la grilla
   sinSeleccion = computed(() => this.ordenSeleccionada() == null)
 
-  // En alta el formulario arranca vacío aunque haya una fila seleccionada en la grilla
-  ordenParaFormulario = computed(() => this.activeTab() === 'alta' ? null : this.ordenSeleccionada())
+  // Orden abierta. Con una abierta la pantalla muestra su detalle en vez del listado.
+  ordenAbierta = signal<any | null>(null)
 
+  // La consulta abre el mismo detalle que la modificación, pero sin poder editarlo ni guardarlo
+  soloLectura = signal(false)
+
+  // Período y objetivo arrancan en los de la fila de la grilla y, en modificación, se pueden cambiar:
+  // el detalle que se edita es el del objetivo y período elegidos
+  periodo = linkedSignal<any, Date | null>({
+    source: () => this.ordenAbierta(),
+    computation: orden => orden ? new Date(Number(orden.PeriodoAnio), Number(orden.PeriodoMes) - 1, 1) : null
+  })
+
+  objetivoId = linkedSignal<any, number>({
+    source: () => this.ordenAbierta(),
+    computation: orden => Number(orden?.ObjetivoId ?? 0)
+  })
+
+  anio = computed(() => this.periodo()?.getFullYear() ?? 0)
+  mes = computed(() => this.periodo() ? this.periodo()!.getMonth() + 1 : 0)
+
+  // El cliente sale del objetivo elegido, no de la fila: cambiar el objetivo lo cambia también, y el
+  // back rechaza la orden si el objetivo no pertenece al cliente que se le manda
+  private cabeceraResource = resource({
+    params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
+    loader: async ({ params }) => {
+      if (!params.objetivoId || !params.anio || !params.mes) return {}
+
+      return await firstValueFrom(
+        this.apiService.getCabeceraOrdenVenta(params.objetivoId, params.anio, params.mes)) ?? {}
+    },
+    defaultValue: {} as any
+  })
+
+  clienteId = computed(() => this.cabeceraResource.value()?.ClienteId ?? null)
+  clienteElementoDependienteId = computed(() => this.cabeceraResource.value()?.ClienteElementoDependienteId ?? null)
+
+  // Ítems de la orden (/api/orden-venta/list), el mismo detalle que edita la carga de asistencia
+  private itemsResource = resource({
+    params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
+    loader: async ({ params }) => {
+      if (!params.objetivoId || !params.anio || !params.mes) return []
+
+      const response = await firstValueFrom(
+        this.apiService.getListOrdenVenta(params.objetivoId, params.anio, params.mes))
+
+      return response.list ?? []
+    },
+    defaultValue: [] as any[]
+  })
+
+  items = computed<any[]>(() => this.itemsResource.value() ?? [])
+
+  // mm/aaaa, como se muestra el período en la carga de asistencia
+  periodoTexto = computed(() => this.anio() ? `${String(this.mes()).padStart(2, '0')}/${this.anio()}` : '')
+
+  // Detalle tal cual está en el formulario, con los ítems agregados o editados sin guardar
+  detalle = signal<any[]>([])
+
+  // Total Orden de Venta = Σ Importe Total de cada ítem
+  importeTotal = computed(() =>
+    this.detalle().reduce((total: number, item: any) => total + Number(item.ImporteTotal ?? 0), 0))
+
+  // Cambia al guardar: la fila de la grilla quedó vieja y hay que releer la lista
   refreshTick = signal(0)
 
-  // La solapa es el modo; la orden seleccionada viaja por señal
-  private abrirFormulario(modo: string) {
-    this.router.navigate(['/', 'ges', 'ordenes-venta', modo])
-  }
+  // TODO: pendiente de implementar
+  altaOrdenVenta() { }
 
-  // Guardada el alta o la modificación, la grilla quedó vieja: se recarga y se vuelve al listado
-  ordenVentaGuardada() {
-    this.refreshTick.update(n => n + 1)
-    this.router.navigate(['/', 'ges', 'ordenes-venta', TAB_LISTADO])
-  }
-
-  altaOrdenVenta() {
-    this.abrirFormulario('alta')
-  }
-
-  // La confirmación la pide el nz-popconfirm del botón, igual que en la botonera de novedades
-  async bajaOrdenVenta() {
-    const orden = this.ordenSeleccionada()
-    if (!orden) return
-
-    await firstValueFrom(this.apiService.deleteOrdenVenta(orden.NroOrdenVenta))
-
-    // La orden ya no existe: se suelta la selección, se recarga la grilla y se vuelve al listado
-    this.ordenesSeleccionadas.set([])
-    this.refreshTick.update(n => n + 1)
-    this.router.navigate(['/', 'ges', 'ordenes-venta', TAB_LISTADO])
-  }
+  // TODO: pendiente de implementar
+  bajaOrdenVenta() { }
 
   modificarOrdenVenta() {
-    if (this.sinSeleccion()) return
-    this.abrirFormulario('modificacion')
+    this.abrirDetalle(false)
   }
 
   consultaOrdenVenta() {
+    this.abrirDetalle(true)
+  }
+
+  private abrirDetalle(soloLectura: boolean) {
     if (this.sinSeleccion()) return
-    this.abrirFormulario('consulta')
+    this.soloLectura.set(soloLectura)
+    this.ordenAbierta.set(this.ordenSeleccionada())
+  }
+
+  // Guardado el detalle cambia el importe total de la orden: se recarga la grilla y se vuelve al listado
+  ordenVentaGuardada() {
+    this.refreshTick.update(n => n + 1)
+    this.volverAlListado()
+  }
+
+  volverAlListado() {
+    this.ordenAbierta.set(null)
   }
 }

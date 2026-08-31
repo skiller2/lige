@@ -55,6 +55,9 @@ export class OrdenVentaFormComponent {
   // Ítems que vienen del detalle (/api/orden-venta/list)
   items = input<any[]>([])
 
+  // En consulta el detalle se muestra completo pero no se edita
+  soloLectura = input<boolean>(false)
+
   // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
   horasAFacturarA = input<number>(0)
   horasAFacturarB = input<number>(0)
@@ -344,7 +347,7 @@ export class OrdenVentaFormComponent {
 
   addItem(event?: Event) {
     event?.preventDefault()
-    if (this.hayItemVacio()) return
+    if (this.soloLectura() || this.hayItemVacio()) return
     this.itemsArray.push(this.nuevoItem())
     this.panelAbierto.set(this.itemsArray.length - 1)
     this.formOrdenVenta.markAsDirty()
@@ -353,6 +356,7 @@ export class OrdenVentaFormComponent {
   removeItem(index: number, event?: Event) {
     event?.preventDefault()
     event?.stopPropagation()
+    if (this.soloLectura()) return
     this.itemsArray.removeAt(index)
     // Nunca queda el detalle sin ítems
     if (!this.itemsArray.length) this.itemsArray.push(this.nuevoItem())
@@ -401,7 +405,7 @@ export class OrdenVentaFormComponent {
   }
 
   async save() {
-    if (this.guardando()) return
+    if (this.soloLectura() || this.guardando()) return
 
     const items = this.itemsArray.getRawValue()
 

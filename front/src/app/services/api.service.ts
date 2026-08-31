@@ -1973,26 +1973,6 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/orden-venta/save', ordenVenta);
   }
 
-  // Alta de una orden de venta desde la pantalla Órdenes de Venta (el detalle va por setOrdenVenta)
-  insertOrdenVenta(ordenVenta: any) {
-
-    return this.http.post<ResponseJSON<any>>('/api/orden-venta/insert', ordenVenta);
-  }
-
-  // Modificación de la cabecera desde la pantalla Órdenes de Venta (el detalle va por setOrdenVenta)
-  updateCabeceraOrdenVenta(cabecera: any) {
-
-    return this.http.post<ResponseJSON<any>>('/api/orden-venta/update-cabecera', cabecera);
-  }
-
-  // Baja de la orden completa: cabecera y detalle
-  deleteOrdenVenta(NroOrdenVenta: number) {
-
-    return this.http.delete<ResponseJSON<any>>(`/api/orden-venta/${NroOrdenVenta}`).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    );
-  }
-
   getPrecioProductoOrdenVenta(ObjetivoId: number, anio: number, mes: number, ProductoCodigo: string) {
 
     return this.http.get<ResponseJSON<any>>(`/api/orden-venta/precio/${ObjetivoId}/${anio}/${mes}/${ProductoCodigo}`).pipe(

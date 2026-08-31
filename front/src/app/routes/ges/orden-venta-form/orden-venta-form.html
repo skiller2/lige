@@ -17,7 +17,7 @@
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Producto</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19" nzErrorTip="El producto es requerido">
-            <app-producto-search formControlName="ProductoCodigo" [bloqueado]="esProductoHoras()[i]"
+            <app-producto-search formControlName="ProductoCodigo" [bloqueado]="soloLectura() || esProductoHoras()[i]"
               (valueExtendedChange)="productoChange(i, $event)"></app-producto-search>
           </nz-form-control>
         </nz-form-item>
@@ -53,21 +53,21 @@
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback
             nzErrorTip="La cantidad es requerida">
             <input nz-input placeholder="" formControlName="Cantidad" type="text" appDotToComma
-              mask="separator.2" [attr.readonly]="horasBloqueadas()[i] ? '' : null" />
+              mask="separator.2" [attr.readonly]="soloLectura() || horasBloqueadas()[i] ? '' : null" />
           </nz-form-control>
 
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Importe Unitario</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" nzHasFeedback
             nzErrorTip="El importe unitario es requerido">
             <input nz-input placeholder="" formControlName="ImporteUnitario" type="text" appDotToComma
-              mask="separator.2" [attr.readonly]="precioDeLista()[i] || esProductoHoras()[i] ? '' : null" />
+              mask="separator.2" [attr.readonly]="soloLectura() || precioDeLista()[i] || esProductoHoras()[i] ? '' : null" />
           </nz-form-control>
         </nz-form-item>
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Texto de Factura</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-            <textarea nz-input formControlName="TextoFactura"></textarea>
+            <textarea nz-input formControlName="TextoFactura" [attr.readonly]="soloLectura() ? '' : null"></textarea>
           </nz-form-control>
         </nz-form-item>
 
@@ -75,7 +75,7 @@
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad en Factura</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
             <input nz-input placeholder="" formControlName="CantidadEnFactura" type="text" appDotToComma
-              mask="separator.2" />
+              mask="separator.2" [attr.readonly]="soloLectura() ? '' : null" />
           </nz-form-control>
         </nz-form-item>
 
@@ -87,7 +87,7 @@
           </nz-form-control>
         </nz-form-item>
 
-        @if (formOrdenVenta.enabled) {
+        @if (!soloLectura()) {
           <div class="acciones-item">
             <button nz-button nzType="default" (click)="removeItem(i, $event)"
               [disabled]="horasBloqueadas()[i]" nz-tooltip
@@ -101,7 +101,7 @@
     }
   </nz-collapse>
 
-  @if (formOrdenVenta.enabled) {
+  @if (!soloLectura()) {
     <div class="acciones-detalle">
       <button nz-button nzType="primary" class="add-button" (click)="addItem($event)"
         [disabled]="hayItemVacio()" nz-tooltip

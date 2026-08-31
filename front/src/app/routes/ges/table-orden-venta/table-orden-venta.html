@@ -1,8 +1,6 @@
 <nz-card #taborden class="small-margin">
 
   <ng-container>
-    <!-- La botonera vive en el contenedor (app-ordenes-venta), para quedar visible también con el
-         formulario abierto -->
     <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()"
       [keyLocalstorage]="constructor.name" [(options)]="listOptions" />
 
