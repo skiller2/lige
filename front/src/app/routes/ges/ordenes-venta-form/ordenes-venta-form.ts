@@ -12,6 +12,7 @@ import { SearchService } from '../../../services/search.service';
 // descripciones que muestra la grilla las resuelven los buscadores.
 export interface OrdenVentaCabeceraFormModel {
   NroOrdenVenta: number | null;
+  Fecha: Date | null;
   ClienteId: number | null;
   ObjetivoId: number | null;
   EstadoOrdenVentaCodigo: string;
@@ -47,9 +48,10 @@ export class OrdenesVentaFormComponent {
   // En consulta el formulario es solo lectura
   readonly soloLectura = computed(() => this.modo() === 'consulta');
 
-  // Fecha = AudFechaIng, el rastro de auditoría del alta: se muestra pero no se edita, así que se
-  // arma como texto y queda fuera del formulario. La lista la manda en ISO (aaaa-mm-dd).
-  readonly fechaTexto = computed(() => {
+  // En alta no hay orden seleccionada: el formulario arranca vacío y el período se carga a mano
+  readonly esAlta = computed(() => this.modo() === 'alta');
+
+ readonly fechaTexto = computed(() => {
     const [anio, mes, dia] = texto(this.orden()?.Fecha).split('-');
     return dia ? `${dia}/${mes}/${anio}` : '';
   });
@@ -59,12 +61,16 @@ export class OrdenesVentaFormComponent {
   // Se rearma al cambiar la orden seleccionada o el modo
   private readonly modelo = linkedSignal<{ modo: string; orden: any | null }, OrdenVentaCabeceraFormModel>({
     source: () => ({ modo: this.modo(), orden: this.orden() }),
-    computation: ({ orden }) => ({
+    computation: ({ modo, orden }) => ({
       NroOrdenVenta: numero(orden?.NroOrdenVenta),
+      // Solo el alta edita la fecha, y arranca en el día. Fuera del alta la muestra fechaTexto.
+      Fecha: modo === 'alta' ? new Date() : null,
       ClienteId: numero(orden?.ClienteId),
       ObjetivoId: numero(orden?.ObjetivoId),
       EstadoOrdenVentaCodigo: texto(orden?.EstadoOrdenVentaCodigo),
-      ImporteTotalAFacturar: orden?.ImporteTotalAFacturar
+      // En el alta no hay orden: el campo tiene que arrancar en null, nunca en undefined, o el
+      // formulario se queda sin el nodo que usa [formField] en el template
+      ImporteTotalAFacturar: orden?.ImporteTotalAFacturar ?? null
     })
   });
 
@@ -72,8 +78,12 @@ export class OrdenesVentaFormComponent {
     // En consulta no se edita ningún campo
     disabled(p, () => this.soloLectura());
 
-    // El número de orden identifica a la orden: no se edita en ningún modo
+    // El número de orden identifica a la orden: lo asigna el backend y no se edita en ningún modo
     disabled(p.NroOrdenVenta);
+
+    // La fecha se carga en el alta; después es el rastro de auditoría del alta y no se toca
+    disabled(p.Fecha, () => !this.esAlta());
+    required(p.Fecha, { message: 'La fecha es obligatoria' });
 
     required(p.ClienteId, { message: 'El cliente es obligatorio' });
     required(p.ObjetivoId, { message: 'El objetivo es obligatorio' });
@@ -110,13 +120,23 @@ export class OrdenesVentaFormComponent {
     await submit(this.formOrdenVenta, async f => {
       const modelo = f().value();
 
-      const res = await firstValueFrom(this.apiService.updateCabeceraOrdenVenta({
-        NroOrdenVenta: modelo.NroOrdenVenta,
-        ClienteId: modelo.ClienteId,
-        ObjetivoId: modelo.ObjetivoId,
-        EstadoOrdenVentaCodigo: modelo.EstadoOrdenVentaCodigo,
-        ImporteTotalAFacturar: modelo.ImporteTotalAFacturar
-      }));
+      // De la fecha del alta salen AudFechaIng y el período; en la modificación los fija la orden
+      const res = await firstValueFrom(
+        this.esAlta()
+          ? this.apiService.insertOrdenVenta({
+            Fecha: modelo.Fecha,
+            ClienteId: modelo.ClienteId,
+            ObjetivoId: modelo.ObjetivoId,
+            EstadoOrdenVentaCodigo: modelo.EstadoOrdenVentaCodigo,
+            ImporteTotalAFacturar: modelo.ImporteTotalAFacturar
+          })
+          : this.apiService.updateCabeceraOrdenVenta({
+            NroOrdenVenta: modelo.NroOrdenVenta,
+            ClienteId: modelo.ClienteId,
+            ObjetivoId: modelo.ObjetivoId,
+            EstadoOrdenVentaCodigo: modelo.EstadoOrdenVentaCodigo,
+            ImporteTotalAFacturar: modelo.ImporteTotalAFacturar
+          }));
 
       if (!res?.data) return;
       this.onAddorUpdate.emit(res.data);

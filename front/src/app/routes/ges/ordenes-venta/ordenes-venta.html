@@ -39,7 +39,7 @@
   </div>
 
   @if (!enListado()) {
-  <app-ordenes-venta-form [orden]="ordenSeleccionada()" [modo]="activeTab()"
+  <app-ordenes-venta-form [orden]="ordenParaFormulario()" [modo]="activeTab()"
     (onAddorUpdate)="ordenVentaGuardada()" />
   }
 

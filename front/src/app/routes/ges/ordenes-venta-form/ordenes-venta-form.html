@@ -11,10 +11,15 @@
 
     <nz-form-item>
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Fecha</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-        <input nz-input [value]="fechaTexto()" [disabled]="true" />
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip>
+        @if (esAlta()) {
+        <nz-date-picker [formField]="formOrdenVenta.Fecha" nzFormat="dd/MM/yyyy" style="width: 100%;" />
+        } @else {
+        <input nz-input [value]="fechaTexto()" readonly />
+        }
       </nz-form-control>
     </nz-form-item>
+
 
     <nz-form-item>
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Cliente</nz-form-label>

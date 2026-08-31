@@ -39,6 +39,9 @@ export class OrdenesVentaComponent {
 
   sinSeleccion = computed(() => this.ordenSeleccionada() == null)
 
+  // En alta el formulario arranca vacío aunque haya una fila seleccionada en la grilla
+  ordenParaFormulario = computed(() => this.activeTab() === 'alta' ? null : this.ordenSeleccionada())
+
   refreshTick = signal(0)
 
   // La solapa es el modo; la orden seleccionada viaja por señal
@@ -46,14 +49,15 @@ export class OrdenesVentaComponent {
     this.router.navigate(['/', 'ges', 'ordenes-venta', modo])
   }
 
-  // Guardada la modificación, la fila de la grilla quedó vieja: se recarga y se vuelve al listado
+  // Guardada el alta o la modificación, la grilla quedó vieja: se recarga y se vuelve al listado
   ordenVentaGuardada() {
     this.refreshTick.update(n => n + 1)
     this.router.navigate(['/', 'ges', 'ordenes-venta', TAB_LISTADO])
   }
 
-  // TODO: pendiente de implementar
-  altaOrdenVenta() { }
+  altaOrdenVenta() {
+    this.abrirFormulario('alta')
+  }
 
   // La confirmación la pide el nz-popconfirm del botón, igual que en la botonera de novedades
   async bajaOrdenVenta() {

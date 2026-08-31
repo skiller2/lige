@@ -1973,6 +1973,12 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/orden-venta/save', ordenVenta);
   }
 
+  // Alta de una orden de venta desde la pantalla Órdenes de Venta (el detalle va por setOrdenVenta)
+  insertOrdenVenta(ordenVenta: any) {
+
+    return this.http.post<ResponseJSON<any>>('/api/orden-venta/insert', ordenVenta);
+  }
+
   // Modificación de la cabecera desde la pantalla Órdenes de Venta (el detalle va por setOrdenVenta)
   updateCabeceraOrdenVenta(cabecera: any) {
 

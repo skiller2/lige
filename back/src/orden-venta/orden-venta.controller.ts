@@ -337,6 +337,128 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
+  async insertOrdenVenta(req: Request, res: Response, next: NextFunction) {
+    const ObjetivoId = Number(req.body.ObjetivoId);
+    const ClienteId = Number(req.body.ClienteId);
+    const EstadoOrdenVentaCodigo = String(req.body.EstadoOrdenVentaCodigo ?? '').trim();
+    // La pantalla manda la fecha del alta: de ella salen el período y AudFechaIng
+    const Fecha = req.body.Fecha;
+
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      const usuario = res.locals.userName;
+      const ip = this.getRemoteAddress(req);
+      const ahora = new Date();
+
+      const errores: string[] = [];
+
+      if (!ObjetivoId)
+        errores.push('El objetivo es obligatorio');
+
+      if (!ClienteId)
+        errores.push('El cliente es obligatorio');
+
+      if (!EstadoOrdenVentaCodigo)
+        errores.push('El estado es obligatorio');
+
+      // El período no sale de una orden previa como en la modificación: es el de la fecha del alta.
+      // La hora que venga en la fecha se descarta: la orden es de un día, no de un momento.
+      const fecha = Fecha ? new Date(Fecha) : null;
+      const fechaAlta = fecha && !isNaN(fecha.getTime())
+        ? new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate())
+        : null;
+
+      if (!Fecha)
+        errores.push('La fecha es obligatoria');
+      else if (!fechaAlta)
+        errores.push(`La fecha '${req.body.Fecha}' no es válida`);
+
+      const PeriodoAnio = fechaAlta ? fechaAlta.getFullYear() : 0;
+      const PeriodoMes = fechaAlta ? fechaAlta.getMonth() + 1 : 0;
+
+      // El importe llega con la máscara de la pantalla (separator.2): punto de miles y coma decimal
+      const ImporteTotalAFacturar = Number(
+        String(req.body.ImporteTotalAFacturar ?? 0).replace(/\./g, '').replace(',', '.'));
+
+      if (!Number.isFinite(ImporteTotalAFacturar))
+        errores.push(`El importe total '${req.body.ImporteTotalAFacturar}' no es un número válido`);
+      else if (ImporteTotalAFacturar < 0)
+        errores.push('El importe total no puede ser negativo');
+
+      if (errores.length)
+        throw new ClientException(errores);
+
+      await queryRunner.startTransaction();
+
+      const objetivos = await queryRunner.query(`
+        SELECT obj.ClienteId, ISNULL(obj.ClienteElementoDependienteId,0) AS ClienteElementoDependienteId
+        FROM Objetivo obj WHERE obj.ObjetivoId = @0
+      `, [ObjetivoId]);
+
+      const objetivo = objetivos[0];
+      if (!objetivo)
+        throw new ClientException(`No se encontró el objetivo ${ObjetivoId}`);
+
+      // La orden se guarda contra el cliente del objetivo: si no es el de la pantalla, los datos
+      // terminarían en un cliente distinto al que se está cargando (misma regla que setOrdenVenta)
+      if (Number(objetivo.ClienteId) !== ClienteId)
+        throw new ClientException(`El objetivo ${ObjetivoId} no pertenece al cliente ${ClienteId}`);
+
+      const estados = await queryRunner.query(`SELECT EstadoOrdenVentaCod FROM EstadoOrdenVenta`);
+      const codigos = estados.map((estado: any) => String(estado.EstadoOrdenVentaCod).trim());
+      if (!codigos.includes(EstadoOrdenVentaCodigo))
+        throw new ClientException(
+          `El estado '${EstadoOrdenVentaCodigo}' no existe en EstadoOrdenVenta. Estados válidos: ${codigos.join(', ')}`);
+
+      // No puede haber más de una orden para el mismo cliente/elemento y período, que es como la
+      // busca getOrdenVentaPeriodo
+      const duplicadas = await queryRunner.query(`
+        SELECT TOP 1 ord.NroOrdenVenta
+        FROM OrdenVenta ord
+        WHERE ord.ClienteId = @0 AND ord.ClienteElementoDependienteId = @1
+          AND ord.PeriodoAnio = @2 AND ord.PeriodoMes = @3
+      `, [objetivo.ClienteId, objetivo.ClienteElementoDependienteId, PeriodoAnio, PeriodoMes]);
+
+      if (duplicadas[0])
+        throw new ClientException(
+          `El objetivo ${ObjetivoId} ya tiene la orden de venta ${duplicadas[0].NroOrdenVenta} para el período ${String(PeriodoMes).padStart(2, '0')}/${PeriodoAnio}`);
+
+      // NroOrdenVenta no es identity: se toma el siguiente dentro de la transacción
+      const proximo = await queryRunner.query(
+        `SELECT ISNULL(MAX(NroOrdenVenta),0) + 1 AS NroOrdenVenta FROM OrdenVenta WITH (UPDLOCK, HOLDLOCK)`);
+      const NroOrdenVenta = Number(proximo[0].NroOrdenVenta);
+
+      // La orden nace sin ítems: el detalle lo carga después la carga de asistencia
+      await queryRunner.query(`
+        INSERT INTO OrdenVenta (
+          NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
+          ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones,
+          UnificacionFactura, GeneracionFacturaReqCliente,
+          AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+        ) VALUES (@0, @1, @2, @3, @4, @5, @6, NULL, 0, 0, @7, @8, @9, @9, @10, @10)
+      `, [
+        NroOrdenVenta, objetivo.ClienteId, objetivo.ClienteElementoDependienteId,
+        PeriodoMes, PeriodoAnio, ImporteTotalAFacturar, EstadoOrdenVentaCodigo,
+        // AudFechaIng es la fecha que carga la pantalla, que es la que muestra la grilla como Fecha
+        fechaAlta, ahora, usuario, ip
+      ]);
+
+      if (true)
+        throw new ClientException('test completado');
+
+      await queryRunner.commitTransaction();
+
+      return this.jsonRes({ NroOrdenVenta }, res, `Orden de venta ${NroOrdenVenta} generada`);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner);
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async deleteOrdenVenta(req: Request, res: Response, next: NextFunction) {
     const NroOrdenVenta = Number(req.params.NroOrdenVenta);
     const queryRunner = await getConnection(res.locals.userName);

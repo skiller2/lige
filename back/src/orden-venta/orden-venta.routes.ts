@@ -28,6 +28,10 @@ ordenVentaRouter.post("/save", [authMiddleware.verifyToken, authMiddleware.hasGr
   ordenVentaController.setOrdenVenta(req, res, next);
 });
 
+ordenVentaRouter.post("/insert", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.insertOrdenVenta(req, res, next);
+});
+
 ordenVentaRouter.post("/update-cabecera", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   ordenVentaController.updateCabeceraOrdenVenta(req, res, next);
 });
