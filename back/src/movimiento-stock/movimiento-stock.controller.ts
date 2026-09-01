@@ -1538,29 +1538,39 @@ export class MovimientoStockController extends BaseController {
         throw new ClientException(`La cabecera no puede estar vacia`);
 
       await queryRunner.startTransaction();
-      // const ParametroGeneralCodigo = 0
-      // const usuario = this.getUser(res)
-      // const ip = this.getRemoteAddress(req)
-      // const fecha:Date = new Date()
-      // const Parametros = {Cabecera: header, Cuerpo:body, Pie:footer, OtrosParametros: null}
+      const ParametroGeneralCodigo = 'COM'
+      const usuario = this.getUser(res)
+      const ip = this.getRemoteAddress(req)
+      const fecha:Date = new Date()
+      const Parametros = {Cabecera: header, Cuerpo:body, Pie:footer, OtrosParametros: null}
 
-      // await queryRunner.query(
-      //   `UPDATE ParametroGeneral 
-      //   SET Parametros = @1,  AudFechaMod= @2, AudUsuarioMod= @3, AudIpIng, AudIpMod= @4
-      //   WHERE ParametroGeneralCodigo =`, 
-      //   [ParametroGeneralCodigo, JSON.stringify(Parametros), fecha, usuario, ip]
-      // )
+      const ParametroGeneral = await queryRunner.query(`SELECT ParametroGeneralCodigo FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, [ParametroGeneralCodigo])
+      if (ParametroGeneral.length) {
+        await queryRunner.query(
+          `UPDATE ParametroGeneral 
+          SET Parametros = @1, AudFechaMod= @2, AudUsuarioMod= @3, AudIpMod= @4
+          WHERE ParametroGeneralCodigo = @0`, 
+          [ParametroGeneralCodigo, JSON.stringify(Parametros), fecha, usuario, ip]
+        )
+      } else {
+        await queryRunner.query(
+          `INSERT INTO ParametroGeneral (
+          ParametroGeneralCodigo,Parametros,AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod
+          ) VALUES (@0,@1,@2,@2,@3,@3,@4,@4)`, 
+          [ParametroGeneralCodigo, JSON.stringify(Parametros), fecha, usuario, ip]
+        )
+      }
 
-      try {
-        renameSync(this.PathComprobanteTemplate.header, this.PathComprobanteTemplate.header + '.old');
-        renameSync(this.PathComprobanteTemplate.body, this.PathComprobanteTemplate.body + '.old');
-        renameSync(this.PathComprobanteTemplate.footer, this.PathComprobanteTemplate.footer + '.old');
-      } catch (_e) { }
+      // try {
+      //   renameSync(this.PathComprobanteTemplate.header, this.PathComprobanteTemplate.header + '.old');
+      //   renameSync(this.PathComprobanteTemplate.body, this.PathComprobanteTemplate.body + '.old');
+      //   renameSync(this.PathComprobanteTemplate.footer, this.PathComprobanteTemplate.footer + '.old');
+      // } catch (_e) { }
 
-      mkdirSync(path.dirname(this.PathComprobanteTemplate.header), { recursive: true });
-      writeFileSync(this.PathComprobanteTemplate.header, header);
-      writeFileSync(this.PathComprobanteTemplate.body, body);
-      writeFileSync(this.PathComprobanteTemplate.footer, footer);
+      // mkdirSync(path.dirname(this.PathComprobanteTemplate.header), { recursive: true });
+      // writeFileSync(this.PathComprobanteTemplate.header, header);
+      // writeFileSync(this.PathComprobanteTemplate.body, body);
+      // writeFileSync(this.PathComprobanteTemplate.footer, footer);
 
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Se guardo el nuevo formato de comprobante`);
@@ -1593,17 +1603,18 @@ export class MovimientoStockController extends BaseController {
     const imgBuffer = readFileSync(`./assets/logo-lince-full.svg`);
     const imgBase64 = imgBuffer.toString('base64');
 
-    // const ParametroGeneral =  await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, [ null ])
-    // const Parametros = JSON.parse(ParametroGeneral[0].Parametros)
-
-    // if (!header) header = Parametros.Cabecera
-    // if (!body) body = Parametros.Cuerpo
-    // if (!footer) footer = Parametros.Pie
-
-    header = (header) ? header : (existsSync(this.PathComprobanteTemplate.header) ? readFileSync(this.PathComprobanteTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.headerDef, 'utf-8'));
-    body = (body) ? body : (existsSync(this.PathComprobanteTemplate.body) ? readFileSync(this.PathComprobanteTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.bodyDef, 'utf-8'));
-    footer = (footer) ? footer : (existsSync(this.PathComprobanteTemplate.footer) ? readFileSync(this.PathComprobanteTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.footerDef, 'utf-8'));
-
+    const ParametroGeneral =  await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = 'COM'`)
+    if (ParametroGeneral.length) {
+      const Parametros = JSON.parse(ParametroGeneral[0].Parametros)
+      if (!header) header = Parametros.Cabecera
+      if (!body) body = Parametros.Cuerpo
+      if (!footer) footer = Parametros.Pie
+    } else {
+      header = (header) ? header : (existsSync(this.PathComprobanteTemplate.header) ? readFileSync(this.PathComprobanteTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.headerDef, 'utf-8'));
+      body = (body) ? body : (existsSync(this.PathComprobanteTemplate.body) ? readFileSync(this.PathComprobanteTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.bodyDef, 'utf-8'));
+      footer = (footer) ? footer : (existsSync(this.PathComprobanteTemplate.footer) ? readFileSync(this.PathComprobanteTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : readFileSync(this.PathComprobanteTemplate.footerDef, 'utf-8'));
+    }
+    
     if (!raw) {
       header = header.replace(/\${imgBase64}/g, imgBase64);
       header = header.replace(/\${fechaFormateada}/g, this.dateOutputFormat(fecha));
