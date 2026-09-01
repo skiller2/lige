@@ -6,7 +6,7 @@
 
     <!-- Con el detalle abierto, la solapa es la vuelta al listado -->
     <ul nz-menu nzMode="horizontal" style="display: flex;">
-      <li nz-menu-item [nzSelected]="!ordenAbierta()" (click)="volverAlListado()">
+      <li nz-menu-item [nzSelected]="!detalleAbierto()" (click)="volverAlListado()">
         <a>Listado</a>
       </li>
     </ul>
@@ -36,24 +36,40 @@
   </div>
 
   <!-- La grilla no se destruye al abrir el detalle: queda oculta para no perder filtros ni selección -->
-  <div [hidden]="ordenAbierta()">
+  <div [hidden]="detalleAbierto()">
     <app-table-orden-venta [(ordenesSeleccionadas)]="ordenesSeleccionadas" [refreshGrid]="refreshTick()" />
   </div>
 
-  @if (ordenAbierta()) {
+  @if (detalleAbierto()) {
 
-  <!-- Período y objetivo de la orden: la identifican y no se editan desde el detalle -->
+  <!-- Período y objetivo de la orden. Solo se eligen en el alta: en el resto la identifican. -->
   <nz-form-item style="margin-top: 20px;">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Período</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+      @if (enAlta()) {
+      <nz-date-picker nzMode="month" nzFormat="MM/yyyy" style="width: 100%;" [ngModel]="periodoAlta()"
+        [ngModelOptions]="{ standalone: true }" (ngModelChange)="periodoAlta.set($event)" />
+      } @else {
       <input nz-input [value]="periodoTexto()" readonly />
+      }
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Objetivo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10">
+      @if (enAlta()) {
+      <app-objetivo-search [ngModel]="objetivoAlta()" [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="objetivoAlta.set($event)" />
+      } @else {
       <app-objetivo-search [ngModel]="objetivoId()" [ngModelOptions]="{ standalone: true }" [disabled]="true" />
+      }
     </nz-form-control>
   </nz-form-item>
+
+  <!-- El alta no duplica: si el objetivo ya tiene orden en el período, se está editando esa -->
+  @if (ordenExistente()) {
+  <nz-alert nzType="warning" nzShowIcon
+    nzMessage="El objetivo ya tiene la orden de venta {{ ordenExistente() }} en este período: al guardar se modifica esa orden." />
+  }
 
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
     [clienteId]="clienteId()" [clienteElementoDependienteId]="clienteElementoDependienteId()"
@@ -67,7 +83,7 @@
     <!-- En consulta no hay nada para guardar -->
     @if (!soloLectura()) {
     <button nz-button nzType="primary" (click)="ordenVentaForm.save()" [nzLoading]="ordenVentaForm.guardando()"
-      [disabled]="!ordenVentaForm.conCambios() || ordenVentaForm.guardando()">
+      [disabled]="!ordenVentaForm.conCambios() || ordenVentaForm.guardando() || !puedeGuardar()">
       {{ 'app.btn.save' | i18n }}
     </button>
     }
@@ -77,6 +93,7 @@
       <input nz-input [value]="importeTotal() | currency" readonly style="width: 160px; text-align: right;" />
     </div>
   </div>
+
   }
 
 </nz-card>

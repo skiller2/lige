@@ -95,7 +95,7 @@ export class OrdenVentaComponent {
   async getCabecera(objetivoId: number, anio: number, mes: number) {
     this.isLoading.set(true)
     try {
-      const cabecera = await firstValueFrom(this.apiService.getCabeceraOrdenVenta(objetivoId, anio, mes))
+      const cabecera = await firstValueFrom(this.apiService.getOrdenVentaCabecera(objetivoId, anio, mes))
       this.cabecera.set(cabecera ?? {})
       this.objetivoNombre.emit(this.cabecera().ObjetivoNombre ?? '')
     } finally {

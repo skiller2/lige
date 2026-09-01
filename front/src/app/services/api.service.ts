@@ -1960,7 +1960,7 @@ export class ApiService {
     );
   }
 
-  getCabeceraOrdenVenta(ObjetivoId: number, anio: number, mes: number) {
+  getOrdenVentaCabecera(ObjetivoId: number, anio: number, mes: number) {
 
     return this.http.get<ResponseJSON<any>>(`/api/orden-venta/cabecera/${ObjetivoId}/${anio}/${mes}`).pipe(
       map((res: { data: any; }) => res.data),
