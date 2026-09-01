@@ -396,7 +396,7 @@ export class AsistenciaController extends BaseController {
 
         // calculo del 3er dia del mes siguiente a las 10am ,al periodo de la grilla de asistencia 
         const limiteOperaciones = new Date(Number(anio), Number(mes), 3, 10, 0, 0, 0)
-        const puedeRehabilitar = hasLiquidaciones || (hasOperaciones && new Date() < limiteOperaciones)
+        const puedeRehabilitar = hasLiquidaciones || (hasOperaciones && new Date() < limiteOperaciones) || usuario == 'server'
         if (!puedeRehabilitar) {
           throw new ClientException(`No tiene permisos para rehabilitar la carga de asistencia. Para volver a habilitarla, debe ser miembro del grupo 'gOperaciones' y no superar la fecha límite (10:00 am del día ${limiteOperaciones.toLocaleDateString()}) ó ser miembro del grupo 'Liquidaciones'.`)
         }
@@ -3162,7 +3162,6 @@ export class AsistenciaController extends BaseController {
       for (const [key, detalle] of Object.entries(listadoProcessed) as [string, ObjetivoDetalle][]) {
         const Clienteid = Number(detalle.ClienteId)
         const ClienteElementoDependienteId = Number(detalle.ClienteElementoDependienteId)
-
         if (Clienteid) {
           const objetivo = await queryRunner.query('SELECT obj.ObjetivoId FROM Objetivo obj WHERE obj.ClienteId=@0 AND obj.ClienteElementoDependienteId=@1', [ClienteId, ClienteElementoDependienteId])
           const ObjetivoId = objetivo[0]?.ObjetivoId
