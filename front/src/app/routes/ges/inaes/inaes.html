@@ -33,14 +33,24 @@
                 (click)="gridData.reload()">
                   <span nz-icon nzType="reload" nzTheme="outline"></span>
                 </button>
-                <!-- Descarga Altas -->
-                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas' | i18n }}"
-                (click)="exportGrid('altas')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
+                <!-- Descarga Altas res 1000/21 -->
+                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas.res1000-21' | i18n }}"
+                (click)="exportGrid('altas1000-21')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
                   <span nz-icon nzType="file" nzTheme="outline"></span>
                 </button>
-                <!-- Descarga Baja -->
-                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.bajas' | i18n }}"
-                (click)="exportGrid('bajas')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
+                <!-- Descarga Baja res 1000/21 -->
+                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.bajas.res1000-21' | i18n }}"
+                (click)="exportGrid('bajas1000-21')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
+                  <span nz-icon nzType="file" nzTheme="outline"></span>
+                </button>
+                <!-- Descarga Altas res 756/2025 -->
+                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas.res756-2025' | i18n }}"
+                (click)="exportGrid('altas756-2025')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
+                  <span nz-icon nzType="file" nzTheme="outline"></span>
+                </button>
+                <!-- Descarga Baja res 756/2025 -->
+                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.bajas.res756-2025' | i18n }}"
+                (click)="exportGrid('bajas756-2025')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
                   <span nz-icon nzType="file" nzTheme="outline"></span>
                 </button>
               </nz-button-group>

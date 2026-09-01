@@ -18,8 +18,9 @@ const getOptionsSexo: any[] = [
 ]
 
 const getOptionsEstado: any[] = [
-  { label: 'Baja', value: '0' },
-  { label: 'Alta', value: '1' },
+  { label: 'Baja', value: 'B' },
+  { label: 'Alta', value: 'A' },
+  { label: 'ERROR', value: 'E' },
 ]
 
 const altasBajasColumns: any[] = [
@@ -73,19 +74,19 @@ const altasBajasColumns: any[] = [
     hidden: false,
     showGridColumn: false,
   },
+  // {
+  //   id: "PersonalFechaIngreso",
+  //   name: "Fecha Ingreso",
+  //   field: "PersonalFechaIngreso",
+  //   type: "date",
+  //   fieldName: "ISNULL(ing.PersonalFechaIngreso,'9999-12-31')",
+  //   searchType: "date",
+  //   searchComponent: "inputForFechaSearch",
+  //   sortable: true,
+  //   searchHidden: false,
+  //   hidden: false,
+  // },
   {
-    id: "PersonalFechaIngreso",
-    name: "Fecha Ingreso",
-    field: "PersonalFechaIngreso",
-    type: "date",
-    fieldName: "ISNULL(ing.PersonalFechaIngreso,'9999-12-31')",
-    searchType: "date",
-    searchComponent: "inputForFechaSearch",
-    sortable: true,
-    searchHidden: false,
-    hidden: false,
-  },
-{
     id: "SituacionRevistaDescripcion",
     name: "Situación Revista",
     field: "SituacionRevistaDescripcion",
@@ -293,6 +294,42 @@ const altasBajasColumns: any[] = [
     hidden: false,
   },
   {
+    id: 'TipoPersonalActaDescripcion',
+    name: 'Tipo Acta',
+    field: 'TipoPersonalActaDescripcion',
+    fieldName: "acta.TipoPersonalActaCodigo",
+    searchComponent: "inputForTipoPersonalActaSearch",
+    type: 'string',
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+    excludeFromExport: true,
+  },
+  {
+    id: 'ActaFechaActa',
+    name: 'Fecha Acta',
+    field: 'ActaFechaActa',
+    fieldName: "acta.ActaFechaActa",
+    searchComponent: "inputForFechaSearch",
+    type: 'date',
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+    params: { exportHeader: 'Fecha Ingreso' }
+  },
+  {
+    id: 'ActaNroActa',
+    name: 'Nro Acta',
+    field: 'ActaNroActa',
+    fieldName: "acta.ActaNroActa",
+    searchComponent: "inputForNroActaSearch",
+    type: 'string',
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+    excludeFromExport: true,
+  },
+  {
     id: 'Estado',
     name: 'Estado',
     field: 'Estado',
@@ -489,8 +526,10 @@ export class InaesController extends BaseController {
     let flags = '1'
     let filterCUITs = '(1=1)'
     if (cuits) {
-      flags = `CASE WHEN (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN '1' ELSE '0' END AS Estado`
-      filterCUITs = `(cuit.PersonalCUITCUILCUIT IN (${cuits}) AND sitrev.PersonalSituacionRevistaSituacionId IN (3)) OR (cuit.PersonalCUITCUILCUIT NOT IN (${cuits}) AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12))`
+      flags = `CASE WHEN (acta.TipoPersonalActaCodigo IN ('ALT','REI') AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN 'A'
+              WHEN (acta.TipoPersonalActaCodigo IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaSituacionId NOT IN (2,10,12)) THEN 'B'
+              ELSE 'E' END AS Estado`
+      filterCUITs = `(cuit.PersonalCUITCUILCUIT IN (${cuits}) AND acta.TipoPersonalActaCodigo IN ('BAJ','BD')) OR (cuit.PersonalCUITCUILCUIT NOT IN (${cuits}) AND acta.TipoPersonalActaCodigo IN ('ALT','REI'))`
     }
 
     const ClienteIdPropio = 934
@@ -527,6 +566,7 @@ export class InaesController extends BaseController {
         perdom.domCompleto,
         sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaMotivo,
         sal.SalarioMinimoVitalMovilSMVM AS CapitalSuscripto, 		  sal.SalarioMinimoVitalMovilSuscripcionInicial * sal.SalarioMinimoVitalMovilSMVM /100 AS CapitalIntegrado,
+        acta.TipoPersonalActaCodigo, acta.ActaId, acta.ActaFechaActa, acta.ActaNroActa,acta.TipoPersonalActaDescripcion,
         ${flags}
       FROM Personal per
 
@@ -584,9 +624,18 @@ export class InaesController extends BaseController {
 		    ORDER BY smv.SalarioMinimoVitalMovilDesde DESC
 		) sal
 
-      WHERE (per.PersonalNroLegajo IS NOT NULL)
-      AND (${filterSql}) AND (${filterCUITs})
-      ${orderBy}`,[new Date(),CUITEntidad,RazonSocial])
+    CROSS APPLY (
+        SELECT TOP (1)
+            pa.TipoPersonalActaCodigo, a.ActaId,a.ActaFechaActa, a.ActaNroActa, ta.TipoPersonalActaDescripcion
+          FROM PersonalActa pa
+        join Acta a on a.ActaId = pa.ActaId
+        Join TipoPersonalActa ta on ta.TipoPersonalActaCodigo = pa.TipoPersonalActaCodigo
+        WHERE pa.PersonalId = per.PersonalId and pa.TipoPersonalActaCodigo in ('ALT','REI','BAJ','BD')
+        ORDER BY a.ActaFechaActa DESC
+      ) acta
+
+      WHERE (${filterSql}) AND (${filterCUITs})
+      ${orderBy}`, [new Date(), CUITEntidad, RazonSocial])
   }
 
   async getAltasBajas(req: any, res: Response, next: NextFunction) {
@@ -640,17 +689,17 @@ export class InaesController extends BaseController {
 
       const movimientosRecibos = await recibosController.getListaRecibosGenerados(queryRunner, filterSql, orderBy, anio, mes, 'G')
       movimientosRecibos
-      .map((mov: any) => {
-        mov.CUITEntidad = CUITEntidad
-        mov.CBU = mov.CBU ? mov.CBU : ''
-        //mov.DescRetribucion = mov.DescRetribucion ? mov.DescRetribucion : 'N/D'
-        mov.DescRetribucion = mov.DescRetribucion ? `Por tareas realizadas durante el periodo ${mes}/${anio}.  Asociado: ${mov.PersonalNroLegajo}` : 'N/D' 
-        mov.DescOtrasRetenciones = mov.DescOtrasRetenciones ? mov.DescOtrasRetenciones : 'N/D'
-      })
+        .map((mov: any) => {
+          mov.CUITEntidad = CUITEntidad
+          mov.CBU = mov.CBU ? mov.CBU : ''
+          //mov.DescRetribucion = mov.DescRetribucion ? mov.DescRetribucion : 'N/D'
+          mov.DescRetribucion = mov.DescRetribucion ? `Por tareas realizadas durante el periodo ${mes}/${anio}.  Asociado: ${mov.PersonalNroLegajo}` : 'N/D'
+          mov.DescOtrasRetenciones = mov.DescOtrasRetenciones ? mov.DescOtrasRetenciones : 'N/D'
+        })
 
       //const lista: any[] = await this.getRecibosQuery(queryRunner, filterSql, orderBy,periodo.getFullYear(), periodo.getMonth()+1)
       //console.log('movimientosRecibos', movimientosRecibos.length)
-      const lista = movimientosRecibos.filter((mov: any) => mov.SumaRetiros >0 && mov.PersonalNroLegajo)
+      const lista = movimientosRecibos.filter((mov: any) => mov.SumaRetiros > 0 && mov.PersonalNroLegajo)
 
       this.jsonRes(lista, res);
     } catch (error) {

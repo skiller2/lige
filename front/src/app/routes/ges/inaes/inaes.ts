@@ -109,23 +109,26 @@ export class INAESComponent {
       this.angularGrid.gridService.hideColumnByIds([])
   }
 
+  //Configuración de cada exportación: estado a filtrar y textos para los mensajes
+  private readonly exportaciones: Record<string, { Estado: string, movimiento: string, resolucion: string }> = {
+    'altas1000-21': { Estado: 'A', movimiento: 'altas', resolucion: 'Res. 1000/21' },
+    'bajas1000-21': { Estado: 'B', movimiento: 'bajas', resolucion: 'Res. 1000/21' },
+    'altas756-2025': { Estado: 'A', movimiento: 'altas', resolucion: 'Res. 756/2025' },
+    'bajas756-2025': { Estado: 'B', movimiento: 'bajas', resolucion: 'Res. 756/2025' },
+  }
+
   async exportGrid(filter:string) {
     this.loadingExport.set(true)
-    
+
     //Configuro el filtro
-    let Estado:string
-    switch (filter) {
-      case 'altas':
-        Estado = '1'
-        break;
-      case 'bajas':
-        Estado = '0'
-        break;
-      default:
-        this.notification.warning('Advertencia', `Error al intenetar exportar.`);
-        this.loadingExport.set(false)
-        return
+    const exportacion = this.exportaciones[filter]
+    if (!exportacion) {
+      this.notification.warning('Advertencia', `No se pudo exportar: el tipo de exportación "${filter}" no es válido.`);
+      this.loadingExport.set(false)
+      return
     }
+    const { Estado, movimiento, resolucion } = exportacion
+    const detalle = `${movimiento} para ${resolucion}`
 
     const saveData:any[] = this.gridData.value()
     //Filtro los datos
@@ -134,7 +137,12 @@ export class INAESComponent {
     )
 
     if (!dataExport.length) {
-      this.notification.warning('Advertencia', `No se encontraron ${filter}.`);
+      // const conflictivos = saveData.filter((row: any) => row.Estado === 'E').length
+      let msg = `No se encontraron ${detalle} para exportar con los filtros aplicados.`
+      // if (conflictivos)
+      //   msg += ` Hay ${conflictivos} registro(s) en estado ERROR que deben corregirse.`
+
+      this.notification.warning(`Advertencia`, msg);
       this.loadingExport.set(false)
       return
     }
@@ -147,10 +155,10 @@ export class INAESComponent {
     //Campos vacios
     const emptyFields = this.getEmptyFields()
     if (emptyFields.length) {
-      let errorMsg = 'Campos Vacíos:\n'
-      
+      let errorMsg = `No se puede exportar ${detalle}: hay ${emptyFields.length} registro(s) con campos vacíos.\n`
+
       errorMsg += emptyFields.map((x:any) => { return `[Fila ${x.row + 1}] ${this.gridData.value()[x.row].ApellidoNombre}: ${x.names.join(", ")}.`}).join('\n');
-      this.notification.warning('Advertencia', errorMsg);
+      this.notification.warning(`Advertencia`, errorMsg);
       this.gridData.value.set(saveData)
       this.loadingExport.set(false)
       return
