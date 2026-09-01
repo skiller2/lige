@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, model, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, model, resource, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -82,6 +82,33 @@ export class OrdenesVentaComponent {
 
   clienteElementoDependienteId = computed(() =>
     this.cabecera().ClienteElementoDependienteId ?? this.ordenAbierta()?.ClienteElementoDependienteId ?? null)
+
+  // Número de comprobante de la orden, tal cual está en Comprobante
+  private nroFacturaOriginal = computed(() => String(this.cabecera().NroFactura ?? '').trim())
+
+  // Con más de un comprobante el back no sabe cuál renumerar y rechaza el cambio
+  variosComprobantes = computed(() => Number(this.cabecera().CantidadComprobantes ?? 0) > 1)
+
+  // Número editable. El objetivo y el período van en la fuente porque, sin ellos, al pasar de una
+  // orden sin comprobante a otra también sin comprobante la fuente no cambiaría y el input se
+  // quedaría con lo tipeado antes.
+  nroFactura = linkedSignal<{ objetivoId: number, anio: number, mes: number, valor: string }, string>({
+    source: () => ({
+      objetivoId: this.objetivoId(),
+      anio: this.anio(),
+      mes: this.mes(),
+      valor: this.nroFacturaOriginal()
+    }),
+    computation: source => source.valor
+  })
+
+  // Modificar el número habilita el guardado aunque el detalle no tenga cambios
+  nroFacturaCambiado = computed(() =>
+    String(this.nroFactura() ?? '').trim() !== this.nroFacturaOriginal())
+
+  // Sólo se manda cuando cambió: así un guardado común no toca Comprobante
+  nroFacturaAGrabar = computed<string | null>(() =>
+    this.nroFacturaCambiado() ? String(this.nroFactura() ?? '').trim() : null)
 
   // En el alta el objetivo y el período elegidos pueden tener ya una orden: el guardado no la
   // duplica, la modifica, y hay que avisarlo antes de tocar el detalle
