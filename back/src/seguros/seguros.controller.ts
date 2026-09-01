@@ -973,19 +973,32 @@ UNION
     const ip = this.getRemoteAddress(req)
     const queryRunner = await getConnection(res.locals.userName)
 
-    await queryRunner.startTransaction();
-
     //const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip);
 
 
     try {
+      await queryRunner.startTransaction();
 
       await this.validateFormPolizaSeguro(req.body, queryRunner)
 
       //#Crear validacion para periodo
 
-      const getRegex = await queryRunner.query(`SELECT CompaniaSeguroFiltroDocumento FROM CompaniaSeguro WHERE CompaniaSeguroId = @0`, [CompaniaSeguroId])
-      const regex = JSON.parse(getRegex[0].CompaniaSeguroFiltroDocumento)
+      const getRegex = await queryRunner.query(`SELECT trim(CompaniaSeguroDescripcion) as CompaniaSeguroDescripcion, CompaniaSeguroFiltroDocumento FROM CompaniaSeguro WHERE CompaniaSeguroId = @0`, [CompaniaSeguroId])
+      if (getRegex.length == 0)
+        throw new ClientException(`No existe la Compañía de Seguro ${CompaniaSeguroId}.`)
+
+      if (!getRegex[0].CompaniaSeguroFiltroDocumento)
+        throw new ClientException(`La Compañía de Seguro ${getRegex[0].CompaniaSeguroDescripcion} no tiene configurados los filtros de lectura del documento.`)
+
+      let regex: any
+      try {
+        regex = JSON.parse(getRegex[0].CompaniaSeguroFiltroDocumento)
+      } catch (e) {
+        throw new ClientException(`Los filtros de lectura del documento de la Compañía de Seguro no son un JSON válido.`)
+      }
+
+      if (!regex?.Poliza || !regex?.Endoso)
+        throw new ClientException(`La Compañía de Seguro ${getRegex[0].CompaniaSeguroDescripcion} no tiene configurados los filtros de Póliza y/o Endoso.`)
 
       const detalle_documento = await FileUploadController.FileData(files[0].tempfilename)
 
@@ -1024,8 +1037,16 @@ UNION
       const mes = fechaDesde.getMonth() + 1
 
 
-      if (!dnisLimpios || !polizaEndoso) {
-        throw new ClientException(`Error al procesar el Documento.`)
+      if (!polizaEndoso) {
+        throw new ClientException(`No se pudo obtener el número de Póliza del Documento.`)
+      }
+
+      if (!endoso || endoso[1] == undefined) {
+        throw new ClientException(`No se pudo obtener el número de Endoso del Documento.`)
+      }
+
+      if (dnisLimpios.length == 0) {
+        throw new ClientException(`No se pudo obtener ningún DNI del Documento.`)
       }
 
       const periodo_id = await Utils.getPeriodoId(queryRunner, new Date(), anio, mes, usuario, ip);
