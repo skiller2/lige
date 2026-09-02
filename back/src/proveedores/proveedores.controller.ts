@@ -167,12 +167,21 @@ export class ProveedoresController extends BaseController {
     if (!form.ProveedorRazonSocial) 
       campos_vacios.push(`- Razón Social`)
 
-    if (!Number.isInteger(form.CUIT) || form.CUIT.toString().length != 11)
+    if (!form.CUIT)
       campos_vacios.push(`- CUIT`)
 
     if (campos_vacios.length) {
       campos_vacios.unshift('Debe completar los siguientes campos: ')
       return new ClientException(campos_vacios)
+    }
+
+    this.validarCUIT(form.CUIT)
+
+    const valCuit = await queryRunner.query(
+      `SELECT ProveedorId FROM Proveedor WHERE CUIT = @0`, [form.CUIT]
+    )
+    if (valCuit.length > 0 && form.ProveedorId !== valCuit[0].ProveedorId) {
+      return new ClientException(`El CUIT ingresado ya existe.`)
     }
 
     // const valDomicilio = await domicilioController.valObjDomicilio(queryRunner, form.domicilio)

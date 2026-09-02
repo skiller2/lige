@@ -233,23 +233,6 @@ export class ClientesController extends BaseController {
     }
 
 
-    validarCUIT(cuit: string): boolean {
-        const cleanCUIT = String(cuit).replace(/[-\s]/g, '');
-
-        if (!/^\d{11}$/.test(cleanCUIT)) return false;
-
-        const digits = cleanCUIT.split('').map(Number);
-        const multipliers = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
-
-        const sum = multipliers.reduce((acc, mult, i) => acc + digits[i] * mult, 0);
-        let checkDigit = 11 - (sum % 11);
-
-        if (checkDigit === 11) checkDigit = 0;
-        else if (checkDigit === 10) checkDigit = 9;
-
-        return checkDigit === digits[10];
-    }
-
     async listClientes(req: any, res: Response, next: NextFunction) {
         const queryRunner = await getConnection(res.locals.userName);
 
@@ -1157,9 +1140,7 @@ ${orderBy}`, [fechaActual])
             throw new ClientException(`Debe completar el campo CUIT.`);
         }
 
-        if (!/^\d{11}$/.test(CUIT)) {
-            throw new ClientException(`El CUIT debe contener exactamente 11 dígitos numéricos.`);
-        }
+        this.validarCUIT(CUIT);
 
         const valCuit = await queryRunner.query(
             `SELECT ClienteId FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0`, [CUIT]
@@ -1167,10 +1148,6 @@ ${orderBy}`, [fechaActual])
 
         if (valCuit.length > 0 && idCliente !== valCuit[0].ClienteId) {
             throw new ClientException(`El CUIT ingresado ya existe.`);
-        }
-
-        if (!this.validarCUIT(CUIT)) {
-            throw new ClientException(`El Nro de CUIT no pasa el control de integridad, verifique el dato`);
         }
 
 

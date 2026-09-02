@@ -372,6 +372,26 @@ export class BaseController {
     return (value == null || (typeof value === "string" && value.trim().length === 0));
   }
 
+  /** Valida formato (11 dígitos) y dígito verificador. Lanza ClientException si no es válido. */
+  validarCUIT(cuit: number | string): void {
+    const cleanCUIT = String(cuit).replace(/[-\s]/g, '');
+
+    if (!/^\d{11}$/.test(cleanCUIT))
+      throw new ClientException('El CUIT debe contener exactamente 11 dígitos numéricos.');
+
+    const digits = cleanCUIT.split('').map(Number);
+    const multipliers = [5, 4, 3, 2, 7, 6, 5, 4, 3, 2];
+
+    const sum = multipliers.reduce((acc, mult, i) => acc + digits[i] * mult, 0);
+    let checkDigit = 11 - (sum % 11);
+
+    if (checkDigit === 11) checkDigit = 0;
+    else if (checkDigit === 10) checkDigit = 9;
+
+    if (checkDigit !== digits[10])
+      throw new ClientException('El Nro de CUIT no pasa el control de integridad, verifique el dato.');
+  }
+
   // TODO: FUNCION QUE HAGA INSERT DE DATOS EN TABLA DE REGISTROS DE Evento Log
   async eventoLogInicio(queryRunner: QueryRunner, NombreProceso: string, ParametroEntrada: object, usuario: string, ip: string, EventoLogClaseCodigo: string) {
     if (queryRunner.isTransactionActive) throw new Error('No se puede iniciar eventoLogInicio dentro de una transacción activa')

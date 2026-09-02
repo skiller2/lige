@@ -2468,6 +2468,14 @@ LEFT JOIN(
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
       )
       if (PersonalCUITCUIL[0]?.cuit != CUIT) {
+        const validacionCUIT = await queryRunner.query(`
+          SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0 AND PersonalId != @1`,
+          [CUIT, PersonalId]
+        )
+        if (validacionCUIT.length) {
+          throw new ClientException('El CUIT ingresado ya existe.')
+        }
+
         await this.updatePersonalCUITQuery(queryRunner, PersonalId, CUIT, now)
         const DNI = parseInt(CUIT.toString().slice(2, -1))
         await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
@@ -2952,7 +2960,7 @@ LEFT JOIN(
     if (!personalForm.Apellido) {
       campos_vacios.push(`- Apellido`)
     }
-    if (!Number.isInteger(personalForm.CUIT) || personalForm.CUIT.toString().length != 11) {
+    if (!personalForm.CUIT) {
       campos_vacios.push(`- CUIT`)
     }
     if (!personalForm.SucursalId) {
@@ -2977,6 +2985,8 @@ LEFT JOIN(
       campos_vacios.unshift('Debe completar los siguientes campos: ')
       return new ClientException(campos_vacios)
     }
+
+    this.validarCUIT(personalForm.CUIT)
 
     // if (personalForm.domicilio.Domicilio) {
     //   const res = await domicilioController.valObjDomicilio(queryRunner, personalForm.domicilio.Domicilio)
