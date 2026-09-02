@@ -259,6 +259,8 @@ SELECT CONCAT(mov.MovimientoStockCodigo,'-',efeind.EfectoId, '-', efeind.EfectoE
 		 mov.PersonalIdDestino,
 		 mov.ClienteIdDestino,
 		 mov.ClienteElementoDependienteIdDestino,
+       per.PersonalId AS PersonalId,
+       obj.ObjetivoId AS TelefoniaObjetivoId,
        conx.importe,
        conx.importesum,
        efeind.EfectoId,
