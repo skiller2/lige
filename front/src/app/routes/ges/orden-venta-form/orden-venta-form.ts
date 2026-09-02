@@ -438,7 +438,7 @@ export class OrdenVentaFormComponent {
 
     this.guardando.set(true)
     try {
-      await firstValueFrom(this.apiService.setOrdenVenta({
+      const respuesta = await firstValueFrom(this.apiService.setOrdenVenta({
         ObjetivoId: this.objetivoId(),
         anio: this.anio(),
         mes: this.mes(),
@@ -450,6 +450,8 @@ export class OrdenVentaFormComponent {
 
       this.formOrdenVenta.markAsPristine()
       this.conCambios.set(false)
+
+      this.notification.success('Orden de venta', respuesta?.msg ?? 'Grabación exitosa')
 
       // Recarga el detalle: los ítems nuevos vuelven con su ItemOrdenVentaCodigo
       const cantidadDe = (productoHoras: string) => {

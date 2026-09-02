@@ -540,7 +540,7 @@ export class OrdenVentaController extends BaseController {
         const facturada = await queryRunner.query(
           `SELECT FechaGeneracionFactura FROM OrdenVenta WHERE NroOrdenVenta = @0`, [orden.NroOrdenVenta]);
         if (facturada[0]?.FechaGeneracionFactura)
-          throw new ClientException(`La orden ${orden.NroOrdenVenta} ya tiene factura generada, no se puede modificar`);
+          throw new ClientException('La orden ya tiene factura generada, no se puede modificar');
       }
 
       const importeTotal = items.reduce(
