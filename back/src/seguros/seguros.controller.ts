@@ -119,7 +119,7 @@ const listaColumnas: any[] = [
     searchHidden: true
   },
   {
-    name: "Desde",
+    name: "Situación Revista Desde",
     type: "date",
     id: "PersonalSituacionRevistaDesde",
     field: "PersonalSituacionRevistaDesde",
