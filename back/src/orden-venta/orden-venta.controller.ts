@@ -7,7 +7,14 @@ import type { NextFunction, Request, Response } from "express";
 
 
 const ESTADO_ORDEN_VENTA_INICIAL = 'PEN';
+
+// Estado de la orden con comprobante emitido
+const ESTADO_ORDEN_VENTA_FACTURADA = 'FAC';
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
+
+// Tipo de los comprobantes que emite la orden de venta. Comprobante se relaciona por NroOrdenVenta
+// y una orden puede tener más de uno.
+const TIPO_COMPROBANTE_ORDEN_VENTA = 'ORD';
 
 // Productos que facturan las horas 'A' y 'B'. Su importe no sale de la lista de precios sino de
 // ObjetivoImporteVenta.ImporteHoraA / ImporteHoraB, del último Anio/Mes <= al período del
@@ -321,7 +328,9 @@ export class OrdenVentaController extends BaseController {
           ord.NroOrdenVenta,
           ord.EstadoOrdenVentaCodigo,
           ord.ImporteTotalAFacturar,
-          est.Descripcion AS EstadoOrdenVenta
+          est.Descripcion AS EstadoOrdenVenta,
+          com.ComprobanteNro AS NroFactura,
+          ISNULL(com.Cantidad,0) AS CantidadComprobantes
         FROM Objetivo obj
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
@@ -333,9 +342,21 @@ export class OrdenVentaController extends BaseController {
             AND ov.PeriodoAnio = @1 AND ov.PeriodoMes = @2
           ORDER BY ov.NroOrdenVenta DESC
         ) ord
+        -- El número de factura vive en Comprobante. Una orden puede tener más de uno: se trae el
+        -- último y cuántos hay, para que la pantalla sepa si el campo es editable.
+        OUTER APPLY (
+          SELECT
+            (SELECT TOP 1 c.ComprobanteNro
+             FROM Comprobante c
+             WHERE c.NroOrdenVenta = ord.NroOrdenVenta AND c.ComprobanteTipoCodigo = @3
+             ORDER BY c.AudFechaIng DESC) AS ComprobanteNro,
+            (SELECT COUNT(*)
+             FROM Comprobante c
+             WHERE c.NroOrdenVenta = ord.NroOrdenVenta AND c.ComprobanteTipoCodigo = @3) AS Cantidad
+        ) com
         LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
         WHERE obj.ObjetivoId = @0
-      `, [ObjetivoId, anio, mes]);
+      `, [ObjetivoId, anio, mes, TIPO_COMPROBANTE_ORDEN_VENTA]);
 
       const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
 
@@ -363,6 +384,8 @@ export class OrdenVentaController extends BaseController {
     const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
     const detalle: any[] = Array.isArray(req.body.items) ? req.body.items : [];
     const Observaciones = req.body.Observaciones ?? null;
+    // Número de comprobante. Sólo llega cuando la pantalla lo modificó: ausente no toca Comprobante.
+    const NroFactura = req.body.NroFactura != null ? String(req.body.NroFactura).trim() : null;
 
     const queryRunner = await getConnection(res.locals.userName);
 
@@ -517,29 +540,54 @@ export class OrdenVentaController extends BaseController {
         const facturada = await queryRunner.query(
           `SELECT FechaGeneracionFactura FROM OrdenVenta WHERE NroOrdenVenta = @0`, [orden.NroOrdenVenta]);
         if (facturada[0]?.FechaGeneracionFactura)
-          throw new ClientException(`La orden ${orden.NroOrdenVenta} ya tiene factura generada, no se puede modificar`);
+          throw new ClientException('La orden ya tiene factura generada, no se puede modificar');
       }
 
       const importeTotal = items.reduce(
         (total, item) => total + (Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)), 0);
 
+      // Comprobantes que ya tiene la orden. Una orden nueva todavía no tiene ninguno.
+      const comprobantes = orden
+        ? await queryRunner.query(`
+            SELECT ComprobanteNro FROM Comprobante
+            WHERE NroOrdenVenta = @0 AND ComprobanteTipoCodigo = @1
+          `, [orden.NroOrdenVenta, TIPO_COMPROBANTE_ORDEN_VENTA])
+        : [];
+
+      // Con más de un comprobante no se sabe cuál renumerar: eso se resuelve desde facturación
+      if (NroFactura && comprobantes.length > 1)
+        throw new ClientException(
+          `La orden ${orden.NroOrdenVenta} tiene ${comprobantes.length} comprobantes, el número no se puede editar desde acá`);
+
+      // Tanto en el alta como en la modificación, tener número de comprobante deja la orden facturada
+      const numeroComprobante = NroFactura || String(comprobantes[0]?.ComprobanteNro ?? '').trim();
+      const facturada = !!numeroComprobante;
+      const estadoOrden = facturada ? ESTADO_ORDEN_VENTA_FACTURADA : ESTADO_ORDEN_VENTA_INICIAL;
+
       let NroOrdenVenta = orden?.NroOrdenVenta;
 
-      if (NroOrdenVenta) {
-        await queryRunner.query(`
-          UPDATE OrdenVenta
-          SET ImporteTotalAFacturar = @1, Observaciones = @2, AudFechaMod = @3, AudUsuarioMod = @4, AudIpMod = @5
-          WHERE NroOrdenVenta = @0
-        `, [NroOrdenVenta, importeTotal, Observaciones, ahora, usuario, ip]);
-
-      } else {
+      // El estado se graba desde una constante, pero tiene que existir en la tabla de códigos
+      if (facturada || !NroOrdenVenta) {
         const estados = await queryRunner.query(
           `SELECT EstadoOrdenVentaCod FROM EstadoOrdenVenta`);
         const codigos = estados.map((estado: any) => estado.EstadoOrdenVentaCod);
-        if (!codigos.includes(ESTADO_ORDEN_VENTA_INICIAL))
+        if (!codigos.includes(estadoOrden))
           throw new ClientException(
-            `El estado inicial '${ESTADO_ORDEN_VENTA_INICIAL}' no existe en EstadoOrdenVenta. Estados válidos: ${codigos.join(', ')}`);
+            `El estado '${estadoOrden}' no existe en EstadoOrdenVenta. Estados válidos: ${codigos.join(', ')}`);
+      }
 
+      if (NroOrdenVenta) {
+        // Sin comprobante el estado no se toca: la orden puede estar en cualquier punto del circuito
+        await queryRunner.query(`
+          UPDATE OrdenVenta
+          SET ImporteTotalAFacturar = @1, Observaciones = @2, AudFechaMod = @3, AudUsuarioMod = @4, AudIpMod = @5
+            ${facturada ? ', EstadoOrdenVentaCodigo = @6' : ''}
+          WHERE NroOrdenVenta = @0
+        `, facturada
+          ? [NroOrdenVenta, importeTotal, Observaciones, ahora, usuario, ip, estadoOrden]
+          : [NroOrdenVenta, importeTotal, Observaciones, ahora, usuario, ip]);
+
+      } else {
         // NroOrdenVenta no es identity: se toma el siguiente dentro de la transacción
         const proximo = await queryRunner.query(
           `SELECT ISNULL(MAX(NroOrdenVenta),0) + 1 AS NroOrdenVenta FROM OrdenVenta WITH (UPDLOCK, HOLDLOCK)`);
@@ -554,7 +602,7 @@ export class OrdenVentaController extends BaseController {
           ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, 0, 0, @8, @8, @9, @9, @10, @10)
         `, [
           NroOrdenVenta, objetivo.ClienteId, objetivo.ClienteElementoDependienteId, mes, anio,
-          importeTotal, ESTADO_ORDEN_VENTA_INICIAL, Observaciones, ahora, usuario, ip
+          importeTotal, estadoOrden, Observaciones, ahora, usuario, ip
         ]);
       }
 
@@ -583,6 +631,26 @@ export class OrdenVentaController extends BaseController {
           item.CantidadEnFactura != null ? Number(item.CantidadEnFactura) : null,
           ahora, usuario, ip
         ]);
+      }
+
+      // El número de factura vive en Comprobante, relacionado por NroOrdenVenta
+      if (NroFactura) {
+        if (comprobantes.length) {
+          await queryRunner.query(`
+            UPDATE Comprobante
+            SET ComprobanteNro = @2, ImporteTotal = @3, AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
+            WHERE NroOrdenVenta = @0 AND ComprobanteNro = @1 AND ComprobanteTipoCodigo = @7
+          `, [NroOrdenVenta, comprobantes[0].ComprobanteNro, NroFactura, importeTotal,
+              ahora, usuario, ip, TIPO_COMPROBANTE_ORDEN_VENTA]);
+
+        } else {
+          await queryRunner.query(`
+            INSERT INTO Comprobante (
+              NroOrdenVenta, ComprobanteNro, ComprobanteTipoCodigo, ImporteTotal,
+              AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+            ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
+          `, [NroOrdenVenta, NroFactura, TIPO_COMPROBANTE_ORDEN_VENTA, importeTotal, ahora, usuario, ip]);
+        }
       }
 
       await queryRunner.commitTransaction();

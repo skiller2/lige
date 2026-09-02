@@ -58,6 +58,10 @@ export class OrdenVentaFormComponent {
   // En consulta el detalle se muestra completo pero no se edita
   soloLectura = input<boolean>(false)
 
+  // Número de comprobante a grabar en Comprobante. Sólo llega cuando la pantalla lo modificó: en
+  // null el guardado no toca los comprobantes de la orden.
+  nroFacturaAGrabar = input<string | null>(null)
+
   // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
   horasAFacturarA = input<number>(0)
   horasAFacturarB = input<number>(0)
@@ -434,17 +438,20 @@ export class OrdenVentaFormComponent {
 
     this.guardando.set(true)
     try {
-      await firstValueFrom(this.apiService.setOrdenVenta({
+      const respuesta = await firstValueFrom(this.apiService.setOrdenVenta({
         ObjetivoId: this.objetivoId(),
         anio: this.anio(),
         mes: this.mes(),
         ClienteId: this.clienteId(),
         ClienteElementoDependienteId: this.clienteElementoDependienteId(),
+        ...(this.nroFacturaAGrabar() != null ? { NroFactura: this.nroFacturaAGrabar() } : {}),
         items
       }))
 
       this.formOrdenVenta.markAsPristine()
       this.conCambios.set(false)
+
+      this.notification.success('Orden de venta', respuesta?.msg ?? 'Grabación exitosa')
 
       // Recarga el detalle: los ítems nuevos vuelven con su ItemOrdenVentaCodigo
       const cantidadDe = (productoHoras: string) => {

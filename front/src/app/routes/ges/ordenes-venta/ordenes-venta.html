@@ -43,8 +43,8 @@
   @if (detalleAbierto()) {
 
   <!-- Período y objetivo de la orden. Solo se eligen en el alta: en el resto la identifican. -->
-  <nz-form-item style="margin-top: 20px;">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Período</nz-form-label>
+  <nz-form-item style="margin-top: 20px; margin-bottom: 20px;">
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Período</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
       @if (enAlta()) {
       <nz-date-picker nzMode="month" nzFormat="MM/yyyy" style="width: 100%;" [ngModel]="periodoAlta()"
@@ -55,13 +55,21 @@
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Objetivo</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10">
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
       @if (enAlta()) {
       <app-objetivo-search [ngModel]="objetivoAlta()" [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="objetivoAlta.set($event)" />
       } @else {
       <app-objetivo-search [ngModel]="objetivoId()" [ngModelOptions]="{ standalone: true }" [disabled]="true" />
       }
+    </nz-form-control>
+
+    <!-- ComprobanteNro de la orden. Editable en el alta y la modificación, no en consulta ni
+         cuando la orden tiene más de un comprobante -->
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Nro. Factura</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+      <input nz-input [ngModel]="nroFactura()" [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="nroFactura.set($event)" [disabled]="soloLectura() || variosComprobantes()" />
     </nz-form-control>
   </nz-form-item>
 
@@ -73,7 +81,8 @@
 
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
     [clienteId]="clienteId()" [clienteElementoDependienteId]="clienteElementoDependienteId()"
-    [soloLectura]="soloLectura()" (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada()" />
+    [soloLectura]="soloLectura()" [nroFacturaAGrabar]="nroFacturaAGrabar()" (detalleChange)="detalle.set($event)"
+    (guardado)="ordenVentaGuardada()" />
 
   <nz-divider></nz-divider>
 
@@ -83,7 +92,7 @@
     <!-- En consulta no hay nada para guardar -->
     @if (!soloLectura()) {
     <button nz-button nzType="primary" (click)="ordenVentaForm.save()" [nzLoading]="ordenVentaForm.guardando()"
-      [disabled]="!ordenVentaForm.conCambios() || ordenVentaForm.guardando() || !puedeGuardar()">
+      [disabled]="(!ordenVentaForm.conCambios() && !nroFacturaCambiado()) || ordenVentaForm.guardando() || !puedeGuardar()">
       {{ 'app.btn.save' | i18n }}
     </button>
     }
