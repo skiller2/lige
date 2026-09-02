@@ -997,19 +997,18 @@ UNION
         throw new ClientException(`Los filtros de lectura del documento de la Compañía de Seguro no son un JSON válido.`)
       }
 
-      if (!regex?.Poliza || !regex?.Endoso)
-        throw new ClientException(`La Compañía de Seguro ${getRegex[0].CompaniaSeguroDescripcion} no tiene configurados los filtros de Póliza y/o Endoso.`)
+      if (!regex?.Poliza || !regex?.Endoso || !regex?.DNILista)
+        throw new ClientException(`La Compañía de Seguro ${getRegex[0].CompaniaSeguroDescripcion} no tiene configurados los filtros de Póliza, Endoso y/o DNI.`)
 
       const detalle_documento = await FileUploadController.FileData(files[0].tempfilename)
 
 
 
-      //const dniRegex = new RegExp(regex.DNILista, "mg")
+      const dniRegex = new RegExp(regex.DNILista, "mg")
       const polizaRegex = new RegExp(regex.Poliza, "m")
       const endosoRegex = new RegExp(regex.Endoso, "m")
       const fechaDesdeRegex = new RegExp(regex.FechaDesde, "m")
-
-      const dniRegex = new RegExp(/DNI\s+([\d.]+)(?!\d)/g);
+      const itemSinDniRegex = /^[ \t]*(\d+)\b[^\r\n]*\bDNI[ \t]*\r?$/gm
       //const polizaRegex = new RegExp(/(\d{9}) (?=\d{6})/m);
       //const endosoRegex = new RegExp(/\d{9} (\d{6})/m);
       //const fechaDesdeRegex = new RegExp(/^(\d{2}\.\d{2}\.\d{4})/m);
@@ -1017,6 +1016,11 @@ UNION
 
       //const dni = detalle_documento.match(dniRegex).map(match => match.replace('DNI ', ''))
       const dnis = [...detalle_documento.matchAll(dniRegex)].map(m => m[1]);
+      const missingDniInDocument = [...new Set(
+        [...detalle_documento.matchAll(itemSinDniRegex)]
+          .map(m => Number(m[1]))
+          .filter(item => Number.isSafeInteger(item))
+      )]
 
       const dnisLimpios = dnis.map(dni => {
         const soloNumeros = dni.replace(/\./g, '');
@@ -1142,7 +1146,10 @@ UNION
       // obtengo el primer dia del mes anterior a la fecha de la poliza
       const fechaPersonalSeguro = new Date(anio, mes - 2, 1);
 
-      const validationDniResults = await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo, usuario, ip, fechaPersonalSeguro, polizaEndoso[0], endoso[1], CompaniaSeguroId)
+      const validationDniResults = {
+        ...await this.validateAnInsertDni(dnisLimpios, queryRunner, TipoSeguroCodigo, usuario, ip, fechaPersonalSeguro, polizaEndoso[0], endoso[1], CompaniaSeguroId),
+        missingDniInDocument
+      }
 
       const version = await queryRunner.query(`
         SELECT PolizaSeguroVersion FROM PolizaSeguro 

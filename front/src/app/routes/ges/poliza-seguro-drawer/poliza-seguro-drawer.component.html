@@ -99,6 +99,21 @@
             </table>
           }
 
+          @if (PolizaSeguroResultado()?.missingDniInDocument?.length > 0) {
+            <table class="validation-table">
+              <thead>
+                <tr>
+                  <th class="table-header">Registros sin DNI en el documento.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="table-content">{{ PolizaSeguroResultado().missingDniInDocument.join(', ') }}</td>
+                </tr>
+              </tbody>
+            </table>
+          }
+
           @if (PolizaSeguroResultado()?.notFoundInPersonalSeguro.length > 0) {
             <table class="validation-table">
               <thead>
