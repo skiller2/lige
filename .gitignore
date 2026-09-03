@@ -5,3 +5,4 @@ mess/telegram-bot_sessions/session.txt
 package-lock.json
 documentos
 
+.kilo/kilo.jsonc
