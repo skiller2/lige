@@ -617,6 +617,7 @@ export class MovimientoStockController extends BaseController {
                TRIM(suc.SucursalDescripcion) AS ProveedorSucursalDescripcion
         FROM Proveedor pro
         LEFT JOIN Sucursal suc ON suc.SucursalId = pro.ProveedorSucursalId
+        WHERE ISNULL(pro.ProveedorInactivo, 0) = 0
         ORDER BY pro.ProveedorRazonSocial
       `);
       this.jsonRes(rows, res);
