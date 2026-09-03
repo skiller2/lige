@@ -5,7 +5,8 @@
       <app-orden-venta [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()"
         [horasAFacturarA]="horasAFacturarA()" [horasAFacturarABloqueada]="horasAFacturarABloqueada()"
         [horasAFacturarB]="horasAFacturarB()" [horasAFacturarBBloqueada]="horasAFacturarBBloqueada()"
-        (objetivoNombre)="objetivoNombre.set($event)" (guardado)="guardado.emit($event)" />
+        (objetivoNombre)="objetivoNombre.set($event)" (guardado)="guardado.emit($event)"
+        (horasAFacturarChange)="horasAFacturarChange.emit($event)" />
     }
   </ng-container>
 </nz-drawer>

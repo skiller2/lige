@@ -313,6 +313,7 @@
   [horasAFacturarB]="horasAFacturarB()"
   [horasAFacturarABloqueada]="horasAFacturarABloqueada"
   [horasAFacturarBBloqueada]="horasAFacturarBBloqueada"
-  (guardado)="ordenVentaGuardada($event)" [(visible)]="visibleOrdenVenta"></app-orden-venta-drawer>
+  (guardado)="ordenVentaGuardada($event)" (horasAFacturarChange)="horasAFacturarCambiadas($event)"
+  [(visible)]="visibleOrdenVenta"></app-orden-venta-drawer>
 <app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId()"
   [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

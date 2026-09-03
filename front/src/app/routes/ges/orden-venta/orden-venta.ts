@@ -25,6 +25,8 @@ export class OrdenVentaComponent {
   objetivoNombre = output<string>()
   guardado = output<HorasAFacturar>()
 
+  horasAFacturarChange = output<HorasAFacturar>()
+
   cabecera = signal<any>({})
   isLoading = signal(false)
 

@@ -110,6 +110,30 @@ export class CargaAsistenciaComponent {
         return this.carasistForm.form.get('TotalHoraB')?.disabled ?? false
     }
 
+    // Mientras se edita la orden, la cantidad de los productos de horas se refleja al toque en las
+    // horas a facturar. No se toca 'horasAFacturarA/B': son las horas congeladas al abrir el
+    // drawer y, si cambiaran, el detalle se recargaría encima de lo que se está editando.
+    // La grabación es la del guardado de la orden, en ordenVentaGuardada().
+    horasAFacturarCambiadas(horasAFacturar: { A: number | null, B: number | null }) {
+        const cambio = [
+            { campo: 'TotalHoraA', horas: horasAFacturar.A, bloqueada: this.horasAFacturarABloqueada },
+            { campo: 'TotalHoraB', horas: horasAFacturar.B, bloqueada: this.horasAFacturarBBloqueada }
+        ].map(({ campo, horas, bloqueada }) => {
+            const control = this.carasistForm.form.get(campo)
+            if (horas == null || !control || bloqueada) return false
+            if (Number(control.value) === horas) return false
+
+            control.setValue(horas)
+            control.markAsDirty()
+            return true
+        }).some(Boolean)
+
+        if (!cambio) return
+
+        const values = this.carasistForm.form.getRawValue()
+        this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - Number(values.TotalHorasReales))
+    }
+
     async ordenVentaGuardada(horasAFacturar: { A: number | null, B: number | null }) {
         // setHorasFacturacion manda las dos horas juntas: se actualiza lo que cambió y se
         // persiste una sola vez
@@ -119,12 +143,16 @@ export class CargaAsistenciaComponent {
         ].map(({ campo, horas, bloqueada, congeladas }) => {
             const control = this.carasistForm.form.get(campo)
             if (horas == null || !control || bloqueada) return false
-            if (Number(control.value) === horas) return false
 
-            control.setValue(horas)
-            control.markAsDirty()
-            congeladas.set(horas)
-            return true
+            if (Number(control.value) !== horas) {
+                control.setValue(horas)
+                control.markAsDirty()
+                congeladas.set(horas)
+            }
+
+            // El input puede tener ya el valor porque se editó la cantidad en el detalle: sigue
+            // sin grabarse, y de eso se entera por el control sucio
+            return !control.pristine
         }).some(Boolean)
 
         if (!cambio) return
