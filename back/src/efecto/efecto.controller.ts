@@ -1166,6 +1166,7 @@ export class EfectoController extends BaseController {
           LEFT JOIN Sucursal suc ON suc.SucursalId = pro.ProveedorSucursalId
           LEFT JOIN StockReal stk ON stk.ProveedorId = pro.ProveedorId AND stk.EfectoId = @0
             AND ((@1 IS NULL AND stk.EfectoEfectoIndividualId IS NULL) OR stk.EfectoEfectoIndividualId = @1)
+          WHERE ISNULL(pro.ProveedorInactivo, 0) = 0
           ORDER BY pro.ProveedorRazonSocial
         `, [efectoId, individualId]);
         this.jsonRes(proveedores, res);
@@ -1619,7 +1620,7 @@ export class EfectoController extends BaseController {
       LEFT JOIN Rubro ru ON ru.RubroId = stk.RubroId
       LEFT JOIN Subrubro sru ON sru.SubrubroId = stk.SubrubroId AND sru.RubroId = stk.RubroId
       LEFT JOIN Efecto efe ON efe.EfectoId = stk.EfectoId
-      WHERE ${filterSql} `, [now])
+      WHERE ISNULL(pro.ProveedorInactivo, 0) = 0 AND ${filterSql} `, [now])
   }
 
   // Opciones para el Select de Atributo del form de modificar/consultar efecto.
