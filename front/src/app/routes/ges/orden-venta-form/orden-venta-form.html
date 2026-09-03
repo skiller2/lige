@@ -60,7 +60,7 @@
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" nzHasFeedback
             nzErrorTip="El importe unitario es requerido">
             <input nz-input placeholder="" formControlName="ImporteUnitario" type="text" appDotToComma
-              mask="separator.2" [attr.readonly]="soloLectura() || precioDeLista()[i] || esProductoHoras()[i] ? '' : null" />
+              mask="separator.2" [attr.readonly]="soloLectura() || precioDeLista()[i] ? '' : null" />
           </nz-form-control>
         </nz-form-item>
 

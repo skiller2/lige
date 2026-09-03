@@ -22,6 +22,8 @@ export class OrdenVentaDrawerComponent {
 
   guardado = output<HorasAFacturar>()
 
+  horasAFacturarChange = output<HorasAFacturar>()
+
   visible = model<boolean>(false)
   placement: NzDrawerPlacement = 'right';
 

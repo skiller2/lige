@@ -24,7 +24,8 @@
     [horasAFacturarB]="horasAFacturarB()" [horasAFacturarBBloqueada]="horasAFacturarBBloqueada()"
     [clienteId]="cabecera().ClienteId ?? null"
     [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
-    (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)" />
+    (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)"
+    (horasAFacturarChange)="horasAFacturarChange.emit($event)" />
 
   <nz-divider></nz-divider>
 

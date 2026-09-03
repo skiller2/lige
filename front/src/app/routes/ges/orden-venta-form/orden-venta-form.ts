@@ -19,6 +19,15 @@ function vacioSiCero(valor: any): number | null {
   return valor == null || String(valor).trim() === '' || Number(valor) === 0 ? null : valor
 }
 
+// Valor de un input enmascarado como número, o null si todavía no se cargó
+function aNumero(valor: any): number | null {
+  if (valor == null || String(valor).trim() === '') return null
+  const texto = String(valor)
+  // Con coma decimal el texto trae también separador de miles
+  const numero = Number(texto.includes(',') ? texto.replace(/\./g, '').replace(',', '.') : texto)
+  return Number.isFinite(numero) ? numero : null
+}
+
 const TIPO_CANTIDAD_MANUAL = 'V'
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP'
 const TIPO_IMPORTE_MANUAL = 'V'
@@ -75,6 +84,10 @@ export class OrdenVentaFormComponent {
   guardado = output<HorasAFacturar>()
   detalleChange = output<any[]>()
 
+  // Cantidad de los productos de horas mientras se edita, para que la carga de asistencia
+  // muestre las horas a facturar 'A' / 'B' actualizadas sin esperar el guardado
+  horasAFacturarChange = output<HorasAFacturar>()
+
   private fb = inject(FormBuilder)
   private destroyRef = inject(DestroyRef)
   private apiService = inject(ApiService)
@@ -95,6 +108,9 @@ export class OrdenVentaFormComponent {
   // Corrida del alta de los productos de horas: descarta el trabajo asincrónico de una recarga
   // anterior del detalle
   private secuenciaHoras = 0
+
+  // Últimas horas a facturar avisadas al contenedor
+  private horasEmitidas: HorasAFacturar | null = null
 
   guardando = signal(false)
 
@@ -121,7 +137,8 @@ export class OrdenVentaFormComponent {
 
   importes = computed<number[]>(() => this.itemsValue().map(item => Number(item?.ImporteTotal ?? 0)))
 
-  // Ítems cuyo importe unitario sale de la lista de precios del cliente: no se editan
+  // Ítems con importe unitario ya resuelto: la lista de precios del cliente, o el importe de
+  // venta del objetivo en los productos de horas. Sin importe cargado el campo queda a mano.
   precioDeLista = computed<boolean[]>(() => this.itemsValue().map(item => !!item?.PrecioDeLista))
 
   // Código de producto de horas de cada ítem, o '' si no es uno de ellos
@@ -134,6 +151,20 @@ export class OrdenVentaFormComponent {
 
   // Los productos de horas los pone el sistema a partir de la asistencia: nunca se cambian a mano
   esProductoHoras = computed<boolean[]>(() => this.codigoHorasItem().map(codigo => !!codigo))
+
+  // Cantidad cargada en el ítem de cada producto de horas, o null si la orden no lo incluye.
+  // Es lo que la asistencia toma como horas a facturar 'A' / 'B'.
+  horasEnDetalle = computed<HorasAFacturar>(() => {
+    const codigos = this.codigoHorasItem()
+    const items = this.itemsValue()
+
+    const cantidadDe = (productoHoras: string) => {
+      const indice = codigos.indexOf(productoHoras)
+      return indice < 0 ? null : aNumero(items[indice]?.Cantidad)
+    }
+
+    return { A: cantidadDe(PRODUCTO_HORAS_A), B: cantidadDe(PRODUCTO_HORAS_B) }
+  })
 
   // Con el período cerrado el resto del ítem tampoco se toca: su cantidad son las horas a
   // facturar 'A' / 'B' de la asistencia, que ya no admiten cambios
@@ -177,6 +208,15 @@ export class OrdenVentaFormComponent {
 
     // El total de la orden se recalcula ante cualquier modificación del detalle
     effect(() => this.detalleChange.emit(this.itemsValue()))
+
+    // Cambiar la cantidad de un producto de horas cambia las horas a facturar de la asistencia.
+    // El detalle emite en cada tecla: sólo se avisa cuando alguna de las dos cantidades cambió.
+    effect(() => {
+      const horas = this.horasEnDetalle()
+      if (this.horasEmitidas?.A === horas.A && this.horasEmitidas?.B === horas.B) return
+      this.horasEmitidas = horas
+      this.horasAFacturarChange.emit(horas)
+    })
 
     effect(() => {
       this.formValue()
@@ -453,14 +493,9 @@ export class OrdenVentaFormComponent {
 
       this.notification.success('Orden de venta', respuesta?.msg ?? 'Grabación exitosa')
 
-      // Recarga el detalle: los ítems nuevos vuelven con su ItemOrdenVentaCodigo
-      const cantidadDe = (productoHoras: string) => {
-        const item = items.find((item: any) =>
-          String(item.ProductoCodigo ?? '').trim().toUpperCase() === productoHoras)
-        return item ? Number(item.Cantidad ?? 0) : null
-      }
-
-      this.guardado.emit({ A: cantidadDe(PRODUCTO_HORAS_A), B: cantidadDe(PRODUCTO_HORAS_B) })
+      // Recarga el detalle: los ítems nuevos vuelven con su ItemOrdenVentaCodigo. Las horas
+      // guardadas son las del detalle, que la asistencia persiste como horas a facturar.
+      this.guardado.emit(this.horasEnDetalle())
     } finally {
       this.guardando.set(false)
     }
