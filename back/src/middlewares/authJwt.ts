@@ -73,7 +73,8 @@ export class AuthMiddleware {
       // se agregan las excepciones si cuenta con los sigueintes permisos
       if (res.locals?.verifyGrupoActividad
         || res.locals?.hasAuthObjetivo
-        || res.locals?.authResp) return next()
+        || res.locals?.authResp
+        || res.locals?.hasAuthDownloadRec) return next()
 
 
       const stopTime = performance.now()
@@ -138,22 +139,8 @@ export class AuthMiddleware {
         if (!grupos || grupos.length == 0) return next()
         const GrupoActividadIdList = grupos.map((grupo: any) => grupo.GrupoActividadId)
 
-        if (GrupoActividadIdList.length > 0) {
-          const resPers = await queryRunner.query(`
-          SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap 
-          WHERE gap.GrupoActividadPersonalPersonalId = @0  AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
-          ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${GrupoActividadIdList.join(',')})
-          UNION
-          SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap 
-          WHERE gap.GrupoActividadJerarquicoPersonalId = @0  AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
-          ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${GrupoActividadIdList.join(',')})
-          AND gap.GrupoActividadJerarquicoComo = 'J'
-          `,
-            [PersonalId_auth, anio, mes])
-          if (resPers.length > 0) {
-            res.locals.authResp = true
-          }
-        }
+        if (await this.tienePersonaEnGrupo(queryRunner, GrupoActividadIdList, anio, mes, PersonalId_auth))
+          res.locals.authResp = true
 
         return next()
       } catch (error) {
@@ -451,36 +438,76 @@ export class AuthMiddleware {
     return next()
   }
 
+  // Busca un objetivo del filtro (ObjetivoId o ClienteId) dentro de los grupos de actividad indicados
+  private async tieneObjetivoEnGrupo(queryRunner: any, listGrupos: number[], anio: number, mes: number, filtro: { ObjetivoId?: number, ClienteId?: number }) {
+    if (listGrupos.length === 0) return false
+
+    const params: any[] = [anio, mes, ...listGrupos]
+    const paramGrupos = listGrupos.map((_: any, i: number) => `@${i + 2}`).join(',')
+
+    let condicion = ''
+
+    if (!filtro.ObjetivoId && !filtro.ClienteId) return false
+
+    if (filtro.ObjetivoId) {
+      condicion = `AND obj.ObjetivoId = @${params.length}`
+      params.push(filtro.ObjetivoId)
+    }
+    if (filtro.ClienteId) {
+      condicion = `AND obj.ClienteId = @${params.length}`
+      params.push(filtro.ClienteId)
+    }
+
+
+    const resultado = await queryRunner.query(`
+      SELECT TOP 1 obj.ObjetivoId
+      FROM Objetivo obj
+      JOIN GrupoActividadObjetivo gao ON gao.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gao.GrupoActividadObjetivoDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1)) AND
+          ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') >= DATEFROMPARTS(@0,@1,1)
+      JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+      WHERE cli.PermiteDescargaRecibos= 1 AND gao.GrupoActividadId IN (${paramGrupos}) ${condicion}
+    `, params)
+
+    return resultado.length > 0
+  }
+
+  // Busca a la persona dentro de los grupos de actividad indicados, como personal o como jerarquico
+  private async tienePersonaEnGrupo(queryRunner: any, listGrupos: number[], anio: number, mes: number, PersonalId_auth: any) {
+    if (listGrupos.length === 0 || !PersonalId_auth) return false
+
+    const paramGrupos = listGrupos.map((_: any, i: number) => `@${i + 3}`).join(',')
+
+    const resultado = await queryRunner.query(`
+      SELECT gap.GrupoActividadPersonalPersonalId FROM GrupoActividadPersonal gap
+      WHERE gap.GrupoActividadPersonalPersonalId = @0 AND gap.GrupoActividadPersonalDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
+      ISNULL(gap.GrupoActividadPersonalHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${paramGrupos})
+      UNION
+      SELECT gap.GrupoActividadJerarquicoPersonalId FROM GrupoActividadJerarquico gap
+      WHERE gap.GrupoActividadJerarquicoPersonalId = @0 AND gap.GrupoActividadJerarquicoDesde <= EOMONTH(DATEFROMPARTS(@1,@2,1)) AND
+      ISNULL(gap.GrupoActividadJerarquicoHasta,'9999-12-31') >= DATEFROMPARTS(@1,@2,1) AND gap.GrupoActividadId IN (${paramGrupos})
+      AND gap.GrupoActividadJerarquicoComo = 'J'
+    `, [PersonalId_auth, anio, mes, ...listGrupos])
+
+    return resultado.length > 0
+  }
+
   hasAuthObjetivo = async (req: any, res: any, next: any) => {
+    const stmActual = new Date()
     const PersonalId = res.locals?.PersonalId
     const GrupoActividad = res.locals?.GrupoActividad
     const ObjetivoId = req.params?.ObjetivoId || req.body?.ObjetivoId || req.query?.ObjetivoId
 
     if (PersonalId < 1) return next()
-    // res.status(403).json({ msg: "No tiene permisos para acceder. No se especificó CUIT en su Usuario." })
-
     if (!ObjetivoId) return next()
-    // res.status(400).json({ msg: "No se especificó ObjetivoId" })
 
-    // Extraer los IDs de grupos de actividad del usuario
     if (!GrupoActividad || GrupoActividad.length === 0) return next()
-    const grupos = GrupoActividad.map((grupo: any) => grupo.GrupoActividadId)
-
-    if (grupos.length === 0) return next()
+    const listGrupos = GrupoActividad.map((grupo: any) => grupo.GrupoActividadId)
 
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      // Verificar que el objetivo pertenezca a alguno de los grupos de actividad del usuario
-      const resultado = await queryRunner.query(`
-        SELECT COUNT(*) as count 
-        FROM Objetivo obj
-        LEFT JOIN GrupoActividadObjetivo gao ON gao.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId and gao.GrupoActividadObjetivoDesde <= GETDATE() AND
-            ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') >= GETDATE()
-        WHERE obj.ObjetivoId = @0 AND gao.GrupoActividadId IN (${grupos.map((_, i) => `@${i + 1}`).join(',')})
-      `, [ObjetivoId, ...grupos])
-
-      if (resultado[0].count > 0) res.locals.hasAuthObjetivo = true
+      const hasAuthObj = await this.tieneObjetivoEnGrupo(queryRunner, listGrupos, stmActual.getFullYear(), stmActual.getMonth() + 1, { ObjetivoId: Number(ObjetivoId) })
+      if (hasAuthObj) res.locals.hasAuthObjetivo = true
 
       return next()
     } catch (error) {
@@ -490,6 +517,55 @@ export class AuthMiddleware {
       await queryRunner.release()
     }
 
+  }
+
+  hasAuthDownloadRec = async (req: any, res: any, next: any) => {
+    const PersonalId = res.locals?.PersonalId
+    const GrupoActividad = res.locals?.GrupoActividad
+    const { desde, lista, SeachField, ObjetivoIdWithSearch, ClienteIdWithSearch, PersonalIdWithSearch } = req.body
+
+    if (PersonalId < 1) return next()
+
+    // la descarga por lista de personas queda solo para DescargaRecibos
+    if (lista) return next()
+    if (!desde) return next()
+
+    if (!GrupoActividad || GrupoActividad.length === 0) return next()
+    const listGrupos = GrupoActividad.map((grupo: any) => grupo.GrupoActividadId)
+
+    // el permiso se valida sobre el primer mes del rango
+    const fechaDesde = new Date(desde)
+    const anio = fechaDesde.getFullYear()
+    const mes = fechaDesde.getMonth() + 1
+
+    const queryRunner = await getConnection(res.locals.userName)
+
+    try {
+      let tienePermiso = false
+
+      switch (SeachField) {
+        case 'O':
+          tienePermiso = await this.tieneObjetivoEnGrupo(queryRunner, listGrupos, anio, mes, { ObjetivoId: Number(ObjetivoIdWithSearch) })
+          break
+        case 'C':
+          tienePermiso = await this.tieneObjetivoEnGrupo(queryRunner, listGrupos, anio, mes, { ClienteId: Number(ClienteIdWithSearch) })
+          break
+
+        // 'P' debe tener grupo de ad 'descarga recibos' y 'T' y 'S' estan deshabilitados para descarga de recibos, por lo que no se valida
+        default:
+          break
+
+      }
+
+      if (tienePermiso) res.locals.hasAuthDownloadRec = true
+
+      return next()
+    } catch (error) {
+      logger.error(error)
+      return res.status(409).json({ msg: "Error al verificar permisos de descarga de recibos", error: error.message })
+    } finally {
+      await queryRunner.release()
+    }
   }
 
 }
