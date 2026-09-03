@@ -16,6 +16,19 @@ const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
 // y una orden puede tener más de uno.
 const TIPO_COMPROBANTE_ORDEN_VENTA = 'ORD';
 
+// Tipo 'Factura' de ComprobanteTipo: tenerlo cargado es lo que deja facturada a la orden
+const TIPO_COMPROBANTE_FACTURA = 'FAC';
+
+const ESTADO_GRILLA_FACTURADO = 'Facturado';
+const ESTADO_GRILLA_PENDIENTE = 'Pendiente';
+
+const sqlEstadoOrden = `
+  CASE WHEN EXISTS (
+    SELECT 1 FROM Comprobante cfac
+    WHERE cfac.NroOrdenVenta = ord.NroOrdenVenta
+      AND cfac.ComprobanteTipoCodigo = '${TIPO_COMPROBANTE_FACTURA}'
+  ) THEN '${ESTADO_GRILLA_FACTURADO}' ELSE '${ESTADO_GRILLA_PENDIENTE}' END`;
+
 // Productos que facturan las horas 'A' y 'B'. Su importe no sale de la lista de precios sino de
 // ObjetivoImporteVenta.ImporteHoraA / ImporteHoraB, del último Anio/Mes <= al período del
 // cliente/elemento.
@@ -131,7 +144,7 @@ const columnasGrillaOrdenes: any[] = [
     id: "Estado",
     name: "Estado",
     field: "Estado",
-    fieldName: "est.Descripcion",
+    fieldName: sqlEstadoOrden,
     type: "string",
     sortable: true,
     hidden: false,
@@ -181,14 +194,13 @@ export class OrdenVentaController extends BaseController {
           obj.ObjetivoId,
           CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(COALESCE(obj.ObjetivoDescripcion, eledep.ClienteElementoDependienteDescripcion, ''))) AS Objetivo,
           ord.EstadoOrdenVentaCodigo,
-          ISNULL(est.Descripcion, ord.EstadoOrdenVentaCodigo) AS Estado,
+          ${sqlEstadoOrden} AS Estado,
           ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar
         FROM OrdenVenta ord
         LEFT JOIN Cliente cli ON cli.ClienteId = ord.ClienteId
         LEFT JOIN ClienteElementoDependiente eledep
           ON eledep.ClienteId = ord.ClienteId
           AND eledep.ClienteElementoDependienteId = ord.ClienteElementoDependienteId
-        LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
        OUTER APPLY (
           SELECT TOP 1 o.ObjetivoId, o.ObjetivoDescripcion
           FROM Objetivo o
@@ -329,7 +341,7 @@ export class OrdenVentaController extends BaseController {
           ord.EstadoOrdenVentaCodigo,
           ord.ImporteTotalAFacturar,
           est.Descripcion AS EstadoOrdenVenta,
-          com.ComprobanteNro AS NroFactura,
+          com.ComprobanteNro AS NroComprobante,
           ISNULL(com.Cantidad,0) AS CantidadComprobantes
         FROM Objetivo obj
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
@@ -342,7 +354,7 @@ export class OrdenVentaController extends BaseController {
             AND ov.PeriodoAnio = @1 AND ov.PeriodoMes = @2
           ORDER BY ov.NroOrdenVenta DESC
         ) ord
-        -- El número de factura vive en Comprobante. Una orden puede tener más de uno: se trae el
+        -- El número de comprobante vive en Comprobante. Una orden puede tener más de uno: se trae el
         -- último y cuántos hay, para que la pantalla sepa si el campo es editable.
         OUTER APPLY (
           SELECT
@@ -385,7 +397,10 @@ export class OrdenVentaController extends BaseController {
     const detalle: any[] = Array.isArray(req.body.items) ? req.body.items : [];
     const Observaciones = req.body.Observaciones ?? null;
     // Número de comprobante. Sólo llega cuando la pantalla lo modificó: ausente no toca Comprobante.
-    const NroFactura = req.body.NroFactura != null ? String(req.body.NroFactura).trim() : null;
+    // Ausente no toca Comprobante; vacío es el número borrado desde la pantalla, y borra el
+    // comprobante que la orden tenga
+    const comprobanteRecibido = req.body.NroComprobante != null;
+    const NroComprobante = comprobanteRecibido ? String(req.body.NroComprobante).trim() : null;
 
     const queryRunner = await getConnection(res.locals.userName);
 
@@ -554,20 +569,29 @@ export class OrdenVentaController extends BaseController {
           `, [orden.NroOrdenVenta, TIPO_COMPROBANTE_ORDEN_VENTA])
         : [];
 
-      // Con más de un comprobante no se sabe cuál renumerar: eso se resuelve desde facturación
-      if (NroFactura && comprobantes.length > 1)
+      // Con más de un comprobante no se sabe cuál renumerar ni cuál borrar: eso se resuelve
+      // desde facturación
+      if (comprobanteRecibido && comprobantes.length > 1)
         throw new ClientException(
           `La orden ${orden.NroOrdenVenta} tiene ${comprobantes.length} comprobantes, el número no se puede editar desde acá`);
 
+      // Borrar el número desde la pantalla deja a la orden sin comprobante
+      const borraComprobante = comprobanteRecibido && !NroComprobante;
+
       // Tanto en el alta como en la modificación, tener número de comprobante deja la orden facturada
-      const numeroComprobante = NroFactura || String(comprobantes[0]?.ComprobanteNro ?? '').trim();
+      const numeroComprobante = borraComprobante
+        ? '' : (NroComprobante || String(comprobantes[0]?.ComprobanteNro ?? '').trim());
       const facturada = !!numeroComprobante;
       const estadoOrden = facturada ? ESTADO_ORDEN_VENTA_FACTURADA : ESTADO_ORDEN_VENTA_INICIAL;
+
+      // El estado se toca cuando hay comprobante, y cuando se lo borró: ahí la orden vuelve a
+      // quedar pendiente
+      const actualizaEstado = facturada || borraComprobante;
 
       let NroOrdenVenta = orden?.NroOrdenVenta;
 
       // El estado se graba desde una constante, pero tiene que existir en la tabla de códigos
-      if (facturada || !NroOrdenVenta) {
+      if (actualizaEstado || !NroOrdenVenta) {
         const estados = await queryRunner.query(
           `SELECT EstadoOrdenVentaCod FROM EstadoOrdenVenta`);
         const codigos = estados.map((estado: any) => estado.EstadoOrdenVentaCod);
@@ -577,13 +601,14 @@ export class OrdenVentaController extends BaseController {
       }
 
       if (NroOrdenVenta) {
-        // Sin comprobante el estado no se toca: la orden puede estar en cualquier punto del circuito
+        // Sin cambios en el comprobante el estado no se toca: la orden puede estar en cualquier
+        // punto del circuito
         await queryRunner.query(`
           UPDATE OrdenVenta
           SET ImporteTotalAFacturar = @1, Observaciones = @2, AudFechaMod = @3, AudUsuarioMod = @4, AudIpMod = @5
-            ${facturada ? ', EstadoOrdenVentaCodigo = @6' : ''}
+            ${actualizaEstado ? ', EstadoOrdenVentaCodigo = @6' : ''}
           WHERE NroOrdenVenta = @0
-        `, facturada
+        `, actualizaEstado
           ? [NroOrdenVenta, importeTotal, Observaciones, ahora, usuario, ip, estadoOrden]
           : [NroOrdenVenta, importeTotal, Observaciones, ahora, usuario, ip]);
 
@@ -633,14 +658,21 @@ export class OrdenVentaController extends BaseController {
         ]);
       }
 
-      // El número de factura vive en Comprobante, relacionado por NroOrdenVenta
-      if (NroFactura) {
+      // El número de comprobante vive en Comprobante, relacionado por NroOrdenVenta
+      if (borraComprobante) {
+        // El número se borró en la pantalla: la orden se queda sin comprobante
+        if (comprobantes.length)
+          await queryRunner.query(`
+            DELETE FROM Comprobante WHERE NroOrdenVenta = @0 AND ComprobanteTipoCodigo = @1
+          `, [NroOrdenVenta, TIPO_COMPROBANTE_ORDEN_VENTA]);
+
+      } else if (NroComprobante) {
         if (comprobantes.length) {
           await queryRunner.query(`
             UPDATE Comprobante
             SET ComprobanteNro = @2, ImporteTotal = @3, AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
             WHERE NroOrdenVenta = @0 AND ComprobanteNro = @1 AND ComprobanteTipoCodigo = @7
-          `, [NroOrdenVenta, comprobantes[0].ComprobanteNro, NroFactura, importeTotal,
+          `, [NroOrdenVenta, comprobantes[0].ComprobanteNro, NroComprobante, importeTotal,
               ahora, usuario, ip, TIPO_COMPROBANTE_ORDEN_VENTA]);
 
         } else {
@@ -649,7 +681,7 @@ export class OrdenVentaController extends BaseController {
               NroOrdenVenta, ComprobanteNro, ComprobanteTipoCodigo, ImporteTotal,
               AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
             ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
-          `, [NroOrdenVenta, NroFactura, TIPO_COMPROBANTE_ORDEN_VENTA, importeTotal, ahora, usuario, ip]);
+          `, [NroOrdenVenta, NroComprobante, TIPO_COMPROBANTE_ORDEN_VENTA, importeTotal, ahora, usuario, ip]);
         }
       }
 

@@ -69,7 +69,7 @@ export class OrdenVentaFormComponent {
 
   // Número de comprobante a grabar en Comprobante. Sólo llega cuando la pantalla lo modificó: en
   // null el guardado no toca los comprobantes de la orden.
-  nroFacturaAGrabar = input<string | null>(null)
+  nroComprobanteAGrabar = input<string | null>(null)
 
   // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
   horasAFacturarA = input<number>(0)
@@ -484,7 +484,7 @@ export class OrdenVentaFormComponent {
         mes: this.mes(),
         ClienteId: this.clienteId(),
         ClienteElementoDependienteId: this.clienteElementoDependienteId(),
-        ...(this.nroFacturaAGrabar() != null ? { NroFactura: this.nroFacturaAGrabar() } : {}),
+        ...(this.nroComprobanteAGrabar() != null ? { NroComprobante: this.nroComprobanteAGrabar() } : {}),
         items
       }))
 
