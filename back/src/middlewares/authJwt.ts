@@ -590,7 +590,7 @@ export class AuthMiddleware {
           break
         case 'P':
           if (!PersonalIdWithSearch)
-            return res.status(409).json({ msg: "No se especifico el personal a buscar" })
+            return res.status(409).json({ msg: "No se especifico la persona a buscar" })
           // 'P' debe tener grupo de AD 'descarga recibos'. No se verifica acá
           break
 
