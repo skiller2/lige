@@ -87,6 +87,8 @@ export class OrdenVentaFormComponent {
   // Comprobantes que ya tiene la orden, de la cabecera (/api/orden-venta/cabecera)
   comprobantesOrden = input<any[]>([])
 
+  detalleImportado = input<boolean>(false)
+
   // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
   horasAFacturarA = input<number>(0)
   horasAFacturarB = input<number>(0)
@@ -254,7 +256,8 @@ export class OrdenVentaFormComponent {
     effect(() => {
       this.formValue()
       this.comprobantes()
-      this.conCambios.set(this.formOrdenVenta.dirty || this.formComprobante.dirty)
+      this.conCambios.set(
+        this.formOrdenVenta.dirty || this.formComprobante.dirty || this.detalleImportado())
     })
 
   }

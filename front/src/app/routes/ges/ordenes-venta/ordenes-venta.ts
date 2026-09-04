@@ -96,17 +96,21 @@ export class OrdenesVentaComponent {
   private itemsResource = resource({
     params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
-      if (!params.objetivoId || !params.anio || !params.mes) return []
+      if (!params.objetivoId || !params.anio || !params.mes) return { list: [], esNueva: false }
 
       const response = await firstValueFrom(
         this.apiService.getListOrdenVenta(params.objetivoId, params.anio, params.mes))
 
-      return response.list ?? []
+      return { ...response, list: response.list ?? [] }
     },
-    defaultValue: [] as any[]
+    defaultValue: { list: [], esNueva: false } as any
   })
 
-  items = computed<any[]>(() => this.itemsResource.value() ?? [])
+  items = computed<any[]>(() => this.itemsResource.value()?.list ?? [])
+
+  // El detalle se inicializó con el del mes anterior: se puede grabar sin modificarlo
+  detalleImportado = computed<boolean>(() =>
+    !!this.itemsResource.value()?.esNueva && this.items().length > 0)
 
   // mm/aaaa, como se muestra el período en la carga de asistencia
   periodoTexto = computed(() => this.anio() ? `${String(this.mes()).padStart(2, '0')}/${this.anio()}` : '')

@@ -74,7 +74,8 @@
 
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
     [clienteId]="clienteId()" [clienteElementoDependienteId]="clienteElementoDependienteId()"
-    [soloLectura]="soloLectura()" [comprobantesOrden]="comprobantes()" (detalleChange)="detalle.set($event)"
+    [soloLectura]="soloLectura()" [comprobantesOrden]="comprobantes()"
+    [detalleImportado]="detalleImportado()" (detalleChange)="detalle.set($event)"
     (guardado)="ordenVentaGuardada()" />
 
   <nz-divider></nz-divider>

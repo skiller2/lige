@@ -6,7 +6,7 @@
       <input nz-input [value]="(mes() | number:'2.0-0') + '/' + anio()" [disabled]="true" />
     </nz-form-control>
 
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Estado Orden Venta</nz-form-label>
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Orden Venta</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
       <input nz-input [value]="estado()" [disabled]="true" />
     </nz-form-control>
@@ -24,7 +24,7 @@
     [horasAFacturarB]="horasAFacturarB()" [horasAFacturarBBloqueada]="horasAFacturarBBloqueada()"
     [clienteId]="cabecera().ClienteId ?? null"
     [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
-    [comprobantesOrden]="cabecera().Comprobantes ?? []"
+    [comprobantesOrden]="cabecera().Comprobantes ?? []" [detalleImportado]="detalleImportado()"
     (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)"
     (horasAFacturarChange)="horasAFacturarChange.emit($event)" />
 
@@ -35,7 +35,7 @@
 
     <button nzType="primary" nz-button (click)="ordenVentaForm.save()"
       [nzLoading]="ordenVentaForm.guardando()"
-      [disabled]="ordenVentaForm.formOrdenVenta.pristine || ordenVentaForm.guardando()">
+      [disabled]="!ordenVentaForm.conCambios() || ordenVentaForm.guardando()">
       {{ 'app.btn.save' | i18n }}
     </button>
 
