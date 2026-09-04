@@ -78,7 +78,9 @@ export class AuthMiddleware {
 
 
       const stopTime = performance.now()
-      return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
+      const motivos = res.locals?.motivoSinPermiso ?? []
+      const motivo = (motivos.length > 0) ? `<br /><br />${motivos.join('<br />')}` : ''
+      return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}${motivo}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
 
     }
   }
@@ -136,12 +138,18 @@ export class AuthMiddleware {
 
         const grupos = res.locals.GrupoActividad //|| await BaseController.getGruposActividad(queryRunner, res.locals.PersonalId, anio, mes)
 
-        if (!grupos || grupos.length == 0) return next()
+        if (!grupos || grupos.length == 0) {
+          res.locals.motivoSinPermiso = [`- No se encuentra como responsable/administrativo de -ningún grupo de actividad.`]
+          return next()
+        }
         const GrupoActividadIdList = grupos.map((grupo: any) => grupo.GrupoActividadId)
 
-        if (await this.tienePersonaEnGrupo(queryRunner, GrupoActividadIdList, anio, mes, PersonalId_auth))
-          res.locals.authResp = true
+        if (!await this.tienePersonaEnGrupo(queryRunner, GrupoActividadIdList, anio, mes, PersonalId_auth)) {
+          res.locals.motivoSinPermiso = [`- No se encuentra como responsable/administrativo del grupo de Actividad de la persona.`]
+          return next()
+        }
 
+        res.locals.authResp = true
         return next()
       } catch (error) {
         logger.error(error);
@@ -400,7 +408,7 @@ export class AuthMiddleware {
         parsed = JSON.parse(data);
       } catch (e) {
         // Si el JSON está mal formado, devuelvo 403
-        return res.status(403).json({ msg: "Permisos del tipo de documento mal formados" });
+        return res.status(403).json({ msg: "Error en el formato de permisos del tipo de documento." });
       }
 
       const PermisoFullAccess = Array.isArray(parsed.FullAccess) ? parsed.FullAccess : [];
@@ -464,11 +472,32 @@ export class AuthMiddleware {
       FROM Objetivo obj
       JOIN GrupoActividadObjetivo gao ON gao.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId AND gao.GrupoActividadObjetivoDesde <= EOMONTH(DATEFROMPARTS(@0,@1,1)) AND
           ISNULL(gao.GrupoActividadObjetivoHasta,'9999-12-31') >= DATEFROMPARTS(@0,@1,1)
-      JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-      WHERE cli.PermiteDescargaRecibos= 1 AND gao.GrupoActividadId IN (${paramGrupos}) ${condicion}
+      WHERE gao.GrupoActividadId IN (${paramGrupos}) ${condicion}
     `, params)
 
     return resultado.length > 0
+  }
+
+  // Indica si el cliente del filtro tiene habilitada la descarga de recibos
+  private async clientePermiteDescargaRecibos(queryRunner: any, filtro: { ObjetivoId?: number, ClienteId?: number }) {
+    let resultado = []
+
+    if (filtro.ObjetivoId) {
+      resultado = await queryRunner.query(`
+        SELECT TOP 1 cli.PermiteDescargaRecibos
+        FROM Objetivo obj
+        JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        WHERE obj.ObjetivoId = @0
+      `, [filtro.ObjetivoId])
+    } else if (filtro.ClienteId) {
+      resultado = await queryRunner.query(`
+        SELECT TOP 1 cli.PermiteDescargaRecibos
+        FROM Cliente cli
+        WHERE cli.ClienteId = @0
+      `, [filtro.ClienteId])
+    }
+
+    return resultado.length > 0 && resultado[0].PermiteDescargaRecibos == 1
   }
 
   // Busca a la persona dentro de los grupos de actividad indicados, como personal o como jerarquico
@@ -507,7 +536,12 @@ export class AuthMiddleware {
 
     try {
       const hasAuthObj = await this.tieneObjetivoEnGrupo(queryRunner, listGrupos, stmActual.getFullYear(), stmActual.getMonth() + 1, { ObjetivoId: Number(ObjetivoId) })
-      if (hasAuthObj) res.locals.hasAuthObjetivo = true
+      if (!hasAuthObj) {
+        res.locals.motivoSinPermiso = [`- No se encuentra como responsable/administrativo del grupo de Actividad del objetivo.`]
+        return next()
+      }
+
+      res.locals.hasAuthObjetivo = true
 
       return next()
     } catch (error) {
@@ -541,23 +575,45 @@ export class AuthMiddleware {
     const queryRunner = await getConnection(res.locals.userName)
 
     try {
-      let tienePermiso = false
+      let filtro = null
 
       switch (SeachField) {
         case 'O':
-          tienePermiso = await this.tieneObjetivoEnGrupo(queryRunner, listGrupos, anio, mes, { ObjetivoId: Number(ObjetivoIdWithSearch) })
+          if (!ObjetivoIdWithSearch || (!ObjetivoIdWithSearch))
+            return res.status(409).json({ msg: "No se especifico el objetivo a buscar" })
+          filtro = { ObjetivoId: Number(ObjetivoIdWithSearch) }
           break
         case 'C':
-          tienePermiso = await this.tieneObjetivoEnGrupo(queryRunner, listGrupos, anio, mes, { ClienteId: Number(ClienteIdWithSearch) })
+          if (!ClienteIdWithSearch)
+            return res.status(409).json({ msg: "No se especifico el cliente a buscar" })
+          filtro = { ClienteId: Number(ClienteIdWithSearch) }
+          break
+        case 'P':
+          if (!PersonalIdWithSearch)
+            return res.status(409).json({ msg: "No se especifico la persona a buscar" })
+          // 'P' debe tener grupo de AD 'descarga recibos'. No se verifica acá
           break
 
-        // 'P' debe tener grupo de ad 'descarga recibos' y 'T' y 'S' estan deshabilitados para descarga de recibos, por lo que no se valida
+        // 'T' y 'S' estan deshabilitados para descarga de recibos, por lo que no se valida
         default:
           break
-
       }
 
-      if (tienePermiso) res.locals.hasAuthDownloadRec = true
+      if (!filtro) return next()
+
+      const enGrupoActividad = await this.tieneObjetivoEnGrupo(queryRunner, listGrupos, anio, mes, filtro)
+      const permiteDescarga = await this.clientePermiteDescargaRecibos(queryRunner, filtro)
+
+      if (enGrupoActividad && permiteDescarga) {
+        res.locals.hasAuthDownloadRec = true
+        return next()
+      }
+
+      // se guarda el motivo para sumarlo al mensaje de hasGroup
+      const motivos = []
+      if (!enGrupoActividad) motivos.push(`- El objetivo/cliente seleccionado no pertenece a su grupo de actividad.`)
+      if (!permiteDescarga) motivos.push(`- El cliente no tiene habilitada la descarga de recibos.`)
+      res.locals.motivoSinPermiso = motivos
 
       return next()
     } catch (error) {
