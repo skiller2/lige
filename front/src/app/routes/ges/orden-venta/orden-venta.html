@@ -24,6 +24,7 @@
     [horasAFacturarB]="horasAFacturarB()" [horasAFacturarBBloqueada]="horasAFacturarBBloqueada()"
     [clienteId]="cabecera().ClienteId ?? null"
     [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
+    [comprobantesOrden]="cabecera().Comprobantes ?? []"
     (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)"
     (horasAFacturarChange)="horasAFacturarChange.emit($event)" />
 
