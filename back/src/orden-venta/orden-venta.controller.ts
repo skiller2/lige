@@ -12,10 +12,8 @@ const ESTADO_ORDEN_VENTA_INICIAL = 'PEN';
 const ESTADO_ORDEN_VENTA_FACTURADA = 'FAC';
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
 
-// Tipo de los comprobantes que emite la orden de venta. Comprobante se relaciona por NroOrdenVenta
-// y una orden puede tener más de uno.
-const TIPO_COMPROBANTE_ORDEN_VENTA = 'ORD';
-
+// Comprobante se relaciona con la orden por NroOrdenVenta, y una orden puede tener más de uno.
+// El tipo lo elige la pantalla contra ComprobanteTipo.
 // Tipo 'Factura' de ComprobanteTipo: tenerlo cargado es lo que deja facturada a la orden
 const TIPO_COMPROBANTE_FACTURA = 'FAC';
 
@@ -28,6 +26,8 @@ const sqlEstadoOrden = `
     WHERE cfac.NroOrdenVenta = ord.NroOrdenVenta
       AND cfac.ComprobanteTipoCodigo = '${TIPO_COMPROBANTE_FACTURA}'
   ) THEN '${ESTADO_GRILLA_FACTURADO}' ELSE '${ESTADO_GRILLA_PENDIENTE}' END`;
+
+const cargado = (valor: any) => valor != null && String(valor).trim() !== '';
 
 // Productos que facturan las horas 'A' y 'B'. Su importe no sale de la lista de precios sino de
 // ObjetivoImporteVenta.ImporteHoraA / ImporteHoraB, del último Anio/Mes <= al período del
@@ -340,9 +340,7 @@ export class OrdenVentaController extends BaseController {
           ord.NroOrdenVenta,
           ord.EstadoOrdenVentaCodigo,
           ord.ImporteTotalAFacturar,
-          est.Descripcion AS EstadoOrdenVenta,
-          com.ComprobanteNro AS NroComprobante,
-          ISNULL(com.Cantidad,0) AS CantidadComprobantes
+          est.Descripcion AS EstadoOrdenVenta
         FROM Objetivo obj
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
@@ -354,27 +352,30 @@ export class OrdenVentaController extends BaseController {
             AND ov.PeriodoAnio = @1 AND ov.PeriodoMes = @2
           ORDER BY ov.NroOrdenVenta DESC
         ) ord
-        -- El número de comprobante vive en Comprobante. Una orden puede tener más de uno: se trae el
-        -- último y cuántos hay, para que la pantalla sepa si el campo es editable.
-        OUTER APPLY (
-          SELECT
-            (SELECT TOP 1 c.ComprobanteNro
-             FROM Comprobante c
-             WHERE c.NroOrdenVenta = ord.NroOrdenVenta AND c.ComprobanteTipoCodigo = @3
-             ORDER BY c.AudFechaIng DESC) AS ComprobanteNro,
-            (SELECT COUNT(*)
-             FROM Comprobante c
-             WHERE c.NroOrdenVenta = ord.NroOrdenVenta AND c.ComprobanteTipoCodigo = @3) AS Cantidad
-        ) com
         LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
         WHERE obj.ObjetivoId = @0
-      `, [ObjetivoId, anio, mes, TIPO_COMPROBANTE_ORDEN_VENTA]);
+      `, [ObjetivoId, anio, mes]);
+
+      // Los comprobantes de la orden. Una orden puede tener más de uno, de distinto tipo.
+      const NroOrdenVenta = cabecera[0]?.NroOrdenVenta;
+
+      const comprobantes = NroOrdenVenta
+        ? await queryRunner.query(`
+            SELECT com.ComprobanteNro, com.ComprobanteTipoCodigo, com.ImporteTotal,
+              tip.Descripcion AS ComprobanteTipo
+            FROM Comprobante com
+            LEFT JOIN ComprobanteTipo tip ON tip.ComprobanteTipoCodigo = com.ComprobanteTipoCodigo
+            WHERE com.NroOrdenVenta = @0
+            ORDER BY com.AudFechaIng, com.ComprobanteNro
+          `, [NroOrdenVenta])
+        : [];
 
       const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
 
       this.jsonRes(
         {
           ...(cabecera[0] ?? {}),
+          Comprobantes: comprobantes,
           TotalHorasNormales: Number(asistencia.TotalHorasReal ?? 0)
         },
         res
@@ -396,11 +397,15 @@ export class OrdenVentaController extends BaseController {
     const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
     const detalle: any[] = Array.isArray(req.body.items) ? req.body.items : [];
     const Observaciones = req.body.Observaciones ?? null;
-    // Número de comprobante. Sólo llega cuando la pantalla lo modificó: ausente no toca Comprobante.
-    // Ausente no toca Comprobante; vacío es el número borrado desde la pantalla, y borra el
-    // comprobante que la orden tenga
-    const comprobanteRecibido = req.body.NroComprobante != null;
-    const NroComprobante = comprobanteRecibido ? String(req.body.NroComprobante).trim() : null;
+    // Comprobantes de la orden. Sin la lista no se toca Comprobante; con ella se reescribe
+    // completa, igual que el detalle. Las filas vacías de la pantalla se descartan.
+    const comprobantesRecibidos = Array.isArray(req.body.comprobantes);
+    const comprobantes: any[] = comprobantesRecibidos
+      ? req.body.comprobantes.filter((comprobante: any) =>
+        cargado(comprobante?.ComprobanteTipoCodigo) ||
+        cargado(comprobante?.ComprobanteNro) ||
+        cargado(comprobante?.ImporteTotal))
+      : [];
 
     const queryRunner = await getConnection(res.locals.userName);
 
@@ -545,6 +550,50 @@ export class OrdenVentaController extends BaseController {
       if (erroresItems.length)
         throw new ClientException(erroresItems);
 
+      // Los tres campos del comprobante son NOT NULL: o la fila está completa, o no se manda
+      const erroresComprobantes: string[] = [];
+      const claves = new Set<string>();
+
+      for (const [indice, comprobante] of comprobantes.entries()) {
+        const donde = `Comprobante ${indice + 1}`;
+        const tipo = String(comprobante.ComprobanteTipoCodigo ?? '').trim();
+        const numero = String(comprobante.ComprobanteNro ?? '').trim();
+
+        if (!tipo) erroresComprobantes.push(`${donde}: el tipo de comprobante es obligatorio`);
+        if (!numero) erroresComprobantes.push(`${donde}: el número de comprobante es obligatorio`);
+
+        if (!cargado(comprobante.ImporteTotal))
+          erroresComprobantes.push(`${donde}: el importe total es obligatorio`);
+        else if (!Number.isFinite(Number(comprobante.ImporteTotal)))
+          erroresComprobantes.push(`${donde}: el importe total '${comprobante.ImporteTotal}' no es un número válido`);
+
+        // La orden no puede tener dos veces el mismo tipo y número
+        if (tipo && numero) {
+          const clave = `${tipo.toUpperCase()}|${numero.toUpperCase()}`;
+          if (claves.has(clave))
+            erroresComprobantes.push(`${donde}: el comprobante ${tipo} ${numero} está repetido`);
+          claves.add(clave);
+        }
+      }
+
+      if (erroresComprobantes.length)
+        throw new ClientException(erroresComprobantes);
+
+      // Los tipos tienen que existir en ComprobanteTipo: una sola consulta para todos
+      const tipos = [...new Set(comprobantes.map(comprobante => String(comprobante.ComprobanteTipoCodigo).trim()))];
+
+      if (tipos.length) {
+        const tiposValidos = await queryRunner.query(
+          `SELECT ComprobanteTipoCodigo FROM ComprobanteTipo WHERE ComprobanteTipoCodigo IN (${tipos.map((_, indice) => `@${indice}`).join(',')})`,
+          tipos);
+
+        const existentes = new Set(tiposValidos.map(
+          (tipo: any) => String(tipo.ComprobanteTipoCodigo).trim().toUpperCase()));
+        const inexistentes = tipos.filter(tipo => !existentes.has(tipo.toUpperCase()));
+
+        if (inexistentes.length)
+          throw new ClientException(inexistentes.map(tipo => `El tipo de comprobante ${tipo} no existe`));
+      }
 
       await queryRunner.startTransaction();
 
@@ -562,31 +611,23 @@ export class OrdenVentaController extends BaseController {
         (total, item) => total + (Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)), 0);
 
       // Comprobantes que ya tiene la orden. Una orden nueva todavía no tiene ninguno.
-      const comprobantes = orden
+      const comprobantesActuales = orden
         ? await queryRunner.query(`
-            SELECT ComprobanteNro FROM Comprobante
-            WHERE NroOrdenVenta = @0 AND ComprobanteTipoCodigo = @1
-          `, [orden.NroOrdenVenta, TIPO_COMPROBANTE_ORDEN_VENTA])
+            SELECT ComprobanteNro, ComprobanteTipoCodigo FROM Comprobante WHERE NroOrdenVenta = @0
+          `, [orden.NroOrdenVenta])
         : [];
 
-      // Con más de un comprobante no se sabe cuál renumerar ni cuál borrar: eso se resuelve
-      // desde facturación
-      if (comprobanteRecibido && comprobantes.length > 1)
-        throw new ClientException(
-          `La orden ${orden.NroOrdenVenta} tiene ${comprobantes.length} comprobantes, el número no se puede editar desde acá`);
+      // La orden queda facturada cuando tiene un comprobante de tipo factura, que es el mismo
+      // criterio con el que la grilla muestra el estado
+      const hayFactura = (lista: any[]) => lista.some((comprobante: any) =>
+        String(comprobante.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === TIPO_COMPROBANTE_FACTURA);
 
-      // Borrar el número desde la pantalla deja a la orden sin comprobante
-      const borraComprobante = comprobanteRecibido && !NroComprobante;
-
-      // Tanto en el alta como en la modificación, tener número de comprobante deja la orden facturada
-      const numeroComprobante = borraComprobante
-        ? '' : (NroComprobante || String(comprobantes[0]?.ComprobanteNro ?? '').trim());
-      const facturada = !!numeroComprobante;
+      const facturada = hayFactura(comprobantesRecibidos ? comprobantes : comprobantesActuales);
       const estadoOrden = facturada ? ESTADO_ORDEN_VENTA_FACTURADA : ESTADO_ORDEN_VENTA_INICIAL;
 
-      // El estado se toca cuando hay comprobante, y cuando se lo borró: ahí la orden vuelve a
-      // quedar pendiente
-      const actualizaEstado = facturada || borraComprobante;
+      // Sin la lista de comprobantes el estado no se toca: la orden puede estar en cualquier
+      // punto del circuito
+      const actualizaEstado = comprobantesRecibidos || facturada;
 
       let NroOrdenVenta = orden?.NroOrdenVenta;
 
@@ -658,30 +699,24 @@ export class OrdenVentaController extends BaseController {
         ]);
       }
 
-      // El número de comprobante vive en Comprobante, relacionado por NroOrdenVenta
-      if (borraComprobante) {
-        // El número se borró en la pantalla: la orden se queda sin comprobante
-        if (comprobantes.length)
-          await queryRunner.query(`
-            DELETE FROM Comprobante WHERE NroOrdenVenta = @0 AND ComprobanteTipoCodigo = @1
-          `, [NroOrdenVenta, TIPO_COMPROBANTE_ORDEN_VENTA]);
+      // Los comprobantes viven en Comprobante, relacionados por NroOrdenVenta. Se reescriben
+      // completos: así se resuelven altas, bajas y modificaciones juntas, igual que el detalle.
+      if (comprobantesRecibidos) {
+        await queryRunner.query(`DELETE FROM Comprobante WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
 
-      } else if (NroComprobante) {
-        if (comprobantes.length) {
-          await queryRunner.query(`
-            UPDATE Comprobante
-            SET ComprobanteNro = @2, ImporteTotal = @3, AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
-            WHERE NroOrdenVenta = @0 AND ComprobanteNro = @1 AND ComprobanteTipoCodigo = @7
-          `, [NroOrdenVenta, comprobantes[0].ComprobanteNro, NroComprobante, importeTotal,
-              ahora, usuario, ip, TIPO_COMPROBANTE_ORDEN_VENTA]);
-
-        } else {
+        for (const comprobante of comprobantes) {
           await queryRunner.query(`
             INSERT INTO Comprobante (
               NroOrdenVenta, ComprobanteNro, ComprobanteTipoCodigo, ImporteTotal,
               AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
             ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
-          `, [NroOrdenVenta, NroComprobante, TIPO_COMPROBANTE_ORDEN_VENTA, importeTotal, ahora, usuario, ip]);
+          `, [
+            NroOrdenVenta,
+            String(comprobante.ComprobanteNro).trim(),
+            String(comprobante.ComprobanteTipoCodigo).trim(),
+            Number(comprobante.ImporteTotal),
+            ahora, usuario, ip
+          ]);
         }
       }
 

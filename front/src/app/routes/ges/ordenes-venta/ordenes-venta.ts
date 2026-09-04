@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, linkedSignal, model, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, model, resource, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta';
 import { OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
+import { OrdenVentaMasivaDrawerComponent } from '../orden-venta-masiva-drawer/orden-venta-masiva-drawer';
 import { ApiService } from '../../../services/api.service';
 
 // Listado, o el detalle abierto en uno de sus tres modos
@@ -15,7 +16,7 @@ type ModoOrdenVenta = 'alta' | 'modificacion' | 'consulta' | null
   selector: 'app-ordenes-venta',
   standalone: true,
   imports: [SHARED_IMPORTS, CurrencyPipe, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
-    ObjetivoSearchComponent],
+    ObjetivoSearchComponent, OrdenVentaMasivaDrawerComponent],
   templateUrl: './ordenes-venta.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -32,6 +33,9 @@ export class OrdenesVentaComponent {
 
   // Modo del detalle. En null la pantalla muestra el listado.
   modo = signal<ModoOrdenVenta>(null)
+
+  // Drawer de edición masiva, sobre las órdenes seleccionadas en la grilla
+  visibleMasiva = signal(false)
 
   detalleAbierto = computed(() => this.modo() != null)
 
@@ -83,32 +87,8 @@ export class OrdenesVentaComponent {
   clienteElementoDependienteId = computed(() =>
     this.cabecera().ClienteElementoDependienteId ?? this.ordenAbierta()?.ClienteElementoDependienteId ?? null)
 
-  // Número de comprobante de la orden, tal cual está en Comprobante
-  private nroComprobanteOriginal = computed(() => String(this.cabecera().NroComprobante ?? '').trim())
-
-  // Con más de un comprobante el back no sabe cuál renumerar y rechaza el cambio
-  variosComprobantes = computed(() => Number(this.cabecera().CantidadComprobantes ?? 0) > 1)
-
-  // Número editable. El objetivo y el período van en la fuente porque, sin ellos, al pasar de una
-  // orden sin comprobante a otra también sin comprobante la fuente no cambiaría y el input se
-  // quedaría con lo tipeado antes.
-  nroComprobante = linkedSignal<{ objetivoId: number, anio: number, mes: number, valor: string }, string>({
-    source: () => ({
-      objetivoId: this.objetivoId(),
-      anio: this.anio(),
-      mes: this.mes(),
-      valor: this.nroComprobanteOriginal()
-    }),
-    computation: source => source.valor
-  })
-
-  // Modificar el número habilita el guardado aunque el detalle no tenga cambios
-  nroComprobanteCambiado = computed(() =>
-    String(this.nroComprobante() ?? '').trim() !== this.nroComprobanteOriginal())
-
-  // Sólo se manda cuando cambió: así un guardado común no toca Comprobante
-  nroComprobanteAGrabar = computed<string | null>(() =>
-    this.nroComprobanteCambiado() ? String(this.nroComprobante() ?? '').trim() : null)
+  // Comprobantes de la orden, tal cual están en Comprobante. Se editan en el detalle.
+  comprobantes = computed<any[]>(() => this.cabecera().Comprobantes ?? [])
 
   // En el alta el objetivo y el período elegidos pueden tener ya una orden: el guardado no la
   // duplica, la modifica, y hay que avisarlo antes de tocar el detalle
@@ -120,17 +100,21 @@ export class OrdenesVentaComponent {
   private itemsResource = resource({
     params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
-      if (!params.objetivoId || !params.anio || !params.mes) return []
+      if (!params.objetivoId || !params.anio || !params.mes) return { list: [], esNueva: false }
 
       const response = await firstValueFrom(
         this.apiService.getListOrdenVenta(params.objetivoId, params.anio, params.mes))
 
-      return response.list ?? []
+      return { ...response, list: response.list ?? [] }
     },
-    defaultValue: [] as any[]
+    defaultValue: { list: [], esNueva: false } as any
   })
 
-  items = computed<any[]>(() => this.itemsResource.value() ?? [])
+  items = computed<any[]>(() => this.itemsResource.value()?.list ?? [])
+
+  // El detalle se inicializó con el del mes anterior: se puede grabar sin modificarlo
+  detalleImportado = computed<boolean>(() =>
+    !!this.itemsResource.value()?.esNueva && this.items().length > 0)
 
   // mm/aaaa, como se muestra el período en la carga de asistencia
   periodoTexto = computed(() => this.anio() ? `${String(this.mes()).padStart(2, '0')}/${this.anio()}` : '')
@@ -160,6 +144,12 @@ export class OrdenesVentaComponent {
 
   // TODO: pendiente de implementar
   bajaOrdenVenta() { }
+
+  // Edición masiva de las órdenes seleccionadas, agrupadas por cliente
+  edicionMasiva() {
+    if (this.sinSeleccion()) return
+    this.visibleMasiva.set(true)
+  }
 
   modificarOrdenVenta() {
     this.abrirDetalle('modificacion')

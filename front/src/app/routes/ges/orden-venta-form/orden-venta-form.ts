@@ -28,6 +28,23 @@ function aNumero(valor: any): number | null {
   return Number.isFinite(numero) ? numero : null
 }
 
+// Campos del comprobante: van los tres juntos o ninguno
+const CAMPOS_COMPROBANTE = ['ComprobanteTipoCodigo', 'ComprobanteNro', 'ImporteTotal']
+
+const cargado = (valor: any) => String(valor ?? '').trim() !== ''
+
+// Una fila de comprobante vacía se ignora, pero apenas se carga uno de los tres campos los otros
+// dos pasan a ser obligatorios
+function requeridoSiHayComprobante(control: AbstractControl): ValidationErrors | null {
+  const grupo = control.parent
+  if (!grupo) return null
+
+  const alguno = CAMPOS_COMPROBANTE.some(campo => cargado(grupo.get(campo)?.value))
+  if (!alguno) return null
+
+  return cargado(control.value) ? null : { required: true }
+}
+
 const TIPO_CANTIDAD_MANUAL = 'V'
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP'
 const TIPO_IMPORTE_MANUAL = 'V'
@@ -67,9 +84,10 @@ export class OrdenVentaFormComponent {
   // En consulta el detalle se muestra completo pero no se edita
   soloLectura = input<boolean>(false)
 
-  // Número de comprobante a grabar en Comprobante. Sólo llega cuando la pantalla lo modificó: en
-  // null el guardado no toca los comprobantes de la orden.
-  nroComprobanteAGrabar = input<string | null>(null)
+  // Comprobantes que ya tiene la orden, de la cabecera (/api/orden-venta/cabecera)
+  comprobantesOrden = input<any[]>([])
+
+  detalleImportado = input<boolean>(false)
 
   // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
   horasAFacturarA = input<number>(0)
@@ -97,9 +115,16 @@ export class OrdenVentaFormComponent {
 
   optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(), { initialValue: [] })
   optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
+  optionsComprobanteTipo = toSignal(this.searchService.getComprobanteTipoSearch(), { initialValue: [] })
 
   formOrdenVenta = this.fb.group({
     items: this.fb.array([] as FormGroup[])
+  })
+
+  // Comprobantes de la orden (tabla Comprobante). Van aparte del detalle: son datos de la
+  // cabecera, y una orden puede tener más de uno.
+  formComprobante = this.fb.group({
+    comprobantes: this.fb.array([this.nuevoComprobante()])
   })
 
   // Panel abierto del acordeón (uno solo a la vez, para no colapsar la vista)
@@ -136,6 +161,13 @@ export class OrdenVentaFormComponent {
   )
 
   importes = computed<number[]>(() => this.itemsValue().map(item => Number(item?.ImporteTotal ?? 0)))
+
+  // Comprobantes tal cual están en pantalla, para el contenedor
+  private comprobanteValue = toSignal(this.formComprobante.valueChanges, {
+    initialValue: this.formComprobante.getRawValue()
+  })
+
+  comprobantes = computed<any[]>(() => (this.comprobanteValue() as any)?.comprobantes ?? [])
 
   // Ítems con importe unitario ya resuelto: la lista de precios del cliente, o el importe de
   // venta del objetivo en los productos de horas. Sin importe cargado el campo queda a mano.
@@ -206,6 +238,9 @@ export class OrdenVentaFormComponent {
       void this.agregarProductosHoras(horasAFacturarA, horasAFacturarB)
     })
 
+    // Carga los comprobantes que ya tiene la orden
+    effect(() => this.sincronizarComprobantes(this.comprobantesOrden()))
+
     // El total de la orden se recalcula ante cualquier modificación del detalle
     effect(() => this.detalleChange.emit(this.itemsValue()))
 
@@ -220,8 +255,11 @@ export class OrdenVentaFormComponent {
 
     effect(() => {
       this.formValue()
-      this.conCambios.set(this.formOrdenVenta.dirty)
+      this.comprobantes()
+      this.conCambios.set(
+        this.formOrdenVenta.dirty || this.formComprobante.dirty || this.detalleImportado())
     })
+
   }
 
   get itemsArray(): FormArray {
@@ -418,6 +456,78 @@ export class OrdenVentaFormComponent {
     this.formOrdenVenta.markAsDirty()
   }
 
+  get comprobantesArray(): FormArray {
+    return this.formComprobante.get('comprobantes') as FormArray
+  }
+
+  // Carga en el FormArray los comprobantes que ya tiene la orden. Siempre queda una fila, aunque
+  // esté vacía: es donde se carga el primero.
+  private sincronizarComprobantes(comprobantes: any[]) {
+    const filas = comprobantes.length ? comprobantes : [{}]
+
+    while (this.comprobantesArray.length > filas.length)
+      this.comprobantesArray.removeAt(this.comprobantesArray.length - 1, { emitEvent: false })
+
+    filas.forEach((comprobante, indice) => {
+      if (indice < this.comprobantesArray.length)
+        this.comprobantesArray.at(indice).setValue({
+          ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo ?? null,
+          ComprobanteNro: comprobante.ComprobanteNro ?? '',
+          ImporteTotal: comprobante.ImporteTotal ?? null
+        }, { emitEvent: false })
+      else
+        this.comprobantesArray.push(this.nuevoComprobante(comprobante), { emitEvent: false })
+    })
+
+    // Lo recién traído todavía no tiene cambios del usuario
+    this.formComprobante.markAsPristine()
+    this.formComprobante.markAsUntouched()
+    this.comprobantesArray.updateValueAndValidity()
+  }
+
+  private nuevoComprobante(comprobante: any = {}): FormGroup {
+    const group = this.fb.group({
+      ComprobanteTipoCodigo: [comprobante.ComprobanteTipoCodigo ?? null, requeridoSiHayComprobante],
+      ComprobanteNro: [comprobante.ComprobanteNro ?? '', requeridoSiHayComprobante],
+      ImporteTotal: [comprobante.ImporteTotal ?? null, requeridoSiHayComprobante]
+    })
+
+    // Cada campo se valida contra sus hermanos: cargar uno obliga a revalidar los otros dos.
+    // Sin onlySelf el estado sube hasta el grupo, que es lo que mira el guardado; emitEvent en
+    // false evita que la revalidación se realimente.
+    group.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      for (const control of Object.values(group.controls))
+        control.updateValueAndValidity({ emitEvent: false })
+    })
+
+    return group
+  }
+
+  // Un comprobante sin tipo ni número todavía no se cargó: no se agrega otro hasta completarlo
+  hayComprobanteVacio = computed<boolean>(() =>
+    this.comprobantes().some(comprobante =>
+      !String(comprobante?.ComprobanteTipoCodigo ?? '').trim() &&
+      !String(comprobante?.ComprobanteNro ?? '').trim()
+    )
+  )
+
+  addComprobante(event?: Event) {
+    event?.preventDefault()
+    if (this.soloLectura() || this.hayComprobanteVacio()) return
+    this.comprobantesArray.push(this.nuevoComprobante())
+    this.formComprobante.markAsDirty()
+  }
+
+  removeComprobante(index: number, event?: Event) {
+    event?.preventDefault()
+    event?.stopPropagation()
+    if (this.soloLectura()) return
+    this.comprobantesArray.removeAt(index)
+    // Siempre queda una fila para cargar
+    if (!this.comprobantesArray.length) this.comprobantesArray.push(this.nuevoComprobante())
+    this.formComprobante.markAsDirty()
+  }
+
   // nz-form-control solo repinta el mensaje de error cuando el control emite statusChanges, y
   // markAsTouched no emite nada: hay que revalidar cada control para que se vea el "es requerido".
   private marcarInvalidos() {
@@ -428,6 +538,39 @@ export class OrdenVentaFormComponent {
         control.updateValueAndValidity({ onlySelf: true, emitEvent: true })
       }
     }
+  }
+
+  private marcarComprobantesInvalidos() {
+    for (const comprobante of this.comprobantesArray.controls) {
+      for (const control of Object.values((comprobante as FormGroup).controls)) {
+        control.markAsTouched()
+        control.markAsDirty()
+        control.updateValueAndValidity({ onlySelf: true, emitEvent: true })
+      }
+    }
+  }
+
+  private static readonly ETIQUETAS_COMPROBANTE: Record<string, string> = {
+    ComprobanteTipoCodigo: 'Tipo de Comprobante',
+    ComprobanteNro: 'Nro. de Comprobante',
+    ImporteTotal: 'Importe Total'
+  }
+
+  // Qué le falta a cada comprobante empezado, para avisarlo junto con los carteles de cada campo
+  private mensajeComprobantes(): string {
+    const detalle: string[] = []
+
+    this.comprobantesArray.controls.forEach((comprobante, indice) => {
+      if (comprobante.valid) return
+
+      const campos = Object.entries((comprobante as FormGroup).controls)
+        .filter(([, control]) => control.invalid)
+        .map(([nombre]) => OrdenVentaFormComponent.ETIQUETAS_COMPROBANTE[nombre] ?? nombre)
+
+      detalle.push(`Comprobante ${indice + 1}: ${campos.join(', ')}`)
+    })
+
+    return `Complete los datos del comprobante. ${detalle.join(' | ')}`
   }
 
   // Nombre visible de cada campo obligatorio, para el mensaje de error
@@ -476,6 +619,15 @@ export class OrdenVentaFormComponent {
       return
     }
 
+    // Los comprobantes van completos o vacíos: cargar uno de los tres campos obliga a los otros dos
+    if (this.comprobantesArray.controls.some(comprobante => comprobante.invalid)) {
+      this.validado.set(true)
+      this.marcarComprobantesInvalidos()
+      this.cdr.markForCheck()
+      this.notification.error('Orden de venta', this.mensajeComprobantes())
+      return
+    }
+
     this.guardando.set(true)
     try {
       const respuesta = await firstValueFrom(this.apiService.setOrdenVenta({
@@ -484,11 +636,17 @@ export class OrdenVentaFormComponent {
         mes: this.mes(),
         ClienteId: this.clienteId(),
         ClienteElementoDependienteId: this.clienteElementoDependienteId(),
-        ...(this.nroComprobanteAGrabar() != null ? { NroComprobante: this.nroComprobanteAGrabar() } : {}),
+        // La lista va completa: el back reescribe los comprobantes de la orden con lo que llega
+        comprobantes: this.comprobantesArray.getRawValue().map((comprobante: any) => ({
+          ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo,
+          ComprobanteNro: String(comprobante.ComprobanteNro ?? '').trim(),
+          ImporteTotal: aNumero(comprobante.ImporteTotal)
+        })),
         items
       }))
 
       this.formOrdenVenta.markAsPristine()
+      this.formComprobante.markAsPristine()
       this.conCambios.set(false)
 
       this.notification.success('Orden de venta', respuesta?.msg ?? 'Grabación exitosa')
