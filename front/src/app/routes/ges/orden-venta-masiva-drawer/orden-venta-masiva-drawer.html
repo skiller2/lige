@@ -1,0 +1,12 @@
+<nz-drawer [nzClosable]="true" [nzVisible]="visible()" [nzOffsetX]="0" [nzPlacement]="placement" [nzWidth]="600"
+  nzTitle="Edición Masiva de Órdenes de Venta" (nzOnClose)="visible.set(false)">
+  <ng-container *nzDrawerContent>
+
+    @for (cliente of clientes(); track cliente.ClienteId) {
+      <nz-card nzType="inner" nzTitle="{{ cliente.ClienteId }} - {{ cliente.Cliente }}" class="marginElement">
+        <p>Órdenes de venta seleccionadas: {{ cliente.ordenes.length }}</p>
+      </nz-card>
+    }
+
+  </ng-container>
+</nz-drawer>

@@ -73,19 +73,51 @@ const altasBajasColumns: any[] = [
     searchHidden: true,
     hidden: false,
     showGridColumn: false,
+    params: { exportHeader: 'Cuit Entidad' }
   },
-  // {
-  //   id: "PersonalFechaIngreso",
-  //   name: "Fecha Ingreso",
-  //   field: "PersonalFechaIngreso",
-  //   type: "date",
-  //   fieldName: "ISNULL(ing.PersonalFechaIngreso,'9999-12-31')",
-  //   searchType: "date",
-  //   searchComponent: "inputForFechaSearch",
-  //   sortable: true,
-  //   searchHidden: false,
-  //   hidden: false,
-  // },
+  {
+    id: "PersonalFechaIngreso",
+    name: "Fecha Ingreso",
+    field: "PersonalFechaIngreso",
+    type: "date",
+    fieldName: "ISNULL(ing.PersonalFechaIngreso,'9999-12-31')",
+    searchType: "date",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    searchHidden: true,
+    hidden: true,
+    excludeFromExport: true,
+    showGridColumn: false,
+    params: { exportHeader: 'Cuit / Cuil / Cdi' }
+  },
+  {
+    id: "DNI",
+    name: "Fecha Ingreso",
+    field: "DNI",
+    type: "string",
+    fieldName: "DNI",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    excludeFromExport: true,
+    showGridColumn: false,
+    params: { exportHeader: 'Numero Documento' }
+  },
+  {
+    id: "PersonalFechaBaja",
+    name: "Fecha Baja",
+    field: "PersonalFechaIngreso",
+    type: "date",
+    fieldName: "ISNULL(ing.PersonalFechaIngreso,'9999-12-31')",
+    searchType: "date",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    excludeFromExport: true,
+    showGridColumn: false,
+    params: { exportHeader: 'Fecha Egreso' }
+  },
   {
     id: "SituacionRevistaDescripcion",
     name: "Situación Revista",
@@ -95,7 +127,6 @@ const altasBajasColumns: any[] = [
     sortable: true,
     excludeFromExport: true,
   },
-
   {
     id: "PersonalSituacionRevistaMotivo",
     name: "Motivo",
@@ -118,6 +149,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
+    params: { exportHeader: 'Cuit / Cuil / Cdi' }
   },
   {
     id: 'TipoPersona',
@@ -130,6 +162,7 @@ const altasBajasColumns: any[] = [
     searchHidden: true,
     hidden: false,
     showGridColumn: false,
+    params: { exportHeader: 'Tipo Persona' }
   },
   {
     id: 'RazonSocial',
@@ -142,6 +175,7 @@ const altasBajasColumns: any[] = [
     searchHidden: true,
     hidden: false,
     showGridColumn: false,
+    params: { exportHeader: 'Razon Social' }
   },
   {
     id: 'PersonalApellido',
@@ -153,6 +187,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    params: { exportHeader: 'Apellido' }
   },
   {
     id: 'PersonalNombre',
@@ -164,6 +199,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    params: { exportHeader: 'Nombre' }
   },
   {
     id: 'PersonalSexo',
@@ -172,7 +208,7 @@ const altasBajasColumns: any[] = [
     fieldName: "per.PersonalSexo",
     type: 'string',
     formatter: 'collectionFormatter',
-    params: { collection: getOptionsSexo },
+    params: { collection: getOptionsSexo, exportHeader: 'Sexo' },
     searchType: "string",
     sortable: true,
     searchHidden: true,
@@ -203,6 +239,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
+    params: { exportHeader: 'Provincia' }
   },
   {
     id: 'LocalidadDescripcion',
@@ -215,6 +252,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
+    params: { exportHeader: 'Localidad' }
   },
   {
     id: 'DomicilioCodigoPostal',
@@ -226,6 +264,31 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
+    params: { exportHeader: 'Código Postal' }
+  },
+  {
+    id: "DomicilioDomCalle",
+    name: "Calle",
+    field: "DomicilioDomCalle",
+    type: "string",
+    fieldName: "perdom.DomicilioDomCalle",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false,
+    params: { exportHeader: 'Calle' }
+  },
+  {
+    id: "DomicilioDomNro",
+    name: "Numero",
+    field: "DomicilioDomNro",
+    type: "string",
+    fieldName: "perdom.DomicilioDomNro",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false,
+    params: { exportHeader: 'Numero' }
   },
   {
     id: "Domicilio",
@@ -237,6 +300,7 @@ const altasBajasColumns: any[] = [
     hidden: false,
     searchHidden: true,
     showGridColumn: false,
+    params: { exportHeader: 'Calle' }
   },
   {
     id: "PersonalEmailEmail",
@@ -248,6 +312,7 @@ const altasBajasColumns: any[] = [
     hidden: false,
     searchHidden: true,
     showGridColumn: false,
+    params: { exportHeader: 'Mail' }
   },
   {
     id: "Telefono",
@@ -259,6 +324,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
+    params: { exportHeader: 'Teléfono' }
   },
   {
     id: "CapitalSuscripto",
@@ -270,6 +336,7 @@ const altasBajasColumns: any[] = [
     hidden: false,
     searchHidden: true,
     showGridColumn: true,
+    params: { exportHeader: 'Capital Suscripto' }
   },
   {
     id: "CapitalIntegrado",
@@ -281,6 +348,7 @@ const altasBajasColumns: any[] = [
     hidden: false,
     searchHidden: true,
     showGridColumn: true,
+    params: { exportHeader: 'Capital Integrado' }
   },
   {
     id: "PersonalNroLegajo",
@@ -292,6 +360,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
+    params: { exportHeader: 'Legajo' }
   },
   {
     id: 'TipoPersonalActaDescripcion',
@@ -341,6 +410,28 @@ const altasBajasColumns: any[] = [
     hidden: false,
     excludeFromExport: true,
     // showGridColumn: false,
+  },
+  {
+    id: 'TipoDocumento',
+    name: 'Tipo Documento',
+    field: 'TipoDocumento',
+    type: 'string',
+    params: { exportHeader: 'Tipo Documento' },
+    searchHidden: true,
+    hidden: false,
+    excludeFromExport: true,
+    showGridColumn: false,
+  },
+  {
+    id: 'DNI',
+    name: 'Numero Documento',
+    field: 'DNI',
+    type: 'string',
+    params: { exportHeader: 'Numero Documento' },
+    searchHidden: true,
+    hidden: false,
+    excludeFromExport: true,
+    showGridColumn: false,
   },
 ]
 
@@ -548,14 +639,17 @@ export class InaesController extends BaseController {
         per.PersonalId AS id,
         @1 AS CUITEntidad,
         ing.PersonalFechaIngreso,
+        ing.PersonalFechaBaja,
         cuit.PersonalCUITCUILCUIT,
+        SUBSTRING(CAST(cuit.PersonalCUITCUILCUIT AS VARCHAR(11)), 3, 8) AS DNI,
         'Humana' AS TipoPersona,
         @2 AS RazonSocial,
-        per.PersonalApellido,
-        per.PersonalNombre,
+        TRIM(per.PersonalApellido) PersonalApellido,
+        TRIM(per.PersonalNombre) PersonalNombre,
         CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         per.PersonalSexo,
         per.PersonalFechaNacimiento,
+        perdom.DomicilioDomCalle, perdom.DomicilioDomNro,
         perdom.ProvinciaDescripcion,
         perdom.LocalidadDescripcion,
         perdom.DomicilioCodigoPostal,
@@ -602,9 +696,10 @@ export class InaesController extends BaseController {
           (TRIM(dom.DomicilioDomCalle) + ' '+ TRIM(dom.DomicilioDomNro)) domCalleNro, per.PersonalId, 
           CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')),NULLIF(CONCAT('C', TRIM(dom.DomicilioCodigoPostal)), 'C'),
           NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domCompleto,
+          dom.DomicilioDomCalle, dom.DomicilioDomNro,
           CONCAT(TRIM(dom.DomicilioDomCalle), ' ', TRIM(dom.DomicilioDomNro)) AS Domicilio,
-          prov.ProvinciaId, prov.ProvinciaDescripcion,
-          loc.LocalidadId, loc.LocalidadDescripcion,
+          prov.ProvinciaId, TRIM(prov.ProvinciaDescripcion) ProvinciaDescripcion,
+          loc.LocalidadId, TRIM(loc.LocalidadDescripcion) LocalidadDescripcion,
           dom.DomicilioCodigoPostal
         FROM Personal per
         LEFT JOIN NexoDomicilio nexdom ON nexdom.PersonalId = per.PersonalId AND nexdom.NexoDomicilioActual = 1
