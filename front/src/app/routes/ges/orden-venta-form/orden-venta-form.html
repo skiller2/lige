@@ -15,10 +15,17 @@
         </nz-form-item>
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Producto</nz-form-label>
-          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19" nzErrorTip="El producto es requerido">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Producto</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzErrorTip="El producto es requerido">
             <app-producto-search formControlName="ProductoCodigo" [bloqueado]="soloLectura() || esProductoHoras()[i]"
               (valueExtendedChange)="productoChange(i, $event)"></app-producto-search>
+          </nz-form-control>
+
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Cantidad</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback
+            nzErrorTip="La cantidad es requerida">
+            <input nz-input placeholder="" formControlName="Cantidad" type="text" appDotToComma
+              mask="separator.2" [attr.readonly]="soloLectura() || horasBloqueadas()[i] ? '' : null" />
           </nz-form-control>
         </nz-form-item>
 
@@ -49,29 +56,22 @@
         </nz-form-item>
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Cantidad</nz-form-label>
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Importe Unitario</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback
-            nzErrorTip="La cantidad es requerida">
-            <input nz-input placeholder="" formControlName="Cantidad" type="text" appDotToComma
-              mask="separator.2" [attr.readonly]="soloLectura() || horasBloqueadas()[i] ? '' : null" />
-          </nz-form-control>
-
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Importe Unitario</nz-form-label>
-          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" nzHasFeedback
             nzErrorTip="El importe unitario es requerido">
             <input nz-input placeholder="" formControlName="ImporteUnitario" type="text" appDotToComma
               mask="separator.2" [attr.readonly]="soloLectura() || precioDeLista()[i] ? '' : null" />
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item class="marginElement">
+        <nz-form-item class="marginElement" style="display:none">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Texto de Factura</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
             <textarea nz-input formControlName="TextoFactura" [attr.readonly]="soloLectura() ? '' : null"></textarea>
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item class="marginElement">
+        <nz-form-item class="marginElement" style="display:none">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad en Factura</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
             <input nz-input placeholder="" formControlName="CantidadEnFactura" type="text" appDotToComma
@@ -80,22 +80,22 @@
         </nz-form-item>
 
         <nz-form-item class="marginElement">
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Importe Total</nz-form-label>
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Total</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
             <input nz-input placeholder="" formControlName="ImporteTotal" type="text" appDotToComma
               mask="separator.2" [attr.readonly]="''" />
           </nz-form-control>
-        </nz-form-item>
 
-        @if (!soloLectura()) {
-          <div class="acciones-item">
-            <button nz-button nzType="default" (click)="removeItem(i, $event)"
-              [disabled]="horasBloqueadas()[i]" nz-tooltip
-              nzTooltipTitle="{{ horasBloqueadas()[i] ? 'El período de asistencia está cerrado' : ('app.icon.delete' | i18n) }}">
-              <span nz-icon nzType="delete" nzTheme="outline"></span>
-            </button>
-          </div>
-        }
+          @if (!soloLectura()) {
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="13" class="borrar-item">
+              <button nz-button nzType="default" (click)="removeItem(i, $event)"
+                [disabled]="horasBloqueadas()[i]" nz-tooltip
+                nzTooltipTitle="{{ horasBloqueadas()[i] ? 'El período de asistencia está cerrado' : ('app.icon.delete' | i18n) }}">
+                <span nz-icon nzType="delete" nzTheme="outline"></span>
+              </button>
+            </nz-form-control>
+          }
+        </nz-form-item>
 
       </nz-collapse-panel>
     }
@@ -111,4 +111,58 @@
     </div>
   }
 
+</form>
+
+<div class="input-container1">
+  <div class="input-label">Comprobantes</div>
+</div>
+
+<form [formGroup]="formComprobante" class="comprobante">
+  <div formArrayName="comprobantes">
+    @for (comprobante of comprobantesArray.controls; let i = $index; track comprobante) {
+      <nz-form-item class="marginElement" [formGroupName]="i">
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Tipo de Comprobante</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4" nzErrorTip="El tipo de comprobante es requerido">
+          <nz-select formControlName="ComprobanteTipoCodigo" style="width: 100%" nzAllowClear nzShowSearch
+            nzPlaceHolder="Seleccione" [nzDropdownMatchSelectWidth]="false" [nzDisabled]="soloLectura()">
+            @for (option of optionsComprobanteTipo(); track option.ComprobanteTipoCodigo) {
+              <nz-option [nzValue]="option.ComprobanteTipoCodigo" [nzLabel]="option.Descripcion"></nz-option>
+            }
+          </nz-select>
+        </nz-form-control>
+
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Nro. de Comprobante</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" nzHasFeedback
+          nzErrorTip="El número de comprobante es requerido">
+          <input nz-input formControlName="ComprobanteNro" type="text"
+            [attr.readonly]="soloLectura() ? '' : null" />
+        </nz-form-control>
+
+        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Total</nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" nzHasFeedback
+          nzErrorTip="El importe total es requerido">
+          <input nz-input formControlName="ImporteTotal" type="text" appDotToComma mask="separator.2"
+            class="text-right" [attr.readonly]="soloLectura() ? '' : null" />
+        </nz-form-control>
+
+        @if (!soloLectura()) {
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3" class="acciones-comprobante">
+            <button nz-button nzType="default" (click)="removeComprobante(i, $event)" nz-tooltip
+              nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+              <span nz-icon nzType="delete" nzTheme="outline"></span>
+            </button>
+
+            <!-- El alta se ofrece en la última fila, que es donde se sigue cargando -->
+            @if ($last) {
+              <button nz-button nzType="primary" (click)="addComprobante($event)"
+                [disabled]="hayComprobanteVacio()" nz-tooltip
+                nzTooltipTitle="{{ hayComprobanteVacio() ? 'Complete el comprobante actual antes de agregar otro' : ('app.icon.add' | i18n) }}">
+                <span nz-icon nzType="plus"></span>
+              </button>
+            }
+          </nz-form-control>
+        }
+      </nz-form-item>
+    }
+  </div>
 </form>

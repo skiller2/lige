@@ -49,12 +49,21 @@ export class OrdenVentaComponent {
 
   items = computed<any[]>(() => this.itemsResource.value()?.list ?? [])
 
-  // Una orden que todavía no se generó no tiene estado propio
+  // El detalle se inicializó con el del mes anterior: se puede grabar sin modificarlo
+  detalleImportado = computed<boolean>(() =>
+    !!this.itemsResource.value()?.esNueva && this.items().length > 0)
+
+  // Número y estado de la orden. Una que todavía no se generó no tiene ni uno ni otro.
   estado = computed<string>(() => {
+    const cabecera = this.cabecera()
     const detalle = this.itemsResource.value()
-    if (this.cabecera().EstadoOrdenVenta) return this.cabecera().EstadoOrdenVenta
+
+    if (cabecera.NroOrdenVenta)
+      return [cabecera.NroOrdenVenta, cabecera.EstadoOrdenVenta].filter(Boolean).join(' - ')
+
     if (detalle?.esNueva && detalle?.list?.length)
       return `Nueva, inicializada con ${String(detalle.origenMes).padStart(2, '0')}/${detalle.origenAnio}`
+
     return 'Nueva'
   })
 

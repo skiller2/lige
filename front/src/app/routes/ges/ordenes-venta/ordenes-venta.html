@@ -64,13 +64,6 @@
       }
     </nz-form-control>
 
-    <!-- ComprobanteNro de la orden. Editable en el alta y la modificación, no en consulta ni
-         cuando la orden tiene más de un comprobante -->
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Nro. Comprobante</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-      <input nz-input [ngModel]="nroComprobante()" [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="nroComprobante.set($event)" [disabled]="soloLectura() || variosComprobantes()" />
-    </nz-form-control>
   </nz-form-item>
 
   <!-- El alta no duplica: si el objetivo ya tiene orden en el período, se está editando esa -->
@@ -81,7 +74,8 @@
 
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
     [clienteId]="clienteId()" [clienteElementoDependienteId]="clienteElementoDependienteId()"
-    [soloLectura]="soloLectura()" [nroComprobanteAGrabar]="nroComprobanteAGrabar()" (detalleChange)="detalle.set($event)"
+    [soloLectura]="soloLectura()" [comprobantesOrden]="comprobantes()"
+    [detalleImportado]="detalleImportado()" (detalleChange)="detalle.set($event)"
     (guardado)="ordenVentaGuardada()" />
 
   <nz-divider></nz-divider>
@@ -92,7 +86,7 @@
     <!-- En consulta no hay nada para guardar -->
     @if (!soloLectura()) {
     <button nz-button nzType="primary" (click)="ordenVentaForm.save()" [nzLoading]="ordenVentaForm.guardando()"
-      [disabled]="(!ordenVentaForm.conCambios() && !nroComprobanteCambiado()) || ordenVentaForm.guardando() || !puedeGuardar()">
+      [disabled]="!ordenVentaForm.conCambios() || ordenVentaForm.guardando() || !puedeGuardar()">
       {{ 'app.btn.save' | i18n }}
     </button>
     }
