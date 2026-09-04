@@ -348,7 +348,7 @@ export class CuentasBancariasController extends BaseController {
           idxCbu = columnsXLS['cbu']
 
           //Valida que estén las columnas necesarias
-          if (isNaN(idxCuit)) columnsnNotFound.push('- CUIT')
+          if (isNaN(idxCuit)) columnsnNotFound.push('- cuit / cuil / cdi nro')
           if (isNaN(idxCbu)) columnsnNotFound.push('- CBU')
           if (columnsnNotFound.length) {
             columnsnNotFound.unshift('El formato del archivo es incorrecto. Faltan las siguientes columnas:')
