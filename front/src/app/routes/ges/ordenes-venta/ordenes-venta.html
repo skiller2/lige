@@ -30,6 +30,10 @@
         <button nz-button nzType="default" [disabled]="sinSeleccion()" nz-tooltip
           nzTooltipTitle="{{ 'app.icon.consult' | i18n }}" (click)="consultaOrdenVenta()">
           <span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
+        <!-- btn edición masiva: trabaja sobre todas las órdenes seleccionadas -->
+        <button nz-button nzType="default" [disabled]="sinSeleccion()" nz-tooltip
+          nzTooltipTitle="Edición masiva" (click)="edicionMasiva()">
+          <span nz-icon nzType="profile" nzTheme="outline"></span></button>
       </nz-button-group>
     </div>
 
@@ -100,3 +104,5 @@
   }
 
 </nz-card>
+
+<app-orden-venta-masiva-drawer [ordenes]="ordenesSeleccionadas()" [(visible)]="visibleMasiva" />

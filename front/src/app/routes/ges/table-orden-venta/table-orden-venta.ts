@@ -75,6 +75,9 @@ export class TableOrdenVentaComponent implements OnInit {
     );
 
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
+    // Columna de check: la edición masiva trabaja sobre varias órdenes a la vez
+    this.gridOptions.enableCheckboxSelector = true;
+    this.gridOptions.selectionOptions = { selectActiveRow: false };
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
     this.gridOptions.forceFitColumns = true;

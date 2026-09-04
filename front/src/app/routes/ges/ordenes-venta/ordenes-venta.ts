@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta';
 import { OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
+import { OrdenVentaMasivaDrawerComponent } from '../orden-venta-masiva-drawer/orden-venta-masiva-drawer';
 import { ApiService } from '../../../services/api.service';
 
 // Listado, o el detalle abierto en uno de sus tres modos
@@ -15,7 +16,7 @@ type ModoOrdenVenta = 'alta' | 'modificacion' | 'consulta' | null
   selector: 'app-ordenes-venta',
   standalone: true,
   imports: [SHARED_IMPORTS, CurrencyPipe, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
-    ObjetivoSearchComponent],
+    ObjetivoSearchComponent, OrdenVentaMasivaDrawerComponent],
   templateUrl: './ordenes-venta.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -32,6 +33,9 @@ export class OrdenesVentaComponent {
 
   // Modo del detalle. En null la pantalla muestra el listado.
   modo = signal<ModoOrdenVenta>(null)
+
+  // Drawer de edición masiva, sobre las órdenes seleccionadas en la grilla
+  visibleMasiva = signal(false)
 
   detalleAbierto = computed(() => this.modo() != null)
 
@@ -140,6 +144,12 @@ export class OrdenesVentaComponent {
 
   // TODO: pendiente de implementar
   bajaOrdenVenta() { }
+
+  // Edición masiva de las órdenes seleccionadas, agrupadas por cliente
+  edicionMasiva() {
+    if (this.sinSeleccion()) return
+    this.visibleMasiva.set(true)
+  }
 
   modificarOrdenVenta() {
     this.abrirDetalle('modificacion')
