@@ -2,10 +2,12 @@ import { TextExportService } from '@slickgrid-universal/text-export';
 
 export class InaesBajasCsvExportService extends TextExportService {
 
-  private exportColumnIds:string[] = [
-    'CUITEntidad',
-    'PersonalCUITCUILCUIT',
-    'PersonalFechaBaja',
+  private headerColumns:string[] = [
+    'Cuit Entidad',
+    'Cuit / Cuil / Cdi',
+    'Fecha Egreso',
+    'Causa Egreso',
+    'Medida disciplinaria',
   ];
   /**
    * Format exported values
@@ -44,15 +46,23 @@ export class InaesBajasCsvExportService extends TextExportService {
 
     let output = '';
 
-    // Headers without quotes
-    const headers = columns
-      .filter((col:any) => this.exportColumnIds.includes(col.id!))
-      .map(col => col.params.exportHeader || col.name || '');
+    const columnsOrderByHeader = this.headerColumns
+      .map((col:string) => {
+        const find = columns.find((colGrid:any) => colGrid.params?.exportHeader === col)
+        if (find) return find
+        return null
+      });
 
-    output += headers.join(this._delimiter);
+    // Headers without quotes
+    // const headers = columns
+    //   .filter((col:any) => this.exportColumnIds.includes(col.id!))
+    //   .map(col => col.params.exportHeader || col.name || '');
+
+    // output += headers.join(this._delimiter);
+    output += this.headerColumns.join(this._delimiter);
     output += '\r\n';
 
-    output += this.getRows(columns);
+    output += this.getRows(columnsOrderByHeader);
     return output;
   }
 
@@ -72,11 +82,11 @@ export class InaesBajasCsvExportService extends TextExportService {
       }
 
       const values = columns
-        .filter((col:any) => this.exportColumnIds.includes(col.id!))
         .map(col => {
+          if (!col) return ''
           const value = item[col.field!];
           
-          if (col.id === 'PersonalFechaBaja') {
+          if (col.params.exportHeader === 'Fecha Egreso') {
             return new Date(value).toLocaleDateString('en-GB');
           }
           else

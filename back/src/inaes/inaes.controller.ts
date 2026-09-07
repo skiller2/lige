@@ -12,15 +12,27 @@ import type { TextItem } from "pdfjs-dist/types/src/display/api.d.ts";
 import { logger } from "../logger/logger.ts";
 import { RecibosController } from "../recibos/recibos.controller.ts";
 
+const getOptionsTipoPersona: any[] = [
+  { label: 'Humana', value: '1' },
+  { label: 'Jurídica', value: '2' },
+]
 const getOptionsSexo: any[] = [
   { label: 'Masculino', value: 'M' },
   { label: 'Femenino', value: 'F' },
 ]
-
 const getOptionsEstado: any[] = [
   { label: 'Baja', value: 'B' },
   { label: 'Alta', value: 'A' },
   { label: 'ERROR', value: 'E' },
+]
+const getOptionsNivelRiego: any[] = [
+  { label: 'Bajo', value: '1' },
+  { label: 'Medio', value: '2' },
+  { label: 'Alto', value: '3' },
+]
+const getOptionsPEP: any[] = [
+  { label: 'SI', value: '0' },
+  { label: 'NO', value: '1' },
 ]
 
 const altasBajasColumns: any[] = [
@@ -85,14 +97,14 @@ const altasBajasColumns: any[] = [
     searchComponent: "inputForFechaSearch",
     sortable: true,
     searchHidden: true,
-    hidden: true,
+    hidden: false,
     excludeFromExport: true,
     showGridColumn: false,
-    params: { exportHeader: 'Cuit / Cuil / Cdi' }
+    params: { exportHeader: 'Fecha Ingreso' }
   },
   {
     id: "DNI",
-    name: "Fecha Ingreso",
+    name: "DNI",
     field: "DNI",
     type: "string",
     fieldName: "DNI",
@@ -106,9 +118,9 @@ const altasBajasColumns: any[] = [
   {
     id: "PersonalFechaBaja",
     name: "Fecha Baja",
-    field: "PersonalFechaIngreso",
+    field: "PersonalFechaBaja",
     type: "date",
-    fieldName: "ISNULL(ing.PersonalFechaIngreso,'9999-12-31')",
+    fieldName: "ISNULL(acta.ActaFechaActa,'9999-12-31')",
     searchType: "date",
     searchComponent: "inputForFechaSearch",
     sortable: true,
@@ -125,6 +137,9 @@ const altasBajasColumns: any[] = [
     type: "string",
     fieldName: "sitrev.SituacionRevistaDescripcion",
     sortable: true,
+    searchHidden: true,
+    hidden: false,
+    showGridColumn: false,
     excludeFromExport: true,
   },
   {
@@ -133,7 +148,9 @@ const altasBajasColumns: any[] = [
     field: "PersonalSituacionRevistaMotivo",
     type: "string",
     fieldName: "sitrev.PersonalSituacionRevistaMotivo",
+    params: { exportHeader: 'Causa Egreso' },
     sortable: true,
+    showGridColumn: false,
     excludeFromExport: true,
   },
 
@@ -156,13 +173,14 @@ const altasBajasColumns: any[] = [
     name: 'Tipo Persona',
     field: 'TipoPersona',
     fieldName: "",
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsTipoPersona ,exportHeader: 'Tipo Persona' },
     type: 'string',
     searchType: "string",
     sortable: true,
     searchHidden: true,
     hidden: false,
     showGridColumn: false,
-    params: { exportHeader: 'Tipo Persona' }
   },
   {
     id: 'RazonSocial',
@@ -264,7 +282,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
-    params: { exportHeader: 'Código Postal' }
+    params: { exportHeader: 'Código postal' }
   },
   {
     id: "DomicilioDomCalle",
@@ -288,7 +306,19 @@ const altasBajasColumns: any[] = [
     hidden: false,
     searchHidden: true,
     showGridColumn: false,
-    params: { exportHeader: 'Numero' }
+    params: { exportHeader: 'Número' }
+  },
+  {
+    id: "ProvinciaINAES",
+    name: "ProvinciaDeptoLocalidad",
+    field: "ProvinciaINAES",
+    type: "number",
+    fieldName: "perdom.ProvinciaINAES",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false,
+    params: { exportHeader: 'ProvinciaDeptoLocalidad' }
   },
   {
     id: "Domicilio",
@@ -360,7 +390,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
-    params: { exportHeader: 'Legajo' }
+    params: { exportHeader: 'Numero Asociado' }
   },
   {
     id: 'TipoPersonalActaDescripcion',
@@ -384,7 +414,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
-    params: { exportHeader: 'Fecha Ingreso' }
+    params: { exportHeader: 'Fecha de Acta' }
   },
   {
     id: 'ActaNroActa',
@@ -427,10 +457,60 @@ const altasBajasColumns: any[] = [
     name: 'Numero Documento',
     field: 'DNI',
     type: 'string',
-    params: { exportHeader: 'Numero Documento' },
+    params: { exportHeader: 'Número Documento' },
     searchHidden: true,
     hidden: false,
     excludeFromExport: true,
+    showGridColumn: false,
+  },
+  {
+    id: "OrganoEmisor",
+    name: "Órgano Emisor",
+    field: "OrganoEmisor",
+    type: "string",
+    fieldName: "",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false,
+    params: { exportHeader: 'Órgano Emisor' }
+  },
+  {
+    id: "ValorCuota",
+    name: "Valor Cuota",
+    field: "ValorCuota",
+    type: "currency",
+    fieldName: "",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false,
+    params: { exportHeader: 'Valor Cuota' }
+  },
+  {
+    id: "NivelRiesgo",
+    name: "Nivel de riesgo",
+    field: "NivelRiesgo",
+    type: "string",
+    fieldName: "",
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsNivelRiego, exportHeader: 'Nivel de riesgo' },
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+    showGridColumn: false,
+  },
+  {
+    id: "PEP",
+    name: "PEP",
+    field: "PEP",
+    type: "string",
+    fieldName: "",
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsPEP, exportHeader: 'PEP' },
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
     showGridColumn: false,
   },
 ]
@@ -642,7 +722,7 @@ export class InaesController extends BaseController {
         ing.PersonalFechaBaja,
         cuit.PersonalCUITCUILCUIT,
         SUBSTRING(CAST(cuit.PersonalCUITCUILCUIT AS VARCHAR(11)), 3, 8) AS DNI,
-        'Humana' AS TipoPersona,
+        '1' AS TipoPersona,
         @2 AS RazonSocial,
         TRIM(per.PersonalApellido) PersonalApellido,
         TRIM(per.PersonalNombre) PersonalNombre,
@@ -650,6 +730,7 @@ export class InaesController extends BaseController {
         per.PersonalSexo,
         per.PersonalFechaNacimiento,
         perdom.DomicilioDomCalle, perdom.DomicilioDomNro,
+        perdom.ProvinciaINAES,
         perdom.ProvinciaDescripcion,
         perdom.LocalidadDescripcion,
         perdom.DomicilioCodigoPostal,
@@ -661,6 +742,10 @@ export class InaesController extends BaseController {
         sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaMotivo,
         sal.SalarioMinimoVitalMovilSMVM AS CapitalSuscripto, 		  sal.SalarioMinimoVitalMovilSuscripcionInicial * sal.SalarioMinimoVitalMovilSMVM /100 AS CapitalIntegrado,
         acta.TipoPersonalActaCodigo, acta.ActaId, acta.ActaFechaActa, acta.ActaNroActa,acta.TipoPersonalActaDescripcion,
+        '' AS OrganoEmisor,
+        0 AS ValorCuota,
+        '1' AS NivelRiesgo,
+        '0' AS PEP,
         ${flags}
       FROM Personal per
 
@@ -698,7 +783,7 @@ export class InaesController extends BaseController {
           NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domCompleto,
           dom.DomicilioDomCalle, dom.DomicilioDomNro,
           CONCAT(TRIM(dom.DomicilioDomCalle), ' ', TRIM(dom.DomicilioDomNro)) AS Domicilio,
-          prov.ProvinciaId, TRIM(prov.ProvinciaDescripcion) ProvinciaDescripcion,
+          prov.ProvinciaId, TRIM(prov.ProvinciaDescripcion) ProvinciaDescripcion, prov.ProvinciaINAES,
           loc.LocalidadId, TRIM(loc.LocalidadDescripcion) LocalidadDescripcion,
           dom.DomicilioCodigoPostal
         FROM Personal per
@@ -720,14 +805,14 @@ export class InaesController extends BaseController {
 		) sal
 
     CROSS APPLY (
-        SELECT TOP (1)
-            pa.TipoPersonalActaCodigo, a.ActaId,a.ActaFechaActa, a.ActaNroActa, ta.TipoPersonalActaDescripcion
-          FROM PersonalActa pa
-        join Acta a on a.ActaId = pa.ActaId
-        Join TipoPersonalActa ta on ta.TipoPersonalActaCodigo = pa.TipoPersonalActaCodigo
-        WHERE pa.PersonalId = per.PersonalId and pa.TipoPersonalActaCodigo in ('ALT','REI','BAJ','BD')
-        ORDER BY a.ActaFechaActa DESC
-      ) acta
+      SELECT TOP (1)
+          pa.TipoPersonalActaCodigo, a.ActaId, a.ActaFechaActa, a.ActaNroActa, ta.TipoPersonalActaDescripcion
+        FROM PersonalActa pa
+      join Acta a on a.ActaId = pa.ActaId
+      Join TipoPersonalActa ta on ta.TipoPersonalActaCodigo = pa.TipoPersonalActaCodigo
+      WHERE pa.PersonalId = per.PersonalId and pa.TipoPersonalActaCodigo in ('ALT','REI','BAJ','BD')
+      ORDER BY a.ActaFechaActa DESC
+    ) acta
 
       WHERE (${filterSql}) AND (${filterCUITs})
       ${orderBy}`, [new Date(), CUITEntidad, RazonSocial])
