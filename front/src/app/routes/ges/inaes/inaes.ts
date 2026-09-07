@@ -240,16 +240,16 @@ export class INAESComponent {
       this.angularGrid.gridService.showColumnByIds(this.columnsId)
     
     //------ Validaciones ------
-    //Campos vacios
-    // const emptyFields = this.getEmptyFields()
-    // if (emptyFields.length) {
-    //   let errorMsg = `No se puede exportar ${detalle}: hay ${emptyFields.length} registro(s) con campos vacíos.\n`
+    // Campos vacios
+    const emptyFields = this.getEmptyFields()
+    if (emptyFields.length) {
+      let errorMsg = `No se puede exportar ${detalle}: hay ${emptyFields.length} registro(s) con campos vacíos.\n`
 
-    //   errorMsg += emptyFields.map((x:any) => { return `[Fila ${x.row + 1}] ${this.gridData.value()[x.row].ApellidoNombre}: ${x.names.join(", ")}.`}).join('\n');
-    //   this.notification.warning(`Advertencia`, errorMsg);
-    //   this.loadingExport.set(false)
-    //   return
-    // }
+      errorMsg += emptyFields.map((x:any) => { return `[Fila ${x.row + 1}] ${this.gridData.value()[x.row].ApellidoNombre}: ${x.names.join(", ")}.`}).join('\n');
+      this.notification.warning(`Advertencia`, errorMsg);
+      this.loadingExport.set(false)
+      return
+    }
     
     if (Estado == 'A') {
       await (this.altaINAESExportService as InaesAltasCsvExportService).exportToFile({
