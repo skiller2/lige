@@ -1973,6 +1973,11 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/orden-venta/save', ordenVenta);
   }
 
+  setOrdenVentaMasiva(clientes: any[]) {
+
+    return this.http.post<ResponseJSON<any>>('/api/orden-venta/masiva', { clientes });
+  }
+
   getPrecioProductoOrdenVenta(ObjetivoId: number, anio: number, mes: number, ProductoCodigo: string) {
 
     return this.http.get<ResponseJSON<any>>(`/api/orden-venta/precio/${ObjetivoId}/${anio}/${mes}/${ProductoCodigo}`).pipe(

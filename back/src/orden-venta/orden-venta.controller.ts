@@ -795,4 +795,215 @@ export class OrdenVentaController extends BaseController {
       await queryRunner.release();
     }
   }
+
+  async setOrdenVentaMasiva(req: Request, res: Response, next: NextFunction) {
+    const grupos: any[] = Array.isArray(req.body?.clientes) ? req.body.clientes : [];
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      const usuario = res.locals.userName;
+      const ip = this.getRemoteAddress(req);
+      const ahora = new Date();
+
+      if (!grupos.length)
+        throw new ClientException('No hay órdenes de venta seleccionadas');
+
+      const errores: string[] = [];
+
+      // Cada grupo tiene que traer sus órdenes, y el comprobante va completo o vacío
+      for (const grupo of grupos) {
+        const donde = `Cliente ${grupo?.ClienteId}`;
+        const ordenes: number[] = Array.isArray(grupo?.NroOrdenVentas)
+          ? grupo.NroOrdenVentas.map(Number).filter(Number.isFinite) : [];
+
+        if (!ordenes.length)
+          errores.push(`${donde}: no tiene órdenes seleccionadas`);
+
+        const tipo = String(grupo?.ComprobanteTipoCodigo ?? '').trim();
+        const numero = String(grupo?.ComprobanteNro ?? '').trim();
+        const conComprobante = !!tipo || !!numero || cargado(grupo?.ImporteTotal);
+
+        if (conComprobante) {
+          if (!tipo) errores.push(`${donde}: el tipo de comprobante es obligatorio`);
+          if (!numero) errores.push(`${donde}: el número de comprobante es obligatorio`);
+
+          if (!cargado(grupo?.ImporteTotal))
+            errores.push(`${donde}: el importe total es obligatorio`);
+          else if (!Number.isFinite(Number(grupo.ImporteTotal)))
+            errores.push(`${donde}: el importe total '${grupo.ImporteTotal}' no es un número válido`);
+        }
+
+        if (!conComprobante && !cargado(grupo?.EstadoOrdenVentaCodigo))
+          errores.push(`${donde}: no hay nada para aplicar, cargue el comprobante o el estado`);
+      }
+
+      if (errores.length)
+        throw new ClientException(errores);
+
+      // Los tipos de comprobante y los estados elegidos tienen que existir
+      const tipos = [...new Set(grupos
+        .map(grupo => String(grupo?.ComprobanteTipoCodigo ?? '').trim()).filter(Boolean))];
+
+      if (tipos.length) {
+        const tiposValidos = await queryRunner.query(
+          `SELECT ComprobanteTipoCodigo FROM ComprobanteTipo WHERE ComprobanteTipoCodigo IN (${tipos.map((_, indice) => `@${indice}`).join(',')})`,
+          tipos);
+
+        const existentes = new Set(tiposValidos.map(
+          (tipo: any) => String(tipo.ComprobanteTipoCodigo).trim().toUpperCase()));
+        const inexistentes = tipos.filter(tipo => !existentes.has(tipo.toUpperCase()));
+
+        if (inexistentes.length)
+          throw new ClientException(inexistentes.map(tipo => `El tipo de comprobante ${tipo} no existe`));
+      }
+
+      const estadosElegidos = [...new Set(grupos
+        .map(grupo => String(grupo?.EstadoOrdenVentaCodigo ?? '').trim()).filter(Boolean))];
+
+      const estados = await queryRunner.query(`SELECT EstadoOrdenVentaCod FROM EstadoOrdenVenta`);
+      const codigosEstado = estados.map((estado: any) => String(estado.EstadoOrdenVentaCod).trim());
+
+      const estadosInexistentes = estadosElegidos.filter(estado => !codigosEstado.includes(estado));
+      if (estadosInexistentes.length)
+        throw new ClientException(
+          estadosInexistentes.map(estado => `El estado '${estado}' no existe en EstadoOrdenVenta`));
+
+      await queryRunner.startTransaction();
+
+      let actualizadas = 0;
+
+      for (const grupo of grupos) {
+        const ClienteId = Number(grupo.ClienteId);
+        const ordenes: number[] = grupo.NroOrdenVentas.map(Number).filter(Number.isFinite);
+        const tipo = String(grupo?.ComprobanteTipoCodigo ?? '').trim();
+        const numero = String(grupo?.ComprobanteNro ?? '').trim();
+        const conComprobante = !!tipo && !!numero;
+        const estadoElegido = String(grupo?.EstadoOrdenVentaCodigo ?? '').trim();
+
+        for (const NroOrdenVenta of ordenes) {
+          const cabecera = await queryRunner.query(`
+            SELECT ClienteId, FechaGeneracionFactura FROM OrdenVenta WHERE NroOrdenVenta = @0
+          `, [NroOrdenVenta]);
+
+          if (!cabecera[0])
+            throw new ClientException(`No se encontró la orden de venta ${NroOrdenVenta}`);
+
+          // La selección viene de la grilla, pero el cliente se revalida contra la orden
+          if (Number(cabecera[0].ClienteId) !== ClienteId)
+            throw new ClientException(
+              `La orden ${NroOrdenVenta} no pertenece al cliente ${ClienteId}`);
+
+          if (cabecera[0].FechaGeneracionFactura)
+            throw new ClientException(
+              `La orden ${NroOrdenVenta} ya tiene factura generada, no se puede modificar`);
+
+          // Los comprobantes de la orden: el nuevo se suma a los que ya tenga
+          const comprobantesActuales = await queryRunner.query(`
+            SELECT ComprobanteNro, ComprobanteTipoCodigo FROM Comprobante WHERE NroOrdenVenta = @0
+          `, [NroOrdenVenta]);
+
+          if (conComprobante) {
+            const repetido = comprobantesActuales.some((comprobante: any) =>
+              String(comprobante.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === tipo.toUpperCase() &&
+              String(comprobante.ComprobanteNro ?? '').trim().toUpperCase() === numero.toUpperCase());
+
+            if (repetido)
+              throw new ClientException(
+                `La orden ${NroOrdenVenta} ya tiene el comprobante ${tipo} ${numero}`);
+
+            await queryRunner.query(`
+              INSERT INTO Comprobante (
+                NroOrdenVenta, ComprobanteNro, ComprobanteTipoCodigo, ImporteTotal,
+                AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+              ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
+            `, [NroOrdenVenta, numero, tipo, Number(grupo.ImporteTotal), ahora, usuario, ip]);
+
+            comprobantesActuales.push({ ComprobanteNro: numero, ComprobanteTipoCodigo: tipo });
+          }
+
+          // Sin estado elegido vale la misma regla que el detalle: con factura queda facturada
+          const facturada = comprobantesActuales.some((comprobante: any) =>
+            String(comprobante.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === TIPO_COMPROBANTE_FACTURA);
+
+          const estadoOrden = estadoElegido
+            || (facturada ? ESTADO_ORDEN_VENTA_FACTURADA : ESTADO_ORDEN_VENTA_INICIAL);
+
+          await queryRunner.query(`
+            UPDATE OrdenVenta
+            SET EstadoOrdenVentaCodigo = @1, AudFechaMod = @2, AudUsuarioMod = @3, AudIpMod = @4
+            WHERE NroOrdenVenta = @0
+          `, [NroOrdenVenta, estadoOrden, ahora, usuario, ip]);
+
+          actualizadas++;
+        }
+      }
+
+      await queryRunner.commitTransaction();
+
+      return this.jsonRes({ actualizadas }, res,
+        `${actualizadas} ${actualizadas === 1 ? 'orden de venta actualizada' : 'órdenes de venta actualizadas'}`);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner);
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // Estados posibles de una orden de venta, para el combo de la edición masiva
+  async getEstados(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const estados = await queryRunner.query(`
+        SELECT EstadoOrdenVentaCod AS value, TRIM(Descripcion) AS label FROM EstadoOrdenVenta
+      `);
+
+      this.jsonRes(estados, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // Datos de facturación de los clientes de las órdenes seleccionadas. Es la misma información
+  // que muestra la edición masiva de custodias, pero servida desde este módulo para que quede
+  // bajo el mismo permiso que el resto de la pantalla.
+  async getDatosFacturacion(req: Request, res: Response, next: NextFunction) {
+    const ClienteIds: number[] = Array.isArray(req.body?.ClienteIds)
+      ? req.body.ClienteIds.map(Number).filter(Number.isFinite)
+      : [];
+
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      if (!ClienteIds.length) return this.jsonRes([], res);
+
+      const clientes = await queryRunner.query(`
+        SELECT
+          cli.ClienteId,
+          TRIM(cli.ClienteDenominacion) AS ClienteDenominacion,
+          fac.ClienteFacturacionCUIT AS CUIT,
+          CONCAT_WS(' ', TRIM(dom.DomicilioDomCalle), TRIM(dom.DomicilioDomNro),
+            TRIM(loc.LocalidadDescripcion), TRIM(prov.ProvinciaDescripcion)) AS Domicilio
+        FROM Cliente cli
+        LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
+          AND fac.ClienteFacturacionDesde <= @0
+          AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @0
+        LEFT JOIN NexoDomicilio nex ON nex.ClienteId = cli.ClienteId AND nex.NexoDomicilioActual = 1
+        LEFT JOIN Domicilio dom ON dom.DomicilioId = nex.DomicilioId
+        LEFT JOIN Localidad loc ON loc.LocalidadId = dom.DomicilioLocalidadId
+          AND loc.ProvinciaId = dom.DomicilioProvinciaId AND loc.PaisId = dom.DomicilioPaisId
+        LEFT JOIN Provincia prov ON prov.ProvinciaId = dom.DomicilioProvinciaId AND prov.PaisId = dom.DomicilioPaisId
+        WHERE cli.ClienteId IN (${ClienteIds.map((_, indice) => `@${indice + 1}`).join(',')})
+      `, [new Date(), ...ClienteIds]);
+
+      this.jsonRes(clientes, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
 }

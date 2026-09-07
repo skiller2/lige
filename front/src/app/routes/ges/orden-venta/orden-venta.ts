@@ -1,47 +1,114 @@
-import { Component, computed, effect, inject, input, output, resource, signal } from '@angular/core'
-import { CurrencyPipe, DecimalPipe } from '@angular/common'
-import { SHARED_IMPORTS } from '@shared'
-// import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta'
-import { HorasAFacturar, OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form'
-import { firstValueFrom } from 'rxjs'
-import { ApiService } from '../../../services/api.service'
+import { ChangeDetectionStrategy, Component, computed, inject, model, resource, signal } from '@angular/core';
+import { CurrencyPipe } from '@angular/common';
+import { SHARED_IMPORTS } from '@shared';
+import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { firstValueFrom } from 'rxjs';
+import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta';
+import { OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
+import { OrdenVentaMasivaDrawerComponent } from '../orden-venta-masiva-drawer/orden-venta-masiva-drawer';
+import { ApiService } from '../../../services/api.service';
+
+// Listado, o el detalle abierto en uno de sus tres modos
+type ModoOrdenVenta = 'alta' | 'modificacion' | 'consulta' | null
 
 @Component({
   selector: 'app-orden-venta',
   standalone: true,
-  imports: [...SHARED_IMPORTS, DecimalPipe, CurrencyPipe, OrdenVentaFormComponent/*, TableOrdenVentaComponent*/],
+  imports: [SHARED_IMPORTS, CurrencyPipe, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
+    ObjetivoSearchComponent, OrdenVentaMasivaDrawerComponent],
   templateUrl: './orden-venta.html',
-  styleUrl: './orden-venta.less'
+  styleUrl: './orden-venta.less',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrdenVentaComponent {
-  anio = input<number>(0)
-  mes = input<number>(0)
-  objetivoId = input<number>(0)
-  horasAFacturarA = input<number>(0)
-  horasAFacturarB = input<number>(0)
-  horasAFacturarABloqueada = input<boolean>(false)
-  horasAFacturarBBloqueada = input<boolean>(false)
-
-  objetivoNombre = output<string>()
-  guardado = output<HorasAFacturar>()
-
-  horasAFacturarChange = output<HorasAFacturar>()
-
-  cabecera = signal<any>({})
-  isLoading = signal(false)
 
   private apiService = inject(ApiService)
 
-  // Detalle de la orden (ítems). Se recarga solo al cambiar objetivo/período.
-  // Si la orden del período no existe, el detalle viene inicializado con el mes anterior.
-  itemsResource = resource({
+  ordenesSeleccionadas = model<any[]>([])
+
+  ordenSeleccionada = computed(() => this.ordenesSeleccionadas()?.length > 0 ? this.ordenesSeleccionadas()[0] : null)
+
+  // La edición masiva trabaja sobre todas las órdenes seleccionadas
+  sinSeleccion = computed(() => this.ordenSeleccionada() == null)
+
+  // Modificación y consulta abren una orden: con más de una tildada no se sabe cuál
+  seleccionUnica = computed(() => this.ordenesSeleccionadas()?.length === 1)
+
+  // Modo del detalle. En null la pantalla muestra el listado.
+  modo = signal<ModoOrdenVenta>(null)
+
+  // Drawer de edición masiva, sobre las órdenes seleccionadas en la grilla
+  visibleMasiva = signal(false)
+
+  detalleAbierto = computed(() => this.modo() != null)
+
+  // La consulta abre el mismo detalle que la modificación, pero sin poder editarlo ni guardarlo
+  soloLectura = computed(() => this.modo() === 'consulta')
+
+  // En el alta el período y el objetivo los elige el usuario; en el resto los trae la fila
+  enAlta = computed(() => this.modo() === 'alta')
+
+  // Fila de la grilla sobre la que se abrió el detalle. En el alta todavía no hay ninguna.
+  ordenAbierta = signal<any | null>(null)
+
+  // Período y objetivo elegidos en el alta
+  periodoAlta = signal<Date | null>(null)
+  objetivoAlta = signal<any>(null)
+
+  // Período y objetivo identifican a la orden, sea la de la fila o la que se está dando de alta
+  objetivoId = computed(() =>
+    Number((this.enAlta() ? this.objetivoAlta() : this.ordenAbierta()?.ObjetivoId) ?? 0))
+
+  anio = computed(() =>
+    this.enAlta() ? (this.periodoAlta()?.getFullYear() ?? 0) : Number(this.ordenAbierta()?.PeriodoAnio ?? 0))
+
+  mes = computed(() => {
+    if (!this.enAlta()) return Number(this.ordenAbierta()?.PeriodoMes ?? 0)
+    const periodo = this.periodoAlta()
+    return periodo ? periodo.getMonth() + 1 : 0
+  })
+
+  periodoCompleto = computed(() => this.objetivoId() > 0 && this.anio() > 0 && this.mes() > 0)
+
+  // Cabecera del período (/api/orden-venta/cabecera). En el alta es la única forma de saber a qué
+  // cliente/elemento dependiente pertenece el objetivo elegido, que es lo que el guardado valida.
+  private cabeceraResource = resource({
+    params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
+    loader: async ({ params }) => {
+      if (!params.objetivoId || !params.anio || !params.mes) return null
+
+      return await firstValueFrom(
+        this.apiService.getOrdenVentaCabecera(params.objetivoId, params.anio, params.mes))
+    },
+    defaultValue: null as any
+  })
+
+  cabecera = computed<any>(() => this.cabeceraResource.value() ?? {})
+
+  clienteId = computed(() => this.cabecera().ClienteId ?? this.ordenAbierta()?.ClienteId ?? null)
+
+  clienteElementoDependienteId = computed(() =>
+    this.cabecera().ClienteElementoDependienteId ?? this.ordenAbierta()?.ClienteElementoDependienteId ?? null)
+
+  // Comprobantes de la orden, tal cual están en Comprobante. Se editan en el detalle.
+  comprobantes = computed<any[]>(() => this.cabecera().Comprobantes ?? [])
+
+  // En el alta el objetivo y el período elegidos pueden tener ya una orden: el guardado no la
+  // duplica, la modifica, y hay que avisarlo antes de tocar el detalle
+  ordenExistente = computed<number | null>(() =>
+    this.enAlta() ? (this.cabecera().NroOrdenVenta ?? null) : null)
+
+  // Ítems de la orden (/api/orden-venta/list), el mismo detalle que edita la carga de asistencia.
+  // Sin orden del período vuelve inicializado con el del mes anterior.
+  private itemsResource = resource({
     params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
       if (!params.objetivoId || !params.anio || !params.mes) return { list: [], esNueva: false }
 
       const response = await firstValueFrom(
-        this.apiService.getListOrdenVenta(params.objetivoId, params.anio, params.mes)
-      )
+        this.apiService.getListOrdenVenta(params.objetivoId, params.anio, params.mes))
+
       return { ...response, list: response.list ?? [] }
     },
     defaultValue: { list: [], esNueva: false } as any
@@ -53,64 +120,78 @@ export class OrdenVentaComponent {
   detalleImportado = computed<boolean>(() =>
     !!this.itemsResource.value()?.esNueva && this.items().length > 0)
 
-  // Número y estado de la orden. Una que todavía no se generó no tiene ni uno ni otro.
-  estado = computed<string>(() => {
-    const cabecera = this.cabecera()
-    const detalle = this.itemsResource.value()
+  // mm/aaaa, como se muestra el período en la carga de asistencia
+  periodoTexto = computed(() => this.anio() ? `${String(this.mes()).padStart(2, '0')}/${this.anio()}` : '')
 
-    if (cabecera.NroOrdenVenta)
-      return [cabecera.NroOrdenVenta, cabecera.EstadoOrdenVenta].filter(Boolean).join(' - ')
-
-    if (detalle?.esNueva && detalle?.list?.length)
-      return `Nueva, inicializada con ${String(detalle.origenMes).padStart(2, '0')}/${detalle.origenAnio}`
-
-    return 'Nueva'
-  })
-
-  // Detalle tal cual está en el form (incluye ítems agregados/editados sin guardar)
+  // Detalle tal cual está en el formulario, con los ítems agregados o editados sin guardar
   detalle = signal<any[]>([])
 
-  // Total Orden de Venta = Σ Importe Total de cada ítem
+  // Total Orden de Venta = suma del Importe Total de cada ítem
   importeTotal = computed(() =>
-    this.detalle().reduce((total: number, item: any) => total + Number(item.ImporteTotal ?? 0), 0)
-  )
+    this.detalle().reduce((total: number, item: any) => total + Number(item.ImporteTotal ?? 0), 0))
 
-  constructor() {
-    effect(() => {
-      const objetivoId = this.objetivoId()
-      const anio = this.anio()
-      const mes = this.mes()
+  // Sin cliente resuelto el guardado no tiene contra qué grabar la orden
+  puedeGuardar = computed(() => this.periodoCompleto() && this.clienteId() != null)
 
-      if (objetivoId > 0 && anio > 0 && mes > 0) {
-        this.getCabecera(objetivoId, anio, mes)
-      } else {
-        this.cabecera.set({})
-        this.objetivoNombre.emit('')
-      }
-    })
+  // Cambia al guardar: la fila de la grilla quedó vieja y hay que releer la lista
+  refreshTick = signal(0)
+
+  // El detalle arranca en blanco: el período y el objetivo se eligen en la misma pantalla, y con
+  // ellos el backend inicializa los ítems con los del mes anterior
+  altaOrdenVenta() {
+    this.ordenAbierta.set(null)
+    this.objetivoAlta.set(null)
+    // Por omisión el período en curso, que es el que se factura
+    this.periodoAlta.set(new Date())
+    this.modo.set('alta')
   }
 
-  // Después de guardar cambian tanto el detalle (ítems nuevos con su código) como la
-  // cabecera (nro. de orden y estado)
-  ordenVentaGuardada(horasAFacturar: HorasAFacturar) {
-    this.recargar()
-    this.guardado.emit(horasAFacturar)
+  // TODO: pendiente de implementar
+  bajaOrdenVenta() { }
+
+  // Edición masiva de las órdenes seleccionadas, agrupadas por cliente
+  edicionMasiva() {
+    if (this.sinSeleccion()) return
+    this.visibleMasiva.set(true)
   }
 
-  recargar() {
-    this.itemsResource.reload()
-    if (this.objetivoId() > 0 && this.anio() > 0 && this.mes() > 0)
-      this.getCabecera(this.objetivoId(), this.anio(), this.mes())
+  modificarOrdenVenta() {
+    this.abrirDetalle('modificacion')
   }
 
-  async getCabecera(objetivoId: number, anio: number, mes: number) {
-    this.isLoading.set(true)
-    try {
-      const cabecera = await firstValueFrom(this.apiService.getOrdenVentaCabecera(objetivoId, anio, mes))
-      this.cabecera.set(cabecera ?? {})
-      this.objetivoNombre.emit(this.cabecera().ObjetivoNombre ?? '')
-    } finally {
-      this.isLoading.set(false)
+  consultaOrdenVenta() {
+    this.abrirDetalle('consulta')
+  }
+
+  private abrirDetalle(modo: ModoOrdenVenta) {
+    if (!this.seleccionUnica()) return
+    this.ordenAbierta.set(this.ordenSeleccionada())
+    this.modo.set(modo)
+  }
+
+  // Guardado el detalle se sigue trabajando sobre él: se releen los ítems, que vuelven con su
+  // código, y se marca la grilla para que al volver al listado muestre el importe total nuevo
+  ordenVentaGuardada() {
+    this.refreshTick.update(n => n + 1)
+
+    // La orden ya existe: el alta pasa a ser una modificación, con el período y el objetivo fijos
+    if (this.enAlta()) {
+      this.ordenAbierta.set({
+        ObjetivoId: this.objetivoId(),
+        PeriodoAnio: this.anio(),
+        PeriodoMes: this.mes(),
+        ClienteId: this.clienteId(),
+        ClienteElementoDependienteId: this.clienteElementoDependienteId()
+      })
+      this.modo.set('modificacion')
     }
+
+    this.itemsResource.reload()
+    this.cabeceraResource.reload()
+  }
+
+  volverAlListado() {
+    this.modo.set(null)
+    this.ordenAbierta.set(null)
   }
 }

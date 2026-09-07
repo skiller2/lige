@@ -28,8 +28,11 @@ export class OrdenesVentaComponent {
 
   ordenSeleccionada = computed(() => this.ordenesSeleccionadas()?.length > 0 ? this.ordenesSeleccionadas()[0] : null)
 
-  // Baja, modificación y consulta trabajan sobre la orden seleccionada en la grilla
+  // La edición masiva trabaja sobre todas las órdenes seleccionadas
   sinSeleccion = computed(() => this.ordenSeleccionada() == null)
+
+  // Modificación y consulta abren una orden: con más de una tildada no se sabe cuál
+  seleccionUnica = computed(() => this.ordenesSeleccionadas()?.length === 1)
 
   // Modo del detalle. En null la pantalla muestra el listado.
   modo = signal<ModoOrdenVenta>(null)
@@ -160,7 +163,7 @@ export class OrdenesVentaComponent {
   }
 
   private abrirDetalle(modo: ModoOrdenVenta) {
-    if (this.sinSeleccion()) return
+    if (!this.seleccionUnica()) return
     this.ordenAbierta.set(this.ordenSeleccionada())
     this.modo.set(modo)
   }

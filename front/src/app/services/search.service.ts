@@ -1523,6 +1523,21 @@ export class SearchService {
 
 
 
+  getEstadoOrdenVenta(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`/api/orden-venta/estados`).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
+  // Datos de facturación de los clientes de las órdenes seleccionadas (edición masiva)
+  getDatosFacturacionOrdenVenta(ClienteIds: number[]): Observable<any> {
+    return this.http.post<ResponseJSON<any>>(`/api/orden-venta/clientes-facturacion`, { ClienteIds }).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
   getEstadoCustodia(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/custodia/estados`).pipe(
       map(res => res.data),

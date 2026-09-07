@@ -27,3 +27,16 @@ ordenVentaRouter.post("/save", [authMiddleware.verifyToken, authMiddleware.hasGr
 ordenVentaRouter.get("/precio/:ObjetivoId/:anio/:mes/:ProductoCodigo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   ordenVentaController.getPrecioProducto(req, res, next);
 });
+
+ordenVentaRouter.post("/masiva", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.setOrdenVentaMasiva(req, res, next);
+});
+
+ordenVentaRouter.get("/estados", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.getEstados(req, res, next);
+});
+
+ordenVentaRouter.post("/clientes-facturacion", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.getDatosFacturacion(req, res, next);
+});
+

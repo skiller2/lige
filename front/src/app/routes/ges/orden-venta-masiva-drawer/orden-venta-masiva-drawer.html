@@ -2,11 +2,70 @@
   nzTitle="Edición Masiva de Órdenes de Venta" (nzOnClose)="visible.set(false)">
   <ng-container *nzDrawerContent>
 
-    @for (cliente of clientes(); track cliente.ClienteId) {
-      <nz-card nzType="inner" nzTitle="{{ cliente.ClienteId }} - {{ cliente.Cliente }}" class="marginElement">
-        <p>Órdenes de venta seleccionadas: {{ cliente.ordenes.length }}</p>
-      </nz-card>
-    }
+    <form [formGroup]="formMasivo()">
+      <div formArrayName="clientes">
+        @for (cliente of clientes(); let i = $index; track cliente.ClienteId) {
+          <div [formGroupName]="i">
+            <nz-card nzType="inner" nzTitle="{{ cliente.ClienteId }} - {{ cliente.Cliente }}" class="marginElement">
+
+              <nz-form-item class="marginElement">
+                <nz-form-label [nzXs]="7" nzLabelWrap>Estado</nz-form-label>
+                <nz-form-control>
+                  <nz-select formControlName="EstadoOrdenVentaCodigo" nzPlaceHolder="Estado" nzAllowClear
+                    [nzDropdownMatchSelectWidth]="false">
+                    @for (option of optionsEstado(); track option.value) {
+                      <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+
+              <nz-form-item class="marginElement">
+                <nz-form-label [nzXs]="7" nzLabelWrap>Tipo de Comprobante</nz-form-label>
+                <nz-form-control>
+                  <nz-select formControlName="ComprobanteTipoCodigo" nzPlaceHolder="Seleccione" nzAllowClear
+                    nzShowSearch [nzDropdownMatchSelectWidth]="false">
+                    @for (option of optionsComprobanteTipo(); track option.ComprobanteTipoCodigo) {
+                      <nz-option [nzValue]="option.ComprobanteTipoCodigo" [nzLabel]="option.Descripcion"></nz-option>
+                    }
+                  </nz-select>
+                </nz-form-control>
+              </nz-form-item>
+
+              <nz-form-item class="marginElement">
+                <nz-form-label [nzXs]="7" nzLabelWrap>Nro. de Comprobante</nz-form-label>
+                <nz-form-control>
+                  <input nz-input formControlName="ComprobanteNro" type="text" />
+                </nz-form-control>
+              </nz-form-item>
+
+              <nz-form-item class="marginElement">
+                <nz-form-label [nzXs]="7" nzLabelWrap>Importe Total</nz-form-label>
+                <nz-form-control>
+                  <input nz-input formControlName="ImporteTotal" type="text" appDotToComma mask="separator.2"
+                    class="text-right" />
+                </nz-form-control>
+              </nz-form-item>
+
+              <p>CUIT: {{ facturacion()[cliente.ClienteId]?.CUIT }}</p>
+              <p>Razón social: {{ facturacion()[cliente.ClienteId]?.ClienteDenominacion }}</p>
+              <p>Cantidad de Órdenes: {{ cliente.cantidad }}</p>
+              <p>Importe Total: {{ cliente.importeTotal | currency }}</p>
+
+            </nz-card>
+          </div>
+        }
+      </div>
+
+      <nz-form-item>
+        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+          <button nzType="primary" nz-button (click)="save()" [nzLoading]="guardando()"
+            [disabled]="formMasivo().pristine || guardando()">
+            {{ 'app.btn.save' | i18n }}
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
 
   </ng-container>
 </nz-drawer>

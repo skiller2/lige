@@ -22,12 +22,12 @@
           nzPopconfirmTitle="Está seguro que quiere eliminar esta Orden de Venta?"
           (nzOnConfirm)="bajaOrdenVenta()" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
           <span nz-icon nzType="delete" nzTheme="outline"></span></button>
-        <!-- btn modificar -->
-        <button nz-button nzType="default" [disabled]="sinSeleccion()" nz-tooltip
+        <!-- btn modificar: abre una orden, así que no vale con varias tildadas -->
+        <button nz-button nzType="default" [disabled]="!seleccionUnica()" nz-tooltip
           nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" (click)="modificarOrdenVenta()">
           <span nz-icon nzType="edit" nzTheme="outline"></span></button>
         <!-- btn consulta -->
-        <button nz-button nzType="default" [disabled]="sinSeleccion()" nz-tooltip
+        <button nz-button nzType="default" [disabled]="!seleccionUnica()" nz-tooltip
           nzTooltipTitle="{{ 'app.icon.consult' | i18n }}" (click)="consultaOrdenVenta()">
           <span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
         <!-- btn edición masiva: trabaja sobre todas las órdenes seleccionadas -->
@@ -105,4 +105,5 @@
 
 </nz-card>
 
-<app-orden-venta-masiva-drawer [ordenes]="ordenesSeleccionadas()" [(visible)]="visibleMasiva" />
+<app-orden-venta-masiva-drawer [ordenes]="ordenesSeleccionadas()" [(visible)]="visibleMasiva"
+  (guardado)="refreshTick.update(n => n + 1)" />

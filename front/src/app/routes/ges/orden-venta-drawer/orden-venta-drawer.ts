@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, input, model, output, signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
-import { OrdenVentaComponent } from '../orden-venta/orden-venta';
+import { OrdenVentaDetalleComponent } from '../orden-venta-detalle/orden-venta-detalle';
 import { HorasAFacturar } from '../orden-venta-form/orden-venta-form';
 
 @Component({
   selector: 'app-orden-venta-drawer',
   standalone: true,
-  imports: [SHARED_IMPORTS, OrdenVentaComponent],
+  imports: [SHARED_IMPORTS, OrdenVentaDetalleComponent],
   templateUrl: './orden-venta-drawer.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
