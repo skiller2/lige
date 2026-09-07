@@ -2168,19 +2168,19 @@ LEFT JOIN(
   private async newUpdatePerDomicilio(queryRunner: any, PersonalId: number, Domicilio: any) {
 
     const NexoDomicilio = await queryRunner.query(
-      `SELECT nex.DomicilioId, nex.NexoDomicilioActual FROM NexoDomicilio AS nex WHERE nex.PersonalId = @0 AND nex.NexoDomicilioActual = 1`, 
-      [ PersonalId ]
+      `SELECT nex.DomicilioId, nex.NexoDomicilioActual FROM NexoDomicilio AS nex WHERE nex.PersonalId = @0 AND nex.NexoDomicilioActual = 1`,
+      [PersonalId]
     )
     const DomicilioId = NexoDomicilio[0] ? NexoDomicilio[0].DomicilioId : 0
 
     if (DomicilioId) { // UPDATE
       const Domicilio = await queryRunner.query(
-        `SELECT dom.DomicilioJson FROM Domicilio AS dom WHERE dom.DomicilioId = @0`, 
+        `SELECT dom.DomicilioJson FROM Domicilio AS dom WHERE dom.DomicilioId = @0`,
         [DomicilioId]
       )
       let cambio: boolean = false
-      const oldDomicilio:any = JSON.parse(Domicilio[0].DomicilioJson)
-      const oldAddress:any = oldDomicilio.address
+      const oldDomicilio: any = JSON.parse(Domicilio[0].DomicilioJson)
+      const oldAddress: any = oldDomicilio.address
 
       if (oldAddress.length !== Domicilio.address)
         cambio = true
@@ -2194,12 +2194,12 @@ LEFT JOIN(
       if (cambio) {
         await domicilioController.updateDomicilio(queryRunner, DomicilioId, Domicilio, null)
       }
-      
+
     } else { // ADD
       const newDomicilioId = await domicilioController.addDomicilio(queryRunner, Domicilio, null)
       await queryRunner.query(
         `INSERT INTO NexoDomicilio (DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, PersonalId) 
-        VALUES ( @0,@1,@2,@3,@4,@5,@6)`, 
+        VALUES ( @0,@1,@2,@3,@4,@5,@6)`,
         [newDomicilioId, 1, 1, 1, 1, 1, PersonalId]
       )
     }
@@ -3744,35 +3744,60 @@ UNION ALL
   async unsubscribeCBUs(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     const PersonalId: number = Number(req.body.PersonalId);
-    const yesterday: Date = new Date()
+    const usuario: string = res.locals.userName;
+    const today: Date = new Date()
+    today.setHours(0, 0, 0, 0)
+    const yesterday: Date = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
     try {
       await queryRunner.startTransaction()
 
-      let PersonalBanco = await queryRunner.query(`
-        SELECT PersonalBancoId
-        FROM PersonalBanco 
-        WHERE PersonalId IN (@0) AND PersonalBancoHasta IS NULL
-      `, [PersonalId])
+      const PersonalBanco = await queryRunner.query(`
+        SELECT PersonalBancoId, PersonalBancoDesde, PersonalBancoHasta, PersonalBancoCBU, isnull(IndNuevaCuenta, 0) as IndNuevaCuenta, trim(b.BancoDescripcion) as BancoDescripcion
+        FROM PersonalBanco pb
+        join banco b on pb.PersonalBancoBancoId = b.BancoId
+        WHERE PersonalId = @0 AND (
+          (pb.IndNuevaCuenta = 1 AND NULLIF(TRIM(pb.PersonalBancoCBU), '') IS NULL)
+          OR pb.PersonalBancoDesde > @1 OR pb.PersonalBancoDesde > isnull(pb.PersonalBancoHasta, '9999-12-31')
+          OR (pb.PersonalBancoDesde <= @1 AND isnull(pb.PersonalBancoHasta, '9999-12-31') >= @1)
+        )
+      `, [PersonalId, today])
       if (!PersonalBanco.length)
-        throw new ClientException('No se encuentro CBUs vigentes para dar de baja.');
+        throw new ClientException('No se encontraron cuentas bancarias vigentes ni pendientes de cbu para dar de baja.');
 
+      // Las fechas inconsistentes tienen prioridad sobre la cantidad de CBUs vigentes.
+      const periodoInvalido = PersonalBanco.find((r: any) => r.PersonalBancoHasta != null && r.PersonalBancoDesde.getTime() > r.PersonalBancoHasta.getTime())
+      if (periodoInvalido)
+        throw new ClientException(`La cuenta del banco ${periodoInvalido.BancoDescripcion} con fecha desde ${periodoInvalido.PersonalBancoDesde.toLocaleDateString()} tiene Desde mayor al Hasta. (Inconsistencia de datos.)`)
+
+      const cuentasVigentes = PersonalBanco.filter((r: any) => r.IndNuevaCuenta == 0 && r.PersonalBancoCBU?.trim() && r.PersonalBancoDesde.getTime() <= today.getTime() &&
+        (r.PersonalBancoHasta == null || r.PersonalBancoHasta.getTime() >= today.getTime()))
+
+      if (cuentasVigentes.length > 1)
+        throw new ClientException(`No se pueden dar de baja las cuentas. La persona cuenta con mas de un CBU vigente. Cantidad: ${cuentasVigentes.length} (Inconsistencia de datos).`)
+
+      // Tras validar los vigentes, se eliminan las pendientes sin CBU y las que empiezan hoy o a futuro.
+      await queryRunner.query(`
+        DELETE FROM PersonalBanco
+        WHERE PersonalId = @0 AND (
+          (IndNuevaCuenta = 1 AND NULLIF(TRIM(PersonalBancoCBU), '') IS NULL)
+          OR PersonalBancoDesde >= @1
+        )
+      `, [PersonalId, today])
+
+      // Solo se cierra la vigencia iniciada antes de hoy; los periodos historicos validos se conservan.
       await queryRunner.query(`
         UPDATE PersonalBanco SET
         PersonalBancoHasta = @1
-        WHERE PersonalId IN (@0) AND (PersonalBancoHasta IS NULL OR @1 < PersonalBancoHasta)
-      `, [PersonalId, yesterday])
-
-      await queryRunner.query(`
-        DELETE FROM PersonalBanco
-        WHERE PersonalId IN (@0) AND PersonalBancoHasta < PersonalBancoDesde
-      `, [PersonalId, yesterday])
+        WHERE PersonalId = @0 AND PersonalBancoDesde < @2
+          AND (PersonalBancoHasta IS NULL OR PersonalBancoHasta >= @2)
+      `, [PersonalId, yesterday, today])
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
