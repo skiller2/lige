@@ -137,6 +137,8 @@ const altasBajasColumns: any[] = [
     type: "string",
     fieldName: "sitrev.SituacionRevistaDescripcion",
     sortable: true,
+    searchHidden: true,
+    hidden: false,
     showGridColumn: false,
     excludeFromExport: true,
   },
