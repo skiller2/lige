@@ -68,6 +68,19 @@
       }
     </nz-form-control>
 
+    <!-- El estado sólo se elige desde esta pantalla: entrando por la carga de asistencia lo
+         resuelve el back según los comprobantes -->
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Estado</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
+      <nz-select [ngModel]="estadoOrdenVenta()" [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="estadoOrdenVenta.set($event)" nzPlaceHolder="Estado" nzAllowClear
+        [nzDisabled]="soloLectura()" [nzDropdownMatchSelectWidth]="false" style="width: 100%;">
+        @for (option of optionsEstado(); track option.value) {
+        <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+        }
+      </nz-select>
+    </nz-form-control>
+
   </nz-form-item>
 
   <!-- El alta no duplica: si el objetivo ya tiene orden en el período, se está editando esa -->
@@ -79,6 +92,7 @@
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
     [clienteId]="clienteId()" [clienteElementoDependienteId]="clienteElementoDependienteId()"
     [soloLectura]="soloLectura()" [comprobantesOrden]="comprobantes()"
+    [estadoOrdenVentaCodigo]="estadoOrdenVenta()"
     [detalleImportado]="detalleImportado()" (detalleChange)="detalle.set($event)"
     (guardado)="ordenVentaGuardada()" />
 
@@ -90,7 +104,7 @@
     <!-- En consulta no hay nada para guardar -->
     @if (!soloLectura()) {
     <button nz-button nzType="primary" (click)="ordenVentaForm.save()" [nzLoading]="ordenVentaForm.guardando()"
-      [disabled]="!ordenVentaForm.conCambios() || ordenVentaForm.guardando() || !puedeGuardar()">
+      [disabled]="(!ordenVentaForm.conCambios() && !estadoCambiado()) || ordenVentaForm.guardando() || !puedeGuardar()">
       {{ 'app.btn.save' | i18n }}
     </button>
     }

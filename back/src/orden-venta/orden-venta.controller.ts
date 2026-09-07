@@ -17,15 +17,10 @@ const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
 // Tipo 'Factura' de ComprobanteTipo: tenerlo cargado es lo que deja facturada a la orden
 const TIPO_COMPROBANTE_FACTURA = 'FAC';
 
-const ESTADO_GRILLA_FACTURADO = 'Facturado';
-const ESTADO_GRILLA_PENDIENTE = 'Pendiente';
-
-const sqlEstadoOrden = `
-  CASE WHEN EXISTS (
-    SELECT 1 FROM Comprobante cfac
-    WHERE cfac.NroOrdenVenta = ord.NroOrdenVenta
-      AND cfac.ComprobanteTipoCodigo = '${TIPO_COMPROBANTE_FACTURA}'
-  ) THEN '${ESTADO_GRILLA_FACTURADO}' ELSE '${ESTADO_GRILLA_PENDIENTE}' END`;
+// El estado de la grilla es el que la orden tiene guardado en EstadoOrdenVentaCodigo, que es lo
+// que graban tanto el detalle como la edición masiva. Deducirlo de los comprobantes dejaba la
+// columna pegada en 'Facturado' aunque se lo cambiara a mano.
+const sqlEstadoOrden = `TRIM(ISNULL(est.Descripcion,''))`;
 
 const cargado = (valor: any) => valor != null && String(valor).trim() !== '';
 
@@ -201,6 +196,7 @@ export class OrdenVentaController extends BaseController {
         LEFT JOIN ClienteElementoDependiente eledep
           ON eledep.ClienteId = ord.ClienteId
           AND eledep.ClienteElementoDependienteId = ord.ClienteElementoDependienteId
+        LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
        OUTER APPLY (
           SELECT TOP 1 o.ObjetivoId, o.ObjetivoDescripcion
           FROM Objetivo o
@@ -397,6 +393,9 @@ export class OrdenVentaController extends BaseController {
     const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
     const detalle: any[] = Array.isArray(req.body.items) ? req.body.items : [];
     const Observaciones = req.body.Observaciones ?? null;
+    // Estado elegido en la pantalla de órdenes de venta. Sin estado se resuelve por los
+    // comprobantes, que es como guarda la carga de asistencia.
+    const estadoElegido = String(req.body.EstadoOrdenVentaCodigo ?? '').trim();
     // Comprobantes de la orden. Sin la lista no se toca Comprobante; con ella se reescribe
     // completa, igual que el detalle. Las filas vacías de la pantalla se descartan.
     const comprobantesRecibidos = Array.isArray(req.body.comprobantes);
@@ -623,11 +622,14 @@ export class OrdenVentaController extends BaseController {
         String(comprobante.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === TIPO_COMPROBANTE_FACTURA);
 
       const facturada = hayFactura(comprobantesRecibidos ? comprobantes : comprobantesActuales);
-      const estadoOrden = facturada ? ESTADO_ORDEN_VENTA_FACTURADA : ESTADO_ORDEN_VENTA_INICIAL;
 
-      // Sin la lista de comprobantes el estado no se toca: la orden puede estar en cualquier
-      // punto del circuito
-      const actualizaEstado = comprobantesRecibidos || facturada;
+      // El estado elegido a mano le gana al que sale de los comprobantes
+      const estadoOrden = estadoElegido
+        || (facturada ? ESTADO_ORDEN_VENTA_FACTURADA : ESTADO_ORDEN_VENTA_INICIAL);
+
+      // Sin estado elegido ni lista de comprobantes el estado no se toca: la orden puede estar en
+      // cualquier punto del circuito
+      const actualizaEstado = !!estadoElegido || comprobantesRecibidos || facturada;
 
       let NroOrdenVenta = orden?.NroOrdenVenta;
 

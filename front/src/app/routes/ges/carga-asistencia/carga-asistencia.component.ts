@@ -101,13 +101,15 @@ export class CargaAsistenciaComponent {
     // La cantidad con la que se guardó cada producto de horas en la orden de venta pasa a ser las
     // horas a facturar de la asistencia, y se persiste por el mismo camino que el input.
     // Período cerrado: los inputs de horas a facturar están deshabilitados y el back rechaza
-    // cualquier cambio, así que los ítems de horas de la orden tampoco se pueden tocar
+    // cualquier cambio, así que los ítems de horas de la orden tampoco se pueden tocar.
+    // Se mira la misma bandera que deshabilita los inputs y no el 'disabled' del control: ngModel
+    // lo aplica en un microtask posterior, así que al abrir el drawer todavía podía dar false.
     get horasAFacturarABloqueada(): boolean {
-        return this.carasistForm.form.get('TotalHoraA')?.disabled ?? false
+        return !(this.gridOptionsEdit?.editable ?? false)
     }
 
     get horasAFacturarBBloqueada(): boolean {
-        return this.carasistForm.form.get('TotalHoraB')?.disabled ?? false
+        return !(this.gridOptionsEdit?.editable ?? false)
     }
 
     // Mientras se edita la orden, la cantidad de los productos de horas se refleja al toque en las

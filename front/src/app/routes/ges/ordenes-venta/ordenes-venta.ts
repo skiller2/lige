@@ -1,13 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, inject, model, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, model, resource, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta';
 import { OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { OrdenVentaMasivaDrawerComponent } from '../orden-venta-masiva-drawer/orden-venta-masiva-drawer';
 import { ApiService } from '../../../services/api.service';
+import { SearchService } from '../../../services/search.service';
 
 // Listado, o el detalle abierto en uno de sus tres modos
 type ModoOrdenVenta = 'alta' | 'modificacion' | 'consulta' | null
@@ -23,6 +25,10 @@ type ModoOrdenVenta = 'alta' | 'modificacion' | 'consulta' | null
 export class OrdenesVentaComponent {
 
   private apiService = inject(ApiService)
+  private searchService = inject(SearchService)
+
+  // Los mismos estados que ofrece la edición masiva
+  optionsEstado = toSignal(this.searchService.getEstadoOrdenVenta(), { initialValue: [] as any[] })
 
   ordenesSeleccionadas = model<any[]>([])
 
@@ -92,6 +98,20 @@ export class OrdenesVentaComponent {
 
   // Comprobantes de la orden, tal cual están en Comprobante. Se editan en el detalle.
   comprobantes = computed<any[]>(() => this.cabecera().Comprobantes ?? [])
+
+  // Estado con el que está guardada la orden. Una que todavía no se generó no tiene ninguno.
+  private estadoGuardado = computed<string | null>(() => this.cabecera().EstadoOrdenVentaCodigo ?? null)
+
+  // Estado elegido en pantalla. Se puede cambiar a mano, igual que en la edición masiva.
+  estadoOrdenVenta = signal<string | null>(null)
+
+  // Cambiar sólo el estado alcanza para habilitar el guardado, que si no mira el detalle
+  estadoCambiado = computed(() => (this.estadoOrdenVenta() ?? null) !== this.estadoGuardado())
+
+  constructor() {
+    // Al abrir otra orden el select arranca con el estado que tiene guardado
+    effect(() => this.estadoOrdenVenta.set(this.estadoGuardado()))
+  }
 
   // En el alta el objetivo y el período elegidos pueden tener ya una orden: el guardado no la
   // duplica, la modifica, y hay que avisarlo antes de tocar el detalle

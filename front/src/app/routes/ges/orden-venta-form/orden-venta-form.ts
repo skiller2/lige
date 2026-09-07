@@ -87,6 +87,10 @@ export class OrdenVentaFormComponent {
   // Comprobantes que ya tiene la orden, de la cabecera (/api/orden-venta/cabecera)
   comprobantesOrden = input<any[]>([])
 
+  // Estado elegido a mano en la pantalla de órdenes de venta. Sin estado el back lo resuelve por
+  // los comprobantes, que es como se guarda desde la carga de asistencia.
+  estadoOrdenVentaCodigo = input<string | null>(null)
+
   detalleImportado = input<boolean>(false)
 
   // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
@@ -143,7 +147,10 @@ export class OrdenVentaFormComponent {
     initialValue: this.formOrdenVenta.getRawValue()
   })
 
-  itemsValue = computed<any[]>(() => (this.formValue() as any)?.items ?? [])
+  itemsValue = computed<any[]>(() => {
+    this.formValue()
+    return this.itemsArray.getRawValue()
+  })
 
   // El detalle tiene cambios sin guardar. dirty/pristine no son señales, así que el estado se
   // refleja acá para que un contenedor OnPush pueda habilitar su botón de guardar.
@@ -258,6 +265,21 @@ export class OrdenVentaFormComponent {
       this.comprobantes()
       this.conCambios.set(
         this.formOrdenVenta.dirty || this.formComprobante.dirty || this.detalleImportado())
+    })
+
+    effect(() => {
+      const bloqueadas = this.horasBloqueadas()
+
+      this.itemsArray.controls.forEach((item, indice) => {
+        const cantidad = item.get('Cantidad')
+        if (!cantidad) return
+
+        if (bloqueadas[indice]) {
+          if (cantidad.enabled) cantidad.disable({ emitEvent: false })
+        } else if (cantidad.disabled) {
+          cantidad.enable({ emitEvent: false })
+        }
+      })
     })
 
   }
@@ -393,8 +415,10 @@ export class OrdenVentaFormComponent {
       Bonificacion: valores.Bonificacion
     })
 
-    // Importe Total = Cantidad * Importe Unitario
-    group.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(valor => {
+    // Importe Total = Cantidad * Importe Unitario. Se lee con getRawValue: con el período cerrado
+    // la cantidad está deshabilitada y no viene en el valor del grupo, así que daría siempre cero.
+    group.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      const valor = group.getRawValue()
       const total = Number(valor.Cantidad ?? 0) * Number(valor.ImporteUnitario ?? 0)
       if (Number(valor.ImporteTotal ?? 0) !== total)
         group.patchValue({ ImporteTotal: total }, { emitEvent: false })
@@ -636,6 +660,7 @@ export class OrdenVentaFormComponent {
         mes: this.mes(),
         ClienteId: this.clienteId(),
         ClienteElementoDependienteId: this.clienteElementoDependienteId(),
+        EstadoOrdenVentaCodigo: this.estadoOrdenVentaCodigo(),
         // La lista va completa: el back reescribe los comprobantes de la orden con lo que llega
         comprobantes: this.comprobantesArray.getRawValue().map((comprobante: any) => ({
           ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo,
