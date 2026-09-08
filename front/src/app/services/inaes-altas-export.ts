@@ -1,41 +1,40 @@
-import { LayoutDefaultHeaderItemTriggerDirective } from '@delon/theme/layout-default';
 import { TextExportService } from '@slickgrid-universal/text-export';
 
 export class InaesAltasCsvExportService extends TextExportService {
 
-  private headerColumns:string[] = [
-    'Cuit Entidad',
-    'Fecha Ingreso',
-    'Cuit / Cuil / Cdi',
-    'Tipo Persona',
-    'Categoria',
-    'Numero Asociado', //N?mero Asociado
-    'Denominacion social',// Denominacion social (persona juridica)
-    'Apellido', //Apellido
-    'Nombre', //Nombre
-    'Tipo Documento', //Tipo Documento
-    'Número Documento', //N?mero Documento
-    'Calle', //Calle
-    'Número', //N?mero
-    'Piso', // Piso
-    'Departamento Edificio',// Departamento Edificio
-    'ProvinciaDeptoLocalidad', // C?digo Provincia-Depto-Localidad
-    'Código postal', //C?digo postal
-    'Fecha de Acta', //Fecha de Acta
-    'Órgano Emisor',// órgano Emisor
-    'Capital Suscripto', //Capital Suscripto
-    'Capital Integrado', //Capital Integrado
-    'Mail', //Mail
-    'Teléfono', //Telefono
-    'Observación',// Observación,
-    'Valor Cuota',// Valor Cuota
-    'Nivel de riesgo',// "Nivel de riesgo(Bajo=1;Medio=2;Alto=3)"
-    'PEP'// "PEP (SI=0;NO=1)"
+  private headerColumns:any[] = [
+    { columnId: 'CUITEntidad', exportHeader: 'Cuit Entidad'},
+    { columnId: 'ActaFechaActa', exportHeader: 'Fecha Ingreso'},
+    { columnId: 'PersonalCUITCUILCUIT', exportHeader: 'Cuit / Cuil / Cdi'},
+    { columnId: 'TipoPersona', exportHeader: 'Tipo Persona'},
+    { columnId: null, exportHeader: 'Categoria'},
+    { columnId: 'PersonalNroLegajo', exportHeader: 'Numero Asociado'},
+    { columnId: null, exportHeader: 'Denominacion social'},
+    { columnId: 'PersonalApellido', exportHeader: 'Apellido', format: (value:any)=>{return this.truncateBytes(String(value), 100)}},
+    { columnId: 'PersonalNombre', exportHeader: 'Nombre', format: (value:any)=>{return this.truncateBytes(String(value), 100)}},
+    { columnId: 'TipoDocumento', exportHeader: 'Tipo Documento'},
+    { columnId: 'DNI', exportHeader: 'Número Documento'},
+    { columnId: 'DomicilioDomCalle', exportHeader: 'Calle'},
+    { columnId: 'DomicilioDomNro', exportHeader: 'Número'},
+    { columnId: null, exportHeader: 'Piso'},
+    { columnId: null, exportHeader: 'Departamento Edificio'},
+    { columnId: 'ProvinciaINAES', exportHeader: 'ProvinciaDeptoLocalidad'},
+    { columnId: 'DomicilioCodigoPostal', exportHeader: 'Código postal'},
+    { columnId: 'ActaFechaActa', exportHeader: 'Fecha de Acta'},
+    { columnId: null, exportHeader: 'Órgano Emisor'},
+    { columnId: 'CapitalSuscripto', exportHeader: 'Capital Suscripto'},
+    { columnId: 'PersonalEmailEmail', exportHeader: 'Mail'},
+    { columnId: 'Telefono', exportHeader: 'Teléfono'},
+    { columnId: null, exportHeader: 'Observación'},
+    { columnId: 'ValorCuota', exportHeader: 'Valor Cuota'},
+    { columnId: 'NivelRiesgo', exportHeader: 'Nivel de riesgo'},
+    { columnId: 'PEP', exportHeader: 'PEP'},
   ];
   /**
    * Format exported values
    */
   protected formatExportValue(value: any): string {
+
     if (value === null || value === undefined) {
       return '';
     }
@@ -64,26 +63,19 @@ export class InaesAltasCsvExportService extends TextExportService {
   protected override getDataOutput(): string {
     
     const columns = this._grid.getColumns() || [];
+    const columnsOrderByHeader = this.headerColumns
+      .map((col:any) => {
+        if (!col.columnId) return null
+        const find = columns.find((colGrid:any) => colGrid.id === col.columnId)
+        if (find) return {...find, format: col.format}
+        return null
+      });
 
     this._delimiter = ';';
 
     let output = '';
-
-    const columnsOrderByHeader = this.headerColumns
-      .map((col:string) => {
-        
-        const find = columns.find((colGrid:any) => colGrid.params?.exportHeader === col)
-        if (find) return find
-        return null
-      });
-    // Headers without quotes
-    // const headers = columns
-    //   .filter((col:any) => this.exportColumnIds.includes(col.id!))
-    //   .map(col => col.params.exportHeader || col.name || '');
-
-      // console.log('headers: ', headers);
-    // output += headers.join(this._delimiter);
-    output += this.headerColumns.join(this._delimiter);
+      
+    output += this.headerColumns.map(obj => obj.exportHeader).join(this._delimiter);
     output += '\r\n';
     
     output += this.getRows(columnsOrderByHeader);
@@ -99,12 +91,6 @@ export class InaesAltasCsvExportService extends TextExportService {
 
     const lineCount = this._dataView.getLength();
 
-    const decimalColumns = new Set([
-      'Capital Suscripto',
-      'Capital Integrado',
-      'Valor Cuota',
-    ]);
-
     for (let row = 0; row < lineCount; row++) {
       const item = this._dataView.getItem(row);
 
@@ -113,33 +99,24 @@ export class InaesAltasCsvExportService extends TextExportService {
       }
 
       const values = columns
-        .map(col => {
-          if (!col) return ''
-          const value = item[col.id];
-          const exportHeader = col.params.exportHeader
+        .map((obj:any) => {
+          if (!obj) return ''
+          
+          let value = item[obj.id];
 
-          if (decimalColumns.has(exportHeader)) {
-            return Number(value).toFixed(2).replace('.', ',');
+          switch (obj.type) {
+            case 'currency':
+              value = Number(value).toFixed(2).replace('.', ',');
+              break;
+            case 'date':
+              value = new Date(value).toLocaleDateString('en-GB');
+              break;
+
+            default:
+              break;
           }
 
-          else if (exportHeader === 'Fecha de Acta' || exportHeader === 'Fecha Ingreso') {
-            return new Date(value).toLocaleDateString('en-GB');
-          }
-
-          else if (exportHeader === 'Domicilio') {
-            return this.truncateBytes(String(value), 200)
-          }
-
-          else if (exportHeader === 'Apellido' || exportHeader === 'Nombre') {
-            return this.truncateBytes(String(value), 100)
-          }
-
-          else if (exportHeader === 'Código postal') {
-            return this.truncateBytes(String(value), 8)
-          }
-
-          else
-            return value;
+          return obj.format? obj.format(value) : value;
         });
 
       rows.push(values.join(this._delimiter));

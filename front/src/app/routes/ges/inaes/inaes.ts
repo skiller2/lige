@@ -27,7 +27,7 @@ import { InaesBajasCsvExportService } from '../../../services/inaes-bajas-export
     styleUrl: './inaes.less',
     // encapsulation: ViewEncapsulation.None,
     imports: [SHARED_IMPORTS, FiltroBuilderComponent, TableINAESRecibosComponent],
-    providers: [AngularUtilService, ExcelExportService,] 
+    providers: [AngularUtilService,] 
     
 })
 export class INAESComponent {
@@ -169,11 +169,16 @@ export class INAESComponent {
       this.loadingExport.set(false)
       return
     }
+
+    try {
+      await this.excelExportService.exportToExcel({
+        filename: `INAES-${filter}`,
+        format: 'xlsx',
+      });
+    } catch (error) {
+      
+    }
     
-    await this.excelExportService.exportToExcel({
-      filename: `INAES-${filter}`,
-      format: 'xlsx',
-    });
     this.gridData.value.set(saveData)
 
     // Ocultar columnas basadas en la propiedad showGridColumn de cada columna

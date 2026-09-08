@@ -12,6 +12,14 @@ import type { TextItem } from "pdfjs-dist/types/src/display/api.d.ts";
 import { logger } from "../logger/logger.ts";
 import { RecibosController } from "../recibos/recibos.controller.ts";
 
+const getOptionsTipoDocumento: any[] = [
+  { label: 'Cédula de Identidad', value: '1' },
+  { label: 'Documento Nacional Único', value: '2' },
+  { label: 'Libreta Civica', value: '3' },
+  { label: 'Libreta de Enrolamiento', value: '4' },
+  { label: 'Pasaporte', value: '5' },
+]
+
 const getOptionsTipoPersona: any[] = [
   { label: 'Humana', value: '1' },
   { label: 'Jurídica', value: '2' },
@@ -85,7 +93,6 @@ const altasBajasColumns: any[] = [
     searchHidden: true,
     hidden: false,
     showGridColumn: false,
-    params: { exportHeader: 'Cuit Entidad' }
   },
   {
     id: "PersonalFechaIngreso",
@@ -100,7 +107,6 @@ const altasBajasColumns: any[] = [
     hidden: false,
     excludeFromExport: true,
     showGridColumn: false,
-    params: { exportHeader: 'Fecha Ingreso' }
   },
   {
     id: "DNI",
@@ -113,22 +119,6 @@ const altasBajasColumns: any[] = [
     hidden: false,
     excludeFromExport: true,
     showGridColumn: false,
-    params: { exportHeader: 'Numero Documento' }
-  },
-  {
-    id: "PersonalFechaBaja",
-    name: "Fecha Baja",
-    field: "PersonalFechaBaja",
-    type: "date",
-    fieldName: "ISNULL(acta.ActaFechaActa,'9999-12-31')",
-    searchType: "date",
-    searchComponent: "inputForFechaSearch",
-    sortable: true,
-    searchHidden: true,
-    hidden: false,
-    excludeFromExport: true,
-    showGridColumn: false,
-    params: { exportHeader: 'Fecha Egreso' }
   },
   {
     id: "SituacionRevistaDescripcion",
@@ -148,8 +138,9 @@ const altasBajasColumns: any[] = [
     field: "PersonalSituacionRevistaMotivo",
     type: "string",
     fieldName: "sitrev.PersonalSituacionRevistaMotivo",
-    params: { exportHeader: 'Causa Egreso' },
     sortable: true,
+    searchHidden: true,
+    hidden: false,
     showGridColumn: false,
     excludeFromExport: true,
   },
@@ -446,34 +437,12 @@ const altasBajasColumns: any[] = [
     name: 'Tipo Documento',
     field: 'TipoDocumento',
     type: 'string',
-    params: { exportHeader: 'Tipo Documento' },
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsTipoDocumento, exportHeader: 'Tipo Documento' },
     searchHidden: true,
     hidden: false,
     excludeFromExport: true,
     showGridColumn: false,
-  },
-  {
-    id: 'DNI',
-    name: 'Numero Documento',
-    field: 'DNI',
-    type: 'string',
-    params: { exportHeader: 'Número Documento' },
-    searchHidden: true,
-    hidden: false,
-    excludeFromExport: true,
-    showGridColumn: false,
-  },
-  {
-    id: "OrganoEmisor",
-    name: "Órgano Emisor",
-    field: "OrganoEmisor",
-    type: "string",
-    fieldName: "",
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    showGridColumn: false,
-    params: { exportHeader: 'Órgano Emisor' }
   },
   {
     id: "ValorCuota",
@@ -719,8 +688,8 @@ export class InaesController extends BaseController {
         per.PersonalId AS id,
         @1 AS CUITEntidad,
         ing.PersonalFechaIngreso,
-        ing.PersonalFechaBaja,
         cuit.PersonalCUITCUILCUIT,
+        '2' AS TipoDocumento,
         SUBSTRING(CAST(cuit.PersonalCUITCUILCUIT AS VARCHAR(11)), 3, 8) AS DNI,
         '1' AS TipoPersona,
         @2 AS RazonSocial,
@@ -742,7 +711,6 @@ export class InaesController extends BaseController {
         sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaMotivo,
         sal.SalarioMinimoVitalMovilSMVM AS CapitalSuscripto, 		  sal.SalarioMinimoVitalMovilSuscripcionInicial * sal.SalarioMinimoVitalMovilSMVM /100 AS CapitalIntegrado,
         acta.TipoPersonalActaCodigo, acta.ActaId, acta.ActaFechaActa, acta.ActaNroActa,acta.TipoPersonalActaDescripcion,
-        '' AS OrganoEmisor,
         0 AS ValorCuota,
         '1' AS NivelRiesgo,
         '0' AS PEP,
