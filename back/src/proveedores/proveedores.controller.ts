@@ -113,10 +113,10 @@ export class ProveedoresController extends BaseController {
       FROM Proveedor pro
       LEFT JOIN NexoDomicilio AS nex ON nex.ProveedorId = pro.ProveedorId AND nex.NexoDomicilioActual = 1
       LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
-      WHERE pro.ProveedorId = @0`, 
+      WHERE pro.ProveedorId = @0`,
       [proveedorId]
     )
-    if (!data.length)  null
+    if (!data.length) null
     const Proveedor = data[0]
     Proveedor.domicilio = JSON.parse(Proveedor.DomicilioJson)
 
@@ -155,16 +155,16 @@ export class ProveedoresController extends BaseController {
       LEFT JOIN ContactoEmail AS email ON email.ContactoId = con.ContactoId
       LEFT JOIN ContactoTelefono AS tele ON tele.ContactoId = con.ContactoId
       
-      WHERE con.ProveedorId IN (@0)`, 
+      WHERE con.ProveedorId IN (@0)`,
       [ProveedorId]
     )
     return contactos
   }
 
-  async valProveedoresForm(queryRunner:QueryRunner, form:any, type:string){
-    
+  async valProveedoresForm(queryRunner: QueryRunner, form: any, type: string) {
+
     let campos_vacios: any[] = []
-    if (!form.ProveedorRazonSocial) 
+    if (!form.ProveedorRazonSocial)
       campos_vacios.push(`- Razón Social`)
 
     if (!form.CUIT)
@@ -191,15 +191,15 @@ export class ProveedoresController extends BaseController {
 
     switch (type) {
       case 'U':
-        let proveedor:any = await queryRunner.query(
-          `SELECT pro.ProveedorId, pro.ProveedorInactivo FROM Proveedor pro WHERE pro.ProveedorId = @0`, 
+        let proveedor: any = await queryRunner.query(
+          `SELECT pro.ProveedorId, pro.ProveedorInactivo FROM Proveedor pro WHERE pro.ProveedorId = @0`,
           [form.ProveedorId]
         )
         if (proveedor.length && proveedor[0].ProveedorInactivo) {
           return new ClientException('El proveedor esta inactivo')
         }
         break;
-    
+
       default:
         break;
     }
@@ -208,10 +208,10 @@ export class ProveedoresController extends BaseController {
   async addProveedor(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName)
     const body = req.body
-    
+
     try {
       await queryRunner.startTransaction()
-      
+
       const valForm = await this.valProveedoresForm(queryRunner, body, 'C')
       if (valForm instanceof ClientException) {
         throw valForm
@@ -231,9 +231,9 @@ export class ProveedoresController extends BaseController {
       // )
       //Agregar Contactos de Provedor
       await this.ProveedorContactoUpdate(queryRunner, body.contactos, ProveedorId)
-      
+
       await queryRunner.commitTransaction()
-      this.jsonRes({ProveedorId}, res, 'Carga Exitosa');
+      this.jsonRes({ ProveedorId }, res, 'Carga Exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -243,36 +243,62 @@ export class ProveedoresController extends BaseController {
   }
 
   async ProveedorContactoUpdate(queryRunner: any, contactos: any, ProveedorId: number) {
-    //Elimino los contactos antiguos no declarados del provedor
-    const ContactoIds = contactos.map((row: { ContactoId: any; }) => row.ContactoId).filter((id) => id !== null && id !== undefined);
-    if (ContactoIds.length > 0) { 
-      await queryRunner.query(`DELETE e FROM ContactoEmail e
-        JOIN Contacto c ON c.ContactoId = e.ContactoId
-        WHERE c.ProveedorId = @0 AND e.ContactoId NOT IN (${ContactoIds.join(',')}) `, [ProveedorId])
-      await queryRunner.query(`DELETE t FROM ContactoTelefono t 
-        JOIN Contacto c ON c.ContactoId = t.ContactoId
-        WHERE c.ProveedorId = @0 AND t.ContactoId NOT IN (${ContactoIds.join(',')}) `, [ProveedorId])
-      await queryRunner.query(`DELETE FROM Contacto WHERE ProveedorId = @0  AND ContactoId NOT IN (${ContactoIds.join(',')})`, [ProveedorId]);
+    contactos = contactos || []
+
+    //Validar que los campos no esten vacios
+    let campos_vacios: string[] = []
+    const contactosVal: any[] = []
+    for (const [idx, contacto] of contactos.entries()) {
+      const contactoVacio = !contacto.ContactoApellido && !contacto.ContactoNombre && !contacto.ContactoArea &&
+        !contacto.ContactoEmailEmail && !contacto.ContactoTelefonoNro && !contacto.ContactoTipoCod && !contacto.ContactoJurImpositiva
+
+      if (contactoVacio) continue //Fila de contacto vacía, se omite (proveedor sin contacto)
+
+      if (!contacto.ContactoTipoCod) campos_vacios.push(`- Tipo del contacto ${idx + 1}`)
+      // if (!contacto.ContactoJurImpositiva) campos_vacios.push(`- Jurisdicción Impositiva del contacto ${idx + 1}`)
+      if (!contacto.ContactoApellido) campos_vacios.push(`- Apellido del contacto ${idx + 1}`)
+      if (!contacto.ContactoNombre) campos_vacios.push(`- Nombre del contacto ${idx + 1}`)
+      if (!contacto.ContactoArea) campos_vacios.push(`- Área del contacto ${idx + 1}`)
+      if (!contacto.ContactoEmailEmail) campos_vacios.push(`- Email del contacto ${idx + 1}`)
+      if (!contacto.ContactoTelefonoNro) campos_vacios.push(`- Teléfono del contacto ${idx + 1}`)
+      contactosVal.push(contacto)
     }
 
+    if (campos_vacios.length) {
+      campos_vacios.unshift('Debe completar los siguientes campos: ')
+      throw new ClientException(campos_vacios)
+    }
+
+    //Elimino los contactos antiguos no declarados del provedor
+    const ContactoIds = contactosVal.map((row: { ContactoId: any; }) => Number(row.ContactoId)).filter((id: number) => id > 0);
+    const ContactoIdsSql = ContactoIds.length ? ContactoIds.join(',') : '0' //Sin ids declarados se borran todos los contactos del proveedor
+   
+    await queryRunner.query(`DELETE e FROM ContactoEmail e
+      JOIN Contacto c ON c.ContactoId = e.ContactoId
+      WHERE c.ProveedorId = @0 AND e.ContactoId NOT IN (${ContactoIdsSql}) `, [ProveedorId])
+    await queryRunner.query(`DELETE t FROM ContactoTelefono t
+      JOIN Contacto c ON c.ContactoId = t.ContactoId
+      WHERE c.ProveedorId = @0 AND t.ContactoId NOT IN (${ContactoIdsSql}) `, [ProveedorId])
+    await queryRunner.query(`DELETE FROM Contacto WHERE ProveedorId = @0  AND ContactoId NOT IN (${ContactoIdsSql})`, [ProveedorId]);
+
     //Crea uno por uno los contactos
-    for (const [idx, contacto] of contactos.entries()) {
+    for (const contacto of contactosVal) {
       const ContactoApellidoNombre = (contacto.ContactoApellido ? contacto.ContactoApellido : '') + (contacto.ContactoApellido && contacto.ContactoNombre ? ',' : '') + (contacto.ContactoNombre ? contacto.ContactoNombre : '') || null;
       let ContactoTelefonoUltNro = 0
       let ContactoEmailUltNro = 0
       let ContactoId = contacto.ContactoId
 
       if (contacto.ContactoId) {  //Actualizo contacto
-          await queryRunner.query(`DELETE FROM ContactoEmail WHERE ContactoId = @0`, [contacto.ContactoId]);
-          await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ContactoId = @0`, [contacto.ContactoId]);
-          await queryRunner.query(`UPDATE Contacto SET  ContactoArea=@1,ContactoApellido=@2,ContactoNombre=@3,ContactoApellidoNombre=@4,ContactoTipoCod=@5,ContactoJurImpositiva=@6 WHERE ContactoId=@0 `,
-              [contacto.ContactoId, contacto.ContactoArea, contacto.ContactoApellido, contacto.ContactoNombre, ContactoApellidoNombre, contacto.ContactoTipoCod, contacto.ContactoJurImpositiva])
+        await queryRunner.query(`DELETE FROM ContactoEmail WHERE ContactoId = @0`, [contacto.ContactoId]);
+        await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ContactoId = @0`, [contacto.ContactoId]);
+        await queryRunner.query(`UPDATE Contacto SET  ContactoArea=@1,ContactoApellido=@2,ContactoNombre=@3,ContactoApellidoNombre=@4,ContactoTipoCod=@5,ContactoJurImpositiva=@6 WHERE ContactoId=@0 `,
+          [contacto.ContactoId, contacto.ContactoArea, contacto.ContactoApellido, contacto.ContactoNombre, ContactoApellidoNombre, contacto.ContactoTipoCod, contacto.ContactoJurImpositiva])
       } else { //Nuevo contacto
-          await queryRunner.query(`INSERT INTO Contacto (ProveedorId,ContactoArea,ContactoApellido,ContactoNombre,ContactoTelefonoUltNro,ContactoEmailUltNro,ContactoApellidoNombre,ContactoTipoCod,ContactoJurImpositiva )
+        await queryRunner.query(`INSERT INTO Contacto (ProveedorId,ContactoArea,ContactoApellido,ContactoNombre,ContactoTelefonoUltNro,ContactoEmailUltNro,ContactoApellidoNombre,ContactoTipoCod,ContactoJurImpositiva )
               VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8)`, [
-              ProveedorId, contacto.ContactoArea, contacto.ContactoApellido, contacto.ContactoNombre, ContactoTelefonoUltNro, ContactoEmailUltNro, ContactoApellidoNombre, contacto.ContactoTipoCod, contacto.ContactoJurImpositiva])
-          const resContacto = await queryRunner.query(`SELECT IDENT_CURRENT('Contacto')`)
-          ContactoId = resContacto[0][''];
+          ProveedorId, contacto.ContactoArea, contacto.ContactoApellido, contacto.ContactoNombre, ContactoTelefonoUltNro, ContactoEmailUltNro, ContactoApellidoNombre, contacto.ContactoTipoCod, contacto.ContactoJurImpositiva])
+        const resContacto = await queryRunner.query(`SELECT IDENT_CURRENT('Contacto')`)
+        ContactoId = resContacto[0][''];
       }
 
       if (contacto.ContactoEmailEmail)
@@ -280,31 +306,31 @@ export class ProveedoresController extends BaseController {
         @0,@1,@2,@3)`, [++ContactoEmailUltNro, ContactoId, contacto.ContactoEmailEmail, false])
 
       if (contacto.ContactoTelefonoNro)
-        await queryRunner.query(`INSERT INTO ContactoTelefono (ContactoTelefonoId,ContactoId,TipoTelefonoId,ContactoTelefonoNro) 
-          VALUES (@0,@1,@2,@3)`, [++ContactoTelefonoUltNro, contacto.ContactoId, contacto.TipoTelefonoId, contacto.ContactoTelefonoNro])
+        await queryRunner.query(`INSERT INTO ContactoTelefono (ContactoTelefonoId,ContactoId,TipoTelefonoId,ContactoTelefonoNro)
+          VALUES (@0,@1,@2,@3)`, [++ContactoTelefonoUltNro, ContactoId, contacto.TipoTelefonoId, contacto.ContactoTelefonoNro])
       await queryRunner.query(`UPDATE Contacto SET ContactoTelefonoUltNro=@1,ContactoEmailUltNro=@2  WHERE ContactoId=@0 `,
-        [contacto.ContactoId, ContactoTelefonoUltNro, ContactoEmailUltNro])
+        [ContactoId, ContactoTelefonoUltNro, ContactoEmailUltNro])
     }
   }
 
-  async insertProveedor(queryRunner:QueryRunner, proveedor:any, usuario: string, ip: string){
-    let insert:any = await queryRunner.query(`
+  async insertProveedor(queryRunner: QueryRunner, proveedor: any, usuario: string, ip: string) {
+    let insert: any = await queryRunner.query(`
       INSERT INTO Proveedor (
         CUIT, ProveedorRazonSocial, ProveedorTipoEmpresa, ProveedorInactivo
       ) VALUES (@0,@1,@2,@3)
-      SELECT IDENT_CURRENT('Proveedor')`, 
+      SELECT IDENT_CURRENT('Proveedor')`,
       [proveedor.CUIT, proveedor.ProveedorRazonSocial, 'P', 0]
     )
     return insert[0][''] //ProveedorId
   }
-  
+
   async updateProveedor(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName)
     const body = req.body
     const ProveedorId = req.body.ProveedorId
     try {
       await queryRunner.startTransaction()
-      
+
       const valForm = await this.valProveedoresForm(queryRunner, body, 'U')
       if (valForm instanceof ClientException) {
         throw valForm
@@ -318,9 +344,9 @@ export class ProveedoresController extends BaseController {
       await this.ProveedorContactoUpdate(queryRunner, body.contactos, ProveedorId)
 
       await this.updateProveedorQuery(queryRunner, body)
-      
+
       await queryRunner.commitTransaction()
-      this.jsonRes({ProveedorId}, res, 'Actualización Exitosa');
+      this.jsonRes({ ProveedorId }, res, 'Actualización Exitosa');
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -329,9 +355,9 @@ export class ProveedoresController extends BaseController {
     }
   }
 
-  async updateProveedorQuery(queryRunner:QueryRunner, proveedor:any){
+  async updateProveedorQuery(queryRunner: QueryRunner, proveedor: any) {
     await queryRunner.query(
-      `UPDATE Proveedor SET CUIT = @1, ProveedorRazonSocial= @2 WHERE ProveedorId = @0`, 
+      `UPDATE Proveedor SET CUIT = @1, ProveedorRazonSocial= @2 WHERE ProveedorId = @0`,
       [proveedor.ProveedorId, proveedor.CUIT, proveedor.ProveedorRazonSocial]
     )
   }
@@ -339,22 +365,22 @@ export class ProveedoresController extends BaseController {
   async setProveedorInactivo(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName)
     const ProveedorId = Number(req.params.id)
-    
+
     try {
       await queryRunner.startTransaction()
 
       //Validar que no tenga movimientos relacionados.
       await queryRunner.query(
-        `SELECT MovimientoStockCodigo FROM MovimientoStock WHERE ProveedorIdDestino = @0 AND FechaAnulacion IS NULL`, 
+        `SELECT MovimientoStockCodigo FROM MovimientoStock WHERE ProveedorIdDestino = @0 AND FechaAnulacion IS NULL`,
         [ProveedorId]
       )
-      
+
       //Volver al proveedor inactivo
       await queryRunner.query(
-        `UPDATE Proveedor SET ProveedorInactivo = 1 WHERE ProveedorId = @0`, 
+        `UPDATE Proveedor SET ProveedorInactivo = 1 WHERE ProveedorId = @0`,
         [ProveedorId]
       )
-      
+
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, "Proveedor Inactivo");
     } catch (error) {
