@@ -14,6 +14,8 @@ interface ClienteOrdenes {
   ClienteId: number
   Cliente: string
   NroOrdenVentas: number[]
+  // Objetivos de las órdenes del cliente, sin repetir: un cliente puede tener varios
+  objetivos: string[]
   cantidad: number
   importeTotal: number
 }
@@ -31,6 +33,7 @@ function aNumero(valor: any): number | null {
   standalone: true,
   imports: [SHARED_IMPORTS, CurrencyPipe],
   templateUrl: './orden-venta-masiva-drawer.html',
+  styleUrl: './orden-venta-masiva-drawer.less',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OrdenVentaMasivaDrawerComponent {
@@ -62,6 +65,7 @@ export class OrdenVentaMasivaDrawerComponent {
           ClienteId,
           Cliente: String(orden?.Cliente ?? '').trim(),
           NroOrdenVentas: [],
+          objetivos: [],
           cantidad: 0,
           importeTotal: 0
         })
@@ -70,6 +74,9 @@ export class OrdenVentaMasivaDrawerComponent {
       cliente.NroOrdenVentas.push(Number(orden?.NroOrdenVenta))
       cliente.cantidad += 1
       cliente.importeTotal += Number(orden?.ImporteTotalAFacturar ?? 0)
+
+      const objetivo = String(orden?.Objetivo ?? '').trim()
+      if (objetivo && !cliente.objetivos.includes(objetivo)) cliente.objetivos.push(objetivo)
     }
 
     return [...porCliente.values()]
