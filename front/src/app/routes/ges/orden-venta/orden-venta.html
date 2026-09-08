@@ -19,8 +19,8 @@
           <span nz-icon nzType="plus" nzTheme="outline"></span></button>
         <!-- btn baja -->
         <button nz-button nzType="default" [disabled]="sinSeleccion()" nz-popconfirm
-          nzPopconfirmTitle="Está seguro que quiere eliminar esta Orden de Venta?"
-          (nzOnConfirm)="bajaOrdenVenta()" nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+          nzPopconfirmTitle="Está seguro que quiere anular esta Orden de Venta?"
+          (nzOnConfirm)="bajaOrdenVenta()" nz-tooltip nzTooltipTitle="Anular">
           <span nz-icon nzType="delete" nzTheme="outline"></span></button>
         <!-- btn modificar: abre una orden, así que no vale con varias tildadas -->
         <button nz-button nzType="default" [disabled]="!seleccionUnica()" nz-tooltip

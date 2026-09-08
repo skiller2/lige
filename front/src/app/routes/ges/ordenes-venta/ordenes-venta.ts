@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, model, re
 import { CurrencyPipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta';
@@ -26,6 +27,7 @@ export class OrdenesVentaComponent {
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
+  private notification = inject(NzNotificationService)
 
   // Los mismos estados que ofrece la edición masiva
   optionsEstado = toSignal(this.searchService.getEstadoOrdenVenta(), { initialValue: [] as any[] })
@@ -165,8 +167,32 @@ export class OrdenesVentaComponent {
     this.modo.set('alta')
   }
 
-  // TODO: pendiente de implementar
-  bajaOrdenVenta() { }
+  anulando = signal(false)
+
+  // Anular: las órdenes tildadas en la grilla pasan a estado cancelado. El detalle y los
+  // comprobantes quedan como están, sólo cambia el estado.
+  async bajaOrdenVenta() {
+    if (this.sinSeleccion() || this.anulando()) return
+
+    const NroOrdenVentas = this.ordenesSeleccionadas()
+      .map(orden => Number(orden?.NroOrdenVenta))
+      .filter(Number.isFinite)
+
+    if (!NroOrdenVentas.length) return
+
+    this.anulando.set(true)
+    try {
+      const respuesta = await firstValueFrom(this.apiService.anularOrdenesVenta(NroOrdenVentas))
+
+      this.notification.success('Órdenes de venta', respuesta?.msg ?? 'Anulación exitosa')
+
+      // La selección quedó con el estado viejo y la grilla hay que releerla
+      this.ordenesSeleccionadas.set([])
+      this.refreshTick.update(n => n + 1)
+    } finally {
+      this.anulando.set(false)
+    }
+  }
 
   // Edición masiva de las órdenes seleccionadas, agrupadas por cliente
   edicionMasiva() {

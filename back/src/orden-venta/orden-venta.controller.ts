@@ -10,6 +10,10 @@ const ESTADO_ORDEN_VENTA_INICIAL = 'PEN';
 
 // Estado de la orden con comprobante emitido
 const ESTADO_ORDEN_VENTA_FACTURADA = 'FAC';
+
+// Estado con el que quedan las órdenes anuladas desde la grilla
+const ESTADO_ORDEN_VENTA_CANCELADA = 'CAN';
+
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
 
 // Comprobante se relaciona con la orden por NroOrdenVenta, y una orden puede tener más de uno.
@@ -944,6 +948,68 @@ export class OrdenVentaController extends BaseController {
 
       return this.jsonRes({ actualizadas }, res,
         `${actualizadas} ${actualizadas === 1 ? 'orden de venta actualizada' : 'órdenes de venta actualizadas'}`);
+
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner);
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // Anulación de las órdenes tildadas en la grilla: pasan a estado cancelado. El detalle y los
+  // comprobantes no se tocan, sólo el estado.
+  async anularOrdenesVenta(req: Request, res: Response, next: NextFunction) {
+    const NroOrdenVentas: number[] = Array.isArray(req.body?.NroOrdenVentas)
+      ? [...new Set(req.body.NroOrdenVentas.map(Number).filter(Number.isFinite))] as number[]
+      : [];
+
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      if (!NroOrdenVentas.length)
+        throw new ClientException('No hay órdenes de venta seleccionadas');
+
+      // El estado se graba desde una constante, pero tiene que existir en la tabla de códigos
+      const estados = await queryRunner.query(`SELECT EstadoOrdenVentaCod FROM EstadoOrdenVenta`);
+      const codigos = estados.map((estado: any) => String(estado.EstadoOrdenVentaCod).trim());
+
+      if (!codigos.includes(ESTADO_ORDEN_VENTA_CANCELADA))
+        throw new ClientException(
+          `El estado '${ESTADO_ORDEN_VENTA_CANCELADA}' no existe en EstadoOrdenVenta. Estados válidos: ${codigos.join(', ')}`);
+
+      const usuario = res.locals.userName;
+      const ip = this.getRemoteAddress(req);
+      const ahora = new Date();
+
+      await queryRunner.startTransaction();
+
+      let anuladas = 0;
+
+      for (const NroOrdenVenta of NroOrdenVentas) {
+        const cabecera = await queryRunner.query(
+          `SELECT FechaGeneracionFactura FROM OrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
+
+        if (!cabecera[0])
+          throw new ClientException(`No se encontró la orden de venta ${NroOrdenVenta}`);
+
+        // Una vez emitida la factura la orden ya no se toca, igual que en el detalle
+        if (cabecera[0].FechaGeneracionFactura)
+          throw new ClientException(`La orden ${NroOrdenVenta} ya tiene factura generada, no se puede anular`);
+
+        await queryRunner.query(`
+          UPDATE OrdenVenta
+          SET EstadoOrdenVentaCodigo = @1, AudFechaMod = @2, AudUsuarioMod = @3, AudIpMod = @4
+          WHERE NroOrdenVenta = @0
+        `, [NroOrdenVenta, ESTADO_ORDEN_VENTA_CANCELADA, ahora, usuario, ip]);
+
+        anuladas++;
+      }
+
+      await queryRunner.commitTransaction();
+
+      return this.jsonRes({ anuladas }, res,
+        `${anuladas} ${anuladas === 1 ? 'orden de venta anulada' : 'órdenes de venta anuladas'}`);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
