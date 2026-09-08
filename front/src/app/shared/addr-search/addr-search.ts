@@ -34,6 +34,8 @@ import {
 } from '@angular/core/rxjs-interop';
 
 import { NzSelectComponent } from 'ng-zorro-antd/select';
+import { provideNzIconsPatch } from 'ng-zorro-antd/icon';
+import { EnvironmentOutline } from '@ant-design/icons-angular/icons';
 
 import { SearchService } from '../../services/search.service';
 import { SHARED_IMPORTS } from '@shared';
@@ -54,7 +56,8 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => AddrSearchComponent),
       multi: true
-    }
+    },
+    provideNzIconsPatch([EnvironmentOutline])
   ]
 })
 export class AddrSearchComponent
