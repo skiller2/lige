@@ -1,34 +1,13 @@
 import { TextExportService } from '@slickgrid-universal/text-export';
 
-export class InaesAltasCsvExportService extends TextExportService {
+export class InaesReg756_2025BajaCsvExportService extends TextExportService {
 
   private headerColumns:any[] = [
     { columnId: 'CUITEntidad', exportHeader: 'Cuit Entidad'},
-    { columnId: 'ActaFechaActa', exportHeader: 'Fecha Ingreso'},
     { columnId: 'PersonalCUITCUILCUIT', exportHeader: 'Cuit / Cuil / Cdi'},
-    { columnId: 'TipoPersona', exportHeader: 'Tipo Persona'},
-    { columnId: null, exportHeader: 'Categoria'},
-    { columnId: 'PersonalNroLegajo', exportHeader: 'Numero Asociado'},
-    { columnId: null, exportHeader: 'Denominacion social'},
-    { columnId: 'PersonalApellido', exportHeader: 'Apellido', format: (value:any)=>{return this.truncateBytes(String(value), 100)}},
-    { columnId: 'PersonalNombre', exportHeader: 'Nombre', format: (value:any)=>{return this.truncateBytes(String(value), 100)}},
-    { columnId: 'TipoDocumento', exportHeader: 'Tipo Documento'},
-    { columnId: 'DNI', exportHeader: 'Número Documento'},
-    { columnId: 'DomicilioDomCalle', exportHeader: 'Calle'},
-    { columnId: 'DomicilioDomNro', exportHeader: 'Número'},
-    { columnId: null, exportHeader: 'Piso'},
-    { columnId: null, exportHeader: 'Departamento Edificio'},
-    { columnId: 'ProvinciaINAES', exportHeader: 'ProvinciaDeptoLocalidad'},
-    { columnId: 'DomicilioCodigoPostal', exportHeader: 'Código postal'},
-    { columnId: 'ActaFechaActa', exportHeader: 'Fecha de Acta'},
-    { columnId: null, exportHeader: 'Órgano Emisor'},
-    { columnId: 'CapitalSuscripto', exportHeader: 'Capital Suscripto'},
-    { columnId: 'PersonalEmailEmail', exportHeader: 'Mail'},
-    { columnId: 'Telefono', exportHeader: 'Teléfono'},
-    { columnId: null, exportHeader: 'Observación'},
-    { columnId: 'ValorCuota', exportHeader: 'Valor Cuota'},
-    { columnId: 'NivelRiesgo', exportHeader: 'Nivel de riesgo'},
-    { columnId: 'PEP', exportHeader: 'PEP'},
+    { columnId: 'ActaFechaActa', exportHeader: 'Fecha Egreso'},
+    { columnId: 'PersonalSituacionRevistaMotivo', exportHeader: 'Causa Egreso'},
+    { columnId: null, exportHeader: 'Medida disciplinaria'},
   ];
   /**
    * Format exported values
@@ -94,7 +73,7 @@ export class InaesAltasCsvExportService extends TextExportService {
     for (let row = 0; row < lineCount; row++) {
       const item = this._dataView.getItem(row);
 
-      if (!item || item.Estado != 'A') {
+      if (!item || item.Estado != 'B') {
         continue;
       }
 
