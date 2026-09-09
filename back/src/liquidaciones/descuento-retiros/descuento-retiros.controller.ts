@@ -51,9 +51,8 @@ export class DescuentoRetirosController extends BaseController {
           };
         }
 
-        acc[key].totalImporte +=
-          item.PersonalArt14SumaFija +
-          (item.totalhorascalc + item.PersonalArt14Horas) * ((item.ValorHoraArt14Categoria | item.ValorHoraNorm) + item.PersonalArt14AdicionalHora);
+        // Se usa el importe ya calculado por el SELECT, el mismo que totaliza la solapa Objetivo
+        acc[key].totalImporte += item.totalminutoscalcimporteconart14;
 
         return acc;
       },
@@ -65,13 +64,16 @@ export class DescuentoRetirosController extends BaseController {
 
 
   static async getDescuentosRetiros(queryRunner:QueryRunner, anio: number, mes: number, personalId: number | null = null) {
-      const filtroSupervisor = personalId ? `AND coo.ObjetivoPersonalJerarquicoPersonalId = ${personalId}` : '' 
+      const params: any[] = [, anio, mes]
+      const filtroSupervisor = personalId ? `AND coo.ObjetivoPersonalJerarquicoPersonalId = @3` : ''
+      if (personalId) params.push(Number(personalId))
 
       const retiros = await queryRunner.query(
         `      SELECT  suc.SucursalId, 
 		obja.ObjetivoAsistenciaAnoAno, 
-		objm.ObjetivoAsistenciaAnoMesMes, 
-		-- cuit.PersonalCUITCUILCUIT, 
+		objm.ObjetivoAsistenciaAnoMesMes,
+		objm.ObjetivoAsistenciaAnoMesHasta,
+		-- cuit.PersonalCUITCUILCUIT,
 		-- CONCAT(TRIM(persona.PersonalApellido),', ',TRIM(persona.PersonalNombre)) PersonaDes,
       -- persona.PersonalId,
       obj.ObjetivoId, 
@@ -255,7 +257,7 @@ export class DescuentoRetirosController extends BaseController {
       AND objm.ObjetivoAsistenciaAnoMesMes = @2
       AND objd.ObjetivoAsistenciaAnoMesPersonalDiasFormaLiquidacionHoras IN ('N','C','R')
       ${filtroSupervisor}
-`, [, anio, mes])
+`, params)
 
 
       return DescuentoRetirosController.groupAndSum(retiros)
@@ -309,10 +311,10 @@ export class DescuentoRetirosController extends BaseController {
         const ObjetivoId = row.ObjetivoId
         const totalImporte = row.totalImporte
 
-//        if (row.ObjetivoAsistenciaAnoMesHasta == null){
-//          objetivosSinCerrar++
-//          continue
-//        }
+       if (row.ObjetivoAsistenciaAnoMesHasta == null){
+         objetivosSinCerrar++
+         continue
+       }
 
 
         await queryRunner.query(

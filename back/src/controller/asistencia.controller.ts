@@ -1494,7 +1494,7 @@ export class AsistenciaController extends BaseController {
 
       const retirosxobjnromalizado = retirosxobj.map(item => ({
         DescuentoDescripcion: "Retiro Objetivo",
-        desmovimiento: `${item.ClienteId}/${item.ClienteElementoDependienteId} ${item.ClienteDenominacion} ${item.ClienteElementoDependienteDescripcion} ${(item.ObjetivoAsistenciaAnoMesHasta) ? '' : '(en carga)'}`,
+        desmovimiento: `${item.ClienteId}/${item.ClienteElementoDependienteId} ${item.ClienteDenominacion} ${item.ClienteElementoDependienteDescripcion} ${(item.ObjetivoAsistenciaAnoMesHasta) ? '' : '(Planilla abierta)'}`,
         importeTotal: item.totalImporte,
         importe: item.totalImporte
       }));
