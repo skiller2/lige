@@ -111,6 +111,36 @@ export class OrdenVentaMasivaDrawerComponent {
 
   clientesArray = computed<FormArray>(() => this.formMasivo().get('clientes') as FormArray)
 
+  // Comprobantes que ya tienen las órdenes seleccionadas y se pueden editar. Un mismo comprobante
+  // puede estar en varias órdenes: el back sólo devuelve los que tienen TODAS sus órdenes dentro
+  // de la selección, porque si no, editarlo cambiaría una orden que no se eligió.
+  private comprobantesSeleccion = resource({
+    params: () => ({
+      ordenes: this.ordenes().map(orden => Number(orden?.NroOrdenVenta)).filter(Number.isFinite)
+    }),
+    loader: async ({ params }) => {
+      if (!params.ordenes.length) return []
+      return await firstValueFrom(this.searchService.getComprobantesSeleccionOrdenVenta(params.ordenes))
+    },
+    defaultValue: [] as any[]
+  })
+
+  comprobantesEditables = computed<any[]>(() => this.comprobantesSeleccion.value() ?? [])
+
+  // El tipo y el número originales identifican al comprobante: son los que el back usa para
+  // encontrar sus filas, así que se guardan aparte de lo que se edita en pantalla
+  formComprobantes = computed<FormGroup>(() => this.fb.group({
+    comprobantes: this.fb.array(this.comprobantesEditables().map(comprobante => this.fb.group({
+      ComprobanteTipoCodigoOriginal: String(comprobante.ComprobanteTipoCodigo ?? '').trim(),
+      ComprobanteNroOriginal: String(comprobante.ComprobanteNro ?? '').trim(),
+      ComprobanteTipoCodigo: [String(comprobante.ComprobanteTipoCodigo ?? '').trim()],
+      ComprobanteNro: [String(comprobante.ComprobanteNro ?? '').trim()],
+      ImporteTotal: [comprobante.ImporteTotal ?? null]
+    })))
+  }))
+
+  comprobantesArray = computed<FormArray>(() => this.formComprobantes().get('comprobantes') as FormArray)
+
   guardando = signal(false)
 
   // Cambia al guardar: la grilla quedó vieja y hay que releerla
@@ -129,9 +159,23 @@ export class OrdenVentaMasivaDrawerComponent {
       ImporteTotal: aNumero(cliente.ImporteTotal)
     }))
 
+    // Sólo se mandan los comprobantes que se tocaron: el resto no tiene nada que actualizar
+    const comprobantes = this.comprobantesArray().controls
+      .filter(comprobante => comprobante.dirty)
+      .map(comprobante => {
+        const valor = comprobante.getRawValue()
+        return {
+          ComprobanteTipoCodigoOriginal: valor.ComprobanteTipoCodigoOriginal,
+          ComprobanteNroOriginal: valor.ComprobanteNroOriginal,
+          ComprobanteTipoCodigo: valor.ComprobanteTipoCodigo,
+          ComprobanteNro: String(valor.ComprobanteNro ?? '').trim(),
+          ImporteTotal: aNumero(valor.ImporteTotal)
+        }
+      })
+
     this.guardando.set(true)
     try {
-      const respuesta = await firstValueFrom(this.apiService.setOrdenVentaMasiva(clientes))
+      const respuesta = await firstValueFrom(this.apiService.setOrdenVentaMasiva(clientes, comprobantes))
 
       this.notification.success('Órdenes de venta', respuesta?.msg ?? 'Grabación exitosa')
       this.guardado.emit()

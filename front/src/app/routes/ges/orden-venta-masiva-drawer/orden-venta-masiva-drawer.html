@@ -67,20 +67,55 @@
             </nz-card>
           </div>
         }
-          <div class="input-container1">
+      </div>
+    </form>
+
+    @if (comprobantesEditables().length) {
+
+    <div class="input-container1">
       <div class="input-label">Editar</div>
     </div>
-      </div>
 
-      <nz-form-item>
-        <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-          <button nzType="primary" nz-button (click)="save()" [nzLoading]="guardando()"
-            [disabled]="formMasivo().pristine || guardando()">
-            {{ 'app.btn.save' | i18n }}
-          </button>
-        </nz-form-control>
-      </nz-form-item>
+    <form [formGroup]="formComprobantes()">
+      <div formArrayName="comprobantes">
+        @for (comprobante of comprobantesEditables(); let i = $index;
+              track comprobante.ComprobanteTipoCodigo + '|' + comprobante.ComprobanteNro) {
+          <nz-form-item class="comprobanteEditar" [formGroupName]="i">
+            <nz-form-label [nzXs]="24" [nzMd]="3" nzLabelWrap>Tipo de Comprobante</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzMd]="5">
+              <nz-select formControlName="ComprobanteTipoCodigo" nzPlaceHolder="Seleccione" nzShowSearch
+                [nzDropdownMatchSelectWidth]="false">
+                @for (option of optionsComprobanteTipo(); track option.ComprobanteTipoCodigo) {
+                  <nz-option [nzValue]="option.ComprobanteTipoCodigo" [nzLabel]="option.Descripcion"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+
+            <nz-form-label [nzXs]="24" [nzMd]="3" nzLabelWrap>Nro. de Comprobante</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzMd]="4">
+              <input nz-input formControlName="ComprobanteNro" type="text" />
+            </nz-form-control>
+
+            <nz-form-label [nzXs]="24" [nzMd]="3" nzLabelWrap>Importe Total</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzMd]="3">
+              <input nz-input formControlName="ImporteTotal" type="text" appDotToComma mask="separator.2"
+                class="text-right" />
+            </nz-form-control>
+          </nz-form-item>
+        }
+      </div>
     </form>
+
+    }
+
+    <nz-form-item>
+      <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+        <button nzType="primary" nz-button (click)="save()" [nzLoading]="guardando()"
+          [disabled]="(formMasivo().pristine && formComprobantes().pristine) || guardando()">
+          {{ 'app.btn.save' | i18n }}
+        </button>
+      </nz-form-control>
+    </nz-form-item>
 
   </ng-container>
 </nz-drawer>

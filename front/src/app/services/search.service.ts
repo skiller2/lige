@@ -1530,6 +1530,13 @@ export class SearchService {
     );
   }
 
+  getComprobantesSeleccionOrdenVenta(NroOrdenVentas: number[]): Observable<any> {
+    return this.http.post<ResponseJSON<any>>(`/api/orden-venta/comprobantes-seleccion`, { NroOrdenVentas }).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
   // Datos de facturación de los clientes de las órdenes seleccionadas (edición masiva)
   getDatosFacturacionOrdenVenta(ClienteIds: number[]): Observable<any> {
     return this.http.post<ResponseJSON<any>>(`/api/orden-venta/clientes-facturacion`, { ClienteIds }).pipe(

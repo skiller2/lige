@@ -803,7 +803,11 @@ export class OrdenVentaController extends BaseController {
   }
 
   async setOrdenVentaMasiva(req: Request, res: Response, next: NextFunction) {
-    const grupos: any[] = Array.isArray(req.body?.clientes) ? req.body.clientes : [];
+    const todosLosGrupos: any[] = Array.isArray(req.body?.clientes) ? req.body.clientes : [];
+
+    const comprobantesEditados: any[] = Array.isArray(req.body?.comprobantes)
+      ? req.body.comprobantes : [];
+
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
@@ -811,8 +815,19 @@ export class OrdenVentaController extends BaseController {
       const ip = this.getRemoteAddress(req);
       const ahora = new Date();
 
-      if (!grupos.length)
+      if (!todosLosGrupos.length)
         throw new ClientException('No hay órdenes de venta seleccionadas');
+
+      // Un cliente sin estado ni comprobante cargado no tiene nada para aplicar: se ignora, así
+      // se puede guardar una edición de comprobantes sin tocar el resto de los clientes
+      const grupos = todosLosGrupos.filter(grupo =>
+        cargado(grupo?.EstadoOrdenVentaCodigo) ||
+        cargado(grupo?.ComprobanteTipoCodigo) ||
+        cargado(grupo?.ComprobanteNro) ||
+        cargado(grupo?.ImporteTotal));
+
+      if (!grupos.length && !comprobantesEditados.length)
+        throw new ClientException('No hay nada para aplicar, cargue el comprobante o el estado');
 
       const errores: string[] = [];
 
@@ -839,16 +854,39 @@ export class OrdenVentaController extends BaseController {
             errores.push(`${donde}: el importe total '${grupo.ImporteTotal}' no es un número válido`);
         }
 
-        if (!conComprobante && !cargado(grupo?.EstadoOrdenVentaCodigo))
-          errores.push(`${donde}: no hay nada para aplicar, cargue el comprobante o el estado`);
+      }
+
+      // Los tres campos del comprobante editado son NOT NULL: van completos o no se manda
+      for (const [indice, comprobante] of comprobantesEditados.entries()) {
+        const tipoOriginal = String(comprobante?.ComprobanteTipoCodigoOriginal ?? '').trim();
+        const numeroOriginal = String(comprobante?.ComprobanteNroOriginal ?? '').trim();
+        const donde = `Comprobante ${tipoOriginal || '?'} ${numeroOriginal || indice + 1}`;
+
+        if (!tipoOriginal || !numeroOriginal) {
+          errores.push(`${donde}: no se puede identificar el comprobante a editar`);
+          continue;
+        }
+
+        if (!String(comprobante?.ComprobanteTipoCodigo ?? '').trim())
+          errores.push(`${donde}: el tipo de comprobante es obligatorio`);
+
+        if (!String(comprobante?.ComprobanteNro ?? '').trim())
+          errores.push(`${donde}: el número de comprobante es obligatorio`);
+
+        if (!cargado(comprobante?.ImporteTotal))
+          errores.push(`${donde}: el importe total es obligatorio`);
+        else if (!Number.isFinite(Number(comprobante.ImporteTotal)))
+          errores.push(`${donde}: el importe total '${comprobante.ImporteTotal}' no es un número válido`);
       }
 
       if (errores.length)
         throw new ClientException(errores);
 
       // Los tipos de comprobante y los estados elegidos tienen que existir
-      const tipos = [...new Set(grupos
-        .map(grupo => String(grupo?.ComprobanteTipoCodigo ?? '').trim()).filter(Boolean))];
+      const tipos = [...new Set([
+        ...grupos.map(grupo => String(grupo?.ComprobanteTipoCodigo ?? '').trim()),
+        ...comprobantesEditados.map(comprobante => String(comprobante?.ComprobanteTipoCodigo ?? '').trim())
+      ].filter(Boolean))];
 
       if (tipos.length) {
         const tiposValidos = await queryRunner.query(
@@ -944,10 +982,35 @@ export class OrdenVentaController extends BaseController {
         }
       }
 
+      // Comprobantes editados: se actualizan todas las filas con el tipo y número originales,
+      // que son las de las órdenes seleccionadas
+      let comprobantes = 0;
+
+      for (const comprobante of comprobantesEditados) {
+        const tipoOriginal = String(comprobante.ComprobanteTipoCodigoOriginal).trim();
+        const numeroOriginal = String(comprobante.ComprobanteNroOriginal).trim();
+        const tipo = String(comprobante.ComprobanteTipoCodigo).trim();
+        const numero = String(comprobante.ComprobanteNro).trim();
+        const importe = Number(comprobante.ImporteTotal);
+
+        await queryRunner.query(`
+          UPDATE Comprobante
+          SET ComprobanteTipoCodigo = @2, ComprobanteNro = @3, ImporteTotal = @4,
+            AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7
+          WHERE ComprobanteTipoCodigo = @0 AND TRIM(ComprobanteNro) = @1
+        `, [tipoOriginal, numeroOriginal, tipo, numero, importe, ahora, usuario, ip]);
+
+        comprobantes++;
+      }
+
       await queryRunner.commitTransaction();
 
-      return this.jsonRes({ actualizadas }, res,
-        `${actualizadas} ${actualizadas === 1 ? 'orden de venta actualizada' : 'órdenes de venta actualizadas'}`);
+      const detalle = [
+        actualizadas ? `${actualizadas} ${actualizadas === 1 ? 'orden de venta actualizada' : 'órdenes de venta actualizadas'}` : '',
+        comprobantes ? `${comprobantes} ${comprobantes === 1 ? 'comprobante actualizado' : 'comprobantes actualizados'}` : ''
+      ].filter(Boolean);
+
+      return this.jsonRes({ actualizadas, comprobantes }, res, detalle.join(', '));
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
@@ -1013,6 +1076,49 @@ export class OrdenVentaController extends BaseController {
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async getComprobantesSeleccion(req: Request, res: Response, next: NextFunction) {
+    const NroOrdenVentas: number[] = Array.isArray(req.body?.NroOrdenVentas)
+      ? [...new Set(req.body.NroOrdenVentas.map(Number).filter(Number.isFinite))] as number[]
+      : [];
+
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      if (!NroOrdenVentas.length) return this.jsonRes([], res);
+
+      const parametros = NroOrdenVentas.map((_, indice) => `@${indice}`).join(',');
+
+      const comprobantes = await queryRunner.query(`
+        SELECT
+          com.ComprobanteTipoCodigo,
+          TRIM(com.ComprobanteNro) AS ComprobanteNro,
+          MAX(tip.Descripcion) AS ComprobanteTipo,
+          MAX(com.ImporteTotal) AS ImporteTotal,
+          MIN(ord.ClienteId) AS ClienteId,
+          COUNT(*) AS CantidadOrdenes
+        FROM Comprobante com
+        LEFT JOIN ComprobanteTipo tip ON tip.ComprobanteTipoCodigo = com.ComprobanteTipoCodigo
+        LEFT JOIN OrdenVenta ord ON ord.NroOrdenVenta = com.NroOrdenVenta
+        WHERE EXISTS (
+          SELECT 1 FROM Comprobante sel
+          WHERE sel.ComprobanteTipoCodigo = com.ComprobanteTipoCodigo
+            AND sel.ComprobanteNro = com.ComprobanteNro
+            AND sel.NroOrdenVenta IN (${parametros})
+        )
+        GROUP BY com.ComprobanteTipoCodigo, com.ComprobanteNro
+        -- Todas las órdenes del comprobante están seleccionadas
+        HAVING COUNT(*) = SUM(CASE WHEN com.NroOrdenVenta IN (${parametros}) THEN 1 ELSE 0 END)
+        ORDER BY com.ComprobanteTipoCodigo, TRIM(com.ComprobanteNro)
+      `, NroOrdenVentas);
+
+      this.jsonRes(comprobantes, res);
+    } catch (error) {
       return next(error);
     } finally {
       await queryRunner.release();
