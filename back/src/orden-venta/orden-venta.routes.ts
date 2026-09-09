@@ -32,7 +32,11 @@ ordenVentaRouter.post("/masiva", [authMiddleware.verifyToken, authMiddleware.has
   ordenVentaController.setOrdenVentaMasiva(req, res, next);
 });
 
-ordenVentaRouter.post("/anular", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.post("/comprobantes-seleccion", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.getComprobantesSeleccion(req, res, next);
+});
+
+ordenVentaRouter.post("/anular",[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   ordenVentaController.anularOrdenesVenta(req, res, next);
 });
 
