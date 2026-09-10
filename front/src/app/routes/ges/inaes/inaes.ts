@@ -111,8 +111,6 @@ export class INAESComponent {
 
 
     // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    console.log('getColumns', this.angularGrid.slickGrid.getColumns())
-
     const colIds = this.angularGrid.slickGrid.getColumns()
       .filter(col => (col as any).showGridColumn == false || col.hidden == true)
       .map(col => col.id);
