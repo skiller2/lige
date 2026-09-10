@@ -2239,15 +2239,18 @@ LEFT JOIN(
       WHERE PersonalId IN (@0)
       `, [PersonalId])
 
-    const maxPersonalEstudioId = oldStudies.reduce((maxId: number, estudio: any) => {
-      return estudio.PersonalEstudioId > maxId ? estudio.PersonalEstudioId : maxId
-    }, 0)
+    const maxPersonalEstudioId = await queryRunner.query(`
+      SELECT PersonalEstudioUltNro FROM Personal WHERE PersonalId IN (@0)
+    `, [PersonalId])
+    let maxId = maxPersonalEstudioId[0]?.PersonalEstudioUltNro || 0
 
     await queryRunner.query(`
       DELETE FROM PersonalEstudio WHERE PersonalId IN (@0) and TipoEstudioId != 8
       `, [PersonalId])
 
     for (const infoEstudio of estudios) {
+      maxId++
+
       if (infoEstudio.TipoEstudioId == 8) throw new ClientException(`El tipo de estudio "Curso" debe ser registrado en modulo "Estudios".`)
 
       if (infoEstudio.EstudioTitulo || infoEstudio.TipoEstudioId || infoEstudio.PersonalEstudioOtorgado || infoEstudio.PersonalEstudioVencimiento || (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length)) {
@@ -2297,13 +2300,12 @@ LEFT JOIN(
             
           )
           VALUES (@0,@1,@2,@3,@4,@5,@6,@7)`, [
-          PersonalId, maxPersonalEstudioId + 1, infoEstudio.TipoEstudioId,
+          PersonalId, maxId, infoEstudio.TipoEstudioId,
           2, infoEstudio.EstudioTitulo, fechaOtorgado,
           Pagina1Id, fechaVencimiento
         ])
         await queryRunner.query(`
-         UPDATE Personal SET PersonalEstudioUltNro = @1 WHERE PersonalId = @0`, [PersonalId, maxPersonalEstudioId + 1])
-
+         UPDATE Personal SET PersonalEstudioUltNro = @1 WHERE PersonalId = @0`, [PersonalId, maxId])
 
         if (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
           const docTitulo = infoEstudio.DocTitulo[0]
