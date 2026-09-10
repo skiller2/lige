@@ -1,9 +1,7 @@
-import { ExcelExportService } from '@slickgrid-universal/excel-export';
-import {
-  type ExcelColumnMetadata,
-} from 'excel-builder-vanilla';
+import { TextExportService } from '@slickgrid-universal/text-export';
+import { ExportError } from '../shared/utils/export-error';
 
-export class InaesReg1000_21BajaCsvExportService extends ExcelExportService {
+export class InaesReg1000_21BajaCsvExportService extends TextExportService {
 
   private headerColumns:any[] = [
     { columnId: 'CUITEntidad', exportHeader: 'Cuit Entidad'},
@@ -25,6 +23,7 @@ export class InaesReg1000_21BajaCsvExportService extends ExcelExportService {
     { columnId: 'CapitalIntegrado', exportHeader: 'Capital Integrado'},
     { columnId: 'PersonalNroLegajo', exportHeader: 'Nro.Legajo'},
   ];
+  private errors: string[] = [];
 
   private getExportValue(value: any, column: any): any {
     if (column.params?.collection) {
@@ -40,81 +39,77 @@ export class InaesReg1000_21BajaCsvExportService extends ExcelExportService {
   /**
    * Format exported values
    */
-  protected override async getDataOutputAsync(): Promise<Array<string[] | ExcelColumnMetadata[]>> {
+  protected override getDataOutput(): string {
+    
+    const columns = this._grid.getColumns() || [];
+    const columnsOrderByHeader = this.headerColumns
+      .map((col:any) => {
+        if (!col.columnId) return null
+        const find = columns.find((colGrid:any) => colGrid.id === col.columnId)
+        if (find) return {...find, format: col.format}
+        return null
+      });
 
-    const columns = this._grid?.getColumns() || [];
+    this._delimiter = ';';
 
-    const columnsOrderByHeader = this.headerColumns.map((header) => {
-      if (!header.columnId) return null;
-      const column = columns.find(
-        (colGrid: any) => colGrid.id === header.columnId
-      );
-      if (!column)return null
-      return {
-        ...column,
-        exportHeader: header.exportHeader,
-        format: header.format
-      };
-    });
+    let output = '';
+      
+    output += this.headerColumns.map(obj => obj.exportHeader).join(this._delimiter);
+    output += '\r\n';
+    
+    output += this.getRows(columnsOrderByHeader);
 
-    const outputData: Array<string[] | ExcelColumnMetadata[]> = [];
+    if (output.trim() === '')
+      throw new Error('No data available to export.');
 
-    // Header
-    outputData.push(
-      this.headerColumns.map((header) => header.exportHeader)
-    );
-
-    // Data
-    await this.getRows(
-      outputData,
-      columnsOrderByHeader
-    );
-
-    return outputData;
+    if (this.errors.length > 0) {
+        let errorMsg = `No se puede exportar hay ${this.errors.length} campos con información faltante.\n${this.errors.join('\n')}`
+        throw new ExportError(errorMsg)
+    }
+    
+    return output;
   }
 
-  private async getRows(
-    outputData: Array<string[] | ExcelColumnMetadata[]>,
-    columns: any[]
-  ): Promise<void> {
+  protected getRows(columns: any[]): string {
+    const rows: string[] = [];
 
     const lineCount = this._dataView.getLength();
 
     for (let row = 0; row < lineCount; row++) {
-
       const item = this._dataView.getItem(row);
 
-      if (!item || item.Estado !== 'B') {
+      if (!item || item.Estado != 'B') {
         continue;
       }
 
-      const values = columns.map((column: any) => {
+      const values = columns
+        .map((obj:any) => {
+          if (!obj) return ''
+          
+          let value = item[obj.id];
 
-        if (!column) return ''
+          switch (obj.type) {
+            case 'currency':
+              value = Number(value).toFixed(2).replace('.', ',');
+              break;
+            case 'date':
+              value = new Date(value).toLocaleDateString('en-GB');
+              break;
 
-        let value = item[column.id];
+            default:
+              break;
+          }
 
-        // Convert value → label using the collection
-        value = this.getExportValue(value, column);
+          if (value === null || value === undefined || value === '') 
+            this.errors.push(`Registro ${row + 1}: ${item.PersonalApellido} ${item.PersonalNombre} - Columna "${obj.name}" vacío.`);
+          
+          return obj.format? obj.format(value) : value;
+        });
 
-        switch (column.type) {
-          case 'currency':
-            value = Number(value).toFixed(2);
-            break;
+      rows.push(values.join(this._delimiter));
 
-          case 'date':
-            value = new Date(value).toLocaleDateString('en-GB');
-            break;
-
-          default:
-            break;
-        }
-
-        return column.format? column.format(value) : value;
-      });
-
-      outputData.push(values);
     }
-  }
 
+    return rows.join('\r\n');
+  }
 }

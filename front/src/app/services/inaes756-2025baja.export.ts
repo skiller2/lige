@@ -1,4 +1,5 @@
 import { TextExportService } from '@slickgrid-universal/text-export';
+import { ExportError } from '../shared/utils/export-error';
 
 export class InaesReg756_2025BajaCsvExportService extends TextExportService {
 
@@ -29,6 +30,7 @@ export class InaesReg756_2025BajaCsvExportService extends TextExportService {
 
   protected encoder = new TextEncoder();
   protected decoder = new TextDecoder();
+  private errors: string[] = [];
 
   truncateBytes(str: string, bytes: number): string {
     const buffer = new Uint8Array(bytes);
@@ -56,9 +58,20 @@ export class InaesReg756_2025BajaCsvExportService extends TextExportService {
       
     output += this.headerColumns.map(obj => obj.exportHeader).join(this._delimiter);
     output += '\r\n';
-    
+ 
+
     output += this.getRows(columnsOrderByHeader);
+
     
+    if (output.trim() === '')
+      throw new Error('No data available to export.');
+    
+    if (this.errors.length > 0) {
+        let errorMsg = `No se puede exportar hay ${this.errors.length} campos con información faltante.\n${this.errors.join('\n')}`
+        throw new ExportError(errorMsg)
+    }
+
+
     return output;
   }
 
@@ -95,6 +108,9 @@ export class InaesReg756_2025BajaCsvExportService extends TextExportService {
               break;
           }
 
+          if (value === null || value === undefined || value === '') 
+            this.errors.push(`Registro ${row + 1}: ${item.PersonalApellido} ${item.PersonalNombre} - Columna "${obj.name}" vacío.`);
+          
           return obj.format? obj.format(value) : value;
         });
 

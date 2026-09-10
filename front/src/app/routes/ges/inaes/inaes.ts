@@ -18,6 +18,7 @@ import { InaesReg756_2025AltaCsvExportService } from '../../../services/inaes756
 import { InaesReg756_2025BajaCsvExportService } from '../../../services/inaes756-2025baja.export';
 import { InaesReg1000_21AltaCsvExportService } from '../../../services/inaes1000-21alta.export';
 import { InaesReg1000_21BajaCsvExportService } from '../../../services/inaes1000-21baja.export';
+import { ExportError } from '../../../shared/utils/export-error';
 // icons
 // import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
 // import { FileExcelFill } from '@ant-design/icons-angular/icons';
@@ -141,131 +142,40 @@ export class INAESComponent {
         throw new ExportError(`No se pudo exportar: el tipo de exportación "${filter}" no es válido.`);
       }
       const { Estado, movimiento, resolucion } = exportacion
-      const detalle = `${movimiento} para ${resolucion}`
-
-      const saveData:any[] = this.gridData.value()
-      //Filtro los datos
-      let dataExport:any[] = await this.gridData.value().filter(
-        (row: any) => (row.Estado === Estado)
-      )
-
-      if (!dataExport.length) {
-        // const conflictivos = saveData.filter((row: any) => row.Estado === 'E').length
-        throw new ExportError(`No se encontraron ${detalle} para exportar con los filtros aplicados.`)
-        // if (conflictivos)
-        //   msg += ` Hay ${conflictivos} registro(s) en estado ERROR que deben corregirse.`
-
-        // this.notification.warning(`Advertencia`, msg);
-        // this.loadingExport.set(false)
-        // return
-      }
-      
-      //Muestro solo las columnas que se van a exportar
-      if (this.hiddenColumnIds.length > 0) 
-        this.angularGrid.gridService.showColumnByIds(this.columnsId)
-
-      //------ Validaciones ------
-      //Campos vacios
-      const emptyFields = this.getEmptyFields()
-      if (emptyFields.length) {
-        let errorMsg = `No se puede exportar ${detalle}: hay ${emptyFields.length} registro(s) con campos vacíos.\n`
-
-        errorMsg += emptyFields.map((x:any) => { return `[Fila ${x.row + 1}] ${this.gridData.value()[x.row].ApellidoNombre}: ${x.names.join(", ")}.`}).join('\n');
-        // this.notification.warning(`Advertencia`, errorMsg);
-        throw new ExportError(errorMsg)
-      }
-    
 
       if (Estado == 'A') {
-        await (this.reg1000_21AltaExportService as InaesReg1000_21AltaCsvExportService).exportToExcel({
+        await (this.reg1000_21AltaExportService as InaesReg1000_21AltaCsvExportService).exportToFile({
           filename: `INAES-${filter}`,
-          format: 'xlsx',
+          format: 'csv',
         });
       } else if (Estado == 'B') {
-        await (this.reg1000_21BajaExportService as InaesReg1000_21BajaCsvExportService).exportToExcel({
+        await (this.reg1000_21BajaExportService as InaesReg1000_21BajaCsvExportService).exportToFile({
           filename: `INAES-${filter}`,
-          format: 'xlsx',
+          format: 'csv',
         });
       }
-      // await this.excelExportService.exportToExcel({
-      //   filename: `INAES-${filter}`,
-      //   format: 'xlsx',
-      // });
-
     } catch (error) {
       if (error instanceof ExportError) {
         this.notification.warning('Advertencia', error.message);
       } else console.log('error: ', error);
       
     }
-    
-    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    if (this.hiddenColumnIds.length > 0)
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
-    
+        
     this.loadingExport.set(false)
   }
 
-  getEmptyFields():{ row: number, fields: string[], names: string[] }[] {
-
-    const result: { row: number, fields: string[], names: string[] }[] = [];
-    
-    this.gridData.value().forEach((item:any, index:number) => {
-      let fields:string[] = []
-      let names:string[] = []
-      this.columns().forEach((column:any) => {
-        if (column.excludeFromExport) return //Excluir las columnas que no se van a exportan
-        const value = item[column.field];
-
-        if (value === null || value === undefined || (typeof value === 'string' && value.trim() === '')){
-          fields.push(column.field)
-          names.push(column.name)
-        }
-          
-      });
-      if (names.length > 0)
-        result.push({ row: index, fields, names });
-    });
-
-    return result;
-  }
 
   async exportCsvGrid(filter:string) {
     this.loadingExport.set(true)
     try {
       //Configuro el filtro
+
       const exportacion = this.exportaciones[filter]
       if (!exportacion) {
         throw new ExportError(`No se pudo exportar: el tipo de exportación "${filter}" no es válido.`);
       }
       const { Estado, movimiento, resolucion } = exportacion
-      const detalle = `${movimiento} para ${resolucion}`
 
-      //Filtro los datos
-      let dataExport:any[] = await this.gridData.value().filter(
-        (row: any) => (row.Estado === Estado)
-      )
-
-      if (!dataExport.length) {
-        // const conflictivos = saveData.filter((row: any) => row.Estado === 'E').length
-        let msg = `No se encontraron ${detalle} para exportar con los filtros aplicados.`
-        // if (conflictivos)
-        //   msg += ` Hay ${conflictivos} registro(s) en estado ERROR que deben corregirse.`
-        throw new ExportError(msg)
-      }
-      //Muestro solo las columnas que se van a exportar
-      if (this.hiddenColumnIds.length > 0) 
-        this.angularGrid.gridService.showColumnByIds(this.columnsId)
-      
-      //------ Validaciones ------
-      // Campos vacios
-      const emptyFields = this.getEmptyFields()
-      if (emptyFields.length) {
-        let errorMsg = `No se puede exportar ${detalle}: hay ${emptyFields.length} registro(s) con campos vacíos.\n`
-        errorMsg += emptyFields.map((x:any) => { return `[Fila ${x.row + 1}] ${this.gridData.value()[x.row].ApellidoNombre}: ${x.names.join(", ")}.`}).join('\n');
-        throw new ExportError(errorMsg);
-      }
-      
       if (Estado == 'A') {
         await (this.reg756_2025AltaExportService as InaesReg756_2025AltaCsvExportService).exportToFile({
           delimiter: ';',
@@ -284,18 +194,7 @@ export class INAESComponent {
         this.notification.warning('Advertencia', error.message);
       }
     }
-    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    if (this.hiddenColumnIds.length > 0)
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
     
     this.loadingExport.set(false)
-  }
-}
-
-class ExportError extends Error {
-  constructor(message: string) {
-    super(message);
-
-    this.name = 'ExportError';
   }
 }

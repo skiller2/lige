@@ -1,4 +1,5 @@
 import { TextExportService } from '@slickgrid-universal/text-export';
+import { ExportError } from '../shared/utils/export-error';
 
 export class InaesReg756_2025AltaCsvExportService extends TextExportService {
 
@@ -31,6 +32,10 @@ export class InaesReg756_2025AltaCsvExportService extends TextExportService {
     { columnId: 'NivelRiesgo', exportHeader: 'Nivel de riesgo'},
     { columnId: 'PEP', exportHeader: 'PEP'},
   ];
+
+  private errors: string[] = [];
+
+
   /**
    * Format exported values
    */
@@ -80,14 +85,23 @@ export class InaesReg756_2025AltaCsvExportService extends TextExportService {
     output += '\r\n';
     
     output += this.getRows(columnsOrderByHeader);
-    
+ 
+    if (output.trim() === '')
+      throw new Error('No data available to export.');
+
+    if (this.errors.length > 0) {
+        let errorMsg = `No se puede exportar hay ${this.errors.length} campos con información faltante.\n${this.errors.join('\n')}`
+        throw new ExportError(errorMsg)
+    }
+
+
     return output;
   }
 
   /**
    * Export rows
    */
-  protected getRows(columns: any[]): string {
+   protected getRows(columns: any[]): string {
     const rows: string[] = [];
 
     const lineCount = this._dataView.getLength();
@@ -117,6 +131,9 @@ export class InaesReg756_2025AltaCsvExportService extends TextExportService {
               break;
           }
 
+          if (value === null || value === undefined || value === '') 
+            this.errors.push(`Registro ${row + 1}: ${item.PersonalApellido} ${item.PersonalNombre} - Columna "${obj.name}" vacío.`);
+          
           return obj.format? obj.format(value) : value;
         });
 
