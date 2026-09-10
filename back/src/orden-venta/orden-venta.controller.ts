@@ -664,6 +664,11 @@ export class OrdenVentaController extends BaseController {
       // cualquier punto del circuito
       const actualizaEstado = !!estadoElegido || comprobantesRecibidos || facturada;
 
+      // Una orden que pasa a facturada no puede tener ítems sin cantidad o sin importe unitario
+      if (actualizaEstado && estadoOrden === ESTADO_ORDEN_VENTA_FACTURADA
+        && items.some(item => !cargado(item.Cantidad) || !cargado(item.ImporteUnitario)))
+        throw new ClientException('No se puede facturar: hay ítems sin cantidad o sin importe unitario');
+
       let NroOrdenVenta = orden?.NroOrdenVenta;
 
       // El estado se graba desde una constante, pero tiene que existir en la tabla de códigos
@@ -1000,6 +1005,17 @@ export class OrdenVentaController extends BaseController {
 
           const estadoOrden = estadoElegido
             || (facturada ? ESTADO_ORDEN_VENTA_FACTURADA : ESTADO_ORDEN_VENTA_INICIAL);
+
+          // Una orden que pasa a facturada no puede tener ítems sin cantidad o sin importe unitario
+          if (estadoOrden === ESTADO_ORDEN_VENTA_FACTURADA) {
+            const [detalle] = await queryRunner.query(`
+              SELECT COUNT(*) AS Incompletos FROM ItemOrdenVenta
+              WHERE NroOrdenVenta = @0 AND (Cantidad IS NULL OR ImporteUnitario IS NULL)
+            `, [NroOrdenVenta]);
+
+            if (detalle.Incompletos)
+              throw new ClientException(`No se puede facturar la orden ${NroOrdenVenta}: hay ítems sin cantidad o sin importe unitario`);
+          }
 
           await queryRunner.query(`
             UPDATE OrdenVenta

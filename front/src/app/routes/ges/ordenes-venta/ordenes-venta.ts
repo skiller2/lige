@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, model, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, resource, signal } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
+import { Router } from '@angular/router';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -15,6 +16,18 @@ import { SearchService } from '../../../services/search.service';
 // Listado, o el detalle abierto en uno de sus tres modos
 type ModoOrdenVenta = 'alta' | 'modificacion' | 'consulta' | null
 
+// Cada acción de la pantalla es una solapa, y cada solapa una url: /ges/ordenes-venta/<tab>
+type TabOrdenVenta = 'listado' | 'alta' | 'editar' | 'consulta' | 'masiva' | 'anular'
+
+const TABS: TabOrdenVenta[] = ['listado', 'alta', 'editar', 'consulta', 'masiva', 'anular']
+
+// Solapas que abren el detalle de una orden, con el modo en el que lo abren
+const MODO_POR_TAB: Partial<Record<TabOrdenVenta, ModoOrdenVenta>> = {
+  alta: 'alta',
+  editar: 'modificacion',
+  consulta: 'consulta'
+}
+
 @Component({
   selector: 'app-ordenes-venta',
   standalone: true,
@@ -28,6 +41,14 @@ export class OrdenesVentaComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private notification = inject(NzNotificationService)
+  private router = inject(Router)
+
+  // Parámetro :tab de la ruta, que llega por withComponentInputBinding
+  tab = input<string>('listado')
+
+  // Una url desconocida cae en el listado
+  tabActual = computed<TabOrdenVenta>(() =>
+    TABS.includes(this.tab() as TabOrdenVenta) ? this.tab() as TabOrdenVenta : 'listado')
 
   // Los mismos estados que ofrece la edición masiva
   optionsEstado = toSignal(this.searchService.getEstadoOrdenVenta(), { initialValue: [] as any[] })
@@ -42,11 +63,14 @@ export class OrdenesVentaComponent {
   // Modificación y consulta abren una orden: con más de una tildada no se sabe cuál
   seleccionUnica = computed(() => this.ordenesSeleccionadas()?.length === 1)
 
-  // Modo del detalle. En null la pantalla muestra el listado.
-  modo = signal<ModoOrdenVenta>(null)
+  // Modo del detalle, según la solapa. En null la pantalla muestra el listado.
+  modo = computed<ModoOrdenVenta>(() => MODO_POR_TAB[this.tabActual()] ?? null)
 
   // Drawer de edición masiva, sobre las órdenes seleccionadas en la grilla
-  visibleMasiva = signal(false)
+  enMasiva = computed(() => this.tabActual() === 'masiva')
+
+  // Confirmación de la anulación de las órdenes tildadas
+  enAnular = computed(() => this.tabActual() === 'anular')
 
   detalleAbierto = computed(() => this.modo() != null)
 
@@ -113,6 +137,29 @@ export class OrdenesVentaComponent {
   constructor() {
     // Al abrir otra orden el select arranca con el estado que tiene guardado
     effect(() => this.estadoOrdenVenta.set(this.estadoGuardado()))
+
+    // El alta arranca en blanco, con el período en curso, que es el que se factura
+    effect(() => {
+      if (!this.enAlta()) return
+      this.ordenAbierta.set(null)
+      this.periodoAlta.set(new Date())
+      this.objetivoAlta.set(null)
+    })
+
+    // Entrando por url a una solapa que necesita una orden tildada en la grilla no hay ninguna:
+    // se vuelve al listado, que es de donde se elige
+    effect(() => {
+      const tab = this.tabActual()
+      if (tab === 'editar' || tab === 'consulta') {
+        if (!this.ordenAbierta()) this.volverAlListado()
+      } else if ((tab === 'masiva' || tab === 'anular') && this.sinSeleccion()) {
+        this.volverAlListado()
+      }
+    })
+  }
+
+  private irA(tab: TabOrdenVenta) {
+    this.router.navigate(['/', 'ges', 'ordenes-venta', tab])
   }
 
   // En el alta el objetivo y el período elegidos pueden tener ya una orden: el guardado no la
@@ -157,16 +204,6 @@ export class OrdenesVentaComponent {
   // Cambia al guardar: la fila de la grilla quedó vieja y hay que releer la lista
   refreshTick = signal(0)
 
-  // El detalle arranca en blanco: el período y el objetivo se eligen en la misma pantalla, y con
-  // ellos el backend inicializa los ítems con los del mes anterior
-  altaOrdenVenta() {
-    this.ordenAbierta.set(null)
-    this.objetivoAlta.set(null)
-    // Por omisión el período en curso, que es el que se factura
-    this.periodoAlta.set(new Date())
-    this.modo.set('alta')
-  }
-
   anulando = signal(false)
 
   // Anular: las órdenes tildadas en la grilla pasan a estado cancelado. El detalle y los
@@ -191,27 +228,40 @@ export class OrdenesVentaComponent {
       this.refreshTick.update(n => n + 1)
     } finally {
       this.anulando.set(false)
+      this.volverAlListado()
     }
   }
 
   // Edición masiva de las órdenes seleccionadas, agrupadas por cliente
   edicionMasiva() {
     if (this.sinSeleccion()) return
-    this.visibleMasiva.set(true)
+    this.irA('masiva')
+  }
+
+  // Anular pide confirmación: la solapa es la que abre el cartel
+  anularOrdenVenta() {
+    if (this.sinSeleccion()) return
+    this.irA('anular')
+  }
+
+  // Cerrando el cartel sin confirmar se vuelve al listado
+  anularCancelado() {
+    if (this.enAnular()) this.volverAlListado()
   }
 
   modificarOrdenVenta() {
-    this.abrirDetalle('modificacion')
+    this.abrirDetalle('editar')
   }
 
   consultaOrdenVenta() {
     this.abrirDetalle('consulta')
   }
 
-  private abrirDetalle(modo: ModoOrdenVenta) {
+  // La orden sale de la fila tildada: se guarda antes de navegar, porque la solapa sola no la sabe
+  private abrirDetalle(tab: TabOrdenVenta) {
     if (!this.seleccionUnica()) return
     this.ordenAbierta.set(this.ordenSeleccionada())
-    this.modo.set(modo)
+    this.irA(tab)
   }
 
   // Guardado el detalle se sigue trabajando sobre él: se releen los ítems, que vuelven con su código,
@@ -228,7 +278,7 @@ export class OrdenesVentaComponent {
         ClienteId: this.clienteId(),
         ClienteElementoDependienteId: this.clienteElementoDependienteId()
       })
-      this.modo.set('modificacion')
+      this.irA('editar')
     }
 
     this.itemsResource.reload()
@@ -236,7 +286,7 @@ export class OrdenesVentaComponent {
   }
 
   volverAlListado() {
-    this.modo.set(null)
     this.ordenAbierta.set(null)
+    this.irA('listado')
   }
 }

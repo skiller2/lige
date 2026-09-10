@@ -4,22 +4,42 @@
 
     <div style="flex: 1;"></div>
 
-    <!-- Con el detalle abierto, la solapa es la vuelta al listado -->
+    <!-- Cada solapa es una url: la del listado, y la del detalle cuando está abierto -->
     <ul nz-menu nzMode="horizontal" style="display: flex;">
-      <li nz-menu-item [nzSelected]="!detalleAbierto()" (click)="volverAlListado()">
-        <a>Listado</a>
+      <li nz-menu-item nzMatchRouter>
+        <a [routerLink]="['/', 'ges', 'ordenes-venta', 'listado']">Listado</a>
       </li>
+
+      @if (enAlta()) {
+      <li nz-menu-item nzMatchRouter>
+        <a [routerLink]="['/', 'ges', 'ordenes-venta', 'alta']">Alta</a>
+      </li>
+      }
+
+      @if (modo() === 'modificacion') {
+      <li nz-menu-item nzMatchRouter>
+        <a [routerLink]="['/', 'ges', 'ordenes-venta', 'editar']">{{ 'app.icon.edit' | i18n }}</a>
+      </li>
+      }
+
+      @if (soloLectura()) {
+      <li nz-menu-item nzMatchRouter>
+        <a [routerLink]="['/', 'ges', 'ordenes-venta', 'consulta']">{{ 'app.detail' | i18n }}</a>
+      </li>
+      }
     </ul>
 
     <div style="flex: 1; display: flex; justify-content: flex-end;">
       <nz-button-group nz-button nzButtonGroup>
-        <!-- btn alta -->
-        <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}"
-          (click)="altaOrdenVenta()">
+        <!-- btn alta: el routerLink va en el botón, envolverlo en un <a> lo saca del button-group -->
+        <button nz-button nzType="default" [routerLink]="['/', 'ges', 'ordenes-venta', 'alta']"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
           <span nz-icon nzType="plus" nzTheme="outline"></span></button>
-        <!-- btn baja -->
-        <button nz-button nzType="default" [disabled]="sinSeleccion()" nz-popconfirm
-          nzPopconfirmTitle="Está seguro que quiere anular esta Orden de Venta?"
+        <!-- btn baja: la confirmación la abre la solapa, no el click -->
+        <button nz-button nzType="default" [disabled]="sinSeleccion()" (click)="anularOrdenVenta()"
+          nz-popconfirm nzPopconfirmTitle="Está seguro que quiere anular esta Orden de Venta?"
+          [nzPopconfirmTrigger]="null" [nzPopconfirmVisible]="enAnular()"
+          (nzPopconfirmVisibleChange)="$event ? null : anularCancelado()"
           (nzOnConfirm)="bajaOrdenVenta()" nz-tooltip nzTooltipTitle="Anular">
           <span nz-icon nzType="delete" nzTheme="outline"></span></button>
         <!-- btn modificar: abre una orden, así que no vale con varias tildadas -->
@@ -119,5 +139,7 @@
 
 </nz-card>
 
-<app-orden-venta-masiva-drawer [ordenes]="ordenesSeleccionadas()" [(visible)]="visibleMasiva"
+<!-- El drawer lo abre la solapa, y al cerrarse se vuelve al listado -->
+<app-orden-venta-masiva-drawer [ordenes]="ordenesSeleccionadas()" [visible]="enMasiva()"
+  (visibleChange)="$event ? null : volverAlListado()"
   (guardado)="refreshTick.update(n => n + 1)" />
