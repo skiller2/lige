@@ -91,7 +91,7 @@
 
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
     [clienteId]="clienteId()" [clienteElementoDependienteId]="clienteElementoDependienteId()"
-    [soloLectura]="soloLectura()" [comprobantesOrden]="comprobantes()"
+    [soloLectura]="soloLectura()" [conComprobantes]="true" [comprobantesOrden]="comprobantes()"
     [estadoOrdenVentaCodigo]="estadoOrdenVenta()"
     [detalleImportado]="detalleImportado()" (detalleChange)="detalle.set($event)"
     (guardado)="ordenVentaGuardada()" />

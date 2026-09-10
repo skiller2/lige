@@ -22,7 +22,7 @@
     [horasAFacturarB]="horasAFacturarB()" [horasAFacturarBBloqueada]="horasAFacturarBBloqueada()"
     [clienteId]="cabecera().ClienteId ?? null"
     [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
-    [comprobantesOrden]="cabecera().Comprobantes ?? []" [detalleImportado]="detalleImportado()"
+    [detalleImportado]="detalleImportado()"
     (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)"
     (horasAFacturarChange)="horasAFacturarChange.emit($event)" />
 

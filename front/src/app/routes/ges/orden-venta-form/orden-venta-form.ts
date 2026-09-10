@@ -87,6 +87,8 @@ export class OrdenVentaFormComponent {
   // Comprobantes que ya tiene la orden, de la cabecera (/api/orden-venta/cabecera)
   comprobantesOrden = input<any[]>([])
 
+  conComprobantes = input<boolean>(false)
+
   // Estado elegido a mano en la pantalla de órdenes de venta. Sin estado el back lo resuelve por
   // los comprobantes, que es como se guarda desde la carga de asistencia.
   estadoOrdenVentaCodigo = input<string | null>(null)
@@ -175,10 +177,6 @@ export class OrdenVentaFormComponent {
   })
 
   comprobantes = computed<any[]>(() => (this.comprobanteValue() as any)?.comprobantes ?? [])
-
-  // Ítems con importe unitario ya resuelto: la lista de precios del cliente, o el importe de
-  // venta del objetivo en los productos de horas. Sin importe cargado el campo queda a mano.
-  precioDeLista = computed<boolean[]>(() => this.itemsValue().map(item => !!item?.PrecioDeLista))
 
   // Código de producto de horas de cada ítem, o '' si no es uno de ellos
   private codigoHorasItem = computed<string[]>(() =>
@@ -382,11 +380,11 @@ export class OrdenVentaFormComponent {
       ProductoCodigo: item.ProductoCodigo ?? '',
       Producto: item.Producto ?? '',
       Cantidad: vacioSiCero(item.Cantidad),
-      ImporteUnitario: vacioSiCero(item.ImporteUnitario),
+      ImporteUnitario: aNumero(item.ImporteUnitario) ?? 0,
       PrecioDeLista: precioDeLista,
       TextoFactura: item.TextoFactura ?? '',
       CantidadEnFactura: vacioSiCero(item.CantidadEnFactura),
-      ImporteTotal: vacioSiCero(item.ImporteTotal),
+      ImporteTotal: Number(item.ImporteTotal ?? 0),
       // Ocultos en la pantalla: van con valor fijo
       TipoCantidad: item.TipoCantidad || TIPO_CANTIDAD_MANUAL,
       TipoImporte: item.TipoImporte || (precioDeLista ? TIPO_IMPORTE_LISTA_PRECIO : TIPO_IMPORTE_MANUAL),
@@ -403,7 +401,7 @@ export class OrdenVentaFormComponent {
       ProductoCodigo: [valores.ProductoCodigo, Validators.required],
       Producto: valores.Producto,
       Cantidad: [valores.Cantidad, numeroRequerido],
-      ImporteUnitario: [valores.ImporteUnitario, numeroRequerido],
+      ImporteUnitario: [{ value: valores.ImporteUnitario, disabled: true }, numeroRequerido],
       PrecioDeLista: valores.PrecioDeLista,
       TextoFactura: valores.TextoFactura,
       CantidadEnFactura: valores.CantidadEnFactura,
@@ -415,8 +413,9 @@ export class OrdenVentaFormComponent {
       Bonificacion: valores.Bonificacion
     })
 
-    // Importe Total = Cantidad * Importe Unitario. Se lee con getRawValue: con el período cerrado
-    // la cantidad está deshabilitada y no viene en el valor del grupo, así que daría siempre cero.
+    // Importe Total = Cantidad * Importe Unitario. Se lee con getRawValue: el importe unitario
+    // está siempre deshabilitado, y la cantidad también con el período cerrado, así que ninguno
+    // de los dos viene en el valor del grupo y el total daría siempre cero.
     group.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       const valor = group.getRawValue()
       const total = Number(valor.Cantidad ?? 0) * Number(valor.ImporteUnitario ?? 0)
@@ -451,13 +450,15 @@ export class OrdenVentaFormComponent {
     this.formOrdenVenta.markAsDirty()
   }
 
+  // El importe unitario no se edita en pantalla: o lo fija el precio vigente, o el ítem queda en
+  // 0, que es un importe válido para grabar
   private aplicarPrecioDeLista(item: AbstractControl, importeUnitario: number | null) {
     const precioDeLista = importeUnitario != null
 
     item.patchValue({
       PrecioDeLista: precioDeLista,
       TipoImporte: precioDeLista ? TIPO_IMPORTE_LISTA_PRECIO : TIPO_IMPORTE_MANUAL,
-      ...(precioDeLista ? { ImporteUnitario: Number(importeUnitario) } : {})
+      ImporteUnitario: precioDeLista ? Number(importeUnitario) : 0
     })
   }
 
@@ -644,7 +645,7 @@ export class OrdenVentaFormComponent {
     }
 
     // Los comprobantes van completos o vacíos: cargar uno de los tres campos obliga a los otros dos
-    if (this.comprobantesArray.controls.some(comprobante => comprobante.invalid)) {
+    if (this.conComprobantes() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid)) {
       this.validado.set(true)
       this.marcarComprobantesInvalidos()
       this.cdr.markForCheck()
@@ -661,12 +662,17 @@ export class OrdenVentaFormComponent {
         ClienteId: this.clienteId(),
         ClienteElementoDependienteId: this.clienteElementoDependienteId(),
         EstadoOrdenVentaCodigo: this.estadoOrdenVentaCodigo(),
-        // La lista va completa: el back reescribe los comprobantes de la orden con lo que llega
-        comprobantes: this.comprobantesArray.getRawValue().map((comprobante: any) => ({
-          ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo,
-          ComprobanteNro: String(comprobante.ComprobanteNro ?? '').trim(),
-          ImporteTotal: aNumero(comprobante.ImporteTotal)
-        })),
+        // La lista va completa: el back reescribe los comprobantes de la orden con lo que llega.
+        // Sin la sección en pantalla no se manda nada, así los comprobantes quedan intactos.
+        ...(this.conComprobantes()
+          ? {
+            comprobantes: this.comprobantesArray.getRawValue().map((comprobante: any) => ({
+              ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo,
+              ComprobanteNro: String(comprobante.ComprobanteNro ?? '').trim(),
+              ImporteTotal: aNumero(comprobante.ImporteTotal)
+            }))
+          }
+          : {}),
         items
       }))
 
