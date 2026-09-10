@@ -34,6 +34,10 @@ const cargado = (valor: any) => valor != null && String(valor).trim() !== '';
 const PRODUCTO_HORAS_A = 'SSF';
 const PRODUCTO_HORAS_B = 'SSFB';
 
+// Hasta cuántos períodos hacia atrás se busca la orden con la que se inicializa una nueva. Se
+// toma la más reciente de la ventana: un objetivo puede no tener orden todos los meses.
+const MESES_ORDEN_BASE = 6;
+
 // Columnas de la grilla de órdenes de venta (cabecera), usadas por la pantalla Órdenes de Venta
 const columnasGrillaOrdenes: any[] = [
   {
@@ -221,9 +225,34 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
-  // Período anterior al recibido
-  private static periodoAnterior(anio: number, mes: number) {
-    return mes > 1 ? { anio, mes: mes - 1 } : { anio: anio - 1, mes: 12 };
+  // Última orden de venta del objetivo dentro de los MESES_ORDEN_BASE períodos anteriores al
+  // recibido, o undefined si en toda la ventana no hay ninguna. Es el modelo con el que se
+  // inicializa una orden que todavía no existe.
+  private static async getOrdenVentaBase(queryRunner: any, ObjetivoId: number, anio: number, mes: number) {
+    // Extremos de la ventana: desde MESES_ORDEN_BASE períodos atrás hasta el anterior al pedido
+    const hasta = OrdenVentaController.sumarMeses(anio, mes, -1);
+    const desde = OrdenVentaController.sumarMeses(anio, mes, -MESES_ORDEN_BASE);
+
+    const ordenes = await queryRunner.query(`
+      SELECT TOP 1
+        ord.NroOrdenVenta, ord.ClienteId, ord.ClienteElementoDependienteId,
+        ord.PeriodoAnio, ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.ImporteTotalAFacturar
+      FROM Objetivo obj
+      JOIN OrdenVenta ord ON ord.ClienteId = obj.ClienteId
+        AND ord.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
+      WHERE obj.ObjetivoId = @0
+        AND (ord.PeriodoAnio > @1 OR (ord.PeriodoAnio = @1 AND ord.PeriodoMes >= @2))
+        AND (ord.PeriodoAnio < @3 OR (ord.PeriodoAnio = @3 AND ord.PeriodoMes <= @4))
+      ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC
+    `, [ObjetivoId, desde.anio, desde.mes, hasta.anio, hasta.mes]);
+
+    return ordenes[0];
+  }
+
+  // Período desplazado en meses, con el año corregido cuando la cuenta lo cruza
+  private static sumarMeses(anio: number, mes: number, meses: number) {
+    const corrido = anio * 12 + (mes - 1) + meses;
+    return { anio: Math.floor(corrido / 12), mes: (corrido % 12) + 1 };
   }
 
   // Orden de venta del objetivo para el período, o undefined si todavía no se generó
@@ -243,7 +272,8 @@ export class OrdenVentaController extends BaseController {
   }
 
   // El detalle sale de ItemOrdenVenta. Si la orden del período todavía no existe, se inicializa
-  // con los ítems del mes anterior, revaluados con el precio vigente del período pedido.
+  // con los ítems de la última orden de los MESES_ORDEN_BASE meses anteriores, revaluados con el
+  // precio vigente del período pedido.
   async getListOrdenVenta(req: Request, res: Response, next: NextFunction) {
     const ObjetivoId = Number(req.body.ObjetivoId);
     const anio = Number(req.body.anio);
@@ -252,11 +282,10 @@ export class OrdenVentaController extends BaseController {
 
     try {
       const orden = await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ObjetivoId, anio, mes);
-      const anterior = OrdenVentaController.periodoAnterior(anio, mes);
 
-      // Sin orden propia se copia la del mes anterior: los ítems son nuevos (id 0), pero el
-      // detalle se arrastra completo.
-      const ordenBase = orden ?? await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ObjetivoId, anterior.anio, anterior.mes);
+      // Sin orden propia se copia la última de los meses anteriores: los ítems son nuevos (id 0),
+      // pero el detalle se arrastra completo, salvo la cantidad de los productos de horas.
+      const ordenBase = orden ?? await OrdenVentaController.getOrdenVentaBase(queryRunner, ObjetivoId, anio, mes);
       const esNueva = !orden;
 
       let items: any[] = [];
@@ -270,14 +299,14 @@ export class OrdenVentaController extends BaseController {
             item.TipoCantidad,
             IIF(COALESCE(hs.ImporteHora, pre.Importe) IS NULL, 'V', 'LP') AS TipoImporte,
             IIF(COALESCE(hs.ImporteHora, pre.Importe) IS NULL, 0, 1) AS PrecioDeLista,
-            item.Cantidad,
+            IIF(@1 = 1 AND item.ProductoCodigo IN (@6, @7), NULL, item.Cantidad) AS Cantidad,
             item.CantidadEstandar,
             item.Bonificacion,
             COALESCE(hs.ImporteHora, pre.Importe, item.ImporteUnitario) AS ImporteUnitario,
-            -- Todos los productos conservan el texto de factura que se les cargó, los de horas incluidos
             item.TextoFactura,
             item.CantidadEnFactura,
-            ISNULL(item.Cantidad,0) * ISNULL(COALESCE(hs.ImporteHora, pre.Importe, item.ImporteUnitario),0) AS ImporteTotal
+            ISNULL(IIF(@1 = 1 AND item.ProductoCodigo IN (@6, @7), NULL, item.Cantidad),0)
+              * ISNULL(COALESCE(hs.ImporteHora, pre.Importe, item.ImporteUnitario),0) AS ImporteTotal
           FROM ItemOrdenVenta item
           LEFT JOIN Producto prod ON prod.ProductoCodigo = item.ProductoCodigo
           OUTER APPLY (
@@ -311,8 +340,8 @@ export class OrdenVentaController extends BaseController {
           esNueva,
           NroOrdenVenta: orden?.NroOrdenVenta ?? null,
           // De dónde salió el detalle, para avisar en pantalla que es una orden inicializada
-          origenAnio: esNueva && ordenBase ? anterior.anio : anio,
-          origenMes: esNueva && ordenBase ? anterior.mes : mes,
+          origenAnio: esNueva && ordenBase ? Number(ordenBase.PeriodoAnio) : anio,
+          origenMes: esNueva && ordenBase ? Number(ordenBase.PeriodoMes) : mes,
         },
         res
       );
