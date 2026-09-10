@@ -108,8 +108,6 @@ export class INAESComponent {
       columnTotal('CapitalIntegrado', this.angularGrid)
     })
 
-
-
     // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
     const colIds = this.angularGrid.slickGrid.getColumns()
       .filter(col => (col as any).showGridColumn == false || col.hidden == true)
@@ -117,10 +115,6 @@ export class INAESComponent {
     this.angularGrid.gridService.hideColumnByIds(colIds)
 
     /*
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
-    }
-
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
     */
@@ -144,12 +138,16 @@ export class INAESComponent {
       }
       const { Estado, movimiento, resolucion } = exportacion
 
+      
       if (Estado == 'A') {
+        (this.reg1000_21AltaExportService as InaesReg1000_21AltaCsvExportService).setAllColumns( this.angularGrid.gridService.getAllColumnDefinitions())
         await (this.reg1000_21AltaExportService as InaesReg1000_21AltaCsvExportService).exportToFile({
           filename: `INAES-${filter}`,
           format: 'csv',
+          
         });
       } else if (Estado == 'B') {
+        (this.reg1000_21BajaExportService as InaesReg1000_21BajaCsvExportService).setAllColumns( this.angularGrid.gridService.getAllColumnDefinitions())
         await (this.reg1000_21BajaExportService as InaesReg1000_21BajaCsvExportService).exportToFile({
           filename: `INAES-${filter}`,
           format: 'csv',
@@ -178,12 +176,14 @@ export class INAESComponent {
       const { Estado, movimiento, resolucion } = exportacion
 
       if (Estado == 'A') {
+        (this.reg756_2025AltaExportService as InaesReg756_2025AltaCsvExportService).setAllColumns( this.angularGrid.gridService.getAllColumnDefinitions())
         await (this.reg756_2025AltaExportService as InaesReg756_2025AltaCsvExportService).exportToFile({
           delimiter: ';',
           filename: `INAES-${filter}`,
-          format: 'csv',
+          format: 'csv'
         });
       } else if (Estado == 'B') {
+        (this.reg756_2025BajaExportService as InaesReg756_2025BajaCsvExportService).setAllColumns( this.angularGrid.gridService.getAllColumnDefinitions())
         await (this.reg756_2025BajaExportService as InaesReg756_2025BajaCsvExportService).exportToFile({
           delimiter: ';',
           filename: `INAES-${filter}`,

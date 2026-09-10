@@ -35,7 +35,11 @@ export class InaesReg756_2025AltaCsvExportService extends TextExportService {
 
   private errors: string[] = [];
 
+  private _allColumns: any[] = []
 
+  setAllColumns(columns: any) {
+    this._allColumns = columns
+  }
   /**
    * Format exported values
    */
@@ -68,11 +72,10 @@ export class InaesReg756_2025AltaCsvExportService extends TextExportService {
    */
   protected override getDataOutput(): string {
     this.errors = []
-    const columns = this._grid.getColumns() || [];
     const columnsOrderByHeader = this.headerColumns
       .map((col: any) => {
         if (!col.columnId) return null
-        const find = columns.find((colGrid: any) => colGrid.id === col.columnId)
+        const find = this._allColumns.find((colGrid: any) => colGrid.id === col.columnId)
         if (find) return { ...find, format: col.format }
         return null
       });

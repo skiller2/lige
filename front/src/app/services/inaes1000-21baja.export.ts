@@ -25,6 +25,12 @@ export class InaesReg1000_21BajaCsvExportService extends TextExportService {
   ];
   private errors: string[] = [];
 
+  private _allColumns: any[] = []
+
+  setAllColumns(columns: any) {
+    this._allColumns = columns
+  }
+
   private getExportValue(value: any, column: any): any {
     if (column.params?.collection) {
       const option = column.params.collection.find(
@@ -41,11 +47,10 @@ export class InaesReg1000_21BajaCsvExportService extends TextExportService {
    */
   protected override getDataOutput(): string {
     this.errors = []
-    const columns = this._grid.getColumns() || [];
     const columnsOrderByHeader = this.headerColumns
       .map((col: any) => {
         if (!col.columnId) return null
-        const find = columns.find((colGrid: any) => colGrid.id === col.columnId)
+        const find = this._allColumns.find((colGrid: any) => colGrid.id === col.columnId)
         if (find) return { ...find, format: col.format }
         return null
       });

@@ -13,6 +13,12 @@ export class InaesReg756_2025BajaCsvExportService extends TextExportService {
   /**
    * Format exported values
    */
+  private _allColumns: any[] = []
+
+  setAllColumns(columns: any) {
+    this._allColumns = columns
+  }
+
   protected formatExportValue(value: any): string {
 
     if (value === null || value === undefined) {
@@ -43,11 +49,10 @@ export class InaesReg756_2025BajaCsvExportService extends TextExportService {
    */
   protected override getDataOutput(): string {
     this.errors = []
-    const columns = this._grid.getColumns() || [];
     const columnsOrderByHeader = this.headerColumns
       .map((col: any) => {
         if (!col.columnId) return null
-        const find = columns.find((colGrid: any) => colGrid.id === col.columnId)
+        const find = this._allColumns.find((colGrid: any) => colGrid.id === col.columnId)
         if (find) return { ...find, format: col.format }
         return null
       });

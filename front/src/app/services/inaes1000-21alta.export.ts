@@ -1,5 +1,7 @@
 import { TextExportService } from '@slickgrid-universal/text-export';
+
 import { ExportError } from '../shared/utils/export-error';
+import { AngularGridInstance } from 'angular-slickgrid';
 
 export class InaesReg1000_21AltaCsvExportService extends TextExportService {
 
@@ -25,6 +27,11 @@ export class InaesReg1000_21AltaCsvExportService extends TextExportService {
   ];
 
   private errors: string[] = [];
+  private _allColumns: any[]=[]
+
+  setAllColumns(columns:any){
+    this._allColumns = columns
+  }
 
   private getExportValue(value: any, column: any): any {
     if (column.params?.collection) {
@@ -42,16 +49,18 @@ export class InaesReg1000_21AltaCsvExportService extends TextExportService {
    */
   protected override getDataOutput(): string {
     this.errors = []
-    const columns = this._grid.getColumns() || [];
+    this._exportOptions.includeHidden = true;
+
     const columnsOrderByHeader = this.headerColumns
       .map((col: any) => {
         if (!col.columnId) return null
-        const find = columns.find((colGrid: any) => colGrid.id === col.columnId)
+        const find = this._allColumns.find((colGrid: any) => colGrid.id === col.columnId)
         if (find) return { ...find, format: col.format }
         return null
       });
 
     this._delimiter = ';';
+
 
     const headerTxt = this.headerColumns.map(obj => obj.exportHeader).join(this._delimiter) + '\r\n';
     const rowsTxt = this.getRows(columnsOrderByHeader);
@@ -60,7 +69,7 @@ export class InaesReg1000_21AltaCsvExportService extends TextExportService {
       throw new ExportError('No existen datos para exportar');
 
     if (this.errors.length > 0) {
-      let errorMsg = `No se puede exportar hay ${this.errors.length} campos con información faltante.\n${this.errors.join('\n')}`
+      const errorMsg = `No se puede exportar hay ${this.errors.length} campos con información faltante.\n${this.errors.join('\n')}`
       throw new ExportError(errorMsg)
     }
 
@@ -71,12 +80,10 @@ export class InaesReg1000_21AltaCsvExportService extends TextExportService {
 
   protected getRows(columns: any[]): string {
     const rows: string[] = [];
-
     const lineCount = this._dataView.getLength();
 
     for (let row = 0; row < lineCount; row++) {
       const item = this._dataView.getItem(row);
-
       if (!item || item.Estado != 'A') {
         continue;
       }
