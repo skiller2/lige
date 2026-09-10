@@ -25,13 +25,13 @@ import { ExportError } from '../../../shared/utils/export-error';
 
 
 @Component({
-    selector: 'app-inaes',
-    templateUrl: './inaes.html',
-    styleUrl: './inaes.less',
-    // encapsulation: ViewEncapsulation.None,
-    imports: [SHARED_IMPORTS, FiltroBuilderComponent, TableINAESRecibosComponent],
-    providers: [AngularUtilService,] 
-    
+  selector: 'app-inaes',
+  templateUrl: './inaes.html',
+  styleUrl: './inaes.less',
+  // encapsulation: ViewEncapsulation.None,
+  imports: [SHARED_IMPORTS, FiltroBuilderComponent, TableINAESRecibosComponent],
+  providers: [AngularUtilService,]
+
 })
 export class INAESComponent {
   angularGrid!: AngularGridInstance;
@@ -46,8 +46,6 @@ export class INAESComponent {
   loadingExport = signal<boolean>(false)
   startFilters = signal<Selections[]>([])
   tabIndex = signal<number>(0)
-  hiddenColumnIds: string[] = [];
-  columnsId: string[] = [];
 
   readonly router = inject(Router)
   private apiService = inject(ApiService)
@@ -60,13 +58,7 @@ export class INAESComponent {
   private reg756_2025BajaExportService: ExternalResource | InaesReg756_2025BajaCsvExportService = new InaesReg756_2025BajaCsvExportService();
 
   columns = toSignal(this.apiService.getCols('/api/inaes/altas-bajas/cols')
-    .pipe(map((cols) => {
-      // Guardar IDs de columnas que tienen showGridColumn: false
-      this.hiddenColumnIds = cols
-        .filter((col: any) => col.showGridColumn === false)
-        .map((col: Column) => col.id as string);
-      this.columnsId = cols.map((col: Column) => col.id as string);
-      
+    .pipe(map((cols: Column[]) => {
       return cols;
     })), { initialValue: [] as Column[] })
 
@@ -77,11 +69,11 @@ export class INAESComponent {
       this.loadingSrv.open({ type: 'spin', text: '' })
       try {
         response = await firstValueFrom(this.apiService.getINAESAltasBajas({ options: params.options })
-        .pipe(map(data => { return data })));
+          .pipe(map(data => { return data })));
       } catch (error) {
-        
+
       }
-      
+
       this.loadingSrv.close()
       return response || [];
     },
@@ -97,7 +89,7 @@ export class INAESComponent {
     // this.gridOptions.enableCheckboxSelector = true
     this.gridOptions.forceFitColumns = true
     this.gridOptions.enableExcelExport = true
-    
+
     //Habilitando exportación de .CSV
     this.gridOptions.textExportOptions = { exportWithFormatter: true }
     this.gridOptions.externalResources!.push(
@@ -116,13 +108,24 @@ export class INAESComponent {
       columnTotal('CapitalIntegrado', this.angularGrid)
     })
 
+
+
     // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
+    console.log('getColumns', this.angularGrid.slickGrid.getColumns())
+
+    const colIds = this.angularGrid.slickGrid.getColumns()
+      .filter(col => (col as any).showGridColumn == false || col.hidden == true)
+      .map(col => col.id);
+    this.angularGrid.gridService.hideColumnByIds(colIds)
+
+    /*
     if (this.hiddenColumnIds.length > 0) {
       this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
     }
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
+    */
   }
 
   //Configuración de cada exportación: estado a filtrar y textos para los mensajes
@@ -133,7 +136,7 @@ export class INAESComponent {
     'bajas756-2025': { Estado: 'B', movimiento: 'bajas', resolucion: 'Res. 756/2025' },
   }
 
-  async exportXlsxGrid(filter:string) {
+  async exportXlsxGrid(filter: string) {
     this.loadingExport.set(true)
     try {
       //Configuro el filtro
@@ -158,14 +161,14 @@ export class INAESComponent {
       if (error instanceof ExportError) {
         this.notification.warning('Advertencia', error.message);
       } else console.log('error: ', error);
-      
+
     }
-        
+
     this.loadingExport.set(false)
   }
 
 
-  async exportCsvGrid(filter:string) {
+  async exportCsvGrid(filter: string) {
     this.loadingExport.set(true)
     try {
       //Configuro el filtro
@@ -194,7 +197,7 @@ export class INAESComponent {
         this.notification.warning('Advertencia', error.message);
       }
     }
-    
+
     this.loadingExport.set(false)
   }
 }

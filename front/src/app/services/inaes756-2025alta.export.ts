@@ -3,34 +3,34 @@ import { ExportError } from '../shared/utils/export-error';
 
 export class InaesReg756_2025AltaCsvExportService extends TextExportService {
 
-  private headerColumns:any[] = [
-    { columnId: 'CUITEntidad', exportHeader: 'Cuit Entidad'},
-    { columnId: 'ActaFechaActa', exportHeader: 'Fecha Ingreso'},
-    { columnId: 'PersonalCUITCUILCUIT', exportHeader: 'Cuit / Cuil / Cdi'},
-    { columnId: 'TipoPersona', exportHeader: 'Tipo Persona'},
-    { columnId: null, exportHeader: 'Categoria'},
-    { columnId: 'PersonalNroLegajo', exportHeader: 'Numero Asociado'},
-    { columnId: null, exportHeader: 'Denominacion social'},
-    { columnId: 'PersonalApellido', exportHeader: 'Apellido', format: (value:any)=>{return this.truncateBytes(String(value), 100)}},
-    { columnId: 'PersonalNombre', exportHeader: 'Nombre', format: (value:any)=>{return this.truncateBytes(String(value), 100)}},
-    { columnId: 'TipoDocumento', exportHeader: 'Tipo Documento'},
-    { columnId: 'DNI', exportHeader: 'Número Documento'},
-    { columnId: 'DomicilioDomCalle', exportHeader: 'Calle'},
-    { columnId: 'DomicilioDomNro', exportHeader: 'Número'},
-    { columnId: null, exportHeader: 'Piso'},
-    { columnId: null, exportHeader: 'Departamento Edificio'},
-    { columnId: 'ProvinciaINAES', exportHeader: 'ProvinciaDeptoLocalidad'},
-    { columnId: 'DomicilioCodigoPostal', exportHeader: 'Código postal'},
-    { columnId: 'ActaFechaActa', exportHeader: 'Fecha de Acta'},
-    { columnId: null, exportHeader: 'Órgano Emisor'},
-    { columnId: 'CapitalSuscripto', exportHeader: 'Capital Suscripto'},
-    { columnId: 'CapitalIntegrado', exportHeader: 'Capital Integrado'},
-    { columnId: 'PersonalEmailEmail', exportHeader: 'Mail'},
-    { columnId: 'Telefono', exportHeader: 'Teléfono'},
-    { columnId: null, exportHeader: 'Observación'},
-    { columnId: 'ValorCuota', exportHeader: 'Valor Cuota'},
-    { columnId: 'NivelRiesgo', exportHeader: 'Nivel de riesgo'},
-    { columnId: 'PEP', exportHeader: 'PEP'},
+  private headerColumns: any[] = [
+    { columnId: 'CUITEntidad', exportHeader: 'Cuit Entidad' },
+    { columnId: 'ActaFechaActa', exportHeader: 'Fecha Ingreso' },
+    { columnId: 'PersonalCUITCUILCUIT', exportHeader: 'Cuit / Cuil / Cdi' },
+    { columnId: 'TipoPersona', exportHeader: 'Tipo Persona' },
+    { columnId: null, exportHeader: 'Categoria' },
+    { columnId: 'PersonalNroLegajo', exportHeader: 'Numero Asociado' },
+    { columnId: null, exportHeader: 'Denominacion social' },
+    { columnId: 'PersonalApellido', exportHeader: 'Apellido', format: (value: any) => { return this.truncateBytes(String(value), 100) } },
+    { columnId: 'PersonalNombre', exportHeader: 'Nombre', format: (value: any) => { return this.truncateBytes(String(value), 100) } },
+    { columnId: 'TipoDocumento', exportHeader: 'Tipo Documento' },
+    { columnId: 'DNI', exportHeader: 'Número Documento' },
+    { columnId: 'DomicilioDomCalle', exportHeader: 'Calle' },
+    { columnId: 'DomicilioDomNro', exportHeader: 'Número' },
+    { columnId: null, exportHeader: 'Piso' },
+    { columnId: null, exportHeader: 'Departamento Edificio' },
+    { columnId: 'ProvinciaINAES', exportHeader: 'ProvinciaDeptoLocalidad' },
+    { columnId: 'DomicilioCodigoPostal', exportHeader: 'Código postal' },
+    { columnId: 'ActaFechaActa', exportHeader: 'Fecha de Acta' },
+    { columnId: null, exportHeader: 'Órgano Emisor' },
+    { columnId: 'CapitalSuscripto', exportHeader: 'Capital Suscripto' },
+    { columnId: 'CapitalIntegrado', exportHeader: 'Capital Integrado' },
+    { columnId: 'PersonalEmailEmail', exportHeader: 'Mail' },
+    { columnId: 'Telefono', exportHeader: 'Teléfono' },
+    { columnId: null, exportHeader: 'Observación' },
+    { columnId: 'ValorCuota', exportHeader: 'Valor Cuota' },
+    { columnId: 'NivelRiesgo', exportHeader: 'Nivel de riesgo' },
+    { columnId: 'PEP', exportHeader: 'PEP' },
   ];
 
   private errors: string[] = [];
@@ -67,41 +67,37 @@ export class InaesReg756_2025AltaCsvExportService extends TextExportService {
    * Override complete output generation
    */
   protected override getDataOutput(): string {
-    
+    this.errors = []
     const columns = this._grid.getColumns() || [];
     const columnsOrderByHeader = this.headerColumns
-      .map((col:any) => {
+      .map((col: any) => {
         if (!col.columnId) return null
-        const find = columns.find((colGrid:any) => colGrid.id === col.columnId)
-        if (find) return {...find, format: col.format}
+        const find = columns.find((colGrid: any) => colGrid.id === col.columnId)
+        if (find) return { ...find, format: col.format }
         return null
       });
 
     this._delimiter = ';';
 
-    let output = '';
-      
-    output += this.headerColumns.map(obj => obj.exportHeader).join(this._delimiter);
-    output += '\r\n';
-    
-    output += this.getRows(columnsOrderByHeader);
- 
-    if (output.trim() === '')
-      throw new Error('No data available to export.');
+    const headerTxt = this.headerColumns.map(obj => obj.exportHeader).join(this._delimiter) + '\r\n';
+    const rowsTxt = this.getRows(columnsOrderByHeader);
+
+    if (rowsTxt.trim() === '')
+      throw new ExportError('No existen datos para exportar');
 
     if (this.errors.length > 0) {
-        let errorMsg = `No se puede exportar hay ${this.errors.length} campos con información faltante.\n${this.errors.join('\n')}`
-        throw new ExportError(errorMsg)
+      let errorMsg = `No se puede exportar hay ${this.errors.length} campos con información faltante.\n${this.errors.join('\n')}`
+      throw new ExportError(errorMsg)
     }
 
+    return headerTxt + rowsTxt;
 
-    return output;
   }
 
   /**
    * Export rows
    */
-   protected getRows(columns: any[]): string {
+  protected getRows(columns: any[]): string {
     const rows: string[] = [];
 
     const lineCount = this._dataView.getLength();
@@ -114,9 +110,9 @@ export class InaesReg756_2025AltaCsvExportService extends TextExportService {
       }
 
       const values = columns
-        .map((obj:any) => {
+        .map((obj: any) => {
           if (!obj) return ''
-          
+
           let value = item[obj.id];
 
           switch (obj.type) {
@@ -131,10 +127,10 @@ export class InaesReg756_2025AltaCsvExportService extends TextExportService {
               break;
           }
 
-          if (value === null || value === undefined || value === '') 
+          if (value === null || value === undefined || value === '')
             this.errors.push(`Registro ${row + 1}: ${item.PersonalApellido} ${item.PersonalNombre} - Columna "${obj.name}" vacío.`);
-          
-          return obj.format? obj.format(value) : value;
+
+          return obj.format ? obj.format(value) : value;
         });
 
       rows.push(values.join(this._delimiter));
