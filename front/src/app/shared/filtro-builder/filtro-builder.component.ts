@@ -283,7 +283,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
 
       // Establecer el label apropiado
       if (this.selections.label == "") {
-        if (this.valueExtended?.fullName) {
+        if (this.valueExtended?.fullName && this.selections.field.searchComponent) {
           this.selections.label = this.valueExtended.fullName;
         } else if (this.selections.value == "" || ((this.selections.value instanceof Date) && isNaN(this.selections.value.getTime()))) {
           this.selections.label = "Vacio";
