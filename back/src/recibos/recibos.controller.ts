@@ -486,8 +486,7 @@ export class RecibosController extends BaseController {
         select distinct doc.PersonalId
         from Documento doc 
         left join lige.dbo.liqmaperiodo peri on peri.mes=doc.DocumentoMes and peri.anio=doc.DocumentoAnio
-        where doc.DocumentoTipoCodigo='RECC' and peri.anio=@1 AND peri.mes=@2
-      )`
+        where doc.DocumentoTipoCodigo='RECC' and peri.anio=@1 AND peri.mes=@2) `
 
     createSelect += `ORDER BY per.PersonalId ASC`
 
@@ -542,13 +541,12 @@ export class RecibosController extends BaseController {
       createSelect += ` AND per.PersonalId = @3 )`
 
     if (checkReciboExists)
-      createSelect += `and
+      createSelect += ` and
       per.PersonalId not in (
         select distinct doc.PersonalId
         from Documento doc 
         left join lige.dbo.liqmaperiodo peri on peri.mes=doc.DocumentoMes and peri.anio=doc.DocumentoAnio
-        where doc.DocumentoTipoCodigo='REC' and peri.anio=@1 AND peri.mes=@2
-      )`
+        where doc.DocumentoTipoCodigo='REC' and peri.anio=@1 AND peri.mes=@2) `
 
     createSelect += `ORDER BY per.PersonalId ASC`
 
