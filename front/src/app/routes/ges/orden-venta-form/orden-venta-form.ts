@@ -87,7 +87,16 @@ export class OrdenVentaFormComponent {
   // Comprobantes que ya tiene la orden, de la cabecera (/api/orden-venta/cabecera)
   comprobantesOrden = input<any[]>([])
 
-  conComprobantes = input<boolean>(false)
+  // Observaciones de la orden (OrdenVenta.Observaciones), también de la cabecera
+  observacionesOrden = input<string | null>(null)
+
+  // Desde dónde se abrió el detalle. El drawer de la carga de asistencia y la pantalla de órdenes
+  // de venta comparten este formulario, pero no muestran los mismos campos.
+  origen = input<'ordenes-venta' | 'asistencia'>('asistencia')
+
+  // Sólo la pantalla de órdenes de venta edita los comprobantes, los datos de factura del ítem y
+  // las observaciones de la orden
+  esOrdenVenta = computed(() => this.origen() === 'ordenes-venta')
 
   // Estado elegido a mano en la pantalla de órdenes de venta. Sin estado el back lo resuelve por
   // los comprobantes, que es como se guarda desde la carga de asistencia.
@@ -132,6 +141,20 @@ export class OrdenVentaFormComponent {
   formComprobante = this.fb.group({
     comprobantes: this.fb.array([this.nuevoComprobante()])
   })
+
+  // Observaciones de la orden. Es una sola para toda la orden, pero se edita desde cualquiera de
+  // los paneles del acordeón, así que va como señal y no como control del ítem: los paneles
+  // muestran todos el mismo valor.
+  observaciones = signal<string>('')
+
+  cambiarObservaciones(texto: string) {
+    if (this.soloLectura()) return
+    this.observaciones.set(texto)
+  }
+
+  // Habilita el guardado aunque no se haya tocado el detalle
+  private observacionesCambiadas = computed(() =>
+    this.observaciones() !== (this.observacionesOrden() ?? ''))
 
   // Panel abierto del acordeón (uno solo a la vez, para no colapsar la vista)
   panelAbierto = signal<number>(0)
@@ -246,6 +269,9 @@ export class OrdenVentaFormComponent {
     // Carga los comprobantes que ya tiene la orden
     effect(() => this.sincronizarComprobantes(this.comprobantesOrden()))
 
+    // Al abrir otra orden las observaciones arrancan con lo que tiene guardado
+    effect(() => this.observaciones.set(this.observacionesOrden() ?? ''))
+
     // El total de la orden se recalcula ante cualquier modificación del detalle
     effect(() => this.detalleChange.emit(this.itemsValue()))
 
@@ -261,8 +287,10 @@ export class OrdenVentaFormComponent {
     effect(() => {
       this.formValue()
       this.comprobantes()
+      const observacionesCambiadas = this.observacionesCambiadas()
       this.conCambios.set(
-        this.formOrdenVenta.dirty || this.formComprobante.dirty || this.detalleImportado())
+        this.formOrdenVenta.dirty || this.formComprobante.dirty || observacionesCambiadas
+        || this.detalleImportado())
     })
 
     effect(() => {
@@ -645,7 +673,7 @@ export class OrdenVentaFormComponent {
     }
 
     // Los comprobantes van completos o vacíos: cargar uno de los tres campos obliga a los otros dos
-    if (this.conComprobantes() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid)) {
+    if (this.esOrdenVenta() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid)) {
       this.validado.set(true)
       this.marcarComprobantesInvalidos()
       this.cdr.markForCheck()
@@ -664,8 +692,9 @@ export class OrdenVentaFormComponent {
         EstadoOrdenVentaCodigo: this.estadoOrdenVentaCodigo(),
         // La lista va completa: el back reescribe los comprobantes de la orden con lo que llega.
         // Sin la sección en pantalla no se manda nada, así los comprobantes quedan intactos.
-        ...(this.conComprobantes()
+        ...(this.esOrdenVenta()
           ? {
+            Observaciones: this.observaciones().trim() || null,
             comprobantes: this.comprobantesArray.getRawValue().map((comprobante: any) => ({
               ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo,
               ComprobanteNro: String(comprobante.ComprobanteNro ?? '').trim(),

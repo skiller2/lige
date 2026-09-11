@@ -55,20 +55,35 @@
           </nz-form-control>
         </nz-form-item>
 
-        <nz-form-item class="marginElement" style="display:none">
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Texto de Factura</nz-form-label>
-          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
-            <textarea nz-input formControlName="TextoFactura" [attr.readonly]="soloLectura() ? '' : null"></textarea>
-          </nz-form-control>
-        </nz-form-item>
-
-        <nz-form-item class="marginElement" style="display:none">
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Cantidad en Factura</nz-form-label>
+        <!-- Datos de factura del ítem: sólo se cargan desde la pantalla de órdenes de venta -->
+        @if (esOrdenVenta()) {
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cantidad en Factura</nz-form-label>
           <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
             <input nz-input placeholder="" formControlName="CantidadEnFactura" type="text" appDotToComma
               mask="separator.2" [attr.readonly]="soloLectura() ? '' : null" />
           </nz-form-control>
         </nz-form-item>
+
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Texto de Factura</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+            <textarea nz-input formControlName="TextoFactura" rows="2"
+              [attr.readonly]="soloLectura() ? '' : null"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Observaciones es de la orden (OrdenVenta.Observaciones), no del ítem: todos los
+             paneles muestran y editan el mismo texto -->
+        <nz-form-item class="marginElement">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Observaciones</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19">
+            <textarea nz-input rows="2" [value]="observaciones()"
+              (input)="cambiarObservaciones($any($event.target).value)"
+              [attr.readonly]="soloLectura() ? '' : null"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+        }
 
         <nz-form-item class="marginElement">
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Importe Unitario</nz-form-label>
@@ -111,7 +126,7 @@
 
 </form>
 
-@if (conComprobantes()) {
+@if (esOrdenVenta()) {
 
 <div class="input-container1">
   <div class="input-label">Comprobantes</div>

@@ -369,12 +369,13 @@ export class OrdenVentaController extends BaseController {
           ord.NroOrdenVenta,
           ord.EstadoOrdenVentaCodigo,
           ord.ImporteTotalAFacturar,
+          ord.Observaciones,
           est.Descripcion AS EstadoOrdenVenta
         FROM Objetivo obj
         LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
         OUTER APPLY (
-          SELECT TOP 1 ov.NroOrdenVenta, ov.EstadoOrdenVentaCodigo, ov.ImporteTotalAFacturar
+          SELECT TOP 1 ov.NroOrdenVenta, ov.EstadoOrdenVentaCodigo, ov.ImporteTotalAFacturar, ov.Observaciones
           FROM OrdenVenta ov
           WHERE ov.ClienteId = obj.ClienteId
             AND ov.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
@@ -425,6 +426,9 @@ export class OrdenVentaController extends BaseController {
     const ClienteId = Number(req.body.ClienteId);
     const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
     const detalle: any[] = Array.isArray(req.body.items) ? req.body.items : [];
+    // Igual que los comprobantes: sin el campo en el request las observaciones no se tocan. El
+    // drawer de la carga de asistencia no las edita y borraría lo que cargó la otra pantalla.
+    const observacionesRecibidas = req.body.Observaciones !== undefined;
     const Observaciones = req.body.Observaciones ?? null;
     // Estado elegido en la pantalla de órdenes de venta. Sin estado se resuelve por los
     // comprobantes, que es como guarda la carga de asistencia.
@@ -684,14 +688,22 @@ export class OrdenVentaController extends BaseController {
       if (NroOrdenVenta) {
         // Sin cambios en el comprobante el estado no se toca: la orden puede estar en cualquier
         // punto del circuito
+        const parametros: any[] = [NroOrdenVenta, importeTotal, ahora, usuario, ip];
+        let sets = 'ImporteTotalAFacturar = @1, AudFechaMod = @2, AudUsuarioMod = @3, AudIpMod = @4';
+
+        if (actualizaEstado) {
+          parametros.push(estadoOrden);
+          sets += `, EstadoOrdenVentaCodigo = @${parametros.length - 1}`;
+        }
+
+        if (observacionesRecibidas) {
+          parametros.push(Observaciones);
+          sets += `, Observaciones = @${parametros.length - 1}`;
+        }
+
         await queryRunner.query(`
-          UPDATE OrdenVenta
-          SET ImporteTotalAFacturar = @1, Observaciones = @2, AudFechaMod = @3, AudUsuarioMod = @4, AudIpMod = @5
-            ${actualizaEstado ? ', EstadoOrdenVentaCodigo = @6' : ''}
-          WHERE NroOrdenVenta = @0
-        `, actualizaEstado
-          ? [NroOrdenVenta, importeTotal, Observaciones, ahora, usuario, ip, estadoOrden]
-          : [NroOrdenVenta, importeTotal, Observaciones, ahora, usuario, ip]);
+          UPDATE OrdenVenta SET ${sets} WHERE NroOrdenVenta = @0
+        `, parametros);
 
       } else {
         // NroOrdenVenta no es identity: se toma el siguiente dentro de la transacción
