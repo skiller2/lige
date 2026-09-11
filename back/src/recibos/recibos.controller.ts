@@ -477,11 +477,11 @@ export class RecibosController extends BaseController {
       WHERE liq.tipocuenta_id = 'C' and peri.anio=@1 AND peri.mes=@2`
 
     if (personalId != 0 && personalId != undefined)
-      createSelect += ` AND per.PersonalId = @3 ) `
+      createSelect += ` AND per.PersonalId = @3 `
 
-
+    createSelect += `) `
     if (checkReciboExists)
-      createSelect += ` and
+      createSelect += `and
       per.PersonalId not in (
         select distinct doc.PersonalId
         from Documento doc 
@@ -535,13 +535,15 @@ export class RecibosController extends BaseController {
       SELECT DISTINCT liq.persona_id
       FROM lige.dbo.liqmamovimientos liq
       left join lige.dbo.liqmaperiodo peri on peri.periodo_id=liq.periodo_id
-      WHERE liq.tipocuenta_id = 'G' and peri.anio=@1 AND peri.mes=@2`
+      WHERE liq.tipocuenta_id = 'G' and peri.anio=@1 AND peri.mes=@2 `
 
     if (personalId != 0 && personalId != undefined)
-      createSelect += ` AND per.PersonalId = @3 )`
+      createSelect += ` AND per.PersonalId = @3 `
 
+    createSelect += `) `
+    
     if (checkReciboExists)
-      createSelect += ` and
+      createSelect += `and
       per.PersonalId not in (
         select distinct doc.PersonalId
         from Documento doc 
