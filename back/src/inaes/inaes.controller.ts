@@ -91,7 +91,7 @@ const altasBajasColumns: any[] = [
     searchType: "number",
     sortable: true,
     searchHidden: true,
-    hidden: true,
+    hidden: false,
     showGridColumn: false,
   },
   {
