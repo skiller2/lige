@@ -11,18 +11,35 @@ export class ChatBotController extends BaseController {
   async setPrompt(req: any, res: any, next: any) {
     const iaPrompt = req.body.iaPrompt
     const iaPromptHash = req.body.iaPromptHash
-
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario)
+    const ParametroGeneralCodigo = 'BOT'
+    
     try {
       if (iaPromptHash !== botServer.iaPromptHash)
         throw new ClientException('Hay cambios posteriores a la última lectura')
 
+      const ParametroGeneral = await queryRunner.query(`SELECT ParametroGeneralCodigo FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, [ParametroGeneralCodigo])
+      if (ParametroGeneral.length) {
+        let Parametros = JSON.parse(ParametroGeneral[0])
+        Parametros.iaPrompt = iaPrompt
+        await queryRunner.query(
+          `UPDATE ParametroGeneral 
+          SET Parametros = @1, AudFechaMod= @2, AudUsuarioMod= @3, AudIpMod= @4
+          WHERE ParametroGeneralCodigo = @0`, 
+          [ParametroGeneralCodigo, JSON.stringify(Parametros), new Date(), usuario, '127.0.0.1']
+        )
+      } else {
+        await queryRunner.query(
+          `INSERT INTO ParametroGeneral (
+          ParametroGeneralCodigo,Parametros,AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod
+          ) VALUES (@0,@1,@2,@2,@3,@3,@4,@4)`, 
+          [ParametroGeneralCodigo, JSON.stringify({iaPrompt}), new Date(), usuario, '127.0.0.1']
+        )
+      }
 
-      await writeFile(`${this.pathDocuments}/ia-prompt.txt`, iaPrompt, { encoding: 'utf8' })
-      // await writeFile('C:/temp/listado.json', JSON.stringify(listado, null, 2), (err) => { })
       botServer.iaPrompt = iaPrompt
-
       botServer.iaPromptHash = CryptoJS.SHA256(iaPrompt).toString(CryptoJS.enc.Hex);
-
 
       botServer.chatmess = []
       const ret = { iaPrompt, iaPromptHash: botServer.iaPromptHash }
@@ -62,6 +79,13 @@ export class ChatBotController extends BaseController {
   async getTools(req: any, res: any, next: any) {
     const ret = { iaTools: JSON.stringify(botServer.iaTools, null, 2), iaToolsHash: botServer.iaToolsHash }
     return this.jsonRes(ret, res, 'ok');
+  }
+
+  async getChatbotParameters() {
+    const usuario = BaseController.getUser(null)
+    const queryRunner = await dbServer.connection(usuario)
+    const ParametroGeneral = await queryRunner.query(`SELECT ParametroGeneralCodigo FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, ['BOT'])
+    return ParametroGeneral[0]? JSON.parse(ParametroGeneral[0]) : null
   }
 
   async getPrompt(req: any, res: any, next: any) {

@@ -29,6 +29,7 @@ import { toAsk, httpInject } from "@builderbot-plugins/openai-assistants/dist/in
 import { Ollama } from "ollama";
 import { ClientException } from "./controller/base.controller.ts";
 import { readFile } from "node:fs/promises";
+import { chatBotController } from "./controller/controller.module.ts";
 
 
 dotenv.config()
@@ -523,7 +524,12 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
     }
 
     try {
-      this.iaPrompt = await readFile(`${this.pathDocuments}/ia-prompt.txt`,'utf8')
+      const Parameters = await chatBotController.getChatbotParameters()
+      if (Parameters) {
+        this.iaPrompt = Parameters.iaPrompt
+      } else {
+        this.iaPrompt = await readFile(`${this.pathDocuments}/ia-prompt.txt`,'utf8')
+      }
       this.iaPromptHash = CryptoJS.SHA256(this.iaPrompt).toString(CryptoJS.enc.Hex);
 
     } catch (error) {
