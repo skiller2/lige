@@ -104,6 +104,14 @@ export class OrdenVentaFormComponent {
 
   detalleImportado = input<boolean>(false)
 
+  // "Nueva sin plantilla": el guardado tiene que dar de alta otra orden, aunque el objetivo ya
+  // tenga una en el período
+  nuevaOrden = input<boolean>(false)
+
+  // Orden del período que se está editando. En cero el back graba sobre la última, que es lo que
+  // hacían las pantallas cuando el período tenía una sola.
+  nroOrdenVenta = input<number>(0)
+
   // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
   horasAFacturarA = input<number>(0)
   horasAFacturarB = input<number>(0)
@@ -690,6 +698,9 @@ export class OrdenVentaFormComponent {
         ClienteId: this.clienteId(),
         ClienteElementoDependienteId: this.clienteElementoDependienteId(),
         EstadoOrdenVentaCodigo: this.estadoOrdenVentaCodigo(),
+        // Sin la marca el back graba sobre la orden del período, que es lo de siempre
+        ...(this.nuevaOrden() ? { NuevaOrden: true } : {}),
+        ...(this.nroOrdenVenta() ? { NroOrdenVenta: this.nroOrdenVenta() } : {}),
         // La lista va completa: el back reescribe los comprobantes de la orden con lo que llega.
         // Sin la sección en pantalla no se manda nada, así los comprobantes quedan intactos.
         ...(this.esOrdenVenta()

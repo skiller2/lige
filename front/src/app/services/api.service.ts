@@ -1952,9 +1952,11 @@ export class ApiService {
     );
   }
 
-  getListOrdenVenta(ObjetivoId: number, anio: number, mes: number) {
+  // Con NroOrdenVenta se pide una orden puntual del período; en cero, la última. Con Plantilla
+  // se ignoran las órdenes del período y el detalle sale del modelo de los meses anteriores.
+  getListOrdenVenta(ObjetivoId: number, anio: number, mes: number, NroOrdenVenta = 0, Plantilla = false) {
 
-    return this.http.post<ResponseJSON<any>>('/api/orden-venta/list', { ObjetivoId, anio, mes }).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/orden-venta/list', { ObjetivoId, anio, mes, NroOrdenVenta, Plantilla }).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of({ total: 0, list: [] }))
     );

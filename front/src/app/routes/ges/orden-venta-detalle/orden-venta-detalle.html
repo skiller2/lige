@@ -8,7 +8,12 @@
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Orden Venta</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <input nz-input [value]="estado()" [disabled]="true" />
+      <nz-select style="width: 100%" [ngModel]="ordenVentaSeleccionada()" [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="ordenVentaSeleccionada.set($event)" [nzDropdownMatchSelectWidth]="false">
+        @for (option of opcionesOrdenVenta(); track option.value) {
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+        }
+      </nz-select>
     </nz-form-control>
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Total Hs. Normales</nz-form-label>
@@ -22,7 +27,7 @@
     [horasAFacturarB]="horasAFacturarB()" [horasAFacturarBBloqueada]="horasAFacturarBBloqueada()"
     [clienteId]="cabecera().ClienteId ?? null"
     [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
-    [detalleImportado]="detalleImportado()"
+    [detalleImportado]="detalleImportado()" [nuevaOrden]="esOrdenNueva()" [nroOrdenVenta]="nroOrdenVentaSeleccionada()"
     (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)"
     (horasAFacturarChange)="horasAFacturarChange.emit($event)" />
 

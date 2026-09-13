@@ -255,20 +255,31 @@ export class OrdenVentaController extends BaseController {
     return { anio: Math.floor(corrido / 12), mes: (corrido % 12) + 1 };
   }
 
-  // Orden de venta del objetivo para el período, o undefined si todavía no se generó
-  private static async getOrdenVentaPeriodo(queryRunner: any, ObjetivoId: number, anio: number, mes: number) {
-    const ordenes = await queryRunner.query(`
-      SELECT TOP 1
+  // Órdenes de venta del objetivo en el período, de la más nueva a la más vieja. Un período puede
+  // tener más de una: desde la carga de asistencia se da de alta otra sin pisar la que ya está.
+  private static async getOrdenesVentaPeriodo(queryRunner: any, ObjetivoId: number, anio: number, mes: number) {
+    return await queryRunner.query(`
+      SELECT
         ord.NroOrdenVenta, ord.ClienteId, ord.ClienteElementoDependienteId,
-        ord.PeriodoAnio, ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.ImporteTotalAFacturar
+        ord.PeriodoAnio, ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.ImporteTotalAFacturar,
+        est.Descripcion AS EstadoOrdenVenta
       FROM Objetivo obj
       JOIN OrdenVenta ord ON ord.ClienteId = obj.ClienteId
         AND ord.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
+      LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
       WHERE obj.ObjetivoId = @0 AND ord.PeriodoAnio = @1 AND ord.PeriodoMes = @2
       ORDER BY ord.NroOrdenVenta DESC
     `, [ObjetivoId, anio, mes]);
+  }
 
-    return ordenes[0];
+  // Una orden del período: la pedida por número, o la última si no se pide ninguna. Undefined si
+  // el período no tiene órdenes, o si la pedida no es de este objetivo y período.
+  private static async getOrdenVentaPeriodo(queryRunner: any, ObjetivoId: number, anio: number, mes: number, NroOrdenVenta = 0) {
+    const ordenes = await OrdenVentaController.getOrdenesVentaPeriodo(queryRunner, ObjetivoId, anio, mes);
+
+    return NroOrdenVenta
+      ? ordenes.find((orden: any) => Number(orden.NroOrdenVenta) === Number(NroOrdenVenta))
+      : ordenes[0];
   }
 
   // El detalle sale de ItemOrdenVenta. Si la orden del período todavía no existe, se inicializa
@@ -278,10 +289,20 @@ export class OrdenVentaController extends BaseController {
     const ObjetivoId = Number(req.body.ObjetivoId);
     const anio = Number(req.body.anio);
     const mes = Number(req.body.mes);
+    // Con más de una orden en el período la pantalla elige cuál ver. Sin número se trae la última.
+    const NroOrdenVenta = Number(req.body.NroOrdenVenta) || 0;
+    // Con plantilla se ignoran las órdenes del período: el detalle sale de la última orden de
+    // los meses anteriores, que es el modelo de una orden nueva
+    const plantilla = req.body.Plantilla === true;
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const orden = await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ObjetivoId, anio, mes);
+      const orden = plantilla
+        ? undefined
+        : await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ObjetivoId, anio, mes, NroOrdenVenta);
+
+      if (NroOrdenVenta && !orden)
+        throw new ClientException(`La orden de venta ${NroOrdenVenta} no es del objetivo ${ObjetivoId} en el período ${mes}/${anio}`);
 
       // Sin orden propia se copia la última de los meses anteriores: los ítems son nuevos (id 0),
       // pero el detalle se arrastra completo, salvo la cantidad de los productos de horas.
@@ -386,6 +407,23 @@ export class OrdenVentaController extends BaseController {
         WHERE obj.ObjetivoId = @0
       `, [ObjetivoId, anio, mes]);
 
+      // Todas las órdenes del período: la carga de asistencia las ofrece en un select para
+      // elegir cuál editar
+      const ordenes = await OrdenVentaController.getOrdenesVentaPeriodo(queryRunner, ObjetivoId, anio, mes);
+
+      // Sin órdenes en el período, el alta arranca con la plantilla de los meses anteriores
+      // siempre que haya uno con detalle. Con órdenes en el período la pantalla no lo mira.
+      const ordenBase = ordenes.length
+        ? null
+        : await OrdenVentaController.getOrdenVentaBase(queryRunner, ObjetivoId, anio, mes);
+
+      const itemsPlantilla = ordenBase
+        ? await queryRunner.query(
+          `SELECT COUNT(*) AS Cantidad FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [ordenBase.NroOrdenVenta])
+        : [];
+
+      const TienePlantilla = Number(itemsPlantilla[0]?.Cantidad ?? 0) > 0;
+
       // Los comprobantes de la orden. Una orden puede tener más de uno, de distinto tipo.
       const NroOrdenVenta = cabecera[0]?.NroOrdenVenta;
 
@@ -405,6 +443,8 @@ export class OrdenVentaController extends BaseController {
       this.jsonRes(
         {
           ...(cabecera[0] ?? {}),
+          Ordenes: ordenes,
+          TienePlantilla,
           Comprobantes: comprobantes,
           TotalHorasNormales: Number(asistencia.TotalHorasReal ?? 0)
         },
@@ -435,6 +475,12 @@ export class OrdenVentaController extends BaseController {
     const estadoElegido = String(req.body.EstadoOrdenVentaCodigo ?? '').trim();
     // Comprobantes de la orden. Sin la lista no se toca Comprobante; con ella se reescribe
     // completa, igual que el detalle. Las filas vacías de la pantalla se descartan.
+    // "Nueva sin plantilla": la carga de asistencia pide un alta aunque el objetivo ya tenga
+    // una orden en el período, en vez de modificar esa
+    const nuevaOrden = req.body.NuevaOrden === true;
+    // Orden del período que se está editando. Sin número se toma la última, que es lo que
+    // hacían las pantallas cuando el período tenía una sola.
+    const nroOrdenVentaPedido = Number(req.body.NroOrdenVenta) || 0;
     const comprobantesRecibidos = Array.isArray(req.body.comprobantes);
     const comprobantes: any[] = comprobantesRecibidos
       ? req.body.comprobantes.filter((comprobante: any) =>
@@ -633,7 +679,13 @@ export class OrdenVentaController extends BaseController {
 
       await queryRunner.startTransaction();
 
-      const orden = await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ObjetivoId, anio, mes);
+      // Con el alta forzada no se busca la orden del período: el detalle se graba en una nueva
+      const orden = nuevaOrden
+        ? undefined
+        : await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ObjetivoId, anio, mes, nroOrdenVentaPedido);
+
+      if (!nuevaOrden && nroOrdenVentaPedido && !orden)
+        throw new ClientException(`La orden de venta ${nroOrdenVentaPedido} no es del objetivo ${ObjetivoId} en el período ${mes}/${anio}`);
 
       // Una vez emitida la factura el detalle ya no se toca
       if (orden) {
