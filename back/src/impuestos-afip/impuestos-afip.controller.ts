@@ -14,7 +14,6 @@ import {
 
 import { getConnection } from "../data-source.ts";
 import {
-  EncryptedPDFError,
   PDFDocument,
   PDFEmbeddedPage,
   PDFPage,
@@ -89,26 +88,26 @@ export class ImpuestosAfipController extends BaseController {
 
       // const periodo = getPeriodoFromRequest(req);
       // Valido el periodo Desde-Hasta
-      if (!req.body.desde) 
+      if (!req.body.desde)
         throw new ClientException(`Falto ingresar el Periodo`)
       let fechaDesde = new Date(req.body.desde)
-      fechaDesde.setHours(0,0,0,0)
-      let fechaHasta = req.body.hasta? new Date(req.body.hasta) : new Date(req.body.desde)
-      fechaHasta.setHours(0,0,0,0)
-      if(fechaDesde.getTime() > fechaHasta.getTime()) 
+      fechaDesde.setHours(0, 0, 0, 0)
+      let fechaHasta = req.body.hasta ? new Date(req.body.hasta) : new Date(req.body.desde)
+      fechaHasta.setHours(0, 0, 0, 0)
+      if (fechaDesde.getTime() > fechaHasta.getTime())
         throw new ClientException(`Periodo Desde-Hasta invalido`)
-      
+
       const options = getOptionsFromRequest(req);
       const cantxpag = req.body.cantxpag
-      let files:any[] = []
+      let files: any[] = []
 
-      for(
+      for (
         let fecha = new Date(fechaDesde.getFullYear(), fechaDesde.getMonth(), 1);
         fecha <= fechaHasta;
         fecha.setMonth(fecha.getMonth() + 1)
-      ){
-        const anio:number = fecha.getFullYear()
-        const mes:number = fecha.getMonth() + 1
+      ) {
+        const anio: number = fecha.getFullYear()
+        const mes: number = fecha.getMonth() + 1
         const formattedMonth = String(mes).padStart(2, "0");
 
         const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
@@ -135,9 +134,9 @@ export class ImpuestosAfipController extends BaseController {
 
       const fileUploadController = new FileUploadController()
       const responsePDFBuffer = await this.PDFmergeFromFiles(files, cantxpag);
-      const filename = ( fechaDesde.getTime() === fechaHasta.getTime()? 
-        `${fechaDesde.getFullYear()}-${String(fechaDesde.getMonth()+1).padStart(2, "0")}-filtrado.pdf`: 
-        `${fechaDesde.getFullYear()}-${String(fechaDesde.getMonth()+1).padStart(2, "0")}-${fechaHasta.getFullYear()}-${String(fechaHasta.getMonth()+1).padStart(2, "0")}-filtrado.pdf`)
+      const filename = (fechaDesde.getTime() === fechaHasta.getTime() ?
+        `${fechaDesde.getFullYear()}-${String(fechaDesde.getMonth() + 1).padStart(2, "0")}-filtrado.pdf` :
+        `${fechaDesde.getFullYear()}-${String(fechaDesde.getMonth() + 1).padStart(2, "0")}-${fechaHasta.getFullYear()}-${String(fechaHasta.getMonth() + 1).padStart(2, "0")}-filtrado.pdf`)
       const tmpfilename = fileUploadController.getRandomTempFileName('.pdf')
 
       writeFileSync(tmpfilename, responsePDFBuffer);
@@ -934,11 +933,13 @@ export class ImpuestosAfipController extends BaseController {
         try {
           currentFilePDF = await PDFDocument.load(new Uint8Array(currentFileBuffer));
         } catch (error) {
-          if (error instanceof EncryptedPDFError) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          if (errorMessage.includes("Input document to `PDFDocument.load` is encrypted")) {
             throw new ClientException(`El archivo ${file.name} - ${file.apellidoNombre} está encriptado.`);
           }
           throw error;
         }
+
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
         let embeddedPage: PDFEmbeddedPage = null;
@@ -1229,7 +1230,7 @@ export class ImpuestosAfipController extends BaseController {
 
 
     TODO://Detectar el espacio vacío alrededor del comprobante de manera automática
-console.log("CALC",page0.getWidth(),page0.getHeight())
+    console.log("CALC", page0.getWidth(), page0.getHeight())
 
     if (page0.getWidth() == 595.276 && page0.getHeight() == 841.89) {
       origenComprobante = "PAGO"
@@ -1241,8 +1242,8 @@ console.log("CALC",page0.getWidth(),page0.getHeight())
       embededPages = await newPdf.embedPages(originPDFPages, [
         { top: 808, bottom: 385, left: 37, right: 560 },
       ]);
-    } 
-    
+    }
+
     /*else if (page0.getWidth() == 595.32001 && page0.getHeight() == 841.92004) {  //Comprobante Manual
       origenComprobante = "MANUAL"
       embededPages = await newPdf.embedPages(originPDFPages, [
