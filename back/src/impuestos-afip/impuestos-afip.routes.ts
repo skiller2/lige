@@ -175,7 +175,8 @@ impuestosAfipRouter.get(
       req.params.CUIT,
       req.params.PersonalId,
       res,
-      next
+      next,
+      req.query.original === "true"
     );
   }
 );

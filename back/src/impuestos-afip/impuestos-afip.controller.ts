@@ -38,6 +38,7 @@ import {
   getOptionsFromRequest,
   isOptions,
   orderToSQL,
+  getOptionsSINO
 } from "./filtros-utils/filtros.ts";
 import {
   getPeriodoFromRequest,
@@ -48,10 +49,10 @@ import { basename, join } from "path";
 import type { QueryRunner } from "typeorm";
 
 
-const getOptionsSINO: any[] = [
-  { label: 'No', value: '0' },
-  { label: 'Si', value: '1' },
-]
+// const getOptionsSINO: any[] = [
+//   { label: 'No', value: '0' },
+//   { label: 'Si', value: '1' },
+// ]
 
 const cuitRegex = [
   /:\d{2}\n(\d{2}-?\d{8}-?\d{1})$/m,
@@ -87,26 +88,26 @@ export class ImpuestosAfipController extends BaseController {
 
       // const periodo = getPeriodoFromRequest(req);
       // Valido el periodo Desde-Hasta
-      if (!req.body.desde) 
+      if (!req.body.desde)
         throw new ClientException(`Falto ingresar el Periodo`)
       let fechaDesde = new Date(req.body.desde)
-      fechaDesde.setHours(0,0,0,0)
-      let fechaHasta = req.body.hasta? new Date(req.body.hasta) : new Date(req.body.desde)
-      fechaHasta.setHours(0,0,0,0)
-      if(fechaDesde.getTime() > fechaHasta.getTime()) 
+      fechaDesde.setHours(0, 0, 0, 0)
+      let fechaHasta = req.body.hasta ? new Date(req.body.hasta) : new Date(req.body.desde)
+      fechaHasta.setHours(0, 0, 0, 0)
+      if (fechaDesde.getTime() > fechaHasta.getTime())
         throw new ClientException(`Periodo Desde-Hasta invalido`)
-      
+
       const options = getOptionsFromRequest(req);
       const cantxpag = req.body.cantxpag
-      let files:any[] = []
+      let files: any[] = []
 
-      for(
+      for (
         let fecha = new Date(fechaDesde.getFullYear(), fechaDesde.getMonth(), 1);
         fecha <= fechaHasta;
         fecha.setMonth(fecha.getMonth() + 1)
-      ){
-        const anio:number = fecha.getFullYear()
-        const mes:number = fecha.getMonth() + 1
+      ) {
+        const anio: number = fecha.getFullYear()
+        const mes: number = fecha.getMonth() + 1
         const formattedMonth = String(mes).padStart(2, "0");
 
         const descuentos: DescuentoJSON[] = await this.DescuentosByPeriodo({
@@ -133,9 +134,9 @@ export class ImpuestosAfipController extends BaseController {
 
       const fileUploadController = new FileUploadController()
       const responsePDFBuffer = await this.PDFmergeFromFiles(files, cantxpag);
-      const filename = ( fechaDesde.getTime() === fechaHasta.getTime()? 
-        `${fechaDesde.getFullYear()}-${String(fechaDesde.getMonth()+1).padStart(2, "0")}-filtrado.pdf`: 
-        `${fechaDesde.getFullYear()}-${String(fechaDesde.getMonth()+1).padStart(2, "0")}-${fechaHasta.getFullYear()}-${String(fechaHasta.getMonth()+1).padStart(2, "0")}-filtrado.pdf`)
+      const filename = (fechaDesde.getTime() === fechaHasta.getTime() ?
+        `${fechaDesde.getFullYear()}-${String(fechaDesde.getMonth() + 1).padStart(2, "0")}-filtrado.pdf` :
+        `${fechaDesde.getFullYear()}-${String(fechaDesde.getMonth() + 1).padStart(2, "0")}-${fechaHasta.getFullYear()}-${String(fechaHasta.getMonth() + 1).padStart(2, "0")}-filtrado.pdf`)
       const tmpfilename = fileUploadController.getRandomTempFileName('.pdf')
 
       writeFileSync(tmpfilename, responsePDFBuffer);
@@ -658,6 +659,8 @@ export class ImpuestosAfipController extends BaseController {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
       if (!mesRequest) throw new ClientException("Faltó indicar el mes.");
 
+      // const fileBuffer = readFileSync(file.path);
+      // await PDFDocument.load(new Uint8Array(fileBuffer));
 
       //await queryRunner.startTransaction();
 
@@ -671,7 +674,7 @@ export class ImpuestosAfipController extends BaseController {
         if (!importeRequest) throw new ClientException("Faltó indicar el importe.");
         importeMonto = importeRequest;
 
-        if (!cuitRequest) throw new ClientException("Faltó indicar el cuit.");
+        if (!cuitRequest) throw new ClientException("No se encontro CUIT registrado en la persona.");
         CUIT = cuitRequest;
 
         //Call to writefile
@@ -805,6 +808,10 @@ export class ImpuestosAfipController extends BaseController {
       this.jsonRes([], res, "PDF Recibido!");
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("Input document to `PDFDocument.load` is encrypted")) {
+        return next(new ClientException(`No se puede cargar el archivo ${file.originalname} porque está encriptado.`));
+      }
       return next(error)
     } finally {
       await queryRunner.release();
@@ -929,7 +936,25 @@ export class ImpuestosAfipController extends BaseController {
 
       if (fileExists) {
         currentFileBuffer = readFileSync(fullPath);
-        currentFilePDF = await PDFDocument.load(new Uint8Array(currentFileBuffer));
+        try {
+          currentFilePDF = await PDFDocument.load(new Uint8Array(currentFileBuffer));
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          const unavailableMessage = errorMessage.includes("Input document to `PDFDocument.load` is encrypted")
+            ? `El documento encriptado de la persona ${file.apellidoNombre} no puede ser incorporado al documento masivo.`
+            : `No se localizó el monotributo de la persona ${file.apellidoNombre}.`;
+          const positionFromIndex: PDFPageDrawPageOptions = {
+            x: isGridLayout && !isLeftColumn ? pageWidth / 2 + 20 : 20,
+            y: isGridLayout && isTopRow ? pageHeight / 2 + 20 : 20,
+          };
+          lastPage.drawText(unavailableMessage, {
+            ...positionFromIndex,
+            size: 15,
+            rotate: degrees(65),
+          });
+          continue;
+        }
+
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
         let embeddedPage: PDFEmbeddedPage = null;
@@ -1084,7 +1109,7 @@ export class ImpuestosAfipController extends BaseController {
           x: isGridLayout && !isLeftColumn ? pageWidth / 2 + 20 : 20,
           y: isGridLayout && isTopRow ? pageHeight / 2 + 20 : 20,
         };
-        lastPage.drawText(`Falta el comprobante: ${file.name}`, {
+        lastPage.drawText(`No se localizó el monotributo de la persona ${file.apellidoNombre}.`, {
           ...positionFromIndex,
           size: 15,
           rotate: degrees(65),
@@ -1136,12 +1161,15 @@ export class ImpuestosAfipController extends BaseController {
     cuit: string,
     personalId: string,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
+    original = false
   ) {
     const queryRunner = await getConnection(res.locals.userName);
 
     const fileUploadController = new FileUploadController();
     const tmpfilename = fileUploadController.getRandomTempFileName('.pdf');
+    let nombre_archivo = '';
+    let ApellidoNombre = '';
     try {
       const [comprobante] = await queryRunner.query(
         `SELECT DISTINCT
@@ -1168,16 +1196,21 @@ export class ImpuestosAfipController extends BaseController {
       const personalID = comprobante.PersonalId;
       const cuit = comprobante.CUIT;
       const fullPath = join(FileUploadController.pathDocuments, comprobante.DocumentoPath)
-      const nombre_archivo = comprobante.DocumentoNombreArchivo
+      nombre_archivo = comprobante.DocumentoNombreArchivo
 
       if (!existsSync(fullPath))
         throw new ClientException(`El archivo de monotributo no se encontró ${month}/${year}, CUIT:${cuit} .`);
 
-      const fileBuffer = readFileSync(fullPath);
-
       if (!personalID)
         throw new ClientException(`No se pudo encontrar la persona ${personalId}`);
-      const ApellidoNombre = comprobante.ApellidoNombre;
+      // comentado momentaneamente - permite la descarga del documento original
+      if (original) {
+        res.download(fullPath, nombre_archivo);
+        return;
+      }
+
+      const fileBuffer = readFileSync(fullPath);
+      ApellidoNombre = comprobante.ApellidoNombre;
       const GrupoActividadDetalle = comprobante.GrupoActividadDetalle;
 
       // readFileSync returns a Buffer – convert it to Uint8Array for alterPDF
@@ -1191,6 +1224,10 @@ export class ImpuestosAfipController extends BaseController {
         await unlink(tmpfilename);
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("Input document to `PDFDocument.load` is encrypted")) {
+        return next(new ClientException(`El archivo ${nombre_archivo} - ${ApellidoNombre} está encriptado.`));
+      }
       return next(error)
     } finally {
       await queryRunner.release();
@@ -1220,7 +1257,7 @@ export class ImpuestosAfipController extends BaseController {
 
 
     TODO://Detectar el espacio vacío alrededor del comprobante de manera automática
-console.log("CALC",page0.getWidth(),page0.getHeight())
+    console.log("CALC", page0.getWidth(), page0.getHeight())
 
     if (page0.getWidth() == 595.276 && page0.getHeight() == 841.89) {
       origenComprobante = "PAGO"
@@ -1232,8 +1269,8 @@ console.log("CALC",page0.getWidth(),page0.getHeight())
       embededPages = await newPdf.embedPages(originPDFPages, [
         { top: 808, bottom: 385, left: 37, right: 560 },
       ]);
-    } 
-    
+    }
+
     /*else if (page0.getWidth() == 595.32001 && page0.getHeight() == 841.92004) {  //Comprobante Manual
       origenComprobante = "MANUAL"
       embededPages = await newPdf.embedPages(originPDFPages, [

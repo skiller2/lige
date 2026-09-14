@@ -207,7 +207,7 @@
     </nz-select>
     }
     @if (selections.field.searchComponent=='inputForInactivo') {
-    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Inactivo" nzShowSearch
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="SI/NO" nzShowSearch
       (ngModelChange)="selectedValueInactivo($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
       @for (option of $optionsInactivo | async; track option.value) {
@@ -215,7 +215,7 @@
       }
     </nz-select>
     }
-    @if (selections.field.searchComponent=='inputForInactivoBoolean') {
+    <!-- @if (selections.field.searchComponent=='inputForInactivoBoolean') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Activo" nzShowSearch
       (ngModelChange)="selectedValueInactivoBoolean($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
@@ -223,10 +223,10 @@
       <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
     </nz-select>
-    }
+    } -->
     @if (selections.field.searchComponent=='inputForActivo') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="SI/NO" nzShowSearch
-      (ngModelChange)="selectedValueInactivo($event)" [nzDropdownMatchSelectWidth]="false"
+      (ngModelChange)="selectedValueActivo($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
       @for (option of $optionsActivoBoolean | async; track option.value) {
       <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
@@ -242,7 +242,7 @@
       }
     </nz-select>
     }
-    @if (selections.field.searchComponent=='inputForExceptuadoSearch') {
+    <!-- @if (selections.field.searchComponent=='inputForExceptuadoSearch') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="SI/NO" nzShowSearch
       (ngModelChange)="selectedValueExeptuado($event)" [nzDropdownMatchSelectWidth]="false"
       (keydown.enter)="handleInputConfirm()">
@@ -250,7 +250,7 @@
       <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
       }
     </nz-select>
-    }
+    } -->
     @if (selections.field.searchComponent=='inputForGrupoActividad') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Grupo Actividad" nzShowSearch
       (ngModelChange)="selectedValueGrupoActividad($event)" [nzDropdownMatchSelectWidth]="false"

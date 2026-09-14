@@ -51,6 +51,7 @@ import { Selections } from '../../../shared/schemas/filtro';
 export class PersonalComponent {
   public router = inject(Router);
   public route = inject(ActivatedRoute);
+  private readonly personalIdsFilter = (this.router.currentNavigation()?.extras.info as { PersonalIds?: string } | undefined)?.PersonalIds
 
   angularGrid!: AngularGridInstance;
   gridOptions!: GridOption;
@@ -136,8 +137,25 @@ export class PersonalComponent {
     this.gridOptions.enableCheckboxSelector = true
     this.gridOptions.forceFitColumns = true
 
-    this.startFilters.set([{ index: 'SituacionRevistaId', condition: 'AND', operator: '=', value: '2;10;12', closeable: true },
-    ])
+    const PersonalIds = this.personalIdsFilter
+
+    if (PersonalIds) {
+      this.startFilters.set([{
+        index: 'PersonalId',
+        condition: 'AND',
+        operator: '=',
+        value: PersonalIds,
+        closeable: true,
+      }])
+    } else {
+      this.startFilters.set([{
+        index: 'SituacionRevistaId',
+        condition: 'AND',
+        operator: '=',
+        value: '2;10;12',
+        closeable: true,
+      }])
+    }
   }
 
   ngAfterViewInit(): void {}

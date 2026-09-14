@@ -535,7 +535,7 @@
               @for (monotributo of personaMonotributo; track monotributo) {
               <nz-list-item>
                 <a app-down-file
-                  httpUrl="api/impuestos_afip/{{monotributo.PersonalComprobantePagoAFIPAno}}/{{monotributo.PersonalComprobantePagoAFIPMes}}/0/{{monotributo.PersonalId}}"><span
+                  httpUrl="api/impuestos_afip/{{monotributo.PersonalComprobantePagoAFIPAno}}/{{monotributo.PersonalComprobantePagoAFIPMes}}/0/{{monotributo.PersonalId}}?original=true"><span
                     nz-icon nzType="download"></span>Monotributo
                   {{monotributo.PersonalComprobantePagoAFIPAno}}/{{monotributo.PersonalComprobantePagoAFIPMes}}</a></nz-list-item>
               }

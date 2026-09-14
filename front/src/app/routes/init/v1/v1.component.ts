@@ -167,6 +167,19 @@ export class InitV1Component implements OnInit {
     }
   });
 
+  public personasActivasSinHorasRegistradas = resource({
+    params: () => null,
+    loader: async () => {
+      const periodoVigente = new Date();
+      const periodoAnterior = new Date(periodoVigente.getFullYear(), periodoVigente.getMonth() - 1, 1);
+
+      const mes = periodoAnterior.getMonth() + 1;
+      const anio = periodoAnterior.getFullYear();
+
+      return <any> await this.apiService.fastFetch(`api/init/stats/personasactivassinhorasregistradas/${anio}/${mes}`)
+    }
+  });
+
 
   public objetivosActivosSinHabilitaciones = resource({
     params: () => null,

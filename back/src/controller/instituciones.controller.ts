@@ -54,7 +54,7 @@ const listaColumnas: any[] = [
     id: "CentroCapacitacionInactivo",
     field: "CentroCapacitacionInactivo",
     fieldName: "cencap.CentroCapacitacionInactivo",
-    searchComponent: "inputForInactivoBoolean",
+    searchComponent: "inputForInactivo",
     sortable: true,
     hidden: false,
     searchHidden: false

@@ -30,6 +30,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { SettingsService } from '@delon/theme';
 import { LoadingService } from '@delon/abc/loading';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
+import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 
 @Component({
   imports: [
@@ -52,7 +53,7 @@ export class CustomDescargaComprobanteComponent {
   templateUrl: './impuesto-afip.component.html',
   imports: [ SHARED_IMPORTS, NzAffixModule,
     FiltroBuilderComponent, NzUploadModule,
-    AsyncPipe, DetallePersonaComponent
+    AsyncPipe, DetallePersonaComponent, PersonalSearchComponent
   ],
   styleUrls: ['./impuesto-afip.component.less'],
   providers: [AngularUtilService]
@@ -62,7 +63,8 @@ export class ImpuestoAfipComponent {
   url_forzado = '/api/impuestos_afip/forzado';
   
   files: NzUploadFile[] = [];
-  selectedPersonalId = null;
+  selectedPersonalId: string | null = null;
+  personaForzada: { PersonalCUITCUILCUIT?: string | null } = {};
   tableLoading$ = new BehaviorSubject(false);
   detailViewRowCount = 9;
   columnDefinitions: Column[] = []
@@ -236,7 +238,7 @@ export class ImpuestoAfipComponent {
     return {
       anio: this.anio(),
       mes: this.mes(),
-      cuit,
+      cuit: cuit ?? '',
       monto: this.parseMontoForzado(montoText),
     };
   }

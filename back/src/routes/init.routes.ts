@@ -69,6 +69,10 @@ initRouter.get(`${base}/stats/habilitacionesproximavencer`, authMiddleware.verif
 	initController.getHabilitacionesProximaVencer(req, res, next)
 })
 
+initRouter.get(`${base}/stats/personasactivassinhorasregistradas/:anio/:mes`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getPersonasActivasSinHorasRegistradas(req, res, next)
+})
+
 initRouter.get(`${base}/stats/personasactivassinhabilitacion`, authMiddleware.verifyToken, (req, res, next) => {
 	initController.getPersonasActivasSinHabilitaciones(req, res, next)
 })
