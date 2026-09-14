@@ -659,6 +659,9 @@ export class ImpuestosAfipController extends BaseController {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
       if (!mesRequest) throw new ClientException("Faltó indicar el mes.");
 
+      const fileBuffer = readFileSync(file.path);
+      await PDFDocument.load(new Uint8Array(fileBuffer));
+
 
       //await queryRunner.startTransaction();
 
@@ -672,7 +675,7 @@ export class ImpuestosAfipController extends BaseController {
         if (!importeRequest) throw new ClientException("Faltó indicar el importe.");
         importeMonto = importeRequest;
 
-        if (!cuitRequest) throw new ClientException("Faltó indicar el cuit.");
+        if (!cuitRequest) throw new ClientException("No se encontro CUIT registrado en la persona.");
         CUIT = cuitRequest;
 
         //Call to writefile
@@ -806,6 +809,10 @@ export class ImpuestosAfipController extends BaseController {
       this.jsonRes([], res, "PDF Recibido!");
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("Input document to `PDFDocument.load` is encrypted")) {
+        return next(new ClientException(`No se puede cargar el archivo ${file.originalname} porque está encriptado.`));
+      }
       return next(error)
     } finally {
       await queryRunner.release();
@@ -1146,12 +1153,15 @@ export class ImpuestosAfipController extends BaseController {
     cuit: string,
     personalId: string,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
+    original = false
   ) {
     const queryRunner = await getConnection(res.locals.userName);
 
     const fileUploadController = new FileUploadController();
     const tmpfilename = fileUploadController.getRandomTempFileName('.pdf');
+    let nombre_archivo = '';
+    let ApellidoNombre = '';
     try {
       const [comprobante] = await queryRunner.query(
         `SELECT DISTINCT
@@ -1178,16 +1188,21 @@ export class ImpuestosAfipController extends BaseController {
       const personalID = comprobante.PersonalId;
       const cuit = comprobante.CUIT;
       const fullPath = join(FileUploadController.pathDocuments, comprobante.DocumentoPath)
-      const nombre_archivo = comprobante.DocumentoNombreArchivo
+      nombre_archivo = comprobante.DocumentoNombreArchivo
 
       if (!existsSync(fullPath))
         throw new ClientException(`El archivo de monotributo no se encontró ${month}/${year}, CUIT:${cuit} .`);
 
-      const fileBuffer = readFileSync(fullPath);
-
       if (!personalID)
         throw new ClientException(`No se pudo encontrar la persona ${personalId}`);
-      const ApellidoNombre = comprobante.ApellidoNombre;
+      // comentado momentaneamente - permite la descarga del documento original
+      // if (original) {
+      //   res.download(fullPath, nombre_archivo);
+      //   return;
+      // }
+
+      const fileBuffer = readFileSync(fullPath);
+      ApellidoNombre = comprobante.ApellidoNombre;
       const GrupoActividadDetalle = comprobante.GrupoActividadDetalle;
 
       // readFileSync returns a Buffer – convert it to Uint8Array for alterPDF
@@ -1201,6 +1216,10 @@ export class ImpuestosAfipController extends BaseController {
         await unlink(tmpfilename);
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes("Input document to `PDFDocument.load` is encrypted")) {
+        return next(new ClientException(`El archivo ${nombre_archivo} - ${ApellidoNombre} está encriptado.`));
+      }
       return next(error)
     } finally {
       await queryRunner.release();
