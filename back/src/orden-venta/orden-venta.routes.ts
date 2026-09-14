@@ -44,6 +44,10 @@ ordenVentaRouter.get("/estados", [authMiddleware.verifyToken, authMiddleware.has
   ordenVentaController.getEstados(req, res, next);
 });
 
+ordenVentaRouter.get("/datos-auditoria/:NroOrdenVenta", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.getOrdenVentaAuditoria(req, res, next);
+});
+
 ordenVentaRouter.post("/clientes-facturacion", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   ordenVentaController.getDatosFacturacion(req, res, next);
 });

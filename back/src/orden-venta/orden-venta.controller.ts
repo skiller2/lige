@@ -1250,6 +1250,29 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
+  async getOrdenVentaAuditoria(req: Request, res: Response, next: NextFunction) {
+    const NroOrdenVenta = Number(req.params.NroOrdenVenta);
+    if (!NroOrdenVenta) return this.jsonRes(null, res);
+
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      const auditoria = await queryRunner.query(`
+        SELECT ord.NroOrdenVenta,
+          ord.AudUsuarioIng, ord.AudFechaIng, ord.AudIpIng,
+          ord.AudUsuarioMod, ord.AudFechaMod, ord.AudIpMod
+        FROM OrdenVenta ord
+        WHERE ord.NroOrdenVenta = @0
+      `, [NroOrdenVenta]);
+
+      this.jsonRes(auditoria[0] ?? null, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   // Datos de facturación de los clientes de las órdenes seleccionadas. Es la misma información
   // que muestra la edición masiva de custodias, pero servida desde este módulo para que quede
   // bajo el mismo permiso que el resto de la pantalla.

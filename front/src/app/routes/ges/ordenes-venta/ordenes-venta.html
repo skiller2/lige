@@ -120,7 +120,16 @@
   <nz-divider></nz-divider>
 
   <div style="display: flex; align-items: flex-end; gap: 16px; margin-bottom: 60px;">
-    <div style="flex: 1;"></div>
+    <div style="flex: 1;">
+      @if (modo() === 'modificacion') {
+      <span nz-tooltip nzTooltipTitle="Datos de Auditoría">
+        <button nz-button nzType="default" nz-popover nzPopoverTrigger="click" nzPopoverPlacement="topLeft"
+          [nzPopoverContent]="auditoriaTemplate" [disabled]="!nroOrdenVentaAbierta()" (click)="loadAuditoria()">
+          <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
+        </button>
+      </span>
+      }
+    </div>
 
     <!-- En consulta no hay nada para guardar -->
     @if (!soloLectura()) {
@@ -135,6 +144,34 @@
       <input nz-input [value]="importeTotal() | currency" readonly style="width: 160px; text-align: right;" />
     </div>
   </div>
+
+  <ng-template #auditoriaTemplate>
+    <div style="max-width: 640px; max-height: 240px; overflow: auto;">
+      @if (auditoriaFilas().length > 0) {
+      <nz-table #auditoriaTable [nzData]="auditoriaFilas()" nzSize="small" [nzShowPagination]="false"
+        [nzFrontPagination]="false">
+        <thead>
+          <tr>
+            <th>Evento</th>
+            <th>Usuario</th>
+            <th>Fecha</th>
+            <th>IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of auditoriaTable.data; track item.Evento) {
+          <tr>
+            <td>{{ item.Evento }}</td>
+            <td>{{ item.Usuario }}</td>
+            <td>{{ item.Fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ item.Ip }}</td>
+          </tr>
+          }
+        </tbody>
+      </nz-table>
+      }
+    </div>
+  </ng-template>
 
   }
 

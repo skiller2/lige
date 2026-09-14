@@ -1537,6 +1537,14 @@ export class SearchService {
     );
   }
 
+  getOrdenVentaAuditoria(NroOrdenVenta: number): Observable<any> {
+    if (!NroOrdenVenta) return of(null);
+    return this.http.get<ResponseJSON<any>>(`/api/orden-venta/datos-auditoria/${NroOrdenVenta}`).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
   // Datos de facturación de los clientes de las órdenes seleccionadas (edición masiva)
   getDatosFacturacionOrdenVenta(ClienteIds: number[]): Observable<any> {
     return this.http.post<ResponseJSON<any>>(`/api/orden-venta/clientes-facturacion`, { ClienteIds }).pipe(

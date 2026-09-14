@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, resource, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { Router } from '@angular/router';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -31,7 +31,7 @@ const MODO_POR_TAB: Partial<Record<TabOrdenVenta, ModoOrdenVenta>> = {
 @Component({
   selector: 'app-ordenes-venta',
   standalone: true,
-  imports: [SHARED_IMPORTS, CurrencyPipe, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
+  imports: [SHARED_IMPORTS, CurrencyPipe, DatePipe, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
     ObjetivoSearchComponent, OrdenVentaMasivaDrawerComponent],
   templateUrl: './ordenes-venta.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -203,6 +203,31 @@ export class OrdenesVentaComponent {
 
   // Cambia al guardar: la fila de la grilla quedó vieja y hay que releer la lista
   refreshTick = signal(0)
+
+  // Orden abierta en el detalle: la de la fila, o la de la cabecera cuando el alta recién se grabó
+  nroOrdenVentaAbierta = computed<number>(() =>
+    Number(this.ordenAbierta()?.NroOrdenVenta ?? this.cabecera().NroOrdenVenta ?? 0))
+
+  // Auditoría de la cabecera (alta / última modificación), igual que en el detalle de movimientos de efectos
+  auditoria = signal<any>(null)
+
+  auditoriaFilas = computed(() => {
+    const auditoria = this.auditoria()
+    if (!auditoria) return []
+    return [
+      { Evento: 'Alta', Usuario: auditoria.AudUsuarioIng, Fecha: auditoria.AudFechaIng, Ip: auditoria.AudIpIng },
+      { Evento: 'Última modificación', Usuario: auditoria.AudUsuarioMod, Fecha: auditoria.AudFechaMod, Ip: auditoria.AudIpMod }
+    ]
+  })
+
+  // Se pide al abrir el popover: así muestra la última modificación, aunque se acabe de guardar
+  async loadAuditoria() {
+    const NroOrdenVenta = this.nroOrdenVentaAbierta()
+    // Se limpia para que no se vea la auditoría de la orden abierta antes
+    this.auditoria.set(null)
+    if (!NroOrdenVenta) return
+    this.auditoria.set(await firstValueFrom(this.searchService.getOrdenVentaAuditoria(NroOrdenVenta)))
+  }
 
   anulando = signal(false)
 
