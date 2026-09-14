@@ -196,9 +196,12 @@
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="24" class="p-md text-white">
           <div class="h2 mt0">{{ personasActivasSinHorasRegistradas.value().data.PersonasActivasSinHorasRegistradas }}</div>
-          <p class="mb0">
-            Personas Activas Sin horas Registradas {{ personasActivasSinHorasRegistradas.value().data.mes }}/{{ personasActivasSinHorasRegistradas.value().data.anio }}
-          </p>
+          <a class="link-reset" [routerLink]="['/ges/personal/listado']"
+            [info]="{ PersonalIds: personasActivasSinHorasRegistradas.value().data.PersonalIds.join(';') }">
+            <p class="mb0">
+              Personas Activas Sin horas Registradas {{ personasActivasSinHorasRegistradas.value().data.mes }}/{{ personasActivasSinHorasRegistradas.value().data.anio }}
+            </p>
+          </a>
         </div>
       </div>
     </div>

@@ -89,7 +89,7 @@
         </nz-form-item>
       </form> -->
 
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex" (nzSelectChange)="onTabsetChange($event)">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex" (nzSelectChange)="onTabsetChange($event)" [nzLinkExact]="false">
     <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/personal/listado">Listado</a>

@@ -861,14 +861,22 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
             AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') >= EOMONTH(DATEFROMPARTS(@0, @1, 1))
           WHERE sitrev.PersonalSituacionRevistaSituacionId IN (2, 10, 12)
         )
-        SELECT COUNT(*) AS PersonasActivasSinHorasRegistradas
+        SELECT per.PersonalId
         FROM PersonasActivas per
         LEFT JOIN HorasPorPersona horas ON horas.PersonalId = per.PersonalId
         WHERE ISNULL(horas.TotalHoras, 0) = 0
+        ORDER BY per.PersonalId
       `, [anio, mes])
 
+      const personalIds = [...new Set<number>(
+        rec
+          .map((row: any) => Number(row.PersonalId))
+          .filter((personalId: number) => Number.isSafeInteger(personalId) && personalId > 0)
+      )]
+
       this.jsonRes({
-        PersonasActivasSinHorasRegistradas: Number(rec[0]?.PersonasActivasSinHorasRegistradas ?? 0),
+        PersonasActivasSinHorasRegistradas: personalIds.length,
+        PersonalIds: personalIds,
         anio,
         mes,
       }, res);
