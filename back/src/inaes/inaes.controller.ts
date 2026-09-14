@@ -3,7 +3,7 @@ import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, isOptions, orderToSQL, getOptionsSINO } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
-// import { FileUploadController } from "../controller/file-upload.controller.ts";
+import { FileUploadController } from "../controller/file-upload.controller.ts";
 import type { QueryRunner } from "typeorm";
 import xlsx from 'node-xlsx';
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
@@ -858,26 +858,42 @@ export class InaesController extends BaseController {
   }
 
   async getCUITsByINAESFile(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection(res.locals.userName);
+    // const queryRunner = await getConnection(res.locals.userName);
     const file: any[] = req.body.file
     try {
-      await queryRunner.startTransaction()
+      // await queryRunner.startTransaction()
       if (!file.length) throw new ClientException("Debes de ingresar un archivo");
-      const CUITs: string[] = await this.getCUITsByFile(file[0].tempfilename)
 
-      await queryRunner.commitTransaction()
+      let CUITs:string[] = []
+      let type = file[0].mimetype.split('/')[1]
+      switch (type) {
+        case 'pdf':
+          CUITs = await this.getCUITsByPdf(file[0].tempfilename)
+          break;
+        case 'vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+        // case 'vnd.ms-excel':
+          CUITs = await this.getCUITsByXlsx(file[0].tempfilename)
+          break;
+      
+        default:
+          throw new ClientException("Tipo de archivo no identificado")
+          break;
+      }
+      
+      // await queryRunner.commitTransaction()
       this.jsonRes({ cuits: CUITs, length: CUITs.length }, res);
     } catch (error) {
-      await this.rollbackTransaction(queryRunner)
+      // logger.error(error);
+      // await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
-      await queryRunner.release()
+      // await queryRunner.release()
     }
   }
 
-  async getCUITsByFile(tempfilename: any) {
+  async getCUITsByPdf(tempfilename: any) {
     let CUITs: any[] = []
-    const loadingTask = getDocument(`${process.env.PATH_DOCUMENTS}/temp/${tempfilename}`)
+    const loadingTask = getDocument(`${FileUploadController.getTempPath()}/${tempfilename}`)
     const document = await loadingTask.promise;//Error
     for (let pagenum = 1; pagenum <= document.numPages; pagenum++) {
       const page = await document.getPage(pagenum);
@@ -893,4 +909,25 @@ export class InaesController extends BaseController {
     return CUITs
 
   }
+
+  async getCUITsByXlsx(tempfilename: any) {
+    let CUITs: any[] = []
+    const workSheetsFromBuffer = xlsx.parse(readFileSync(`${FileUploadController.getTempPath()}/${tempfilename}`))
+    const sheet1 = workSheetsFromBuffer[0];
+    sheet1.data.forEach((fila, indexFila:number) => {
+      // Recorrer cada celda de la fila actual
+      fila.forEach((celda:any) => {
+        // Verificar si la celda contiene texto o número y si coincide con el patrón de CUIT
+        if (typeof celda == 'string' || typeof celda  == 'number') {
+          try {
+            this.validarCUIT(celda)
+            CUITs.push(celda)
+          } catch (error) {}
+        }
+      });
+    });
+    return CUITs
+
+  }
+
 }

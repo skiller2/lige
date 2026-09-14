@@ -138,7 +138,7 @@ const listaColumnas: any[] = [
     field: "PersonalExencionCUIT",
     fieldName: "ISNULL(CAST(excep.PersonalExencionCUIT AS VARCHAR), '0')",
     type: 'string',
-    searchComponent: "inputForExceptuadoSearch",
+    searchComponent: "selectedValueActivo",
 
     sortable: true,
 

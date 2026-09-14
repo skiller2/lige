@@ -73,6 +73,8 @@ const proveedorColumns: any[] = [
     type: "string",
     formatter: 'collectionFormatter',
     params: { collection: getInactivo },
+    searchComponent: "inputForInactivo",
+    searchType: "number",
     sortable: true,
     searchHidden: false,
     hidden: false,

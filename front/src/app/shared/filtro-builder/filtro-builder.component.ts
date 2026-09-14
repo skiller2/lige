@@ -593,18 +593,18 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   selectedValueInactivo(val: any) {
     if (val !== null && val !== undefined) {
       this.selections.value = val
-      this.selections.label = (val == 1 || val == '1' || val === true) ? 'SI' : 'NO'
+      this.selections.label = (val == 1 || val == '1' || val === true) ? 'NO' : 'SI'
     }
   }
 
-  selectedValueExeptuado(val: any) {
-    if (val !== null && val !== undefined) {
-      this.selections.value = val
-      this.selections.label = (val == 1 || val == '1' || val === true) ? 'SI' : 'NO'
-    }
-  }
+  // selectedValueExeptuado(val: any) {
+  //   if (val !== null && val !== undefined) {
+  //     this.selections.value = val
+  //     this.selections.label = (val == 1 || val == '1' || val === true) ? 'SI' : 'NO'
+  //   }
+  // }
 
-  selectedValueInactivoBoolean(val: any) {
+  selectedValueActivo(val: any) {
     if (val !== null && val !== undefined) {
       this.selections.value = val
       this.selections.label = (val == 1 || val == '1' || val === true) ? 'SI' : 'NO'

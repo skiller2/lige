@@ -47,7 +47,7 @@ export class AdministradoresController extends BaseController {
         id: "AdministradorInactivo",
         field: "AdministradorInactivo",
         fieldName: "adm.AdministradorInactivo",
-        searchComponent: "inputForInactivoBoolean",
+        searchComponent: "inputForActivo",
         sortable: true,
         searchHidden: false,
         hidden: false,

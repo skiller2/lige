@@ -38,6 +38,7 @@ import {
   getOptionsFromRequest,
   isOptions,
   orderToSQL,
+  getOptionsSINO
 } from "./filtros-utils/filtros.ts";
 import {
   getPeriodoFromRequest,
@@ -48,10 +49,10 @@ import { basename, join } from "path";
 import type { QueryRunner } from "typeorm";
 
 
-const getOptionsSINO: any[] = [
-  { label: 'No', value: '0' },
-  { label: 'Si', value: '1' },
-]
+// const getOptionsSINO: any[] = [
+//   { label: 'No', value: '0' },
+//   { label: 'Si', value: '1' },
+// ]
 
 const cuitRegex = [
   /:\d{2}\n(\d{2}-?\d{8}-?\d{1})$/m,
