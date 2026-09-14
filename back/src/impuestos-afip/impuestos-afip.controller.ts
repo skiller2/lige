@@ -659,9 +659,8 @@ export class ImpuestosAfipController extends BaseController {
       if (!anioRequest) throw new ClientException("Faltó indicar el anio.");
       if (!mesRequest) throw new ClientException("Faltó indicar el mes.");
 
-      const fileBuffer = readFileSync(file.path);
-      await PDFDocument.load(new Uint8Array(fileBuffer));
-
+      // const fileBuffer = readFileSync(file.path);
+      // await PDFDocument.load(new Uint8Array(fileBuffer));
 
       //await queryRunner.startTransaction();
 
@@ -941,10 +940,19 @@ export class ImpuestosAfipController extends BaseController {
           currentFilePDF = await PDFDocument.load(new Uint8Array(currentFileBuffer));
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
-          if (errorMessage.includes("Input document to `PDFDocument.load` is encrypted")) {
-            throw new ClientException(`El archivo ${file.name} - ${file.apellidoNombre} está encriptado.`);
-          }
-          throw error;
+          const unavailableMessage = errorMessage.includes("Input document to `PDFDocument.load` is encrypted")
+            ? `El documento encriptado de la persona ${file.apellidoNombre} no puede ser incorporado al documento masivo.`
+            : `No se localizó el monotributo de la persona ${file.apellidoNombre}.`;
+          const positionFromIndex: PDFPageDrawPageOptions = {
+            x: isGridLayout && !isLeftColumn ? pageWidth / 2 + 20 : 20,
+            y: isGridLayout && isTopRow ? pageHeight / 2 + 20 : 20,
+          };
+          lastPage.drawText(unavailableMessage, {
+            ...positionFromIndex,
+            size: 15,
+            rotate: degrees(65),
+          });
+          continue;
         }
 
         currentFilePDFPage = currentFilePDF.getPages()[0];
@@ -1101,7 +1109,7 @@ export class ImpuestosAfipController extends BaseController {
           x: isGridLayout && !isLeftColumn ? pageWidth / 2 + 20 : 20,
           y: isGridLayout && isTopRow ? pageHeight / 2 + 20 : 20,
         };
-        lastPage.drawText(`Falta el comprobante: ${file.name}`, {
+        lastPage.drawText(`No se localizó el monotributo de la persona ${file.apellidoNombre}.`, {
           ...positionFromIndex,
           size: 15,
           rotate: degrees(65),
@@ -1196,10 +1204,10 @@ export class ImpuestosAfipController extends BaseController {
       if (!personalID)
         throw new ClientException(`No se pudo encontrar la persona ${personalId}`);
       // comentado momentaneamente - permite la descarga del documento original
-      // if (original) {
-      //   res.download(fullPath, nombre_archivo);
-      //   return;
-      // }
+      if (original) {
+        res.download(fullPath, nombre_archivo);
+        return;
+      }
 
       const fileBuffer = readFileSync(fullPath);
       ApellidoNombre = comprobante.ApellidoNombre;
