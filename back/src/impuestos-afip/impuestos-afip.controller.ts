@@ -14,6 +14,7 @@ import {
 
 import { getConnection } from "../data-source.ts";
 import {
+  EncryptedPDFError,
   PDFDocument,
   PDFEmbeddedPage,
   PDFPage,
@@ -930,7 +931,14 @@ export class ImpuestosAfipController extends BaseController {
 
       if (fileExists) {
         currentFileBuffer = readFileSync(fullPath);
-        currentFilePDF = await PDFDocument.load(new Uint8Array(currentFileBuffer));
+        try {
+          currentFilePDF = await PDFDocument.load(new Uint8Array(currentFileBuffer));
+        } catch (error) {
+          if (error instanceof EncryptedPDFError) {
+            throw new ClientException(`El archivo ${file.name} - ${file.apellidoNombre} está encriptado.`);
+          }
+          throw error;
+        }
         currentFilePDFPage = currentFilePDF.getPages()[0];
 
         let embeddedPage: PDFEmbeddedPage = null;
