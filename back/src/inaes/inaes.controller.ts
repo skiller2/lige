@@ -654,7 +654,7 @@ export class InaesController extends BaseController {
     if (cuits) {
       flags = `CASE WHEN (acta.TipoPersonalActaCodigo IN ('ALT','REI') AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN 'A'
               WHEN (acta.TipoPersonalActaCodigo IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaSituacionId NOT IN (2,10,12)) THEN 'B'
-              ELSE 'E' END AS Estado,              `
+              ELSE 'E' END AS Estado`
       filterCUITs = `(cuit.PersonalCUITCUILCUIT IN (${cuits}) AND acta.TipoPersonalActaCodigo IN ('BAJ','BD')) OR (cuit.PersonalCUITCUILCUIT NOT IN (${cuits}) AND acta.TipoPersonalActaCodigo IN ('ALT','REI'))`
     }
 
