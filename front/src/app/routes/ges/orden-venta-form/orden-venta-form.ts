@@ -302,18 +302,26 @@ export class OrdenVentaFormComponent {
     })
 
     effect(() => {
+      const soloLectura = this.soloLectura()
       const bloqueadas = this.horasBloqueadas()
+      // Se relee al recargar los comprobantes: las filas nuevas nacen habilitadas
+      this.comprobantes()
+
+      const aplicar = (control: AbstractControl, deshabilitar: boolean) => {
+        if (deshabilitar && control.enabled) control.disable({ emitEvent: false })
+        else if (!deshabilitar && control.disabled) control.enable({ emitEvent: false })
+      }
 
       this.itemsArray.controls.forEach((item, indice) => {
-        const cantidad = item.get('Cantidad')
-        if (!cantidad) return
-
-        if (bloqueadas[indice]) {
-          if (cantidad.enabled) cantidad.disable({ emitEvent: false })
-        } else if (cantidad.disabled) {
-          cantidad.enable({ emitEvent: false })
-        }
+        for (const [nombre, control] of Object.entries((item as FormGroup).controls))
+          aplicar(control, soloLectura
+            || nombre === 'ImporteUnitario'
+            || (nombre === 'Cantidad' && !!bloqueadas[indice]))
       })
+
+      for (const comprobante of this.comprobantesArray.controls)
+        for (const control of Object.values((comprobante as FormGroup).controls))
+          aplicar(control, soloLectura)
     })
 
   }
