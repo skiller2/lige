@@ -309,7 +309,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
 
     // Validar que la suscripción inicial sea un porcentaje entre 0 y 100 de hasta dos decimales
     const suscripcionInicial = Number(smvm.SalarioMinimoVitalMovilSuscripcionInicial);
-    if (isNaN(suscripcionInicial) || suscripcionInicial < 0 || suscripcionInicial > 100) {
+    if (isNaN(suscripcionInicial) || suscripcionInicial <= 0 || suscripcionInicial > 100) {
       throw new ClientException('La suscripción inicial debe ser un porcentaje entre 0 y 100');
     }
     if (!/^\d+(\.\d{1,2})?$/.test(String(suscripcionInicial))) {

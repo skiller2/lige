@@ -133,6 +133,7 @@ export class SalarioMinimoVitalMovil {
     if (!this.isRowComplete(row)) {
       row.isfull = 2
       this.angularGridEdit.gridService.updateItem(row)
+      this.repintarGrilla()
       this.refreshPendientes()
       return false
     }
@@ -149,6 +150,7 @@ export class SalarioMinimoVitalMovil {
       row.hasError = false
       row.isfull = 1
       this.angularGridEdit.gridService.updateItem(row)
+      this.repintarGrilla()
       this.refreshPendientes()
 
       // No se recarga la grilla para no pisar lo que el usuario esté editando en otra fila
@@ -161,9 +163,15 @@ export class SalarioMinimoVitalMovil {
       // El backend rechazó la fila: queda pendiente y marcada, el mensaje lo muestra la notificación
       row.hasError = true
       this.angularGridEdit.gridService.updateItem(row)
+      this.repintarGrilla()
       this.refreshPendientes()
       return false
     }
+  }
+
+  private repintarGrilla() {
+    this.angularGridEdit.slickGrid.invalidate()
+    this.angularGridEdit.slickGrid.render()
   }
 
   // Marca si quedan filas completas sin persistir
@@ -222,10 +230,7 @@ export class SalarioMinimoVitalMovil {
         this.angularGridEdit.gridService.updateItem(row)
       }
 
-      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
-      this.angularGridEdit.slickGrid.invalidate()
-      this.angularGridEdit.slickGrid.render()
-
+      this.repintarGrilla()
       this.refreshPendientes()
     }
 
@@ -326,6 +331,7 @@ export class SalarioMinimoVitalMovil {
   async angularGridReadyEdit(angularGrid: any) {
     this.cleanerVariables();
     this.angularGridEdit = angularGrid.detail
+    this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
 
     setTimeout(() => {
       const allItems = this.angularGridEdit.dataView.getItems();
