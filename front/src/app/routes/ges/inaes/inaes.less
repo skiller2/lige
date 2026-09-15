@@ -9,6 +9,43 @@
 
 .contentStyle{
   display: flex;
-  justify-content: center; 
+  justify-content: center;
   align-items: center;
+}
+
+.accionesBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.accionesFiltro {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.accionesBotones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+// En pantalla chica cada grupo pasa a ocupar el ancho completo y sus botones se reparten el lugar
+@media (max-width: 767px) {
+  .accionesBotones {
+    width: 100%;
+    gap: 8px;
+
+    nz-button-group {
+      display: flex;
+      flex: 1 1 100%;
+
+      button {
+        flex: 1;
+      }
+    }
+  }
 }

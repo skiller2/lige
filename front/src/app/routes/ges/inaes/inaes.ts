@@ -125,21 +125,20 @@ export class INAESComponent {
 
   //Configuración de cada exportación: estado a filtrar y textos para los mensajes
   private readonly exportaciones: Record<string, { Estado: string, movimiento: string, resolucion: string }> = {
-    'altas1000-21': { Estado: 'A', movimiento: 'altas', resolucion: 'Res. 1000/21' },
-    'bajas1000-21': { Estado: 'B', movimiento: 'bajas', resolucion: 'Res. 1000/21' },
-    'altas756-2025': { Estado: 'A', movimiento: 'altas', resolucion: 'Res. 756/2025' },
-    'bajas756-2025': { Estado: 'B', movimiento: 'bajas', resolucion: 'Res. 756/2025' },
+    'altas1000-21': { Estado: 'A', movimiento: 'Altas', resolucion: 'Res. 1000/21' },
+    'bajas1000-21': { Estado: 'B', movimiento: 'Bajas', resolucion: 'Res. 1000/21' },
+    'altas756-2025': { Estado: 'A', movimiento: 'Altas', resolucion: 'Res. 756/2025' },
+    'bajas756-2025': { Estado: 'B', movimiento: 'Bajas', resolucion: 'Res. 756/2025' },
   }
 
   async exportXlsxGrid(filter: string) {
     this.loadingExport.set(true)
+    const exportacion = this.exportaciones[filter]
     try {
-      //Configuro el filtro
-      const exportacion = this.exportaciones[filter]
       if (!exportacion) {
         throw new ExportError(`No se pudo exportar: el tipo de exportación "${filter}" no es válido.`);
       }
-      const { Estado, movimiento, resolucion } = exportacion
+      const { Estado } = exportacion
 
       
       if (Estado == 'A') {
@@ -158,7 +157,7 @@ export class INAESComponent {
       }
     } catch (error) {
       if (error instanceof ExportError) {
-        this.notification.warning('Advertencia', error.message);
+        this.notification.warning('Advertencia', `${error.message} ${exportacion?.movimiento ?? ''} ${exportacion?.resolucion ?? ''}`.trim());
       } else console.log('error: ', error);
 
     }
@@ -169,14 +168,12 @@ export class INAESComponent {
 
   async exportCsvGrid(filter: string) {
     this.loadingExport.set(true)
+    const exportacion = this.exportaciones[filter]
     try {
-      //Configuro el filtro
-
-      const exportacion = this.exportaciones[filter]
       if (!exportacion) {
         throw new ExportError(`No se pudo exportar: el tipo de exportación "${filter}" no es válido.`);
       }
-      const { Estado, movimiento, resolucion } = exportacion
+      const { Estado } = exportacion
 
       if (Estado == 'A') {
         (this.reg756_2025AltaExportService as InaesReg756_2025AltaCsvExportService).setAllColumns( this.angularGrid.gridService.getAllColumnDefinitions())
@@ -195,7 +192,7 @@ export class INAESComponent {
       }
     } catch (error) {
       if (error instanceof ExportError) {
-        this.notification.warning('Advertencia', error.message);
+        this.notification.warning('Advertencia', `${error.message} ${exportacion?.movimiento ?? ''} ${exportacion?.resolucion ?? ''}`.trim());
       }
     }
 
