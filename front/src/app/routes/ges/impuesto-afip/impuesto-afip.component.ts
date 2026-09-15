@@ -37,7 +37,7 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
     SHARED_IMPORTS,
   ],
   template: `<a app-down-file title="Comprobante {{ mes() }}/{{ anio() }}"
-    httpUrl="api/impuestos_afip/{{anio()}}/{{mes()}}/0/{{item.PersonalId}}"
+    httpUrl="api/impuestos_afip/{{anio()}}/{{mes()}}/0/{{item.PersonalId}}?original=true"
            style="float:right;padding-right: 5px;"><span class="pl-xs" nz-icon nzType="download"></span></a>`
 })
 
