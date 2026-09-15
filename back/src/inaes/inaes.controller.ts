@@ -420,7 +420,6 @@ const altasBajasColumns: any[] = [
     name: 'Nro Acta',
     field: 'ActaNroActa',
     fieldName: "acta.ActaNroActa",
-    searchComponent: "inputForNroActaSearch",
     type: 'string',
     sortable: true,
     searchHidden: false,
