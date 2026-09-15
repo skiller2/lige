@@ -9,6 +9,7 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
+import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 
 @Component({
   selector: 'app-sueldo-minimo-vital-movil',
@@ -72,6 +73,21 @@ export class SalarioMinimoVitalMovil {
               model: Editors['float']
             }
             break;
+          case 'SalarioMinimoVitalMovilCuotas':
+            // Sin mínimo: el valor se deja cargar y el error lo devuelve el backend al guardar
+            col.editor = {
+              model: Editors['integer']
+            }
+            break;
+          case 'SalarioMinimoVitalMovilSuscripcionInicial':
+            // Limita el tipeo a números y a dos decimales
+            col.editor = {
+              model: CustomFloatEditor,
+              decimal: 2,
+              params: {},
+              alwaysSaveOnEnterKey: true
+            }
+            break;
           case 'SalarioMinimoVitalMovilDesde':
             // Deshabilitar edición del periodo
             col.editor = undefined;
@@ -93,6 +109,77 @@ export class SalarioMinimoVitalMovil {
   })
 
   columnsData = computed(() => this.columns.value())
+
+  // Campos obligatorios para poder persistir una fila
+  private readonly camposRequeridos = [
+    'SalarioMinimoVitalMovilDesde',
+    'SalarioMinimoVitalMovilSMVM',
+    'SalarioMinimoVitalMovilCuotas',
+    'SalarioMinimoVitalMovilSuscripcionInicial'
+  ]
+
+  // Id de la fila con la celda activa, para detectar cuando el usuario se va de la fila
+  private activeRowId: any = null
+
+  // Un 0 es un valor válido, por eso no se evalúa por truthy
+  private isRowComplete(row: any): boolean {
+    return this.camposRequeridos.every(campo => row?.[campo] !== null && row?.[campo] !== undefined && row?.[campo] !== '')
+  }
+
+  // Persiste la fila solo si tiene cambios pendientes y está completa
+  private async saveRow(row: any): Promise<boolean> {
+    if (!row || !row.isDirty) return false
+
+    if (!this.isRowComplete(row)) {
+      row.isfull = 2
+      this.angularGridEdit.gridService.updateItem(row)
+      this.repintarGrilla()
+      this.refreshPendientes()
+      return false
+    }
+
+    const esNuevo = !row.SalarioMinimoVitalMovilId
+    try {
+      const response = await firstValueFrom(this.apiService.onchangecellSMVM(row))
+      const id = response?.data?.SalarioMinimoVitalMovilId
+      if (id) {
+        row.SalarioMinimoVitalMovilId = id
+        row.codigoOld = id
+      }
+      row.isDirty = false
+      row.hasError = false
+      row.isfull = 1
+      this.angularGridEdit.gridService.updateItem(row)
+      this.repintarGrilla()
+      this.refreshPendientes()
+
+      // No se recarga la grilla para no pisar lo que el usuario esté editando en otra fila
+      if (esNuevo) {
+        this.lastPeriod.set(row.SalarioMinimoVitalMovilDesde)
+        this.addNewItem('bottom')
+      }
+      return true
+    } catch (error) {
+      // El backend rechazó la fila: queda pendiente y marcada, el mensaje lo muestra la notificación
+      row.hasError = true
+      this.angularGridEdit.gridService.updateItem(row)
+      this.repintarGrilla()
+      this.refreshPendientes()
+      return false
+    }
+  }
+
+  private repintarGrilla() {
+    this.angularGridEdit.slickGrid.invalidate()
+    this.angularGridEdit.slickGrid.render()
+  }
+
+  // Marca si quedan filas completas sin persistir
+  private refreshPendientes() {
+    const allItems = this.angularGridEdit.dataView.getItems()
+    this.gridDataInsert = allItems
+    this.hasNewItems.set(allItems.some((item: any) => item.isDirty && this.isRowComplete(item)))
+  }
 
   async addNewItem(insertPosition?: 'bottom') {
     const allItems = this.angularGridEdit.dataView.getItems();
@@ -127,45 +214,14 @@ export class SalarioMinimoVitalMovil {
     this.gridOptionsEdit.autoEdit = true
     this.gridOptionsEdit.forceFitColumns = true
 
+    // No persiste nada: solo marca la fila como pendiente. El guardado ocurre al salir de la fila
     this.gridOptionsEdit.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
       editCommand.execute()
-      
+
       // Marcar si el registro está completo
-      if (row.SalarioMinimoVitalMovilDesde && row.SalarioMinimoVitalMovilSMVM) {
-        row.isfull = 1
-      } else {
-        row.isfull = 2
-      }
-
-      // Si es un registro existente (tiene ID) y está completo, actualizarlo inmediatamente
-      if (row.SalarioMinimoVitalMovilId && row.isfull === 1) {
-        try {
-          await firstValueFrom(this.apiService.onchangecellSMVM(row))
-          this.refreshSMVM.update(v => v + 1)
-        } catch (error) {
-          editCommand.undo()
-          return
-        }
-      }
-
-      // Nuevo registro completo: guardar al hacer Tab en Importe (sin botón Confirmar)
-      const isNewComplete = !row.SalarioMinimoVitalMovilId && row.isfull === 1
-      const editedImporte = column?.id === 'SalarioMinimoVitalMovilSMVM'
-      if (isNewComplete && editedImporte) {
-        try {
-           
-          const response = await firstValueFrom(this.apiService.onchangecellSMVM(row))
-          const id = response?.data?.SalarioMinimoVitalMovilId
-          if (id) {
-            row.SalarioMinimoVitalMovilId = id
-            row.codigoOld = id
-          }
-          this.refreshSMVM.update(v => v + 1)
-        } catch (error) {
-          editCommand.undo()
-          return
-        }
-      }
+      row.isfull = this.isRowComplete(row) ? 1 : 2
+      row.isDirty = true
+      row.hasError = false
 
       // Si el registro está vacío, eliminarlo
       if (!row.SalarioMinimoVitalMovilDesde && !row.SalarioMinimoVitalMovilSMVM && !row.SalarioMinimoVitalMovilId) {
@@ -174,19 +230,8 @@ export class SalarioMinimoVitalMovil {
         this.angularGridEdit.gridService.updateItem(row)
       }
 
-      this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
-      this.angularGridEdit.slickGrid.invalidate()
-      this.angularGridEdit.slickGrid.render()
-
-      const allItems = this.angularGridEdit.dataView.getItems()
-      this.gridDataInsert = allItems
-      const newItems = allItems.filter((item: any) => !item.SalarioMinimoVitalMovilId && item.isfull === 1)
-      this.hasNewItems.set(newItems.length > 0)
-
-      // Tras guardar nuevo desde Importe, agregar fila vacía para seguir cargando
-      if (isNewComplete && editedImporte) {
-        this.addNewItem('bottom')
-      }
+      this.repintarGrilla()
+      this.refreshPendientes()
     }
 
 
@@ -211,12 +256,13 @@ export class SalarioMinimoVitalMovil {
                 item.SalarioMinimoVitalMovilId = item.id;
                 item.isfull = 1;
                 item.codigoOld = item.id;
+                item.isDirty = false;
               }
               return item;
             });
             this.gridDataInsert = list;
-            const newItems = list.filter((item: any) => !item.SalarioMinimoVitalMovilId && item.isfull === 1);
-            this.hasNewItems.set(newItems.length > 0);
+            // Lo recién traído de la base no tiene cambios pendientes
+            this.hasNewItems.set(false);
             return list;
       }else{
         return [];
@@ -256,9 +302,12 @@ export class SalarioMinimoVitalMovil {
     return {
       id: newId,
       isfull: 0,
+      isDirty: false,
       SalarioMinimoVitalMovilId: null,
       SalarioMinimoVitalMovilDesde: newDate,
-      SalarioMinimoVitalMovilSMVM: null
+      SalarioMinimoVitalMovilSMVM: null,
+      SalarioMinimoVitalMovilCuotas: null,
+      SalarioMinimoVitalMovilSuscripcionInicial: null
     };
   }
 
@@ -272,7 +321,7 @@ export class SalarioMinimoVitalMovil {
         meta = previousItemMetadata(rowNumber);
       }
 
-      if (meta && item && item.isfull === 2) {
+      if (meta && item && (item.isfull === 2 || item.hasError)) {
         meta.cssClasses = 'element-add-no-complete';
       }
       return meta;
@@ -282,21 +331,32 @@ export class SalarioMinimoVitalMovil {
   async angularGridReadyEdit(angularGrid: any) {
     this.cleanerVariables();
     this.angularGridEdit = angularGrid.detail
+    this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
 
     setTimeout(() => {
       const allItems = this.angularGridEdit.dataView.getItems();
       if (allItems.length == 0) {
         this.addNewItem("bottom")
       } else {
-        // Actualizar hasNewItems basado en los items actuales
-        const newItems = allItems.filter((item: any) => !item.SalarioMinimoVitalMovilId && item.isfull === 1);
-        this.hasNewItems.set(newItems.length > 0);
+        this.refreshPendientes()
       }
     }, 500);
 
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
       //columnTotal('SalarioMinimoVitalMovilSMVM', this.angularGridEdit)
+    })
+
+    // El guardado se dispara recién cuando el usuario sale de la fila
+    this.angularGridEdit.slickGrid.onActiveCellChanged.subscribe(async (e: any, args: any) => {
+      const filaActual = args?.row != null ? this.angularGridEdit.dataView.getItem(args.row) : null
+      const idActual = filaActual?.id ?? null
+
+      if (this.activeRowId !== null && this.activeRowId !== idActual) {
+        const filaAnterior = this.angularGridEdit.dataView.getItemById(this.activeRowId)
+        await this.saveRow(filaAnterior)
+      }
+      this.activeRowId = idActual
     })
 
     if (this.apiService.isMobile())
@@ -324,31 +384,17 @@ export class SalarioMinimoVitalMovil {
     this.gridDataInsert = [];
   }
 
-  confirmNewItem() {
-    const allItems = this.angularGridEdit.dataView.getItems();
-    const altas = allItems.filter((f: any) => f.isfull == 1 && !f.SalarioMinimoVitalMovilId);
-    
-    if (altas.length > 0) {
-      // Procesar cada registro completo
-      const promises = altas.map(async (item: any) => {
-        try {
-          const response = await firstValueFrom(this.apiService.onchangecellSMVM(item));
-          if (response.data && response.data.SalarioMinimoVitalMovilId) {
-            item.SalarioMinimoVitalMovilId = response.data.SalarioMinimoVitalMovilId;
-            item.codigoOld = response.data.SalarioMinimoVitalMovilId;
-            item.isfull = 1;
-            this.angularGridEdit.gridService.updateItem(item);
-          }
-        } catch (error) {
-        }
-      });
+  // Red de seguridad: persiste las filas pendientes cuando el usuario no llegó a salir de la fila
+  async confirmNewItem() {
+    const pendientes = this.angularGridEdit.dataView.getItems()
+      .filter((item: any) => item.isDirty && this.isRowComplete(item));
 
-      Promise.all(promises).then(() => {
-        this.hasNewItems.set(false);
-        this.refreshSMVM.update(v => v + 1);
-        this.cleanTable()
-      });
+    // Secuencial: la validación de período consecutivo del backend no tolera altas en paralelo
+    for (const item of pendientes) {
+      await this.saveRow(item);
     }
+
+    this.refreshPendientes();
   }
 
   async deleteItem() {
