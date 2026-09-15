@@ -95,20 +95,6 @@ const altasBajasColumns: any[] = [
     showGridColumn: false,
   },
   {
-    id: "PersonalFechaIngreso",
-    name: "Fecha Ingreso",
-    field: "PersonalFechaIngreso",
-    type: "date",
-    fieldName: "ISNULL(ing.PersonalFechaIngreso,'9999-12-31')",
-    searchType: "date",
-    searchComponent: "inputForFechaSearch",
-    sortable: true,
-    searchHidden: true,
-    hidden: false,
-    excludeFromExport: true,
-    showGridColumn: false,
-  },
-  {
     id: "DNI",
     name: "DNI",
     field: "DNI",
@@ -427,7 +413,7 @@ const altasBajasColumns: any[] = [
     sortable: true,
     formatter: 'collectionFormatter',
     params: { collection: getOptionsEstado },
-    searchHidden: true,
+    searchHidden: false,
     hidden: false,
     excludeFromExport: true,
     // showGridColumn: false,
@@ -668,7 +654,7 @@ export class InaesController extends BaseController {
     if (cuits) {
       flags = `CASE WHEN (acta.TipoPersonalActaCodigo IN ('ALT','REI') AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN 'A'
               WHEN (acta.TipoPersonalActaCodigo IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaSituacionId NOT IN (2,10,12)) THEN 'B'
-              ELSE 'E' END AS Estado`
+              ELSE 'E' END AS Estado,              `
       filterCUITs = `(cuit.PersonalCUITCUILCUIT IN (${cuits}) AND acta.TipoPersonalActaCodigo IN ('BAJ','BD')) OR (cuit.PersonalCUITCUILCUIT NOT IN (${cuits}) AND acta.TipoPersonalActaCodigo IN ('ALT','REI'))`
     }
 
@@ -687,7 +673,6 @@ export class InaesController extends BaseController {
       SELECT
         per.PersonalId AS id,
         @1 AS CUITEntidad,
-        ing.PersonalFechaIngreso,
         cuit.PersonalCUITCUILCUIT,
         '2' AS TipoDocumento,
         SUBSTRING(CAST(cuit.PersonalCUITCUILCUIT AS VARCHAR(11)), 3, 8) AS DNI,
