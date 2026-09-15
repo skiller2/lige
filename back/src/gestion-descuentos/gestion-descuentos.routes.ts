@@ -56,7 +56,11 @@ gestionDescuentosRouter.post("/persona", [authMiddleware.verifyToken, authMiddle
     gestionDescuentosController.getDescuentoPersona(req, res, next);
 });
 
-gestionDescuentosRouter.post("/objetivo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+gestionDescuentosRouter.get("/persona/datos-auditoria/:PersonalId/:DescuentoId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.getDescuentoPersonaAuditoria(req, res, next);
+});
+
+gestionDescuentosRouter.post("/objetivo",[authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
     gestionDescuentosController.getDescuentoObjetivo(req, res, next);
 });
 

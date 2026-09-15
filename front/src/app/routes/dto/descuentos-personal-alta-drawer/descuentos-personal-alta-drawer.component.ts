@@ -228,6 +228,33 @@ export class DescuentosPersonalAltaDrawerComponent {
         return total.toFixed(2); // string
     });
 
+    // Auditoría del descuento (alta / última modificación), igual que en el detalle de movimientos de efectos
+    auditoria = signal<any>(null)
+
+    // El descuento se identifica por el personal con el que está grabado, no por el que se esté editando
+    idAuditoria = computed(() => ({
+        DescuentoId: Number(this.descuentoPersonal().id) || 0,
+        PersonalId: Number(this.descuentoPersonal().oldPersonalId || this.descuentoPersonal().PersonalId) || 0
+    }))
+
+    auditoriaFilas = computed(() => {
+        const a = this.auditoria()
+        if (!a) return []
+        return [
+            { Evento: 'Alta', Usuario: a.AudUsuarioIng, Fecha: a.AudFechaIng, Ip: a.AudIpIng },
+            { Evento: 'Última modificación', Usuario: a.AudUsuarioMod, Fecha: a.AudFechaMod, Ip: a.AudIpMod }
+        ]
+    })
+
+    // Petición individual al hacer clic: el back valida el grupo gSistemas
+    async loadAuditoria() {
+        const { DescuentoId, PersonalId } = this.idAuditoria()
+        // Se limpia para que no se vea la auditoría del descuento abierto antes
+        this.auditoria.set(null)
+        if (!DescuentoId || !PersonalId) return
+        this.auditoria.set(await firstValueFrom(this.searchService.getDescuentoPersonaAuditoria(PersonalId, DescuentoId)))
+    }
+
     lastEfecto = signal<{ EfectoId: number | null, EfectoIndividualId: number | null, EfectoDescripcionCompleto: string } | null>(null)
     private anioDef: number = 0
     private mesDef: number = 0

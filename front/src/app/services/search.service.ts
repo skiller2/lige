@@ -2263,6 +2263,15 @@ export class SearchService {
     );
   }
 
+  // Alta y última modificación del descuento del personal (PersonalOtroDescuento)
+  getDescuentoPersonaAuditoria(PersonalId: number, DescuentoId: number) {
+    if (!PersonalId || !DescuentoId) return of(null);
+    return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/persona/datos-auditoria/${PersonalId}/${DescuentoId}`).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
   getDescuentoPersona(PersonalId: number, DescuentoId: number) {
     if (!PersonalId || !DescuentoId) {
       return of({});

@@ -2164,6 +2164,31 @@ FROM cte
     }
   }
 
+  // Datos de auditoría (alta / última modificación) del descuento del personal, para el botón
+  // de auditoría del drawer
+  async getDescuentoPersonaAuditoria(req: any, res: Response, next: NextFunction) {
+    const PersonalId = Number(req.params.PersonalId)
+    const DescuentoId = Number(req.params.DescuentoId)
+    if (!PersonalId || !DescuentoId) return this.jsonRes(null, res)
+
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const auditoria = await queryRunner.query(`
+      SELECT pod.PersonalOtroDescuentoId, pod.PersonalId
+      , pod.PersonalOtroDescuentoAudUsuarioIng AudUsuarioIng, pod.PersonalOtroDescuentoAudFechaIng AudFechaIng, pod.PersonalOtroDescuentoAudIpIng AudIpIng
+      , pod.PersonalOtroDescuentoAudUsuarioMod AudUsuarioMod, pod.PersonalOtroDescuentoAudFechaMod AudFechaMod, pod.PersonalOtroDescuentoAudIpMod AudIpMod
+      FROM PersonalOtroDescuento pod
+      WHERE pod.PersonalOtroDescuentoId = @0 AND pod.PersonalId = @1
+      `, [DescuentoId, PersonalId])
+
+      return this.jsonRes(auditoria[0] ?? null, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   async getDescuentoObjetivo(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     const ObjetivoId = req.body.ObjetivoId
