@@ -11,6 +11,7 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { Router } from '@angular/router';
 import { LoadingService } from '@delon/abc/loading';
+import { SettingsService } from '@delon/theme';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TableINAESRecibosComponent } from '../table-inaes-recibos/table-inaes-recibos'
 import { ExternalResource } from '@slickgrid-universal/common';
@@ -52,6 +53,7 @@ export class INAESComponent {
   private angularUtilService = inject(AngularUtilService)
   private readonly loadingSrv = inject(LoadingService)
   private notification = inject(NzNotificationService)
+  private settingsService = inject(SettingsService)
   private reg1000_21AltaExportService: ExternalResource | InaesReg1000_21AltaCsvExportService = new InaesReg1000_21AltaCsvExportService();
   private reg1000_21BajaExportService: ExternalResource | InaesReg1000_21BajaCsvExportService = new InaesReg1000_21BajaCsvExportService();
   private reg756_2025AltaExportService: ExternalResource | InaesReg756_2025AltaCsvExportService = new InaesReg756_2025AltaCsvExportService();
@@ -81,6 +83,7 @@ export class INAESComponent {
   });
 
   async ngOnInit() {
+    this.settingsService.setLayout('collapsed', true)
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = false
     this.gridOptions.enableAutoSizeColumns = true
