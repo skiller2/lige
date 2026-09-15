@@ -53,7 +53,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
       await queryRunner.startTransaction()
       const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas)
       const orderBy = orderToSQL(req.body.options.sort)
-     const lista: any[] = await queryRunner.query(`
+      const lista: any[] = await queryRunner.query(`
       select smvm.SalarioMinimoVitalMovilId as id, smvm.SalarioMinimoVitalMovilDesde, smvm.SalarioMinimoVitalMovilSMVM
       from SalarioMinimoVitalMovil smvm
       where ${filterSql} order by smvm.SalarioMinimoVitalMovilDesde desc
@@ -76,7 +76,10 @@ export class SalarioMinimoVitalMovilController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     const SalarioMinimoVitalMovilDesde: Date = req.body.SalarioMinimoVitalMovilDesde ? new Date(req.body.SalarioMinimoVitalMovilDesde) : null;
     const SalarioMinimoVitalMovilSMVM: number = req.body.SalarioMinimoVitalMovilSMVM;
-    
+
+    if (!SalarioMinimoVitalMovilDesde) throw new ClientException('El período es obligatorio');
+    SalarioMinimoVitalMovilDesde.setHours(0, 0, 0, 0)
+
     try {
       await queryRunner.startTransaction();
 
@@ -107,7 +110,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
         WHERE SalarioMinimoVitalMovilDesde = @0
         ORDER BY SalarioMinimoVitalMovilId DESC
       `, [SalarioMinimoVitalMovilDesde]);
-      
+
       const newId: number = SMVM[0]?.SalarioMinimoVitalMovilId || null;
 
       await queryRunner.commitTransaction();
@@ -125,15 +128,18 @@ export class SalarioMinimoVitalMovilController extends BaseController {
     const SalarioMinimoVitalMovilId = req.body.SalarioMinimoVitalMovilId;
     const SalarioMinimoVitalMovilDesde: Date = req.body.SalarioMinimoVitalMovilDesde ? new Date(req.body.SalarioMinimoVitalMovilDesde) : null;
     const SalarioMinimoVitalMovilSMVM: number = req.body.SalarioMinimoVitalMovilSMVM;
-    
+
+    if (!SalarioMinimoVitalMovilDesde) throw new ClientException('El período es obligatorio');
+    SalarioMinimoVitalMovilDesde.setHours(0, 0, 0, 0);
+
     try {
       await queryRunner.startTransaction();
 
       // Validaciones
       await this.validateFormSMVM(req.body, 'U', queryRunner);
 
-        // En actualización, no actualizar el período, solo el importe
-        await queryRunner.query(`
+      // En actualización, no actualizar el período, solo el importe
+      await queryRunner.query(`
           UPDATE SalarioMinimoVitalMovil SET
             SalarioMinimoVitalMovilSMVM = @1
         WHERE SalarioMinimoVitalMovilId = @0
@@ -160,10 +166,12 @@ export class SalarioMinimoVitalMovilController extends BaseController {
       if (!row.SalarioMinimoVitalMovilId) {
         // Validar antes de insertar
         await this.validateFormSMVM(row, 'I', queryRunner);
-        
+
         const SalarioMinimoVitalMovilDesde: Date = row.SalarioMinimoVitalMovilDesde ? new Date(row.SalarioMinimoVitalMovilDesde) : null;
         const SalarioMinimoVitalMovilSMVM: number = row.SalarioMinimoVitalMovilSMVM;
 
+        if (!SalarioMinimoVitalMovilDesde) throw new ClientException('El período es obligatorio');
+        SalarioMinimoVitalMovilDesde.setHours(0, 0, 0, 0);
         await queryRunner.query(`
           INSERT INTO SalarioMinimoVitalMovil (
             SalarioMinimoVitalMovilSMVM,
@@ -190,7 +198,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
         `, [SalarioMinimoVitalMovilDesde]);
 
         const newId: number = SMVM[0]?.SalarioMinimoVitalMovilId || null;
-        
+
         await queryRunner.commitTransaction();
         this.jsonRes({ SalarioMinimoVitalMovilId: newId }, res);
       } else {
@@ -218,9 +226,9 @@ export class SalarioMinimoVitalMovilController extends BaseController {
     }
   }
 
-  async  validateFormSMVM(smvm: any, action: string, queryRunner: any) {
+  async validateFormSMVM(smvm: any, action: string, queryRunner: any) {
     let error: string[] = [];
-    
+
     if (!smvm.SalarioMinimoVitalMovilDesde) {
       error.push(' AÑO/MES');
     }
@@ -251,7 +259,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
         WHERE YEAR(SalarioMinimoVitalMovilDesde) = @0 
         AND MONTH(SalarioMinimoVitalMovilDesde) = @1
       `, [anio, mes]);
-      
+
       if (existing.length) {
         throw new ClientException('Ya existe un registro para ese período (año/mes)');
       }
@@ -270,8 +278,8 @@ export class SalarioMinimoVitalMovilController extends BaseController {
         siguienteEsperado.setDate(1);
 
         // Comparar solo año y mes
-        if (fecha.getFullYear() !== siguienteEsperado.getFullYear() || 
-            fecha.getMonth() !== siguienteEsperado.getMonth()) {
+        if (fecha.getFullYear() !== siguienteEsperado.getFullYear() ||
+          fecha.getMonth() !== siguienteEsperado.getMonth()) {
           const siguienteAnio = siguienteEsperado.getFullYear();
           const siguienteMes = String(siguienteEsperado.getMonth() + 1).padStart(2, '0');
           throw new ClientException(`El período debe ser consecutivo. El siguiente período esperado es: ${siguienteAnio}-${siguienteMes}`);
@@ -289,8 +297,8 @@ export class SalarioMinimoVitalMovilController extends BaseController {
 
       if (registroActual.length > 0) {
         const fechaActual = new Date(registroActual[0].SalarioMinimoVitalMovilDesde);
-        if (fecha.getFullYear() !== fechaActual.getFullYear() || 
-            fecha.getMonth() !== fechaActual.getMonth()) {
+        if (fecha.getFullYear() !== fechaActual.getFullYear() ||
+          fecha.getMonth() !== fechaActual.getMonth()) {
           throw new ClientException('No se puede modificar el período (AÑO/MES) de un registro existente. Solo se puede editar el importe.');
         }
       }
@@ -321,13 +329,13 @@ export class SalarioMinimoVitalMovilController extends BaseController {
   async deleteSMVM(req: any, res: Response, next: NextFunction) {
 
 
-  const SalarioMinimoVitalMovilId = req.params.SalarioMinimoVitalMovilId;
+    const SalarioMinimoVitalMovilId = req.params.SalarioMinimoVitalMovilId;
 
-  if (!SalarioMinimoVitalMovilId) {
-    throw new ClientException('El ID del registro es requerido');
-  }
+    if (!SalarioMinimoVitalMovilId) {
+      throw new ClientException('El ID del registro es requerido');
+    }
 
-//throw new ClientException('test');
+    //throw new ClientException('test');
     const queryRunner = await getConnection(res.locals.userName);
     try {
       await queryRunner.startTransaction();
