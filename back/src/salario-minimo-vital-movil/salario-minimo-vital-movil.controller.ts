@@ -37,8 +37,45 @@ const listaColumnas: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-  }
+  },
+  {
+    id: 'SalarioMinimoVitalMovilCuotas',
+    name: 'Cuotas',
+    field: 'SalarioMinimoVitalMovilCuotas',
+    fieldName: 'SalarioMinimoVitalMovilCuotas',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: 'SalarioMinimoVitalMovilSuscripcionInicial',
+    name: 'Suscripción Inicial (%)',
+    field: 'SalarioMinimoVitalMovilSuscripcionInicial',
+    fieldName: 'SalarioMinimoVitalMovilSuscripcionInicial',
+    type: 'number',
+    searchType: 'number',
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: 'SalarioMinimoVitalMovilHasta',
+    name: 'Hasta',
+    field: 'SalarioMinimoVitalMovilHasta',
+    fieldName: 'SalarioMinimoVitalMovilHasta',
+    type: 'date',
+    searchType: 'date',
+    sortable: true,
+    hidden: true,
+    searchHidden: true,
+  },
+
 ];
+
+// Un 0 es un valor válido, por eso no se evalúa por truthy
+const esVacio = (valor: any): boolean => valor === null || valor === undefined || valor === '';
 
 
 export class SalarioMinimoVitalMovilController extends BaseController {
@@ -54,7 +91,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
       const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas)
       const orderBy = orderToSQL(req.body.options.sort)
       const lista: any[] = await queryRunner.query(`
-      select smvm.SalarioMinimoVitalMovilId as id, smvm.SalarioMinimoVitalMovilDesde, smvm.SalarioMinimoVitalMovilSMVM
+      select smvm.SalarioMinimoVitalMovilId as id, smvm.SalarioMinimoVitalMovilDesde, smvm.SalarioMinimoVitalMovilSMVM, smvm.SalarioMinimoVitalMovilCuotas, smvm.SalarioMinimoVitalMovilSuscripcionInicial, smvm.SalarioMinimoVitalMovilHasta
       from SalarioMinimoVitalMovil smvm
       where ${filterSql} order by smvm.SalarioMinimoVitalMovilDesde desc
       `);
@@ -76,6 +113,8 @@ export class SalarioMinimoVitalMovilController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     const SalarioMinimoVitalMovilDesde: Date = req.body.SalarioMinimoVitalMovilDesde ? new Date(req.body.SalarioMinimoVitalMovilDesde) : null;
     const SalarioMinimoVitalMovilSMVM: number = req.body.SalarioMinimoVitalMovilSMVM;
+    const SalarioMinimoVitalMovilCuotas: number = req.body.SalarioMinimoVitalMovilCuotas;
+    const SalarioMinimoVitalMovilSuscripcionInicial: number = req.body.SalarioMinimoVitalMovilSuscripcionInicial;
 
     if (!SalarioMinimoVitalMovilDesde) throw new ClientException('El período es obligatorio');
     SalarioMinimoVitalMovilDesde.setHours(0, 0, 0, 0)
@@ -86,7 +125,7 @@ export class SalarioMinimoVitalMovilController extends BaseController {
       // Validaciones
       await this.validateFormSMVM(req.body, 'I', queryRunner);
 
-      await queryRunner.query(`
+      const inserted = await queryRunner.query(`
         INSERT INTO SalarioMinimoVitalMovil (
           SalarioMinimoVitalMovilSMVM,
           SalarioMinimoVitalMovilCuotas,
@@ -94,24 +133,19 @@ export class SalarioMinimoVitalMovilController extends BaseController {
           SalarioMinimoVitalMovilSuscripcionRestoCuotas,
           SalarioMinimoVitalMovilDesde,
           SalarioMinimoVitalMovilHasta
-        ) VALUES (@0, @1, @2, @3, @4, @5)
+        )
+        OUTPUT INSERTED.SalarioMinimoVitalMovilId
+        VALUES (@0, @1, @2, @3, @4, @5)
       `, [
-        SalarioMinimoVitalMovilSMVM,
-        null, // SalarioMinimoVitalMovilCuotas
-        null, // SalarioMinimoVitalMovilSuscripcionInicial
+        Number(SalarioMinimoVitalMovilSMVM),
+        Number(SalarioMinimoVitalMovilCuotas),
+        Number(SalarioMinimoVitalMovilSuscripcionInicial), // en %
         null, // SalarioMinimoVitalMovilSuscripcionRestoCuotas
         SalarioMinimoVitalMovilDesde,
         null  // SalarioMinimoVitalMovilHasta
       ]);
 
-      const SMVM = await queryRunner.query(`
-        SELECT TOP 1 SalarioMinimoVitalMovilId 
-        FROM SalarioMinimoVitalMovil
-        WHERE SalarioMinimoVitalMovilDesde = @0
-        ORDER BY SalarioMinimoVitalMovilId DESC
-      `, [SalarioMinimoVitalMovilDesde]);
-
-      const newId: number = SMVM[0]?.SalarioMinimoVitalMovilId || null;
+      const newId: number = inserted[0]?.SalarioMinimoVitalMovilId ?? null;
 
       await queryRunner.commitTransaction();
       this.jsonRes({ SalarioMinimoVitalMovilId: newId }, res, 'Carga de nuevo registro exitoso');
@@ -128,6 +162,8 @@ export class SalarioMinimoVitalMovilController extends BaseController {
     const SalarioMinimoVitalMovilId = req.body.SalarioMinimoVitalMovilId;
     const SalarioMinimoVitalMovilDesde: Date = req.body.SalarioMinimoVitalMovilDesde ? new Date(req.body.SalarioMinimoVitalMovilDesde) : null;
     const SalarioMinimoVitalMovilSMVM: number = req.body.SalarioMinimoVitalMovilSMVM;
+    const SalarioMinimoVitalMovilCuotas: number = req.body.SalarioMinimoVitalMovilCuotas;
+    const SalarioMinimoVitalMovilSuscripcionInicial: number = req.body.SalarioMinimoVitalMovilSuscripcionInicial;
 
     if (!SalarioMinimoVitalMovilDesde) throw new ClientException('El período es obligatorio');
     SalarioMinimoVitalMovilDesde.setHours(0, 0, 0, 0);
@@ -138,12 +174,19 @@ export class SalarioMinimoVitalMovilController extends BaseController {
       // Validaciones
       await this.validateFormSMVM(req.body, 'U', queryRunner);
 
-      // En actualización, no actualizar el período, solo el importe
+      // En actualización no se toca el período, solo los importes
       await queryRunner.query(`
           UPDATE SalarioMinimoVitalMovil SET
-            SalarioMinimoVitalMovilSMVM = @1
+            SalarioMinimoVitalMovilSMVM = @1,
+            SalarioMinimoVitalMovilCuotas = @2,
+            SalarioMinimoVitalMovilSuscripcionInicial = @3
         WHERE SalarioMinimoVitalMovilId = @0
-      `, [SalarioMinimoVitalMovilId, SalarioMinimoVitalMovilSMVM]);
+      `, [
+        SalarioMinimoVitalMovilId,
+        Number(SalarioMinimoVitalMovilSMVM),
+        Number(SalarioMinimoVitalMovilCuotas),
+        Number(SalarioMinimoVitalMovilSuscripcionInicial)
+      ]);
 
       await queryRunner.commitTransaction();
       this.jsonRes({}, res, 'Actualización de registro exitoso');
@@ -169,10 +212,12 @@ export class SalarioMinimoVitalMovilController extends BaseController {
 
         const SalarioMinimoVitalMovilDesde: Date = row.SalarioMinimoVitalMovilDesde ? new Date(row.SalarioMinimoVitalMovilDesde) : null;
         const SalarioMinimoVitalMovilSMVM: number = row.SalarioMinimoVitalMovilSMVM;
+        const SalarioMinimoVitalMovilCuotas: number = row.SalarioMinimoVitalMovilCuotas;
+        const SalarioMinimoVitalMovilSuscripcionInicial: number = row.SalarioMinimoVitalMovilSuscripcionInicial;
 
         if (!SalarioMinimoVitalMovilDesde) throw new ClientException('El período es obligatorio');
         SalarioMinimoVitalMovilDesde.setHours(0, 0, 0, 0);
-        await queryRunner.query(`
+        const inserted = await queryRunner.query(`
           INSERT INTO SalarioMinimoVitalMovil (
             SalarioMinimoVitalMovilSMVM,
             SalarioMinimoVitalMovilCuotas,
@@ -180,24 +225,19 @@ export class SalarioMinimoVitalMovilController extends BaseController {
             SalarioMinimoVitalMovilSuscripcionRestoCuotas,
             SalarioMinimoVitalMovilDesde,
             SalarioMinimoVitalMovilHasta
-          ) VALUES (@0, @1, @2, @3, @4, @5)
+          )
+          OUTPUT INSERTED.SalarioMinimoVitalMovilId
+          VALUES (@0, @1, @2, @3, @4, @5)
         `, [
-          SalarioMinimoVitalMovilSMVM,
-          null, // SalarioMinimoVitalMovilCuotas
-          null, // SalarioMinimoVitalMovilSuscripcionInicial
+          Number(SalarioMinimoVitalMovilSMVM),
+          Number(SalarioMinimoVitalMovilCuotas),
+          Number(SalarioMinimoVitalMovilSuscripcionInicial), // en %
           null, // SalarioMinimoVitalMovilSuscripcionRestoCuotas
           SalarioMinimoVitalMovilDesde,
           null  // SalarioMinimoVitalMovilHasta
         ]);
 
-        const SMVM = await queryRunner.query(`
-          SELECT TOP 1 SalarioMinimoVitalMovilId 
-          FROM SalarioMinimoVitalMovil
-          WHERE SalarioMinimoVitalMovilDesde = @0
-          ORDER BY SalarioMinimoVitalMovilId DESC
-        `, [SalarioMinimoVitalMovilDesde]);
-
-        const newId: number = SMVM[0]?.SalarioMinimoVitalMovilId || null;
+        const newId: number = inserted[0]?.SalarioMinimoVitalMovilId ?? null;
 
         await queryRunner.commitTransaction();
         this.jsonRes({ SalarioMinimoVitalMovilId: newId }, res);
@@ -205,15 +245,23 @@ export class SalarioMinimoVitalMovilController extends BaseController {
         // Es una actualización
         await this.validateFormSMVM(row, 'U', queryRunner);
 
-        const SalarioMinimoVitalMovilDesde: Date = row.SalarioMinimoVitalMovilDesde ? new Date(row.SalarioMinimoVitalMovilDesde) : null;
         const SalarioMinimoVitalMovilSMVM: number = row.SalarioMinimoVitalMovilSMVM;
+        const SalarioMinimoVitalMovilCuotas: number = row.SalarioMinimoVitalMovilCuotas;
+        const SalarioMinimoVitalMovilSuscripcionInicial: number = row.SalarioMinimoVitalMovilSuscripcionInicial;
 
-        // En actualización, no actualizar el período, solo el importe
+        // En actualización no se toca el período, solo los importes
         await queryRunner.query(`
           UPDATE SalarioMinimoVitalMovil SET
-            SalarioMinimoVitalMovilSMVM = @1
+            SalarioMinimoVitalMovilSMVM = @1,
+            SalarioMinimoVitalMovilCuotas = @2,
+            SalarioMinimoVitalMovilSuscripcionInicial = @3
           WHERE SalarioMinimoVitalMovilId = @0
-        `, [row.SalarioMinimoVitalMovilId, SalarioMinimoVitalMovilSMVM]);
+        `, [
+          row.SalarioMinimoVitalMovilId,
+          Number(SalarioMinimoVitalMovilSMVM),
+          Number(SalarioMinimoVitalMovilCuotas),
+          Number(SalarioMinimoVitalMovilSuscripcionInicial)
+        ]);
 
         await queryRunner.commitTransaction();
         this.jsonRes({}, res);
@@ -232,8 +280,14 @@ export class SalarioMinimoVitalMovilController extends BaseController {
     if (!smvm.SalarioMinimoVitalMovilDesde) {
       error.push(' AÑO/MES');
     }
-    if (smvm.SalarioMinimoVitalMovilSMVM === null || smvm.SalarioMinimoVitalMovilSMVM === undefined) {
+    if (esVacio(smvm.SalarioMinimoVitalMovilSMVM)) {
       error.push(' Importe');
+    }
+    if (esVacio(smvm.SalarioMinimoVitalMovilCuotas)) {
+      error.push('Cuotas');
+    }
+    if (esVacio(smvm.SalarioMinimoVitalMovilSuscripcionInicial)) {
+      error.push(' Suscripción Inicial (%)');
     }
 
     if (error.length) {
@@ -245,6 +299,21 @@ export class SalarioMinimoVitalMovilController extends BaseController {
     const importe = Number(smvm.SalarioMinimoVitalMovilSMVM);
     if (isNaN(importe) || importe <= 0) {
       throw new ClientException('El importe debe ser mayor a 0');
+    }
+
+    // Validar que las cuotas sean un entero mayor a 0
+    const cuotas = Number(smvm.SalarioMinimoVitalMovilCuotas);
+    if (!Number.isInteger(cuotas) || cuotas <= 0) {
+      throw new ClientException('Las cuotas deben ser un número entero mayor a 0');
+    }
+
+    // Validar que la suscripción inicial sea un porcentaje entre 0 y 100 de hasta dos decimales
+    const suscripcionInicial = Number(smvm.SalarioMinimoVitalMovilSuscripcionInicial);
+    if (isNaN(suscripcionInicial) || suscripcionInicial < 0 || suscripcionInicial > 100) {
+      throw new ClientException('La suscripción inicial debe ser un porcentaje entre 0 y 100');
+    }
+    if (!/^\d+(\.\d{1,2})?$/.test(String(suscripcionInicial))) {
+      throw new ClientException('La suscripción inicial admite hasta dos decimales');
     }
 
     const fecha = new Date(smvm.SalarioMinimoVitalMovilDesde);
