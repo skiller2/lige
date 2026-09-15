@@ -31,7 +31,14 @@ const getOptionsSexo: any[] = [
 const getOptionsEstado: any[] = [
   { label: 'Baja', value: 'B' },
   { label: 'Alta', value: 'A' },
-  { label: 'ERROR', value: 'E' },
+  { label: 'Error', value: 'E' },
+]
+// Motivo del estado 'E'. Las filas en Alta o Baja no llevan detalle
+const getOptionsDetalle: any[] = [
+  { label: 'Sin acta cargada', value: 'SA' },
+  { label: 'Sin situación de revista', value: 'SR' },
+  { label: 'Activo sin acta de alta', value: 'ASA' },
+  { label: 'Inactivo sin acta de baja', value: 'ISB' },
 ]
 const getOptionsNivelRiego: any[] = [
   { label: 'Bajo', value: '1' },
@@ -57,32 +64,6 @@ const altasBajasColumns: any[] = [
     excludeFromExport: true,
   },
   {
-    id: "ApellidoNombre",
-    name: "Apellido Nombre",
-    field: "ApellidoNombre",
-    type: "string",
-    fieldName: "per.PersonalId",
-    searchComponent: "inputForPersonalSearch",
-    searchType: "number",
-    sortable: true,
-    searchHidden: false,
-    hidden: true,
-    excludeFromExport: true,
-  },
-  {
-    id: "SituacionRevistaId",
-    name: "Situacion Revista",
-    field: "SituacionRevistaId",
-    type: "number",
-    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
-    searchComponent: "inputForSituacionRevistaSearch",
-    searchType: "number",
-    sortable: true,
-    searchHidden: false,
-    hidden: true,
-    excludeFromExport: true,
-  },
-  {
     id: 'CUITEntidad',
     name: 'CUIT Entidad',
     field: 'CUITEntidad',
@@ -95,45 +76,8 @@ const altasBajasColumns: any[] = [
     showGridColumn: false,
   },
   {
-    id: "DNI",
-    name: "DNI",
-    field: "DNI",
-    type: "string",
-    fieldName: "DNI",
-    sortable: true,
-    searchHidden: true,
-    hidden: false,
-    excludeFromExport: true,
-    showGridColumn: false,
-  },
-  {
-    id: "SituacionRevistaDescripcion",
-    name: "Situación Revista",
-    field: "SituacionRevistaDescripcion",
-    type: "string",
-    fieldName: "sitrev.SituacionRevistaDescripcion",
-    sortable: true,
-    searchHidden: true,
-    hidden: false,
-    showGridColumn: false,
-    excludeFromExport: true,
-  },
-  {
-    id: "PersonalSituacionRevistaMotivo",
-    name: "Motivo",
-    field: "PersonalSituacionRevistaMotivo",
-    type: "string",
-    fieldName: "sitrev.PersonalSituacionRevistaMotivo",
-    sortable: true,
-    searchHidden: true,
-    hidden: false,
-    showGridColumn: false,
-    excludeFromExport: true,
-  },
-
-  {
     id: "PersonalCUITCUILCUIT",
-    name: "CUIT",
+    name: "CUIT Persona",
     field: "PersonalCUITCUILCUIT",
     type: "string",
     fieldName: "cuit.PersonalCUITCUILCUIT",
@@ -146,31 +90,17 @@ const altasBajasColumns: any[] = [
     params: { exportHeader: 'Cuit / Cuil / Cdi' }
   },
   {
-    id: 'TipoPersona',
-    name: 'Tipo Persona',
-    field: 'TipoPersona',
-    fieldName: "",
-    formatter: 'collectionFormatter',
-    params: { collection: getOptionsTipoPersona ,exportHeader: 'Tipo Persona' },
-    type: 'string',
-    searchType: "string",
+    id: "ApellidoNombre",
+    name: "Apellido Nombre",
+    field: "ApellidoNombre",
+    type: "string",
+    fieldName: "per.PersonalId",
+    searchComponent: "inputForPersonalSearch",
+    searchType: "number",
     sortable: true,
-    searchHidden: true,
-    hidden: false,
-    showGridColumn: false,
-  },
-  {
-    id: 'RazonSocial',
-    name: 'Razon Social',
-    field: 'RazonSocial',
-    fieldName: "",
-    type: 'string',
-    searchType: "string",
-    sortable: true,
-    searchHidden: true,
-    hidden: false,
-    showGridColumn: false,
-    params: { exportHeader: 'Razon Social' }
+    searchHidden: false,
+    hidden: true,
+    excludeFromExport: true,
   },
   {
     id: 'PersonalApellido',
@@ -196,6 +126,98 @@ const altasBajasColumns: any[] = [
     hidden: false,
     params: { exportHeader: 'Nombre' }
   },
+
+  {
+    id: "DNI",
+    name: "DNI",
+    field: "DNI",
+    type: "string",
+    fieldName: "DNI",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    excludeFromExport: true,
+    showGridColumn: false,
+  },
+  {
+    id: "SituacionRevistaId",
+    name: "Situacion Revista",
+    field: "SituacionRevistaId",
+    type: "number",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+    searchComponent: "inputForSituacionRevistaSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: true,
+    excludeFromExport: true,
+  },
+
+  {
+    id: "SituacionRevistaDescripcion",
+    name: "Situación Revista",
+    field: "SituacionRevistaDescripcion",
+    type: "string",
+    fieldName: "sitrev.SituacionRevistaDescripcion",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    showGridColumn: true,
+    excludeFromExport: true,
+  },
+  {
+    id: "PersonalSituacionRevistaDesde",
+    name: "Desde",
+    field: "PersonalSituacionRevistaDesde",
+    type: "date",
+    fieldName: "sitrev.PersonalSituacionRevistaDesde",
+    searchType: "date",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    showGridColumn: true,
+    excludeFromExport: true,
+  },
+  {
+    id: "PersonalSituacionRevistaMotivo",
+    name: "Motivo",
+    field: "PersonalSituacionRevistaMotivo",
+    type: "string",
+    fieldName: "sitrev.PersonalSituacionRevistaMotivo",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    showGridColumn: true,
+    excludeFromExport: true,
+  },
+  {
+    id: 'TipoPersona',
+    name: 'Tipo Persona',
+    field: 'TipoPersona',
+    fieldName: "",
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsTipoPersona, exportHeader: 'Tipo Persona' },
+    type: 'string',
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    showGridColumn: false,
+  },
+  {
+    id: 'RazonSocial',
+    name: 'Razon Social',
+    field: 'RazonSocial',
+    fieldName: "",
+    type: 'string',
+    searchType: "string",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+    showGridColumn: false,
+    params: { exportHeader: 'Razon Social' }
+  },
+
   {
     id: 'PersonalSexo',
     name: 'Sexo',
@@ -398,7 +420,6 @@ const altasBajasColumns: any[] = [
     name: 'Nro Acta',
     field: 'ActaNroActa',
     fieldName: "acta.ActaNroActa",
-    searchComponent: "inputForNroActaSearch",
     type: 'string',
     sortable: true,
     searchHidden: false,
@@ -413,10 +434,22 @@ const altasBajasColumns: any[] = [
     sortable: true,
     formatter: 'collectionFormatter',
     params: { collection: getOptionsEstado },
-    searchHidden: false,
+    searchHidden: true,
     hidden: false,
     excludeFromExport: true,
     // showGridColumn: false,
+  },
+  {
+    id: 'Detalle',
+    name: 'Estado Detalle',
+    field: 'Detalle',
+    type: 'string',
+    sortable: true,
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsDetalle },
+    searchHidden: true,
+    hidden: false,
+    excludeFromExport: true,
   },
   {
     id: 'TipoDocumento',
@@ -654,7 +687,13 @@ export class InaesController extends BaseController {
     if (cuits) {
       flags = `CASE WHEN (acta.TipoPersonalActaCodigo IN ('ALT','REI') AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN 'A'
               WHEN (acta.TipoPersonalActaCodigo IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaSituacionId NOT IN (2,10,12)) THEN 'B'
-              ELSE 'E' END AS Estado,              `
+              ELSE 'E' END AS Estado,
+              -- Motivo del error
+              CASE WHEN acta.TipoPersonalActaCodigo IS NULL THEN 'SA'
+              WHEN sitrev.PersonalSituacionRevistaSituacionId IS NULL THEN 'SR'
+              WHEN (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12) AND acta.TipoPersonalActaCodigo NOT IN ('ALT','REI')) THEN 'ASA'
+              WHEN (sitrev.PersonalSituacionRevistaSituacionId NOT IN (2,10,12) AND acta.TipoPersonalActaCodigo NOT IN ('BAJ','BD')) THEN 'ISB'
+              ELSE '' END AS Detalle`
       filterCUITs = `(cuit.PersonalCUITCUILCUIT IN (${cuits}) AND acta.TipoPersonalActaCodigo IN ('BAJ','BD')) OR (cuit.PersonalCUITCUILCUIT NOT IN (${cuits}) AND acta.TipoPersonalActaCodigo IN ('ALT','REI'))`
     }
 
@@ -693,7 +732,7 @@ export class InaesController extends BaseController {
         tel.Telefono,
         per.PersonalNroLegajo,
         perdom.domCompleto,
-        sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaMotivo,
+        sitrev.PersonalSituacionRevistaSituacionId, sitrev.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaMotivo, sitrev.PersonalSituacionRevistaDesde,
         sal.SalarioMinimoVitalMovilSMVM AS CapitalSuscripto, 		  sal.SalarioMinimoVitalMovilSuscripcionInicial * sal.SalarioMinimoVitalMovilSMVM /100 AS CapitalIntegrado,
         acta.TipoPersonalActaCodigo, acta.ActaId, acta.ActaFechaActa, acta.ActaNroActa,acta.TipoPersonalActaDescripcion,
         0 AS ValorCuota,
@@ -849,22 +888,22 @@ export class InaesController extends BaseController {
       // await queryRunner.startTransaction()
       if (!file.length) throw new ClientException("Debes de ingresar un archivo");
 
-      let CUITs:string[] = []
+      let CUITs: string[] = []
       let type = file[0].mimetype.split('/')[1]
       switch (type) {
         case 'pdf':
           CUITs = await this.getCUITsByPdf(file[0].tempfilename)
           break;
         case 'vnd.openxmlformats-officedocument.spreadsheetml.sheet':
-        // case 'vnd.ms-excel':
+          // case 'vnd.ms-excel':
           CUITs = await this.getCUITsByXlsx(file[0].tempfilename)
           break;
-      
+
         default:
           throw new ClientException("Tipo de archivo no identificado")
           break;
       }
-      
+
       // await queryRunner.commitTransaction()
       this.jsonRes({ cuits: CUITs, length: CUITs.length }, res);
     } catch (error) {
@@ -899,15 +938,15 @@ export class InaesController extends BaseController {
     let CUITs: any[] = []
     const workSheetsFromBuffer = xlsx.parse(readFileSync(`${FileUploadController.getTempPath()}/${tempfilename}`))
     const sheet1 = workSheetsFromBuffer[0];
-    sheet1.data.forEach((fila, indexFila:number) => {
+    sheet1.data.forEach((fila, indexFila: number) => {
       // Recorrer cada celda de la fila actual
-      fila.forEach((celda:any) => {
+      fila.forEach((celda: any) => {
         // Verificar si la celda contiene texto o número y si coincide con el patrón de CUIT
-        if (typeof celda == 'string' || typeof celda  == 'number') {
+        if (typeof celda == 'string' || typeof celda == 'number') {
           try {
             this.validarCUIT(celda)
             CUITs.push(celda)
-          } catch (error) {}
+          } catch (error) { }
         }
       });
     });

@@ -22,36 +22,38 @@
       <a nz-tab-link routerLink="/ges/inaes/altas-bajas">Altas y Bajas</a>
       <ng-template nz-tab>
         @if (columns().length) {
-          <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
-            <div style="flex: 1;">
+          <div nz-row class="accionesBar">
+            <div class="accionesFiltro">
               <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()" [(options)]="listOptions"  />
             </div>
-            <div style="flex-shrink: 0;">
-              <nz-button-group nz-button nz-buttonGroup style="align-items: flex-end;">
-                <!-- Recarga -->
-                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
-                (click)="gridData.reload()">
-                  <span nz-icon nzType="reload" nzTheme="outline"></span>
-                </button>
-                <!-- Descarga Altas res 1000/21 -->
-                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas.res1000-21' | i18n }}"
+            <div class="accionesBotones">
+              <!-- Recarga -->
+              <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"
+              (click)="gridData.reload()">
+                <span nz-icon nzType="reload" nzTheme="outline"></span>
+              </button>
+
+              <!-- Exportaciones Res. 1000/21 -->
+              <nz-button-group nz-button nz-buttonGroup>
+                <button nz-button nzType="primary" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas.res1000-21' | i18n }}"
                 (click)="exportXlsxGrid('altas1000-21')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
-                  <span nz-icon nzType="file" nzTheme="outline"></span>
+                  Altas 1000/21
                 </button>
-                <!-- Descarga Baja res 1000/21 -->
                 <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.bajas.res1000-21' | i18n }}"
                 (click)="exportXlsxGrid('bajas1000-21')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
-                  <span nz-icon nzType="file" nzTheme="outline"></span>
+                  Bajas 1000/21
                 </button>
-                <!-- Descarga Altas res 756/2025 -->
-                <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas.res756-2025' | i18n }}"
+              </nz-button-group>
+
+              <!-- Exportaciones Res. 756/2025 -->
+              <nz-button-group nz-button nz-buttonGroup>
+                <button nz-button nzType="primary" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.altas.res756-2025' | i18n }}"
                 (click)="exportCsvGrid('altas756-2025')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
-                  <span nz-icon nzType="file" nzTheme="outline"></span>
+                  Altas 756/2025
                 </button>
-                <!-- Descarga Baja res 756/2025 -->
                 <button nz-button nzType="default" nz-tooltip nzTooltipTitle="{{ 'app.btn.export.bajas.res756-2025' | i18n }}"
                 (click)="exportCsvGrid('bajas756-2025')" [nzLoading]="loadingExport()" [disabled]="loadingExport()">
-                  <span nz-icon nzType="file" nzTheme="outline"></span>
+                  Bajas 756/2025
                 </button>
               </nz-button-group>
             </div>
