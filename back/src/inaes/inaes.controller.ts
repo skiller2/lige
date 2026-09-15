@@ -31,7 +31,14 @@ const getOptionsSexo: any[] = [
 const getOptionsEstado: any[] = [
   { label: 'Baja', value: 'B' },
   { label: 'Alta', value: 'A' },
-  { label: 'ERROR', value: 'E' },
+  { label: 'Error', value: 'E' },
+]
+// Motivo del estado 'E'. Las filas en Alta o Baja no llevan detalle
+const getOptionsDetalle: any[] = [
+  { label: 'Sin acta cargada', value: 'SA' },
+  { label: 'Sin situación de revista', value: 'SR' },
+  { label: 'Activo sin acta de alta', value: 'ASA' },
+  { label: 'Inactivo sin acta de baja', value: 'ISB' },
 ]
 const getOptionsNivelRiego: any[] = [
   { label: 'Bajo', value: '1' },
@@ -70,7 +77,7 @@ const altasBajasColumns: any[] = [
   },
   {
     id: "PersonalCUITCUILCUIT",
-    name: "CUIT Asociado",
+    name: "CUIT Persona",
     field: "PersonalCUITCUILCUIT",
     type: "string",
     fieldName: "cuit.PersonalCUITCUILCUIT",
@@ -162,8 +169,9 @@ const altasBajasColumns: any[] = [
     id: "PersonalSituacionRevistaDesde",
     name: "Desde",
     field: "PersonalSituacionRevistaDesde",
-    type: "string",
+    type: "date",
     fieldName: "sitrev.PersonalSituacionRevistaDesde",
+    searchType: "date",
     sortable: true,
     searchHidden: true,
     hidden: false,
@@ -427,10 +435,22 @@ const altasBajasColumns: any[] = [
     sortable: true,
     formatter: 'collectionFormatter',
     params: { collection: getOptionsEstado },
-    searchHidden: false,
+    searchHidden: true,
     hidden: false,
     excludeFromExport: true,
     // showGridColumn: false,
+  },
+  {
+    id: 'Detalle',
+    name: 'Estado Detalle',
+    field: 'Detalle',
+    type: 'string',
+    sortable: true,
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsDetalle },
+    searchHidden: true,
+    hidden: false,
+    excludeFromExport: true,
   },
   {
     id: 'TipoDocumento',
@@ -668,7 +688,13 @@ export class InaesController extends BaseController {
     if (cuits) {
       flags = `CASE WHEN (acta.TipoPersonalActaCodigo IN ('ALT','REI') AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)) THEN 'A'
               WHEN (acta.TipoPersonalActaCodigo IN ('BAJ','BD') AND sitrev.PersonalSituacionRevistaSituacionId NOT IN (2,10,12)) THEN 'B'
-              ELSE 'E' END AS Estado`
+              ELSE 'E' END AS Estado,
+              -- Motivo del error
+              CASE WHEN acta.TipoPersonalActaCodigo IS NULL THEN 'SA'
+              WHEN sitrev.PersonalSituacionRevistaSituacionId IS NULL THEN 'SR'
+              WHEN (sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12) AND acta.TipoPersonalActaCodigo NOT IN ('ALT','REI')) THEN 'ASA'
+              WHEN (sitrev.PersonalSituacionRevistaSituacionId NOT IN (2,10,12) AND acta.TipoPersonalActaCodigo NOT IN ('BAJ','BD')) THEN 'ISB'
+              ELSE '' END AS Detalle`
       filterCUITs = `(cuit.PersonalCUITCUILCUIT IN (${cuits}) AND acta.TipoPersonalActaCodigo IN ('BAJ','BD')) OR (cuit.PersonalCUITCUILCUIT NOT IN (${cuits}) AND acta.TipoPersonalActaCodigo IN ('ALT','REI'))`
     }
 
