@@ -44,7 +44,7 @@ ordenVentaRouter.get("/estados", [authMiddleware.verifyToken, authMiddleware.has
   ordenVentaController.getEstados(req, res, next);
 });
 
-ordenVentaRouter.get("/datos-auditoria/:NroOrdenVenta", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.get("/datos-auditoria/:NroOrdenVenta", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gAuditoria'])], (req, res, next) => {
   ordenVentaController.getOrdenVentaAuditoria(req, res, next);
 });
 
