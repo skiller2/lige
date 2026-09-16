@@ -183,6 +183,33 @@ export class DescuentosObjetivosAltaDrawerComponent {
         return (importe / cuotas).toFixed(2);
     });
 
+    // Auditoría del descuento (alta / última modificación), igual que en el drawer de descuentos de personal
+    auditoria = signal<any>(null)
+
+    // El descuento se identifica por el objetivo con el que está grabado, no por el que se esté editando
+    idAuditoria = computed(() => ({
+        DescuentoId: Number(this.descuentoObjetivo().id) || 0,
+        ObjetivoId: Number(this.descuentoObjetivo().oldObjetivoId || this.descuentoObjetivo().ObjetivoId) || 0
+    }))
+
+    auditoriaFilas = computed(() => {
+        const a = this.auditoria()
+        if (!a) return []
+        return [
+            { Evento: 'Alta', Usuario: a.AudUsuarioIng, Fecha: a.AudFechaIng, Ip: a.AudIpIng },
+            { Evento: 'Última modificación', Usuario: a.AudUsuarioMod, Fecha: a.AudFechaMod, Ip: a.AudIpMod }
+        ]
+    })
+
+    // Petición individual al hacer clic: el back valida el grupo gSistemas
+    async loadAuditoria() {
+        const { DescuentoId, ObjetivoId } = this.idAuditoria()
+        // Se limpia para que no se vea la auditoría del descuento abierto antes
+        this.auditoria.set(null)
+        if (!DescuentoId || !ObjetivoId) return
+        this.auditoria.set(await firstValueFrom(this.searchService.getDescuentoObjetivoAuditoria(ObjetivoId, DescuentoId)))
+    }
+
     async loadDescuentoObjetivo() {
         const infoDesc = await firstValueFrom(this.searchService.getDescuentoObjetivo(this.objetivoId(), this.ObjetivoDescuentoId()))
 

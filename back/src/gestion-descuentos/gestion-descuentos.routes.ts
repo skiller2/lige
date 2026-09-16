@@ -64,6 +64,10 @@ gestionDescuentosRouter.post("/objetivo",[authMiddleware.verifyToken, authMiddle
     gestionDescuentosController.getDescuentoObjetivo(req, res, next);
 });
 
+gestionDescuentosRouter.get("/objetivo/datos-auditoria/:ObjetivoId/:DescuentoId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    gestionDescuentosController.getDescuentoObjetivoAuditoria(req, res, next);
+});
+
 
 gestionDescuentosRouter.get("/tables", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'gLogistica', 'gLogisticaCon'])], (req, res, next) => {
     gestionDescuentosController.getTableOptions(req, res, next);

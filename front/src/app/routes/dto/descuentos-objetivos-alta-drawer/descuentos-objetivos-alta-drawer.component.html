@@ -209,6 +209,46 @@
 
     </form>
 
+    <!-- Datos de auditoría del descuento -->
+    @if (idAuditoria().DescuentoId) {
+    <div style="display: flex; justify-content: flex-end;">
+      <span nz-tooltip nzTooltipTitle="Datos de Auditoría">
+        <button nz-button nzType="default" type="button" nz-popover nzPopoverTrigger="click"
+          nzPopoverPlacement="topRight" [nzPopoverContent]="auditoriaTemplate" (click)="loadAuditoria()">
+          <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
+        </button>
+      </span>
+    </div>
+    }
+
+    <ng-template #auditoriaTemplate>
+      <div style="max-width: 640px; max-height: 240px; overflow: auto;">
+        @if (auditoriaFilas().length > 0) {
+        <nz-table #auditoriaTable [nzData]="auditoriaFilas()" nzSize="small" [nzShowPagination]="false"
+          [nzFrontPagination]="false">
+          <thead>
+            <tr>
+              <th>Evento</th>
+              <th>Usuario</th>
+              <th>Fecha</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of auditoriaTable.data; track item.Evento) {
+            <tr>
+              <td>{{ item.Evento }}</td>
+              <td>{{ item.Usuario }}</td>
+              <td>{{ item.Fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ item.Ip }}</td>
+            </tr>
+            }
+          </tbody>
+        </nz-table>
+        }
+      </div>
+    </ng-template>
+
     <!-- <nz-form-control *ngIf="$listaDecuentosPer | async as listaDecuentosPer ">
           <nz-table #list [nzData]="listaDecuentosPer" nzSize="small" [nzPageSize]="100000000"
             [nzShowPagination]="false" [nzScroll]="{ x: '500px' }">

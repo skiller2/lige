@@ -2231,6 +2231,31 @@ FROM cte
   }
 
 
+  // Datos de auditoría (alta / última modificación) del descuento del objetivo, para el botón
+  // de auditoría del drawer
+  async getDescuentoObjetivoAuditoria(req: any, res: Response, next: NextFunction) {
+    const ObjetivoId = Number(req.params.ObjetivoId)
+    const DescuentoId = Number(req.params.DescuentoId)
+    if (!ObjetivoId || !DescuentoId) return this.jsonRes(null, res)
+
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const auditoria = await queryRunner.query(`
+      SELECT od.ObjetivoDescuentoId, od.ObjetivoId
+      , od.ObjetivoDescuentoAudUsuarioIng AudUsuarioIng, od.ObjetivoDescuentoAudFechaIng AudFechaIng, od.ObjetivoDescuentoAudIpIng AudIpIng
+      , od.ObjetivoDescuentoAudUsuarioMod AudUsuarioMod, od.ObjetivoDescuentoAudFechaMod AudFechaMod, od.ObjetivoDescuentoAudIpMod AudIpMod
+      FROM ObjetivoDescuento od
+      WHERE od.ObjetivoDescuentoId = @0 AND od.ObjetivoId = @1
+      `, [DescuentoId, ObjetivoId])
+
+      return this.jsonRes(auditoria[0] ?? null, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   async getObjetivoDescuentoAplica(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     const ObjetivoId = Number(req.params.objetivoId)

@@ -2298,6 +2298,15 @@ export class SearchService {
     );
   }
 
+  // Alta y última modificación del descuento del objetivo (ObjetivoDescuento)
+  getDescuentoObjetivoAuditoria(ObjetivoId: number, DescuentoId: number) {
+    if (!ObjetivoId || !DescuentoId) return of(null);
+    return this.http.get<ResponseJSON<any>>(`api/gestion-descuentos/objetivo/datos-auditoria/${ObjetivoId}/${DescuentoId}`).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
   getObjetivoDescuentoAplica(ObjetivoId: number, DescuentoId: number) {
     if (!ObjetivoId || !DescuentoId) {
       return of(null);
