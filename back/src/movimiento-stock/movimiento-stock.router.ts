@@ -36,7 +36,7 @@ movimientoStockRouter.get("/movimientoDetalle/:codigo", [authMiddleware.verifyTo
   movimientoStockController.getEfectoMovimientoDetalle(req, res, next);
 });
 
-movimientoStockRouter.get("/datos-auditoria/:codigo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+movimientoStockRouter.get("/datos-auditoria/:codigo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gAuditoria'])], (req, res, next) => {
   movimientoStockController.getMovimientoAuditoria(req, res, next);
 });
 
