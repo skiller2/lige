@@ -69,7 +69,7 @@ const proveedorColumns: any[] = [
     name: "Activo",
     id: "ProveedorInactivo",
     field: "ProveedorInactivo",
-    fieldName: "ProveedorInactivo",
+    fieldName: "isnull(ProveedorInactivo, 0)",
     type: "string",
     formatter: 'collectionFormatter',
     params: { collection: getInactivo },
