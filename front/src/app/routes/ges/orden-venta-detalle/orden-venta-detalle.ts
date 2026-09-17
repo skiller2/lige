@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, linkedSignal, output, resource, signal } from '@angular/core'
+import { Component, computed, effect, inject, input, linkedSignal, output, resource, signal, untracked, viewChild } from '@angular/core'
 import { CurrencyPipe, DecimalPipe } from '@angular/common'
 import { SHARED_IMPORTS } from '@shared'
 import { HorasAFacturar, OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form'
@@ -117,7 +117,43 @@ export class OrdenVentaDetalleComponent {
     this.detalle().reduce((total: number, item: any) => total + Number(item.ImporteTotal ?? 0), 0)
   )
 
+  private ordenVentaForm = viewChild.required<OrdenVentaFormComponent>('ordenVentaForm')
+
+  // El usuario tocó el detalle de la orden que se está viendo. Sin esto, abrir y cerrar el drawer
+  // grabaría la orden armada sola (plantilla de meses anteriores o productos de horas agregados).
+  private editado = false
+
+  marcarEditado() {
+    this.editado = true
+  }
+
+  private get hayQueGuardar(): boolean {
+    return this.editado && this.ordenVentaForm().conCambios()
+  }
+
+  // Al pasar de un campo a otro. Un detalle incompleto no se graba ni muestra errores: se sigue
+  // cargando, y los faltantes se avisan al cerrar.
+  async autoGuardar() {
+    if (!this.hayQueGuardar || this.ordenVentaForm().guardando()) return
+    await this.ordenVentaForm().save({ silencioso: true })
+  }
+
+  // Al cerrar el drawer. Devuelve false si quedaron cambios sin grabar (detalle incompleto o error
+  // del back), para que el drawer no se cierre y se pierdan.
+  async guardarAlCerrar(): Promise<boolean> {
+    if (!this.hayQueGuardar) return true
+    // Un autoguardado en curso ya lleva los cambios
+    if (this.ordenVentaForm().guardando()) return true
+    return await this.ordenVentaForm().save()
+  }
+
   constructor() {
+    // Al cambiar de objetivo, período u orden elegida el detalle arranca sin tocar
+    effect(() => {
+      this.objetivoId(); this.anio(); this.mes(); this.ordenVentaSeleccionada()
+      untracked(() => this.editado = false)
+    })
+
     effect(() => {
       const objetivoId = this.objetivoId()
       const anio = this.anio()

@@ -176,6 +176,9 @@ export class OrdenVentaFormComponent {
 
   guardando = signal(false)
 
+  // Lo prende el guardado: la recarga del detalle que dispara no vuelve al primer panel
+  private conservarPanel = false
+
   private formValue = toSignal(this.formOrdenVenta.valueChanges, {
     initialValue: this.formOrdenVenta.getRawValue()
   })
@@ -270,7 +273,12 @@ export class OrdenVentaFormComponent {
       const horasAFacturarB = this.horasAFacturarB()
       // Siempre hay al menos un ítem para cargar
       this.sincronizarItems(items.length ? items : [{}])
-      this.panelAbierto.set(0)
+      // La recarga que sigue a un guardado deja abierto el panel que se estaba editando
+      if (this.conservarPanel)
+        this.panelAbierto.set(Math.min(this.panelAbierto(), this.itemsArray.length - 1))
+      else
+        this.panelAbierto.set(0)
+      this.conservarPanel = false
       void this.agregarProductosHoras(horasAFacturarA, horasAFacturarB)
     })
 
@@ -670,8 +678,10 @@ export class OrdenVentaFormComponent {
     return detalle.length ? `Complete los campos requeridos. ${detalle.join(' | ')}` : 'Complete los campos requeridos'
   }
 
-  async save() {
-    if (this.soloLectura() || this.guardando()) return
+  // Devuelve true si la orden quedó grabada. En silencioso (autoguardado al pasar de un campo a
+  // otro) un detalle incompleto no se graba ni se marca: se sigue cargando sin carteles de error.
+  async save(opciones: { silencioso?: boolean } = {}): Promise<boolean> {
+    if (this.soloLectura() || this.guardando()) return false
 
     const items = this.itemsArray.getRawValue()
 
@@ -679,13 +689,17 @@ export class OrdenVentaFormComponent {
     // Se marcan todos para que cada panel muestre sus faltantes, y se abre el primero incompleto.
     const incompleto = this.itemsArray.controls.findIndex(item => item.invalid)
 
+    if (opciones.silencioso && (incompleto >= 0
+      || (this.esOrdenVenta() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid))))
+      return false
+
     if (incompleto >= 0) {
       this.validado.set(true)
       this.marcarInvalidos()
       this.panelAbierto.set(incompleto)
       this.cdr.markForCheck()
       this.notification.error('Orden de venta', this.mensajeFaltantes())
-      return
+      return false
     }
 
     // Los comprobantes van completos o vacíos: cargar uno de los tres campos obliga a los otros dos
@@ -694,7 +708,7 @@ export class OrdenVentaFormComponent {
       this.marcarComprobantesInvalidos()
       this.cdr.markForCheck()
       this.notification.error('Orden de venta', this.mensajeComprobantes())
-      return
+      return false
     }
 
     this.guardando.set(true)
@@ -732,7 +746,12 @@ export class OrdenVentaFormComponent {
 
       // Recarga el detalle: los ítems nuevos vuelven con su ItemOrdenVentaCodigo. Las horas
       // guardadas son las del detalle, que la asistencia persiste como horas a facturar.
+      this.conservarPanel = true
       this.guardado.emit(this.horasEnDetalle())
+      return true
+    } catch (_e) {
+      // El error del back ya lo muestra la notificación del ApiService
+      return false
     } finally {
       this.guardando.set(false)
     }

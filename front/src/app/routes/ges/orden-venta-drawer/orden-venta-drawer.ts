@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, model, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model, output, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { OrdenVentaDetalleComponent } from '../orden-venta-detalle/orden-venta-detalle';
@@ -27,9 +27,19 @@ export class OrdenVentaDrawerComponent {
   visible = model<boolean>(false)
   placement: NzDrawerPlacement = 'right';
 
+  private detalle = viewChild(OrdenVentaDetalleComponent)
+
   objetivoNombre = signal<string>('')
   titulo = computed(() => {
     const nombre = this.objetivoNombre()
     return nombre ? ` ${nombre}` : 'Órdenes de Venta'
   })
+
+  // No hay botón de guardar: al cerrar se graba lo pendiente. Si no se pudo grabar (detalle
+  // incompleto o error) el drawer queda abierto con los errores a la vista.
+  async cerrar() {
+    const detalle = this.detalle()
+    if (detalle && !(await detalle.guardarAlCerrar())) return
+    this.visible.set(false)
+  }
 }

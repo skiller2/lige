@@ -22,25 +22,23 @@
     </nz-form-control>
   </nz-form-item>
 
-  <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
-    [horasAFacturarA]="horasAFacturarA()" [horasAFacturarABloqueada]="horasAFacturarABloqueada()"
-    [horasAFacturarB]="horasAFacturarB()" [horasAFacturarBBloqueada]="horasAFacturarBBloqueada()"
-    [clienteId]="cabecera().ClienteId ?? null"
-    [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
-    [detalleImportado]="detalleImportado()" [nuevaOrden]="esOrdenNueva()" [nroOrdenVenta]="nroOrdenVentaSeleccionada()"
-    (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)"
-    (horasAFacturarChange)="horasAFacturarChange.emit($event)" />
+  <!-- Sin botón de guardar: se graba al pasar de un campo a otro y al cerrar el drawer -->
+  <div (input)="marcarEditado()" (keydown)="marcarEditado()" (click)="marcarEditado()"
+    (focusout)="autoGuardar()">
+    <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
+      [horasAFacturarA]="horasAFacturarA()" [horasAFacturarABloqueada]="horasAFacturarABloqueada()"
+      [horasAFacturarB]="horasAFacturarB()" [horasAFacturarBBloqueada]="horasAFacturarBBloqueada()"
+      [clienteId]="cabecera().ClienteId ?? null"
+      [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
+      [detalleImportado]="detalleImportado()" [nuevaOrden]="esOrdenNueva()" [nroOrdenVenta]="nroOrdenVentaSeleccionada()"
+      (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)"
+      (horasAFacturarChange)="horasAFacturarChange.emit($event)" />
+  </div>
 
   <nz-divider></nz-divider>
 
   <div class="filaTotal marginElement">
     <div class="espacio"></div>
-
-    <button nzType="primary" nz-button (click)="ordenVentaForm.save()"
-      [nzLoading]="ordenVentaForm.guardando()"
-      [disabled]="!ordenVentaForm.conCambios() || ordenVentaForm.guardando()">
-      {{ 'app.btn.save' | i18n }}
-    </button>
 
     <div class="totalOrdenVenta">
       <label>Total Orden de Venta</label>
