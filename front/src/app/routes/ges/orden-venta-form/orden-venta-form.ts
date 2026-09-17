@@ -94,9 +94,7 @@ export class OrdenVentaFormComponent {
   // Comprobantes que ya tiene la orden, de la cabecera (/api/orden-venta/cabecera)
   comprobantesOrden = input<any[]>([])
 
-  // Observaciones de la orden (OrdenVenta.Observaciones), también de la cabecera
-  observacionesOrden = input<string | null>(null)
-
+  
   // Desde dónde se abrió el detalle. El drawer de la carga de asistencia y la pantalla de órdenes
   // de venta comparten este formulario, pero no muestran los mismos campos.
   origen = input<'ordenes-venta' | 'asistencia'>('asistencia')
@@ -148,6 +146,7 @@ export class OrdenVentaFormComponent {
   optionsComprobanteTipo = toSignal(this.searchService.getComprobanteTipoSearch(), { initialValue: [] })
 
   formOrdenVenta = this.fb.group({
+    Observaciones: String,   
     items: this.fb.array([] as FormGroup[])
   })
 
@@ -157,19 +156,8 @@ export class OrdenVentaFormComponent {
     comprobantes: this.fb.array([this.nuevoComprobante()])
   })
 
-  // Observaciones de la orden. Es una sola para toda la orden, pero se edita desde cualquiera de
   // los paneles del acordeón, así que va como señal y no como control del ítem: los paneles
   // muestran todos el mismo valor.
-  observaciones = signal<string>('')
-
-  cambiarObservaciones(texto: string) {
-    if (this.soloLectura()) return
-    this.observaciones.set(texto)
-  }
-
-  // Habilita el guardado aunque no se haya tocado el detalle
-  private observacionesCambiadas = computed(() =>
-    this.observaciones() !== (this.observacionesOrden() ?? ''))
 
   // Panel abierto del acordeón (uno solo a la vez, para no colapsar la vista)
   panelAbierto = signal<number>(0)
@@ -197,7 +185,6 @@ export class OrdenVentaFormComponent {
 
   // El detalle tiene cambios sin guardar. dirty/pristine no son señales, así que el estado se
   // refleja acá para que un contenedor OnPush pueda habilitar su botón de guardar.
-  conCambios = signal(false)
 
   titulos = computed<string[]>(() =>
     this.itemsValue().map(item => {
@@ -292,9 +279,6 @@ export class OrdenVentaFormComponent {
     // Carga los comprobantes que ya tiene la orden
     effect(() => this.sincronizarComprobantes(this.comprobantesOrden()))
 
-    // Al abrir otra orden las observaciones arrancan con lo que tiene guardado
-    effect(() => this.observaciones.set(this.observacionesOrden() ?? ''))
-
     // El total de la orden se recalcula ante cualquier modificación del detalle
     effect(() => this.detalleChange.emit(this.itemsValue()))
 
@@ -305,15 +289,6 @@ export class OrdenVentaFormComponent {
       if (this.horasEmitidas?.A === horas.A && this.horasEmitidas?.B === horas.B) return
       this.horasEmitidas = horas
       this.horasAFacturarChange.emit(horas)
-    })
-
-    effect(() => {
-      this.formValue()
-      this.comprobantes()
-      const observacionesCambiadas = this.observacionesCambiadas()
-      this.conCambios.set(
-        this.formOrdenVenta.dirty || this.formComprobante.dirty || observacionesCambiadas
-        || this.detalleImportado())
     })
 
     effect(() => {
@@ -359,7 +334,6 @@ export class OrdenVentaFormComponent {
     // El detalle recién traído todavía no tiene cambios del usuario
     this.validado.set(false)
     this.formOrdenVenta.markAsPristine()
-    this.conCambios.set(false)
     this.formOrdenVenta.markAsUntouched()
     this.itemsArray.updateValueAndValidity()
   }
@@ -507,7 +481,6 @@ export class OrdenVentaFormComponent {
     if (String(item.getRawValue()?.ProductoCodigo ?? '') !== productoCodigo) return
 
     this.aplicarPrecioDeLista(item, precio?.ImporteUnitario ?? null)
-    // El producto de horas trae además el texto de factura de las observaciones del objetivo
     if (precio?.TextoFactura) item.patchValue({ TextoFactura: precio.TextoFactura })
     this.formOrdenVenta.markAsDirty()
   }
@@ -737,7 +710,6 @@ export class OrdenVentaFormComponent {
         // Sin la sección en pantalla no se manda nada, así los comprobantes quedan intactos.
         ...(this.esOrdenVenta()
           ? {
-            Observaciones: this.observaciones().trim() || null,
             comprobantes: this.comprobantesArray.getRawValue().map((comprobante: any) => ({
               ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo,
               ComprobanteNro: String(comprobante.ComprobanteNro ?? '').trim(),
@@ -750,7 +722,6 @@ export class OrdenVentaFormComponent {
 
       this.formOrdenVenta.markAsPristine()
       this.formComprobante.markAsPristine()
-      this.conCambios.set(false)
 
       this.notification.success('Orden de venta', respuesta?.msg ?? 'Grabación exitosa')
 

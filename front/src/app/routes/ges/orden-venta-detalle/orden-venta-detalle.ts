@@ -154,19 +154,6 @@ export class OrdenVentaDetalleComponent {
     return this.cerrarPromise
   }
 
-
-  // Al cerrar el drawer. Devuelve false si quedaron cambios sin grabar (detalle incompleto o error
-  // del back), para que el drawer no se cierre y se pierdan.
-  /*
-  
-  async guardarAlCerrar(): Promise<boolean> {
-    if (!this.hayQueGuardar) return true
-    // Un autoguardado en curso ya lleva los cambios
-    if (this.ordenVentaForm().guardando()) return true
-    return await this.ordenVentaForm().save()
-  }
-    */
-
   constructor() {
     // Al cambiar de objetivo, período u orden elegida el detalle arranca sin tocar
 
