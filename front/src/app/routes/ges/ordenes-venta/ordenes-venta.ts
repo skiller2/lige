@@ -198,10 +198,6 @@ export class OrdenesVentaComponent {
   // Detalle tal cual está en el formulario, con los ítems agregados o editados sin guardar
   detalle = signal<any[]>([])
 
-  // Total Orden de Venta = Σ Importe Total de cada ítem
-  importeTotal = computed(() =>
-    this.detalle().reduce((total: number, item: any) => total + Number(item.ImporteTotal ?? 0), 0))
-
   // Sin cliente resuelto el guardado no tiene contra qué grabar la orden
   puedeGuardar = computed(() => this.periodoCompleto() && this.clienteId() != null)
 

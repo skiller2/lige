@@ -116,7 +116,7 @@
 
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
     [clienteId]="clienteId()" [clienteElementoDependienteId]="clienteElementoDependienteId()"
-    [soloLectura]="soloLectura()" origen="ordenes-venta" [comprobantesOrden]="comprobantes()"
+    [soloLectura]="soloLectura()" [origenCrud]="true" [comprobantesOrden]="comprobantes()"
     [estadoOrdenVentaCodigo]="estadoOrdenVenta()"
     [detalleImportado]="detalleImportado()" (detalleChange)="detalle.set($event)"
     (guardado)="ordenVentaGuardada()" />
@@ -135,12 +135,6 @@
       }
     </div>
 
-    <!-- En consulta no hay nada para guardar -->
-
-    <div style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
-      <label>Total Orden de Venta</label>
-      <input nz-input [value]="importeTotal() | currency" readonly style="width: 160px; text-align: right;" />
-    </div>
   </div>
 
   <ng-template #auditoriaTemplate>

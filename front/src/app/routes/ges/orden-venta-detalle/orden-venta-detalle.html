@@ -31,16 +31,9 @@
       [detalleImportado]="detalleImportado()" [nuevaOrden]="esOrdenNueva()" [nroOrdenVenta]="nroOrdenVentaSeleccionada()"
       [soloLectura]="soloLectura()"
       (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)"
-      (horasAFacturarChange)="horasAFacturarChange.emit($event)" />
+      (horasAFacturarChange)="horasAFacturarChange.emit($event)" origen />
 
   <nz-divider></nz-divider>
 
-  <div class="filaTotal marginElement">
-    <div class="espacio"></div>
-
-    <div class="totalOrdenVenta">
-      <label>Total Orden de Venta</label>
-      <input nz-input [value]="importeTotal() | currency" [disabled]="true" />
-    </div>
-  </div>
+  
 </nz-spin>

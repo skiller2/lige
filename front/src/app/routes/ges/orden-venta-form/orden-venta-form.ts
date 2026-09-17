@@ -30,23 +30,6 @@ function aNumero(valor: any): number | null {
   return Number.isFinite(numero) ? numero : null
 }
 
-// Campos del comprobante: van los tres juntos o ninguno
-const CAMPOS_COMPROBANTE = ['ComprobanteTipoCodigo', 'ComprobanteNro', 'ImporteTotal']
-
-const cargado = (valor: any) => String(valor ?? '').trim() !== ''
-
-// Una fila de comprobante vacía se ignora, pero apenas se carga uno de los tres campos los otros
-// dos pasan a ser obligatorios
-function requeridoSiHayComprobante(control: AbstractControl): ValidationErrors | null {
-  const grupo = control.parent
-  if (!grupo) return null
-
-  const alguno = CAMPOS_COMPROBANTE.some(campo => cargado(grupo.get(campo)?.value))
-  if (!alguno) return null
-
-  return cargado(control.value) ? null : { required: true }
-}
-
 const TIPO_CANTIDAD_MANUAL = 'V'
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP'
 const TIPO_IMPORTE_MANUAL = 'V'
@@ -78,7 +61,6 @@ export interface Producto {
   PrecioDeLista: number,
   TextoFactura: string,
   CantidadEnFactura: string,
-  ImporteTotal: string,
   // Ocultos en la pantalla: van con valor fijo
   TipoCantidad: string,
   TipoImporte: string,
@@ -98,7 +80,6 @@ export interface OrdenVentaForm {
   PeriodoAnio: 0,
   ClienteId: 0,
   ClienteElementoDependienteId: 0,  
-  ImporteTotalAFacturar: 0,
   EstadoOrdenVentaCodigo: '',
   Observaciones: string;
   items: Producto[];
@@ -138,11 +119,8 @@ export class OrdenVentaFormComponent {
 
   // Desde dónde se abrió el detalle. El drawer de la carga de asistencia y la pantalla de órdenes
   // de venta comparten este formulario, pero no muestran los mismos campos.
-  origen = input<'ordenes-venta' | 'asistencia'>('asistencia')
+  origenCrud = input<boolean>(false)
 
-  // Sólo la pantalla de órdenes de venta edita los comprobantes, los datos de factura del ítem y
-  // las observaciones de la orden
-  esOrdenVenta = computed(() => this.origen() === 'ordenes-venta')
 
   // Estado elegido a mano en la pantalla de órdenes de venta. Sin estado el back lo resuelve por
   // los comprobantes, que es como se guarda desde la carga de asistencia.
@@ -198,7 +176,6 @@ export class OrdenVentaFormComponent {
     TipoImporte: '',
     TipoCantidad: '',
     ImporteUnitario: '',
-    ImporteTotal: '',
     TextoFactura: '',
     CantidadEnFactura: '',
     Bonificacion: 0
@@ -214,7 +191,6 @@ export class OrdenVentaFormComponent {
     NroOrdenVenta: 0,
     PeriodoMes: 0,
     PeriodoAnio: 0,
-    ImporteTotalAFacturar: 0,
     EstadoOrdenVentaCodigo: '',
     ClienteId: 0,
     ClienteElementoDependienteId: 0,
@@ -229,8 +205,12 @@ export class OrdenVentaFormComponent {
   readonly formOrdenVenta = form(this.ordenVenta, (p) => {
     disabled(p, () => this.soloLectura())
     applyEach(p.items, (productoPath) => {
-      required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido' });
-      required(productoPath.Cantidad, { message: 'Cantidad es requerido' });
+      required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido',when: (ctx) => Number(ctx.valueOf(productoPath.Cantidad)) >0, });
+      required(productoPath.Cantidad, { message: 'Cantidad es requerido',when: (ctx) => ctx.valueOf(productoPath.ProductoCodigo) !="", });
+    });
+    applyEach(p.comprobantes, (comprobantePath) => {
+      required(comprobantePath.ComprobanteTipoCodigo, { message: 'Código comprobante requerido',when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteNro)!="", });
+      required(comprobantePath.ComprobanteNro, { message: 'Número de comprobante requerido',when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) !="", });
     });
 
 /*
@@ -284,8 +264,9 @@ export class OrdenVentaFormComponent {
     })
   )
 
-  importes = computed(() => this.ordenVenta().items.map(item => Number(item?.ImporteTotal ?? 0)))
+  importes = computed(() => this.ordenVenta().items.map(item => Number(item.Cantidad) * Number(item.ImporteUnitario)))
 
+totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => sum + valor, 0) );  
   /*
   // Comprobantes tal cual están en pantalla, para el contenedor
   private comprobanteValue = toSignal(this.formComprobante.valueChanges, {
@@ -482,7 +463,7 @@ export class OrdenVentaFormComponent {
       */
   }
 
-
+/*
   // Valores iniciales de un ítem, para crearlo o para refrescar uno ya existente
   private static valoresItem(item: any = {}) {
     // Con precio de lista vigente el importe unitario lo fija la lista y no se puede editar.
@@ -507,7 +488,7 @@ export class OrdenVentaFormComponent {
       Bonificacion: item.Bonificacion ?? null
     }
   }
-
+*/
   addItem(e?: MouseEvent): void {
 
     e?.preventDefault();
@@ -767,7 +748,7 @@ export class OrdenVentaFormComponent {
     const incompleto = this.itemsArray.controls.findIndex(item => item.invalid)
 
     if (opciones.silencioso && (incompleto >= 0
-      || (this.esOrdenVenta() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid))))
+      || (this.origenCrud() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid))))
       return false
 
     if (incompleto >= 0) {
@@ -780,7 +761,7 @@ export class OrdenVentaFormComponent {
     }
 
     // Los comprobantes van completos o vacíos: cargar uno de los tres campos obliga a los otros dos
-    if (this.esOrdenVenta() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid)) {
+    if (this.origenCrud() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid)) {
       this.validado.set(true)
       this.marcarComprobantesInvalidos()
       this.cdr.markForCheck()
@@ -802,7 +783,7 @@ export class OrdenVentaFormComponent {
         ...(this.nroOrdenVenta() ? { NroOrdenVenta: this.nroOrdenVenta() } : {}),
         // La lista va completa: el back reescribe los comprobantes de la orden con lo que llega.
         // Sin la sección en pantalla no se manda nada, así los comprobantes quedan intactos.
-        ...(this.esOrdenVenta()
+        ...(this.origenCrud()
           ? {
             comprobantes: this.comprobantesArray.getRawValue().map((comprobante: any) => ({
               ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo,

@@ -121,9 +121,6 @@ export class OrdenVentaDetalleComponent {
   detalle = signal<any[]>([])
 
   // Total Orden de Venta = suma del Importe Total de cada ítem
-  importeTotal = computed(() =>
-    this.detalle().reduce((total: number, item: any) => total + Number(item.ImporteTotal ?? 0), 0)
-  )
 
   private ordenVentaForm = viewChild.required<OrdenVentaFormComponent>('ordenVentaForm')
 
