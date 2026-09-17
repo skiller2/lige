@@ -8,6 +8,7 @@ import { firstValueFrom, map } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { applyEach, disabled, form, required, submit } from '@angular/forms/signals';
 
 function numeroRequerido(control: AbstractControl): ValidationErrors | null {
   const valor = control.value
@@ -67,6 +68,42 @@ export interface HorasAFacturar {
   B: number | null
 }
 
+export interface Producto {
+  id: number,
+  ProductoCodigo: string,
+  Producto: string,
+  Cantidad: number,
+  ImporteUnitario: number,
+  PrecioDeLista: number,
+  TextoFactura: string,
+  CantidadEnFactura: number,
+  ImporteTotal: number,
+  // Ocultos en la pantalla: van con valor fijo
+  TipoCantidad: string,
+  TipoImporte: string,
+  CantidadEstandar: number,
+  Bonificacion: number
+}
+
+export interface Comprobante {
+  ComprobanteTipoCodigo: string;
+  ComprobanteNro: string;
+}
+
+export interface OrdenVentaForm {
+  NroOrdenVenta: number;
+  PeriodoMes: 0,
+  PeriodoAnio: 0,
+  ClienteId: 0,
+  ClienteElementoDependienteId: 0,  
+  ImporteTotalAFacturar: 0,
+  EstadoOrdenVentaCodigo: '',
+  Observaciones: string;
+  items: Producto[];
+  comprobantes: Comprobante[]
+}
+
+
 @Component({
   selector: 'app-orden-venta-form',
   standalone: true,
@@ -75,6 +112,8 @@ export interface HorasAFacturar {
   styleUrl: './orden-venta-form.less',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
+
+
 export class OrdenVentaFormComponent {
 
   anio = input<number>(0)
@@ -94,7 +133,7 @@ export class OrdenVentaFormComponent {
   // Comprobantes que ya tiene la orden, de la cabecera (/api/orden-venta/cabecera)
   comprobantesOrden = input<any[]>([])
 
-  
+
   // Desde dónde se abrió el detalle. El drawer de la carga de asistencia y la pantalla de órdenes
   // de venta comparten este formulario, pero no muestran los mismos campos.
   origen = input<'ordenes-venta' | 'asistencia'>('asistencia')
@@ -134,7 +173,7 @@ export class OrdenVentaFormComponent {
   // muestre las horas a facturar 'A' / 'B' actualizadas sin esperar el guardado
   horasAFacturarChange = output<HorasAFacturar>()
 
-  private fb = inject(FormBuilder)
+
   private destroyRef = inject(DestroyRef)
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -145,16 +184,73 @@ export class OrdenVentaFormComponent {
   optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
   optionsComprobanteTipo = toSignal(this.searchService.getComprobanteTipoSearch(), { initialValue: [] })
 
-  formOrdenVenta = this.fb.group({
-    Observaciones: String,   
-    items: this.fb.array([] as FormGroup[])
+
+  private readonly defaultProducto: Producto = {
+    id: 0,
+    ProductoCodigo: '',
+    Cantidad: 0,
+    CantidadEstandar: 0,
+    PrecioDeLista: 0,
+    Producto: '',
+    TipoImporte: '',
+    TipoCantidad: '',
+    ImporteUnitario: 0,
+    ImporteTotal: 0,
+    TextoFactura: '',
+    CantidadEnFactura: 0,
+    Bonificacion: 0
+  };
+
+  private readonly defaultComprobante: Comprobante = {
+    ComprobanteNro: '',
+    ComprobanteTipoCodigo: ''
+  };
+
+  private readonly defaultOrdenVenta: OrdenVentaForm = {
+    NroOrdenVenta: 0,
+    PeriodoMes: 0,
+    PeriodoAnio: 0,
+    ImporteTotalAFacturar: 0,
+    EstadoOrdenVentaCodigo: '',
+    ClienteId: 0,
+    ClienteElementoDependienteId: 0,
+    Observaciones: '',
+    items: [structuredClone(this.defaultProducto)],
+    comprobantes: [structuredClone(this.defaultComprobante)],
+  }
+
+  readonly ordenVenta = signal<OrdenVentaForm>(this.defaultOrdenVenta);
+
+
+  readonly formOrdenVenta = form(this.ordenVenta, (p) => {
+    disabled(p, () => this.soloLectura())
+    applyEach(p.items, (productoPath) => {
+      required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido' });
+      required(productoPath.Cantidad, { message: 'Cantidad es requerido' });
+    });
+
+/*
+    required(p.PeriodoFacturacion, { message: 'Periodo de facturación es requerido' });
+    required(p.GeneracionFacturaDia, {
+      message: 'Día de generación es requerido',
+      when: (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) === false,
+    });
+
+    periodRange(p.PeriodoFacturacion, {
+      min: '1D',
+      max: '2A',
+      allowedUnits: ['D', 'S', 'M', 'A'],
+      message: 'Formato inválido o fuera de rango (permitidos: D, S, M, A)',
+    });
+
+    numericRange(p.GeneracionFacturaDia, { min: 1, max: 29, message: 'Día entre 1 y 29', when: (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) === false },);
+    disabled(p.GeneracionFacturaDia, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
+    disabled(p.GeneracionFacturaDiaComplemento, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
+    //    hidden(p.PeriodoFacturacionInicio, (ctx) => this.periodoFacturacionDias()>=60);
+
+*/
   })
 
-  // Comprobantes de la orden (tabla Comprobante). Van aparte del detalle: son datos de la
-  // cabecera, y una orden puede tener más de uno.
-  formComprobante = this.fb.group({
-    comprobantes: this.fb.array([this.nuevoComprobante()])
-  })
 
   // los paneles del acordeón, así que va como señal y no como control del ítem: los paneles
   // muestran todos el mismo valor.
@@ -162,30 +258,17 @@ export class OrdenVentaFormComponent {
   // Panel abierto del acordeón (uno solo a la vez, para no colapsar la vista)
   panelAbierto = signal<number>(0)
 
-  // Corrida del alta de los productos de horas: descarta el trabajo asincrónico de una recarga
-  // anterior del detalle
-  private secuenciaHoras = 0
 
   // Últimas horas a facturar avisadas al contenedor
-  private horasEmitidas: HorasAFacturar | null = null
-
-  guardando = signal(false)
 
   // Lo prende el guardado: la recarga del detalle que dispara no vuelve al primer panel
   private conservarPanel = false
 
-  private formValue = toSignal(this.formOrdenVenta.valueChanges, {
-    initialValue: this.formOrdenVenta.getRawValue()
-  })
 
-  itemsValue = computed<any[]>(() => {
-    this.formValue()
-    return this.itemsArray.getRawValue()
-  })
 
   // El detalle tiene cambios sin guardar. dirty/pristine no son señales, así que el estado se
   // refleja acá para que un contenedor OnPush pueda habilitar su botón de guardar.
-
+/*
   titulos = computed<string[]>(() =>
     this.itemsValue().map(item => {
       // La cantidad en cero es un ítem recién creado, no se muestra
@@ -239,28 +322,17 @@ export class OrdenVentaFormComponent {
         : codigo === PRODUCTO_HORAS_B ? this.horasAFacturarBBloqueada()
           : false)
   )
-
+*/
   // Se prende al intentar guardar: recién ahí se señalan los ítems incompletos
   validado = signal(false)
 
   // Ítems a los que les falta algún campo obligatorio
-  faltantes = computed<boolean[]>(() =>
-    this.itemsValue().map(item =>
-      !String(item?.ProductoCodigo ?? '').trim() ||
-      String(item?.Cantidad ?? '').trim() === '' ||
-      String(item?.ImporteUnitario ?? '').trim() === ''
-    )
-  )
 
   // Un ítem sin producto ni cantidad todavía no se cargó: no se agrega otro hasta completarlo
-  hayItemVacio = computed<boolean>(() =>
-    this.itemsValue().some(item =>
-      !String(item?.ProductoCodigo ?? '').trim() && !Number(item?.Cantidad ?? 0)
-    )
-  )
 
   constructor() {
     // Carga el detalle recibido en el FormArray
+/*
     effect(() => {
       const items = this.items()
       const horasAFacturarA = this.horasAFacturarA()
@@ -275,15 +347,15 @@ export class OrdenVentaFormComponent {
       this.conservarPanel = false
       void this.agregarProductosHoras(horasAFacturarA, horasAFacturarB)
     })
-
+*/
     // Carga los comprobantes que ya tiene la orden
-    effect(() => this.sincronizarComprobantes(this.comprobantesOrden()))
+    //effect(() => this.sincronizarComprobantes(this.comprobantesOrden()))
 
     // El total de la orden se recalcula ante cualquier modificación del detalle
-    effect(() => this.detalleChange.emit(this.itemsValue()))
 
     // Cambiar la cantidad de un producto de horas cambia las horas a facturar de la asistencia.
     // El detalle emite en cada tecla: sólo se avisa cuando alguna de las dos cantidades cambió.
+    /*
     effect(() => {
       const horas = this.horasEnDetalle()
       if (this.horasEmitidas?.A === horas.A && this.horasEmitidas?.B === horas.B) return
@@ -313,14 +385,16 @@ export class OrdenVentaFormComponent {
         for (const control of Object.values((comprobante as FormGroup).controls))
           aplicar(control, soloLectura)
     })
-
+*/
   }
 
+/*
   get itemsArray(): FormArray {
     return this.formOrdenVenta.get('items') as FormArray
   }
-
+*/
   private sincronizarItems(items: any[]) {
+/*
     while (this.itemsArray.length > items.length)
       this.itemsArray.removeAt(this.itemsArray.length - 1, { emitEvent: false })
 
@@ -336,6 +410,7 @@ export class OrdenVentaFormComponent {
     this.formOrdenVenta.markAsPristine()
     this.formOrdenVenta.markAsUntouched()
     this.itemsArray.updateValueAndValidity()
+*/
   }
 
   // Con horas a facturar 'A' y/o 'B' cargadas, la orden tiene que incluir los productos que las
@@ -344,6 +419,7 @@ export class OrdenVentaFormComponent {
   // Los dos ítems se crean primero, sin esperar nada: si se resolviera producto e importe de uno
   // antes de crear el otro, una recarga del detalle en el medio se llevaría puesto el segundo.
   private async agregarProductosHoras(horasAFacturarA: number, horasAFacturarB: number) {
+    /*
     const secuencia = ++this.secuenciaHoras
 
     // Una orden de sólo consulta se muestra tal cual está grabada
@@ -398,11 +474,9 @@ export class OrdenVentaFormComponent {
       await this.productoChange(indice, { value: codigo, label: producto?.label ?? '' })
       if (secuencia !== this.secuenciaHoras) return
     }
+      */
   }
 
-  private actualizarItem(group: FormGroup, item: any) {
-    group.setValue(OrdenVentaFormComponent.valoresItem(item), { emitEvent: false })
-  }
 
   // Valores iniciales de un ítem, para crearlo o para refrescar uno ya existente
   private static valoresItem(item: any = {}) {
@@ -429,41 +503,23 @@ export class OrdenVentaFormComponent {
     }
   }
 
-  private nuevoItem(item: any = {}): FormGroup {
-    const valores = OrdenVentaFormComponent.valoresItem(item)
+  addItem(e?: MouseEvent): void {
 
-    const group = this.fb.group({
-      id: valores.id,
-      ProductoCodigo: [valores.ProductoCodigo, Validators.required],
-      Producto: valores.Producto,
-      Cantidad: [valores.Cantidad, numeroRequerido],
-      ImporteUnitario: [{ value: valores.ImporteUnitario, disabled: true }, numeroRequerido],
-      PrecioDeLista: valores.PrecioDeLista,
-      TextoFactura: valores.TextoFactura,
-      CantidadEnFactura: valores.CantidadEnFactura,
-      ImporteTotal: valores.ImporteTotal,
-      // Ocultos en la pantalla: van con valor fijo
-      TipoCantidad: [valores.TipoCantidad, Validators.required],
-      TipoImporte: [valores.TipoImporte, Validators.required],
-      CantidadEstandar: valores.CantidadEstandar,
-      Bonificacion: valores.Bonificacion
-    })
+    e?.preventDefault();
 
-    // Importe Total = Cantidad * Importe Unitario. Se lee con getRawValue: el importe unitario
-    // está siempre deshabilitado, y la cantidad también con el período cerrado, así que ninguno
-    // de los dos viene en el valor del grupo y el total daría siempre cero.
-    group.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      const valor = group.getRawValue()
-      const total = Number(valor.Cantidad ?? 0) * Number(valor.ImporteUnitario ?? 0)
-      if (Number(valor.ImporteTotal ?? 0) !== total)
-        group.patchValue({ ImporteTotal: total }, { emitEvent: false })
-    })
+    const newProducto = structuredClone(this.defaultProducto)
 
-    return group
+    this.ordenVenta.update(m => ({
+      ...m,
+      items: [...m.items, newProducto],
+    }));
+
   }
 
   // Al elegir el producto se guarda también el nombre, que es lo que se muestra en la grilla,
   // y se toma el importe unitario del precio vigente del cliente para el período.
+  
+  /*
   async productoChange(index: number, producto: { value: string; label: string } | null) {
     const item = this.itemsArray.at(index)
     if (!item) return
@@ -484,7 +540,7 @@ export class OrdenVentaFormComponent {
     if (precio?.TextoFactura) item.patchValue({ TextoFactura: precio.TextoFactura })
     this.formOrdenVenta.markAsDirty()
   }
-
+*/
   // El importe unitario no se edita en pantalla: o lo fija el precio vigente, o el ítem queda en
   // 0, que es un importe válido para grabar
   private aplicarPrecioDeLista(item: AbstractControl, importeUnitario: number | null) {
@@ -497,31 +553,24 @@ export class OrdenVentaFormComponent {
     })
   }
 
-  addItem(event?: Event) {
-    event?.preventDefault()
-    if (this.soloLectura() || this.hayItemVacio()) return
-    this.itemsArray.push(this.nuevoItem())
-    this.panelAbierto.set(this.itemsArray.length - 1)
-    this.formOrdenVenta.markAsDirty()
+
+  removeItem(index: number, e: MouseEvent): void {
+    e.preventDefault();
+    this.ordenVenta.update(m => ({
+      ...m,
+      items: m.items.filter((_, i) => i !== index),
+    }));
+
+    if (this.ordenVenta().items.length == 0) {
+      this.addItem(undefined)
+    }
+
   }
 
-  removeItem(index: number, event?: Event) {
-    event?.preventDefault()
-    event?.stopPropagation()
-    if (this.soloLectura()) return
-    this.itemsArray.removeAt(index)
-    // Nunca queda el detalle sin ítems
-    if (!this.itemsArray.length) this.itemsArray.push(this.nuevoItem())
-    this.panelAbierto.set(Math.min(index, this.itemsArray.length - 1))
-    this.formOrdenVenta.markAsDirty()
-  }
-
-  get comprobantesArray(): FormArray {
-    return this.formComprobante.get('comprobantes') as FormArray
-  }
-
+  
   // Carga en el FormArray los comprobantes que ya tiene la orden. Siempre queda una fila, aunque
   // esté vacía: es donde se carga el primero.
+  /*
   private sincronizarComprobantes(comprobantes: any[]) {
     const filas = comprobantes.length ? comprobantes : [{}]
 
@@ -544,7 +593,8 @@ export class OrdenVentaFormComponent {
     this.formComprobante.markAsUntouched()
     this.comprobantesArray.updateValueAndValidity()
   }
-
+*/
+  /*
   private nuevoComprobante(comprobante: any = {}): FormGroup {
     const group = this.fb.group({
       ComprobanteTipoCodigo: [comprobante.ComprobanteTipoCodigo ?? null, requeridoSiHayComprobante],
@@ -562,34 +612,44 @@ export class OrdenVentaFormComponent {
 
     return group
   }
+    */
 
   // Un comprobante sin tipo ni número todavía no se cargó: no se agrega otro hasta completarlo
+  /*
   hayComprobanteVacio = computed<boolean>(() =>
     this.comprobantes().some(comprobante =>
       !String(comprobante?.ComprobanteTipoCodigo ?? '').trim() &&
       !String(comprobante?.ComprobanteNro ?? '').trim()
     )
   )
+    */
 
-  addComprobante(event?: Event) {
-    event?.preventDefault()
-    if (this.soloLectura() || this.hayComprobanteVacio()) return
-    this.comprobantesArray.push(this.nuevoComprobante())
-    this.formComprobante.markAsDirty()
+  addComprobante(e?: MouseEvent): void {
+    e?.preventDefault();
+    const newComprobante = structuredClone(this.defaultComprobante)
+    this.ordenVenta.update(m => ({
+      ...m,
+      comprobantes: [...m.comprobantes, newComprobante],
+    }));
   }
 
-  removeComprobante(index: number, event?: Event) {
-    event?.preventDefault()
-    event?.stopPropagation()
-    if (this.soloLectura()) return
-    this.comprobantesArray.removeAt(index)
-    // Siempre queda una fila para cargar
-    if (!this.comprobantesArray.length) this.comprobantesArray.push(this.nuevoComprobante())
-    this.formComprobante.markAsDirty()
+  removeComprobante(index: number, e: MouseEvent): void {
+    e.preventDefault();
+    this.ordenVenta.update(m => ({
+      ...m,
+      comprobantes: m.comprobantes.filter((_, i) => i !== index),
+    }));
+
+    if (this.ordenVenta().comprobantes.length == 0) {
+      this.addComprobante(undefined)
+    }
+
   }
 
   // nz-form-control solo repinta el mensaje de error cuando el control emite statusChanges, y
   // markAsTouched no emite nada: hay que revalidar cada control para que se vea el "es requerido".
+  
+  /*
   private marcarInvalidos() {
     for (const item of this.itemsArray.controls) {
       for (const control of Object.values((item as FormGroup).controls)) {
@@ -609,7 +669,7 @@ export class OrdenVentaFormComponent {
       }
     }
   }
-
+*/
   private static readonly ETIQUETAS_COMPROBANTE: Record<string, string> = {
     ComprobanteTipoCodigo: 'Tipo de Comprobante',
     ComprobanteNro: 'Nro. de Comprobante',
@@ -617,6 +677,7 @@ export class OrdenVentaFormComponent {
   }
 
   // Qué le falta a cada comprobante empezado, para avisarlo junto con los carteles de cada campo
+  /*
   private mensajeComprobantes(): string {
     const detalle: string[] = []
 
@@ -632,6 +693,7 @@ export class OrdenVentaFormComponent {
 
     return `Complete los datos del comprobante. ${detalle.join(' | ')}`
   }
+    */
 
   // Nombre visible de cada campo obligatorio, para el mensaje de error
   private static readonly ETIQUETAS: Record<string, string> = {
@@ -643,6 +705,7 @@ export class OrdenVentaFormComponent {
   }
 
   // Qué le falta a cada ítem cargado, para avisarlo junto con los carteles de cada campo
+  /*
   private mensajeFaltantes(): string {
     const detalle: string[] = []
 
@@ -660,12 +723,34 @@ export class OrdenVentaFormComponent {
 
     return detalle.length ? `Complete los campos requeridos. ${detalle.join(' | ')}` : 'Complete los campos requeridos'
   }
-
+*/
   // Devuelve true si la orden quedó grabada. En silencioso (autoguardado al pasar de un campo a
   // otro) un detalle incompleto no se graba ni se marca: se sigue cargando sin carteles de error.
-  async save(opciones: { silencioso?: boolean } = {}): Promise<boolean> {
-    if (this.soloLectura() || this.guardando()) return false
+  async save(opciones: { silencioso?: boolean } = {}) {
+    if (this.soloLectura() ) return undefined
 
+    await submit(this.formOrdenVenta, async (form) => {
+      try {
+        const formValue = form().value();
+        const respuesta = await firstValueFrom(this.apiService.setOrdenVenta(formValue))
+
+        this.notification.success('Orden de venta', respuesta?.msg ?? 'Grabación exitosa')
+
+
+
+      } catch (e: any) {
+          return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
+      }
+      return undefined
+
+    })
+  }
+
+
+
+
+
+/*
     const items = this.itemsArray.getRawValue()
 
     // Todos los ítems tienen que estar completos, incluida la fila que quedó abierta sin producto.
@@ -737,4 +822,5 @@ export class OrdenVentaFormComponent {
       this.guardando.set(false)
     }
   }
+  */
 }

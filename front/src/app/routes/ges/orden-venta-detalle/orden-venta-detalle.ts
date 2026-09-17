@@ -145,7 +145,8 @@ export class OrdenVentaDetalleComponent {
 
         await new Promise(resolve => setTimeout(resolve, 200))
 
-        return await this.ordenVentaForm().save()
+         await this.ordenVentaForm().save()
+         return(true)
       } finally {
         this.cerrarPromise = null
       }
