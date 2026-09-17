@@ -499,7 +499,7 @@ export class AsistenciaController extends BaseController {
         WHERE obj.ObjetivoId = @0
       `, [ObjetivoId, anio, mes])
 
-      if (ordenesVenta.length == 0 || (!ordenesVenta[0]?.NroOrdenVenta && !ordenesVenta[0]?.ObjetivoHabilitacionNecesariaId)) {
+      if (!ordenesVenta[0]?.NroOrdenVenta && !ordenesVenta[0]?.ObjetivoHabilitacionNecesariaId) {
         // TODO: DESCOMENTAR CUANDO SE HABILITE EN PRODUCCION EL USO
         // throw new ClientException(`No se puede finalizar la carga. El objetivo debe tener al menos una órden de venta cargada para el período ${anio}/${mes}`)
       }
