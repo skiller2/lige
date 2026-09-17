@@ -467,6 +467,9 @@ export class AsistenciaController extends BaseController {
       if (cabecera[0].ObjetivoAsistenciaAnoId == null || cabecera[0].ObjetivoAsistenciaAnoMesId == null)
         throw new ClientException('Periodo de carga de asitencia no generado')
 
+      if (cabecera[0].ObjetivoAsistenciaAnoMesDesde != null && cabecera[0].ObjetivoAsistenciaAnoMesHasta != null)
+        throw new ClientException('El objetivo ya se encuentra cerrado o no fue abierto')
+
       const valGrid = await this.valGrid(ObjetivoId, anio, mes, queryRunner)
       if (valGrid instanceof ClientException)
         throw valGrid
@@ -475,9 +478,6 @@ export class AsistenciaController extends BaseController {
         throw new ClientException('Horas a facturar debe ser mayor a 0', cabecera[0].TotalHoras)
       }
 
-      console.log('cabecera', cabecera[0])
-      if (cabecera[0].ObjetivoAsistenciaAnoMesDesde != null && cabecera[0].ObjetivoAsistenciaAnoMesHasta != null)
-        throw new ClientException('El objetivo ya se encuentra cerrado o no fue abierto')
 
       // if (cabecera[0].ImporteHora < 1 && cabecera[0].ImporteFijo < 1) {
       //   throw new ClientException('Facturación Hora o Facturación Fijo debe tener un valor mayor a 0')
@@ -3707,12 +3707,12 @@ export class AsistenciaController extends BaseController {
           error.push(valsDiasMes.messageArr[0])
         } else {
           let totalhs = valsDiasMes.totalhs
-          if (totalhs < 1)
-            error.push(`El total de horas tiene que ser superior o igual a 1`)
           //Validación de Excepción de Asistencia
-          if (!totalhs && excepAsistencia.length && excepAsistencia.find((obj: any) => { (obj.PersonalId == item.personalId) })) {
+          const tieneArt14 = excepAsistencia.some((obj: any) => obj.PersonalId == item.personalId)
+          if (!totalhs && tieneArt14)
             error.push(`La persona tiene Art14 y no tienen horas cargadas`)
-          }
+          else if (totalhs < 1)
+            error.push(`El total de horas tiene que ser superior o igual a 1`)
         }
 
         if (error.length) {
