@@ -506,11 +506,7 @@ export class AsistenciaController extends BaseController {
 
       // Las órdenes de venta del objetivo en el período que siguen pendientes pasan a finalizadas
       if (ordenesVenta.some((orden: any) => orden.EstadoOrdenVentaCodigo == 'PEN')) {
-        const estadoFinalizado = await queryRunner.query(
-          `SELECT TRIM(EstadoOrdenVentaCod) EstadoOrdenVentaCod FROM EstadoOrdenVenta WHERE TRIM(Descripcion) = 'Finalizado'`)
-        if (estadoFinalizado.length == 0)
-          throw new ClientException(`No existe el estado 'Finalizado' en EstadoOrdenVenta`)
-
+    
         await queryRunner.query(`
           UPDATE ord
           SET EstadoOrdenVentaCodigo = @3, AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
@@ -519,7 +515,7 @@ export class AsistenciaController extends BaseController {
             AND ord.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
           WHERE obj.ObjetivoId = @0 AND ord.PeriodoAnio = @1 AND ord.PeriodoMes = @2
             AND TRIM(ord.EstadoOrdenVentaCodigo) = 'PEN'
-        `, [ObjetivoId, anio, mes, estadoFinalizado[0].EstadoOrdenVentaCod, new Date(), usuario, ip])
+        `, [ObjetivoId, anio, mes, 'FIN', new Date(), usuario, ip])
       }
 
       if (cabecera[0].ObjetivoAsistenciaAnoMesHasta == null) {
