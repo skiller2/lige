@@ -28,6 +28,12 @@ const sqlEstadoOrden = `TRIM(ISNULL(est.Descripcion,''))`;
 
 const cargado = (valor: any) => valor != null && String(valor).trim() !== '';
 
+// Estados (por descripción de EstadoOrdenVenta) en los que la orden ya no se puede modificar
+const ESTADOS_ORDEN_VENTA_NO_MODIFICABLES = ['A FACTURAR', 'FACTURADO'];
+
+const ordenNoModificable = (descripcionEstado: any) =>
+  ESTADOS_ORDEN_VENTA_NO_MODIFICABLES.includes(String(descripcionEstado ?? '').trim().toUpperCase());
+
 // Productos que facturan las horas 'A' y 'B'. Su importe no sale de la lista de precios sino de
 // ObjetivoImporteVenta.ImporteHoraA / ImporteHoraB, del último Anio/Mes <= al período del
 // cliente/elemento.
@@ -686,6 +692,11 @@ export class OrdenVentaController extends BaseController {
 
       if (!nuevaOrden && nroOrdenVentaPedido && !orden)
         throw new ClientException(`La orden de venta ${nroOrdenVentaPedido} no es del objetivo ${ObjetivoId} en el período ${mes}/${anio}`);
+
+      // Las órdenes "A Facturar" y "Facturado" ya no se modifican, desde ninguna pantalla
+      if (orden && ordenNoModificable(orden.EstadoOrdenVenta))
+        throw new ClientException(
+          `La orden de venta ${orden.NroOrdenVenta} está en estado '${String(orden.EstadoOrdenVenta).trim()}', no se puede modificar`);
 
       // Una vez emitida la factura el detalle ya no se toca
       if (orden) {

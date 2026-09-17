@@ -1,7 +1,7 @@
 import { Component, computed, effect, inject, input, linkedSignal, output, resource, signal, untracked, viewChild } from '@angular/core'
 import { CurrencyPipe, DecimalPipe } from '@angular/common'
 import { SHARED_IMPORTS } from '@shared'
-import { HorasAFacturar, OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form'
+import { HorasAFacturar, OrdenVentaFormComponent, ordenVentaNoModificable } from '../orden-venta-form/orden-venta-form'
 import { firstValueFrom } from 'rxjs'
 import { ApiService } from '../../../services/api.service'
 
@@ -81,6 +81,14 @@ export class OrdenVentaDetalleComponent {
   // Número de la orden elegida, o 0 con las altas, que todavía no tienen número
   nroOrdenVentaSeleccionada = computed<number>(() => Number(this.ordenVentaSeleccionada()) || 0)
 
+  // Estado de la orden elegida. Las altas todavía no tienen ninguno.
+  estadoOrdenSeleccionada = computed<string>(() =>
+    this.ordenes().find((orden: any) => Number(orden.NroOrdenVenta) === this.nroOrdenVentaSeleccionada())
+      ?.EstadoOrdenVenta ?? '')
+
+  // "A Facturar" y "Facturado" no se modifican: el detalle queda sólo para consulta
+  soloLectura = computed<boolean>(() => ordenVentaNoModificable(this.estadoOrdenSeleccionada()))
+
   // Detalle de la orden (ítems). Se recarga al cambiar objetivo/período o la orden elegida.
   itemsResource = resource({
     params: () => ({
@@ -128,7 +136,7 @@ export class OrdenVentaDetalleComponent {
   }
 
   private get hayQueGuardar(): boolean {
-    return this.editado && this.ordenVentaForm().conCambios()
+    return this.editado && !this.soloLectura() && this.ordenVentaForm().conCambios()
   }
 
   // Al pasar de un campo a otro. Un detalle incompleto no se graba ni muestra errores: se sigue

@@ -22,7 +22,7 @@
       </li>
       }
 
-      @if (soloLectura()) {
+      @if (modo() === 'consulta') {
       <li nz-menu-item nzMatchRouter>
         <a [routerLink]="['/', 'ges', 'ordenes-venta', 'consulta']">{{ 'app.detail' | i18n }}</a>
       </li>
@@ -102,6 +102,11 @@
     </nz-form-control>
 
   </nz-form-item>
+
+  @if (ordenNoModificable() && modo() !== 'consulta') {
+  <nz-alert nzType="info" nzShowIcon
+    nzMessage="La orden está en estado '{{ cabecera().EstadoOrdenVenta?.trim() }}': no se puede modificar." />
+  }
 
   <!-- El alta no duplica: si el objetivo ya tiene orden en el período, se está editando esa -->
   @if (ordenExistente()) {

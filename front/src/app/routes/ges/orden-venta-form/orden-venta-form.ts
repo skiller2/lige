@@ -54,6 +54,13 @@ const PRODUCTO_HORAS_A = 'SSF'
 const PRODUCTO_HORAS_B = 'SSFB'
 const PRODUCTOS_HORAS = [PRODUCTO_HORAS_A, PRODUCTO_HORAS_B]
 
+// Estados (por descripción) en los que la orden ya no se modifica: el detalle se abre sólo para
+// consulta, igual que valida el back al guardar
+const ESTADOS_NO_MODIFICABLES = ['A FACTURAR', 'FACTURADO']
+
+export const ordenVentaNoModificable = (descripcionEstado: any): boolean =>
+  ESTADOS_NO_MODIFICABLES.includes(String(descripcionEstado ?? '').trim().toUpperCase())
+
 // Cantidades guardadas de los productos de horas, o null si la orden no los incluye
 export interface HorasAFacturar {
   A: number | null
@@ -364,6 +371,9 @@ export class OrdenVentaFormComponent {
   // antes de crear el otro, una recarga del detalle en el medio se llevaría puesto el segundo.
   private async agregarProductosHoras(horasAFacturarA: number, horasAFacturarB: number) {
     const secuencia = ++this.secuenciaHoras
+
+    // Una orden de sólo consulta se muestra tal cual está grabada
+    if (this.soloLectura()) return
 
     const codigoDe = (item: AbstractControl) =>
       String(item.getRawValue()?.ProductoCodigo ?? '').trim().toUpperCase()
