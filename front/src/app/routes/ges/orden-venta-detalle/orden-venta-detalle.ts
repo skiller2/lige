@@ -7,8 +7,8 @@ import { ApiService } from '../../../services/api.service'
 
 // Valores del selector de Orden de Venta que no son el número de una orden existente: las
 // dos formas de dar de alta una, vacía o con el detalle de la última orden de los meses anteriores
-export const ORDEN_NUEVA_SIN_PLANTILLA = 'nueva-sin-plantilla'
-export const ORDEN_NUEVA_CON_PLANTILLA = 'nueva-con-plantilla'
+const ORDEN_NUEVA_SIN_PLANTILLA = 'nueva-sin-plantilla'
+const ORDEN_NUEVA_CON_PLANTILLA = 'nueva-con-plantilla'
 
 // Detalle de la orden de venta de un objetivo y un período, tal como lo abre la carga de
 // asistencia desde su drawer. El listado de órdenes es otra pantalla (app-orden-venta).
@@ -129,38 +129,46 @@ export class OrdenVentaDetalleComponent {
 
   // El usuario tocó el detalle de la orden que se está viendo. Sin esto, abrir y cerrar el drawer
   // grabaría la orden armada sola (plantilla de meses anteriores o productos de horas agregados).
-  private editado = false
-
-  marcarEditado() {
-    this.editado = true
-  }
-
-  private get hayQueGuardar(): boolean {
-    return this.editado && !this.soloLectura() && this.ordenVentaForm().conCambios()
-  }
-
+  
   // Al pasar de un campo a otro. Un detalle incompleto no se graba ni muestra errores: se sigue
   // cargando, y los faltantes se avisan al cerrar.
-  async autoGuardar() {
-    if (!this.hayQueGuardar || this.ordenVentaForm().guardando()) return
-    await this.ordenVentaForm().save({ silencioso: true })
+
+  private cerrarPromise: Promise<boolean> | null = null
+
+  async guardarAlCerrar(): Promise<boolean> {
+    if (this.cerrarPromise) {
+      return this.cerrarPromise
+    }
+
+    this.cerrarPromise = (async () => {
+      try {
+
+        await new Promise(resolve => setTimeout(resolve, 200))
+
+        return await this.ordenVentaForm().save()
+      } finally {
+        this.cerrarPromise = null
+      }
+    })()
+
+    return this.cerrarPromise
   }
+
 
   // Al cerrar el drawer. Devuelve false si quedaron cambios sin grabar (detalle incompleto o error
   // del back), para que el drawer no se cierre y se pierdan.
+  /*
+  
   async guardarAlCerrar(): Promise<boolean> {
     if (!this.hayQueGuardar) return true
     // Un autoguardado en curso ya lleva los cambios
     if (this.ordenVentaForm().guardando()) return true
     return await this.ordenVentaForm().save()
   }
+    */
 
   constructor() {
     // Al cambiar de objetivo, período u orden elegida el detalle arranca sin tocar
-    effect(() => {
-      this.objetivoId(); this.anio(); this.mes(); this.ordenVentaSeleccionada()
-      untracked(() => this.editado = false)
-    })
 
     effect(() => {
       const objetivoId = this.objetivoId()
