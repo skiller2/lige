@@ -8,10 +8,17 @@
             <nz-button-group nz-button nzButtonGroup>
               <button nz-button nzType="default" (click)="openDrawerForNew()" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.add' | i18n }}"><span nz-icon nzType="plus" nzTheme="outline"></span></button>
-              <button nz-button nzType="default" (click)="openDrawerforEdit()" nz-tooltip
+              <button nz-button nzType="default" [disabled]="!selectedPoliza()" (click)="openDrawerforEdit()" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.edit' | i18n }}"><span nz-icon nzType="edit" nzTheme="outline"></span></button>
-              <button nz-button nzType="default" (click)="openDrawerForConsult()" nz-tooltip
+              <button nz-button nzType="default" [disabled]="!selectedPoliza()" (click)="openDrawerForConsult()" nz-tooltip
               nzTooltipTitle="{{ 'app.detail' | i18n }}"><span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
+              <button nz-button nzType="default" [disabled]="!selectedPoliza()" [nzLoading]="isDeleting()"
+              nz-popconfirm
+              nzPopconfirmTitle="¿Eliminar la póliza {{ selectedPoliza()?.PolizaSeguroNroPoliza }} - {{ selectedPoliza()?.PolizaSeguroNroEndoso }}? Se eliminarán también el personal asociado y el documento cargado."
+              nzPopconfirmPlacement="bottomRight"
+              nzOkText="Eliminar" nzOkDanger nzCancelText="Cancelar"
+              (nzOnConfirm)="deletePoliza()" nz-tooltip
+              nzTooltipTitle="{{ 'app.icon.delete' | i18n }}"><span nz-icon nzType="delete" nzTheme="outline"></span></button>
             </nz-button-group>
           </div>
   

@@ -115,10 +115,6 @@ export class PolizaSeguroDrawerComponent {
     this.isSaving.set(false)
   }
 
-  deletePoliza() {
-     
-  }
-
   ngOnInit(){
   }
 

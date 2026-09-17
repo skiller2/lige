@@ -1906,6 +1906,12 @@ export class ApiService {
     );
   }
 
+  deletePolizaSeguro(values: any) {
+    return this.http.post<ResponseJSON<any>>(`/api/seguros/deletepoliza`, values).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
   setInstitucionesSedes(values: any) {
     return this.http.post<ResponseJSON<any>>(`/api/instituciones/setsede`, values).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),

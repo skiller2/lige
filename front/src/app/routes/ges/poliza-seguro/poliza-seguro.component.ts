@@ -5,7 +5,7 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
@@ -20,6 +20,8 @@ interface ListOptions {
 interface PolizaSeguro {
   id: number;
   TipoSeguroNombre: string;
+  TipoSeguroCodigo: string;
+  CompaniaSeguroId: number;
   PolizaSeguroNroPoliza: string;
   PolizaSeguroNroEndoso: string;
   PolizaSeguroFechaEndoso: string;
@@ -54,6 +56,8 @@ export class PolizaSeguroComponent {
   CompaniaSeguroId = model<number>(0)
   TipoSeguroCodigo = model<string>("")
   openDrawerConsult = signal<boolean>(false)
+  selectedPoliza = signal<PolizaSeguro | null>(null)
+  isDeleting = signal<boolean>(false)
 
   private listOptions: ListOptions = {
     filtros: [],
@@ -116,19 +120,12 @@ export class PolizaSeguroComponent {
   }
 
   handleSelectedRowsChanged(e: any): void {
-   
-    const selrow = e.detail.args.rows[0]
-    const row = this.angularGridEdit.slickGrid.getDataItem(selrow)
-     
-    if (row?.PolizaSeguroNroPoliza)
-      this.PolizaSeguroNroPoliza.set(row.PolizaSeguroNroPoliza)
-    if (row?.PolizaSeguroNroEndoso)
-      this.PolizaSeguroNroEndoso.set(row.PolizaSeguroNroEndoso)
-    if (row?.CompaniaSeguroId)
-      this.CompaniaSeguroId.set(row.CompaniaSeguroId)
-    if (row?.TipoSeguroCodigo)
-      this.TipoSeguroCodigo.set(row.TipoSeguroCodigo)
 
+    const selrow = e.detail.args.rows[0]
+    const row = (selrow != null) ? this.angularGridEdit.slickGrid.getDataItem(selrow) : null
+
+    // La fila completa o nada: no se conservan claves de una selección anterior
+    this.selectedPoliza.set(row?.PolizaSeguroNroPoliza ? row : null)
   }
 
   exportGrid(): void {
@@ -139,7 +136,29 @@ export class PolizaSeguroComponent {
   }
 
   onRefreshPolizaSeguro(){
+    // Al recargar la grilla la fila seleccionada deja de ser válida
+    this.selectedPoliza.set(null)
     this.formChange$.next('')
+  }
+
+  async deletePoliza() {
+    const poliza = this.selectedPoliza()
+    if (!poliza) return
+
+    this.isDeleting.set(true)
+    try {
+      await firstValueFrom(this.apiService.deletePolizaSeguro({
+        PolizaSeguroNroPoliza: poliza.PolizaSeguroNroPoliza,
+        PolizaSeguroNroEndoso: poliza.PolizaSeguroNroEndoso,
+        CompaniaSeguroId: poliza.CompaniaSeguroId,
+        TipoSeguroCodigo: poliza.TipoSeguroCodigo
+      }))
+      this.selectedPoliza.set(null)
+      this.formChange$.next('')
+    } catch (error) {
+      // El mensaje de error lo muestra el apiService
+    }
+    this.isDeleting.set(false)
   }
 
   ////////// Drawer para nuevo /////////////
@@ -155,13 +174,28 @@ export class PolizaSeguroComponent {
   }
 
   async openDrawerforEdit() {
-    
+    if (!this.cargarPolizaSeleccionada()) return
+
     this.openDrawerConsult.set(false)
     this.visible.set(true)
   }
 
   async openDrawerForConsult() {
+    if (!this.cargarPolizaSeleccionada()) return
+
     this.openDrawerConsult.set(true)
     this.visible.set(true)
+  }
+
+  // Pasa la clave de la fila seleccionada al drawer
+  private cargarPolizaSeleccionada(): boolean {
+    const poliza = this.selectedPoliza()
+    if (!poliza) return false
+
+    this.PolizaSeguroNroPoliza.set(poliza.PolizaSeguroNroPoliza)
+    this.PolizaSeguroNroEndoso.set(poliza.PolizaSeguroNroEndoso)
+    this.CompaniaSeguroId.set(poliza.CompaniaSeguroId)
+    this.TipoSeguroCodigo.set(poliza.TipoSeguroCodigo)
+    return true
   }
 }

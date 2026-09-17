@@ -54,6 +54,10 @@ segurosRouter.post('/setpoliza', [authMiddleware.verifyToken, authMiddleware.has
   segurosController.setPolizaSeguro(req, res, next);
 })
 
+segurosRouter.post('/deletepoliza', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  segurosController.deletePolizaSeguro(req, res, next);
+})
+
 segurosRouter.get('/searchTipoSeguro', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal', 'gPersonalCon', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
   segurosController.getTipoSeguroSearch(req, res, next);
 })

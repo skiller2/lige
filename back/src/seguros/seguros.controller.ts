@@ -5,6 +5,8 @@ import type { QueryRunner } from "typeorm";
 import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { Utils } from "../liquidaciones/liquidaciones.utils.ts";
+import { unlink } from "fs/promises";
+import { logger } from "../logger/logger.ts";
 
 const listaColumnas: any[] = [
   {
@@ -1190,6 +1192,77 @@ export class SegurosController extends BaseController {
       await queryRunner.release()
     }
 
+
+  }
+
+  async deletePolizaSeguro(req: any, res: Response, next: NextFunction) {
+
+    const {
+      PolizaSeguroNroPoliza,
+      PolizaSeguroNroEndoso,
+      CompaniaSeguroId,
+      TipoSeguroCodigo
+    } = req.body
+
+    const queryRunner = await getConnection(res.locals.userName)
+
+    try {
+      if (!PolizaSeguroNroPoliza || !PolizaSeguroNroEndoso || !CompaniaSeguroId || !TipoSeguroCodigo)
+        throw new ClientException(`Debe seleccionar una póliza para eliminar.`)
+
+      await queryRunner.startTransaction()
+
+      const poliza = await queryRunner.query(`
+        SELECT PolizaSeguroNroPoliza, PolizaSeguroNroEndoso, DocumentoId
+        FROM PolizaSeguro
+        WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`,
+        [PolizaSeguroNroPoliza, PolizaSeguroNroEndoso, CompaniaSeguroId, TipoSeguroCodigo])
+
+      if (poliza.length == 0)
+        throw new ClientException(`No se encontro la póliza N°${PolizaSeguroNroPoliza} / Endoso ${PolizaSeguroNroEndoso}.`)
+
+      const DocumentoId = poliza[0].DocumentoId
+
+      // El documento no se puede eliminar si ya fue descargado
+      if (DocumentoId) {
+        const descargas = await queryRunner.query(`SELECT Telefono FROM DocumentoDescargaLog WHERE DocumentoId = @0`, [DocumentoId])
+        if (descargas.length)
+          throw new ClientException(`No se puede eliminar la póliza, el documento asociado tiene movimientos de descarga.`)
+      }
+
+      await queryRunner.query(`
+        DELETE FROM PersonalPolizaSeguro
+        WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`,
+        [PolizaSeguroNroPoliza, PolizaSeguroNroEndoso, CompaniaSeguroId, TipoSeguroCodigo])
+
+      await queryRunner.query(`
+        DELETE FROM PolizaSeguro
+        WHERE PolizaSeguroNroPoliza = @0 AND PolizaSeguroNroEndoso = @1 AND CompaniaSeguroId = @2 AND TipoSeguroCodigo = @3`,
+        [PolizaSeguroNroPoliza, PolizaSeguroNroEndoso, CompaniaSeguroId, TipoSeguroCodigo])
+
+      if (DocumentoId) {
+        const documento = await queryRunner.query(`SELECT DocumentoPath, DocumentoNombreArchivo FROM Documento WHERE DocumentoId = @0`, [DocumentoId])
+
+        await queryRunner.query(`DELETE FROM DocumentoRelaciones WHERE DocumentoId = @0`, [DocumentoId])
+        await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [DocumentoId])
+
+        // El archivo faltante no aborta la eliminación, solo se registra
+        if (documento[0]?.DocumentoPath) {
+          const filePath = `${process.env.PATH_DOCUMENTS}/${documento[0].DocumentoPath}`
+          try { await unlink(filePath) } catch (error) {
+            logger.error(`Archivo ${documento[0].DocumentoNombreArchivo} no localizado`, { path: filePath })
+          }
+        }
+      }
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({}, res, `Se eliminó la póliza ${PolizaSeguroNroPoliza} - ${PolizaSeguroNroEndoso}`)
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
 
   }
 
