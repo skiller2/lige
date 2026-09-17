@@ -285,9 +285,40 @@ export class AsistenciaController extends BaseController {
     try {
 
       await queryRunner.startTransaction()
+
+      // Sin ninguna orden de venta del objetivo en el período no se puede iniciar la carga
+      const ordenesVenta = await queryRunner.query(`
+        SELECT ord.NroOrdenVenta, TRIM(ord.EstadoOrdenVentaCodigo) EstadoOrdenVentaCodigo
+        FROM Objetivo obj
+        JOIN OrdenVenta ord ON ord.ClienteId = obj.ClienteId
+          AND ord.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
+        WHERE obj.ObjetivoId = @0 AND ord.PeriodoAnio = @1 AND ord.PeriodoMes = @2
+      `, [ObjetivoId, anio, mes])
+
+      if (ordenesVenta.length == 0)
+        throw new ClientException(`No se puede iniciar la carga: el objetivo no tiene órdenes de venta cargadas para el período ${anio}/${mes}`)
+
       await this.addAsistenciaPeriodo(anio, mes, ObjetivoId, queryRunner, req, res)
 
-      // registro de apertura de planilla 
+      // Las órdenes de venta del objetivo en el período que siguen pendientes pasan a finalizadas
+      if (ordenesVenta.some((orden: any) => orden.EstadoOrdenVentaCodigo == 'PEN')) {
+        const estadoFinalizado = await queryRunner.query(
+          `SELECT TRIM(EstadoOrdenVentaCod) EstadoOrdenVentaCod FROM EstadoOrdenVenta WHERE TRIM(Descripcion) = 'Finalizado'`)
+        if (estadoFinalizado.length == 0)
+          throw new ClientException(`No existe el estado 'Finalizado' en EstadoOrdenVenta`)
+
+        await queryRunner.query(`
+          UPDATE ord
+          SET EstadoOrdenVentaCodigo = @3, AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
+          FROM OrdenVenta ord
+          JOIN Objetivo obj ON ord.ClienteId = obj.ClienteId
+            AND ord.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
+          WHERE obj.ObjetivoId = @0 AND ord.PeriodoAnio = @1 AND ord.PeriodoMes = @2
+            AND TRIM(ord.EstadoOrdenVentaCodigo) = 'PEN'
+        `, [ObjetivoId, anio, mes, estadoFinalizado[0].EstadoOrdenVentaCod, fechaActual, usuario, ip])
+      }
+
+      // registro de apertura de planilla
 
 
       await queryRunner.commitTransaction();
