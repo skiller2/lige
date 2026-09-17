@@ -491,15 +491,18 @@ export class AsistenciaController extends BaseController {
 
       // Sin ninguna orden de venta del objetivo en el período no se puede finalizar la carga
       const ordenesVenta = await queryRunner.query(`
-        SELECT ord.NroOrdenVenta, TRIM(ord.EstadoOrdenVentaCodigo) EstadoOrdenVentaCodigo
+        SELECT ord.NroOrdenVenta, TRIM(ord.EstadoOrdenVentaCodigo) EstadoOrdenVentaCodigo,
+               ohn.ObjetivoHabilitacionNecesariaId
         FROM Objetivo obj
-        JOIN OrdenVenta ord ON ord.ClienteId = obj.ClienteId
-          AND ord.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
-        WHERE obj.ObjetivoId = @0 AND ord.PeriodoAnio = @1 AND ord.PeriodoMes = @2
+        left JOIN OrdenVenta ord ON ord.ClienteId = obj.ClienteId AND ord.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0) and ord.PeriodoAnio = @1 AND ord.PeriodoMes = @2
+        left join ObjetivoHabilitacionNecesaria ohn ON ohn.ObjetivoId = obj.ObjetivoId and ObjetivoHabilitacionNecesariaLugarHabilitacionId = 9
+        WHERE obj.ObjetivoId = @0
       `, [ObjetivoId, anio, mes])
 
-      if (ordenesVenta.length == 0)
-        throw new ClientException(`No se puede finalizar la carga: el objetivo no tiene órdenes de venta cargadas para el período ${anio}/${mes}`)
+      if (ordenesVenta == 0 || (!ordenesVenta[0]?.NroOrdenVenta && !ordenesVenta[0]?.ObjetivoHabilitacionNecesariaId)) {
+        // TODO: DESCOMENTAR CUANDO SE HABILITE EN PRODUCCION EL USO
+        // throw new ClientException(`No se puede finalizar la carga. El objetivo debe tener al menos una órden de venta cargada para el período ${anio}/${mes}`)
+      }
 
       // Las órdenes de venta del objetivo en el período que siguen pendientes pasan a finalizadas
       if (ordenesVenta.some((orden: any) => orden.EstadoOrdenVentaCodigo == 'PEN')) {
