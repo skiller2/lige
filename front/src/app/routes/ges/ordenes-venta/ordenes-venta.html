@@ -117,7 +117,6 @@
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
     [clienteId]="clienteId()" [clienteElementoDependienteId]="clienteElementoDependienteId()"
     [soloLectura]="soloLectura()" origen="ordenes-venta" [comprobantesOrden]="comprobantes()"
-    [observacionesOrden]="cabecera().Observaciones ?? null"
     [estadoOrdenVentaCodigo]="estadoOrdenVenta()"
     [detalleImportado]="detalleImportado()" (detalleChange)="detalle.set($event)"
     (guardado)="ordenVentaGuardada()" />
@@ -137,12 +136,6 @@
     </div>
 
     <!-- En consulta no hay nada para guardar -->
-    @if (!soloLectura()) {
-    <button nz-button nzType="primary" (click)="ordenVentaForm.save()" [nzLoading]="ordenVentaForm.guardando()"
-      [disabled]="(!ordenVentaForm.conCambios() && !estadoCambiado()) || ordenVentaForm.guardando() || !puedeGuardar()">
-      {{ 'app.btn.save' | i18n }}
-    </button>
-    }
 
     <div style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
       <label>Total Orden de Venta</label>

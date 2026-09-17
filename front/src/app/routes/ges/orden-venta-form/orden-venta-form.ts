@@ -8,7 +8,8 @@ import { firstValueFrom, map } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { applyEach, disabled, form, required, submit } from '@angular/forms/signals';
+import { applyEach, disabled, form, FormField, required, submit } from '@angular/forms/signals';
+import { FormsModule } from '@angular/forms';
 
 function numeroRequerido(control: AbstractControl): ValidationErrors | null {
   const valor = control.value
@@ -72,12 +73,12 @@ export interface Producto {
   id: number,
   ProductoCodigo: string,
   Producto: string,
-  Cantidad: number,
-  ImporteUnitario: number,
+  Cantidad: string,
+  ImporteUnitario: string,
   PrecioDeLista: number,
   TextoFactura: string,
-  CantidadEnFactura: number,
-  ImporteTotal: number,
+  CantidadEnFactura: string,
+  ImporteTotal: string,
   // Ocultos en la pantalla: van con valor fijo
   TipoCantidad: string,
   TipoImporte: string,
@@ -88,6 +89,7 @@ export interface Producto {
 export interface Comprobante {
   ComprobanteTipoCodigo: string;
   ComprobanteNro: string;
+  ImporteTotal:string;
 }
 
 export interface OrdenVentaForm {
@@ -107,7 +109,7 @@ export interface OrdenVentaForm {
 @Component({
   selector: 'app-orden-venta-form',
   standalone: true,
-  imports: [SHARED_IMPORTS, CommonModule, ProductoSearchComponent],
+  imports: [SHARED_IMPORTS, CommonModule, FormsModule, FormField],
   templateUrl: './orden-venta-form.html',
   styleUrl: './orden-venta-form.less',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -183,27 +185,29 @@ export class OrdenVentaFormComponent {
   optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(), { initialValue: [] })
   optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
   optionsComprobanteTipo = toSignal(this.searchService.getComprobanteTipoSearch(), { initialValue: [] })
+  optionsTipoProducto = toSignal(this.searchService.getTipoProductoSearch(), { initialValue: [] })
 
 
   private readonly defaultProducto: Producto = {
     id: 0,
     ProductoCodigo: '',
-    Cantidad: 0,
+    Cantidad: '',
     CantidadEstandar: 0,
     PrecioDeLista: 0,
     Producto: '',
     TipoImporte: '',
     TipoCantidad: '',
-    ImporteUnitario: 0,
-    ImporteTotal: 0,
+    ImporteUnitario: '',
+    ImporteTotal: '',
     TextoFactura: '',
-    CantidadEnFactura: 0,
+    CantidadEnFactura: '',
     Bonificacion: 0
   };
 
   private readonly defaultComprobante: Comprobante = {
     ComprobanteNro: '',
-    ComprobanteTipoCodigo: ''
+    ComprobanteTipoCodigo: '',
+    ImporteTotal:''
   };
 
   private readonly defaultOrdenVenta: OrdenVentaForm = {
@@ -268,9 +272,9 @@ export class OrdenVentaFormComponent {
 
   // El detalle tiene cambios sin guardar. dirty/pristine no son señales, así que el estado se
   // refleja acá para que un contenedor OnPush pueda habilitar su botón de guardar.
-/*
-  titulos = computed<string[]>(() =>
-    this.itemsValue().map(item => {
+
+  titulos = computed(() =>
+    this.ordenVenta().items.map(item => {
       // La cantidad en cero es un ítem recién creado, no se muestra
       const cantidad = Number(item?.Cantidad ?? 0) || ''
       return [cantidad, item?.ProductoCodigo, item?.Producto]
@@ -280,8 +284,9 @@ export class OrdenVentaFormComponent {
     })
   )
 
-  importes = computed<number[]>(() => this.itemsValue().map(item => Number(item?.ImporteTotal ?? 0)))
+  importes = computed(() => this.ordenVenta().items.map(item => Number(item?.ImporteTotal ?? 0)))
 
+  /*
   // Comprobantes tal cual están en pantalla, para el contenedor
   private comprobanteValue = toSignal(this.formComprobante.valueChanges, {
     initialValue: this.formComprobante.getRawValue()
@@ -324,7 +329,7 @@ export class OrdenVentaFormComponent {
   )
 */
   // Se prende al intentar guardar: recién ahí se señalan los ítems incompletos
-  validado = signal(false)
+  //validado = signal(false)
 
   // Ítems a los que les falta algún campo obligatorio
 
@@ -746,6 +751,10 @@ export class OrdenVentaFormComponent {
     })
   }
 
+  clearForm(): void {
+    this.ordenVenta.set(this.defaultOrdenVenta)
+    this.formOrdenVenta().reset();
+  }
 
 
 
