@@ -182,7 +182,10 @@
 
 </nz-card>
 
-<!-- El drawer lo abre la solapa, y al cerrarse se vuelve al listado -->
+<!-- El drawer lo abre la solapa, y al cerrarse se vuelve al listado. Se instancia recién al
+     abrirse para que sus resource no participen del render inicial de la pantalla. -->
+@if (enMasiva()) {
 <app-orden-venta-masiva-drawer [ordenes]="ordenesSeleccionadas()" [visible]="enMasiva()"
   (visibleChange)="$event ? null : volverAlListado()"
   (guardado)="refreshTick.update(n => n + 1)" />
+}

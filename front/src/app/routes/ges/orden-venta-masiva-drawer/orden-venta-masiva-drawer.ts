@@ -57,7 +57,7 @@ export class OrdenVentaMasivaDrawerComponent {
   clientes = computed<ClienteOrdenes[]>(() => {
     const porCliente = new Map<number, ClienteOrdenes>()
 
-    for (const orden of this.ordenes()) {
+    for (const orden of this.ordenes() ?? []) {
       const ClienteId = Number(orden?.ClienteId ?? 0)
 
       if (!porCliente.has(ClienteId))
@@ -116,7 +116,7 @@ export class OrdenVentaMasivaDrawerComponent {
   // de la selección, porque si no, editarlo cambiaría una orden que no se eligió.
   private comprobantesSeleccion = resource({
     params: () => ({
-      ordenes: this.ordenes().map(orden => Number(orden?.NroOrdenVenta)).filter(Number.isFinite)
+      ordenes: (this.ordenes() ?? []).map(orden => Number(orden?.NroOrdenVenta)).filter(Number.isFinite)
     }),
     loader: async ({ params }) => {
       if (!params.ordenes.length) return []
