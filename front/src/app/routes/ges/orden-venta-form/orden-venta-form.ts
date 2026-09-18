@@ -102,35 +102,19 @@ export class OrdenVentaFormComponent {
   anio = input<number>(0)
   mes = input<number>(0)
 
-  // Salen de la cabecera. El back valida que el objetivo pertenezca a este cliente antes de guardar
   ClienteId = input<number | null>(null)
   ClienteElementoDependienteId = input<number | null>(null)
 
   // En consulta el detalle se muestra completo pero no se edita
   soloLectura = input<boolean>(false)
 
-  // Comprobantes que ya tiene la orden, de la cabecera (/api/orden-venta/cabecera)
-  comprobantesOrden = input<any[]>([])
-
-
   // Desde dónde se abrió el detalle. El drawer de la carga de asistencia y la pantalla de órdenes
   // de venta comparten este formulario, pero no muestran los mismos campos.
   origenCrud = input<boolean>(false)
 
-
-  // Estado elegido a mano en la pantalla de órdenes de venta. Sin estado el back lo resuelve por
-  // los comprobantes, que es como se guarda desde la carga de asistencia.
-  estadoOrdenVentaCodigo = input<string | null>(null)
-
-  detalleImportado = input<boolean>(false)
-
-  // "Nueva sin plantilla": el guardado tiene que dar de alta otra orden, aunque el objetivo ya
-  // tenga una en el período
-  nuevaOrden = input<boolean>(false)
-
   // Orden del período que se está editando. En cero el back graba sobre la última, que es lo que
   // hacían las pantallas cuando el período tenía una sola.
-  nroOrdenVenta = input<number>(0)
+  NroOrdenVenta = input<number>(0)
 
   // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
 
@@ -143,17 +127,14 @@ export class OrdenVentaFormComponent {
   // muestre las horas a facturar 'A' / 'B' actualizadas sin esperar el guardado
 
 
-  private destroyRef = inject(DestroyRef)
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
-  private cdr = inject(ChangeDetectorRef)
   private notification = inject(NzNotificationService)
 
   optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(), { initialValue: [] })
   optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
   optionsComprobanteTipo = toSignal(this.searchService.getComprobanteTipoSearch(), { initialValue: [] })
   optionsTipoProducto = toSignal(this.searchService.getTipoProductoSearch(), { initialValue: [] })
-
 
   private readonly defaultProducto: Producto = {
     id: 0,
@@ -189,7 +170,6 @@ export class OrdenVentaFormComponent {
   }
 
   readonly ordenVenta = signal<OrdenVentaForm>(this.defaultOrdenVenta);
-
 
   readonly formOrdenVenta = form(this.ordenVenta, (p) => {
     disabled(p, () => this.soloLectura())
@@ -641,12 +621,12 @@ export class OrdenVentaFormComponent {
   }
 
   private effecto = effect(() => {
-    const nroOrdenVenta= this.nroOrdenVenta()
-    if (nroOrdenVenta>0){
-      console.log('cargo orden de venta',nroOrdenVenta)
-    } else if (nroOrdenVenta==-1) {
+    const NroOrdenVenta= this.NroOrdenVenta()
+    if (NroOrdenVenta>0){
+      console.log('cargo orden de venta',NroOrdenVenta)
+    } else if (NroOrdenVenta==-1) {
       console.log('limpio formulario')
-    } else if (nroOrdenVenta==-2) {
+    } else if (NroOrdenVenta==-2) {
       console.log('traigo mes anterior')
     }
   })

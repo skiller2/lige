@@ -81,7 +81,7 @@ export class CargaAsistenciaComponent {
     diffHoras = signal(0)
     ClienteId= signal(0)
     ClienteElementoDependienteId= signal(0)
-
+    tituloDrawerOrdenVenta = signal<string>('')
     addGridData = signal<boolean>(false);
 
     public get Busqueda() {
@@ -126,6 +126,7 @@ export class CargaAsistenciaComponent {
                 this.selectedSucursalId.set(data[1][0]?.SucursalId)
                 this.gridOptionsEdit.params.SucursalId = data[1][0]?.SucursalId
                 this.excelExportOption.filename = `${this.selectedPeriod.year}-${this.selectedPeriod.month}-${data[2][0]?.ObjetivoCodigo}-${data[1][0]?.ClienteDenominacion}-${data[2][0]?.ClienteElementoDependienteDescripcion}`
+                this.tituloDrawerOrdenVenta.set(`${data[1][0]?.ClienteId}/${data[1][0]?.ClienteElementoDependienteId} ${data[1][0]?.ClienteDenominacion} ${data[2][0]?.ClienteElementoDependienteDescripcion}`)
                 this.customHeaderExcel = [
                     [{ value: `Año: ${anio}` }],
                     [{ value: `Mes: ${mes}` }],

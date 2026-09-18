@@ -308,13 +308,14 @@
     </angular-slickgrid>
   </div>
 </nz-card>
-
 <app-orden-venta-drawer [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
   [ClienteId]="ClienteId()"
   [ClienteElementoDependienteId]="ClienteElementoDependienteId()"
   (ordenVentaChange)="ordenVentaGuardada($event)"
-  [(visible)]="visibleOrdenVenta"></app-orden-venta-drawer>
+  [(visible)]="visibleOrdenVenta"
+  [titulo]="tituloDrawerOrdenVenta()"
+  [TotalHorasReales]="carasistForm.form.getRawValue().TotalHorasReales"
+  ></app-orden-venta-drawer>
 
 <app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId()"
   [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>
-  

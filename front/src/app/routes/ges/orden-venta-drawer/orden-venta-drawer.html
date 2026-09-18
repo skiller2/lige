@@ -2,37 +2,35 @@
   [nzTitle]="titulo()" (nzOnClose)="cerrar()">
   <ng-container *nzDrawerContent>
     @if (visible()) {
-  <nz-form-item class="marginElement">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Período</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
-      <input nz-input [value]="(mes() | number:'2.0-0') + '/' + anio()" [disabled]="true" />
-    </nz-form-control>
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Período</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
+        <input nz-input [value]="(mes() | number:'2.0-0') + '/' + anio()" [disabled]="true" />
+      </nz-form-control>
 
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Orden Venta</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-      <nz-select style="width: 100%" [(ngModel)]="ordenVentaSeleccionada" [ngModelOptions]="{ standalone: true }"
-         [nzDropdownMatchSelectWidth]="false">
-        @for (orden of cabecera().Ordenes; track orden.NroOrdenVenta) {
-          <nz-option [nzValue]="orden.NroOrdenVenta" [nzLabel]="orden.NroOrdenVenta+' '+ orden.EstadoOrdenVenta"></nz-option>
-        }
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Orden Venta</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+        <nz-select style="width: 100%" [(ngModel)]="ordenVentaSeleccionada" [ngModelOptions]="{ standalone: true }"
+          [nzDropdownMatchSelectWidth]="false">
+          @for (orden of cabecera().Ordenes; track orden.NroOrdenVenta) {
+          <nz-option [nzValue]="orden.NroOrdenVenta"
+            [nzLabel]="orden.NroOrdenVenta+' '+ orden.EstadoOrdenVenta"></nz-option>
+          }
           <nz-option [nzValue]="-1" [nzLabel]="'Nueva'"></nz-option>
           <nz-option [nzValue]="-2" [nzLabel]="'Nueva (copia anterior)'"></nz-option>
 
-      </nz-select>
-    </nz-form-control>
+        </nz-select>
+      </nz-form-control>
 
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Total Hs. Normales</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
-      <input nz-input [value]="cabecera().TotalHorasNormales | number:'1.2-2'" [disabled]="true" />
-    </nz-form-control>
-  </nz-form-item>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Total Hs. Normales</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
+        <input nz-input [value]="TotalHorasReales() | number:'1.2-2'" [disabled]="true" />
+      </nz-form-control>
+    </nz-form-item>
 
-  <!-- Sin botón de guardar: se graba al pasar de un campo a otro y al cerrar el drawer -->
-    <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()"
-      [ClienteId]="ClienteId()" [ClienteElementoDependienteId]="ClienteElementoDependienteId()"
-      [soloLectura]="false" [nroOrdenVenta]="ordenVentaSeleccionada()"
-       (ordenVentaGuardada)="ordenVentaGuardada($event)"
-      />
+    <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [ClienteId]="ClienteId()"
+      [ClienteElementoDependienteId]="ClienteElementoDependienteId()" [soloLectura]="false"
+      [NroOrdenVenta]="ordenVentaSeleccionada()" (ordenVentaGuardada)="ordenVentaGuardada($event)" />
     }
   </ng-container>
 </nz-drawer>

@@ -250,7 +250,7 @@ export class OrdenVentaController extends BaseController {
       ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC
     `, [null, desde.anio, desde.mes, hasta.anio, hasta.mes, ClienteId,ClienteElementoDependienteId]);
 
-    return ordenes[0];
+    return ordenes[0].NroOrdenVenta;
   }
 
   // Período desplazado en meses, con el año corregido cuando la cuenta lo cruza
@@ -310,7 +310,7 @@ export class OrdenVentaController extends BaseController {
       // Sin orden propia se copia la última de los meses anteriores: los ítems son nuevos (id 0),
       // pero el detalle se arrastra completo, salvo la cantidad de los productos de horas.
       const ordenBase = orden ?? await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
-      const esNueva = !orden;
+
 
       let items: any[] = [];
 
@@ -353,7 +353,7 @@ export class OrdenVentaController extends BaseController {
           ) hs
           WHERE item.NroOrdenVenta = @0
           ORDER BY item.ItemOrdenVentaCodigo
-        `, [ordenBase.NroOrdenVenta, esNueva ? 1 : 0, ordenBase.ClienteId, anio, mes,
+        `, [ordenBase.NroOrdenVenta, 0, ordenBase.ClienteId, anio, mes,
             ordenBase.ClienteElementoDependienteId, PRODUCTO_HORAS_A, PRODUCTO_HORAS_B]);
       }
 
@@ -361,11 +361,11 @@ export class OrdenVentaController extends BaseController {
         {
           total: items.length,
           list: items,
-          esNueva,
+          //esNueva,
           NroOrdenVenta: orden?.NroOrdenVenta ?? null,
           // De dónde salió el detalle, para avisar en pantalla que es una orden inicializada
-          origenAnio: esNueva && ordenBase ? Number(ordenBase.PeriodoAnio) : anio,
-          origenMes: esNueva && ordenBase ? Number(ordenBase.PeriodoMes) : mes,
+          //origenAnio: esNueva && ordenBase ? Number(ordenBase.PeriodoAnio) : anio,
+          //origenMes: esNueva && ordenBase ? Number(ordenBase.PeriodoMes) : mes,
         },
         res
       );
@@ -385,52 +385,12 @@ export class OrdenVentaController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const cabecera = await queryRunner.query(`
-        SELECT
-          @1 AS Anio,
-          @2 AS Mes,
-          obj.ObjetivoId, obj.ClienteId, ISNULL(obj.ClienteElementoDependienteId,0) AS ClienteElementoDependienteId,
-          CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',TRIM(ISNULL(cli.ClienteDenominacion,'')),' ',TRIM(ISNULL(eledep.ClienteElementoDependienteDescripcion,''))) AS ObjetivoNombre,
-          ord.NroOrdenVenta,
-          ord.EstadoOrdenVentaCodigo,
-          ord.ImporteTotalAFacturar,
-          ord.Observaciones,
-          est.Descripcion AS EstadoOrdenVenta
-        FROM Objetivo obj
-        LEFT JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
-        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
-        OUTER APPLY (
-          SELECT TOP 1 ov.NroOrdenVenta, ov.EstadoOrdenVentaCodigo, ov.ImporteTotalAFacturar, ov.Observaciones
-          FROM OrdenVenta ov
-          WHERE ov.ClienteId = obj.ClienteId
-            AND ov.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
-            AND ov.PeriodoAnio = @1 AND ov.PeriodoMes = @2
-          ORDER BY ov.NroOrdenVenta DESC
-        ) ord
-        LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
-        WHERE obj.ClienteId = @3 AND obj.ClienteElementoDependienteId=@4
-      `, [null, anio, mes,ClienteId, ClienteElementoDependienteId]);
-
-      // Todas las órdenes del período: la carga de asistencia las ofrece en un select para
-      // elegir cuál editar
       const ordenes = await OrdenVentaController.getOrdenesVentaPeriodo(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
 
-      // Sin órdenes en el período, el alta arranca con la plantilla de los meses anteriores
-      // siempre que haya uno con detalle. Con órdenes en el período la pantalla no lo mira.
-      const ordenBase = ordenes.length
-        ? null
-        : await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId,ClienteElementoDependienteId, anio, mes);
-
-      const itemsPlantilla = ordenBase
-        ? await queryRunner.query(
-          `SELECT COUNT(*) AS Cantidad FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [ordenBase.NroOrdenVenta])
-        : [];
-
-      const TienePlantilla = Number(itemsPlantilla[0]?.Cantidad ?? 0) > 0;
+      const NroOrdenVentaBase = await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId,ClienteElementoDependienteId, anio, mes);
 
       // Los comprobantes de la orden. Una orden puede tener más de uno, de distinto tipo.
-      const NroOrdenVenta = cabecera[0]?.NroOrdenVenta;
-
+/*
       const comprobantes = NroOrdenVenta
         ? await queryRunner.query(`
             SELECT com.ComprobanteNro, com.ComprobanteTipoCodigo, com.ImporteTotal,
@@ -441,16 +401,11 @@ export class OrdenVentaController extends BaseController {
             ORDER BY com.AudFechaIng, com.ComprobanteNro
           `, [NroOrdenVenta])
         : [];
-
-      const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ClienteId = ${ClienteId}`,`obj.ClienteElementoDependienteId = ${ClienteElementoDependienteId}`], queryRunner)
-
+*/
       this.jsonRes(
         {
-          ...(cabecera[0] ?? {}),
           Ordenes: ordenes,
-          TienePlantilla,
-          Comprobantes: comprobantes,
-          TotalHorasNormales: Number(asistencia.TotalHorasReal ?? 0)
+          NroOrdenVentaBase:NroOrdenVentaBase
         },
         res
       );

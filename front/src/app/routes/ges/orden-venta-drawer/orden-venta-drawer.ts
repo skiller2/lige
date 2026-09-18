@@ -42,11 +42,8 @@ export class OrdenVentaDrawerComponent {
       }
   })
 
-  titulo = computed(() => {
-    const nombre = this.cabecera().ObjetivoNombre
-    return nombre ? ` ${nombre}` : 'Órdenes de Venta'
-  })
-
+  titulo = input<string>('N/D')
+  TotalHorasReales = input<number>(0)
   // No hay botón de guardar: al cerrar se graba lo pendiente. Si no se pudo grabar (detalle
   // incompleto o error) el drawer queda abierto con los errores a la vista.
   async cerrar() {
