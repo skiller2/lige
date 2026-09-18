@@ -39,6 +39,9 @@ const PRODUCTO_HORAS_A = 'SSF'
 const PRODUCTO_HORAS_B = 'SSFB'
 const PRODUCTOS_HORAS = [PRODUCTO_HORAS_A, PRODUCTO_HORAS_B]
 
+// Código del estado "Facturado": pasar a él obliga a tener un comprobante completo
+export const ESTADO_FACTURADO = 'FAC'
+
 // Estados (por descripción) en los que la orden ya no se modifica: el detalle se abre sólo para
 // consulta, igual que valida el back al guardar
 const ESTADOS_NO_MODIFICABLES = ['A FACTURAR', 'FACTURADO']
@@ -116,6 +119,16 @@ export class OrdenVentaFormComponent {
   // hacían las pantallas cuando el período tenía una sola.
   NroOrdenVenta = input<number>(0)
 
+  // Estado elegido en la pantalla de órdenes de venta. Sin estado el back lo resuelve por los
+  // comprobantes, que es como se guarda desde la carga de asistencia.
+  EstadoOrdenVentaCodigo = input<string | null>(null)
+
+  // Con "Facturado" elegido los datos del comprobante pasan a ser obligatorios
+  esFacturado = computed(() =>
+    String(this.EstadoOrdenVentaCodigo() ?? '').trim().toUpperCase() === ESTADO_FACTURADO)
+
+  comprobanteObligatorio = computed(() => this.esFacturado() && !this.soloLectura())
+
   // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
 
   // Período cerrado en la asistencia: los ítems de los productos de horas no se pueden editar
@@ -177,9 +190,12 @@ export class OrdenVentaFormComponent {
       required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido', when: (ctx) => Number(ctx.valueOf(productoPath.Cantidad)) > 0, });
       required(productoPath.Cantidad, { message: 'Cantidad es requerido', when: (ctx) => ctx.valueOf(productoPath.ProductoCodigo) != "", });
     });
+    // Con "Facturado" los tres datos del comprobante son obligatorios; si no, van los tres juntos
+    // o ninguno
     applyEach(p.comprobantes, (comprobantePath) => {
-      required(comprobantePath.ComprobanteTipoCodigo, { message: 'Código comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteNro) != "", });
-      required(comprobantePath.ComprobanteNro, { message: 'Número de comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != "", });
+      required(comprobantePath.ComprobanteTipoCodigo, { message: 'Código comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteNro) != "" || this.esFacturado(), });
+      required(comprobantePath.ComprobanteNro, { message: 'Número de comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != "" || this.esFacturado(), });
+      required(comprobantePath.ImporteTotal, { message: 'Importe total del comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != "" || ctx.valueOf(comprobantePath.ComprobanteNro) != "" || this.esFacturado(), });
     });
 
     /*
@@ -595,8 +611,22 @@ export class OrdenVentaFormComponent {
 */
   // Devuelve true si la orden quedó grabada. En silencioso (autoguardado al pasar de un campo a
   // otro) un detalle incompleto no se graba ni se marca: se sigue cargando sin carteles de error.
+  // Un comprobante con los tres datos cargados
+  private comprobanteCompleto = computed(() =>
+    this.ordenVenta().comprobantes.some(comprobante =>
+      String(comprobante.ComprobanteTipoCodigo ?? '').trim() != ''
+      && String(comprobante.ComprobanteNro ?? '').trim() != ''
+      && String(comprobante.ImporteTotal ?? '').trim() != ''))
+
   async save(opciones: { silencioso?: boolean } = {}) {
     if (this.soloLectura()) return undefined
+
+    // Pasar a "Facturado" obliga a cargar al menos un comprobante con todos sus datos
+    if (this.esFacturado() && !this.comprobanteCompleto()) {
+      this.notification.error('Orden de venta',
+        'Para pasar la orden a Facturado debe cargar al menos un comprobante con tipo, número e importe total')
+      return undefined
+    }
 
     await submit(this.formOrdenVenta, async (form) => {
       try {

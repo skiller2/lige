@@ -8,6 +8,7 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
+import { ESTADO_FACTURADO } from '../orden-venta-form/orden-venta-form';
 
 // Órdenes de venta seleccionadas, agrupadas por cliente
 interface ClienteOrdenes {
@@ -146,6 +147,12 @@ export class OrdenVentaMasivaDrawerComponent {
   // Cambia al guardar: la grilla quedó vieja y hay que releerla
   guardado = output<void>()
 
+  // Con "Facturado" elegido para el cliente, los datos del comprobante son obligatorios
+  comprobanteObligatorio(indice: number): boolean {
+    return String(this.clientesArray().at(indice)?.get('EstadoOrdenVentaCodigo')?.value ?? '')
+      .trim().toUpperCase() === ESTADO_FACTURADO
+  }
+
   async save() {
     if (this.guardando()) return
 
@@ -158,6 +165,17 @@ export class OrdenVentaMasivaDrawerComponent {
       ComprobanteNro: String(cliente.ComprobanteNro ?? '').trim(),
       ImporteTotal: aNumero(cliente.ImporteTotal)
     }))
+
+    // Pasar a "Facturado" obliga a cargar el comprobante del cliente, con todos sus datos
+    const sinComprobante = clientes.filter((cliente: any) =>
+      String(cliente.EstadoOrdenVentaCodigo ?? '').trim().toUpperCase() === ESTADO_FACTURADO
+      && (!cliente.ComprobanteTipoCodigo || !cliente.ComprobanteNro || cliente.ImporteTotal == null))
+
+    if (sinComprobante.length) {
+      this.notification.error('Órdenes de venta', sinComprobante.map((cliente: any) =>
+        `Cliente ${cliente.ClienteId}: para pasar a Facturado debe cargar el comprobante (tipo, número e importe total)`).join(' | '))
+      return
+    }
 
     // Sólo se mandan los comprobantes que se tocaron: el resto no tiene nada que actualizar
     const comprobantes = this.comprobantesArray().controls

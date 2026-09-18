@@ -677,6 +677,12 @@ export class OrdenVentaController extends BaseController {
 
       const facturada = hayFactura(comprobantesRecibidos ? comprobantes : comprobantesActuales);
 
+      // Para pasar a "Facturado" la orden tiene que quedar con al menos un comprobante completo.
+      // Los recibidos ya se validaron completos, y los grabados lo están por ser NOT NULL.
+      if (estadoElegido === ESTADO_ORDEN_VENTA_FACTURADA
+        && !(comprobantesRecibidos ? comprobantes : comprobantesActuales).length)
+        throw new ClientException('Para pasar la orden a Facturado debe cargar al menos un comprobante con tipo, número e importe total');
+
       // El estado elegido a mano le gana al que sale de los comprobantes
       const estadoOrden = estadoElegido
         || (facturada ? ESTADO_ORDEN_VENTA_FACTURADA : ESTADO_ORDEN_VENTA_INICIAL);
@@ -917,6 +923,9 @@ export class OrdenVentaController extends BaseController {
             errores.push(`${donde}: el importe total '${grupo.ImporteTotal}' no es un número válido`);
         }
 
+        // Pasar a "Facturado" obliga a cargar el comprobante, con todos sus datos
+        if (String(grupo?.EstadoOrdenVentaCodigo ?? '').trim() === ESTADO_ORDEN_VENTA_FACTURADA && !conComprobante)
+          errores.push(`${donde}: para pasar a Facturado debe cargar el comprobante (tipo, número e importe total)`);
       }
 
       // Los tres campos del comprobante editado son NOT NULL: van completos o no se manda
