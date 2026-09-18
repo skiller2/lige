@@ -72,6 +72,7 @@ import { ValorHoraController } from "../valor-hora/valor-hora.controller.ts";
 import { CuentasBancariasController } from "../cuentas-bancarias/cuentas-bancarias.controller.ts";
 import { InaesController } from "../inaes/inaes.controller.ts";
 import { ProveedoresController } from "../proveedores/proveedores.controller.ts";
+import { DepositosController } from "../despositos/despositos.controller.ts";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -148,4 +149,4 @@ export const cuentasBancariasController = new CuentasBancariasController()
 export const inaesController = new InaesController()
 export const domicilioController = new DomicilioController()
 export const proveedoresController = new ProveedoresController()
-
+export const depositosController = new DepositosController()

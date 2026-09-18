@@ -69,7 +69,7 @@ export class ProveedoresFormComponent {
     CUIT: NaN,
     ProveedorInactivo: 0,
     DomicilioId: 0,
-    domicilio: {},
+    domicilio: null,
     contactos: [structuredClone(this.defaultContacto)],
   }
 
