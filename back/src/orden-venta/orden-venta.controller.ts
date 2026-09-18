@@ -239,7 +239,7 @@ export class OrdenVentaController extends BaseController {
     const hasta = OrdenVentaController.sumarMeses(anio, mes, -1);
     const desde = OrdenVentaController.sumarMeses(anio, mes, -MESES_ORDEN_BASE);
 
-    const ordenes = await queryRunner.query(`
+    const ordenventabase = await queryRunner.query(`
       SELECT TOP 1
         ord.NroOrdenVenta, ord.ClienteId, ord.ClienteElementoDependienteId,
         ord.PeriodoAnio, ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.ImporteTotalAFacturar
@@ -250,7 +250,8 @@ export class OrdenVentaController extends BaseController {
       ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC
     `, [null, desde.anio, desde.mes, hasta.anio, hasta.mes, ClienteId,ClienteElementoDependienteId]);
 
-    return ordenes[0].NroOrdenVenta;
+
+    return ordenventabase[0]?.NroOrdenVenta;
   }
 
   // Período desplazado en meses, con el año corregido cuando la cuenta lo cruza
