@@ -292,7 +292,7 @@ export class OrdenVentaController extends BaseController {
 
     try {
       const ordenDs = await queryRunner.query(`SELECT ord.NroOrdenVenta, ord.ClienteId, ord.ClienteElementoDependienteId,
-        ord.PeriodoAnio,ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, est.Descripcion
+        ord.PeriodoAnio,ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.Observaciones, est.Descripcion
         FROM OrdenVenta ord 
         JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
         WHERE ord.NroOrdenVenta =@0
@@ -302,13 +302,21 @@ export class OrdenVentaController extends BaseController {
 
 
 
-      const items = await queryRunner.query(`SELECT item.NroOrdenVenta, item.ItemOrdenVentaCodigo, item.ProductoCodigo, item.TextoFactura, item.TipoCantidad, item.Cantidad, item.TipoImporte, item.ImporteUnitario, item.CantidadEnFactura
+      const itemsTmp = await queryRunner.query(`SELECT item.NroOrdenVenta, item.ItemOrdenVentaCodigo, item.ProductoCodigo, item.TextoFactura, item.TipoCantidad, item.Cantidad, item.TipoImporte, item.ImporteUnitario, item.CantidadEnFactura
           FROM ItemOrdenVenta item
-          WHERE item.NroOrdenVenta =@1
+          WHERE item.NroOrdenVenta =@0
         `, [NroOrdenVenta])
-      const comprobantes = await queryRunner.query(`SELECT item.NroOrdenVenta, item.ItemOrdenVentaCodigo, item.ProductoCodigo, item.TextoFactura, item.TipoCantidad, item.Cantidad, item.TipoImporte, item.ImporteUnitario, item.CantidadEnFactura
-          FROM ItemOrdenVenta item
-          WHERE item.NroOrdenVenta =@1
+
+const items = itemsTmp.map(item => ({
+...item,
+Cantidad: item.Cantidad?.toString() ?? '',
+ImporteUnitario: item.ImporteUnitario?.toString() ?? '',
+CantidadEnFactura: item.CantidadEnFactura?.toString() ?? '',
+}));
+        
+      const comprobantes = await queryRunner.query(`SELECT com.NroOrdenVenta, com.ComprobanteNro, com.ComprobanteTipoCodigo, com.ImporteTotal
+          FROM Comprobante com
+          WHERE com.NroOrdenVenta =@0
         `, [NroOrdenVenta])
 
       ordenDs[0].items=items

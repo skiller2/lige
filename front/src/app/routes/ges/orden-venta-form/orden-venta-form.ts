@@ -1,34 +1,13 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, computed, DestroyRef, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
-import { ProductoSearchComponent } from '../../../shared/producto-search/producto-search.component';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { AbstractControl, ValidationErrors } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom, map } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { applyEach, disabled, form, FormField, required, submit } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
-
-function numeroRequerido(control: AbstractControl): ValidationErrors | null {
-  const valor = control.value
-  if (valor == null || String(valor).trim() === '') return { required: true }
-  return Number.isFinite(Number(String(valor).replace(/\./g, '').replace(',', '.'))) ? null : { numero: true }
-}
-
-function vacioSiCero(valor: any): number | null {
-  return valor == null || String(valor).trim() === '' || Number(valor) === 0 ? null : valor
-}
-
-// Valor de un input enmascarado como número, o null si todavía no se cargó
-function aNumero(valor: any): number | null {
-  if (valor == null || String(valor).trim() === '') return null
-  const texto = String(valor)
-  // Con coma decimal el texto trae también separador de miles
-  const numero = Number(texto.includes(',') ? texto.replace(/\./g, '').replace(',', '.') : texto)
-  return Number.isFinite(numero) ? numero : null
-}
 
 const TIPO_CANTIDAD_MANUAL = 'V'
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP'
@@ -46,9 +25,6 @@ export const ESTADO_FACTURADO = 'FAC'
 // consulta, igual que valida el back al guardar
 const ESTADOS_NO_MODIFICABLES = ['A FACTURAR', 'FACTURADO']
 
-export const ordenVentaNoModificable = (descripcionEstado: any): boolean =>
-  ESTADOS_NO_MODIFICABLES.includes(String(descripcionEstado ?? '').trim().toUpperCase())
-
 // Cantidades guardadas de los productos de horas, o null si la orden no los incluye
 export interface HorasAFacturar {
   A: number | null
@@ -56,7 +32,7 @@ export interface HorasAFacturar {
 }
 
 export interface Producto {
-  id: number,
+  ItemOrdenVentaCodigo: number,
   ProductoCodigo: string,
   Producto: string,
   Cantidad: string,
@@ -124,7 +100,7 @@ export class OrdenVentaFormComponent {
   optionsTipoProducto = toSignal(this.searchService.getTipoProductoSearch(), { initialValue: [] })
 
   private readonly defaultProducto: Producto = {
-    id: 0,
+    ItemOrdenVentaCodigo: 0,
     ProductoCodigo: '',
     Cantidad: '',
     CantidadEstandar: 0,
@@ -224,9 +200,7 @@ export class OrdenVentaFormComponent {
   )
 
   importes = computed(() => this.ordenVenta().items.map(item => Number(item.Cantidad) * Number(item.ImporteUnitario)))
-
   totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => sum + valor, 0));
-
 
   /*
   // Comprobantes tal cual están en pantalla, para el contenedor
@@ -585,11 +559,15 @@ export class OrdenVentaFormComponent {
     return detalle.length ? `Complete los campos requeridos. ${detalle.join(' | ')}` : 'Complete los campos requeridos'
   }
 */
-
-
   async load(NroOrdenVenta: number) {
-    const ov= await firstValueFrom(this.apiService.getOrdenVenta(NroOrdenVenta))
-    console.log('Cargo OV', NroOrdenVenta,ov)
+    const ordenVenta = await firstValueFrom(this.apiService.getOrdenVenta(NroOrdenVenta))
+    this.ordenVenta.update(m => ({ ...m, ...ordenVenta }))
+    if (this.ordenVenta().items.length==0)
+      this.addItem()
+    if (this.ordenVenta().comprobantes.length==0)
+      this.addComprobante()
+
+    setTimeout(() => { this.formOrdenVenta().reset() }, 0);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
   }
 
   async loadPlantilla() {
@@ -619,14 +597,20 @@ export class OrdenVentaFormComponent {
     this.formOrdenVenta().reset();
   }
 
+  private lastNroOrdenVenta = -5
   private effecto = effect(() => {
+
     const NroOrdenVenta = this.NroOrdenVenta()
-    if (NroOrdenVenta > 0) {
-      this.load(NroOrdenVenta);
-    } else if (NroOrdenVenta == -2) {
-      this.loadPlantilla();
-    } else {
-      this.clearForm()
+    console.log('cambio this.NroOrdenVenta', NroOrdenVenta)
+    if (this.lastNroOrdenVenta !== NroOrdenVenta) {
+      if (NroOrdenVenta > 0) {
+        this.load(NroOrdenVenta);
+      } else if (NroOrdenVenta == -2) {
+        this.loadPlantilla();
+      } else {
+        this.clearForm()
+      }
+      this.lastNroOrdenVenta = NroOrdenVenta
     }
   })
 

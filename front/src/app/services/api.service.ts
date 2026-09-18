@@ -1977,7 +1977,7 @@ export class ApiService {
   }
 
   getOrdenVenta(NroOrdenVenta:number) {
-    return this.http.post<ResponseJSON<any>>(`/api/orden-venta/:${NroOrdenVenta}}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/orden-venta/${NroOrdenVenta}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of({ total: 0, list: [] }))
     );

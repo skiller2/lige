@@ -7,7 +7,7 @@ import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { TableOrdenVentaComponent } from '../table-orden-venta/table-orden-venta';
-import { OrdenVentaFormComponent, ordenVentaNoModificable } from '../orden-venta-form/orden-venta-form';
+import { OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { OrdenVentaMasivaDrawerComponent } from '../orden-venta-masiva-drawer/orden-venta-masiva-drawer';
 import { ApiService } from '../../../services/api.service';
@@ -76,10 +76,9 @@ export class OrdenesVentaComponent {
 
   // La consulta abre el mismo detalle que la modificación, pero sin poder editarlo ni guardarlo.
   // Las órdenes "A Facturar" y "Facturado" tampoco se modifican: se abren como consulta.
-  soloLectura = computed(() => this.modo() === 'consulta' || this.ordenNoModificable())
+  soloLectura = computed(() => this.modo() === 'consulta' )
 
   // En el alta aplica cuando el objetivo ya tiene orden en el período, que es la que se grabaría
-  ordenNoModificable = computed(() => ordenVentaNoModificable(this.cabecera().EstadoOrdenVenta))
 
   // En el alta el período y el objetivo los elige el usuario; en el resto los trae la fila
   enAlta = computed(() => this.modo() === 'alta')

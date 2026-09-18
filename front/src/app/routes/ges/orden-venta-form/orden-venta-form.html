@@ -15,9 +15,9 @@
       [nzActive]="panelAbierto() === i" (nzActiveChange)="$event ? panelAbierto.set(i) : null">
 
       <nz-form-item style="display:none">
-        <nz-form-label [nzSpan]="3">id</nz-form-label>
+        <nz-form-label [nzSpan]="3">ItemOrdenVentaCodigo</nz-form-label>
         <nz-form-control [nzSpan]="19" sfErrorTip>
-          <input nz-input [formField]="item.id" type="number" />
+          <input nz-input [formField]="item.ItemOrdenVentaCodigo" type="number" />
         </nz-form-control>
       </nz-form-item>
 
