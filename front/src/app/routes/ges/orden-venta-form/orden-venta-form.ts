@@ -108,37 +108,12 @@ export class OrdenVentaFormComponent {
   ClienteId = input<number | null>(null)
   ClienteElementoDependienteId = input<number | null>(null)
 
-  // En consulta el detalle se muestra completo pero no se edita
   soloLectura = input<boolean>(false)
-
-  // Desde dónde se abrió el detalle. El drawer de la carga de asistencia y la pantalla de órdenes
-  // de venta comparten este formulario, pero no muestran los mismos campos.
   origenCrud = input<boolean>(false)
 
-  // Orden del período que se está editando. En cero el back graba sobre la última, que es lo que
-  // hacían las pantallas cuando el período tenía una sola.
   NroOrdenVenta = input<number>(0)
 
-  // Estado elegido en la pantalla de órdenes de venta. Sin estado el back lo resuelve por los
-  // comprobantes, que es como se guarda desde la carga de asistencia.
   EstadoOrdenVentaCodigo = input<string | null>(null)
-
-  // Con "Facturado" elegido los datos del comprobante pasan a ser obligatorios
-  esFacturado = computed(() =>
-    String(this.EstadoOrdenVentaCodigo() ?? '').trim().toUpperCase() === ESTADO_FACTURADO)
-
-  comprobanteObligatorio = computed(() => this.esFacturado() && !this.soloLectura())
-
-  // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
-
-  // Período cerrado en la asistencia: los ítems de los productos de horas no se pueden editar
-
-  // Avisa al contenedor que el detalle cambió, para recalcular el total de la orden
-  // Cantidades guardadas de los productos de horas, o null si la orden no los incluye
-
-  // Cantidad de los productos de horas mientras se edita, para que la carga de asistencia
-  // muestre las horas a facturar 'A' / 'B' actualizadas sin esperar el guardado
-
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -193,9 +168,9 @@ export class OrdenVentaFormComponent {
     // Con "Facturado" los tres datos del comprobante son obligatorios; si no, van los tres juntos
     // o ninguno
     applyEach(p.comprobantes, (comprobantePath) => {
-      required(comprobantePath.ComprobanteTipoCodigo, { message: 'Código comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteNro) != "" || this.esFacturado(), });
-      required(comprobantePath.ComprobanteNro, { message: 'Número de comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != "" || this.esFacturado(), });
-      required(comprobantePath.ImporteTotal, { message: 'Importe total del comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != "" || ctx.valueOf(comprobantePath.ComprobanteNro) != "" || this.esFacturado(), });
+      required(comprobantePath.ComprobanteTipoCodigo, { message: 'Código comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteNro) != ""  });
+      required(comprobantePath.ComprobanteNro, { message: 'Número de comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != ""  });
+      //required(comprobantePath.ImporteTotal, { message: 'Importe total del comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != "" || ctx.valueOf(comprobantePath.ComprobanteNro) != "" || this.esFacturado(), });
     });
 
     /*
@@ -611,14 +586,6 @@ export class OrdenVentaFormComponent {
     return detalle.length ? `Complete los campos requeridos. ${detalle.join(' | ')}` : 'Complete los campos requeridos'
   }
 */
-  // Devuelve true si la orden quedó grabada. En silencioso (autoguardado al pasar de un campo a
-  // otro) un detalle incompleto no se graba ni se marca: se sigue cargando sin carteles de error.
-  // Un comprobante con los tres datos cargados
-  private comprobanteCompleto = computed(() =>
-    this.ordenVenta().comprobantes.some(comprobante =>
-      String(comprobante.ComprobanteTipoCodigo ?? '').trim() != ''
-      && String(comprobante.ComprobanteNro ?? '').trim() != ''
-      && String(comprobante.ImporteTotal ?? '').trim() != ''))
 
 
   async load(NroOrdenVenta:number) {
@@ -634,11 +601,6 @@ export class OrdenVentaFormComponent {
     if (this.soloLectura() || this.formOrdenVenta().submitting() || this.formOrdenVenta().dirty()==false || this.formOrdenVenta().valid()==false) return undefined
 
     // Pasar a "Facturado" obliga a cargar al menos un comprobante con todos sus datos
-    if (this.esFacturado() && !this.comprobanteCompleto()) {
-      this.notification.error('Orden de venta',
-        'Para pasar la orden a Facturado debe cargar al menos un comprobante con tipo, número e importe total')
-      return undefined
-    }
 
     await submit(this.formOrdenVenta, async (form) => {
       try {
