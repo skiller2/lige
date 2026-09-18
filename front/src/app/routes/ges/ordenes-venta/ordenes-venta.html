@@ -86,7 +86,7 @@
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
       @if (enAlta()) {
       <app-objetivo-search [ngModel]="objetivoAlta()" [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="objetivoAlta.set($event)" />
+        (ngModelChange)="objetivoAlta.set($event)" (valueExtendedChange)="objetivoAltaInfo.set($event)" />
       } @else {
       <app-objetivo-search [ngModel]="objetivoId()" [ngModelOptions]="{ standalone: true }" [disabled]="true" />
       }

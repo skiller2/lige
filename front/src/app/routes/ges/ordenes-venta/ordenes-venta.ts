@@ -91,6 +91,11 @@ export class OrdenesVentaComponent {
   periodoAlta = signal<Date | null>(null)
   objetivoAlta = signal<any>(null)
 
+  // Datos del objetivo elegido en el alta, como los emite app-objetivo-search
+  // ({ objetivoId, clienteId, ClienteElementoDependienteId, descripcion, fullName }). De acá sale
+  // el cliente con el que se graba: pedirlo a la cabecera haría que el resource dependa de sí mismo.
+  objetivoAltaInfo = signal<any>(null)
+
   // Período y objetivo identifican a la orden, sea la de la fila o la que se está dando de alta
   objetivoId = computed(() =>
     Number((this.enAlta() ? this.objetivoAlta() : this.ordenAbierta()?.ObjetivoId) ?? 0))
@@ -106,25 +111,40 @@ export class OrdenesVentaComponent {
 
   periodoCompleto = computed(() => this.objetivoId() > 0 && this.anio() > 0 && this.mes() > 0)
 
-  // Cabecera del período (/api/orden-venta/cabecera). En el alta es la única forma de saber a qué
-  // cliente/elemento dependiente pertenece el objetivo elegido, que es lo que el guardado valida.
+  // Cliente y elemento dependiente de la orden: en el alta salen del objetivo elegido, y en el
+  // resto de la fila de la grilla. No se leen de la cabecera: es lo que pide el resource de abajo.
+  clienteId = computed<number | null>(() => {
+    const valor = this.enAlta() ? this.objetivoAltaInfo()?.clienteId : this.ordenAbierta()?.ClienteId
+    return valor == null ? null : Number(valor)
+  })
+
+  clienteElementoDependienteId = computed<number | null>(() => {
+    const valor = this.enAlta()
+      ? this.objetivoAltaInfo()?.ClienteElementoDependienteId
+      : this.ordenAbierta()?.ClienteElementoDependienteId
+    return valor == null ? null : Number(valor)
+  })
+
+  // Cabecera del período (/api/orden-venta/cabecera): órdenes del período, comprobantes y estado
   private cabeceraResource = resource({
-    params: () => ({ ClienteId: this.clienteId(),ClienteElementoDependienteId:this.clienteElementoDependienteId(),  anio: this.anio(), mes: this.mes() }),
+    params: () => ({
+      ClienteId: this.clienteId(),
+      ClienteElementoDependienteId: this.clienteElementoDependienteId(),
+      anio: this.anio(),
+      mes: this.mes()
+    }),
     loader: async ({ params }) => {
-      if (!params.ClienteId || !params.ClienteElementoDependienteId || !params.anio || !params.mes) return null
+      // Cero es un valor válido en el elemento dependiente: es el objetivo que no tiene
+      if (!params.ClienteId || params.ClienteElementoDependienteId == null || !params.anio || !params.mes)
+        return null
 
       return await firstValueFrom(
-        this.apiService.getOrdenVentaCabecera(params.ClienteId,params.ClienteElementoDependienteId, params.anio, params.mes))
+        this.apiService.getOrdenVentaCabecera(params.ClienteId, params.ClienteElementoDependienteId, params.anio, params.mes))
     },
     defaultValue: null as any
   })
 
   cabecera = computed<any>(() => this.cabeceraResource.value() ?? {})
-
-  clienteId = computed(() => this.cabecera().ClienteId ?? this.ordenAbierta()?.ClienteId ?? null)
-
-  clienteElementoDependienteId = computed(() =>
-    this.cabecera().ClienteElementoDependienteId ?? this.ordenAbierta()?.ClienteElementoDependienteId ?? null)
 
   // Comprobantes de la orden, tal cual están en Comprobante. Se editan en el detalle.
   comprobantes = computed<any[]>(() => this.cabecera().Comprobantes ?? [])
@@ -148,6 +168,7 @@ export class OrdenesVentaComponent {
       this.ordenAbierta.set(null)
       this.periodoAlta.set(new Date())
       this.objetivoAlta.set(null)
+      this.objetivoAltaInfo.set(null)
     })
 
     // Entrando por url a una solapa que necesita una orden tildada en la grilla no hay ninguna:
