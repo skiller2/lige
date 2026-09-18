@@ -23,15 +23,12 @@
   </nz-form-item>
 
   <!-- Sin botón de guardar: se graba al pasar de un campo a otro y al cerrar el drawer -->
-    <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()" [objetivoId]="objetivoId()" [items]="items()"
-      [horasAFacturarA]="horasAFacturarA()" [horasAFacturarABloqueada]="horasAFacturarABloqueada()"
-      [horasAFacturarB]="horasAFacturarB()" [horasAFacturarBBloqueada]="horasAFacturarBBloqueada()"
-      [clienteId]="cabecera().ClienteId ?? null"
-      [clienteElementoDependienteId]="cabecera().ClienteElementoDependienteId ?? null"
-      [detalleImportado]="detalleImportado()" [nuevaOrden]="esOrdenNueva()" [nroOrdenVenta]="nroOrdenVentaSeleccionada()"
+    <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()"
+      [ClienteId]="cabecera().ClienteId"
+      [ClienteElementoDependienteId]="cabecera().ClienteElementoDependienteId"
       [soloLectura]="soloLectura()"
-      (detalleChange)="detalle.set($event)" (guardado)="ordenVentaGuardada($event)"
-      (horasAFacturarChange)="horasAFacturarChange.emit($event)" origen />
+       (ordenVentaGuardada)="ordenVentaGuardada($event)"
+      />
 
   <nz-divider></nz-divider>
 

@@ -15,7 +15,7 @@ const ORDEN_NUEVA_CON_PLANTILLA = 'nueva-con-plantilla'
 @Component({
   selector: 'app-orden-venta-detalle',
   standalone: true,
-  imports: [...SHARED_IMPORTS, DecimalPipe, CurrencyPipe, OrdenVentaFormComponent],
+  imports: [...SHARED_IMPORTS, DecimalPipe, OrdenVentaFormComponent],
   templateUrl: './orden-venta-detalle.html',
   styleUrl: './orden-venta-detalle.less'
 })
@@ -166,9 +166,9 @@ export class OrdenVentaDetalleComponent {
 
   // Después de guardar cambian tanto el detalle (ítems nuevos con su código) como la
   // cabecera (nro. de orden y estado)
-  ordenVentaGuardada(horasAFacturar: HorasAFacturar) {
+  ordenVentaGuardada(data:any) {
     this.recargar()
-    this.ordenVentaChange.emit(horasAFacturar)
+    this.ordenVentaChange.emit(data)
   }
 
   recargar() {

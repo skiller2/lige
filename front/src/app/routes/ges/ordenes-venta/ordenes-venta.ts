@@ -31,7 +31,7 @@ const MODO_POR_TAB: Partial<Record<TabOrdenVenta, ModoOrdenVenta>> = {
 @Component({
   selector: 'app-ordenes-venta',
   standalone: true,
-  imports: [SHARED_IMPORTS, CurrencyPipe, DatePipe, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
+  imports: [SHARED_IMPORTS, DatePipe, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
     ObjetivoSearchComponent, OrdenVentaMasivaDrawerComponent],
   templateUrl: './ordenes-venta.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

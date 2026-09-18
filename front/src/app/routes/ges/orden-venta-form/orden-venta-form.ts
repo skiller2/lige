@@ -101,11 +101,10 @@ export class OrdenVentaFormComponent {
 
   anio = input<number>(0)
   mes = input<number>(0)
-  objetivoId = input<number>(0)
-
+  
   // Salen de la cabecera. El back valida que el objetivo pertenezca a este cliente antes de guardar
-  clienteId = input<number | null>(null)
-  clienteElementoDependienteId = input<number | null>(null)
+  ClienteId = input<number | null>(null)
+  ClienteElementoDependienteId = input<number | null>(null)
 
   // Ítems que vienen del detalle (/api/orden-venta/list)
   items = input<any[]>([])
@@ -137,21 +136,14 @@ export class OrdenVentaFormComponent {
   nroOrdenVenta = input<number>(0)
 
   // Horas a Facturar 'A' y 'B' de la carga de asistencia, tomadas al abrir el drawer
-  horasAFacturarA = input<number>(0)
-  horasAFacturarB = input<number>(0)
 
   // Período cerrado en la asistencia: los ítems de los productos de horas no se pueden editar
-  horasAFacturarABloqueada = input<boolean>(false)
-  horasAFacturarBBloqueada = input<boolean>(false)
 
   // Avisa al contenedor que el detalle cambió, para recalcular el total de la orden
   // Cantidades guardadas de los productos de horas, o null si la orden no los incluye
-  guardado = output<HorasAFacturar>()
-  detalleChange = output<any[]>()
 
   // Cantidad de los productos de horas mientras se edita, para que la carga de asistencia
   // muestre las horas a facturar 'A' / 'B' actualizadas sin esperar el guardado
-  horasAFacturarChange = output<HorasAFacturar>()
 
 
   private destroyRef = inject(DestroyRef)
