@@ -2478,6 +2478,36 @@ export class ApiService {
     );
   }
 
+  //Depositos
+  getDepositos(parameters: any) {
+    return this.http.post<ResponseJSON<any>>(`api/depositos/list`, parameters).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
+  addDeposito(deposito: any) {
+    return this.http.post<ResponseJSON<any>>('/api/depositos/add', deposito).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  updateDeposito(deposito: any) {
+    return this.http.post<ResponseJSON<any>>('/api/depositos/update', deposito).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  bajaDepositoInactivo(DepositoId: number) {
+    return this.http.get(`/api/depositos/baja/${DepositoId}`).pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+
+        return of([]);
+      })
+    );
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

@@ -72,9 +72,8 @@ export class AddrSearchComponent
   /**
    * Valor seleccionado
    */
-  readonly selectedItem = model<any | null>({});
-
-
+  readonly selectedItem = model<any | null>(null);
+  
   readonly visibleDrawer = signal(false);
 
   readonly loading = signal(false);
