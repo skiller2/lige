@@ -22,16 +22,10 @@ const ORDEN_NUEVA_CON_PLANTILLA = 'nueva-con-plantilla'
 export class OrdenVentaDetalleComponent {
   anio = input<number>(0)
   mes = input<number>(0)
-  objetivoId = input<number>(0)
-  horasAFacturarA = input<number>(0)
-  horasAFacturarB = input<number>(0)
-  horasAFacturarABloqueada = input<boolean>(false)
-  horasAFacturarBBloqueada = input<boolean>(false)
-
+  ClienteId = input<number>(0)
+  ClienteElementoDependienteId = input<number>(0)
   objetivoNombre = output<string>()
-  guardado = output<HorasAFacturar>()
-
-  horasAFacturarChange = output<HorasAFacturar>()
+  ordenVentaChange = output<HorasAFacturar>()
 
   cabecera = signal<any>({})
   isLoading = signal(false)
@@ -92,19 +86,21 @@ export class OrdenVentaDetalleComponent {
   // Detalle de la orden (ítems). Se recarga al cambiar objetivo/período o la orden elegida.
   itemsResource = resource({
     params: () => ({
-      objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes(),
+      anio: this.anio(), mes: this.mes(),
+      ClienteId: this.ClienteId(),
+      ClienteElementoDependienteId: this.ClienteElementoDependienteId(),
       NroOrdenVenta: this.nroOrdenVentaSeleccionada(),
       sinPlantilla: this.esNuevaSinPlantilla(), conPlantilla: this.esNuevaConPlantilla()
     }),
     loader: async ({ params }) => {
-      if (!params.objetivoId || !params.anio || !params.mes) return { list: [], esNueva: false }
+      if (!params.ClienteId || !params.ClienteElementoDependienteId || !params.anio || !params.mes) return { list: [], esNueva: false }
 
       // El alta sin plantilla no trae nada: el detalle se carga de cero
       if (params.sinPlantilla) return { list: [], esNueva: false }
 
       const response = await firstValueFrom(
         this.apiService.getListOrdenVenta(
-          params.objetivoId, params.anio, params.mes, params.NroOrdenVenta, params.conPlantilla)
+          params.ClienteId, params.ClienteElementoDependienteId, params.anio, params.mes, params.NroOrdenVenta, params.conPlantilla)
       )
       return { ...response, list: response.list ?? [] }
     },
@@ -120,13 +116,11 @@ export class OrdenVentaDetalleComponent {
   // Detalle tal cual está en el form (incluye ítems agregados/editados sin guardar)
   detalle = signal<any[]>([])
 
-  // Total Orden de Venta = suma del Importe Total de cada ítem
-
   private ordenVentaForm = viewChild.required<OrdenVentaFormComponent>('ordenVentaForm')
 
   // El usuario tocó el detalle de la orden que se está viendo. Sin esto, abrir y cerrar el drawer
   // grabaría la orden armada sola (plantilla de meses anteriores o productos de horas agregados).
-  
+
   // Al pasar de un campo a otro. Un detalle incompleto no se graba ni muestra errores: se sigue
   // cargando, y los faltantes se avisan al cerrar.
 
@@ -142,8 +136,8 @@ export class OrdenVentaDetalleComponent {
 
         await new Promise(resolve => setTimeout(resolve, 200))
 
-         await this.ordenVentaForm().save()
-         return(true)
+        await this.ordenVentaForm().save()
+        return (true)
       } finally {
         this.cerrarPromise = null
       }
@@ -156,12 +150,13 @@ export class OrdenVentaDetalleComponent {
     // Al cambiar de objetivo, período u orden elegida el detalle arranca sin tocar
 
     effect(() => {
-      const objetivoId = this.objetivoId()
       const anio = this.anio()
       const mes = this.mes()
+      const ClienteId = this.ClienteId()
+      const ClienteElementoDependienteId = this.ClienteElementoDependienteId()
 
-      if (objetivoId > 0 && anio > 0 && mes > 0) {
-        this.getCabecera(objetivoId, anio, mes)
+      if (ClienteId > 0 && anio > 0 && mes > 0) {
+        this.getCabecera(ClienteId, ClienteElementoDependienteId,anio, mes)
       } else {
         this.cabecera.set({})
         this.objetivoNombre.emit('')
@@ -173,19 +168,19 @@ export class OrdenVentaDetalleComponent {
   // cabecera (nro. de orden y estado)
   ordenVentaGuardada(horasAFacturar: HorasAFacturar) {
     this.recargar()
-    this.guardado.emit(horasAFacturar)
+    this.ordenVentaChange.emit(horasAFacturar)
   }
 
   recargar() {
     this.itemsResource.reload()
-    if (this.objetivoId() > 0 && this.anio() > 0 && this.mes() > 0)
-      this.getCabecera(this.objetivoId(), this.anio(), this.mes())
+    if (this.ClienteId() > 0 && this.anio() > 0 && this.mes() > 0)
+      this.getCabecera(this.ClienteId(),this.ClienteElementoDependienteId(), this.anio(), this.mes())
   }
 
-  async getCabecera(objetivoId: number, anio: number, mes: number) {
+  async getCabecera(ClienteId: number, ClienteElementoDependienteId: number, anio: number, mes: number) {
     this.isLoading.set(true)
     try {
-      const cabecera = await firstValueFrom(this.apiService.getOrdenVentaCabecera(objetivoId, anio, mes))
+      const cabecera = await firstValueFrom(this.apiService.getOrdenVentaCabecera(ClienteId, ClienteElementoDependienteId, anio, mes))
       this.cabecera.set(cabecera ?? {})
       this.objetivoNombre.emit(this.cabecera().ObjetivoNombre ?? '')
     } finally {

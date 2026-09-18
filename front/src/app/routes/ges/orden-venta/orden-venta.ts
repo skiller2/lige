@@ -62,11 +62,18 @@ export class OrdenVentaComponent {
 
   // Período y objetivo elegidos en el alta
   periodoAlta = signal<Date | null>(null)
-  objetivoAlta = signal<any>(null)
+  ClienteIdAlta = signal<any>(null)
+  ClienteElementoDependienteIdAlta = signal<any>(null)
 
   // Período y objetivo identifican a la orden, sea la de la fila o la que se está dando de alta
-  objetivoId = computed(() =>
-    Number((this.enAlta() ? this.objetivoAlta() : this.ordenAbierta()?.ObjetivoId) ?? 0))
+  ClienteId = computed(() =>
+    Number((this.enAlta() ? this.ClienteIdAlta() : this.ordenAbierta()?.ClienteId) ?? 0))
+
+  ClienteElementoDependienteId = computed(() =>
+    Number((this.enAlta() ? this.ClienteElementoDependienteIdAlta() : this.ordenAbierta()?.ClienteElementoDependienteId) ?? 0))
+
+
+
 
   anio = computed(() =>
     this.enAlta() ? (this.periodoAlta()?.getFullYear() ?? 0) : Number(this.ordenAbierta()?.PeriodoAnio ?? 0))
@@ -77,27 +84,23 @@ export class OrdenVentaComponent {
     return periodo ? periodo.getMonth() + 1 : 0
   })
 
-  periodoCompleto = computed(() => this.objetivoId() > 0 && this.anio() > 0 && this.mes() > 0)
+  periodoCompleto = computed(() => this.ClienteId() > 0 &&  this.ClienteElementoDependienteId()>0 && this.anio() > 0 && this.mes() > 0)
 
   // Cabecera del período (/api/orden-venta/cabecera). En el alta es la única forma de saber a qué
   // cliente/elemento dependiente pertenece el objetivo elegido, que es lo que el guardado valida.
   private cabeceraResource = resource({
-    params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
+    params: () => ({ ClienteId: this.ClienteId(), ClienteElementoDependienteId: this.ClienteElementoDependienteId(),anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
-      if (!params.objetivoId || !params.anio || !params.mes) return null
+      if (!params.ClienteId || params.ClienteElementoDependienteId|| !params.anio || !params.mes) return null
 
       return await firstValueFrom(
-        this.apiService.getOrdenVentaCabecera(params.objetivoId, params.anio, params.mes))
+        this.apiService.getOrdenVentaCabecera(params.ClienteId,params.ClienteElementoDependienteId, params.anio, params.mes))
     },
     defaultValue: null as any
   })
 
   cabecera = computed<any>(() => this.cabeceraResource.value() ?? {})
 
-  clienteId = computed(() => this.cabecera().ClienteId ?? this.ordenAbierta()?.ClienteId ?? null)
-
-  clienteElementoDependienteId = computed(() =>
-    this.cabecera().ClienteElementoDependienteId ?? this.ordenAbierta()?.ClienteElementoDependienteId ?? null)
 
   // Comprobantes de la orden, tal cual están en Comprobante. Se editan en el detalle.
   comprobantes = computed<any[]>(() => this.cabecera().Comprobantes ?? [])
@@ -124,12 +127,12 @@ export class OrdenVentaComponent {
   // Ítems de la orden (/api/orden-venta/list), el mismo detalle que edita la carga de asistencia.
   // Sin orden del período vuelve inicializado con el del mes anterior.
   private itemsResource = resource({
-    params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
+    params: () => ({ ClienteId: this.ClienteId(), ClienteElementoDependienteId:this.ClienteElementoDependienteId(), anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
-      if (!params.objetivoId || !params.anio || !params.mes) return { list: [], esNueva: false }
+      if (!params.ClienteId || !params.ClienteElementoDependienteId|| !params.anio || !params.mes) return { list: [], esNueva: false }
 
       const response = await firstValueFrom(
-        this.apiService.getListOrdenVenta(params.objetivoId, params.anio, params.mes))
+        this.apiService.getListOrdenVenta(params.ClienteId,params.ClienteElementoDependienteId, params.anio, params.mes))
 
       return { ...response, list: response.list ?? [] }
     },
@@ -148,12 +151,9 @@ export class OrdenVentaComponent {
   // Detalle tal cual está en el formulario, con los ítems agregados o editados sin guardar
   detalle = signal<any[]>([])
 
-  // Total Orden de Venta = suma del Importe Total de cada ítem
-  importeTotal = computed(() =>
-    this.detalle().reduce((total: number, item: any) => total + Number(item.ImporteTotal ?? 0), 0))
-
+ 
   // Sin cliente resuelto el guardado no tiene contra qué grabar la orden
-  puedeGuardar = computed(() => this.periodoCompleto() && this.clienteId() != null)
+  puedeGuardar = computed(() => this.periodoCompleto() && this.ClienteId() != null)
 
   // Cambia al guardar: la fila de la grilla quedó vieja y hay que releer la lista
   refreshTick = signal(0)
@@ -162,7 +162,8 @@ export class OrdenVentaComponent {
   // ellos el backend inicializa los ítems con los del mes anterior
   altaOrdenVenta() {
     this.ordenAbierta.set(null)
-    this.objetivoAlta.set(null)
+    this.ClienteIdAlta.set(null)
+    this.ClienteElementoDependienteIdAlta.set(null)
     // Por omisión el período en curso, que es el que se factura
     this.periodoAlta.set(new Date())
     this.modo.set('alta')
@@ -223,11 +224,10 @@ export class OrdenVentaComponent {
     // La orden ya existe: el alta pasa a ser una modificación, con el período y el objetivo fijos
     if (this.enAlta()) {
       this.ordenAbierta.set({
-        ObjetivoId: this.objetivoId(),
         PeriodoAnio: this.anio(),
         PeriodoMes: this.mes(),
-        ClienteId: this.clienteId(),
-        ClienteElementoDependienteId: this.clienteElementoDependienteId()
+        ClienteId: this.ClienteId(),
+        ClienteElementoDependienteId: this.ClienteElementoDependienteId()
       })
       this.modo.set('modificacion')
     }

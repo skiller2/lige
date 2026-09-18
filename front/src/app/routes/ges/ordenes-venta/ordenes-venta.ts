@@ -109,12 +109,12 @@ export class OrdenesVentaComponent {
   // Cabecera del período (/api/orden-venta/cabecera). En el alta es la única forma de saber a qué
   // cliente/elemento dependiente pertenece el objetivo elegido, que es lo que el guardado valida.
   private cabeceraResource = resource({
-    params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
+    params: () => ({ ClienteId: this.clienteId(),ClienteElementoDependienteId:this.clienteElementoDependienteId(),  anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
-      if (!params.objetivoId || !params.anio || !params.mes) return null
+      if (!params.ClienteId || !params.ClienteElementoDependienteId || !params.anio || !params.mes) return null
 
       return await firstValueFrom(
-        this.apiService.getOrdenVentaCabecera(params.objetivoId, params.anio, params.mes))
+        this.apiService.getOrdenVentaCabecera(params.ClienteId,params.ClienteElementoDependienteId, params.anio, params.mes))
     },
     defaultValue: null as any
   })
@@ -174,12 +174,12 @@ export class OrdenesVentaComponent {
   // Ítems de la orden (/api/orden-venta/list), el mismo detalle que edita la carga de asistencia.
   // Sin orden del período vuelve inicializado con el del mes anterior.
   private itemsResource = resource({
-    params: () => ({ objetivoId: this.objetivoId(), anio: this.anio(), mes: this.mes() }),
+    params: () => ({ ClienteId: this.clienteId(), ClienteElementoDependienteId:this.clienteElementoDependienteId(), anio: this.anio(), mes: this.mes() }),
     loader: async ({ params }) => {
-      if (!params.objetivoId || !params.anio || !params.mes) return { list: [], esNueva: false }
+      if (!params.ClienteId || !params.ClienteElementoDependienteId || !params.anio || !params.mes) return { list: [], esNueva: false }
 
       const response = await firstValueFrom(
-        this.apiService.getListOrdenVenta(params.objetivoId, params.anio, params.mes))
+        this.apiService.getListOrdenVenta(params.ClienteId,params.ClienteElementoDependienteId, params.anio, params.mes))
 
       return { ...response, list: response.list ?? [] }
     },

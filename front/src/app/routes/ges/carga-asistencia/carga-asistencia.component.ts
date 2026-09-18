@@ -79,6 +79,8 @@ export class CargaAsistenciaComponent {
     rowLocked: boolean = false;
 //    objetivoInfo = signal({})
     diffHoras = signal(0)
+    ClienteId= signal(0)
+    ClienteElementoDependienteId= signal(0)
 
     addGridData = signal<boolean>(false);
 
@@ -93,72 +95,11 @@ export class CargaAsistenciaComponent {
     // Las horas a facturar 'A' y 'B' se congelan al abrir: la orden de venta tiene que incluir el
     // producto de horas 'A' y el de horas 'B' si en la asistencia se cargaron.
     abrirOrdenVenta() {
-        this.horasAFacturarA.set(Number(this.carasistForm.form.get('TotalHoraA')?.value) || 0)
-        this.horasAFacturarB.set(Number(this.carasistForm.form.get('TotalHoraB')?.value) || 0)
         this.visibleOrdenVenta.set(true)
     }
 
-    // La cantidad con la que se guardó cada producto de horas en la orden de venta pasa a ser las
-    // horas a facturar de la asistencia, y se persiste por el mismo camino que el input.
-    // Período cerrado: los inputs de horas a facturar están deshabilitados y el back rechaza
-    // cualquier cambio, así que los ítems de horas de la orden tampoco se pueden tocar.
-    // Se mira la misma bandera que deshabilita los inputs y no el 'disabled' del control: ngModel
-    // lo aplica en un microtask posterior, así que al abrir el drawer todavía podía dar false.
-    get horasAFacturarABloqueada(): boolean {
-        return !(this.gridOptionsEdit?.editable ?? false)
-    }
-
-    get horasAFacturarBBloqueada(): boolean {
-        return !(this.gridOptionsEdit?.editable ?? false)
-    }
-
-    // Mientras se edita la orden, la cantidad de los productos de horas se refleja al toque en las
-    // horas a facturar. No se toca 'horasAFacturarA/B': son las horas congeladas al abrir el
-    // drawer y, si cambiaran, el detalle se recargaría encima de lo que se está editando.
-    // La grabación es la del guardado de la orden, en ordenVentaGuardada().
-    horasAFacturarCambiadas(horasAFacturar: { A: number | null, B: number | null }) {
-        const cambio = [
-            { campo: 'TotalHoraA', horas: horasAFacturar.A, bloqueada: this.horasAFacturarABloqueada },
-            { campo: 'TotalHoraB', horas: horasAFacturar.B, bloqueada: this.horasAFacturarBBloqueada }
-        ].map(({ campo, horas, bloqueada }) => {
-            const control = this.carasistForm.form.get(campo)
-            if (horas == null || !control || bloqueada) return false
-            if (Number(control.value) === horas) return false
-
-            control.setValue(horas)
-            control.markAsDirty()
-            return true
-        }).some(Boolean)
-
-        if (!cambio) return
-
-        const values = this.carasistForm.form.getRawValue()
-        this.diffHoras.set(Number(values.TotalHoraA) + Number(values.TotalHoraB) - Number(values.TotalHorasReales))
-    }
-
-    async ordenVentaGuardada(horasAFacturar: { A: number | null, B: number | null }) {
-        // setHorasFacturacion manda las dos horas juntas: se actualiza lo que cambió y se
-        // persiste una sola vez
-        const cambio = [
-            { campo: 'TotalHoraA', horas: horasAFacturar.A, bloqueada: this.horasAFacturarABloqueada, congeladas: this.horasAFacturarA },
-            { campo: 'TotalHoraB', horas: horasAFacturar.B, bloqueada: this.horasAFacturarBBloqueada, congeladas: this.horasAFacturarB }
-        ].map(({ campo, horas, bloqueada, congeladas }) => {
-            const control = this.carasistForm.form.get(campo)
-            if (horas == null || !control || bloqueada) return false
-
-            if (Number(control.value) !== horas) {
-                control.setValue(horas)
-                control.markAsDirty()
-                congeladas.set(horas)
-            }
-
-            // El input puede tener ya el valor porque se editó la cantidad en el detalle: sigue
-            // sin grabarse, y de eso se entera por el control sucio
-            return !control.pristine
-        }).some(Boolean)
-
-        if (!cambio) return
-        await this.setValFact(null)
+    async ordenVentaGuardada(data:any) {
+        this.formChange('', Busqueda.Objetivo)
     }
 
     getHorasNormales(data: any) {
@@ -194,6 +135,8 @@ export class CargaAsistenciaComponent {
                     [{ value: `Grupo Actividad: ${data[0][0]?.detalle}` }],
                     []
                 ]
+                this.ClienteId.set( data[2].ClienteId)
+                this.ClienteElementoDependienteId.set(data[2].ClienteElementoDependienteId)
 
                 this.angularGridEdit.resizerService.resizeGrid();
 
@@ -673,7 +616,6 @@ export class CargaAsistenciaComponent {
         this.angularGridEdit.dataView.deleteItems(itemsId)
         this.addNewItem("bottom")
     }
-
 
     editColumnSelectOptions(column: string, array: Object[], campo: string, columns: any) {
         const idColumn = this.angularGridEdit.slickGrid.getColumnIndex(column)

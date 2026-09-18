@@ -308,12 +308,12 @@
     </angular-slickgrid>
   </div>
 </nz-card>
+
 <app-orden-venta-drawer [anio]="selectedPeriod.year" [mes]="selectedPeriod.month"
-  [objetivoId]="selectedObjetivoId()" [horasAFacturarA]="horasAFacturarA()"
-  [horasAFacturarB]="horasAFacturarB()"
-  [horasAFacturarABloqueada]="horasAFacturarABloqueada"
-  [horasAFacturarBBloqueada]="horasAFacturarBBloqueada"
-  (guardado)="ordenVentaGuardada($event)" (horasAFacturarChange)="horasAFacturarCambiadas($event)"
+  [ClienteId]="ClienteId()"
+  [ClienteElementoDependienteId]="ClienteElementoDependienteId()"
+  (ordenVentaChange)="ordenVentaGuardada($event)"
   [(visible)]="visibleOrdenVenta"></app-orden-venta-drawer>
+
 <app-detalle-persona [anio]="selectedPeriod.year" [mes]="selectedPeriod.month" [SucursalId]="selectedSucursalId()"
   [PersonalId]="selectedPersonalId" [visible]="visibleDrawer" (onClose)="closeDrawer()"></app-detalle-persona>

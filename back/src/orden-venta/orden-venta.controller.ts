@@ -234,7 +234,7 @@ export class OrdenVentaController extends BaseController {
   // Última orden de venta del objetivo dentro de los MESES_ORDEN_BASE períodos anteriores al
   // recibido, o undefined si en toda la ventana no hay ninguna. Es el modelo con el que se
   // inicializa una orden que todavía no existe.
-  private static async getOrdenVentaBase(queryRunner: any, ObjetivoId: number, anio: number, mes: number) {
+  private static async getOrdenVentaBase(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number, anio: number, mes: number) {
     // Extremos de la ventana: desde MESES_ORDEN_BASE períodos atrás hasta el anterior al pedido
     const hasta = OrdenVentaController.sumarMeses(anio, mes, -1);
     const desde = OrdenVentaController.sumarMeses(anio, mes, -MESES_ORDEN_BASE);
@@ -243,14 +243,12 @@ export class OrdenVentaController extends BaseController {
       SELECT TOP 1
         ord.NroOrdenVenta, ord.ClienteId, ord.ClienteElementoDependienteId,
         ord.PeriodoAnio, ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.ImporteTotalAFacturar
-      FROM Objetivo obj
-      JOIN OrdenVenta ord ON ord.ClienteId = obj.ClienteId
-        AND ord.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
-      WHERE obj.ObjetivoId = @0
+      FROM OrdenVenta ord 
+      WHERE ord.ClienteId = @5 AND ord.ClienteElementoDependienteId=@6 
         AND (ord.PeriodoAnio > @1 OR (ord.PeriodoAnio = @1 AND ord.PeriodoMes >= @2))
         AND (ord.PeriodoAnio < @3 OR (ord.PeriodoAnio = @3 AND ord.PeriodoMes <= @4))
       ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC
-    `, [ObjetivoId, desde.anio, desde.mes, hasta.anio, hasta.mes]);
+    `, [null, desde.anio, desde.mes, hasta.anio, hasta.mes, ClienteId,ClienteElementoDependienteId]);
 
     return ordenes[0];
   }
@@ -263,25 +261,23 @@ export class OrdenVentaController extends BaseController {
 
   // Órdenes de venta del objetivo en el período, de la más nueva a la más vieja. Un período puede
   // tener más de una: desde la carga de asistencia se da de alta otra sin pisar la que ya está.
-  private static async getOrdenesVentaPeriodo(queryRunner: any, ObjetivoId: number, anio: number, mes: number) {
+  private static async getOrdenesVentaPeriodo(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number, anio: number, mes: number) {
     return await queryRunner.query(`
       SELECT
         ord.NroOrdenVenta, ord.ClienteId, ord.ClienteElementoDependienteId,
         ord.PeriodoAnio, ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.ImporteTotalAFacturar,
         est.Descripcion AS EstadoOrdenVenta
-      FROM Objetivo obj
-      JOIN OrdenVenta ord ON ord.ClienteId = obj.ClienteId
-        AND ord.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
+      FROM OrdenVenta ord
       LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
-      WHERE obj.ObjetivoId = @0 AND ord.PeriodoAnio = @1 AND ord.PeriodoMes = @2
+      WHERE  ord.PeriodoAnio = @1 AND ord.PeriodoMes = @2 AND ord.ClienteId = @3 AND ord.ClienteElementoDependienteId=@4
       ORDER BY ord.NroOrdenVenta DESC
-    `, [ObjetivoId, anio, mes]);
+    `, [null, anio, mes,ClienteId,ClienteElementoDependienteId]);
   }
 
   // Una orden del período: la pedida por número, o la última si no se pide ninguna. Undefined si
   // el período no tiene órdenes, o si la pedida no es de este objetivo y período.
-  private static async getOrdenVentaPeriodo(queryRunner: any, ObjetivoId: number, anio: number, mes: number, NroOrdenVenta = 0) {
-    const ordenes = await OrdenVentaController.getOrdenesVentaPeriodo(queryRunner, ObjetivoId, anio, mes);
+  private static async getOrdenVentaPeriodo(queryRunner: any, ClienteId: number, ClienteElementoDependienteId:number, anio: number, mes: number, NroOrdenVenta = 0) {
+    const ordenes = await OrdenVentaController.getOrdenesVentaPeriodo(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
 
     return NroOrdenVenta
       ? ordenes.find((orden: any) => Number(orden.NroOrdenVenta) === Number(NroOrdenVenta))
@@ -292,7 +288,8 @@ export class OrdenVentaController extends BaseController {
   // con los ítems de la última orden de los MESES_ORDEN_BASE meses anteriores, revaluados con el
   // precio vigente del período pedido.
   async getListOrdenVenta(req: Request, res: Response, next: NextFunction) {
-    const ObjetivoId = Number(req.body.ObjetivoId);
+    const ClienteId = Number(req.body.ClienteId);
+    const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
     const anio = Number(req.body.anio);
     const mes = Number(req.body.mes);
     // Con más de una orden en el período la pantalla elige cuál ver. Sin número se trae la última.
@@ -305,14 +302,14 @@ export class OrdenVentaController extends BaseController {
     try {
       const orden = plantilla
         ? undefined
-        : await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ObjetivoId, anio, mes, NroOrdenVenta);
+        : await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes, NroOrdenVenta);
 
       if (NroOrdenVenta && !orden)
-        throw new ClientException(`La orden de venta ${NroOrdenVenta} no es del objetivo ${ObjetivoId} en el período ${mes}/${anio}`);
+        throw new ClientException(`La orden de venta ${NroOrdenVenta} no es del objetivo ${ClienteId}/${ClienteElementoDependienteId} en el período ${mes}/${anio}`);
 
       // Sin orden propia se copia la última de los meses anteriores: los ítems son nuevos (id 0),
       // pero el detalle se arrastra completo, salvo la cantidad de los productos de horas.
-      const ordenBase = orden ?? await OrdenVentaController.getOrdenVentaBase(queryRunner, ObjetivoId, anio, mes);
+      const ordenBase = orden ?? await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
       const esNueva = !orden;
 
       let items: any[] = [];
@@ -381,7 +378,8 @@ export class OrdenVentaController extends BaseController {
   }
 
   async getCabecera(req: Request, res: Response, next: NextFunction) {
-    const ObjetivoId = Number(req.params.ObjetivoId);
+    const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
+    const ClienteId = Number(req.params.ClienteId);
     const anio = Number(req.params.anio);
     const mes = Number(req.params.mes);
     const queryRunner = await getConnection(res.locals.userName);
@@ -410,18 +408,18 @@ export class OrdenVentaController extends BaseController {
           ORDER BY ov.NroOrdenVenta DESC
         ) ord
         LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
-        WHERE obj.ObjetivoId = @0
-      `, [ObjetivoId, anio, mes]);
+        WHERE obj.ClienteId = @3 AND obj.ClienteElementoDependienteId=@4
+      `, [null, anio, mes,ClienteId, ClienteElementoDependienteId]);
 
       // Todas las órdenes del período: la carga de asistencia las ofrece en un select para
       // elegir cuál editar
-      const ordenes = await OrdenVentaController.getOrdenesVentaPeriodo(queryRunner, ObjetivoId, anio, mes);
+      const ordenes = await OrdenVentaController.getOrdenesVentaPeriodo(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
 
       // Sin órdenes en el período, el alta arranca con la plantilla de los meses anteriores
       // siempre que haya uno con detalle. Con órdenes en el período la pantalla no lo mira.
       const ordenBase = ordenes.length
         ? null
-        : await OrdenVentaController.getOrdenVentaBase(queryRunner, ObjetivoId, anio, mes);
+        : await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId,ClienteElementoDependienteId, anio, mes);
 
       const itemsPlantilla = ordenBase
         ? await queryRunner.query(
@@ -444,7 +442,7 @@ export class OrdenVentaController extends BaseController {
           `, [NroOrdenVenta])
         : [];
 
-      const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
+      const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ClienteId = ${ClienteId}`,`obj.ClienteElementoDependienteId = ${ClienteElementoDependienteId}`], queryRunner)
 
       this.jsonRes(
         {

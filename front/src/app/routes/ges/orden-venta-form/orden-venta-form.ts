@@ -490,16 +490,9 @@ totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => s
   }
 */
   addItem(e?: MouseEvent): void {
-
     e?.preventDefault();
-
     const newProducto = structuredClone(this.defaultProducto)
-
-    this.ordenVenta.update(m => ({
-      ...m,
-      items: [...m.items, newProducto],
-    }));
-
+    this.ordenVenta.update(m => ({ ...m, items: [...m.items, newProducto]}));
   }
 
   // Al elegir el producto se guarda también el nombre, que es lo que se muestra en la grilla,
