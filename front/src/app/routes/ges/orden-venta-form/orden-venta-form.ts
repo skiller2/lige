@@ -71,16 +71,16 @@ export interface Producto {
 export interface Comprobante {
   ComprobanteTipoCodigo: string;
   ComprobanteNro: string;
-  ImporteTotal:string;
+  ImporteTotal: string;
 }
 
 export interface OrdenVentaForm {
   NroOrdenVenta: number;
-  PeriodoMes: 0,
-  PeriodoAnio: 0,
-  ClienteId: 0,
-  ClienteElementoDependienteId: 0,  
-  EstadoOrdenVentaCodigo: '',
+  PeriodoMes: number,
+  PeriodoAnio: number,
+  ClienteId: number,
+  ClienteElementoDependienteId: number,
+  EstadoOrdenVentaCodigo: string,
   Observaciones: string;
   items: Producto[];
   comprobantes: Comprobante[]
@@ -101,13 +101,10 @@ export class OrdenVentaFormComponent {
 
   anio = input<number>(0)
   mes = input<number>(0)
-  
+
   // Salen de la cabecera. El back valida que el objetivo pertenezca a este cliente antes de guardar
   ClienteId = input<number | null>(null)
   ClienteElementoDependienteId = input<number | null>(null)
-
-  // Ítems que vienen del detalle (/api/orden-venta/list)
-  items = input<any[]>([])
 
   // En consulta el detalle se muestra completo pero no se edita
   soloLectura = input<boolean>(false)
@@ -176,16 +173,16 @@ export class OrdenVentaFormComponent {
   private readonly defaultComprobante: Comprobante = {
     ComprobanteNro: '',
     ComprobanteTipoCodigo: '',
-    ImporteTotal:''
+    ImporteTotal: ''
   };
 
   private readonly defaultOrdenVenta: OrdenVentaForm = {
     NroOrdenVenta: 0,
-    PeriodoMes: 0,
-    PeriodoAnio: 0,
+    PeriodoMes: Number(this.anio()),
+    PeriodoAnio: Number(this.mes()),
     EstadoOrdenVentaCodigo: '',
-    ClienteId: 0,
-    ClienteElementoDependienteId: 0,
+    ClienteId: Number(this.ClienteId()),
+    ClienteElementoDependienteId: Number(this.ClienteElementoDependienteId()),
     Observaciones: '',
     items: [structuredClone(this.defaultProducto)],
     comprobantes: [structuredClone(this.defaultComprobante)],
@@ -197,34 +194,34 @@ export class OrdenVentaFormComponent {
   readonly formOrdenVenta = form(this.ordenVenta, (p) => {
     disabled(p, () => this.soloLectura())
     applyEach(p.items, (productoPath) => {
-      required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido',when: (ctx) => Number(ctx.valueOf(productoPath.Cantidad)) >0, });
-      required(productoPath.Cantidad, { message: 'Cantidad es requerido',when: (ctx) => ctx.valueOf(productoPath.ProductoCodigo) !="", });
+      required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido', when: (ctx) => Number(ctx.valueOf(productoPath.Cantidad)) > 0, });
+      required(productoPath.Cantidad, { message: 'Cantidad es requerido', when: (ctx) => ctx.valueOf(productoPath.ProductoCodigo) != "", });
     });
     applyEach(p.comprobantes, (comprobantePath) => {
-      required(comprobantePath.ComprobanteTipoCodigo, { message: 'Código comprobante requerido',when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteNro)!="", });
-      required(comprobantePath.ComprobanteNro, { message: 'Número de comprobante requerido',when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) !="", });
+      required(comprobantePath.ComprobanteTipoCodigo, { message: 'Código comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteNro) != "", });
+      required(comprobantePath.ComprobanteNro, { message: 'Número de comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != "", });
     });
 
-/*
-    required(p.PeriodoFacturacion, { message: 'Periodo de facturación es requerido' });
-    required(p.GeneracionFacturaDia, {
-      message: 'Día de generación es requerido',
-      when: (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) === false,
-    });
-
-    periodRange(p.PeriodoFacturacion, {
-      min: '1D',
-      max: '2A',
-      allowedUnits: ['D', 'S', 'M', 'A'],
-      message: 'Formato inválido o fuera de rango (permitidos: D, S, M, A)',
-    });
-
-    numericRange(p.GeneracionFacturaDia, { min: 1, max: 29, message: 'Día entre 1 y 29', when: (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) === false },);
-    disabled(p.GeneracionFacturaDia, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
-    disabled(p.GeneracionFacturaDiaComplemento, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
-    //    hidden(p.PeriodoFacturacionInicio, (ctx) => this.periodoFacturacionDias()>=60);
-
-*/
+    /*
+        required(p.PeriodoFacturacion, { message: 'Periodo de facturación es requerido' });
+        required(p.GeneracionFacturaDia, {
+          message: 'Día de generación es requerido',
+          when: (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) === false,
+        });
+    
+        periodRange(p.PeriodoFacturacion, {
+          min: '1D',
+          max: '2A',
+          allowedUnits: ['D', 'S', 'M', 'A'],
+          message: 'Formato inválido o fuera de rango (permitidos: D, S, M, A)',
+        });
+    
+        numericRange(p.GeneracionFacturaDia, { min: 1, max: 29, message: 'Día entre 1 y 29', when: (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) === false },);
+        disabled(p.GeneracionFacturaDia, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
+        disabled(p.GeneracionFacturaDiaComplemento, (ctx) => ctx.valueOf(p.GeneracionFacturaReqCliente) !== false);
+        //    hidden(p.PeriodoFacturacionInicio, (ctx) => this.periodoFacturacionDias()>=60);
+    
+    */
   })
 
 
@@ -258,7 +255,7 @@ export class OrdenVentaFormComponent {
 
   importes = computed(() => this.ordenVenta().items.map(item => Number(item.Cantidad) * Number(item.ImporteUnitario)))
 
-totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => sum + valor, 0) );  
+  totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => sum + valor, 0));
   /*
   // Comprobantes tal cual están en pantalla, para el contenedor
   private comprobanteValue = toSignal(this.formComprobante.valueChanges, {
@@ -310,22 +307,22 @@ totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => s
 
   constructor() {
     // Carga el detalle recibido en el FormArray
-/*
-    effect(() => {
-      const items = this.items()
-      const horasAFacturarA = this.horasAFacturarA()
-      const horasAFacturarB = this.horasAFacturarB()
-      // Siempre hay al menos un ítem para cargar
-      this.sincronizarItems(items.length ? items : [{}])
-      // La recarga que sigue a un guardado deja abierto el panel que se estaba editando
-      if (this.conservarPanel)
-        this.panelAbierto.set(Math.min(this.panelAbierto(), this.itemsArray.length - 1))
-      else
-        this.panelAbierto.set(0)
-      this.conservarPanel = false
-      void this.agregarProductosHoras(horasAFacturarA, horasAFacturarB)
-    })
-*/
+    /*
+        effect(() => {
+          const items = this.items()
+          const horasAFacturarA = this.horasAFacturarA()
+          const horasAFacturarB = this.horasAFacturarB()
+          // Siempre hay al menos un ítem para cargar
+          this.sincronizarItems(items.length ? items : [{}])
+          // La recarga que sigue a un guardado deja abierto el panel que se estaba editando
+          if (this.conservarPanel)
+            this.panelAbierto.set(Math.min(this.panelAbierto(), this.itemsArray.length - 1))
+          else
+            this.panelAbierto.set(0)
+          this.conservarPanel = false
+          void this.agregarProductosHoras(horasAFacturarA, horasAFacturarB)
+        })
+    */
     // Carga los comprobantes que ya tiene la orden
     //effect(() => this.sincronizarComprobantes(this.comprobantesOrden()))
 
@@ -366,29 +363,29 @@ totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => s
 */
   }
 
-/*
-  get itemsArray(): FormArray {
-    return this.formOrdenVenta.get('items') as FormArray
-  }
-*/
+  /*
+    get itemsArray(): FormArray {
+      return this.formOrdenVenta.get('items') as FormArray
+    }
+  */
   private sincronizarItems(items: any[]) {
-/*
-    while (this.itemsArray.length > items.length)
-      this.itemsArray.removeAt(this.itemsArray.length - 1, { emitEvent: false })
-
-    items.forEach((item, indice) => {
-      if (indice < this.itemsArray.length)
-        this.actualizarItem(this.itemsArray.at(indice) as FormGroup, item)
-      else
-        this.itemsArray.push(this.nuevoItem(item), { emitEvent: false })
-    })
-
-    // El detalle recién traído todavía no tiene cambios del usuario
-    this.validado.set(false)
-    this.formOrdenVenta.markAsPristine()
-    this.formOrdenVenta.markAsUntouched()
-    this.itemsArray.updateValueAndValidity()
-*/
+    /*
+        while (this.itemsArray.length > items.length)
+          this.itemsArray.removeAt(this.itemsArray.length - 1, { emitEvent: false })
+    
+        items.forEach((item, indice) => {
+          if (indice < this.itemsArray.length)
+            this.actualizarItem(this.itemsArray.at(indice) as FormGroup, item)
+          else
+            this.itemsArray.push(this.nuevoItem(item), { emitEvent: false })
+        })
+    
+        // El detalle recién traído todavía no tiene cambios del usuario
+        this.validado.set(false)
+        this.formOrdenVenta.markAsPristine()
+        this.formOrdenVenta.markAsUntouched()
+        this.itemsArray.updateValueAndValidity()
+    */
   }
 
   // Con horas a facturar 'A' y/o 'B' cargadas, la orden tiene que incluir los productos que las
@@ -455,41 +452,41 @@ totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => s
       */
   }
 
-/*
-  // Valores iniciales de un ítem, para crearlo o para refrescar uno ya existente
-  private static valoresItem(item: any = {}) {
-    // Con precio de lista vigente el importe unitario lo fija la lista y no se puede editar.
-    // Sin precio se arrastra el del mes anterior y queda a mano.
-    const precioDeLista = !!Number(item.PrecioDeLista ?? 0)
-
-    return {
-      // id = ItemOrdenVentaCodigo. En cero es un ítem nuevo, todavía sin persistir.
-      id: item.id ?? 0,
-      ProductoCodigo: item.ProductoCodigo ?? '',
-      Producto: item.Producto ?? '',
-      Cantidad: vacioSiCero(item.Cantidad),
-      ImporteUnitario: aNumero(item.ImporteUnitario) ?? 0,
-      PrecioDeLista: precioDeLista,
-      TextoFactura: item.TextoFactura ?? '',
-      CantidadEnFactura: vacioSiCero(item.CantidadEnFactura),
-      ImporteTotal: Number(item.ImporteTotal ?? 0),
-      // Ocultos en la pantalla: van con valor fijo
-      TipoCantidad: item.TipoCantidad || TIPO_CANTIDAD_MANUAL,
-      TipoImporte: item.TipoImporte || (precioDeLista ? TIPO_IMPORTE_LISTA_PRECIO : TIPO_IMPORTE_MANUAL),
-      CantidadEstandar: item.CantidadEstandar ?? null,
-      Bonificacion: item.Bonificacion ?? null
+  /*
+    // Valores iniciales de un ítem, para crearlo o para refrescar uno ya existente
+    private static valoresItem(item: any = {}) {
+      // Con precio de lista vigente el importe unitario lo fija la lista y no se puede editar.
+      // Sin precio se arrastra el del mes anterior y queda a mano.
+      const precioDeLista = !!Number(item.PrecioDeLista ?? 0)
+  
+      return {
+        // id = ItemOrdenVentaCodigo. En cero es un ítem nuevo, todavía sin persistir.
+        id: item.id ?? 0,
+        ProductoCodigo: item.ProductoCodigo ?? '',
+        Producto: item.Producto ?? '',
+        Cantidad: vacioSiCero(item.Cantidad),
+        ImporteUnitario: aNumero(item.ImporteUnitario) ?? 0,
+        PrecioDeLista: precioDeLista,
+        TextoFactura: item.TextoFactura ?? '',
+        CantidadEnFactura: vacioSiCero(item.CantidadEnFactura),
+        ImporteTotal: Number(item.ImporteTotal ?? 0),
+        // Ocultos en la pantalla: van con valor fijo
+        TipoCantidad: item.TipoCantidad || TIPO_CANTIDAD_MANUAL,
+        TipoImporte: item.TipoImporte || (precioDeLista ? TIPO_IMPORTE_LISTA_PRECIO : TIPO_IMPORTE_MANUAL),
+        CantidadEstandar: item.CantidadEstandar ?? null,
+        Bonificacion: item.Bonificacion ?? null
+      }
     }
-  }
-*/
+  */
   addItem(e?: MouseEvent): void {
     e?.preventDefault();
     const newProducto = structuredClone(this.defaultProducto)
-    this.ordenVenta.update(m => ({ ...m, items: [...m.items, newProducto]}));
+    this.ordenVenta.update(m => ({ ...m, items: [...m.items, newProducto] }));
   }
 
   // Al elegir el producto se guarda también el nombre, que es lo que se muestra en la grilla,
   // y se toma el importe unitario del precio vigente del cliente para el período.
-  
+
   /*
   async productoChange(index: number, producto: { value: string; label: string } | null) {
     const item = this.itemsArray.at(index)
@@ -538,63 +535,6 @@ totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => s
 
   }
 
-  
-  // Carga en el FormArray los comprobantes que ya tiene la orden. Siempre queda una fila, aunque
-  // esté vacía: es donde se carga el primero.
-  /*
-  private sincronizarComprobantes(comprobantes: any[]) {
-    const filas = comprobantes.length ? comprobantes : [{}]
-
-    while (this.comprobantesArray.length > filas.length)
-      this.comprobantesArray.removeAt(this.comprobantesArray.length - 1, { emitEvent: false })
-
-    filas.forEach((comprobante, indice) => {
-      if (indice < this.comprobantesArray.length)
-        this.comprobantesArray.at(indice).setValue({
-          ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo ?? null,
-          ComprobanteNro: comprobante.ComprobanteNro ?? '',
-          ImporteTotal: comprobante.ImporteTotal ?? null
-        }, { emitEvent: false })
-      else
-        this.comprobantesArray.push(this.nuevoComprobante(comprobante), { emitEvent: false })
-    })
-
-    // Lo recién traído todavía no tiene cambios del usuario
-    this.formComprobante.markAsPristine()
-    this.formComprobante.markAsUntouched()
-    this.comprobantesArray.updateValueAndValidity()
-  }
-*/
-  /*
-  private nuevoComprobante(comprobante: any = {}): FormGroup {
-    const group = this.fb.group({
-      ComprobanteTipoCodigo: [comprobante.ComprobanteTipoCodigo ?? null, requeridoSiHayComprobante],
-      ComprobanteNro: [comprobante.ComprobanteNro ?? '', requeridoSiHayComprobante],
-      ImporteTotal: [comprobante.ImporteTotal ?? null, requeridoSiHayComprobante]
-    })
-
-    // Cada campo se valida contra sus hermanos: cargar uno obliga a revalidar los otros dos.
-    // Sin onlySelf el estado sube hasta el grupo, que es lo que mira el guardado; emitEvent en
-    // false evita que la revalidación se realimente.
-    group.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      for (const control of Object.values(group.controls))
-        control.updateValueAndValidity({ emitEvent: false })
-    })
-
-    return group
-  }
-    */
-
-  // Un comprobante sin tipo ni número todavía no se cargó: no se agrega otro hasta completarlo
-  /*
-  hayComprobanteVacio = computed<boolean>(() =>
-    this.comprobantes().some(comprobante =>
-      !String(comprobante?.ComprobanteTipoCodigo ?? '').trim() &&
-      !String(comprobante?.ComprobanteNro ?? '').trim()
-    )
-  )
-    */
-
   addComprobante(e?: MouseEvent): void {
     e?.preventDefault();
     const newComprobante = structuredClone(this.defaultComprobante)
@@ -617,35 +557,13 @@ totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => s
 
   }
 
-  // nz-form-control solo repinta el mensaje de error cuando el control emite statusChanges, y
-  // markAsTouched no emite nada: hay que revalidar cada control para que se vea el "es requerido".
-  
-  /*
-  private marcarInvalidos() {
-    for (const item of this.itemsArray.controls) {
-      for (const control of Object.values((item as FormGroup).controls)) {
-        control.markAsTouched()
-        control.markAsDirty()
-        control.updateValueAndValidity({ onlySelf: true, emitEvent: true })
-      }
-    }
-  }
-
-  private marcarComprobantesInvalidos() {
-    for (const comprobante of this.comprobantesArray.controls) {
-      for (const control of Object.values((comprobante as FormGroup).controls)) {
-        control.markAsTouched()
-        control.markAsDirty()
-        control.updateValueAndValidity({ onlySelf: true, emitEvent: true })
-      }
-    }
-  }
-*/
+/*
   private static readonly ETIQUETAS_COMPROBANTE: Record<string, string> = {
     ComprobanteTipoCodigo: 'Tipo de Comprobante',
     ComprobanteNro: 'Nro. de Comprobante',
     ImporteTotal: 'Importe Total'
   }
+*/
 
   // Qué le falta a cada comprobante empezado, para avisarlo junto con los carteles de cada campo
   /*
@@ -698,7 +616,7 @@ totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => s
   // Devuelve true si la orden quedó grabada. En silencioso (autoguardado al pasar de un campo a
   // otro) un detalle incompleto no se graba ni se marca: se sigue cargando sin carteles de error.
   async save(opciones: { silencioso?: boolean } = {}) {
-    if (this.soloLectura() ) return undefined
+    if (this.soloLectura()) return undefined
 
     await submit(this.formOrdenVenta, async (form) => {
       try {
@@ -710,7 +628,7 @@ totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => s
 
 
       } catch (e: any) {
-          return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
+        return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }
       return undefined
 
@@ -722,80 +640,88 @@ totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => s
     this.formOrdenVenta().reset();
   }
 
-
-
-
-/*
-    const items = this.itemsArray.getRawValue()
-
-    // Todos los ítems tienen que estar completos, incluida la fila que quedó abierta sin producto.
-    // Se marcan todos para que cada panel muestre sus faltantes, y se abre el primero incompleto.
-    const incompleto = this.itemsArray.controls.findIndex(item => item.invalid)
-
-    if (opciones.silencioso && (incompleto >= 0
-      || (this.origenCrud() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid))))
-      return false
-
-    if (incompleto >= 0) {
-      this.validado.set(true)
-      this.marcarInvalidos()
-      this.panelAbierto.set(incompleto)
-      this.cdr.markForCheck()
-      this.notification.error('Orden de venta', this.mensajeFaltantes())
-      return false
+  private effecto = effect(() => {
+    const nroOrdenVenta= this.nroOrdenVenta()
+    if (nroOrdenVenta>0){
+      console.log('cargo orden de venta',nroOrdenVenta)
+    } else if (nroOrdenVenta==-1) {
+      console.log('limpio formulario')
+    } else if (nroOrdenVenta==-2) {
+      console.log('traigo mes anterior')
     }
+  })
 
-    // Los comprobantes van completos o vacíos: cargar uno de los tres campos obliga a los otros dos
-    if (this.origenCrud() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid)) {
-      this.validado.set(true)
-      this.marcarComprobantesInvalidos()
-      this.cdr.markForCheck()
-      this.notification.error('Orden de venta', this.mensajeComprobantes())
-      return false
+  /*
+      const items = this.itemsArray.getRawValue()
+  
+      // Todos los ítems tienen que estar completos, incluida la fila que quedó abierta sin producto.
+      // Se marcan todos para que cada panel muestre sus faltantes, y se abre el primero incompleto.
+      const incompleto = this.itemsArray.controls.findIndex(item => item.invalid)
+  
+      if (opciones.silencioso && (incompleto >= 0
+        || (this.origenCrud() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid))))
+        return false
+  
+      if (incompleto >= 0) {
+        this.validado.set(true)
+        this.marcarInvalidos()
+        this.panelAbierto.set(incompleto)
+        this.cdr.markForCheck()
+        this.notification.error('Orden de venta', this.mensajeFaltantes())
+        return false
+      }
+  
+      // Los comprobantes van completos o vacíos: cargar uno de los tres campos obliga a los otros dos
+      if (this.origenCrud() && this.comprobantesArray.controls.some(comprobante => comprobante.invalid)) {
+        this.validado.set(true)
+        this.marcarComprobantesInvalidos()
+        this.cdr.markForCheck()
+        this.notification.error('Orden de venta', this.mensajeComprobantes())
+        return false
+      }
+  
+      this.guardando.set(true)
+      try {
+        const respuesta = await firstValueFrom(this.apiService.setOrdenVenta({
+          ObjetivoId: this.objetivoId(),
+          anio: this.anio(),
+          mes: this.mes(),
+          ClienteId: this.clienteId(),
+          ClienteElementoDependienteId: this.clienteElementoDependienteId(),
+          EstadoOrdenVentaCodigo: this.estadoOrdenVentaCodigo(),
+          // Sin la marca el back graba sobre la orden del período, que es lo de siempre
+          ...(this.nuevaOrden() ? { NuevaOrden: true } : {}),
+          ...(this.nroOrdenVenta() ? { NroOrdenVenta: this.nroOrdenVenta() } : {}),
+          // La lista va completa: el back reescribe los comprobantes de la orden con lo que llega.
+          // Sin la sección en pantalla no se manda nada, así los comprobantes quedan intactos.
+          ...(this.origenCrud()
+            ? {
+              comprobantes: this.comprobantesArray.getRawValue().map((comprobante: any) => ({
+                ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo,
+                ComprobanteNro: String(comprobante.ComprobanteNro ?? '').trim(),
+                ImporteTotal: aNumero(comprobante.ImporteTotal)
+              }))
+            }
+            : {}),
+          items
+        }))
+  
+        this.formOrdenVenta.markAsPristine()
+        this.formComprobante.markAsPristine()
+  
+        this.notification.success('Orden de venta', respuesta?.msg ?? 'Grabación exitosa')
+  
+        // Recarga el detalle: los ítems nuevos vuelven con su ItemOrdenVentaCodigo. Las horas
+        // guardadas son las del detalle, que la asistencia persiste como horas a facturar.
+        this.conservarPanel = true
+        this.guardado.emit(this.horasEnDetalle())
+        return true
+      } catch (_e) {
+        // El error del back ya lo muestra la notificación del ApiService
+        return false
+      } finally {
+        this.guardando.set(false)
+      }
     }
-
-    this.guardando.set(true)
-    try {
-      const respuesta = await firstValueFrom(this.apiService.setOrdenVenta({
-        ObjetivoId: this.objetivoId(),
-        anio: this.anio(),
-        mes: this.mes(),
-        ClienteId: this.clienteId(),
-        ClienteElementoDependienteId: this.clienteElementoDependienteId(),
-        EstadoOrdenVentaCodigo: this.estadoOrdenVentaCodigo(),
-        // Sin la marca el back graba sobre la orden del período, que es lo de siempre
-        ...(this.nuevaOrden() ? { NuevaOrden: true } : {}),
-        ...(this.nroOrdenVenta() ? { NroOrdenVenta: this.nroOrdenVenta() } : {}),
-        // La lista va completa: el back reescribe los comprobantes de la orden con lo que llega.
-        // Sin la sección en pantalla no se manda nada, así los comprobantes quedan intactos.
-        ...(this.origenCrud()
-          ? {
-            comprobantes: this.comprobantesArray.getRawValue().map((comprobante: any) => ({
-              ComprobanteTipoCodigo: comprobante.ComprobanteTipoCodigo,
-              ComprobanteNro: String(comprobante.ComprobanteNro ?? '').trim(),
-              ImporteTotal: aNumero(comprobante.ImporteTotal)
-            }))
-          }
-          : {}),
-        items
-      }))
-
-      this.formOrdenVenta.markAsPristine()
-      this.formComprobante.markAsPristine()
-
-      this.notification.success('Orden de venta', respuesta?.msg ?? 'Grabación exitosa')
-
-      // Recarga el detalle: los ítems nuevos vuelven con su ItemOrdenVentaCodigo. Las horas
-      // guardadas son las del detalle, que la asistencia persiste como horas a facturar.
-      this.conservarPanel = true
-      this.guardado.emit(this.horasEnDetalle())
-      return true
-    } catch (_e) {
-      // El error del back ya lo muestra la notificación del ApiService
-      return false
-    } finally {
-      this.guardando.set(false)
-    }
-  }
-  */
+    */
 }

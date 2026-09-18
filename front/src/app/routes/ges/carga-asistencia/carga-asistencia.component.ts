@@ -135,8 +135,8 @@ export class CargaAsistenciaComponent {
                     [{ value: `Grupo Actividad: ${data[0][0]?.detalle}` }],
                     []
                 ]
-                this.ClienteId.set( data[2].ClienteId)
-                this.ClienteElementoDependienteId.set(data[2].ClienteElementoDependienteId)
+                this.ClienteId.set( data[1][0]?.ClienteId)
+                this.ClienteElementoDependienteId.set(data[1][0]?.ClienteElementoDependienteId)
 
                 this.angularGridEdit.resizerService.resizeGrid();
 

@@ -1,13 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, input, model, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, output, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
-import { OrdenVentaDetalleComponent } from '../orden-venta-detalle/orden-venta-detalle';
-import { HorasAFacturar } from '../orden-venta-form/orden-venta-form';
+import { HorasAFacturar, OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form';
+import { firstValueFrom } from 'rxjs';
+import { ApiService } from '../../../services/api.service';
+import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-orden-venta-drawer',
   standalone: true,
-  imports: [SHARED_IMPORTS, OrdenVentaDetalleComponent],
+  imports: [SHARED_IMPORTS, OrdenVentaFormComponent,DecimalPipe],
   templateUrl: './orden-venta-drawer.html'
 })
 export class OrdenVentaDrawerComponent {
@@ -16,23 +18,58 @@ export class OrdenVentaDrawerComponent {
   ClienteId = input<number>(0)
   ClienteElementoDependienteId = input<number>(0)
   ordenVentaChange = output<HorasAFacturar>()
-
   visible = model<boolean>(false)
   placement: NzDrawerPlacement = 'right';
+  cabecera = signal<any>({})
+  ordenVentaSeleccionada = signal<number>(0)
 
-  private detalle = viewChild(OrdenVentaDetalleComponent)
+  private apiService = inject(ApiService)
+  private ordenVentaForm = viewChild.required<OrdenVentaFormComponent>('ordenVentaForm')
 
-  objetivoNombre = signal<string>('')
+  private effecto = effect(() => {
+
+      const anio = this.anio()
+      const mes = this.mes()
+      const ClienteId = this.ClienteId()
+      const ClienteElementoDependienteId = this.ClienteElementoDependienteId()
+      const visible = this.visible()
+
+      if (ClienteId > 0 && anio > 0 && mes > 0 && visible) {
+        
+        this.getCabecera(ClienteId, ClienteElementoDependienteId,anio, mes)
+      } else {
+        this.cabecera.set({})
+      }
+  })
+
   titulo = computed(() => {
-    const nombre = this.objetivoNombre()
+    const nombre = this.cabecera().ObjetivoNombre
     return nombre ? ` ${nombre}` : 'Órdenes de Venta'
   })
 
   // No hay botón de guardar: al cerrar se graba lo pendiente. Si no se pudo grabar (detalle
   // incompleto o error) el drawer queda abierto con los errores a la vista.
   async cerrar() {
-    const detalle = this.detalle()
-    if (detalle && !(await detalle.guardarAlCerrar())) return
+    try {
+    this.ordenVentaForm().save()
     this.visible.set(false)
+    } catch (e){}
   }
+
+  ordenVentaGuardada(data:any) {
+    this.ordenVentaChange.emit(data)
+    this.getCabecera(this.ClienteId(), this.ClienteElementoDependienteId(), this.anio(), this.mes())
+  }
+
+
+  async getCabecera(ClienteId: number, ClienteElementoDependienteId: number, anio: number, mes: number) {
+    try {
+      const cabecera = await firstValueFrom(this.apiService.getOrdenVentaCabecera(ClienteId, ClienteElementoDependienteId, anio, mes))
+      this.cabecera.set(cabecera ?? {})
+    } finally {
+    }
+  }
+
+  
+
 }
