@@ -26,6 +26,7 @@ export class OrdenVentaDrawerComponent {
   private apiService = inject(ApiService)
   private ordenVentaForm = viewChild.required<OrdenVentaFormComponent>('ordenVentaForm')
 
+
   private effecto = effect(async () => {
 
     const anio = this.anio()
@@ -36,12 +37,12 @@ export class OrdenVentaDrawerComponent {
     this.cabecera.set({})
     if (ClienteId > 0 && ClienteElementoDependienteId > 0 && anio > 0 && mes > 0 && visible) {
       await this.getCabecera(ClienteId, ClienteElementoDependienteId, anio, mes)
-      if (this.ordenVentaSeleccionada()==0){
+      if (this.ordenVentaSeleccionada() == 0) {
         if (this.cabecera().Ordenes.length)
           this.ordenVentaSeleccionada.set(this.cabecera().Ordenes[0].NroOrdenVenta)
-        else if (this.cabecera().NroOrdenVentaBase>0)
+        else if (this.cabecera().NroOrdenVentaBase > 0)
           this.ordenVentaSeleccionada.set(-2)
-        else 
+        else
           this.ordenVentaSeleccionada.set(-1)
 
       }
@@ -65,7 +66,7 @@ export class OrdenVentaDrawerComponent {
   // incompleto o error) el drawer queda abierto con los errores a la vista.
   async cerrar() {
     try {
-      this.ordenVentaForm().save()
+      await this.ordenVentaForm().save()
       this.visible.set(false)
     } catch (e) { }
   }

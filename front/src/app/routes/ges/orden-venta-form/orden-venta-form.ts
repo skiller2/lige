@@ -631,7 +631,7 @@ export class OrdenVentaFormComponent {
 
 
   async save(opciones: { silencioso?: boolean } = {}) {
-    if (this.soloLectura()) return undefined
+    if (this.soloLectura() || this.formOrdenVenta().submitting() || this.formOrdenVenta().dirty()==false || this.formOrdenVenta().valid()==false) return undefined
 
     // Pasar a "Facturado" obliga a cargar al menos un comprobante con todos sus datos
     if (this.esFacturado() && !this.comprobanteCompleto()) {
@@ -665,13 +665,10 @@ export class OrdenVentaFormComponent {
   private effecto = effect(() => {
     const NroOrdenVenta= this.NroOrdenVenta()
     if (NroOrdenVenta>0){
-      console.log('FORM cargo orden de venta',NroOrdenVenta)
       this.load(NroOrdenVenta);
     } else if (NroOrdenVenta==-2) {
       this.loadPlantilla();
-      console.log('FORM traigo mes anterior')
     } else {
-      console.log('FORM limpio formulario')
       this.clearForm()
     }
   })
