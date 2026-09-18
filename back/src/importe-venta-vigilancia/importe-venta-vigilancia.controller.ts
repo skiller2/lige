@@ -723,12 +723,18 @@ LEFT JOIN (
 
       for (const row of sheet1.data) {
 
+        // Fila sin datos: se ignora
+        if (row.every(celda => celda === undefined || celda === null || celda.toString().trim() === ''))
+          continue
+
         const clienteCUIT = row[indexCuitCliente]
         const clienteId = row[indexCodigoObjetivo]?.split("/")[0]
         const ClienteElementoDependienteId = row[indexCodigoObjetivo]?.split("/")[1]
 
-        let importeHoraATmp = Number(row[indexImporteHoraA]);
-        let importeHoraBTmp = Number(row[indexImporteHoraB]);
+        // Vacío (undefined, null o solo espacios) se toma como 0 = importe ignorado
+        const esVacio = (valor: any) => valor === undefined || valor === null || valor.toString().trim() === ''
+        let importeHoraATmp = esVacio(row[indexImporteHoraA]) ? 0 : Number(row[indexImporteHoraA]);
+        let importeHoraBTmp = esVacio(row[indexImporteHoraB]) ? 0 : Number(row[indexImporteHoraB]);
 
         if (isNaN(importeHoraATmp)) {
           dataset.push({
@@ -827,10 +833,11 @@ LEFT JOIN (
             [clienteId, anioRequest, mesRequest, ClienteElementoDependienteId, 0, 0, importeHoraA, importeHoraB,
               fechaActual, usuario, ip])
         } else {
+          // Importe en 0 o vacío: conserva el valor existente
           await queryRunner.query(`UPDATE ObjetivoImporteVenta
-          SET ImporteHoraA = @0, ImporteHoraB = @1
+          SET ImporteHoraA = COALESCE(@0, ImporteHoraA), ImporteHoraB = COALESCE(@1, ImporteHoraB)
           WHERE ClienteId = @2 AND ClienteElementoDependienteId = @3 AND Mes = @4 AND Anio = @5
-          `, [importeHoraA ?? 0, importeHoraB ?? 0, clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
+          `, [importeHoraA || null, importeHoraB || null, clienteId, ClienteElementoDependienteId, mesRequest, anioRequest])
         }
       }
 
