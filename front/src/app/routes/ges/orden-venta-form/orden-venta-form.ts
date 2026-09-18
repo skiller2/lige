@@ -252,6 +252,8 @@ export class OrdenVentaFormComponent {
   importes = computed(() => this.ordenVenta().items.map(item => Number(item.Cantidad) * Number(item.ImporteUnitario)))
 
   totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => sum + valor, 0));
+
+  
   /*
   // Comprobantes tal cual están en pantalla, para el contenedor
   private comprobanteValue = toSignal(this.formComprobante.valueChanges, {
@@ -618,6 +620,16 @@ export class OrdenVentaFormComponent {
       && String(comprobante.ComprobanteNro ?? '').trim() != ''
       && String(comprobante.ImporteTotal ?? '').trim() != ''))
 
+
+  async load(NroOrdenVenta:number) {
+    console.log('Cargo OV',NroOrdenVenta)
+  }
+
+  async loadPlantilla() {
+    console.log('Cargo Plantilla OV')
+  }
+
+
   async save(opciones: { silencioso?: boolean } = {}) {
     if (this.soloLectura()) return undefined
 
@@ -653,11 +665,14 @@ export class OrdenVentaFormComponent {
   private effecto = effect(() => {
     const NroOrdenVenta= this.NroOrdenVenta()
     if (NroOrdenVenta>0){
-      console.log('cargo orden de venta',NroOrdenVenta)
-    } else if (NroOrdenVenta==-1) {
-      console.log('limpio formulario')
+      console.log('FORM cargo orden de venta',NroOrdenVenta)
+      this.load(NroOrdenVenta);
     } else if (NroOrdenVenta==-2) {
-      console.log('traigo mes anterior')
+      this.loadPlantilla();
+      console.log('FORM traigo mes anterior')
+    } else {
+      console.log('FORM limpio formulario')
+      this.clearForm()
     }
   })
 

@@ -9,7 +9,7 @@ import { DecimalPipe } from '@angular/common';
 @Component({
   selector: 'app-orden-venta-drawer',
   standalone: true,
-  imports: [SHARED_IMPORTS, OrdenVentaFormComponent,DecimalPipe],
+  imports: [SHARED_IMPORTS, OrdenVentaFormComponent, DecimalPipe],
   templateUrl: './orden-venta-drawer.html'
 })
 export class OrdenVentaDrawerComponent {
@@ -26,21 +26,38 @@ export class OrdenVentaDrawerComponent {
   private apiService = inject(ApiService)
   private ordenVentaForm = viewChild.required<OrdenVentaFormComponent>('ordenVentaForm')
 
-  private effecto = effect(() => {
+  private effecto = effect(async () => {
 
-      const anio = this.anio()
-      const mes = this.mes()
-      const ClienteId = this.ClienteId()
-      const ClienteElementoDependienteId = this.ClienteElementoDependienteId()
-      const visible = this.visible()
+    const anio = this.anio()
+    const mes = this.mes()
+    const ClienteId = this.ClienteId()
+    const ClienteElementoDependienteId = this.ClienteElementoDependienteId()
+    const visible = this.visible()
+    this.cabecera.set({})
+    if (ClienteId > 0 && ClienteElementoDependienteId > 0 && anio > 0 && mes > 0 && visible) {
+      await this.getCabecera(ClienteId, ClienteElementoDependienteId, anio, mes)
+      if (this.ordenVentaSeleccionada()==0){
+        if (this.cabecera().Ordenes.length)
+          this.ordenVentaSeleccionada.set(this.cabecera().Ordenes[0].NroOrdenVenta)
+        else if (this.cabecera().NroOrdenVentaBase>0)
+          this.ordenVentaSeleccionada.set(-2)
+        else 
+          this.ordenVentaSeleccionada.set(-1)
 
-      if (ClienteId > 0 && anio > 0 && mes > 0 && visible) {
-        
-        this.getCabecera(ClienteId, ClienteElementoDependienteId,anio, mes)
-      } else {
-        this.cabecera.set({})
       }
+    }
   })
+
+  private cambioPerObj = effect(() => {
+    const anio = this.anio()
+    const mes = this.mes()
+    const ClienteId = this.ClienteId()
+    const ClienteElementoDependienteId = this.ClienteElementoDependienteId()
+
+    if (anio && mes && ClienteId && ClienteElementoDependienteId) {
+      this.ordenVentaSeleccionada.set(0)
+    }
+  });
 
   titulo = input<string>('N/D')
   TotalHorasReales = input<number>(0)
@@ -48,12 +65,12 @@ export class OrdenVentaDrawerComponent {
   // incompleto o error) el drawer queda abierto con los errores a la vista.
   async cerrar() {
     try {
-    this.ordenVentaForm().save()
-    this.visible.set(false)
-    } catch (e){}
+      this.ordenVentaForm().save()
+      this.visible.set(false)
+    } catch (e) { }
   }
 
-  ordenVentaGuardada(data:any) {
+  ordenVentaGuardada(data: any) {
     this.ordenVentaChange.emit(data)
     this.getCabecera(this.ClienteId(), this.ClienteElementoDependienteId(), this.anio(), this.mes())
   }
@@ -63,10 +80,11 @@ export class OrdenVentaDrawerComponent {
     try {
       const cabecera = await firstValueFrom(this.apiService.getOrdenVentaCabecera(ClienteId, ClienteElementoDependienteId, anio, mes))
       this.cabecera.set(cabecera ?? {})
-    } finally {
+    } catch {
+      this.cabecera.set({})
     }
   }
 
-  
+
 
 }

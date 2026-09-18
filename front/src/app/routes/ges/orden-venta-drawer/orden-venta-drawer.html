@@ -17,8 +17,9 @@
             [nzLabel]="orden.NroOrdenVenta+' '+ orden.EstadoOrdenVenta"></nz-option>
           }
           <nz-option [nzValue]="-1" [nzLabel]="'Nueva'"></nz-option>
-          <nz-option [nzValue]="-2" [nzLabel]="'Nueva (copia anterior)'"></nz-option>
-
+          @if (cabecera().NroOrdenVentaBase  && cabecera().Ordenes.length==0){
+            <nz-option [nzValue]="-2" [nzLabel]="'Nueva (copia desde OV'+ cabecera().NroOrdenVentaBase+')'"></nz-option>
+          }
         </nz-select>
       </nz-form-control>
 

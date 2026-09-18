@@ -387,22 +387,8 @@ export class OrdenVentaController extends BaseController {
 
     try {
       const ordenes = await OrdenVentaController.getOrdenesVentaPeriodo(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
-
       const NroOrdenVentaBase = await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId,ClienteElementoDependienteId, anio, mes);
 
-      // Los comprobantes de la orden. Una orden puede tener más de uno, de distinto tipo.
-/*
-      const comprobantes = NroOrdenVenta
-        ? await queryRunner.query(`
-            SELECT com.ComprobanteNro, com.ComprobanteTipoCodigo, com.ImporteTotal,
-              tip.Descripcion AS ComprobanteTipo
-            FROM Comprobante com
-            LEFT JOIN ComprobanteTipo tip ON tip.ComprobanteTipoCodigo = com.ComprobanteTipoCodigo
-            WHERE com.NroOrdenVenta = @0
-            ORDER BY com.AudFechaIng, com.ComprobanteNro
-          `, [NroOrdenVenta])
-        : [];
-*/
       this.jsonRes(
         {
           Ordenes: ordenes,
