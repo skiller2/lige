@@ -574,7 +574,6 @@ export class DomicilioController extends BaseController {
 
   // Agrega un nuevo registro a la tabla Domicilio, devuelve el id del nuevo registro
   async addDomicilio(queryRunner: any, domicilio: any, DomicilioDomLugar: string|null) {
-    logger.error(`domicilio :${domicilio.verAddress}.`);
     const address: any = domicilio.address
     let { PaisId, ProvinciaId, LocalidadId, BarrioId } = domicilio.verAddress
 
