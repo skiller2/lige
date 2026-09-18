@@ -20,6 +20,11 @@ ordenVentaRouter.get("/cabecera/:ClienteId/:ClienteElementoDependienteId/:anio/:
   ordenVentaController.getCabecera(req, res, next);
 });
 
+ordenVentaRouter.get("/:NroOrdenVenta", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.getOrdenVenta(req, res, next);
+});
+
+
 ordenVentaRouter.post("/save", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   ordenVentaController.setOrdenVenta(req, res, next);
 });

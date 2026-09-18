@@ -1976,8 +1976,16 @@ export class ApiService {
     );
   }
 
-  setOrdenVenta(ordenVenta: any) {
+  getOrdenVenta(NroOrdenVenta:number) {
+    return this.http.post<ResponseJSON<any>>(`/api/orden-venta/:${NroOrdenVenta}}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of({ total: 0, list: [] }))
+    );
+  }
 
+
+
+  setOrdenVenta(ordenVenta: any) {
     return this.http.post<ResponseJSON<any>>('/api/orden-venta/save', ordenVenta);
   }
 

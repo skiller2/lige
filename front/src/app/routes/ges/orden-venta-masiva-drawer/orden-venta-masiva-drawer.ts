@@ -148,11 +148,6 @@ export class OrdenVentaMasivaDrawerComponent {
   guardado = output<void>()
 
   // Con "Facturado" elegido para el cliente, los datos del comprobante son obligatorios
-  comprobanteObligatorio(indice: number): boolean {
-    return String(this.clientesArray().at(indice)?.get('EstadoOrdenVentaCodigo')?.value ?? '')
-      .trim().toUpperCase() === ESTADO_FACTURADO
-  }
-
   async save() {
     if (this.guardando()) return
 

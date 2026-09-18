@@ -117,7 +117,6 @@ export class OrdenVentaFormComponent {
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
-  private notification = inject(NzNotificationService)
 
   optionsTipoCantidad = toSignal(this.searchService.getTipoCantidadSearch(), { initialValue: [] })
   optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
@@ -168,8 +167,8 @@ export class OrdenVentaFormComponent {
     // Con "Facturado" los tres datos del comprobante son obligatorios; si no, van los tres juntos
     // o ninguno
     applyEach(p.comprobantes, (comprobantePath) => {
-      required(comprobantePath.ComprobanteTipoCodigo, { message: 'Código comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteNro) != ""  });
-      required(comprobantePath.ComprobanteNro, { message: 'Número de comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != ""  });
+      required(comprobantePath.ComprobanteTipoCodigo, { message: 'Código comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteNro) != "" });
+      required(comprobantePath.ComprobanteNro, { message: 'Número de comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != "" });
       //required(comprobantePath.ImporteTotal, { message: 'Importe total del comprobante requerido', when: (ctx) => ctx.valueOf(comprobantePath.ComprobanteTipoCodigo) != "" || ctx.valueOf(comprobantePath.ComprobanteNro) != "" || this.esFacturado(), });
     });
 
@@ -228,7 +227,7 @@ export class OrdenVentaFormComponent {
 
   totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => sum + valor, 0));
 
-  
+
   /*
   // Comprobantes tal cual están en pantalla, para el contenedor
   private comprobanteValue = toSignal(this.formComprobante.valueChanges, {
@@ -530,13 +529,13 @@ export class OrdenVentaFormComponent {
 
   }
 
-/*
-  private static readonly ETIQUETAS_COMPROBANTE: Record<string, string> = {
-    ComprobanteTipoCodigo: 'Tipo de Comprobante',
-    ComprobanteNro: 'Nro. de Comprobante',
-    ImporteTotal: 'Importe Total'
-  }
-*/
+  /*
+    private static readonly ETIQUETAS_COMPROBANTE: Record<string, string> = {
+      ComprobanteTipoCodigo: 'Tipo de Comprobante',
+      ComprobanteNro: 'Nro. de Comprobante',
+      ImporteTotal: 'Importe Total'
+    }
+  */
 
   // Qué le falta a cada comprobante empezado, para avisarlo junto con los carteles de cada campo
   /*
@@ -588,8 +587,9 @@ export class OrdenVentaFormComponent {
 */
 
 
-  async load(NroOrdenVenta:number) {
-    console.log('Cargo OV',NroOrdenVenta)
+  async load(NroOrdenVenta: number) {
+    const ov= await firstValueFrom(this.apiService.getOrdenVenta(NroOrdenVenta))
+    console.log('Cargo OV', NroOrdenVenta,ov)
   }
 
   async loadPlantilla() {
@@ -598,18 +598,13 @@ export class OrdenVentaFormComponent {
 
 
   async save(opciones: { silencioso?: boolean } = {}) {
-    if (this.soloLectura() || this.formOrdenVenta().submitting() || this.formOrdenVenta().dirty()==false || this.formOrdenVenta().valid()==false) return undefined
-
-    // Pasar a "Facturado" obliga a cargar al menos un comprobante con todos sus datos
+    if (this.soloLectura() || this.formOrdenVenta().submitting() || this.formOrdenVenta().dirty() == false || this.formOrdenVenta().valid() == false) return undefined
 
     await submit(this.formOrdenVenta, async (form) => {
       try {
         const formValue = form().value();
         const respuesta = await firstValueFrom(this.apiService.setOrdenVenta(formValue))
-
-        this.notification.success('Orden de venta', respuesta?.msg ?? 'Grabación exitosa')
-
-
+        //TODO: Actualizar formularios con los valores devuelvos
 
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
@@ -625,10 +620,10 @@ export class OrdenVentaFormComponent {
   }
 
   private effecto = effect(() => {
-    const NroOrdenVenta= this.NroOrdenVenta()
-    if (NroOrdenVenta>0){
+    const NroOrdenVenta = this.NroOrdenVenta()
+    if (NroOrdenVenta > 0) {
       this.load(NroOrdenVenta);
-    } else if (NroOrdenVenta==-2) {
+    } else if (NroOrdenVenta == -2) {
       this.loadPlantilla();
     } else {
       this.clearForm()
