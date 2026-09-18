@@ -1,7 +1,7 @@
 <nz-space-compact nzBlock>
   <nz-select #dsc [ngModel]="selectedItem()" [nzDropdownMatchSelectWidth]="false"
     [ngModelOptions]="{ standalone: true }" style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear
-    nzPlaceHolder="Direccion" nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [nzLoading]="loading()"
+    nzPlaceHolder="Direccion (Calle Nro, Localidad, Provincia, Cod.Postal)" nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [nzLoading]="loading()"
     [compareWith]="compareByPlaceId">
 
     @if (!loading()) {

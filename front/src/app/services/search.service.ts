@@ -499,9 +499,18 @@ export class SearchService {
   }
 
   async getDireccionNominatim(direccion: string) {
+    const direccionLimpia = direccion.trim();
+    if (!direccionLimpia) return [];
+    const manual:any = {
+      place_id: 0,
+      display_name: direccionLimpia,
+      address: {road:'', house_number:'', state_district:'', state:'', postcode:''},
+      manual: true
+    };
+
     const url = new URL("https://nominatim.openstreetmap.org/search");
 
-    url.searchParams.append("q", direccion);
+    url.searchParams.append("q", direccionLimpia);
     url.searchParams.append("polygon_geojson", "1");
     url.searchParams.append("countrycodes", "AR");
     url.searchParams.append("layer", "address");
@@ -515,35 +524,51 @@ export class SearchService {
         "Accept-Language": "es-ES"
       }
     });
-
+    let result:any =[]
     if (!response.ok) {
-      // return [{ place_id: 0, display_name: direccion }]
-      throw new Error(`Error HTTP ${response.status}`);
+      // throw new Error(`Error HTTP ${response.status}`);
+      console.warn(`Nominatim respondió HTTP ${response.status}`);
+    } else {
+      result = await response.json()
+
+      for (const item of result) {
+
+        const { road, house_number, town, state, state_district, postcode } = item.address || {};
+
+        item.display_name = [
+          [road, house_number].filter(Boolean).join(" "),
+          state_district || town,
+          state,
+          postcode
+        ]
+          .filter(Boolean)
+          .join(", ");
+        
+      }
     }
 
-    const result = await response.json()
-
-    for (const item of result) {
-
-      const { road, house_number, town, state, state_district, postcode } = item.address || {};
-
-      item.display_name = [
-        [road, house_number].filter(Boolean).join(" "),
-        state_district || town,
-        state,
-        postcode
-      ]
-        .filter(Boolean)
-        .join(", ");
-      
+    const arrayAdress = direccionLimpia.split(',').map(x => x.trim())
+    if (arrayAdress.length >= 3) {
+      const [calleNumero, state_district, state, postcode] = arrayAdress
+      const match = calleNumero?.split(' ')
+      let numero:any = ''
+      let calle:any = ''
+      if (isNaN(Number(match[match.length-1]))) {
+        calle = match.join(' ')
+      } else {
+        numero = match.pop()
+        calle = match.join(' ')
+      }
+      result.push({...manual, 
+        address:{
+          road: calle,
+          house_number: numero,
+          state_district: state_district ?? '',
+          state: state ?? '',
+          postcode: postcode ?? ''
+        }
+      })
     }
-
-    // if (direccion.trim().split(',').length >= 3) {
-    //   result.push({
-    //     place_id: 0,
-    //     display_name: direccion
-    //   })
-    // }
 
     return result
 

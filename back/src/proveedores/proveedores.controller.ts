@@ -118,7 +118,7 @@ export class ProveedoresController extends BaseController {
       WHERE pro.ProveedorId = @0`,
       [proveedorId]
     )
-    if (!data.length) null
+    if (!data.length) return null
     const Proveedor = data[0]
     Proveedor.domicilio = JSON.parse(Proveedor.DomicilioJson)
 
@@ -145,13 +145,13 @@ export class ProveedoresController extends BaseController {
     const contactos = await queryRunner.query(
       `SELECT 
         con.ContactoId,
-        con.ContactoNombre,
-        con.ContactoApellido,
+        TRIM(con.ContactoNombre) ContactoNombre,
+        TRIM(con.ContactoApellido) ContactoApellido,
         con.ContactoArea,
         con.ContactoJurImpositiva,
         con.ContactoTipoCod,
         tele.TipoTelefonoId,
-        tele.ContactoTelefonoNro,
+        TRIM(tele.ContactoTelefonoNro) ContactoTelefonoNro,
         email.ContactoEmailEmail
       FROM Contacto AS con
       LEFT JOIN ContactoEmail AS email ON email.ContactoId = con.ContactoId
@@ -186,10 +186,10 @@ export class ProveedoresController extends BaseController {
       return new ClientException(`El CUIT ingresado ya existe.`)
     }
 
-    // const valDomicilio = await domicilioController.valObjDomicilio(queryRunner, form.domicilio)
-    // if (valDomicilio instanceof ClientException) {
-    //   return valDomicilio
-    // }
+    const valDomicilio = await domicilioController.valObjDomicilio(queryRunner, form.domicilio)
+    if (valDomicilio instanceof ClientException) {
+      return valDomicilio
+    }
 
     switch (type) {
       case 'U':
@@ -223,14 +223,14 @@ export class ProveedoresController extends BaseController {
       const ip = this.getRemoteAddress(req)
 
       const ProveedorId = await this.insertProveedor(queryRunner, body, usuario, ip)
-      // const DomicilioId = await domicilioController.addDomicilio(queryRunner, body.domicilio, null)
-      //Agregar NexoDomicilio
-      // await queryRunner.query(
-      //   `INSERT INTO NexoDomicilio (
-      //       DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ProveedorId
-      //   ) VALUES ( @0,@1,@2,@3,@4,@5,@6)`, 
-      //   [ DomicilioId, 1, 1, 1, 1, 1, ProveedorId ]
-      // )
+      const DomicilioId = await domicilioController.addDomicilio(queryRunner, body.domicilio, null)
+      // Agregar NexoDomicilio
+      await queryRunner.query(
+        `INSERT INTO NexoDomicilio (
+            DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ProveedorId
+        ) VALUES ( @0,@1,@2,@3,@4,@5,@6)`, 
+        [ DomicilioId, 1, 1, 1, 1, 1, ProveedorId ]
+      )
       //Agregar Contactos de Provedor
       await this.ProveedorContactoUpdate(queryRunner, body.contactos, ProveedorId)
 
@@ -341,7 +341,7 @@ export class ProveedoresController extends BaseController {
       // const usuario = res.locals.userName
       // const ip = this.getRemoteAddress(req)
 
-      // await domicilioController.updateDomicilio(queryRunner, body.DomicilioId, body.domicilio, null)
+      await domicilioController.updateDomicilio(queryRunner, body.DomicilioId, body.domicilio, null)
       //Agregar Contactos de Provedor
       await this.ProveedorContactoUpdate(queryRunner, body.contactos, ProveedorId)
 

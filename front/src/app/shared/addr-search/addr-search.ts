@@ -84,6 +84,57 @@ export class AddrSearchComponent
   private propagateTouched: () => void = () => { };
   private propagateChange: (_: any) => void = () => { };
 
+  private async buscarProvincia(nombre: string, paisId: number): Promise<number|null> {
+    try {
+      const res = await firstValueFrom(
+        this.searchService.getProvinciaFromName('Descripcion', nombre, paisId)
+      );
+
+      return res.length ? res[0].ProvinciaId : null;
+
+    } catch (error) {
+      console.error('Error buscando provincia:', error);
+      return null;
+    }
+  }
+
+  private async buscarLocalidad(nombre:string, provinciaId:number, paisId:number): Promise<number|null> {
+
+    if (!provinciaId) return null;
+
+    try {
+
+      let array:any[] = nombre.split(" ")
+      const res = await firstValueFrom(
+        this.searchService.getLocalidadFromName('Descripcion', array[array.length-1], provinciaId, paisId)
+      );
+      
+      return res.length ? res[0].LocalidadId : null;
+
+    } catch (error) {
+      console.error('Error buscando localidad:', error);
+      return null;
+    }
+  }
+
+  private async buscarBarrio(nombre:string, localidadId:number, provinciaId:number, paisId:number): Promise<number|null> {
+
+    if (!localidadId) return null;
+
+    try {
+      let array:any[] = nombre.split(" ")
+      const res = await firstValueFrom(
+        this.searchService.getBarrioFromName('Descripcion', array[array.length-1], localidadId, provinciaId, paisId)
+      );
+
+      return res.length ? res[0].BarrioId : null;
+
+    } catch (error) {
+      console.error('Error buscando barrio:', error);
+      return null;
+    }
+  }
+
   readonly options = toSignal(
     toObservable(this.searchTerm).pipe(
       debounceTime(500),
@@ -195,45 +246,53 @@ export class AddrSearchComponent
   }
 
   search(value: string): void {
+    // console.log('search: ',value);
     this.searchTerm.set(value);
   }
 
   async modelChange(value: any | null): Promise<void> {
+    // console.log('modelChange: ',value);
+    if (!value) {
+      this.selectedItem.set(null);
+      this.propagateChange(null);
+      return;
+    }
+
+    const PaisId = 1;
+    let ProvinciaId:number|null = null;
+    let LocalidadId:number|null = null;
+    let BarrioId:number|null = null;
     // Validar el address
     if (value?.address) {
       const address = value.address
-      let verAddress:any = {PaisId: 1, ProvinciaId:null, LocalidadId:null, BarrioId:null}
-      if(address.state){
-        await firstValueFrom(this.searchService.getProvinciaFromName('Descripcion', address.state, verAddress.PaisId)
-          .pipe(tap(res => {
-            if (res.length) verAddress.ProvinciaId = res[0].ProvinciaId
-            else verAddress.ProvinciaId = 0
-          }))
-        )
-      }
       
-      if(address.state_district || address.city){
-        let array:any[] = address.state_district? address.state_district.split(" ") : (address.city? address.city.split(" "): [])
-        await firstValueFrom(this.searchService.getLocalidadFromName('Descripcion', array[array.length-1], verAddress.ProvinciaId, verAddress.PaisId)
-          .pipe(tap(res => {
-            if (res.length) verAddress.LocalidadId = res[0].LocalidadId
-            else verAddress.LocalidadId = 0
-          }))
-        )
+      // Provincia
+      if (address.state) {
+        ProvinciaId = await this.buscarProvincia(address.state, PaisId);
       }
 
-      if(address.town){
-        let array:any[] = address.town.split(" ")
-        await firstValueFrom(this.searchService.getBarrioFromName('Descripcion', array[array.length-1], verAddress.LocalidadId, verAddress.ProvinciaId, verAddress.PaisId)
-          .pipe(tap(res => {
-            if (res.length) verAddress.BarrioId = res[0].BarrioId
-            else verAddress.BarrioId = 0
-          }))
-        )
+      // Localidad
+      const localidadNombre = address.state_district ?? address.city;
+      if (ProvinciaId && localidadNombre) {
+        LocalidadId = await this.buscarLocalidad(localidadNombre, ProvinciaId, PaisId);
       }
 
-      value.verAddress = verAddress
+      // Barrio
+      if (ProvinciaId && LocalidadId && address.town) {
+        BarrioId = await this.buscarBarrio(address.town, LocalidadId, ProvinciaId, PaisId);
+      }
+
     }
+
+    value = {
+      ...value,
+      verAddress: {
+        PaisId,
+        ProvinciaId,
+        LocalidadId,
+        BarrioId
+      }
+    };
     
     this.selectedItem.set(value);
     this.propagateChange(this.selectedItem());

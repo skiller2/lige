@@ -104,6 +104,8 @@ export class ProveedoresFormComponent {
       this.isLoading.set(true)
       const values: any = form().value()
       try {
+        console.log('values: ', values);
+        
         //Filtra los array de los objeto no usados
         values.contactos = values.contactos.filter((c: Contacto) => { return !this.isEqualObject(c, this.defaultContacto) })
         if (this.ProveedorId()) {

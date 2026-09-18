@@ -160,7 +160,8 @@
 
   <!-- Apartado para adjuntar documentos -->
   <nz-form-item>
-    <nz-form-control >
+    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Archivos</nz-form-label>
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
       <app-file-upload formControlName="files" [idForSearh]="formCli.getRawValue().DocumentoId ?? 0"
         [textForSearch]="'NOV'"
         columnForSearch="DocumentoId" [tableForSearch]="'Documento'"

@@ -2,6 +2,7 @@ import type { QueryRunner } from "typeorm";
 import { BaseController, ClientException } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Response } from "express";
+import { logger } from "../logger/logger.ts";
 
 export class DomicilioController extends BaseController {
   test(req: any, res: any, next: any) {
@@ -555,78 +556,83 @@ export class DomicilioController extends BaseController {
 
   // Valida el objeto que devuelve AddrSearchComponent
   async valObjDomicilio(queryRunner: any, domicilio: any) {
-    if (!domicilio.address || Object.keys(domicilio.address).length === 0) {
-      return new ClientException(`Domicilio invalido`)
+    if (!domicilio.manual) {
+      if (!domicilio.address || Object.keys(domicilio.address).length === 0) {
+        return new ClientException(`Domicilio invalido`)
+      }
+
+      if (!domicilio.place_id || isNaN(domicilio.place_id)) {
+        return new ClientException(`Domicilio invalido`)
+      }
     }
 
     if (!domicilio.display_name || domicilio.display_name.length === 0) {
       return new ClientException(`Domicilio invalido`)
     }
 
-    if (!domicilio.place_id || isNaN(domicilio.place_id)) {
-      return new ClientException(`Domicilio invalido`)
-    }
   }
 
   // Agrega un nuevo registro a la tabla Domicilio, devuelve el id del nuevo registro
   async addDomicilio(queryRunner: any, domicilio: any, DomicilioDomLugar: string|null) {
-
+    logger.error(`domicilio :${domicilio.verAddress}.`);
     const address: any = domicilio.address
     let { PaisId, ProvinciaId, LocalidadId, BarrioId } = domicilio.verAddress
 
-    //Crea la Provincia en caso de no estar registrada
-    if (!ProvinciaId && address.state) {
-      const ProvinciaDescripcion: string = address.state
+    if (domicilio.place_id) {
+      //Crea la Provincia en caso de no estar registrada
+      if (!ProvinciaId && address.state) {
+        const ProvinciaDescripcion: string = address.state
 
-      const Pais = await queryRunner.query(`
-        SELECT ISNULL(PaisProvinciaUltNro, 0) AS PaisProvinciaUltNro, PaisId
-        FROM Pais
-        WHERE PaisId IN (@0)
-      `, [PaisId])
-      const newProvinciaId: number = Pais[0].PaisProvinciaUltNro + 1
+        const Pais = await queryRunner.query(`
+          SELECT ISNULL(PaisProvinciaUltNro, 0) AS PaisProvinciaUltNro, PaisId
+          FROM Pais
+          WHERE PaisId IN (@0)
+        `, [PaisId])
+        const newProvinciaId: number = Pais[0].PaisProvinciaUltNro + 1
 
-      await queryRunner.query(`
-        UPDATE Pais
-        SET PaisProvinciaUltNro = @0
-        WHERE PaisId IN (@1)
+        await queryRunner.query(`
+          UPDATE Pais
+          SET PaisProvinciaUltNro = @0
+          WHERE PaisId IN (@1)
 
-        INSERT INTO Provincia (
-          ProvinciaId,
-          PaisId,
-          ProvinciaDescripcion,
-          ProvinciaLocalidadUltNro ) 
-        VALUES (@0, @1, @2, 0)
-      `, [newProvinciaId, PaisId, ProvinciaDescripcion])
+          INSERT INTO Provincia (
+            ProvinciaId,
+            PaisId,
+            ProvinciaDescripcion,
+            ProvinciaLocalidadUltNro ) 
+          VALUES (@0, @1, @2, 0)
+        `, [newProvinciaId, PaisId, ProvinciaDescripcion])
 
-      ProvinciaId = newProvinciaId
-    }
+        ProvinciaId = newProvinciaId
+      }
 
-    //Crea la localidad en caso de no estar registrada
-    if (ProvinciaId && !LocalidadId && (address.state_district || address.city)) {
-      const LocalidadDescripcion: string = address.state_district ? address.state_district : address.city
+      //Crea la localidad en caso de no estar registrada
+      if (ProvinciaId && !LocalidadId && (address.state_district || address.city)) {
+        const LocalidadDescripcion: string = address.state_district ? address.state_district : address.city
 
-      const Provincia = await queryRunner.query(`
-        SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
-        FROM Provincia
-        WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
-      `, [PaisId, ProvinciaId])
-      const newLocalidadId: number = Provincia[0].ProvinciaLocalidadUltNro + 1
+        const Provincia = await queryRunner.query(`
+          SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
+          FROM Provincia
+          WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
+        `, [PaisId, ProvinciaId])
+        const newLocalidadId: number = Provincia[0].ProvinciaLocalidadUltNro + 1
 
-      await queryRunner.query(`
-        UPDATE Provincia
-        SET ProvinciaLocalidadUltNro = @0
-        WHERE PaisId IN (@1) AND ProvinciaId IN (@2)
+        await queryRunner.query(`
+          UPDATE Provincia
+          SET ProvinciaLocalidadUltNro = @0
+          WHERE PaisId IN (@1) AND ProvinciaId IN (@2)
 
-        INSERT INTO Localidad (
-          LocalidadId,
-          PaisId,
-          ProvinciaId,
-          LocalidadDescripcion,
-          LocalidadBarrioUltNro ) 
-        VALUES (@0, @1, @2, @3, 0)
-      `, [newLocalidadId, PaisId, ProvinciaId, LocalidadDescripcion])
+          INSERT INTO Localidad (
+            LocalidadId,
+            PaisId,
+            ProvinciaId,
+            LocalidadDescripcion,
+            LocalidadBarrioUltNro ) 
+          VALUES (@0, @1, @2, @3, 0)
+        `, [newLocalidadId, PaisId, ProvinciaId, LocalidadDescripcion])
 
-      LocalidadId = newLocalidadId
+        LocalidadId = newLocalidadId
+      }
     }
 
     await queryRunner.query(
@@ -649,60 +655,62 @@ export class DomicilioController extends BaseController {
     const address: any = domicilio.address
     let { PaisId, ProvinciaId, LocalidadId, BarrioId } = domicilio.verAddress
 
-    //Crea la Provincia en caso de no estar registrada
-    if (!ProvinciaId && address.state) {
-      const ProvinciaDescripcion: string = address.state
+    if (domicilio.place_id) {
+      //Crea la Provincia en caso de no estar registrada
+      if (!ProvinciaId && address.state) {
+        const ProvinciaDescripcion: string = address.state
 
-      const Pais = await queryRunner.query(`
-        SELECT ISNULL(PaisProvinciaUltNro, 0) AS PaisProvinciaUltNro, PaisId
-        FROM Pais
-        WHERE PaisId IN (@0)
-      `, [PaisId])
-      const newProvinciaId: number = Pais[0].PaisProvinciaUltNro + 1
+        const Pais = await queryRunner.query(`
+          SELECT ISNULL(PaisProvinciaUltNro, 0) AS PaisProvinciaUltNro, PaisId
+          FROM Pais
+          WHERE PaisId IN (@0)
+        `, [PaisId])
+        const newProvinciaId: number = Pais[0].PaisProvinciaUltNro + 1
 
-      await queryRunner.query(`
-        UPDATE Pais
-        SET PaisProvinciaUltNro = @0
-        WHERE PaisId IN (@1)
+        await queryRunner.query(`
+          UPDATE Pais
+          SET PaisProvinciaUltNro = @0
+          WHERE PaisId IN (@1)
 
-        INSERT INTO Provincia (
-          ProvinciaId,
-          PaisId,
-          ProvinciaId,
-          ProvinciaDescripcion,
-          ProvinciaLocalidadUltNro ) 
-        VALUES (@0, @1, @2, @3, 0)
-      `, [newProvinciaId, PaisId, ProvinciaId, ProvinciaDescripcion])
+          INSERT INTO Provincia (
+            ProvinciaId,
+            PaisId,
+            ProvinciaId,
+            ProvinciaDescripcion,
+            ProvinciaLocalidadUltNro ) 
+          VALUES (@0, @1, @2, @3, 0)
+        `, [newProvinciaId, PaisId, ProvinciaId, ProvinciaDescripcion])
 
-      ProvinciaId = newProvinciaId
-    }
+        ProvinciaId = newProvinciaId
+      }
 
-    //Crea la localidad en caso de no estar registrada
-    if (ProvinciaId && !LocalidadId && (address.state_district || address.city)) {
-      const LocalidadDescripcion: string = address.state_district ? address.state_district : address.city
+      //Crea la localidad en caso de no estar registrada
+      if (ProvinciaId && !LocalidadId && (address.state_district || address.city)) {
+        const LocalidadDescripcion: string = address.state_district ? address.state_district : address.city
 
-      const Provincia = await queryRunner.query(`
-        SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
-        FROM Provincia
-        WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
-      `, [PaisId, ProvinciaId])
-      const newLocalidadId: number = Provincia[0].ProvinciaLocalidadUltNro + 1
+        const Provincia = await queryRunner.query(`
+          SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
+          FROM Provincia
+          WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
+        `, [PaisId, ProvinciaId])
+        const newLocalidadId: number = Provincia[0].ProvinciaLocalidadUltNro + 1
 
-      await queryRunner.query(`
-        UPDATE Provincia
-        SET ProvinciaLocalidadUltNro = @0
-        WHERE PaisId IN (@1) AND ProvinciaId IN (@2)
+        await queryRunner.query(`
+          UPDATE Provincia
+          SET ProvinciaLocalidadUltNro = @0
+          WHERE PaisId IN (@1) AND ProvinciaId IN (@2)
 
-        INSERT INTO Localidad (
-          LocalidadId,
-          PaisId,
-          ProvinciaId,
-          LocalidadDescripcion,
-          LocalidadBarrioUltNro ) 
-        VALUES (@0, @1, @2, @3, 0)
-      `, [newLocalidadId, PaisId, ProvinciaId, LocalidadDescripcion])
+          INSERT INTO Localidad (
+            LocalidadId,
+            PaisId,
+            ProvinciaId,
+            LocalidadDescripcion,
+            LocalidadBarrioUltNro ) 
+          VALUES (@0, @1, @2, @3, 0)
+        `, [newLocalidadId, PaisId, ProvinciaId, LocalidadDescripcion])
 
-      LocalidadId = newLocalidadId
+        LocalidadId = newLocalidadId
+      }
     }
 
     await queryRunner.query(
