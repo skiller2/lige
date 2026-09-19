@@ -270,14 +270,8 @@ export class AsistenciaController extends BaseController {
       if (objetivo.length == 0)
         throw new ClientException(`No se encontró el objetivo`)
 
-
-
-
-      //const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
-
       const ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
       const ClienteId = objetivo[0].ClienteId
-
       const ordenVenta = await queryRunner.query(
         `SELECT TOP 1 ord.EstadoOrdenVentaCodigo, ord.NroOrdenVenta
          FROM  OrdenVenta ord 
@@ -286,39 +280,92 @@ export class AsistenciaController extends BaseController {
          ORDER BY ord.NroOrdenVenta
        `, [null, anio, mes, ClienteId, ClienteElementoDependienteId])
 
-      if (ordenVenta[0] && ordenVenta[0].EstadoOrdenVentaCodigo != 'PEN')
-        throw new ClientException(`No se puede modificar los valores de HorasA y HorasB porque la orden de venta ${ordenVenta[0].NroOrdenVenta} no está pendiente`)
+      if (ordenVenta[0] && (ordenVenta[0].EstadoOrdenVentaCodigo != 'PEN' && ordenVenta[0].EstadoOrdenVentaCodigo != 'FIN'))
+        throw new ClientException(`No se puede modificar los valores de HorasA y HorasB porque la orden de venta ${ordenVenta[0].NroOrdenVenta} no está pendiente (${ordenVenta[0].EstadoOrdenVentaCodigo})`)
+
+      const ProductoCodigoA = 'SSF'
+      const ProductoCodigoB = 'SSFB'
+      const ordenVentaController = new OrdenVentaController()
+
+      const {ImporteUnitarioA,ImporteUnitarioB}= await ordenVentaController.getImporteHorasAB( ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner) 
 
       if (ordenVenta[0] && ordenVenta[0].NroOrdenVenta) {
+        const NroOrdenVenta = ordenVenta[0].NroOrdenVenta
+
         await queryRunner.query(
-          `UPDATE OrdenVenta SET Observaciones=@1 
+          `UPDATE OrdenVenta SET Observaciones=@1, AudFechaMod=@2, AudIpMod=@3, AudUsuarioMod=@4 
          WHERE NroOrdenVenta=@0 
-       `, [ordenVenta[0].NroOrdenVenta, Observaciones])
+       `, [NroOrdenVenta, Observaciones, ahora, ip, usuario])
 
         await queryRunner.query(
-          `UPDATE ItemOrdenVenta SET Cantidad=@1 
-         WHERE NroOrdenVenta=@0 AND ProductoCodigo='SSF'
-       `, [ordenVenta[0].NroOrdenVenta, TotalHoraA])
+          `UPDATE ItemOrdenVenta SET Cantidad=@2, ImporteUnitario=@3, AudFechaMod=@4, AudIpMod=@5, AudUsuarioMod=@6 
+         WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1
+       `, [NroOrdenVenta, ProductoCodigoA, TotalHoraA, ImporteUnitarioA, ahora, ip, usuario])
+        const updatecountA = await queryRunner.query(`SELECT @@ROWCOUNT AS updatecount`)
+        if (!updatecountA[0].updatecount && TotalHoraA) {
+          await queryRunner.query(`
+          INSERT INTO ItemOrdenVenta (
+            NroOrdenVenta, ItemOrdenVentaCodigo, ProductoCodigo, TextoFactura,
+            TipoCantidad, Cantidad, TipoImporte, ImporteUnitario,
+            CantidadEstandar, Bonificacion, CantidadEnFactura,
+            AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
+          VALUES (@0, (SELECT MAX(ItemOrdenVentaCodigo)+1 FROM ItemOrdenVenta WHERE NroOrdenVenta=@0) , @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @11, @12, @12, @13, @13)
+        `, [
+            NroOrdenVenta,
+            null,
+            ProductoCodigoA,
+            null,
+            'V',
+            TotalHoraA,
+            'LP',
+            ImporteUnitarioA,
+            null,
+            null,
+            null,
+            ahora, usuario, ip
+          ]);
+        }
 
         await queryRunner.query(
-          `UPDATE ItemOrdenVenta SET Cantidad=@1 
-         WHERE NroOrdenVenta=@0 AND ProductoCodigo='SSFB'
-       `, [ordenVenta[0].NroOrdenVenta, TotalHoraB])
-
+          `UPDATE ItemOrdenVenta SET Cantidad=@2, ImporteUnitario=@3, AudFechaMod=@4, AudIpMod=@5, AudUsuarioMod=@6 
+         WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1
+       `, [NroOrdenVenta, ProductoCodigoB, TotalHoraB, ImporteUnitarioB, ahora, ip, usuario])
+        const updatecountB = await queryRunner.query(`SELECT @@ROWCOUNT AS updatecount`);
+        if (!updatecountB[0].updatecount && TotalHoraB) {
+          await queryRunner.query(`
+          INSERT INTO ItemOrdenVenta (
+            NroOrdenVenta, ItemOrdenVentaCodigo, ProductoCodigo, TextoFactura,
+            TipoCantidad, Cantidad, TipoImporte, ImporteUnitario,
+            CantidadEstandar, Bonificacion, CantidadEnFactura,
+            AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod ) 
+          VALUES (@0, (SELECT MAX(ItemOrdenVentaCodigo)+1 FROM ItemOrdenVenta WHERE NroOrdenVenta=@0), @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @11, @12, @12, @13, @13)
+        `, [
+            NroOrdenVenta,
+            null,
+            ProductoCodigoB,
+            null,
+            'V',
+            TotalHoraB,
+            'LP',
+            ImporteUnitarioB,
+            null,
+            null,
+            null,
+            ahora, usuario, ip
+          ]);          
+        }
       } else {  // Tengo que crear la Orden de Venta desde 0
-        const ordenVentaController = new OrdenVentaController()
         const items = []
-        const ImporteUnitarioA=0
-        const ImporteUnitarioB=0
+
         if (TotalHoraA)
-          items.push({ ProductoCodigo: 'SSF', Cantidad: TotalHoraA, ImporteUnitario:ImporteUnitarioA })
+          items.push({ ProductoCodigo: 'SSF', Cantidad: TotalHoraA, ImporteUnitario: ImporteUnitarioA, TipoCantidad:'V', TipoImporte:'LP' })
         if (TotalHoraB)
-          items.push({ ProductoCodigo: 'SSFB', Cantidad: TotalHoraB, ImporteUnitario:ImporteUnitarioB })
+          items.push({ ProductoCodigo: 'SSFB', Cantidad: TotalHoraB, ImporteUnitario: ImporteUnitarioB, TipoCantidad:'V', TipoImporte:'LP' })
         if (items.length)
           await ordenVentaController.setOrdenVentaQuery(anio, mes, ClienteId, ClienteElementoDependienteId, 0, items, [], Observaciones, 'PEN', queryRunner, usuario, ip, ahora)
       }
 
-      this.setHorasFacturacionQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip);
+      await this.setHorasFacturacionQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip);
 
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Horas Actualizadas`);

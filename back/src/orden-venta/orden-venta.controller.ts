@@ -428,6 +428,29 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
+  async getImporteHorasAB( ClienteElementoDependienteId: number, ClienteId: number, anio: number, mes: number, queryRunner: QueryRunner) {
+    const ds = await queryRunner.query(
+      `SELECT ImporteHoraA, ImporteHoraB
+     FROM ObjetivoImporteVenta
+     WHERE ClienteElementoDependienteId = @0
+       AND ClienteId = @1
+       AND Anio = @2
+       AND Mes = @3`,
+      [ClienteElementoDependienteId, ClienteId, anio, mes]
+    );
+
+    return ds[0]
+      ? {
+        ImporteUnitarioA: ds[0].ImporteHoraA,
+        ImporteUnitarioB: ds[0].ImporteHoraB,
+      }
+      : {
+        ImporteUnitarioA: 0,
+        ImporteUnitarioB: 0,
+      };
+  }
+
+
   async getCabecera(req: Request, res: Response, next: NextFunction) {
     const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
     const ClienteId = Number(req.params.ClienteId);
@@ -498,8 +521,13 @@ export class OrdenVentaController extends BaseController {
     }
 
     await queryRunner.query(`DELETE FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
+    const {ImporteUnitarioA,ImporteUnitarioB}= await this.getImporteHorasAB( ClienteElementoDependienteId, ClienteId, PeriodoAnio, PeriodoMes, queryRunner) 
 
     for (const [indice, item] of items.entries()) {
+      let ImporteUnitario = Number(item.ImporteUnitario)
+      if (item.ProductoCodigo=='SSF') ImporteUnitario = ImporteUnitarioA
+      if (item.ProductoCodigo=='SSFB') ImporteUnitario = ImporteUnitarioB
+
       await queryRunner.query(`
           INSERT INTO ItemOrdenVenta (
             NroOrdenVenta, ItemOrdenVentaCodigo, ProductoCodigo, TextoFactura,
@@ -515,7 +543,7 @@ export class OrdenVentaController extends BaseController {
         String(item.TipoCantidad).trim(),
         item.Cantidad != null ? Number(item.Cantidad) : null,
         String(item.TipoImporte).trim(),
-        item.ImporteUnitario != null ? Number(item.ImporteUnitario) : null,
+        ImporteUnitario,
         item.CantidadEstandar != null ? Number(item.CantidadEstandar) : null,
         item.Bonificacion != null ? Number(item.Bonificacion) : null,
         item.CantidadEnFactura != null ? Number(item.CantidadEnFactura) : null,
