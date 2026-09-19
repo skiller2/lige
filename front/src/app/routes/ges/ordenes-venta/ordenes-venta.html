@@ -107,7 +107,7 @@
 
   </nz-form-item>
 
-  @if (ordenNoModificable() && modo() !== 'consulta') {
+  @if ( modo() !== 'consulta') {
   <nz-alert nzType="info" nzShowIcon
     nzMessage="La orden está en estado '{{ cabecera().EstadoOrdenVenta?.trim() }}': no se puede modificar." />
   }
@@ -120,7 +120,7 @@
 
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()"
     [ClienteId]="clienteId()" [ClienteElementoDependienteId]="clienteElementoDependienteId()"
-    [soloLectura]="soloLectura()" [origenCrud]="true" [EstadoOrdenVentaCodigo]="estadoOrdenVenta()"
+    [soloLectura]="soloLectura()" [origenCrud]="true" 
     (ordenVentaGuardada)="ordenVentaGuardada()" />
   <nz-divider></nz-divider>
 

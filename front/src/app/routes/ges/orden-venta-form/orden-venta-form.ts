@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, viewChildren } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { AbstractControl, ValidationErrors } from '@angular/forms';
@@ -8,6 +8,7 @@ import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { applyEach, disabled, form, FormField, required, submit } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
+import { NzCollapsePanelComponent } from 'ng-zorro-antd/collapse';
 
 const TIPO_CANTIDAD_MANUAL = 'V'
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP'
@@ -72,7 +73,7 @@ export interface OrdenVentaForm {
   imports: [SHARED_IMPORTS, CommonModule, FormsModule, FormField],
   templateUrl: './orden-venta-form.html',
   styleUrl: './orden-venta-form.less',
-  changeDetection: ChangeDetectionStrategy.OnPush
+//  changeDetection: ChangeDetectionStrategy.OnPush
 })
 
 
@@ -88,8 +89,6 @@ export class OrdenVentaFormComponent {
   origenCrud = input<boolean>(false)
 
   NroOrdenVenta = input<number>(0)
-
-  EstadoOrdenVentaCodigo = input<string | null>(null)
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
@@ -170,29 +169,11 @@ export class OrdenVentaFormComponent {
     */
   })
 
-
-  // los paneles del acordeón, así que va como señal y no como control del ítem: los paneles
-  // muestran todos el mismo valor.
-
-  // Panel abierto del acordeón (uno solo a la vez, para no colapsar la vista)
-  panelAbierto = signal<number>(0)
-
-
-  // Últimas horas a facturar avisadas al contenedor
-
-  // Lo prende el guardado: la recarga del detalle que dispara no vuelve al primer panel
-  private conservarPanel = false
-
-
-
-  // El detalle tiene cambios sin guardar. dirty/pristine no son señales, así que el estado se
-  // refleja acá para que un contenedor OnPush pueda habilitar su botón de guardar.
-
   titulos = computed(() =>
     this.ordenVenta().items.map(item => {
       // La cantidad en cero es un ítem recién creado, no se muestra
       const cantidad = Number(item?.Cantidad ?? 0) || ''
-      return [cantidad, item?.ProductoCodigo, item?.Producto]
+      return [cantidad, item.ProductoCodigo, this.optionsTipoProducto().find((p: any) => p.ProductoCodigo === item.ProductoCodigo)?.Nombre]
         .map(valor => String(valor ?? '').trim())
         .filter(Boolean)
         .join(' - ')
@@ -479,6 +460,8 @@ export class OrdenVentaFormComponent {
       this.addItem(undefined)
     }
 
+    const nextIdx = Math.min(this.panels().length - 1, index)
+    setTimeout(() => { this.panels().at(nextIdx)?.active.set(true) }, 100);
   }
 
   addComprobante(e?: MouseEvent): void {
@@ -562,9 +545,9 @@ export class OrdenVentaFormComponent {
   async load(NroOrdenVenta: number) {
     const ordenVenta = await firstValueFrom(this.apiService.getOrdenVenta(NroOrdenVenta))
     this.ordenVenta.update(m => ({ ...m, ...ordenVenta }))
-    if (this.ordenVenta().items.length==0)
+    if (this.ordenVenta().items.length == 0)
       this.addItem()
-    if (this.ordenVenta().comprobantes.length==0)
+    if (this.ordenVenta().comprobantes.length == 0)
       this.addComprobante()
 
     setTimeout(() => { this.formOrdenVenta().reset() }, 0);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
@@ -613,6 +596,17 @@ export class OrdenVentaFormComponent {
       this.lastNroOrdenVenta = NroOrdenVenta
     }
   })
+
+
+  readonly panels = viewChildren(NzCollapsePanelComponent);
+
+
+
+  panelActive = computed(() =>
+    this.ordenVenta().items.map(
+      (_, index, items) => index === items.length - 1
+    )
+  );
 
   /*
       const items = this.itemsArray.getRawValue()

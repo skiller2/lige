@@ -536,7 +536,6 @@ export class MovimientoStockComponent {
     } catch (w) {
       return null
     }
-
   }
 
   toggleFijar(): void {
