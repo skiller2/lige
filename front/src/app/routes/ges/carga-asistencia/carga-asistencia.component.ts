@@ -73,8 +73,6 @@ export class CargaAsistenciaComponent {
     controlAccesoDisabled = signal(false)
     visibleDrawer: boolean = false
     visibleOrdenVenta = signal(false)
-    horasAFacturarA = signal(0)
-    horasAFacturarB = signal(0)
     personalApellidoNombre: any;
     rowLocked: boolean = false;
 //    objetivoInfo = signal({})

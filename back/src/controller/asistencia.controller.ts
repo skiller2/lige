@@ -202,45 +202,18 @@ const columnasPersonalxResponsableDesc: any[] = [
 ];
 
 export class AsistenciaController extends BaseController {
-  async setHorasFacturacion(req: any, res: Response, next: NextFunction) {
-    const {
-      anio,
-      mes,
-      ObjetivoId,
-      TotalHoraA,
-      TotalHoraB,
-      Observaciones
-    } = req.body
-
-    const queryRunner = await getConnection(res.locals.userName);
-    const usuario = res.locals.userName
-    const ip = this.getRemoteAddress(req)
-    const fechaActual = new Date()
-
-
-    try {
-      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
-        throw new ClientException(`No tiene permisos para cargar valores de facturación`)
-
-      await queryRunner.startTransaction()
-
-      const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
-      if (valObjetivo instanceof ClientException)
-        throw valObjetivo
+  async setHorasFacturacionQuery(anio:number, mes:number, ClienteId: number,ClienteElementoDependienteId:number, TotalHoraA:number, TotalHoraB:number, Observaciones:string, queryRunner:QueryRunner, usuario:string, ip:string) {
+      const fechaActual = new Date()
 
       const objetivo = await queryRunner.query(
         `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
        FROM Objetivo obj 
        LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId AND val.Anio = @1 AND val.Mes = @2
-       WHERE obj.ObjetivoId = @0
-       `, [ObjetivoId, anio, mes])
+       WHERE obj.ClienteId = @0 AND obj.ClienteElementoDependienteId=@3
+       `, [ClienteId, anio, mes, ClienteElementoDependienteId])
 
       if (objetivo.length == 0)
         throw new ClientException(`No se encontró el objetivo`)
-
-      const ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
-      const ClienteId = objetivo[0].ClienteId
-      const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
 
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
@@ -256,6 +229,49 @@ export class AsistenciaController extends BaseController {
           [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, 0, 0, Observaciones,
             fechaActual, usuario, ip])
       }
+
+  }
+
+  async setHorasFacturacion(req: any, res: Response, next: NextFunction) {
+    const {
+      anio,
+      mes,
+      ObjetivoId,
+      TotalHoraA,
+      TotalHoraB,
+      Observaciones
+    } = req.body
+
+    const queryRunner = await getConnection(res.locals.userName);
+    const usuario = res.locals.userName
+    const ip = this.getRemoteAddress(req)
+
+
+    try {
+      if (!await this.hasGroup(req, 'liquidaciones') && !await this.hasAuthObjetivo(anio, mes, res, Number(ObjetivoId), queryRunner))
+        throw new ClientException(`No tiene permisos para cargar valores de facturación`)
+
+      const valObjetivo = await AsistenciaController.checkAsistenciaObjetivo(ObjetivoId, anio, mes, queryRunner)
+      if (valObjetivo instanceof ClientException)
+        throw valObjetivo
+
+      await queryRunner.startTransaction()
+
+      const objetivo = await queryRunner.query(
+        `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
+       FROM Objetivo obj 
+       LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId AND val.Anio = @1 AND val.Mes = @2
+       WHERE obj.ObjetivoId = @0
+       `, [ObjetivoId, anio, mes])
+
+      if (objetivo.length == 0)
+        throw new ClientException(`No se encontró el objetivo`)
+
+      //const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
+
+      const ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
+      const ClienteId = objetivo[0].ClienteId
+      this.setHorasFacturacionQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner,usuario,ip);
 
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Horas Actualizadas`);
