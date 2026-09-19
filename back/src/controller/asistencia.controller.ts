@@ -316,7 +316,6 @@ export class AsistenciaController extends BaseController {
           items.push({ ProductoCodigo: 'SSFB', Cantidad: TotalHoraB, ImporteUnitario:ImporteUnitarioB })
         if (items.length)
           await ordenVentaController.setOrdenVentaQuery(anio, mes, ClienteId, ClienteElementoDependienteId, 0, items, [], Observaciones, 'PEN', queryRunner, usuario, ip, ahora)
-
       }
 
       this.setHorasFacturacionQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip);
