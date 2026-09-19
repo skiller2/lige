@@ -8,7 +8,6 @@ import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
-import { ESTADO_FACTURADO } from '../orden-venta-form/orden-venta-form';
 
 // Órdenes de venta seleccionadas, agrupadas por cliente
 interface ClienteOrdenes {
@@ -163,7 +162,7 @@ export class OrdenVentaMasivaDrawerComponent {
 
     // Pasar a "Facturado" obliga a cargar el comprobante del cliente, con todos sus datos
     const sinComprobante = clientes.filter((cliente: any) =>
-      String(cliente.EstadoOrdenVentaCodigo ?? '').trim().toUpperCase() === ESTADO_FACTURADO
+      String(cliente.EstadoOrdenVentaCodigo ?? '').trim().toUpperCase() === 'FAC'
       && (!cliente.ComprobanteTipoCodigo || !cliente.ComprobanteNro || cliente.ImporteTotal == null))
 
     if (sinComprobante.length) {

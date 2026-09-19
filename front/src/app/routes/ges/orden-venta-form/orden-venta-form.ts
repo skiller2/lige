@@ -10,17 +10,12 @@ import { applyEach, disabled, form, FormField, required, submit } from '@angular
 import { FormsModule } from '@angular/forms';
 import { NzCollapsePanelComponent } from 'ng-zorro-antd/collapse';
 
-const TIPO_CANTIDAD_MANUAL = 'V'
-const TIPO_IMPORTE_LISTA_PRECIO = 'LP'
-const TIPO_IMPORTE_MANUAL = 'V'
 
 // Productos que facturan las horas 'A' y 'B' cargadas en la asistencia
 const PRODUCTO_HORAS_A = 'SSF'
 const PRODUCTO_HORAS_B = 'SSFB'
 const PRODUCTOS_HORAS = [PRODUCTO_HORAS_A, PRODUCTO_HORAS_B]
 
-// Código del estado "Facturado": pasar a él obliga a tener un comprobante completo
-export const ESTADO_FACTURADO = 'FAC'
 
 // Estados (por descripción) en los que la orden ya no se modifica: el detalle se abre sólo para
 // consulta, igual que valida el back al guardar
@@ -89,6 +84,9 @@ export class OrdenVentaFormComponent {
 
   NroOrdenVenta = input<number>(0)
 
+
+  ordenVentaGuardada = output<number>()
+
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   readonly panels = viewChildren(NzCollapsePanelComponent);
@@ -134,7 +132,8 @@ export class OrdenVentaFormComponent {
   readonly ordenVenta = signal<OrdenVentaForm>(this.defaultOrdenVenta);
 
   readonly formOrdenVenta = form(this.ordenVenta, (p) => {
-    disabled(p, () => this.soloLectura())
+    disabled(p, () => {return (this.soloLectura() )})
+    //disabled(p, () => {return (this.soloLectura() || (String(p.EstadoOrdenVentaCodigo)=='FAC'))})
     applyEach(p.items, (productoPath) => {
       required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido', when: (ctx) => Number(ctx.valueOf(productoPath.Cantidad)) > 0, });
       required(productoPath.Cantidad, { message: 'Cantidad es requerido', when: (ctx) => ctx.valueOf(productoPath.ProductoCodigo) != "", });
@@ -169,6 +168,7 @@ export class OrdenVentaFormComponent {
     this.ordenVenta.update(m => ({ ...m, items: [...m.items, newProducto] }));
   }
 
+  /*
   private aplicarPrecioDeLista(item: AbstractControl, importeUnitario: number | null) {
     const precioDeLista = importeUnitario != null
 
@@ -178,6 +178,7 @@ export class OrdenVentaFormComponent {
       ImporteUnitario: precioDeLista ? Number(importeUnitario) : 0
     })
   }
+  */
 
 
   removeItem(index: number, e: MouseEvent): void {
@@ -241,6 +242,7 @@ export class OrdenVentaFormComponent {
         const formValue = form().value();
         const respuesta = await firstValueFrom(this.apiService.setOrdenVenta(formValue))
         await this.load(respuesta.data.NroOrdenVenta)
+        this.ordenVentaGuardada.emit(respuesta.data.NroOrdenVenta)
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       }

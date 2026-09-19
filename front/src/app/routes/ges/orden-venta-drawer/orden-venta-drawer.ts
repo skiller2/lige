@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, output, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
-import { HorasAFacturar, OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form';
+import { OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
 import { DecimalPipe } from '@angular/common';
@@ -17,7 +17,7 @@ export class OrdenVentaDrawerComponent {
   mes = input<number>(0)
   ClienteId = input<number>(0)
   ClienteElementoDependienteId = input<number>(0)
-  ordenVentaChange = output<HorasAFacturar>()
+  ordenVentaChange = output<number>()
   visible = model<boolean>(false)
   placement: NzDrawerPlacement = 'right';
   cabecera = signal<any>({})
@@ -72,7 +72,7 @@ export class OrdenVentaDrawerComponent {
   }
 
   ordenVentaGuardada(data: any) {
-    console.log('trigger ordenVentaGuardada')
+    console.log('trigger ordenVentaGuardada',data)
     this.ordenVentaChange.emit(data)
     this.getCabecera(this.ClienteId(), this.ClienteElementoDependienteId(), this.anio(), this.mes())
   }
