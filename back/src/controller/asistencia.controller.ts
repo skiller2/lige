@@ -202,33 +202,33 @@ const columnasPersonalxResponsableDesc: any[] = [
 ];
 
 export class AsistenciaController extends BaseController {
-  async setHorasFacturacionQuery(anio:number, mes:number, ClienteId: number,ClienteElementoDependienteId:number, TotalHoraA:number, TotalHoraB:number, Observaciones:string, queryRunner:QueryRunner, usuario:string, ip:string) {
-      const fechaActual = new Date()
+  async setHorasFacturacionQuery(anio: number, mes: number, ClienteId: number, ClienteElementoDependienteId: number, TotalHoraA: number, TotalHoraB: number, Observaciones: string, queryRunner: QueryRunner, usuario: string, ip: string) {
+    const fechaActual = new Date()
 
-      const objetivo = await queryRunner.query(
-        `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
+    const objetivo = await queryRunner.query(
+      `SELECT val.TotalHoraA, val.TotalHoraB, val.ImporteHoraA, val.ImporteHoraB, obj.ClienteElementoDependienteId, obj.ClienteId, val.ClienteId as ClienteIdImporteVenta
        FROM Objetivo obj 
        LEFT JOIN ObjetivoImporteVenta val ON obj.ClienteElementoDependienteId = val.ClienteElementoDependienteId AND obj.ClienteId = val.ClienteId AND val.Anio = @1 AND val.Mes = @2
        WHERE obj.ClienteId = @0 AND obj.ClienteElementoDependienteId=@3
        `, [ClienteId, anio, mes, ClienteElementoDependienteId])
 
-      if (objetivo.length == 0)
-        throw new ClientException(`No se encontró el objetivo`)
+    if (objetivo.length == 0)
+      throw new ClientException(`No se encontró el objetivo`)
 
-      if (objetivo[0].ClienteIdImporteVenta) {
-        await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET TotalHoraA=@4, TotalHoraB=@5, Observaciones=@6,
+    if (objetivo[0].ClienteIdImporteVenta) {
+      await queryRunner.query(
+        `UPDATE ObjetivoImporteVenta SET TotalHoraA=@4, TotalHoraB=@5, Observaciones=@6,
            AudFechaMod=@7, AudUsuarioMod=@8, AudIpMod=@9
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, fechaActual, usuario, ip])
-      } else {
-        await queryRunner.query(
-          `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,Observaciones,
+        [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, fechaActual, usuario, ip])
+    } else {
+      await queryRunner.query(
+        `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,Observaciones,
          AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8 ,@9,@10,@11 ,@9,@10,@11)`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, 0, 0, Observaciones,
-            fechaActual, usuario, ip])
-      }
+        [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, 0, 0, Observaciones,
+          fechaActual, usuario, ip])
+    }
 
   }
 
@@ -267,11 +267,47 @@ export class AsistenciaController extends BaseController {
       if (objetivo.length == 0)
         throw new ClientException(`No se encontró el objetivo`)
 
+
+
+
       //const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
 
       const ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
       const ClienteId = objetivo[0].ClienteId
-      this.setHorasFacturacionQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner,usuario,ip);
+
+      const ordenVenta = await queryRunner.query(
+        `SELECT TOP 1 ord.EstadoOrdenVentaCodigo, ord.NroOrdenVenta
+         FROM  OrdenVenta ord 
+         JOIN ItemOrdenVenta item ON ord.NroOrdenVenta=item.NroOrdenVenta 
+         WHERE ord.PeriodoAnio=@1 AND ord.PeriodoMes=@2 AND ord.ClienteId=@3 AND ord.ClienteElementoDependienteId=@4
+         ORDER BY ord.NroOrdenVenta
+       `, [null, anio, mes, ClienteId, ClienteElementoDependienteId])
+
+      if (ordenVenta[0] && ordenVenta[0].EstadoOrdenVentaCodigo != 'PEN')
+        throw new ClientException(`No se puede modificar los valores de HorasA y HorasB porque la orden de venta ${ordenVenta[0].NroOrdenVenta} no está pendiente`)
+
+      if (ordenVenta[0] && ordenVenta[0].NroOrdenVenta) {
+        await queryRunner.query(
+          `UPDATE OrdenVenta SET Observaciones=@1 
+         WHERE NroOrdenVenta=@0 
+       `, [ordenVenta[0].NroOrdenVenta, Observaciones])
+
+        await queryRunner.query(
+          `UPDATE ItemOrdenVenta SET Cantidad=@1 
+         WHERE NroOrdenVenta=@0 AND ProductoCodigo='SSF'
+       `, [ordenVenta[0].NroOrdenVenta, TotalHoraA])
+
+        await queryRunner.query(
+          `UPDATE ItemOrdenVenta SET Cantidad=@1 
+         WHERE NroOrdenVenta=@0 AND ProductoCodigo='SSFB'
+       `, [ordenVenta[0].NroOrdenVenta, TotalHoraB])
+
+      } else {  // Tengo que crear la Orden de Venta desde 0
+        
+        throw new ClientException(`Debe crear orden de venta primero`)
+      }
+
+      this.setHorasFacturacionQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip);
 
       await queryRunner.commitTransaction();
       this.jsonRes([], res, `Horas Actualizadas`);
@@ -522,7 +558,7 @@ export class AsistenciaController extends BaseController {
 
       // Las órdenes de venta del objetivo en el período que siguen pendientes pasan a finalizadas
       if (ordenesVenta.some((orden: any) => orden.EstadoOrdenVentaCodigo == 'PEN')) {
-    
+
         await queryRunner.query(`
           UPDATE ord
           SET EstadoOrdenVentaCodigo = @3, AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
