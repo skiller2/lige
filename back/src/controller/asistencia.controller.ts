@@ -14,6 +14,8 @@ import { DescuentoRetirosController } from "../liquidaciones/descuento-retiros/d
 import { logger } from "../logger/logger.ts";
 import { Agent } from "https";
 import { Client } from "ldapts";
+import { ordenVentaController } from "./controller.module.ts";
+import { OrdenVentaController } from "../orden-venta/orden-venta.controller.ts";
 
 interface DigestAuthOptions {
   username: string;
@@ -245,6 +247,7 @@ export class AsistenciaController extends BaseController {
     const queryRunner = await getConnection(res.locals.userName);
     const usuario = res.locals.userName
     const ip = this.getRemoteAddress(req)
+    const ahora = new Date()
 
 
     try {
@@ -303,8 +306,17 @@ export class AsistenciaController extends BaseController {
        `, [ordenVenta[0].NroOrdenVenta, TotalHoraB])
 
       } else {  // Tengo que crear la Orden de Venta desde 0
-        
-        throw new ClientException(`Debe crear orden de venta primero`)
+        const ordenVentaController = new OrdenVentaController()
+        const items = []
+        const ImporteUnitarioA=0
+        const ImporteUnitarioB=0
+        if (TotalHoraA)
+          items.push({ ProductoCodigo: 'SSF', Cantidad: TotalHoraA, ImporteUnitario:ImporteUnitarioA })
+        if (TotalHoraB)
+          items.push({ ProductoCodigo: 'SSFB', Cantidad: TotalHoraB, ImporteUnitario:ImporteUnitarioB })
+        if (items.length)
+          await ordenVentaController.setOrdenVentaQuery(anio, mes, ClienteId, ClienteElementoDependienteId, 0, items, [], Observaciones, 'PEN', queryRunner, usuario, ip, ahora)
+
       }
 
       this.setHorasFacturacionQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip);

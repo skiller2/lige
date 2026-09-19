@@ -454,6 +454,94 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
+  async setOrdenVentaQuery(PeriodoAnio: number, PeriodoMes: number, ClienteId: number, ClienteElementoDependienteId: number, NroOrdenVenta: number, items: any[], comprobantes: any[], Observaciones: string, EstadoOrdenVentaCodigo: string, queryRunner: QueryRunner, usuario: string, ip: string, ahora: Date) {
+    if (!EstadoOrdenVentaCodigo)
+      EstadoOrdenVentaCodigo = 'PEN'
+
+    if (comprobantes.some((c: any) => String(c.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === 'FAC'))
+      EstadoOrdenVentaCodigo = 'FAC'
+
+    if (comprobantes.length == 0 && EstadoOrdenVentaCodigo == 'FAC')
+      throw new ClientException(`No se puede tener Estado Facturado sin ningún comprobante cargado`)
+
+    const ImporteTotalAFacturar = items.reduce(
+      (total, item) => total + (Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)), 0);
+
+
+    if (NroOrdenVenta) {
+      const ov = await this.getOrdenVentaQuery(queryRunner, NroOrdenVenta)
+      if (ov.EstadoOrdenVentaCodigo == 'FAC')
+        throw new ClientException(`No se puede modificar orden de venta en estado ${ov.Descripcion}`)
+
+      await queryRunner.query(`
+          UPDATE OrdenVenta SET ImporteTotalAFacturar=@1, EstadoOrdenVentaCodigo=@2, Observaciones=@3,
+          AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6 
+          WHERE NroOrdenVenta = @0
+        `, [NroOrdenVenta, ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip]);
+
+    } else {
+      const proximo = await queryRunner.query(
+        `SELECT ISNULL(MAX(NroOrdenVenta),0) + 1 AS NroOrdenVenta FROM OrdenVenta WITH (UPDLOCK, HOLDLOCK)`);
+      NroOrdenVenta = Number(proximo[0].NroOrdenVenta);
+
+      await queryRunner.query(`
+          INSERT INTO OrdenVenta (
+            NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
+            ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones,
+            UnificacionFactura, GeneracionFacturaReqCliente,
+            AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+          ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, 0, 0, @8, @8, @9, @9, @10, @10)
+        `, [
+        NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
+        ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip
+      ]);
+    }
+
+    await queryRunner.query(`DELETE FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
+
+    for (const [indice, item] of items.entries()) {
+      await queryRunner.query(`
+          INSERT INTO ItemOrdenVenta (
+            NroOrdenVenta, ItemOrdenVentaCodigo, ProductoCodigo, TextoFactura,
+            TipoCantidad, Cantidad, TipoImporte, ImporteUnitario,
+            CantidadEstandar, Bonificacion, CantidadEnFactura,
+            AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+          ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @11, @12, @12, @13, @13)
+        `, [
+        NroOrdenVenta,
+        indice + 1,
+        item.ProductoCodigo,
+        item.TextoFactura ?? null,
+        String(item.TipoCantidad).trim(),
+        item.Cantidad != null ? Number(item.Cantidad) : null,
+        String(item.TipoImporte).trim(),
+        item.ImporteUnitario != null ? Number(item.ImporteUnitario) : null,
+        item.CantidadEstandar != null ? Number(item.CantidadEstandar) : null,
+        item.Bonificacion != null ? Number(item.Bonificacion) : null,
+        item.CantidadEnFactura != null ? Number(item.CantidadEnFactura) : null,
+        ahora, usuario, ip
+      ]);
+    }
+
+    await queryRunner.query(`DELETE FROM Comprobante WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
+
+    for (const comprobante of comprobantes) {
+      await queryRunner.query(`
+            INSERT INTO Comprobante (
+              NroOrdenVenta, ComprobanteNro, ComprobanteTipoCodigo, ImporteTotal,
+              AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+            ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
+          `, [
+        NroOrdenVenta,
+        String(comprobante.ComprobanteNro).trim(),
+        String(comprobante.ComprobanteTipoCodigo).trim(),
+        Number(comprobante.ImporteTotal),
+        ahora, usuario, ip
+      ]);
+    }
+  }
+
+
   // Alta o modificación de la orden del período, con su detalle completo.
   async setOrdenVenta(req: Request, res: Response, next: NextFunction) {
     const PeriodoMes = Number(req.body.PeriodoMes);
@@ -492,90 +580,9 @@ export class OrdenVentaController extends BaseController {
 
       await queryRunner.startTransaction();
 
-      const ImporteTotalAFacturar = items.reduce(
-        (total, item) => total + (Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)), 0);
-
-      if (!EstadoOrdenVentaCodigo)
-        EstadoOrdenVentaCodigo = 'PEN'
-
-      if (comprobantes.some((c: any) => String(c.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === 'FAC'))
-        EstadoOrdenVentaCodigo = 'FAC'
-
-      if (comprobantes.length == 0 && EstadoOrdenVentaCodigo == 'FAC')
-        throw new ClientException(`No se puede tener Estado Facturado sin ningún comprobante cargado`)
 
 
-      if (NroOrdenVenta) {
-        const ov = await this.getOrdenVentaQuery(queryRunner, NroOrdenVenta)
-        if (ov.EstadoOrdenVentaCodigo == 'FAC')
-          throw new ClientException(`No se puede modificar orden de venta en estado ${ov.Descripcion}`)
-
-        await queryRunner.query(`
-          UPDATE OrdenVenta SET ImporteTotalAFacturar=@1, EstadoOrdenVentaCodigo=@2, Observaciones=@3,
-          AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6 
-          WHERE NroOrdenVenta = @0
-        `, [NroOrdenVenta, ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip]);
-
-      } else {
-        const proximo = await queryRunner.query(
-          `SELECT ISNULL(MAX(NroOrdenVenta),0) + 1 AS NroOrdenVenta FROM OrdenVenta WITH (UPDLOCK, HOLDLOCK)`);
-        NroOrdenVenta = Number(proximo[0].NroOrdenVenta);
-
-        await queryRunner.query(`
-          INSERT INTO OrdenVenta (
-            NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
-            ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones,
-            UnificacionFactura, GeneracionFacturaReqCliente,
-            AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-          ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, 0, 0, @8, @8, @9, @9, @10, @10)
-        `, [
-          NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
-          ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip
-        ]);
-      }
-
-      await queryRunner.query(`DELETE FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
-
-      for (const [indice, item] of items.entries()) {
-        await queryRunner.query(`
-          INSERT INTO ItemOrdenVenta (
-            NroOrdenVenta, ItemOrdenVentaCodigo, ProductoCodigo, TextoFactura,
-            TipoCantidad, Cantidad, TipoImporte, ImporteUnitario,
-            CantidadEstandar, Bonificacion, CantidadEnFactura,
-            AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-          ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @11, @12, @12, @13, @13)
-        `, [
-          NroOrdenVenta,
-          indice + 1,
-          item.ProductoCodigo,
-          item.TextoFactura ?? null,
-          String(item.TipoCantidad).trim(),
-          item.Cantidad != null ? Number(item.Cantidad) : null,
-          String(item.TipoImporte).trim(),
-          item.ImporteUnitario != null ? Number(item.ImporteUnitario) : null,
-          item.CantidadEstandar != null ? Number(item.CantidadEstandar) : null,
-          item.Bonificacion != null ? Number(item.Bonificacion) : null,
-          item.CantidadEnFactura != null ? Number(item.CantidadEnFactura) : null,
-          ahora, usuario, ip
-        ]);
-      }
-
-      await queryRunner.query(`DELETE FROM Comprobante WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
-
-      for (const comprobante of comprobantes) {
-        await queryRunner.query(`
-            INSERT INTO Comprobante (
-              NroOrdenVenta, ComprobanteNro, ComprobanteTipoCodigo, ImporteTotal,
-              AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-            ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
-          `, [
-          NroOrdenVenta,
-          String(comprobante.ComprobanteNro).trim(),
-          String(comprobante.ComprobanteTipoCodigo).trim(),
-          Number(comprobante.ImporteTotal),
-          ahora, usuario, ip
-        ]);
-      }
+      await this.setOrdenVentaQuery(PeriodoAnio, PeriodoMes, ClienteId, ClienteElementoDependienteId, NroOrdenVenta, items, comprobantes, Observaciones, EstadoOrdenVentaCodigo, queryRunner, usuario, ip, ahora)
 
       const primerOrdenVenta = await queryRunner.query(`
         SELECT TOP 1 ord.NroOrdenVenta FROM OrdenVenta ord WHERE ord.ClienteId = @3 AND ord.ClienteElementoDependienteId = @4 AND ord.PeriodoAnio=@1 AND ord.PeriodoMes=@2
@@ -608,7 +615,7 @@ export class OrdenVentaController extends BaseController {
       }
       await queryRunner.commitTransaction();
 
-      return this.jsonRes({ NroOrdenVenta, ImporteTotalAFacturar, EstadoOrdenVentaCodigo }, res,
+      return this.jsonRes({ NroOrdenVenta, EstadoOrdenVentaCodigo }, res,
         `Orden de venta ${NroOrdenVenta} generada/actualizada`);
 
     } catch (error) {
