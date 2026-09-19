@@ -1242,10 +1242,16 @@ export class ApiService {
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 
+  getHorasFacturacion(anio: number, mes: number, ClienteId: number, ClienteElementoDependienteId:number) {
+    const path = `/api/asistencia/horasFacturacion/${anio}/${mes}/${ClienteId}/${ClienteElementoDependienteId}`;
+    return this.http.get(path).pipe(
+      map((res: any) => res.data)
+    );
+  }
+
   setHorasFacturacion(anio: number, mes: number, ObjetivoId: number, TotalHoraA: number, TotalHoraB: number, Observaciones: string) {
     return this.http.post<ResponseJSON<any>>('api/asistencia/horasFacturacion', { anio, mes, ObjetivoId, TotalHoraA, TotalHoraB, Observaciones }).pipe(map(res => res.data))
   }
-
 
   addAsistencia(asistencia: any) {
     return this.http.post<ResponseJSON<any>>(`api/asistencia/agregarasistencia`, asistencia).pipe(map(res => res.data));

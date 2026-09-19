@@ -204,6 +204,39 @@ const columnasPersonalxResponsableDesc: any[] = [
 ];
 
 export class AsistenciaController extends BaseController {
+  async getHorasFacturacion(req: any, res: Response, next: NextFunction) {
+    const ClienteElementoDependienteId = req.params.ClienteElementoDependienteId;
+    const ClienteId = req.params.ClienteId;
+    const anio = req.params.anio;
+    const mes = req.params.mes;
+    const queryRunner = await getConnection(res.locals.userName);
+    let TotalHoraA=0
+    let TotalHoraB=0
+    let Observaciones=''
+
+    try {
+      const hf = await queryRunner.query(
+        `SELECT o.TotalHoraA, o.TotalHoraB, o.Observaciones
+          FROM ObjetivoImporteVenta o 
+       WHERE o.ClienteId = @0 AND o.ClienteElementoDependienteId=@3 AND o.Anio=@1 AND o.Mes =@2
+       `, [ClienteId, anio, mes, ClienteElementoDependienteId])
+
+      if (hf[0]){
+        TotalHoraA=hf[0].TotalHoraA
+        TotalHoraB=hf[0].TotalHoraB
+        Observaciones=hf[0].Observaciones
+      }
+      this.jsonRes({TotalHoraA,TotalHoraB,Observaciones}, res, `Horas Actualizadas`);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release();
+    }
+  }
+
+
   async setHorasFacturacionQuery(anio: number, mes: number, ClienteId: number, ClienteElementoDependienteId: number, TotalHoraA: number, TotalHoraB: number, Observaciones: string, queryRunner: QueryRunner, usuario: string, ip: string) {
     const fechaActual = new Date()
 
@@ -287,7 +320,7 @@ export class AsistenciaController extends BaseController {
       const ProductoCodigoB = 'SSFB'
       const ordenVentaController = new OrdenVentaController()
 
-      const {ImporteUnitarioA,ImporteUnitarioB}= await ordenVentaController.getImporteHorasAB( ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner) 
+      const { ImporteUnitarioA, ImporteUnitarioB } = await ordenVentaController.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
 
       if (ordenVenta[0] && ordenVenta[0].NroOrdenVenta) {
         const NroOrdenVenta = ordenVenta[0].NroOrdenVenta
@@ -352,15 +385,15 @@ export class AsistenciaController extends BaseController {
             null,
             null,
             ahora, usuario, ip
-          ]);          
+          ]);
         }
       } else {  // Tengo que crear la Orden de Venta desde 0
         const items = []
 
         if (TotalHoraA)
-          items.push({ ProductoCodigo: 'SSF', Cantidad: TotalHoraA, ImporteUnitario: ImporteUnitarioA, TipoCantidad:'V', TipoImporte:'LP' })
+          items.push({ ProductoCodigo: 'SSF', Cantidad: TotalHoraA, ImporteUnitario: ImporteUnitarioA, TipoCantidad: 'V', TipoImporte: 'LP' })
         if (TotalHoraB)
-          items.push({ ProductoCodigo: 'SSFB', Cantidad: TotalHoraB, ImporteUnitario: ImporteUnitarioB, TipoCantidad:'V', TipoImporte:'LP' })
+          items.push({ ProductoCodigo: 'SSFB', Cantidad: TotalHoraB, ImporteUnitario: ImporteUnitarioB, TipoCantidad: 'V', TipoImporte: 'LP' })
         if (items.length)
           await ordenVentaController.setOrdenVentaQuery(anio, mes, ClienteId, ClienteElementoDependienteId, 0, items, [], Observaciones, 'PEN', queryRunner, usuario, ip, ahora)
       }

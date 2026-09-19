@@ -11,10 +11,9 @@
   <nz-collapse nzAccordion>
     @for (item of formOrdenVenta.items; track item; let i = $index) {
 
-    <nz-collapse-panel [nzHeader]="titulos()[i]" [nzExtra]="extraTpl"
-      [nzActive]="$last">
+    <nz-collapse-panel [nzHeader]="titulos()[i]" [nzExtra]="extraTpl" [nzActive]="$last">
       <ng-template #extraTpl>
-        <div class="panel-actions" >
+        <div class="panel-actions">
 
           <span class="importe">
             {{ importes()[i] | currency }}
@@ -124,6 +123,9 @@
     </nz-collapse-panel>
     }
   </nz-collapse>
+
+  @if (origenCrud()) {
+
   <div class="input-container1">
     <div class="input-label">Comprobantes</div>
   </div>
@@ -175,7 +177,7 @@
     </nz-form-item>
     }
   </div>
-
+  }
   <div style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
     <label>Total Orden Venta</label>
     <input nz-input placeholder="" [value]="totalImporteOrdenVenta().toString()" type="text" appDotToComma

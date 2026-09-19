@@ -97,7 +97,9 @@ export class CargaAsistenciaComponent {
     }
 
     async ordenVentaGuardada(data:any) {
-        this.formChange('', Busqueda.Objetivo)
+        const res = await firstValueFrom(this.apiService.getHorasFacturacion(this.selectedPeriod.year, this.selectedPeriod.month, this.ClienteId(), this.ClienteElementoDependienteId()))
+        //res.TotalHoraA: 10, res.TotalHoraB: 10, res.Observaciones: 'aaaa'
+        this.carasistForm.form.patchValue({ TotalHoraA:res.TotalHoraA, TotalHoraB:res.TotalHoraB, Observaciones:res.Observaciones}, { emitEvent: false })
     }
 
     getHorasNormales(data: any) {

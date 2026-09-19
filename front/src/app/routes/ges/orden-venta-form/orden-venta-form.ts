@@ -137,6 +137,8 @@ export class OrdenVentaFormComponent {
     applyEach(p.items, (productoPath) => {
       required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido', when: (ctx) => Number(ctx.valueOf(productoPath.Cantidad)) > 0, });
       required(productoPath.Cantidad, { message: 'Cantidad es requerido', when: (ctx) => ctx.valueOf(productoPath.ProductoCodigo) != "", });
+
+      disabled(productoPath.ImporteUnitario)
     });
     // Con "Facturado" los tres datos del comprobante son obligatorios; si no, van los tres juntos
     // o ninguno
