@@ -4,6 +4,7 @@ import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import type { NextFunction, Request, Response } from "express";
+import type { QueryRunner } from "typeorm";
 
 
 const ESTADO_ORDEN_VENTA_INICIAL = 'PEN';
@@ -284,42 +285,47 @@ export class OrdenVentaController extends BaseController {
   }
 
 
-  async getOrdenVenta(req: Request, res: Response, next: NextFunction) {
-    const NroOrdenVenta = Number(req.params.NroOrdenVenta) || 0;
-    const queryRunner = await getConnection(res.locals.userName);
-
-    try {
-      const ordenDs = await queryRunner.query(`SELECT ord.NroOrdenVenta, ord.ClienteId, ord.ClienteElementoDependienteId,
+  async getOrdenVentaQuery(queryRunner: QueryRunner, NroOrdenVenta: number) {
+    const ordenDs = await queryRunner.query(`SELECT ord.NroOrdenVenta, ord.ClienteId, ord.ClienteElementoDependienteId,
         ord.PeriodoAnio,ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.Observaciones, est.Descripcion
         FROM OrdenVenta ord 
         JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
         WHERE ord.NroOrdenVenta =@0
         `, [NroOrdenVenta])
-      if (ordenDs.length==0)
-        throw new ClientException(`Orden de Venta ${NroOrdenVenta} no encontrada`)
+    if (ordenDs.length == 0)
+      throw new ClientException(`Orden de Venta ${NroOrdenVenta} no encontrada`)
 
 
 
-      const itemsTmp = await queryRunner.query(`SELECT item.NroOrdenVenta, item.ItemOrdenVentaCodigo, item.ProductoCodigo, item.TextoFactura, item.TipoCantidad, item.Cantidad, item.TipoImporte, item.ImporteUnitario, item.CantidadEnFactura
+    const itemsTmp = await queryRunner.query(`SELECT item.NroOrdenVenta, item.ItemOrdenVentaCodigo, item.ProductoCodigo, item.TextoFactura, item.TipoCantidad, item.Cantidad, item.TipoImporte, item.ImporteUnitario, item.CantidadEnFactura
           FROM ItemOrdenVenta item
           WHERE item.NroOrdenVenta =@0
         `, [NroOrdenVenta])
 
-const items = itemsTmp.map(item => ({
-...item,
-Cantidad: item.Cantidad?.toString() ?? '',
-ImporteUnitario: item.ImporteUnitario?.toString() ?? '',
-CantidadEnFactura: item.CantidadEnFactura?.toString() ?? '',
-}));
-        
-      const comprobantes = await queryRunner.query(`SELECT com.NroOrdenVenta, com.ComprobanteNro, com.ComprobanteTipoCodigo, com.ImporteTotal
+    const items = itemsTmp.map(item => ({
+      ...item,
+      Cantidad: item.Cantidad?.toString() ?? '',
+      ImporteUnitario: item.ImporteUnitario?.toString() ?? '',
+      CantidadEnFactura: item.CantidadEnFactura?.toString() ?? '',
+    }));
+
+    const comprobantes = await queryRunner.query(`SELECT com.NroOrdenVenta, com.ComprobanteNro, com.ComprobanteTipoCodigo, com.ImporteTotal
           FROM Comprobante com
           WHERE com.NroOrdenVenta =@0
         `, [NroOrdenVenta])
 
-      ordenDs[0].items=items
-      ordenDs[0].comprobantes=comprobantes
-      this.jsonRes(  ordenDs[0] , res );
+    ordenDs[0].items = items
+    ordenDs[0].comprobantes = comprobantes
+    return ordenDs[0]
+  }
+
+  async getOrdenVenta(req: Request, res: Response, next: NextFunction) {
+    const NroOrdenVenta = Number(req.params.NroOrdenVenta) || 0;
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      const ordenDs = await this.getOrdenVentaQuery(queryRunner, NroOrdenVenta)
+      this.jsonRes(ordenDs, res);
 
     } catch (error) {
       return next(error);
@@ -450,35 +456,15 @@ CantidadEnFactura: item.CantidadEnFactura?.toString() ?? '',
 
   // Alta o modificación de la orden del período, con su detalle completo.
   async setOrdenVenta(req: Request, res: Response, next: NextFunction) {
-    const ObjetivoId = Number(req.body.ObjetivoId);
-    const anio = Number(req.body.anio);
-    const mes = Number(req.body.mes);
+    const PeriodoMes = Number(req.body.PeriodoMes);
+    const PeriodoAnio = Number(req.body.PeriodoAnio);
     const ClienteId = Number(req.body.ClienteId);
     const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
-    const detalle: any[] = Array.isArray(req.body.items) ? req.body.items : [];
-    // Igual que los comprobantes: sin el campo en el request las observaciones no se tocan. El
-    // drawer de la carga de asistencia no las edita y borraría lo que cargó la otra pantalla.
-    const observacionesRecibidas = req.body.Observaciones !== undefined;
+    const itemsTmp: any[] = Array.isArray(req.body.items) ? req.body.items : [];
     const Observaciones = req.body.Observaciones ?? null;
-    // Estado elegido en la pantalla de órdenes de venta. Sin estado se resuelve por los
-    // comprobantes, que es como guarda la carga de asistencia.
-    const estadoElegido = String(req.body.EstadoOrdenVentaCodigo ?? '').trim();
-    // Comprobantes de la orden. Sin la lista no se toca Comprobante; con ella se reescribe
-    // completa, igual que el detalle. Las filas vacías de la pantalla se descartan.
-    // "Nueva sin plantilla": la carga de asistencia pide un alta aunque el objetivo ya tenga
-    // una orden en el período, en vez de modificar esa
-    const nuevaOrden = req.body.NuevaOrden === true;
-    // Orden del período que se está editando. Sin número se toma la última, que es lo que
-    // hacían las pantallas cuando el período tenía una sola.
-    const nroOrdenVentaPedido = Number(req.body.NroOrdenVenta) || 0;
-    const comprobantesRecibidos = Array.isArray(req.body.comprobantes);
-    const comprobantes: any[] = comprobantesRecibidos
-      ? req.body.comprobantes.filter((comprobante: any) =>
-        cargado(comprobante?.ComprobanteTipoCodigo) ||
-        cargado(comprobante?.ComprobanteNro) ||
-        cargado(comprobante?.ImporteTotal))
-      : [];
-
+    let EstadoOrdenVentaCodigo = String(req.body.EstadoOrdenVentaCodigo ?? '').trim();
+    const comprobantesTmp = Array.isArray(req.body.comprobantes) ? req.body.comprobantes : [];
+    let NroOrdenVenta = req.body.NroOrdenVenta ?? null;
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
@@ -486,280 +472,176 @@ CantidadEnFactura: item.CantidadEnFactura?.toString() ?? '',
       const ip = this.getRemoteAddress(req);
       const ahora = new Date();
 
-      const errores: string[] = [];
+      const fieldErrors: any[] = [];
+      if (!PeriodoAnio)
+        fieldErrors.push({ fieldTree: ``, kind: 'server', message: 'El año es obligatorio' })
 
-      if (req.body.anio == null || String(req.body.anio).trim() === '')
-        errores.push('El año es obligatorio');
+      if (!PeriodoMes)
+        fieldErrors.push({ fieldTree: ``, kind: 'server', message: 'El mes es obligatorio' })
 
-      if (req.body.mes == null || String(req.body.mes).trim() === '')
-        errores.push('El mes es obligatorio');
+      if (!ClienteId || !ClienteElementoDependienteId)
+        fieldErrors.push({ fieldTree: ``, kind: 'server', message: 'El cliente es obligatorio' })
 
-      if (req.body.ClienteId == null || String(req.body.ClienteId).trim() === '')
-        errores.push('El cliente es obligatorio');
-
-      // Cero es un valor válido: es el objetivo sin elemento dependiente
-      if (req.body.ClienteElementoDependienteId == null || String(req.body.ClienteElementoDependienteId).trim() === '')
-        errores.push('El elemento dependiente del cliente es obligatorio');
-
-      if (errores.length)
-        throw new ClientException(errores);
-
-      const items = detalle.filter(item => String(item?.ProductoCodigo ?? '').trim());
+      const items = itemsTmp.filter(item => String(item?.ProductoCodigo ?? '').trim());
+      const comprobantes = comprobantesTmp.filter(com => String(com.ComprobanteNro ?? '').trim());
       if (!items.length)
-        throw new ClientException('La orden de venta debe tener al menos un producto');
+        fieldErrors.push({ fieldTree: ``, kind: 'server', message: 'La orden de venta debe tener al menos un producto' })
 
-      // Los códigos del detalle tienen que existir en Producto: una sola consulta para todos
-      const codigos = [...new Set(items.map(item => String(item.ProductoCodigo).trim()))];
-      const productos = await queryRunner.query(
-        `SELECT ProductoCodigo FROM Producto WHERE ProductoCodigo IN (${codigos.map((_, indice) => `@${indice}`).join(',')})`,
-        codigos);
+      /*
+            const precios = await queryRunner.query(`
+              SELECT pp.ProductoCodigo, pp.Importe
+              FROM ProductoPrecio pp
+              JOIN (
+                SELECT ProductoCodigo, MAX(PeriodoDesdeAplica) AS PeriodoDesdeAplica
+                FROM ProductoPrecio
+                WHERE ClienteId = @0
+                  AND PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(@1,@2,1))
+                  AND ProductoCodigo IN (${codigos.map((_, indice) => `@${indice + 3}`).join(',')})
+                GROUP BY ProductoCodigo
+              ) ult ON ult.ProductoCodigo = pp.ProductoCodigo AND ult.PeriodoDesdeAplica = pp.PeriodoDesdeAplica
+              WHERE pp.ClienteId = @0
+            `, [objetivo.ClienteId, anio, mes, ...codigos]);
+      
+            const preciosLista = new Map<string, number>(precios.map(
+              (precio: any) => [String(precio.ProductoCodigo).trim().toUpperCase(), Number(precio.Importe)]));
+      
+            // Los productos de horas facturan con el importe del objetivo, que le gana a la lista de precios
+            const importesObjetivo = await queryRunner.query(`
+              SELECT TOP 1 oiv.ImporteHoraA, oiv.ImporteHoraB
+              FROM ObjetivoImporteVenta oiv
+              WHERE oiv.ClienteId = @0 AND oiv.ClienteElementoDependienteId = @1
+                AND (oiv.Anio < @2 OR (oiv.Anio = @2 AND oiv.Mes <= @3))
+              ORDER BY oiv.Anio DESC, oiv.Mes DESC
+            `, [objetivo.ClienteId, objetivo.ClienteElementoDependienteId, anio, mes]);
+      
+            const importeHorasA = importesObjetivo[0]?.ImporteHoraA ?? null;
+            const importeHorasB = importesObjetivo[0]?.ImporteHoraB ?? null;
+      
+            const importesHoras = new Map<string, number | null>([
+              [PRODUCTO_HORAS_A, importeHorasA],
+              [PRODUCTO_HORAS_B, importeHorasB]
+            ]);
+      
+            for (const item of items) {
+              const codigo = String(item.ProductoCodigo).trim().toUpperCase();
+              const precio = importesHoras.has(codigo) ? importesHoras.get(codigo) : preciosLista.get(codigo);
+              if (precio == null) continue;
+              item.ImporteUnitario = precio;
+              item.TipoImporte = TIPO_IMPORTE_LISTA_PRECIO;
+            }
+      
+            // De la cantidad y el importe unitario sale el importe a facturar: tienen que ser números
+            // no negativos en todos los ítems
+            const camposNumericos = [
+              { campo: 'Cantidad', nombre: 'La cantidad', obligatorio: 'obligatoria', negativo: 'negativa' },
+              { campo: 'ImporteUnitario', nombre: 'El importe unitario', obligatorio: 'obligatorio', negativo: 'negativo' }
+            ];
+            const erroresItems: string[] = [];
+      
+            // TipoCantidad y TipoImporte son NOT NULL en la tabla
+            const camposTipo = [
+              { campo: 'TipoCantidad', nombre: 'El tipo de cantidad', obligatorio: 'obligatorio' },
+              { campo: 'TipoImporte', nombre: 'El tipo de importe', obligatorio: 'obligatorio' }
+            ];
+      
+            for (const [indice, item] of items.entries()) {
+              const donde = `Ítem ${indice + 1} (${String(item.ProductoCodigo).trim()})`;
+      
+              for (const { campo, nombre, obligatorio } of camposTipo) {
+                if (String(item[campo] ?? '').trim() === '')
+                  erroresItems.push(`${donde}: ${nombre} es ${obligatorio}`);
+              }
+      
+              for (const { campo, nombre, obligatorio, negativo } of camposNumericos) {
+                const valor = item[campo];
+      
+                if (valor == null || String(valor).trim() === '') {
+                  erroresItems.push(`${donde}: ${nombre} es ${obligatorio}`);
+                  continue;
+                }
+      
+                const numero = Number(valor);
+                if (!Number.isFinite(numero))
+                  erroresItems.push(`${donde}: ${nombre} '${valor}' no es un número válido`);
+                else if (numero < 0)
+                  erroresItems.push(`${donde}: ${nombre} no puede ser ${negativo}`);
+              }
+            }
+      
+            if (erroresItems.length)
+              throw new ClientException(erroresItems);
+      
+            // Los tres campos del comprobante son NOT NULL: o la fila está completa, o no se manda
+            const erroresComprobantes: string[] = [];
+            const claves = new Set<string>();
+      
+            for (const [indice, comprobante] of comprobantes.entries()) {
+              const donde = `Comprobante ${indice + 1}`;
+              const tipo = String(comprobante.ComprobanteTipoCodigo ?? '').trim();
+              const numero = String(comprobante.ComprobanteNro ?? '').trim();
+      
+              if (!tipo) erroresComprobantes.push(`${donde}: el tipo de comprobante es obligatorio`);
+              if (!numero) erroresComprobantes.push(`${donde}: el número de comprobante es obligatorio`);
+      
+              if (!cargado(comprobante.ImporteTotal))
+                erroresComprobantes.push(`${donde}: el importe total es obligatorio`);
+              else if (!Number.isFinite(Number(comprobante.ImporteTotal)))
+                erroresComprobantes.push(`${donde}: el importe total '${comprobante.ImporteTotal}' no es un número válido`);
+      
+              // La orden no puede tener dos veces el mismo tipo y número
+              if (tipo && numero) {
+                const clave = `${tipo.toUpperCase()}|${numero.toUpperCase()}`;
+                if (claves.has(clave))
+                  erroresComprobantes.push(`${donde}: el comprobante ${tipo} ${numero} está repetido`);
+                claves.add(clave);
+              }
+            }
+      
+            if (erroresComprobantes.length)
+              throw new ClientException(erroresComprobantes);
+      
+            // Los tipos tienen que existir en ComprobanteTipo: una sola consulta para todos
+            const tipos = [...new Set(comprobantes.map(comprobante => String(comprobante.ComprobanteTipoCodigo).trim()))];
+      
+            if (tipos.length) {
+              const tiposValidos = await queryRunner.query(
+                `SELECT ComprobanteTipoCodigo FROM ComprobanteTipo WHERE ComprobanteTipoCodigo IN (${tipos.map((_, indice) => `@${indice}`).join(',')})`,
+                tipos);
+      
+              const existentes = new Set(tiposValidos.map(
+                (tipo: any) => String(tipo.ComprobanteTipoCodigo).trim().toUpperCase()));
+              const inexistentes = tipos.filter(tipo => !existentes.has(tipo.toUpperCase()));
+      
+              if (inexistentes.length)
+                throw new ClientException(inexistentes.map(tipo => `El tipo de comprobante ${tipo} no existe`));
+            }
+      */
 
-      const existentes = new Set(productos.map((producto: any) => String(producto.ProductoCodigo).trim().toUpperCase()));
-      const inexistentes = codigos.filter(codigo => !existentes.has(codigo.toUpperCase()));
-      if (inexistentes.length)
-        throw new ClientException(inexistentes.map(codigo => `El producto ${codigo} no existe`));
-
-      const objetivos = await queryRunner.query(`
-        SELECT obj.ClienteId, ISNULL(obj.ClienteElementoDependienteId,0) AS ClienteElementoDependienteId
-        FROM Objetivo obj WHERE obj.ObjetivoId = @0
-      `, [ObjetivoId]);
-
-      const objetivo = objetivos[0];
-      if (!objetivo)
-        throw new ClientException(`No se encontró el objetivo ${ObjetivoId}`);
-
-      // La orden se guarda contra el cliente del objetivo: si no es el de la pantalla, los datos
-      // terminarían en un cliente distinto al que se está editando
-      if (Number(objetivo.ClienteId) !== ClienteId)
-        throw new ClientException(`El objetivo ${ObjetivoId} no pertenece al cliente ${ClienteId}`);
-
-      if (Number(objetivo.ClienteElementoDependienteId) !== ClienteElementoDependienteId)
-        throw new ClientException(
-          `El objetivo ${ObjetivoId} no corresponde al elemento dependiente ${ClienteElementoDependienteId} del cliente ${ClienteId}`);
-
-      // El importe unitario de un producto con precio de lista lo fija la lista, no la pantalla:
-      // el input llega deshabilitado, así que lo que mande el cliente para esos ítems se descarta.
-      const precios = await queryRunner.query(`
-        SELECT pp.ProductoCodigo, pp.Importe
-        FROM ProductoPrecio pp
-        JOIN (
-          SELECT ProductoCodigo, MAX(PeriodoDesdeAplica) AS PeriodoDesdeAplica
-          FROM ProductoPrecio
-          WHERE ClienteId = @0
-            AND PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(@1,@2,1))
-            AND ProductoCodigo IN (${codigos.map((_, indice) => `@${indice + 3}`).join(',')})
-          GROUP BY ProductoCodigo
-        ) ult ON ult.ProductoCodigo = pp.ProductoCodigo AND ult.PeriodoDesdeAplica = pp.PeriodoDesdeAplica
-        WHERE pp.ClienteId = @0
-      `, [objetivo.ClienteId, anio, mes, ...codigos]);
-
-      const preciosLista = new Map<string, number>(precios.map(
-        (precio: any) => [String(precio.ProductoCodigo).trim().toUpperCase(), Number(precio.Importe)]));
-
-      // Los productos de horas facturan con el importe del objetivo, que le gana a la lista de precios
-      const importesObjetivo = await queryRunner.query(`
-        SELECT TOP 1 oiv.ImporteHoraA, oiv.ImporteHoraB
-        FROM ObjetivoImporteVenta oiv
-        WHERE oiv.ClienteId = @0 AND oiv.ClienteElementoDependienteId = @1
-          AND (oiv.Anio < @2 OR (oiv.Anio = @2 AND oiv.Mes <= @3))
-        ORDER BY oiv.Anio DESC, oiv.Mes DESC
-      `, [objetivo.ClienteId, objetivo.ClienteElementoDependienteId, anio, mes]);
-
-      const importeHorasA = importesObjetivo[0]?.ImporteHoraA ?? null;
-      const importeHorasB = importesObjetivo[0]?.ImporteHoraB ?? null;
-
-      const importesHoras = new Map<string, number | null>([
-        [PRODUCTO_HORAS_A, importeHorasA],
-        [PRODUCTO_HORAS_B, importeHorasB]
-      ]);
-
-      for (const item of items) {
-        const codigo = String(item.ProductoCodigo).trim().toUpperCase();
-        const precio = importesHoras.has(codigo) ? importesHoras.get(codigo) : preciosLista.get(codigo);
-        if (precio == null) continue;
-        item.ImporteUnitario = precio;
-        item.TipoImporte = TIPO_IMPORTE_LISTA_PRECIO;
-      }
-
-      // De la cantidad y el importe unitario sale el importe a facturar: tienen que ser números
-      // no negativos en todos los ítems
-      const camposNumericos = [
-        { campo: 'Cantidad', nombre: 'La cantidad', obligatorio: 'obligatoria', negativo: 'negativa' },
-        { campo: 'ImporteUnitario', nombre: 'El importe unitario', obligatorio: 'obligatorio', negativo: 'negativo' }
-      ];
-      const erroresItems: string[] = [];
-
-      // TipoCantidad y TipoImporte son NOT NULL en la tabla
-      const camposTipo = [
-        { campo: 'TipoCantidad', nombre: 'El tipo de cantidad', obligatorio: 'obligatorio' },
-        { campo: 'TipoImporte', nombre: 'El tipo de importe', obligatorio: 'obligatorio' }
-      ];
-
-      for (const [indice, item] of items.entries()) {
-        const donde = `Ítem ${indice + 1} (${String(item.ProductoCodigo).trim()})`;
-
-        for (const { campo, nombre, obligatorio } of camposTipo) {
-          if (String(item[campo] ?? '').trim() === '')
-            erroresItems.push(`${donde}: ${nombre} es ${obligatorio}`);
-        }
-
-        for (const { campo, nombre, obligatorio, negativo } of camposNumericos) {
-          const valor = item[campo];
-
-          if (valor == null || String(valor).trim() === '') {
-            erroresItems.push(`${donde}: ${nombre} es ${obligatorio}`);
-            continue;
-          }
-
-          const numero = Number(valor);
-          if (!Number.isFinite(numero))
-            erroresItems.push(`${donde}: ${nombre} '${valor}' no es un número válido`);
-          else if (numero < 0)
-            erroresItems.push(`${donde}: ${nombre} no puede ser ${negativo}`);
-        }
-      }
-
-      if (erroresItems.length)
-        throw new ClientException(erroresItems);
-
-      // Los tres campos del comprobante son NOT NULL: o la fila está completa, o no se manda
-      const erroresComprobantes: string[] = [];
-      const claves = new Set<string>();
-
-      for (const [indice, comprobante] of comprobantes.entries()) {
-        const donde = `Comprobante ${indice + 1}`;
-        const tipo = String(comprobante.ComprobanteTipoCodigo ?? '').trim();
-        const numero = String(comprobante.ComprobanteNro ?? '').trim();
-
-        if (!tipo) erroresComprobantes.push(`${donde}: el tipo de comprobante es obligatorio`);
-        if (!numero) erroresComprobantes.push(`${donde}: el número de comprobante es obligatorio`);
-
-        if (!cargado(comprobante.ImporteTotal))
-          erroresComprobantes.push(`${donde}: el importe total es obligatorio`);
-        else if (!Number.isFinite(Number(comprobante.ImporteTotal)))
-          erroresComprobantes.push(`${donde}: el importe total '${comprobante.ImporteTotal}' no es un número válido`);
-
-        // La orden no puede tener dos veces el mismo tipo y número
-        if (tipo && numero) {
-          const clave = `${tipo.toUpperCase()}|${numero.toUpperCase()}`;
-          if (claves.has(clave))
-            erroresComprobantes.push(`${donde}: el comprobante ${tipo} ${numero} está repetido`);
-          claves.add(clave);
-        }
-      }
-
-      if (erroresComprobantes.length)
-        throw new ClientException(erroresComprobantes);
-
-      // Los tipos tienen que existir en ComprobanteTipo: una sola consulta para todos
-      const tipos = [...new Set(comprobantes.map(comprobante => String(comprobante.ComprobanteTipoCodigo).trim()))];
-
-      if (tipos.length) {
-        const tiposValidos = await queryRunner.query(
-          `SELECT ComprobanteTipoCodigo FROM ComprobanteTipo WHERE ComprobanteTipoCodigo IN (${tipos.map((_, indice) => `@${indice}`).join(',')})`,
-          tipos);
-
-        const existentes = new Set(tiposValidos.map(
-          (tipo: any) => String(tipo.ComprobanteTipoCodigo).trim().toUpperCase()));
-        const inexistentes = tipos.filter(tipo => !existentes.has(tipo.toUpperCase()));
-
-        if (inexistentes.length)
-          throw new ClientException(inexistentes.map(tipo => `El tipo de comprobante ${tipo} no existe`));
-      }
+      if (fieldErrors.length > 0)
+        throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
 
       await queryRunner.startTransaction();
 
-      // Con el alta forzada no se busca la orden del período: el detalle se graba en una nueva
-      const orden = nuevaOrden
-        ? undefined
-        : await OrdenVentaController.getOrdenVentaPeriodo(queryRunner, ObjetivoId, anio, mes, nroOrdenVentaPedido);
-
-      if (!nuevaOrden && nroOrdenVentaPedido && !orden)
-        throw new ClientException(`La orden de venta ${nroOrdenVentaPedido} no es del objetivo ${ObjetivoId} en el período ${mes}/${anio}`);
-
-      // Las órdenes "A Facturar" y "Facturado" ya no se modifican, desde ninguna pantalla
-      if (orden)
-        throw new ClientException(
-          `La orden de venta ${orden.NroOrdenVenta} está en estado '${String(orden.EstadoOrdenVenta).trim()}', no se puede modificar`);
-
-      // Una vez emitida la factura el detalle ya no se toca
-      if (orden) {
-        const facturada = await queryRunner.query(
-          `SELECT FechaGeneracionFactura FROM OrdenVenta WHERE NroOrdenVenta = @0`, [orden.NroOrdenVenta]);
-        if (facturada[0]?.FechaGeneracionFactura)
-          throw new ClientException('La orden ya tiene factura generada, no se puede modificar');
-      }
-
-      const importeTotal = items.reduce(
+      const ImporteTotalAFacturar = items.reduce(
         (total, item) => total + (Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)), 0);
 
-      // Comprobantes que ya tiene la orden. Una orden nueva todavía no tiene ninguno.
-      const comprobantesActuales = orden
-        ? await queryRunner.query(`
-            SELECT ComprobanteNro, ComprobanteTipoCodigo FROM Comprobante WHERE NroOrdenVenta = @0
-          `, [orden.NroOrdenVenta])
-        : [];
+      if (comprobantesTmp.some((c: any) => String(c.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === 'FAC'))
+        EstadoOrdenVentaCodigo = 'FAC'
 
-      // La orden queda facturada cuando tiene un comprobante de tipo factura, que es el mismo
-      // criterio con el que la grilla muestra el estado
-      const hayFactura = (lista: any[]) => lista.some((comprobante: any) =>
-        String(comprobante.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === TIPO_COMPROBANTE_FACTURA);
-
-      const facturada = hayFactura(comprobantesRecibidos ? comprobantes : comprobantesActuales);
-
-      // Para pasar a "Facturado" la orden tiene que quedar con al menos un comprobante completo.
-      // Los recibidos ya se validaron completos, y los grabados lo están por ser NOT NULL.
-      if (estadoElegido === ESTADO_ORDEN_VENTA_FACTURADA
-        && !(comprobantesRecibidos ? comprobantes : comprobantesActuales).length)
-        throw new ClientException('Para pasar la orden a Facturado debe cargar al menos un comprobante con tipo, número e importe total');
-
-      // El estado elegido a mano le gana al que sale de los comprobantes
-      const estadoOrden = estadoElegido
-        || (facturada ? ESTADO_ORDEN_VENTA_FACTURADA : ESTADO_ORDEN_VENTA_INICIAL);
-
-      // Sin estado elegido ni lista de comprobantes el estado no se toca: la orden puede estar en
-      // cualquier punto del circuito
-      const actualizaEstado = !!estadoElegido || comprobantesRecibidos || facturada;
-
-      // Una orden que pasa a facturada no puede tener ítems sin cantidad o sin importe unitario
-      if (actualizaEstado && estadoOrden === ESTADO_ORDEN_VENTA_FACTURADA
-        && items.some(item => !cargado(item.Cantidad) || !cargado(item.ImporteUnitario)))
-        throw new ClientException('No se puede facturar: hay ítems sin cantidad o sin importe unitario');
-
-      let NroOrdenVenta = orden?.NroOrdenVenta;
-
-      // El estado se graba desde una constante, pero tiene que existir en la tabla de códigos
-      if (actualizaEstado || !NroOrdenVenta) {
-        const estados = await queryRunner.query(
-          `SELECT EstadoOrdenVentaCod FROM EstadoOrdenVenta`);
-        const codigos = estados.map((estado: any) => estado.EstadoOrdenVentaCod);
-        if (!codigos.includes(estadoOrden))
-          throw new ClientException(
-            `El estado '${estadoOrden}' no existe en EstadoOrdenVenta. Estados válidos: ${codigos.join(', ')}`);
-      }
+      //TODO:   Tengo que actualizar el HorasA y HorasB para los productos SSF Y SSFB
 
       if (NroOrdenVenta) {
-        // Sin cambios en el comprobante el estado no se toca: la orden puede estar en cualquier
-        // punto del circuito
-        const parametros: any[] = [NroOrdenVenta, importeTotal, ahora, usuario, ip];
-        let sets = 'ImporteTotalAFacturar = @1, AudFechaMod = @2, AudUsuarioMod = @3, AudIpMod = @4';
-
-        if (actualizaEstado) {
-          parametros.push(estadoOrden);
-          sets += `, EstadoOrdenVentaCodigo = @${parametros.length - 1}`;
-        }
-
-        if (observacionesRecibidas) {
-          parametros.push(Observaciones);
-          sets += `, Observaciones = @${parametros.length - 1}`;
-        }
+        const ov = await this.getOrdenVentaQuery(queryRunner, NroOrdenVenta)
+        if (ov.EstadoOrdenVentaCodigo == 'FAC')
+          throw new ClientException(`No se puede modificar orden de venta en estado ${ov.Descripcion}`)
 
         await queryRunner.query(`
-          UPDATE OrdenVenta SET ${sets} WHERE NroOrdenVenta = @0
-        `, parametros);
+          UPDATE OrdenVenta SET ImporteTotalAFacturar=@1, EstadoOrdenVentaCodigo=@2, Observaciones=@3,
+          AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6 
+          WHERE NroOrdenVenta = @0
+        `, [NroOrdenVenta, ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip]);
 
       } else {
-        // NroOrdenVenta no es identity: se toma el siguiente dentro de la transacción
         const proximo = await queryRunner.query(
           `SELECT ISNULL(MAX(NroOrdenVenta),0) + 1 AS NroOrdenVenta FROM OrdenVenta WITH (UPDLOCK, HOLDLOCK)`);
         NroOrdenVenta = Number(proximo[0].NroOrdenVenta);
@@ -772,12 +654,11 @@ CantidadEnFactura: item.CantidadEnFactura?.toString() ?? '',
             AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
           ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, 0, 0, @8, @8, @9, @9, @10, @10)
         `, [
-          NroOrdenVenta, objetivo.ClienteId, objetivo.ClienteElementoDependienteId, mes, anio,
-          importeTotal, estadoOrden, Observaciones, ahora, usuario, ip
+          NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
+          ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip
         ]);
       }
 
-      // El detalle se reescribe completo: así se resuelven altas, bajas y modificaciones juntas
       await queryRunner.query(`DELETE FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
 
       for (const [indice, item] of items.entries()) {
@@ -804,31 +685,27 @@ CantidadEnFactura: item.CantidadEnFactura?.toString() ?? '',
         ]);
       }
 
-      // Los comprobantes viven en Comprobante, relacionados por NroOrdenVenta. Se reescriben
-      // completos: así se resuelven altas, bajas y modificaciones juntas, igual que el detalle.
-      if (comprobantesRecibidos) {
-        await queryRunner.query(`DELETE FROM Comprobante WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
+      await queryRunner.query(`DELETE FROM Comprobante WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
 
-        for (const comprobante of comprobantes) {
-          await queryRunner.query(`
+      for (const comprobante of comprobantes) {
+        await queryRunner.query(`
             INSERT INTO Comprobante (
               NroOrdenVenta, ComprobanteNro, ComprobanteTipoCodigo, ImporteTotal,
               AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
             ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
           `, [
-            NroOrdenVenta,
-            String(comprobante.ComprobanteNro).trim(),
-            String(comprobante.ComprobanteTipoCodigo).trim(),
-            Number(comprobante.ImporteTotal),
-            ahora, usuario, ip
-          ]);
-        }
+          NroOrdenVenta,
+          String(comprobante.ComprobanteNro).trim(),
+          String(comprobante.ComprobanteTipoCodigo).trim(),
+          Number(comprobante.ImporteTotal),
+          ahora, usuario, ip
+        ]);
       }
 
       await queryRunner.commitTransaction();
 
-      return this.jsonRes({ NroOrdenVenta, ImporteTotalAFacturar: importeTotal }, res,
-        orden ? 'Orden de venta actualizada' : `Orden de venta ${NroOrdenVenta} generada`);
+      return this.jsonRes({ NroOrdenVenta, ImporteTotalAFacturar, EstadoOrdenVentaCodigo }, res,
+        `Orden de venta ${NroOrdenVenta} generada/actualizada`);
 
     } catch (error) {
       await this.rollbackTransaction(queryRunner);
