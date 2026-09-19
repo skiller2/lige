@@ -625,8 +625,14 @@ export class OrdenVentaController extends BaseController {
       const ImporteTotalAFacturar = items.reduce(
         (total, item) => total + (Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)), 0);
 
-      if (comprobantesTmp.some((c: any) => String(c.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === 'FAC'))
+      if (!EstadoOrdenVentaCodigo)
+        EstadoOrdenVentaCodigo = 'PEN'
+
+      if (comprobantes.some((c: any) => String(c.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === 'FAC'))
         EstadoOrdenVentaCodigo = 'FAC'
+
+      if (comprobantes.length==0 && EstadoOrdenVentaCodigo == 'FAC')
+          throw new ClientException(`No se puede tener Estado Facturado sin ningún comprobante cargado`)
 
       //TODO:   Tengo que actualizar el HorasA y HorasB para los productos SSF Y SSFB
 

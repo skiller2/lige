@@ -252,7 +252,13 @@ export class OrdenVentaFormComponent {
   }
 
   clearForm(): void {
-    this.ordenVenta.set(this.defaultOrdenVenta)
+    const newOrdenVenta = structuredClone(this.defaultOrdenVenta)
+    newOrdenVenta.ClienteElementoDependienteId=Number(this.ClienteElementoDependienteId())
+    newOrdenVenta.ClienteId=Number(this.ClienteId())
+    newOrdenVenta.PeriodoAnio=Number(this.anio())
+    newOrdenVenta.PeriodoMes=Number(this.mes())
+    newOrdenVenta.NroOrdenVenta=0
+    this.ordenVenta.set(newOrdenVenta)
     this.formOrdenVenta().reset();
   }
 
