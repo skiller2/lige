@@ -79,6 +79,7 @@ export class ImpuestoAfipComponent {
   PersonalId = signal<number>(0);
   visibleDetalle = signal<boolean>(false)
   toggle = signal<boolean>(false);
+  accionEnCurso = signal<string | null>(null);
   listOptions = signal<listOptionsT>({ filtros: [], sort: null, })
   periodo = signal<Date|null>(null);
   anio = computed(() => { 
@@ -232,6 +233,50 @@ export class ImpuestoAfipComponent {
       filename: 'monotributos-listado',
       format: 'xlsx'
     });
+  }
+
+  async enviarSolicitudPagoPatagonia() {
+    await this.ejecutarAccion('solicitudPago', () =>
+      firstValueFrom(this.apiService.enviarSolicitudPagoPatagonia(this.anio(), this.mes(), this.listOptions()))
+    )
+  }
+
+  async consultarEstadoPagoPatagonia() {
+    await this.ejecutarAccion('estadoPago', () =>
+      firstValueFrom(this.apiService.consultarEstadoPagoPatagonia(this.anio(), this.mes()))
+    )
+  }
+
+  async obtenerComprobanteMonotributo() {
+    const PersonalId = this.PersonalId()
+    if (!PersonalId) return
+
+    await this.ejecutarAccion('comprobantePersona', () =>
+      firstValueFrom(this.apiService.obtenerComprobanteMonotributo(this.anio(), this.mes(), PersonalId))
+    )
+  }
+
+  async obtenerComprobantesPendientes() {
+    await this.ejecutarAccion('comprobantesPendientes', () =>
+      firstValueFrom(this.apiService.obtenerComprobantesPendientes(this.anio(), this.mes()))
+    )
+  }
+
+  private async ejecutarAccion(accion: string, fn: () => Promise<unknown>) {
+    if (!this.anio() || !this.mes()) return
+    if (this.accionEnCurso()) return
+
+    this.accionEnCurso.set(accion)
+    this.loadingSrv.open({ type: 'spin', text: '' })
+    try {
+      await fn()
+    } catch (_e) {
+    } finally {
+      this.loadingSrv.close()
+      this.accionEnCurso.set(null)
+    }
+    this.gridData.reload()
+    this.listaDescuentos.reload()
   }
 
   public forzadoUploadData(cuit: string | null | undefined, montoText: string | null | undefined) {

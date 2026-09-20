@@ -1143,6 +1143,40 @@ export class ApiService {
     );
   }
 
+  enviarSolicitudPagoPatagonia(anio: number, mes: number, options: any) {
+    const parameter = { anio, mes, options }
+    this.notification.success('Respuesta', `Inicio solicitud de pago al Banco Patagonia`);
+
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/patagonia/solicitud_pago', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  consultarEstadoPagoPatagonia(anio: number, mes: number) {
+    const parameter = { anio, mes }
+
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/patagonia/estado_pago', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  obtenerComprobanteMonotributo(anio: number, mes: number, PersonalId: number) {
+    const parameter = { anio, mes, PersonalId }
+
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobante_monotributo', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  obtenerComprobantesPendientes(anio: number, mes: number) {
+    const parameter = { anio, mes }
+    this.notification.success('Respuesta', `Inicio obtención de comprobantes pendientes`);
+
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobantes_pendientes', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   getTelefonos(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/telefonia/list', params).pipe(
       map((res: any) => res.data),

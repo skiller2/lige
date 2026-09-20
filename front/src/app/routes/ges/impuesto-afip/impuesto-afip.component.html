@@ -44,6 +44,31 @@
           <li nz-menu-item (click)="exportGrid()">
             <span nz-icon nzType="download"></span>XLS
           </li>
+          <li nz-menu-divider></li>
+          <li nz-menu-item nz-popconfirm
+            nzPopconfirmTitle="¿Confirma enviar la solicitud de pago al Banco Patagonia del período {{ mes() }}/{{ anio() }}?"
+            nzPopconfirmPlacement="right" (nzOnConfirm)="enviarSolicitudPagoPatagonia()"
+            [nzDisabled]="accionEnCurso() !== null || !anio()">
+            <span nz-icon nzType="bank"></span><span style="white-space: normal;">Enviar solicitud de pago al Banco
+              Patagonia</span>
+          </li>
+          <li nz-menu-item (click)="consultarEstadoPagoPatagonia()"
+            [nzDisabled]="accionEnCurso() !== null || !anio()">
+            <span nz-icon nzType="search"></span><span style="white-space: normal;">Consultar estado de pago al Banco
+              Patagonia</span>
+          </li>
+          <li nz-menu-item (click)="obtenerComprobanteMonotributo()"
+            nz-tooltip nzTooltipTitle="Seleccione una persona en la grilla"
+            [nzTooltipTrigger]="PersonalId() == 0 ? 'hover' : null"
+            [nzDisabled]="accionEnCurso() !== null || !anio() || PersonalId() == 0">
+            <span nz-icon nzType="file-protect"></span><span style="white-space: normal;">Obtener comprobante
+              monotributo de una persona</span>
+          </li>
+          <li nz-menu-item (click)="obtenerComprobantesPendientes()"
+            [nzDisabled]="accionEnCurso() !== null || !anio()">
+            <span nz-icon nzType="cloud-download"></span><span style="white-space: normal;">Obtener comprobantes
+              pendientes del período</span>
+          </li>
         </ul>
       </li>
     }
