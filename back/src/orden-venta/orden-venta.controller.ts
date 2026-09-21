@@ -351,7 +351,7 @@ export class OrdenVentaController extends BaseController {
       ordenDs.PeriodoAnio = anio
       ordenDs.PeriodoMes = mes
 
-      const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
+      const { ImporteUnitarioA, ImporteUnitarioB, TotalHoraA, TotalHoraB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
 
 
       for (const item of ordenDs.items) {
@@ -361,9 +361,11 @@ export class OrdenVentaController extends BaseController {
 
         switch (ProductoCodigo) {
           case 'SSF':
+            item.Cantidad =TotalHoraA
             item.ImporteUnitario = ImporteUnitarioA
             break;
           case 'SSFB':
+            item.Cantidad =TotalHoraB
             item.ImporteUnitario = ImporteUnitarioB
             break;
           default:
@@ -479,7 +481,7 @@ export class OrdenVentaController extends BaseController {
 
   async getImporteHorasAB(ClienteElementoDependienteId: number, ClienteId: number, anio: number, mes: number, queryRunner: QueryRunner) {
     const ds = await queryRunner.query(
-      `SELECT ImporteHoraA, ImporteHoraB
+      `SELECT ImporteHoraA, ImporteHoraB, TotalHoraA, TotalHoraB
      FROM ObjetivoImporteVenta
      WHERE ClienteElementoDependienteId = @0
        AND ClienteId = @1
@@ -492,10 +494,14 @@ export class OrdenVentaController extends BaseController {
       ? {
         ImporteUnitarioA: ds[0].ImporteHoraA,
         ImporteUnitarioB: ds[0].ImporteHoraB,
+        TotalHoraA: ds[0].TotalHoraA,
+        TotalHoraB: ds[0].TotalHoraB,
       }
       : {
         ImporteUnitarioA: 0,
         ImporteUnitarioB: 0,
+        TotalHoraA:0,
+        TotalHoraB:0
       };
   }
 
