@@ -268,7 +268,7 @@ export class AsistenciaController extends BaseController {
   }
 
   async setHorasFacturacion(req: any, res: Response, next: NextFunction) {
-    const {
+    let {
       anio,
       mes,
       ObjetivoId,
@@ -388,14 +388,24 @@ export class AsistenciaController extends BaseController {
           ]);
         }
       } else {  // Tengo que crear la Orden de Venta desde 0
-        const items = []
+        let items = []
 
         if (TotalHoraA)
           items.push({ ProductoCodigo: 'SSF', Cantidad: TotalHoraA, ImporteUnitario: ImporteUnitarioA, TipoCantidad: 'V', TipoImporte: 'LP' })
         if (TotalHoraB)
           items.push({ ProductoCodigo: 'SSFB', Cantidad: TotalHoraB, ImporteUnitario: ImporteUnitarioB, TipoCantidad: 'V', TipoImporte: 'LP' })
-        if (items.length)
+        if (items.length){
+          const NroOrdenVentaBase = await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
+          if (NroOrdenVentaBase){
+            const ordenDs = await ordenVentaController.getOrdenVentaQuery(queryRunner, NroOrdenVentaBase)
+            const itemsPlantilla = ordenDs.items
+            itemsPlantilla.filter(item => String(item.ProductoCodigo != 'SSF' && item.ProductoCodigo != 'SSFB'))
+            items = [...items,itemsPlantilla]
+            if (!Observaciones) Observaciones= ordenDs.Observaciones
+          }
+
           await ordenVentaController.setOrdenVentaQuery(anio, mes, ClienteId, ClienteElementoDependienteId, 0, items, [], Observaciones, 'PEN', queryRunner, usuario, ip, ahora)
+        }
       }
 
       await this.setHorasFacturacionQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip);

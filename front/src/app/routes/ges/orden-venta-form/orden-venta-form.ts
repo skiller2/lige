@@ -232,7 +232,14 @@ export class OrdenVentaFormComponent {
   }
 
   async loadPlantilla() {
-    console.log('Cargo Plantilla OV')
+    const plantilla = await firstValueFrom(this.apiService.getPlantillaOrdenVenta(Number(this.ClienteId()), Number(this.ClienteElementoDependienteId()), this.anio(), this.mes()))
+    this.ordenVenta.update(m => ({ ...m, ...plantilla }))
+    if (this.ordenVenta().items.length == 0)
+      this.addItem()
+    if (this.ordenVenta().comprobantes.length == 0)
+      this.addComprobante()
+
+    setTimeout(() => { this.formOrdenVenta().reset() }, 0);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
   }
 
 

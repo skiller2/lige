@@ -233,7 +233,7 @@ export class OrdenVentaController extends BaseController {
   // Última orden de venta del objetivo dentro de los MESES_ORDEN_BASE períodos anteriores al
   // recibido, o undefined si en toda la ventana no hay ninguna. Es el modelo con el que se
   // inicializa una orden que todavía no existe.
-  private static async getOrdenVentaBase(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, anio: number, mes: number) {
+  static async getOrdenVentaBase(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, anio: number, mes: number) {
     // Extremos de la ventana: desde MESES_ORDEN_BASE períodos atrás hasta el anterior al pedido
     const hasta = OrdenVentaController.sumarMeses(anio, mes, -1);
     const desde = OrdenVentaController.sumarMeses(anio, mes, -MESES_ORDEN_BASE);
@@ -325,6 +325,27 @@ export class OrdenVentaController extends BaseController {
 
     try {
       const ordenDs = await this.getOrdenVentaQuery(queryRunner, NroOrdenVenta)
+      this.jsonRes(ordenDs, res);
+
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+  async getPlantillaOrdenVenta(req: Request, res: Response, next: NextFunction) {
+    const ClienteId = Number(req.params.ClienteId) || 0;
+    const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId) || 0;
+    const anio = Number(req.params.NroOrdenVenta) || 0;
+    const mes = Number(req.params.NroOrdenVenta) || 0;
+
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      const NroOrdenVentaBase = await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
+      const ordenDs = await this.getOrdenVentaQuery(queryRunner, NroOrdenVentaBase)
+      ordenDs.NroOrdenVenta=0
+
       this.jsonRes(ordenDs, res);
 
     } catch (error) {

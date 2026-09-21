@@ -1,4 +1,4 @@
-import { inject, Injectable, Injector, LOCALE_ID } from '@angular/core';
+import { inject, Injectable, Injector, InputSignal, LOCALE_ID } from '@angular/core';
 import { _HttpClient } from '@delon/theme';
 import { ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON';
 import { Observable, catchError, defer, filter, map, of, tap, throwError } from 'rxjs';
@@ -1989,7 +1989,12 @@ export class ApiService {
     );
   }
 
-
+  getPlantillaOrdenVenta(ClienteId: number, ClienteElementoDependienteId: number, anio: number, mes: number) {
+    return this.http.get<ResponseJSON<any>>(`/api/orden-venta/plantilla/${ClienteId}/${ClienteElementoDependienteId}/${anio}/${mes}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of({ total: 0, list: [] }))
+    );
+  }
 
   setOrdenVenta(ordenVenta: any) {
     return this.http.post<ResponseJSON<any>>('/api/orden-venta/save', ordenVenta);
