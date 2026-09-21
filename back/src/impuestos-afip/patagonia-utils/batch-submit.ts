@@ -17,32 +17,27 @@ export interface EnvioLoteResponse {
   respuesta: any;
 }
 
-/** Código del catálogo de tipo de pago. */
-const getTipoPago = () => process.env.BAPA_TIPO_PAGO || "PAGO_MONOTRIBUTO";
-/** Tipo de documento del beneficiario. */
-const getTipoDocumento = () => process.env.BAPA_TIPO_DOCUMENTO || "CUIT";
-
 /**
  * Arma el externalReferenceId con el patrón que pide el banco: {CUITEmpresa}-{YYYYMM}-{IDUnico}.
- * @throws {ClientException} si no está configurado el CUIT de la empresa
+ * @throws {ClientException} si no está cargado el CUIT de la empresa
  */
 const armarExternalReferenceId = (
+  config: ConfigPatagonia,
   anio: number,
   mes: number,
   idUnico: number
 ): string => {
-  const cuitEmpresa = process.env.BAPA_CUIT_EMPRESA;
-  if (!cuitEmpresa)
+  if (!config.cuit_empresa)
     throw new ClientException(
-      `Falta configurar BAPA_CUIT_EMPRESA en el archivo .env`
+      `Falta el cuit_empresa en los parámetros del Banco Patagonia (MONOT).`
     );
 
-  return `${cuitEmpresa}-${anio}${String(mes).padStart(2, "0")}-${idUnico}`;
+  return `${config.cuit_empresa}-${anio}${String(mes).padStart(2, "0")}-${idUnico}`;
 };
 
 /** Arma un item del lote a partir del CUIT de la persona (11 dígitos, sin guiones). */
-const armarItem = (CUIT: string | number): ItemLote => ({
-  documentType: getTipoDocumento(),
+const armarItem = (CUIT: string | number, tipoDocumento: string): ItemLote => ({
+  documentType: tipoDocumento,
   documentNumber: String(CUIT).replace(/\D/g, ""),
 });
 
@@ -58,17 +53,16 @@ const enviarLote = async (
   externalReferenceId: string,
   items: ItemLote[]
 ): Promise<EnvioLoteResponse> => {
-  const accountNumber = process.env.BAPA_ACCOUNT_NUMBER;
-  if (!accountNumber)
+  if (!config.accountNumber)
     throw new ClientException(
-      `Falta configurar BAPA_ACCOUNT_NUMBER en el archivo .env`
+      `Falta el accountNumber en los parámetros del Banco Patagonia (MONOT).`
     );
 
   const accessToken = await getAccessToken(app, queryRunner);
 
   const request = {
-    accountNumber,
-    type: getTipoPago(),
+    accountNumber: config.accountNumber,
+    type: config.tipo_pago,
     externalReferenceId,
     items,
   };

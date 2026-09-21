@@ -498,9 +498,9 @@ export class ImpuestosAfipController extends BaseController {
         throw new ClientException(`No hay monotributos pendientes de solicitud en el período ${mes}/${anio}.`)
 
       const idUnico = await BaseController.getProxNumero(queryRunner, `PagoPatagonia`, usuario, ip)
-      externalReferenceId = armarExternalReferenceId(anio, mes, idUnico)
+      externalReferenceId = armarExternalReferenceId(config, anio, mes, idUnico)
 
-      const items = [...aProcesar.keys()].map(CUIT => armarItem(CUIT))
+      const items = [...aProcesar.keys()].map(CUIT => armarItem(CUIT, config.tipo_documento))
 
       const envio = await enviarLote(req.app, queryRunner, config, externalReferenceId, items)
 

@@ -6,6 +6,14 @@ export interface ConfigPatagonia {
   host: string;
   cliend_id: string;
   client_secret: string;
+  /** Cuenta de la empresa de donde se debitan los fondos. Solo la usa el envío del lote. */
+  accountNumber: string;
+  /** CUIT de la empresa, para armar el externalReferenceId. Solo lo usa el envío del lote. */
+  cuit_empresa: string;
+  /** Código del catálogo de tipo de pago. */
+  tipo_pago: string;
+  /** Tipo de documento del beneficiario. */
+  tipo_documento: string;
 }
 
 /** Token cacheado en req.app.locals.BAPA_TOKEN_API. */
@@ -46,12 +54,11 @@ const getConfigPatagonia = async (queryRunner: QueryRunner): Promise<ConfigPatag
   // El documento del banco nombra al campo "cliend_id"; se acepta también la forma correcta.
   const cliend_id = config?.cliend_id ?? (config as any)?.client_id;
 
-  // El host del ParametroGeneral tiene prioridad; si no está, se usa el del .env.
-  const host = config?.host || process.env.BAPA_HOST;
-
-  if (!host)
+  // Solo se validan acá los datos de autenticación: accountNumber y cuit_empresa los usa
+  // únicamente el envío del lote, y la consulta de estado tiene que andar sin ellos.
+  if (!config?.host)
     throw new ClientException(
-      `Falta el host en los parámetros del Banco Patagonia (${PARAMETRO_GENERAL_CODIGO}) y tampoco está configurado BAPA_HOST en el .env`
+      `Falta el host en los parámetros del Banco Patagonia (${PARAMETRO_GENERAL_CODIGO}).`
     );
   if (!cliend_id)
     throw new ClientException(
@@ -62,7 +69,16 @@ const getConfigPatagonia = async (queryRunner: QueryRunner): Promise<ConfigPatag
       `Falta el client_secret en los parámetros del Banco Patagonia (${PARAMETRO_GENERAL_CODIGO}).`
     );
 
-  return { host: host.replace(/\/$/, ""), cliend_id, client_secret: config.client_secret };
+  return {
+    host: config.host.replace(/\/$/, ""),
+    cliend_id,
+    client_secret: config.client_secret,
+    accountNumber: config.accountNumber,
+    cuit_empresa: config.cuit_empresa,
+    // Códigos del catálogo: si no están en el parámetro se usan los del documento.
+    tipo_pago: config.tipo_pago || "PAGO_MONOTRIBUTO",
+    tipo_documento: config.tipo_documento || "CUIT",
+  };
 };
 
 /**
