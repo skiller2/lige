@@ -612,6 +612,7 @@ export class OrdenVentaController extends BaseController {
         ahora, usuario, ip
       ]);
     }
+    return {NroOrdenVenta, EstadoOrdenVentaCodigo}
   }
 
 
@@ -655,7 +656,10 @@ export class OrdenVentaController extends BaseController {
 
 
 
-      await this.setOrdenVentaQuery(PeriodoAnio, PeriodoMes, ClienteId, ClienteElementoDependienteId, NroOrdenVenta, items, comprobantes, Observaciones, EstadoOrdenVentaCodigo, queryRunner, usuario, ip, ahora)
+      const ov = await this.setOrdenVentaQuery(PeriodoAnio, PeriodoMes, ClienteId, ClienteElementoDependienteId, NroOrdenVenta, items, comprobantes, Observaciones, EstadoOrdenVentaCodigo, queryRunner, usuario, ip, ahora)
+      NroOrdenVenta = ov.NroOrdenVenta
+      EstadoOrdenVentaCodigo = ov.EstadoOrdenVentaCodigo
+
 
       const primerOrdenVenta = await queryRunner.query(`
         SELECT TOP 1 ord.NroOrdenVenta FROM OrdenVenta ord WHERE ord.ClienteId = @3 AND ord.ClienteElementoDependienteId = @4 AND ord.PeriodoAnio=@1 AND ord.PeriodoMes=@2
