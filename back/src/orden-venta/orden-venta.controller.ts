@@ -247,7 +247,7 @@ export class OrdenVentaController extends BaseController {
       WHERE ord.ClienteId = @5 AND ord.ClienteElementoDependienteId=@6 
         AND (ord.PeriodoAnio > @1 OR (ord.PeriodoAnio = @1 AND ord.PeriodoMes >= @2))
         AND (ord.PeriodoAnio < @3 OR (ord.PeriodoAnio = @3 AND ord.PeriodoMes <= @4))
-      ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC
+      ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta ASC
     `, [null, desde.anio, desde.mes, hasta.anio, hasta.mes, ClienteId, ClienteElementoDependienteId]);
 
 
