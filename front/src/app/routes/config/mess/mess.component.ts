@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, input, model, signal } from '@angular/core';
-import { applyEach, form, FormField, minLength, required, submit } from '@angular/forms/signals';
+import { applyEach, disabled, form, FormField, minLength, readonly, required, submit } from '@angular/forms/signals';
 
 import { SHARED_IMPORTS } from '@shared';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -62,6 +62,7 @@ export class MessComponent {
 
   readonly agentsForm = form(this.agentsModel, p => {
     applyEach(p.agents, agent => {
+      disabled(agent.ChatBotPromptCodigo, ctx => !ctx.valueOf(agent.EsNuevo))
       required(agent.ChatBotPromptCodigo, { message: 'El código es obligatorio' })
       required(agent.Descripcion, { message: 'La descripción es obligatoria' })
       required(agent.Prompt, { message: 'El prompt es obligatorio' })
