@@ -44,6 +44,9 @@ import {
   getPeriodoFromRequest,
 } from "./impuestos-afip.utils.ts";
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro.ts";
+import { consultarEstadoLote } from "./patagonia-utils/batch-status.ts";
+import { getAccessToken, getConfigPatagonia } from "./patagonia-utils/auth.ts";
+import { armarExternalReferenceId, armarItem, enviarLote } from "./patagonia-utils/batch-submit.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { basename, join } from "path";
 import type { QueryRunner } from "typeorm";
@@ -250,7 +253,8 @@ export class ImpuestosAfipController extends BaseController {
         ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
       
         com.PersonalComprobantePagoAFIPId, com.PersonalComprobantePagoAFIPAno, com.PersonalComprobantePagoAFIPMes, com.PersonalComprobantePagoAFIPImporte monto,
-        des.PersonalOtroDescuentoImporteVariable montodescuento, 
+        com.ReferenciaPago, com.ResultadoPago,
+        des.PersonalOtroDescuentoImporteVariable montodescuento,
         ISNULL(CAST(excep.PersonalExencionCUIT AS VARCHAR), '0') AS PersonalExencionCUIT,
         sitrev.PersonalSituacionRevistaMotivo, sit.SituacionRevistaId, sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaHasta,
         doc.DocumentoId, doc.DocumentoPath,
@@ -398,6 +402,297 @@ export class ImpuestosAfipController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release();
+    }
+  }
+
+  /**
+   * Devuelve cuántos monotributos entrarían en la solicitud de pago, para confirmar antes de ejecutarla.
+   * Son los registros que se ven en pantalla (mismos filtros) sin ReferenciaPago y sin documento de pago vinculado.
+   */
+  async getPrevioSolicitudPagoPatagonia(req: Request, res: Response, next: NextFunction) {
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+    const options: Options = isOptions(req.body.options)
+      ? req.body.options
+      : { filtros: [], sort: null };
+
+    const queryRunner = await getConnection(res.locals.userName);
+
+    try {
+      if (!anio) throw new ClientException("Faltó indicar el anio.");
+      if (!mes) throw new ClientException("Faltó indicar el mes.");
+
+      const lista = await this.DescuentosByPeriodo({
+        anio: String(anio),
+        mes: String(mes),
+        descuentoId: process.env.OTRO_DESCUENTO_ID,
+        options,
+      }, queryRunner);
+
+      const aProcesar = lista.filter(
+        (row: any) => row.ReferenciaPago == null && row.DocumentoId == null
+      );
+
+      this.jsonRes({ anio, mes, cantidad: aProcesar.length }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /**
+   * Envía al Banco Patagonia el lote de pago de monotributos del período (API 7 - POST /batch/submit).
+   * Toma los registros que se ven en pantalla (mismos filtros) sin ReferenciaPago y sin documento
+   * de pago vinculado, y si el banco responde 201 graba el externalReferenceId en cada uno.
+   */
+  async jobEnviarSolicitudPagoPatagonia(req: Request, res: Response, next: NextFunction) {
+    const usuario = this.getUser(res)
+    const ip = this.getRemoteAddress(req)
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+    const options: Options = isOptions(req.body.options)
+      ? req.body.options
+      : { filtros: [], sort: null };
+
+    const queryRunner = await getConnection(usuario);
+
+    let EventoLogCodigo = 0
+    let externalReferenceId = ''
+    let registrosProcesados = 0
+
+    try {
+      if (!anio) throw new ClientException("Faltó indicar el anio.");
+      if (!mes) throw new ClientException("Faltó indicar el mes.");
+
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Enviar Solicitud de Pago Banco Patagonia`,
+        { anio, mes, usuario, ip },
+        usuario,
+        ip,
+        "JOB"
+      ));
+
+      const config = await getConfigPatagonia(queryRunner)
+      await getAccessToken(req.app, queryRunner)
+
+      const lista = await this.DescuentosByPeriodo({
+        anio: String(anio),
+        mes: String(mes),
+        descuentoId: process.env.OTRO_DESCUENTO_ID,
+        options,
+      }, queryRunner);
+
+      // Los que se ven en pantalla, todavía sin referencia y sin comprobante vinculado.
+      // Se agrupa por CUIT porque el listado puede traer más de una fila por persona.
+      const aProcesar = new Map<string, any>()
+      for (const row of lista) {
+        if (row.ReferenciaPago != null || row.DocumentoId != null) continue
+        const CUIT = String(row.CUIT ?? '').replace(/\D/g, '')
+        if (!CUIT) continue
+        if (!aProcesar.has(CUIT)) aProcesar.set(CUIT, row)
+      }
+
+      if (aProcesar.size == 0)
+        throw new ClientException(`No hay monotributos pendientes de solicitud en el período ${mes}/${anio}.`)
+
+      const idUnico = await BaseController.getProxNumero(queryRunner, `PagoPatagonia`, usuario, ip)
+      externalReferenceId = armarExternalReferenceId(anio, mes, idUnico)
+
+      const items = [...aProcesar.keys()].map(CUIT => armarItem(CUIT))
+
+      const envio = await enviarLote(req.app, queryRunner, config, externalReferenceId, items)
+
+      if (envio.status != 201)
+        throw new ClientException(
+          `El Banco Patagonia rechazó la solicitud de pago (HTTP ${envio.status}).`,
+          { status: envio.status, request: envio.request, respuesta: envio.respuesta }
+        )
+
+      // Recién con el 201 se graba la referencia, para no dejar marcado lo que el banco no recibió.
+      await queryRunner.startTransaction()
+      for (const row of aProcesar.values()) {
+        await this.grabarReferenciaPago(queryRunner, row, anio, mes, externalReferenceId, usuario, ip)
+        registrosProcesados++
+      }
+      await queryRunner.commitTransaction()
+
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: `Procesado correctamente`,
+          externalReferenceId,
+          'Registros Procesados': registrosProcesados
+        },
+        usuario,
+        ip
+      );
+
+      this.jsonRes(
+        {
+          externalReferenceId,
+          cantidad: registrosProcesados,
+          status: envio.status,
+          request: envio.request,
+          respuesta: envio.respuesta
+        },
+        res,
+        `Solicitud enviada con la referencia ${externalReferenceId} (${registrosProcesados} monotributos)`
+      );
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error, externalReferenceId, 'Registros Procesados': registrosProcesados },
+        usuario,
+        ip
+      );
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  /**
+   * Graba la ReferenciaPago de una persona para el período. Si todavía no existe la fila en
+   * PersonalComprobantePagoAFIP (el caso de los pendientes, que no tienen comprobante cargado)
+   * la crea sin importe, numerando con PersonalComprobantePagoAFIPUltNro como hace insertPDF.
+   */
+  private async grabarReferenciaPago(
+    queryRunner: QueryRunner,
+    row: any,
+    anio: number,
+    mes: number,
+    externalReferenceId: string,
+    usuario: string,
+    ip: string
+  ) {
+    if (row.PersonalComprobantePagoAFIPId != null) {
+      await queryRunner.query(
+        `UPDATE PersonalComprobantePagoAFIP SET ReferenciaPago = @2
+        WHERE PersonalComprobantePagoAFIPId = @0 AND PersonalId = @1 AND ReferenciaPago IS NULL`,
+        [row.PersonalComprobantePagoAFIPId, row.PersonalId, externalReferenceId]
+      );
+      return
+    }
+
+    const [personal] = await queryRunner.query(
+      `SELECT PersonalComprobantePagoAFIPUltNro FROM Personal WHERE PersonalId = @0`,
+      [row.PersonalId]
+    );
+    const PersonalComprobantePagoAFIPUltNro = Number(personal?.PersonalComprobantePagoAFIPUltNro) + 1
+
+    await queryRunner.query(
+      `INSERT INTO PersonalComprobantePagoAFIP (PersonalComprobantePagoAFIPId, PersonalId, PersonalComprobantePagoAFIPAno, PersonalComprobantePagoAFIPMes, ReferenciaPago)
+      VALUES (@0, @1, @2, @3, @4)`,
+      [PersonalComprobantePagoAFIPUltNro, row.PersonalId, anio, mes, externalReferenceId]
+    );
+    await queryRunner.query(
+      `UPDATE Personal SET PersonalComprobantePagoAFIPUltNro = @0 WHERE PersonalId = @1`,
+      [PersonalComprobantePagoAFIPUltNro, row.PersonalId]
+    );
+  }
+
+  /**
+   * Consulta al Banco Patagonia el estado de los lotes del período (API 8 - POST /batch/status).
+   * Toma todas las ReferenciaPago del año/mes que todavía no tienen ResultadoPago y
+   * devuelve la respuesta del servicio para cada una, sin interpretarla.
+   */
+  async jobConsultarEstadoPagoPatagonia(req: Request, res: Response, next: NextFunction) {
+    const usuario = this.getUser(res)
+    const ip = this.getRemoteAddress(req)
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+    const pageId = Number(req.body.pageId) || 1
+    const size = Number(req.body.size) || 100
+
+    const queryRunner = await getConnection(usuario);
+
+    let EventoLogCodigo = 0
+    let referenciasProcesadas = 0
+    let referenciasConError = 0
+    const resultados: any[] = []
+
+    try {
+      if (!anio) throw new ClientException("Faltó indicar el anio.");
+      if (!mes) throw new ClientException("Faltó indicar el mes.");
+
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Consultar Estado de Pago Banco Patagonia`,
+        { anio, mes, pageId, size, usuario, ip },
+        usuario,
+        ip,
+        "JOB"
+      ));
+
+      // Se valida la configuración y se autentica antes del loop: si algo de esto falla,
+      // el job termina con error en lugar de dejarlo como error de cada referencia.
+      const config = await getConfigPatagonia(queryRunner)
+      await getAccessToken(req.app, queryRunner)
+
+      const referencias = await queryRunner.query(
+        `SELECT DISTINCT com.ReferenciaPago
+        FROM PersonalComprobantePagoAFIP com
+        WHERE com.PersonalComprobantePagoAFIPAno = @0
+          AND com.PersonalComprobantePagoAFIPMes = @1
+          AND com.ReferenciaPago IS NOT NULL
+          AND com.ResultadoPago IS NULL`,
+        [anio, mes]
+      );
+
+      // Una consulta por referencia: un error en una no corta el resto del lote.
+      for (const { ReferenciaPago } of referencias) {
+        referenciasProcesadas++
+        try {
+          const estado = await consultarEstadoLote(req.app, queryRunner, config, ReferenciaPago, pageId, size)
+          if (!estado.ok) referenciasConError++
+          resultados.push(estado)
+        } catch (error) {
+          referenciasConError++
+          resultados.push({
+            ReferenciaPago,
+            status: 0,
+            ok: false,
+            respuesta: { error: error instanceof Error ? error.message : String(error) }
+          })
+        }
+      }
+
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: `Procesado correctamente`,
+          'Referencias Procesadas': referenciasProcesadas,
+          'Referencias Con Error': referenciasConError
+        },
+        usuario,
+        ip
+      );
+
+      this.jsonRes(resultados, res, `Se consultaron ${referenciasProcesadas} referencias de pago`);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        {
+          res: error,
+          'Referencias Procesadas': referenciasProcesadas,
+          'Referencias Con Error': referenciasConError
+        },
+        usuario,
+        ip
+      );
+      return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

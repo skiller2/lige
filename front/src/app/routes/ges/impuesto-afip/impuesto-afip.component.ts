@@ -16,10 +16,13 @@ import {
   tap,
   throttleTime,
 } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, JsonPipe } from '@angular/common';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { DescuentoJSON } from '../../../shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
+import { NzModalService } from 'ng-zorro-antd/modal';
+import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
+import { AuditOutline, BankOutline, CloudDownloadOutline, FileProtectOutline } from '@ant-design/icons-angular/icons';
 import type { Options, Selections } from '../../../shared/schemas/filtro';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { Column, AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Formatters } from 'angular-slickgrid';
@@ -51,12 +54,13 @@ export class CustomDescargaComprobanteComponent {
 @Component({
   selector: 'app-impuesto-afip',
   templateUrl: './impuesto-afip.component.html',
-  imports: [ SHARED_IMPORTS, NzAffixModule,
+  imports: [ SHARED_IMPORTS, NzAffixModule, NzIconModule,
     FiltroBuilderComponent, NzUploadModule,
-    AsyncPipe, DetallePersonaComponent, PersonalSearchComponent
+    AsyncPipe, JsonPipe, DetallePersonaComponent, PersonalSearchComponent
   ],
   styleUrls: ['./impuesto-afip.component.less'],
-  providers: [AngularUtilService]
+  providers: [AngularUtilService,
+    provideNzIconsPatch([BankOutline, AuditOutline, FileProtectOutline, CloudDownloadOutline])]
 })
 export class ImpuestoAfipComponent {
   url = '/api/impuestos_afip';
@@ -80,6 +84,14 @@ export class ImpuestoAfipComponent {
   visibleDetalle = signal<boolean>(false)
   toggle = signal<boolean>(false);
   accionEnCurso = signal<string | null>(null);
+  /** Respuesta del Banco Patagonia, tal cual la devuelve el servicio, para mostrarla en el modal. */
+  respuestaApiResultado = signal<any[]>([]);
+  respuestaApiTitulo = signal<string>('');
+  /** Motivo del rechazo (el msg del envelope), que se muestra arriba del JSON. */
+  respuestaApiMensaje = signal<string>('');
+  respuestaApiVisible = signal<boolean>(false);
+  /** Respuesta que quedó para mostrar una vez que se cierre el modal de confirmación. */
+  private respuestaApiPendiente: { titulo: string; mensaje: string; resultado: any } | null = null;
   listOptions = signal<listOptionsT>({ filtros: [], sort: null, })
   periodo = signal<Date|null>(null);
   anio = computed(() => { 
@@ -93,6 +105,7 @@ export class ImpuestoAfipComponent {
 
   readonly router = inject(Router)
   private readonly loadingSrv = inject(LoadingService);
+  private readonly modal = inject(NzModalService);
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
   private settingService = inject(SettingsService)
@@ -235,16 +248,119 @@ export class ImpuestoAfipComponent {
     });
   }
 
+  /**
+   * Pide la cantidad de monotributos a procesar y recién con la confirmación del usuario
+   * dispara el envío del lote al banco.
+   */
   async enviarSolicitudPagoPatagonia() {
-    await this.ejecutarAccion('solicitudPago', () =>
-      firstValueFrom(this.apiService.enviarSolicitudPagoPatagonia(this.anio(), this.mes(), this.listOptions()))
-    )
+    if (!this.anio() || !this.mes()) return
+    if (this.accionEnCurso()) return
+
+    let previo: any = null
+    this.accionEnCurso.set('solicitudPagoPrevio')
+    this.loadingSrv.open({ type: 'spin', text: '' })
+    try {
+      previo = await firstValueFrom(
+        this.apiService.previoSolicitudPagoPatagonia(this.anio(), this.mes(), this.listOptions())
+      )
+    } catch (_e) {
+    } finally {
+      this.loadingSrv.close()
+      this.accionEnCurso.set(null)
+    }
+
+    if (!previo) return
+
+    if (!previo.cantidad) {
+      this.modal.info({
+        nzTitle: 'Enviar solicitud de pago al Banco Patagonia',
+        nzContent: `No hay monotributos pendientes de solicitud en el período ${previo.mes}/${previo.anio}.`
+      })
+      return
+    }
+
+    this.modal.confirm({
+      nzTitle: 'Enviar solicitud de pago al Banco Patagonia',
+      nzContent: `Período ${previo.mes}/${previo.anio}: se van a procesar ${previo.cantidad} monotributo(s). ¿Confirma?`,
+      nzOkText: 'Ejecutar',
+      nzCancelText: 'Cancelar',
+      nzOnOk: () => this.ejecutarSolicitudPagoPatagonia()
+    }).afterClose.subscribe(() => {
+      // El modal con la respuesta se abre recién cuando el de confirmación terminó de
+      // destruirse: si se abren superpuestos, el de arriba queda bloqueado por el overlay
+      // del de abajo y no se puede cerrar. El setTimeout espera a que el overlay se libere.
+      if (!this.respuestaApiPendiente) return
+      const { titulo, mensaje, resultado } = this.respuestaApiPendiente
+      this.respuestaApiPendiente = null
+      setTimeout(() => this.mostrarRespuestaApi(titulo, resultado, mensaje))
+    })
   }
 
+  private async ejecutarSolicitudPagoPatagonia() {
+    await this.ejecutarAccion('solicitudPago', async () => {
+      try {
+        const data: any = await firstValueFrom(
+          this.apiService.enviarSolicitudPagoPatagonia(this.anio(), this.mes(), this.listOptions())
+        )
+        this.respuestaApiPendiente = {
+          titulo: `Solicitud de pago enviada - ${this.mes()}/${this.anio()}`,
+          mensaje: '',
+          resultado: this.bloquesEnvio(data)
+        }
+      } catch (error: any) {
+        // Ante un rechazo se guarda la respuesta del banco para mostrarla al cerrarse la confirmación.
+        // El msg del envelope es el motivo del rechazo; el data, la respuesta cruda del banco.
+        const msg = error?.error?.msg
+        this.respuestaApiPendiente = {
+          titulo: `Error al enviar la solicitud de pago - ${this.mes()}/${this.anio()}`,
+          mensaje: Array.isArray(msg) ? msg.join(' ') : (msg ?? error?.message ?? String(error)),
+          resultado: this.bloquesEnvio(error?.error?.data ?? error?.error ?? { error: error?.message ?? String(error) })
+        }
+      }
+    })
+  }
+
+  /** Consulta el estado de los lotes del período y muestra la respuesta cruda del banco en un modal. */
   async consultarEstadoPagoPatagonia() {
-    await this.ejecutarAccion('estadoPago', () =>
-      firstValueFrom(this.apiService.consultarEstadoPagoPatagonia(this.anio(), this.mes()))
+    await this.ejecutarAccion('estadoPago', async () => {
+      const resultados = await firstValueFrom(this.apiService.consultarEstadoPagoPatagonia(this.anio(), this.mes()))
+      this.mostrarRespuestaApi(
+        `Estado de pago Banco Patagonia - ${this.mes()}/${this.anio()}`,
+        resultados ?? []
+      )
+    })
+  }
+
+  /**
+   * Muestra en el modal la respuesta de la API. Acepta tanto el array de resultados por
+   * referencia como una respuesta suelta (un error), que se envuelve para mostrarla igual.
+   */
+  /**
+   * Arma los bloques del modal para un envío de lote: el body que se mandó y lo que contestó
+   * el banco. Si no viene el request (un error anterior al envío) muestra solo lo que haya.
+   */
+  private bloquesEnvio(data: any) {
+    if (data?.request)
+      return [
+        { titulo: 'Request enviado', status: 0, ok: true, respuesta: data.request },
+        { titulo: 'Respuesta del banco', status: data.status ?? 0, ok: data.status == 201, respuesta: data.respuesta }
+      ]
+
+    // Un error anterior al envío no trae request ni respuesta. ClientException manda el
+    // extended vacío ('') cuando no se le pasa nada, y ahí no hay JSON que mostrar:
+    // el motivo ya se ve en el alert de arriba.
+    if (data === '' || data == null) return []
+
+    return [{ titulo: 'Detalle', status: 0, ok: false, respuesta: data }]
+  }
+
+  private mostrarRespuestaApi(titulo: string, resultado: any, mensaje = '') {
+    this.respuestaApiTitulo.set(titulo)
+    this.respuestaApiMensaje.set(mensaje)
+    this.respuestaApiResultado.set(
+      Array.isArray(resultado) ? resultado : [{ ReferenciaPago: '', status: 0, ok: false, respuesta: resultado }]
     )
+    this.respuestaApiVisible.set(true)
   }
 
   async obtenerComprobanteMonotributo() {
@@ -275,8 +391,12 @@ export class ImpuestoAfipComponent {
       this.loadingSrv.close()
       this.accionEnCurso.set(null)
     }
-    this.gridData.reload()
-    this.listaDescuentos.reload()
+    // Las recargas no deben propagar: si esto rechaza, el nzOnOk que lo llamó deja el
+    // modal de confirmación abierto y trabado con el botón en loading.
+    try {
+      this.gridData.reload()
+      this.listaDescuentos.reload()
+    } catch (_e) { }
   }
 
   public forzadoUploadData(cuit: string | null | undefined, montoText: string | null | undefined) {
