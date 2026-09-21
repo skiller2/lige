@@ -1084,6 +1084,28 @@ export class ParametrosVentaController extends BaseController {
         }
     }
 
+    static async getPrecioListaPreciosQuery(ClienteId:number, anio:number, mes:number, ProductoCodigo:string, queryRunner:QueryRunner){
+            const result = await queryRunner.query(
+                `SELECT TOP 1 pr.ClienteId, pr.ProductoCodigo, pr.Importe, pr.PeriodoDesdeAplica 
+                 FROM ProductoPrecio pr
+                 WHERE pr.ClienteId = @0 AND pr.PeriodoDesdeAplica <= DATEFROMPARTS(@1,@2,1) AND pr.ProductoCodigo = @3
+                 ORDER BY pr.PeriodoDesdeAplica DESC`,
+                [ClienteId, anio, mes, ProductoCodigo]
+            );
+
+            if (result.length > 0) {
+                const precio = result[0];
+                return {
+                    Importe: precio.Importe,
+                    PeriodoDesdeAplica: new Date(precio.PeriodoDesdeAplica)
+                };
+            } else {
+                return {
+                    Importe: null,
+                    PeriodoDesdeAplica: null
+                };
+            }
+    }
 
     async getPrecioListaPrecios(req: any, res: any, next: any) {
         const queryRunner = await getConnection(res.locals.userName);
@@ -1097,26 +1119,13 @@ export class ParametrosVentaController extends BaseController {
             if (!anio || !mes) throw new ClientException('Debe completar el campo Período para consultar la lista de precios.');
             if (!ProductoCodigo) throw new ClientException('Debe completar el campo Producto para consultar la lista de precios.');
 
-            const result = await queryRunner.query(
-                `SELECT TOP 1 pr.ClienteId, pr.ProductoCodigo, pr.Importe, pr.PeriodoDesdeAplica 
-                 FROM ProductoPrecio pr
-                 WHERE pr.ClienteId = @0 AND pr.PeriodoDesdeAplica <= DATEFROMPARTS(@1,@2,1) AND pr.ProductoCodigo = @3
-                 ORDER BY pr.PeriodoDesdeAplica DESC`,
-                [ClienteId, anio, mes, ProductoCodigo]
-            );
+            const precio = await ParametrosVentaController.getPrecioListaPreciosQuery(ClienteId,anio, mes, ProductoCodigo,queryRunner);
 
-            if (result.length > 0) {
-                const precio = result[0];
-                return this.jsonRes({
-                    Importe: precio.Importe,
-                    PeriodoDesdeAplica: new Date(precio.PeriodoDesdeAplica)
-                }, res);
-            } else {
-                return this.jsonRes({
-                    importe: null,
-                    PeriodoDesdeAplica: null
-                }, res);
-            }
+            return this.jsonRes({
+                Importe: precio.Importe,
+                PeriodoDesdeAplica: new Date(precio.PeriodoDesdeAplica)
+            }, res);
+ 
         } catch (error) {
             return next(error);
         } finally {

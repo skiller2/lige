@@ -5,6 +5,7 @@ import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-u
 import type { Options } from "../schemas/filtro.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { QueryRunner } from "typeorm";
+import { ParametrosVentaController } from "../parametro-venta/parametro-venta.controller.ts";
 
 
 const ESTADO_ORDEN_VENTA_INICIAL = 'PEN';
@@ -344,7 +345,30 @@ export class OrdenVentaController extends BaseController {
     try {
       const NroOrdenVentaBase = await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
       const ordenDs = await this.getOrdenVentaQuery(queryRunner, NroOrdenVentaBase)
-      ordenDs.NroOrdenVenta=0
+      ordenDs.NroOrdenVenta = 0
+
+      const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
+
+
+      for (const item of ordenDs.items) {
+        const ProductoCodigo = String(item.ProductoCodigo ?? '').trim()
+        if (!ProductoCodigo)
+          continue
+
+        switch (ProductoCodigo) {
+          case 'SSF':
+            item.ImporteUnitario = ImporteUnitarioA
+            break;
+          case 'SSFB':
+            item.ImporteUnitario = ImporteUnitarioB
+            break;
+          default:
+            const precio = await ParametrosVentaController.getPrecioListaPreciosQuery(ClienteId, anio, mes, ProductoCodigo, queryRunner);
+            if (precio.Importe)
+              item.ImporteUnitario = precio.Importe
+            break;
+        }
+      }
 
       this.jsonRes(ordenDs, res);
 
@@ -449,7 +473,7 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
-  async getImporteHorasAB( ClienteElementoDependienteId: number, ClienteId: number, anio: number, mes: number, queryRunner: QueryRunner) {
+  async getImporteHorasAB(ClienteElementoDependienteId: number, ClienteId: number, anio: number, mes: number, queryRunner: QueryRunner) {
     const ds = await queryRunner.query(
       `SELECT ImporteHoraA, ImporteHoraB
      FROM ObjetivoImporteVenta
@@ -542,12 +566,12 @@ export class OrdenVentaController extends BaseController {
     }
 
     await queryRunner.query(`DELETE FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
-    const {ImporteUnitarioA,ImporteUnitarioB}= await this.getImporteHorasAB( ClienteElementoDependienteId, ClienteId, PeriodoAnio, PeriodoMes, queryRunner) 
+    const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, PeriodoAnio, PeriodoMes, queryRunner)
 
     for (const [indice, item] of items.entries()) {
       let ImporteUnitario = Number(item.ImporteUnitario)
-      if (item.ProductoCodigo=='SSF') ImporteUnitario = ImporteUnitarioA
-      if (item.ProductoCodigo=='SSFB') ImporteUnitario = ImporteUnitarioB
+      if (item.ProductoCodigo == 'SSF') ImporteUnitario = ImporteUnitarioA
+      if (item.ProductoCodigo == 'SSFB') ImporteUnitario = ImporteUnitarioB
 
       await queryRunner.query(`
           INSERT INTO ItemOrdenVenta (

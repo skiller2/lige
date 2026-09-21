@@ -16,6 +16,7 @@ import { Agent } from "https";
 import { Client } from "ldapts";
 import { ordenVentaController } from "./controller.module.ts";
 import { OrdenVentaController } from "../orden-venta/orden-venta.controller.ts";
+import { ParametrosVentaController } from "../parametro-venta/parametro-venta.controller.ts";
 
 interface DigestAuthOptions {
   username: string;
@@ -210,9 +211,9 @@ export class AsistenciaController extends BaseController {
     const anio = req.params.anio;
     const mes = req.params.mes;
     const queryRunner = await getConnection(res.locals.userName);
-    let TotalHoraA=0
-    let TotalHoraB=0
-    let Observaciones=''
+    let TotalHoraA = 0
+    let TotalHoraB = 0
+    let Observaciones = ''
 
     try {
       const hf = await queryRunner.query(
@@ -221,12 +222,12 @@ export class AsistenciaController extends BaseController {
        WHERE o.ClienteId = @0 AND o.ClienteElementoDependienteId=@3 AND o.Anio=@1 AND o.Mes =@2
        `, [ClienteId, anio, mes, ClienteElementoDependienteId])
 
-      if (hf[0]){
-        TotalHoraA=hf[0].TotalHoraA
-        TotalHoraB=hf[0].TotalHoraB
-        Observaciones=hf[0].Observaciones
+      if (hf[0]) {
+        TotalHoraA = hf[0].TotalHoraA
+        TotalHoraB = hf[0].TotalHoraB
+        Observaciones = hf[0].Observaciones
       }
-      this.jsonRes({TotalHoraA,TotalHoraB,Observaciones}, res, `Horas Actualizadas`);
+      this.jsonRes({ TotalHoraA, TotalHoraB, Observaciones }, res, `Horas Actualizadas`);
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       return next(error)
@@ -394,15 +395,18 @@ export class AsistenciaController extends BaseController {
           items.push({ ProductoCodigo: 'SSF', Cantidad: TotalHoraA, ImporteUnitario: ImporteUnitarioA, TipoCantidad: 'V', TipoImporte: 'LP' })
         if (TotalHoraB)
           items.push({ ProductoCodigo: 'SSFB', Cantidad: TotalHoraB, ImporteUnitario: ImporteUnitarioB, TipoCantidad: 'V', TipoImporte: 'LP' })
-        if (items.length){
+        if (items.length) {
           const NroOrdenVentaBase = await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
-          if (NroOrdenVentaBase){
+          if (NroOrdenVentaBase) {
             const ordenDs = await ordenVentaController.getOrdenVentaQuery(queryRunner, NroOrdenVentaBase)
-            const itemsPlantilla = ordenDs.items
-            itemsPlantilla.filter(item => String(item.ProductoCodigo != 'SSF' && item.ProductoCodigo != 'SSFB'))
-            items = [...items,itemsPlantilla]
-            if (!Observaciones) Observaciones= ordenDs.Observaciones
+            const itemsPlantilla = ordenDs.items.filter((item: any) => {
+              const ProductoCodigo = String(item.ProductoCodigo ?? '').trim().toUpperCase()
+              return ProductoCodigo !== 'SSF' && ProductoCodigo !== 'SSFB'
+            })
+            items = [...items, ...itemsPlantilla]
+            if (!Observaciones) Observaciones = ordenDs.Observaciones
           }
+
 
           await ordenVentaController.setOrdenVentaQuery(anio, mes, ClienteId, ClienteElementoDependienteId, 0, items, [], Observaciones, 'PEN', queryRunner, usuario, ip, ahora)
         }
