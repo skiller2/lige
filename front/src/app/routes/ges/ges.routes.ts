@@ -232,5 +232,10 @@ export const GesRoutes: Routes = [
     path: 'proveedores/:tab',
     loadComponent: () => import('./proveedores/proveedores').then(c => c.ProveedoresComponent),
   },
+  { path: 'depositos', redirectTo: 'depositos/listado' },
+  {
+    path: 'depositos/:tab',
+    loadComponent: () => import('./depositos/depositos').then(c => c.DepositosComponent),
+  },
   
 ];

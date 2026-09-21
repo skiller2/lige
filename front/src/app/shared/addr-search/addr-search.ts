@@ -201,11 +201,11 @@ export class AddrSearchComponent
 
   async writeValue(value: any): Promise<void> {
 
-    if (value?.display_name) {
-      const arrResult = await this.searchService.getDireccionNominatim(value.display_name)
-      if (arrResult[0])
-        value = arrResult[0]
-    }
+    // if (value?.display_name) {
+    //   const arrResult = await this.searchService.getDireccionNominatim(value.display_name)
+    //   if (arrResult[0])
+    //     value = arrResult[0]
+    // }
 
     this.selectedItem.set(value ?? null);
 

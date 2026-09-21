@@ -2577,15 +2577,15 @@ export class ApiService {
     )
   }
 
-  bajaDepositoInactivo(DepositoId: number) {
-    return this.http.get(`/api/depositos/baja/${DepositoId}`).pipe(
-      map((res: any) => res.data),
-      catchError((err, caught) => {
+  // bajaDepositoInactivo(DepositoId: number) {
+  //   return this.http.get(`/api/depositos/baja/${DepositoId}`).pipe(
+  //     map((res: any) => res.data),
+  //     catchError((err, caught) => {
 
-        return of([]);
-      })
-    );
-  }
+  //       return of([]);
+  //     })
+  //   );
+  // }
 
 }
 

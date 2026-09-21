@@ -12,7 +12,7 @@ import { SearchService } from '../../../services/search.service';
 import { LoadingService } from '@delon/abc/loading';
 import { Selections } from '../../../shared/schemas/filtro';
 import { toSignal } from '@angular/core/rxjs-interop';
-// import { DepositosFormComponent } from './depositos-form/depositos-form';
+import { DepositosFormComponent } from './depositos-form/depositos-form';
 
 @Component({
   selector: 'app-depositos',
@@ -20,7 +20,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
   styleUrl: './depositos.less',
   standalone: true,
   providers: [AngularUtilService],
-  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent],
+  imports: [SHARED_IMPORTS, CommonModule, FiltroBuilderComponent, DepositosFormComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DepositosComponent {
@@ -60,8 +60,8 @@ export class DepositosComponent {
     defaultValue: []
   });
 
-  // childDepForm = viewChild.required<DepositosFormComponent>('depForm')
-  // childDepDetalle = viewChild.required<DepositosFormComponent>('depDetalle')
+  childDepForm = viewChild.required<DepositosFormComponent>('depForm')
+  childDepDetalle = viewChild.required<DepositosFormComponent>('depDetalle')
 
   async ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -97,10 +97,10 @@ export class DepositosComponent {
   onTabsetChange(_event: any) {
     switch (_event.index) {
       case 4: //DETALLE
-        // this.childDepDetalle().load()
+        this.childDepDetalle().load()
         break
       case 3: //EDIT
-        // this.childDepForm().load()
+        this.childDepForm().load()
         break;
       case 2:
         break;

@@ -153,6 +153,11 @@
               "icon": "anticon-profile"
             },
             {
+              "text": "Depositos #",
+              "link": "/ges/depositos",
+              "icon": "anticon-profile"
+            },
+            {
               "text": "Telefonia",
               "link": "/ges/telefonia",
               "icon": "anticon-profile"

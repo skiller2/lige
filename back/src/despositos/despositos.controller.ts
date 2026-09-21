@@ -30,14 +30,26 @@ const depositoColumns: any[] = [
     fieldName: "dep.DepositoNombre",
     type: "string",
     sortable: true,
-    searchHidden: true,
+    searchHidden: false,
     hidden: false,
   },
   {
-    id: "Domicilio",
+    id: "SucursalDescripcion",
+    name: "Sucursal",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    type: "string",
+    searchComponent: "inputForSucursalSearch",
+    searchType: "number",
+    sortable: true,
+    searchHidden: false,
+    hidden: false,
+  },
+  {
+    id: "DomicilioCompleto",
     name: "Domicilio",
-    field: "Domicilio",
-    fieldName: "Domicilio",
+    field: "DomicilioCompleto",
+    fieldName: "dom.DomicilioCompleto",
     type: "string",
     sortable: true,
     searchHidden: true,
@@ -67,6 +79,19 @@ const depositoColumns: any[] = [
     searchHidden: false,
     hidden: false,
   },
+  {
+    name: "Requiere Observacion",
+    id: "IndRequiereObservacion",
+    field: "IndRequiereObservacion",
+    fieldName: "dep.IndRequiereObservacion",
+    type: "string",
+    formatter: 'collectionFormatter',
+    params: { collection: getOptionsSINO },
+    searchComponent: "inputForActivo",
+    sortable: true,
+    searchHidden: true,
+    hidden: false,
+  },
 ];
 
 export class DepositosController extends BaseController {
@@ -83,11 +108,18 @@ export class DepositosController extends BaseController {
 
     try {
       const depositos = await queryRunner.query(
-        `SELECT dep.DepositoId id, suc.SucursalDescripcion, 
-        CONVERT(VARCHAR(1), ISNULL(dep.DepositoInactivo, 0)) DepositoInactivo, dep.DepositoNombre, dep.IndRequiereObservacion
+        `SELECT dep.DepositoId id, TRIM(dep.DepositoNombre) DepositoNombre, suc.SucursalDescripcion, 
+        dom.DomicilioCompleto,
+        CONCAT(TRIM(con.ContactoApellido),', ', TRIM(con.ContactoNombre)) Contacto,
+        CONVERT(VARCHAR(1), ISNULL(dep.DepositoInactivo, 0)) DepositoInactivo,
+        CONVERT(VARCHAR(1), ISNULL(dep.IndRequiereObservacion, 0)) IndRequiereObservacion 
         FROM Deposito dep
         LEFT JOIN Sucursal suc ON suc.SucursalId = dep.DepositoSucursalId
-        LEFT JOIN Contacto con ON con.DepositoId = dep.DepositoId
+        LEFT JOIN NexoDomicilio AS nex ON nex.DepositoId = dep.DepositoId AND nex.NexoDomicilioActual = 1
+        LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
+        OUTER APPLY(
+          SELECT TOP 1 c.ContactoId, c.DepositoId, c.ContactoApellido, c.ContactoNombre FROM Contacto c WHERE c.DepositoId = dep.DepositoId AND c.ContactoInactivo IS NULL ORDER BY c.ContactoId
+        ) con
         WHERE ${filterSql} ${orderBy}`)
 
       this.jsonRes(depositos, res);
@@ -101,22 +133,20 @@ export class DepositosController extends BaseController {
 
   private async getDepositoByIdQuery(queryRunner: QueryRunner, depositoId: number) {
     let data = await queryRunner.query(
-      `SELECT dep.DepositoId, dep.DepositoInactivo, TRIM(dep.DepositoNombre) DepositoNombre,
-      suc.SucursalDescripcion, 
+      `SELECT dep.DepositoId, TRIM(dep.DepositoNombre) DepositoNombre, dep.DepositoInactivo, IndRequiereObservacion,
+      dep.DepositoSucursalId, 
       nex.DomicilioId, dom.DomicilioJson
       FROM Deposito dep
       LEFT JOIN NexoDomicilio AS nex ON nex.DepositoId = dep.DepositoId AND nex.NexoDomicilioActual = 1
       LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
-      LEFT JOIN Sucursal suc ON suc.SucursalId = dep.DepositoSucursalId
-      LEFT JOIN Contacto con ON con.DepositoId = dep.DepositoId
-      WHERE dep.ProveedorId = @0`,
+      WHERE dep.DepositoId = @0`,
       [depositoId]
     )
     if (!data.length) return null
-    const Proveedor = data[0]
-    Proveedor.domicilio = JSON.parse(Proveedor.DomicilioJson)
+    const Deposito = data[0]
+    Deposito.domicilio = JSON.parse(Deposito.DomicilioJson)
 
-    return Proveedor
+    return Deposito
   }
 
   async getDepositoById(req: any, res: Response, next: NextFunction) {
@@ -159,9 +189,32 @@ export class DepositosController extends BaseController {
 
   async valDepositosForm(queryRunner: QueryRunner, form: any, type: string) {
 
+    let campos_vacios: any[] = []
+    if (!form.DepositoNombre)
+      campos_vacios.push(`- Nombre`)
+
+    if (!form.DepositoSucursalId)
+      campos_vacios.push(`- Sucursal`)
+
+    if (campos_vacios.length) {
+      campos_vacios.unshift('Debe completar los siguientes campos: ')
+      return new ClientException(campos_vacios)
+    }
+
     const valDomicilio = await domicilioController.valObjDomicilio(queryRunner, form.domicilio)
     if (valDomicilio instanceof ClientException) {
       return valDomicilio
+    }
+
+    if (form.DepositoId && form.DepositoInactivo) {
+      //Validar que no tenga movimientos relacionados.
+      const movimientos = await queryRunner.query(
+        `SELECT MovimientoId FROM Movimiento WHERE MovimientoDepositoDeId = @0 OR MovimientoDepositoAId = @0`,
+        [form.DepositoId]
+      )
+      if (movimientos.length) {
+        return new ClientException(`El deposito tiene ${movimientos.length} movimientos relacionados`)
+      }
     }
 
   }
@@ -181,7 +234,7 @@ export class DepositosController extends BaseController {
       const usuario = res.locals.userName
       const ip = this.getRemoteAddress(req)
 
-      const DepositoId = await this.insertProveedor(queryRunner, body, usuario, ip)
+      const DepositoId = await this.insertDeposito(queryRunner, body, usuario, ip)
       const DomicilioId = await domicilioController.addDomicilio(queryRunner, body.domicilio, null)
       // Agregar NexoDomicilio
       await queryRunner.query(
@@ -213,7 +266,7 @@ export class DepositosController extends BaseController {
       const contactoVacio = !contacto.ContactoApellido && !contacto.ContactoNombre && !contacto.ContactoArea &&
         !contacto.ContactoEmailEmail && !contacto.ContactoTelefonoNro && !contacto.ContactoTipoCod && !contacto.ContactoJurImpositiva
 
-      if (contactoVacio) continue //Fila de contacto vacía, se omite (proveedor sin contacto)
+      if (contactoVacio) continue //Fila de contacto vacía, se omite (deposito sin contacto)
 
       if (!contacto.ContactoTipoCod) campos_vacios.push(`- Tipo del contacto ${idx + 1}`)
       // if (!contacto.ContactoJurImpositiva) campos_vacios.push(`- Jurisdicción Impositiva del contacto ${idx + 1}`)
@@ -232,7 +285,7 @@ export class DepositosController extends BaseController {
 
     //Elimino los contactos antiguos no declarados del deposito
     const ContactoIds = contactosVal.map((row: { ContactoId: any; }) => Number(row.ContactoId)).filter((id: number) => id > 0);
-    const ContactoIdsSql = ContactoIds.length ? ContactoIds.join(',') : '0' //Sin ids declarados se borran todos los contactos del proveedor
+    const ContactoIdsSql = ContactoIds.length ? ContactoIds.join(',') : '0' //Sin ids declarados se borran todos los contactos del deposito
    
     await queryRunner.query(`DELETE e FROM ContactoEmail e
       JOIN Contacto c ON c.ContactoId = e.ContactoId
@@ -252,7 +305,7 @@ export class DepositosController extends BaseController {
       if (contacto.ContactoId) {  //Actualizo contacto
         await queryRunner.query(`DELETE FROM ContactoEmail WHERE ContactoId = @0`, [contacto.ContactoId]);
         await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ContactoId = @0`, [contacto.ContactoId]);
-        await queryRunner.query(`UPDATE Contacto SET  ContactoArea=@1,ContactoApellido=@2,ContactoNombre=@3,ContactoApellidoNombre=@4,ContactoTipoCod=@5,ContactoJurImpositiva=@6 WHERE ContactoId=@0 `,
+        await queryRunner.query(`UPDATE Contacto SET ContactoArea=@1,ContactoApellido=@2,ContactoNombre=@3,ContactoApellidoNombre=@4,ContactoTipoCod=@5,ContactoJurImpositiva=@6 WHERE ContactoId=@0 `,
           [contacto.ContactoId, contacto.ContactoArea, contacto.ContactoApellido, contacto.ContactoNombre, ContactoApellidoNombre, contacto.ContactoTipoCod, contacto.ContactoJurImpositiva])
       } else { //Nuevo contacto
         await queryRunner.query(`INSERT INTO Contacto (DepositoId,ContactoArea,ContactoApellido,ContactoNombre,ContactoTelefonoUltNro,ContactoEmailUltNro,ContactoApellidoNombre,ContactoTipoCod,ContactoJurImpositiva )
@@ -274,13 +327,13 @@ export class DepositosController extends BaseController {
     }
   }
 
-  async insertProveedor(queryRunner: QueryRunner, deposito: any, usuario: string, ip: string) {
+  async insertDeposito(queryRunner: QueryRunner, deposito: any, usuario: string, ip: string) {
     let insert: any = await queryRunner.query(`
       INSERT INTO Deposito (
-        
-      ) VALUES ()
+        DepositoNombre, DepositoInactivo, DepositoResponsableUltNro, DepositoSucursalId, IndRequiereObservacion
+      ) VALUES (@0,@1,@2,@3,@4)
       SELECT IDENT_CURRENT('Deposito')`,
-      []
+      [deposito.DepositoNombre, deposito.DepositoInactivo, 0, deposito.DepositoSucursalId, deposito.IndRequiereObservacion]
     )
     return insert[0][''] //DepositoId
   }
@@ -304,7 +357,7 @@ export class DepositosController extends BaseController {
       //Agregar Contactos del Deposito
       await this.depositoContactoUpdate(queryRunner, body.contactos, DepositoId)
 
-      await this.updateDepositoIdQuery(queryRunner, body)
+      await this.updateDepositoQuery(queryRunner, body)
 
       await queryRunner.commitTransaction()
       this.jsonRes({ DepositoId }, res, 'Actualización Exitosa');
@@ -316,28 +369,45 @@ export class DepositosController extends BaseController {
     }
   }
 
-  async updateDepositoIdQuery(queryRunner: QueryRunner, DepositoId: any) {
+  async updateDepositoQuery(queryRunner: QueryRunner, deposito: any) {
     await queryRunner.query(
-      ``,
-      []
+      `UPDATE Deposito SET 
+        DepositoNombre = @1, 
+        DepositoSucursalId= @2, 
+        DepositoInactivo = @3, 
+        IndRequiereObservacion = @4 
+      WHERE DepositoId = @0`,
+      [deposito.DepositoId, deposito.DepositoNombre, deposito.DepositoSucursalId, deposito.DepositoInactivo, deposito.IndRequiereObservacion]
     )
   }
 
-  async setDepositoIdInactivo(req: any, res: Response, next: NextFunction) {
-    const queryRunner = await getConnection(res.locals.userName)
-    const DepositoId = Number(req.params.id)
+  // async setDepositoInactivo(req: any, res: Response, next: NextFunction) {
+  //   const queryRunner = await getConnection(res.locals.userName)
+  //   const DepositoId = Number(req.params.id)
 
-    try {
-      await queryRunner.startTransaction()
+  //   try {
+  //     await queryRunner.startTransaction()
 
-      await queryRunner.commitTransaction()
-      this.jsonRes({}, res, "Deposito Inactivo");
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      return next(error)
-    } finally {
-      await queryRunner.release()
-    }
-  }
+  //     //Validar que no tenga movimientos relacionados.
+  //     await queryRunner.query(
+  //       `SELECT MovimientoStockCodigo FROM MovimientoStock WHERE DepositoIdDestino = @0 AND FechaAnulacion IS NULL`,
+  //       [DepositoId]
+  //     )
+
+  //     //Volver al deposito inactivo
+  //     await queryRunner.query(
+  //       `UPDATE Deposito SET DepositoInactivo = 1 WHERE DepositoId = @0`,
+  //       [DepositoId]
+  //     )
+
+  //     await queryRunner.commitTransaction()
+  //     this.jsonRes({}, res, "Deposito Inactivo");
+  //   } catch (error) {
+  //     await this.rollbackTransaction(queryRunner)
+  //     return next(error)
+  //   } finally {
+  //     await queryRunner.release()
+  //   }
+  // }
 
 }
