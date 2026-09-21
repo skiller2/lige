@@ -190,7 +190,7 @@ export class MessComponent {
 
     this.agentsForm().reset({ agents })
     this.deletedAgentCodes.set([])
-    this.panelAbierto.set(agents.length > 0 ? 0 : null)
+    this.panelAbierto.set(null)
   }
 
   async loadAgents() {
@@ -212,6 +212,7 @@ export class MessComponent {
 
   addAgent(event: Event) {
     event.preventDefault()
+    event.stopPropagation()
     const agent: ChatBotPromptForm = {
       ChatBotPromptCodigo: '',
       Descripcion: '',

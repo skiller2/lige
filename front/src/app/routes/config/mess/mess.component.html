@@ -139,27 +139,27 @@
                 </ng-template>
 
                 <nz-form-item>
-                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Código</nz-form-label>
+                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Código</nz-form-label>
                   <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
                     <input nz-input [formField]="agent.ChatBotPromptCodigo" 
                        />
                   </nz-form-control>
 
-                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Descripción</nz-form-label>
+                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Descripción</nz-form-label>
                   <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
                     <input nz-input [formField]="agent.Descripcion" />
                   </nz-form-control>
                 </nz-form-item>
 
                 <nz-form-item>
-                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Prompt</nz-form-label>
+                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Prompt</nz-form-label>
                   <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
                     <textarea nz-input [formField]="agent.Prompt" rows="14"></textarea>
                   </nz-form-control>
                 </nz-form-item>
 
                 <nz-form-item>
-                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>IA Tools</nz-form-label>
+                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">IA Tools</nz-form-label>
                   <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
                     <textarea nz-input [formField]="agent.IaTools" rows="14"></textarea>
                   </nz-form-control>
@@ -177,7 +177,7 @@
             }
             <button nz-button nzType="primary" type="submit" [nzLoading]="agentsForm().submitting()"
               [disabled]="agentsForm().submitting() || agentsForm().dirty()==false || agentsForm().valid()==false">
-              Grabar
+              Guardar
             </button>
           </div>
         </form>
