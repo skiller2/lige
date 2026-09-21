@@ -337,15 +337,19 @@ export class OrdenVentaController extends BaseController {
   async getPlantillaOrdenVenta(req: Request, res: Response, next: NextFunction) {
     const ClienteId = Number(req.params.ClienteId) || 0;
     const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId) || 0;
-    const anio = Number(req.params.NroOrdenVenta) || 0;
-    const mes = Number(req.params.NroOrdenVenta) || 0;
+    const anio = Number(req.params.anio) || 0;
+    const mes = Number(req.params.mes) || 0;
 
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
       const NroOrdenVentaBase = await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
+      if (!NroOrdenVentaBase)
+        throw new ClientException('No existe plantilla')
       const ordenDs = await this.getOrdenVentaQuery(queryRunner, NroOrdenVentaBase)
       ordenDs.NroOrdenVenta = 0
+      ordenDs.PeriodoAnio = anio
+      ordenDs.PeriodoMes = mes
 
       const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
 

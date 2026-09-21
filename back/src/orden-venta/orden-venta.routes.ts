@@ -24,7 +24,7 @@ ordenVentaRouter.get("/:NroOrdenVenta", [authMiddleware.verifyToken, authMiddlew
   ordenVentaController.getOrdenVenta(req, res, next);
 });
 
-ordenVentaRouter.get("plantilla/:ClienteId/:ClienteElementoDependienteId/:anio/:mes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.get("/plantilla/:ClienteId/:ClienteElementoDependienteId/:anio/:mes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   ordenVentaController.getPlantillaOrdenVenta(req, res, next);
 });
 
