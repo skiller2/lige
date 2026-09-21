@@ -201,7 +201,7 @@ export class OrdenVentaController extends BaseController {
           ord.ClienteElementoDependienteId,
           TRIM(ISNULL(cli.ClienteDenominacion,'')) AS Cliente,
           obj.ObjetivoId,
-          CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(COALESCE(obj.ObjetivoDescripcion, eledep.ClienteElementoDependienteDescripcion, ''))) AS Objetivo,
+          CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(eledep.ClienteElementoDependienteDescripcion)) AS Objetivo,
           ord.EstadoOrdenVentaCodigo,
           ${sqlEstadoOrden} AS Estado,
           ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar
