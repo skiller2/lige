@@ -1555,6 +1555,13 @@ export class SearchService {
     );
   }
 
+  getOrdenVentaFilters() {
+    return this.http.get<ResponseJSON<any>>(`/api/orden-venta/filters`).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
   getComprobantesSeleccionOrdenVenta(NroOrdenVentas: number[]): Observable<any> {
     return this.http.post<ResponseJSON<any>>(`/api/orden-venta/comprobantes-seleccion`, { NroOrdenVentas }).pipe(
       map(res => res.data),

@@ -1,8 +1,10 @@
 <nz-card #taborden class="small-margin">
 
   <ng-container>
-    <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()"
-      [keyLocalstorage]="constructor.name" [(options)]="listOptions" />
+    @if (startFiltersReady()) {
+      <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()"
+        [keyLocalstorage]="constructor.name" (optionsChange)="listOptionsChange($event)" />
+    }
 
     <div class="gridContainerOrdenVenta container-fluid">
       @if (columns().length){
