@@ -17,9 +17,11 @@ export interface EnvioLoteResponse {
   respuesta: any;
 }
 
+const PREFIJO_REFERENCIA = "CUITEmpresa";
+const CUIT_EMPRESA = "30643445510";
+
 /**
- * Arma el externalReferenceId con el patrón que pide el banco: {CUITEmpresa}-{YYYYMM}-{IDUnico}.
- * @throws {ClientException} si no está cargado el CUIT de la empresa
+ * Arma el externalReferenceId: CUITEmpresa{CUIT}-{YYYYMM}-{IDUnico}.
  */
 const armarExternalReferenceId = (
   config: ConfigPatagonia,
@@ -27,12 +29,10 @@ const armarExternalReferenceId = (
   mes: number,
   idUnico: number
 ): string => {
-  if (!config.cuit_empresa)
-    throw new ClientException(
-      `Falta el cuit_empresa en los parámetros del Banco Patagonia (MONOT).`
-    );
+  const cuitEmpresa = String(config.cuit_empresa || CUIT_EMPRESA).replace(/\D/g, "");
+  const secuencia = String(idUnico).padStart(5, "0");
 
-  return `${config.cuit_empresa}-${anio}${String(mes).padStart(2, "0")}-${idUnico}`;
+  return `${PREFIJO_REFERENCIA}${cuitEmpresa}-${anio}${String(mes).padStart(2, "0")}-${secuencia}`;
 };
 
 /** Arma un item del lote a partir del CUIT de la persona (11 dígitos, sin guiones). */
