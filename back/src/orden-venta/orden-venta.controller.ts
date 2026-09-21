@@ -2,7 +2,7 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { getConnection } from "../data-source.ts";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
-import type { Options } from "../schemas/filtro.ts";
+import type { Options, Selections } from "../schemas/filtro.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { QueryRunner } from "typeorm";
 import { ParametrosVentaController } from "../parametro-venta/parametro-venta.controller.ts";
@@ -140,10 +140,20 @@ const columnasGrillaOrdenes: any[] = [
     searchHidden: false
   },
   {
+    id: "GrupoActividadNumero",
+    name: "Grupo Actividad",
+    field: "GrupoActividadNumero",
+    fieldName: "ga.GrupoActividadNumero",
+    type: "string",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
     id: "Objetivo",
     name: "Objetivo",
     field: "Objetivo",
-    fieldName: "obj.ObjetivoDescripcion",
+    fieldName: "CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(eledep.ClienteElementoDependienteDescripcion))",
     type: "string",
     sortable: true,
     hidden: false,
@@ -172,13 +182,47 @@ const columnasGrillaOrdenes: any[] = [
     hidden: false,
     searchHidden: false,
     maxWidth: 160
-  }
+  },
+  {
+    name: "Asistencia",
+    type: "string",
+    id: "EstadoAsistencia",
+    field: "EstadoAsistencia",
+    fieldName: "EstadoAsistencia",
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    editable: false,
+    maxWidth: 140
+
+  },
 ];
 
 export class OrdenVentaController extends BaseController {
 
   async getGridColsOrdenes(req: Request, res: Response) {
     this.jsonRes(columnasGrillaOrdenes, res);
+  }
+
+  async getGridFilters(req: Request, res: Response) {
+    const startFilters: Selections[] = [];
+    const grupoActividad = Array.isArray(res.locals.GrupoActividad)
+      ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';')
+      : '';
+
+    if (grupoActividad) {
+      startFilters.push({
+        index: 'GrupoActividadNumero',
+        condition: 'AND',
+        operator: '=',
+        value: grupoActividad,
+        closeable: Boolean(res.locals.authADGroup),
+        label: '',
+        originIdx: null
+      });
+    }
+
+    return this.jsonRes(startFilters, res);
   }
 
   // Listado de cabeceras de órdenes de venta. El objetivo no está en OrdenVenta: se resuelve por
@@ -188,7 +232,7 @@ export class OrdenVentaController extends BaseController {
     try {
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
       const filterSql = filtrosToSql(options.filtros, columnasGrillaOrdenes);
-      const orderBy = orderToSQL(options.sort);
+      const orderBy = orderToSQL(options.sort);      
 
       const lista = await queryRunner.query(`
         SELECT
@@ -201,23 +245,24 @@ export class OrdenVentaController extends BaseController {
           ord.ClienteElementoDependienteId,
           TRIM(ISNULL(cli.ClienteDenominacion,'')) AS Cliente,
           obj.ObjetivoId,
-          CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(COALESCE(obj.ObjetivoDescripcion, eledep.ClienteElementoDependienteDescripcion, ''))) AS Objetivo,
+          CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(eledep.ClienteElementoDependienteDescripcion)) AS Objetivo,
           ord.EstadoOrdenVentaCodigo,
           ${sqlEstadoOrden} AS Estado,
-          ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar
+          ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar,
+          IIF((objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
+          ga.GrupoActividadNumero, gaobj.GrupoActividadId
         FROM OrdenVenta ord
         LEFT JOIN Cliente cli ON cli.ClienteId = ord.ClienteId
-        LEFT JOIN ClienteElementoDependiente eledep
-          ON eledep.ClienteId = ord.ClienteId
-          AND eledep.ClienteElementoDependienteId = ord.ClienteElementoDependienteId
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = ord.ClienteId AND isnull(eledep.ClienteElementoDependienteId,0) = isnull(ord.ClienteElementoDependienteId,0)
         LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
-       OUTER APPLY (
-          SELECT TOP 1 o.ObjetivoId, o.ObjetivoDescripcion
-          FROM Objetivo o
-          WHERE o.ClienteId = ord.ClienteId
-            AND ISNULL(o.ClienteElementoDependienteId,0) = ISNULL(ord.ClienteElementoDependienteId,0)
-          ORDER BY o.ObjetivoId
-        ) obj
+        LEFT JOIN Objetivo obj ON obj.ClienteId = eledep.ClienteId and obj.ClienteElementoDependienteId = isnull(eledep.ClienteElementoDependienteId,0)
+        LEFT JOIN GrupoActividadObjetivo gaobj ON gaobj.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
+            AND gaobj.GrupoActividadObjetivoDesde <= EOMONTH(DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1))
+            AND ISNULL(gaobj.GrupoActividadObjetivoHasta, '9999-12-31') >= DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1)
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gaobj.GrupoActividadId
+        LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = ord.PeriodoAnio
+        LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = ord.PeriodoMes
+      
         WHERE (1=1)
         AND (${filterSql})
         ${orderBy ? orderBy : 'ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC'}
@@ -361,11 +406,11 @@ export class OrdenVentaController extends BaseController {
 
         switch (ProductoCodigo) {
           case 'SSF':
-            item.Cantidad =TotalHoraA
+            item.Cantidad = TotalHoraA
             item.ImporteUnitario = ImporteUnitarioA
             break;
           case 'SSFB':
-            item.Cantidad =TotalHoraB
+            item.Cantidad = TotalHoraB
             item.ImporteUnitario = ImporteUnitarioB
             break;
           default:
@@ -500,8 +545,8 @@ export class OrdenVentaController extends BaseController {
       : {
         ImporteUnitarioA: 0,
         ImporteUnitarioB: 0,
-        TotalHoraA:0,
-        TotalHoraB:0
+        TotalHoraA: 0,
+        TotalHoraB: 0
       };
   }
 
@@ -622,7 +667,7 @@ export class OrdenVentaController extends BaseController {
         ahora, usuario, ip
       ]);
     }
-    return {NroOrdenVenta, EstadoOrdenVentaCodigo}
+    return { NroOrdenVenta, EstadoOrdenVentaCodigo }
   }
 
 
