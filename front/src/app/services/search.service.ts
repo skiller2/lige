@@ -2975,4 +2975,15 @@ export class SearchService {
     );
   }
 
+  //Depositos
+  getDepositoInfoById(id: number): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/depositos/info/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+
+        return of([]);
+      })
+    );
+  }
+
 }

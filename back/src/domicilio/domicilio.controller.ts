@@ -556,6 +556,10 @@ export class DomicilioController extends BaseController {
 
   // Valida el objeto que devuelve AddrSearchComponent
   async valObjDomicilio(queryRunner: any, domicilio: any) {
+    if (!domicilio) {
+      return new ClientException(`Ingrese un domicilio`)
+    }
+    
     if (!domicilio.manual) {
       if (!domicilio.address || Object.keys(domicilio.address).length === 0) {
         return new ClientException(`Domicilio invalido`)

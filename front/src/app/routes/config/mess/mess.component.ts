@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, input, model, signal } from '@angular/core';
-import { form, FormField, minLength, required, submit } from '@angular/forms/signals';
+import { applyEach, form, FormField, minLength, required, submit } from '@angular/forms/signals';
 
 import { SHARED_IMPORTS } from '@shared';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -12,6 +12,18 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 
 import { MarkdownModule } from 'ngx-markdown';
 import { FormsModule } from '@angular/forms';
+
+interface ChatBotPromptForm {
+  ChatBotPromptCodigo: string;
+  Descripcion: string;
+  Prompt: string;
+  IaTools: string;
+  EsNuevo: boolean;
+}
+
+interface AgentsFormModel {
+  agents: ChatBotPromptForm[];
+}
 
 @Component({
   selector: 'app-mess',
@@ -29,6 +41,8 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './mess.component.scss'
 })
 export class MessComponent {
+  private apiService = inject(ApiService)
+
   messInfo = signal({ 'msg': 'descansando' })
   ultimoDeposito = signal({ 'msg': 'descansando' })
   imagenUrl = signal('')
@@ -40,6 +54,20 @@ export class MessComponent {
   showTools = signal<boolean>(false);
   chatId = signal('');
   msgs = signal<any[]>([])
+  agentsLoading = signal(false)
+  panelAbierto = signal<number | null>(null)
+  deletedAgentCodes = signal<string[]>([])
+
+  readonly agentsModel = signal<AgentsFormModel>({ agents: [] })
+
+  readonly agentsForm = form(this.agentsModel, p => {
+    applyEach(p.agents, agent => {
+      required(agent.ChatBotPromptCodigo, { message: 'El código es obligatorio' })
+      required(agent.Descripcion, { message: 'La descripción es obligatoria' })
+      required(agent.Prompt, { message: 'El prompt es obligatorio' })
+      required(agent.IaTools, { message: 'IA Tools es obligatorio' })
+    })
+  })
 
 
   toggleShowTools(ev: Event) {
@@ -48,7 +76,6 @@ export class MessComponent {
   }
 
 
-  private apiService = inject(ApiService)
   async getMessInfo() {
     try {
       this.messInfo.set(await firstValueFrom(this.apiService.getMessInfo()))
@@ -137,6 +164,7 @@ export class MessComponent {
       //setInterval(() => { this.imagenUrl.set(`./mess/api/chatbot/qr/${imagenCount++}`) }, 3000)
     } catch (error) {}
 
+    await this.loadAgents()
 
     const resIAPrompt: any = await firstValueFrom(this.apiService.getIaPrompt())
 
@@ -149,6 +177,86 @@ export class MessComponent {
 
     this.iaToolsHash.set(resIATools.data.iaToolsHash)
 
+  }
+
+  private setAgentsForm(data: any) {
+    const agents = (data?.agents ?? []).map((agent: any): ChatBotPromptForm => ({
+      ChatBotPromptCodigo: agent.ChatBotPromptCodigo ?? '',
+      Descripcion: agent.Descripcion ?? '',
+      Prompt: agent.Prompt ?? '',
+      IaTools: agent.IaTools ?? '',
+      EsNuevo: false
+    }))
+
+    this.agentsForm().reset({ agents })
+    this.deletedAgentCodes.set([])
+    this.panelAbierto.set(agents.length > 0 ? 0 : null)
+  }
+
+  async loadAgents() {
+    this.agentsLoading.set(true)
+    try {
+      const data = await firstValueFrom(this.apiService.getChatBotAgents())
+      this.setAgentsForm(data)
+    } finally {
+      this.agentsLoading.set(false)
+    }
+  }
+
+  agentTitle(index: number): string {
+    const agent = this.agentsModel().agents[index]
+    if (agent?.EsNuevo && !agent?.ChatBotPromptCodigo) return 'Nuevo agente'
+    const description = agent?.Descripcion || 'Sin descripción'
+    return `${agent?.ChatBotPromptCodigo || 'Sin código'} - ${description}`
+  }
+
+  addAgent(event: Event) {
+    event.preventDefault()
+    const agent: ChatBotPromptForm = {
+      ChatBotPromptCodigo: '',
+      Descripcion: '',
+      Prompt: '',
+      IaTools: '',
+      EsNuevo: true
+    }
+
+    this.agentsModel.update(model => ({ ...model, agents: [...model.agents, agent] }))
+    this.agentsForm().markAsDirty()
+    this.panelAbierto.set(this.agentsModel().agents.length - 1)
+  }
+
+  removeAgent(index: number, event: Event) {
+    event.preventDefault()
+    event.stopPropagation()
+
+    const agent = this.agentsModel().agents[index]
+    if (!agent) return
+
+    if (!agent.EsNuevo && agent.ChatBotPromptCodigo) {
+      this.deletedAgentCodes.update(codes =>
+        codes.includes(agent.ChatBotPromptCodigo) ? codes : [...codes, agent.ChatBotPromptCodigo]
+      )
+    }
+
+    this.agentsModel.update(model => ({
+      ...model,
+      agents: model.agents.filter((_, i) => i !== index)
+    }))
+    this.agentsForm().markAsDirty()
+    const agentsLength = this.agentsModel().agents.length
+    this.panelAbierto.set(agentsLength > 0 ? Math.min(index, agentsLength - 1) : null)
+  }
+
+  async setAgents(event: Event) {
+    event.preventDefault()
+    await submit(this.agentsForm, async form => {
+      const agents = form().value().agents
+      const currentCodes = new Set(agents.map(agent => agent.ChatBotPromptCodigo))
+      const deletedCodes = this.deletedAgentCodes().filter(code => !currentCodes.has(code))
+      const data = await firstValueFrom(this.apiService.setChatBotAgents(agents, deletedCodes))
+      this.setAgentsForm(data)
+      return undefined
+    })
   }
 
   trackByMsgId(index: number, msg: any): any {

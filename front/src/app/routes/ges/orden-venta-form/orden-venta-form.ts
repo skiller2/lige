@@ -239,7 +239,7 @@ export class OrdenVentaFormComponent {
     if (this.ordenVenta().comprobantes.length == 0)
       this.addComprobante()
 
-    setTimeout(() => { this.formOrdenVenta().reset() }, 0);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
+//    setTimeout(() => { this.formOrdenVenta().reset() }, 0);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
   }
 
 

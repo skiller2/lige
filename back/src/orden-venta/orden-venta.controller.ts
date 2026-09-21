@@ -247,7 +247,7 @@ export class OrdenVentaController extends BaseController {
       WHERE ord.ClienteId = @5 AND ord.ClienteElementoDependienteId=@6 
         AND (ord.PeriodoAnio > @1 OR (ord.PeriodoAnio = @1 AND ord.PeriodoMes >= @2))
         AND (ord.PeriodoAnio < @3 OR (ord.PeriodoAnio = @3 AND ord.PeriodoMes <= @4))
-      ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC
+      ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta ASC
     `, [null, desde.anio, desde.mes, hasta.anio, hasta.mes, ClienteId, ClienteElementoDependienteId]);
 
 
@@ -337,17 +337,21 @@ export class OrdenVentaController extends BaseController {
   async getPlantillaOrdenVenta(req: Request, res: Response, next: NextFunction) {
     const ClienteId = Number(req.params.ClienteId) || 0;
     const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId) || 0;
-    const anio = Number(req.params.NroOrdenVenta) || 0;
-    const mes = Number(req.params.NroOrdenVenta) || 0;
+    const anio = Number(req.params.anio) || 0;
+    const mes = Number(req.params.mes) || 0;
 
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
       const NroOrdenVentaBase = await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
+      if (!NroOrdenVentaBase)
+        throw new ClientException('No existe plantilla')
       const ordenDs = await this.getOrdenVentaQuery(queryRunner, NroOrdenVentaBase)
       ordenDs.NroOrdenVenta = 0
+      ordenDs.PeriodoAnio = anio
+      ordenDs.PeriodoMes = mes
 
-      const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
+      const { ImporteUnitarioA, ImporteUnitarioB, TotalHoraA, TotalHoraB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
 
 
       for (const item of ordenDs.items) {
@@ -357,9 +361,11 @@ export class OrdenVentaController extends BaseController {
 
         switch (ProductoCodigo) {
           case 'SSF':
+            item.Cantidad =TotalHoraA
             item.ImporteUnitario = ImporteUnitarioA
             break;
           case 'SSFB':
+            item.Cantidad =TotalHoraB
             item.ImporteUnitario = ImporteUnitarioB
             break;
           default:
@@ -475,7 +481,7 @@ export class OrdenVentaController extends BaseController {
 
   async getImporteHorasAB(ClienteElementoDependienteId: number, ClienteId: number, anio: number, mes: number, queryRunner: QueryRunner) {
     const ds = await queryRunner.query(
-      `SELECT ImporteHoraA, ImporteHoraB
+      `SELECT ImporteHoraA, ImporteHoraB, TotalHoraA, TotalHoraB
      FROM ObjetivoImporteVenta
      WHERE ClienteElementoDependienteId = @0
        AND ClienteId = @1
@@ -488,10 +494,14 @@ export class OrdenVentaController extends BaseController {
       ? {
         ImporteUnitarioA: ds[0].ImporteHoraA,
         ImporteUnitarioB: ds[0].ImporteHoraB,
+        TotalHoraA: ds[0].TotalHoraA,
+        TotalHoraB: ds[0].TotalHoraB,
       }
       : {
         ImporteUnitarioA: 0,
         ImporteUnitarioB: 0,
+        TotalHoraA:0,
+        TotalHoraB:0
       };
   }
 
@@ -612,6 +622,7 @@ export class OrdenVentaController extends BaseController {
         ahora, usuario, ip
       ]);
     }
+    return {NroOrdenVenta, EstadoOrdenVentaCodigo}
   }
 
 
@@ -655,7 +666,10 @@ export class OrdenVentaController extends BaseController {
 
 
 
-      await this.setOrdenVentaQuery(PeriodoAnio, PeriodoMes, ClienteId, ClienteElementoDependienteId, NroOrdenVenta, items, comprobantes, Observaciones, EstadoOrdenVentaCodigo, queryRunner, usuario, ip, ahora)
+      const ov = await this.setOrdenVentaQuery(PeriodoAnio, PeriodoMes, ClienteId, ClienteElementoDependienteId, NroOrdenVenta, items, comprobantes, Observaciones, EstadoOrdenVentaCodigo, queryRunner, usuario, ip, ahora)
+      NroOrdenVenta = ov.NroOrdenVenta
+      EstadoOrdenVentaCodigo = ov.EstadoOrdenVentaCodigo
+
 
       const primerOrdenVenta = await queryRunner.query(`
         SELECT TOP 1 ord.NroOrdenVenta FROM OrdenVenta ord WHERE ord.ClienteId = @3 AND ord.ClienteElementoDependienteId = @4 AND ord.PeriodoAnio=@1 AND ord.PeriodoMes=@2

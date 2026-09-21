@@ -3,6 +3,11 @@ import { Routes } from '@angular/router';
 export const ConfigRoutes: Routes = [
   {
     path: 'mess',
+    redirectTo: 'mess/conversacion',
+    pathMatch: 'full',
+  },
+  {
+    path: 'mess/:tab',
     loadComponent: () => import('./mess/mess.component').then(c => c.MessComponent),
   },
   {

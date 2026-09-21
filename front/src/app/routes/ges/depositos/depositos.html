@@ -55,17 +55,17 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/depositos/alta">Cargar</a>
-      <!-- <app-depositos-form [DepositoId]="0" [crudAccion]="'C'" (onAddorUpdate)="handleAddOrUpdate()"></app-depositos-form> -->
+      <app-depositos-form [DepositoId]="0" [crudAccion]="'C'" (onAddorUpdate)="handleAddOrUpdate()"></app-depositos-form>
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/depositos/editar">Editar</a>
-      <!-- <app-depositos-form #proForm [DepositoId]="DepositoId()" [crudAccion]="'U'" (onAddorUpdate)="handleAddOrUpdate()"></app-depositos-form> -->
+      <app-depositos-form #depForm [DepositoId]="DepositoId()" [crudAccion]="'U'" (onAddorUpdate)="handleAddOrUpdate()"></app-depositos-form>
     </nz-tab>
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/depositos/detalle">Detalle</a>
-      <!-- <app-depositos-form #proDetalle [DepositoId]="DepositoId()" [crudAccion]="'R'"></app-depositos-form> -->
+      <app-depositos-form #depDetalle [DepositoId]="DepositoId()" [crudAccion]="'R'"></app-depositos-form>
     </nz-tab>
     
   </nz-tabs>

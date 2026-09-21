@@ -17,7 +17,7 @@ const proveedorColumns: any[] = [
     id: "id",
     name: "id",
     field: "id",
-    fieldName: "ProveedorId",
+    fieldName: "pro.ProveedorId",
     type: "number",
     sortable: false,
     hidden: true,
@@ -28,7 +28,7 @@ const proveedorColumns: any[] = [
     type: "string",
     id: "ProveedorRazonSocial",
     field: "ProveedorRazonSocial",
-    fieldName: "ProveedorRazonSocial",
+    fieldName: "pro.ProveedorRazonSocial",
     // searchComponent: "inputForClientSearch",
     // searchType: "number",
     sortable: true,
@@ -39,7 +39,7 @@ const proveedorColumns: any[] = [
     name: "CUIT",
     id: "CUIT",
     field: "CUIT",
-    fieldName: "CUIT",
+    fieldName: "pro.CUIT",
     type: "number",
     sortable: true,
     hidden: false,
@@ -49,7 +49,7 @@ const proveedorColumns: any[] = [
     id: "Domicilio",
     name: "Domicilio",
     field: "Domicilio",
-    fieldName: "Domicilio",
+    fieldName: "dom.DomicilioCompleto",
     type: "string",
     sortable: true,
     searchHidden: true,
@@ -69,7 +69,7 @@ const proveedorColumns: any[] = [
     name: "Activo",
     id: "ProveedorInactivo",
     field: "ProveedorInactivo",
-    fieldName: "isnull(ProveedorInactivo, 0)",
+    fieldName: "isnull(pro.ProveedorInactivo, 0)",
     type: "string",
     formatter: 'collectionFormatter',
     params: { collection: getInactivo },
@@ -95,8 +95,16 @@ export class ProveedoresController extends BaseController {
 
     try {
       const proveedor = await queryRunner.query(
-        `SELECT ProveedorId id, CONVERT(VARCHAR(1), ISNULL(ProveedorInactivo, 0)) ProveedorInactivo, ProveedorRazonSocial, CUIT
-        FROM Proveedor
+        `SELECT pro.ProveedorId id, pro.ProveedorRazonSocial, pro.CUIT,
+        CONCAT(TRIM(con.ContactoApellido),', ', TRIM(con.ContactoNombre)) Contacto,
+        dom.DomicilioCompleto,
+        CONVERT(VARCHAR(1), ISNULL(pro.ProveedorInactivo, 0)) ProveedorInactivo
+        FROM Proveedor pro
+        LEFT JOIN NexoDomicilio AS nex ON nex.ProveedorId = pro.ProveedorId AND nex.NexoDomicilioActual = 1
+        LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
+        OUTER APPLY(
+          SELECT TOP 1 c.ContactoId, c.ProveedorId, c.ContactoApellido, c.ContactoNombre FROM Contacto c WHERE c.ProveedorId = pro.ProveedorId AND c.ContactoInactivo IS NULL ORDER BY c.ContactoId
+        ) con
         WHERE ${filterSql} ${orderBy}`)
 
       this.jsonRes(proveedor, res);
