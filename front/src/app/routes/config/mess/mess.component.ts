@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, input, model, signal } from '@angular/core';
-import { applyEach, form, FormField, maxLength, minLength, required, submit } from '@angular/forms/signals';
+import { applyEach, form, FormField, minLength, required, submit } from '@angular/forms/signals';
 
 import { SHARED_IMPORTS } from '@shared';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -66,8 +66,6 @@ export class MessComponent {
       required(agent.Descripcion, { message: 'La descripción es obligatoria' })
       required(agent.Prompt, { message: 'El prompt es obligatorio' })
       required(agent.IaTools, { message: 'IA Tools es obligatorio' })
-      maxLength(agent.ChatBotPromptCodigo, 5, { message: 'El código no puede superar los 5 caracteres' })
-      maxLength(agent.Descripcion, 50, { message: 'La descripción no puede superar los 50 caracteres' })
     })
   })
 

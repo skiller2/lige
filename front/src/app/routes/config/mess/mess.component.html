@@ -141,13 +141,13 @@
                 <nz-form-item>
                   <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Código</nz-form-label>
                   <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
-                    <input nz-input [formField]="agent.ChatBotPromptCodigo" maxlength="5"
-                      [readonly]="agent.EsNuevo().value() !== true" />
+                    <input nz-input [formField]="agent.ChatBotPromptCodigo" 
+                       />
                   </nz-form-control>
 
                   <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Descripción</nz-form-label>
                   <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
-                    <input nz-input [formField]="agent.Descripcion" maxlength="50" />
+                    <input nz-input [formField]="agent.Descripcion" />
                   </nz-form-control>
                 </nz-form-item>
 
