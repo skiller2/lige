@@ -15,8 +15,10 @@
   <img [src]="imagenUrl()" alt="QR">
 
 </nz-card>
-<nz-tabs>
-  <nz-tab nzTitle="Conversación">
+<nz-tabs nzLinkRouter>
+  <nz-tab>
+    <a *nzTabLink nz-tab-link routerLink="/config/mess/conversacion">Conversación</a>
+    <ng-template nz-tab>
     <nz-card>
       <h4>Conversación</h4>
       <nz-form-label [nzSpan]="5">Persona</nz-form-label>
@@ -72,11 +74,14 @@
       </label>
 
     </nz-card>
+    </ng-template>
 
 
 
   </nz-tab>
-  <nz-tab nzTitle="IA Prompt">
+  <nz-tab>
+    <a *nzTabLink nz-tab-link routerLink="/config/mess/ia-prompt">IA Prompt</a>
+    <ng-template nz-tab>
     <nz-card>
       <h4>IA Prompt</h4>
       <form (ngSubmit)="setIaPrompt($event)">
@@ -87,9 +92,12 @@
           [disabled]="promptform().submitting() || promptform().dirty()==false">Grabar</button>
       </form>
     </nz-card>
+    </ng-template>
 
   </nz-tab>
-  <nz-tab nzTitle="IA Herramientas">
+  <nz-tab>
+    <a *nzTabLink nz-tab-link routerLink="/config/mess/ia-herramientas">IA Herramientas</a>
+    <ng-template nz-tab>
     <nz-card>
       <h4>IA Prompt</h4>
       <form (ngSubmit)="setIaTools($event)">
@@ -99,7 +107,83 @@
           [disabled]="toolsform().submitting() || toolsform().dirty()==false">Grabar</button>
       </form>
     </nz-card>
+    </ng-template>
 
+  </nz-tab>
+  <nz-tab>
+    <a *nzTabLink nz-tab-link routerLink="/config/mess/agents">Agents</a>
+    <ng-template nz-tab>
+    <nz-card>
+      @if (agentsLoading()) {
+        <nz-spin nzSimple></nz-spin>
+      } @else {
+        <form class="agents-form" (ngSubmit)="setAgents($event)">
+          <nz-collapse nzAccordion>
+            @for (agent of agentsForm.agents; let i = $index; track $index) {
+              <nz-collapse-panel [nzHeader]="agentTitle(i)" [nzExtra]="agentActions"
+                [nzActive]="panelAbierto() === i" (nzActiveChange)="$event ? panelAbierto.set(i) : null">
+
+                <ng-template #agentActions>
+                  <div class="panel-actions">
+                    <button nz-button nzType="default" type="button" (click)="removeAgent(i, $event)" nz-tooltip
+                      nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+                      <span nz-icon nzType="delete" nzTheme="outline"></span>
+                    </button>
+                    @if ($last) {
+                    <button nz-button nzType="primary" type="button" class="add-button" (click)="addAgent($event)"
+                      nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+                      <span nz-icon nzType="plus"></span>
+                    </button>
+                    }
+                  </div>
+                </ng-template>
+
+                <nz-form-item>
+                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Código</nz-form-label>
+                  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
+                    <input nz-input [formField]="agent.ChatBotPromptCodigo" maxlength="5"
+                      [readonly]="agent.EsNuevo().value() !== true" />
+                  </nz-form-control>
+
+                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Descripción</nz-form-label>
+                  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
+                    <input nz-input [formField]="agent.Descripcion" maxlength="50" />
+                  </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>Prompt</nz-form-label>
+                  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
+                    <textarea nz-input [formField]="agent.Prompt" rows="14"></textarea>
+                  </nz-form-control>
+                </nz-form-item>
+
+                <nz-form-item>
+                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" nzRequired>IA Tools</nz-form-label>
+                  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
+                    <textarea nz-input [formField]="agent.IaTools" rows="14"></textarea>
+                  </nz-form-control>
+                </nz-form-item>
+
+              </nz-collapse-panel>
+            }
+          </nz-collapse>
+
+          <div class="agents-actions">
+            @if (agentsForm.agents.length === 0) {
+            <button nz-button nzType="default" type="button" (click)="addAgent($event)">
+              <span nz-icon nzType="plus" nzTheme="outline"></span>
+            </button>
+            }
+            <button nz-button nzType="primary" type="submit" [nzLoading]="agentsForm().submitting()"
+              [disabled]="agentsForm().submitting() || agentsForm().dirty()==false || agentsForm().valid()==false">
+              Grabar
+            </button>
+          </div>
+        </form>
+      }
+    </nz-card>
+    </ng-template>
   </nz-tab>
 </nz-tabs>
 

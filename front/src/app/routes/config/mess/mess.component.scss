@@ -65,3 +65,22 @@ markdown p {
 nz-card {
   white-space: pre-line;
 }
+
+.agents-form {
+  textarea {
+    width: 100%;
+    font-family: monospace;
+  }
+}
+
+.agents-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 8px;
+}

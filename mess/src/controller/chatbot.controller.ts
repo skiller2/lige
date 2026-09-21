@@ -8,6 +8,156 @@ import { documentosController, personalController, novedadController, objetivoCo
 import { PersonalController } from "./personal.controller.ts";
 
 export class ChatBotController extends BaseController {
+  private async getAgentsData(queryRunner: any) {
+    const agents = await queryRunner.query(`
+      SELECT
+        prompt.ChatBotPromptCodigo,
+        prompt.Descripcion,
+        prompt.Prompt,
+        prompt.IaTools
+      FROM ChatBotPrompt prompt
+      ORDER BY prompt.ChatBotPromptCodigo
+    `)
+
+    return { agents }
+  }
+
+  async getAgents(req: Request, res: Response, next: NextFunction) {
+    const usuario = BaseController.getUser(res)
+    const queryRunner = await dbServer.connection(usuario)
+
+    try {
+      return this.jsonRes(await this.getAgentsData(queryRunner), res, 'ok')
+    } catch (err) {
+      return next(err)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async setAgents(req: Request, res: Response, next: NextFunction) {
+    const agents = req.body?.agents
+    const deletedCodesInput = req.body?.deletedCodes ?? []
+    if (!Array.isArray(agents))
+      return next(new ClientException('No se recibió una lista de agentes válida'))
+    if (!Array.isArray(deletedCodesInput))
+      return next(new ClientException('No se recibió una lista de eliminaciones válida'))
+
+    const normalizedAgents = agents.map((agent: any) => ({
+      ChatBotPromptCodigo: String(agent?.ChatBotPromptCodigo ?? '').trim(),
+      Descripcion: String(agent?.Descripcion ?? '').trim() || null,
+      Prompt: agent?.Prompt == null ? null : String(agent.Prompt),
+      IaTools: agent?.IaTools == null ? null : String(agent.IaTools)
+    }))
+
+    if (normalizedAgents.some((agent: any) => !agent.ChatBotPromptCodigo || agent.ChatBotPromptCodigo.length > 5))
+      return next(new ClientException('El código del agente es obligatorio y admite hasta 5 caracteres'))
+
+    if (normalizedAgents.some((agent: any) => !agent.Descripcion || agent.Descripcion.length > 50))
+      return next(new ClientException('La descripción del agente es obligatoria y admite hasta 50 caracteres'))
+
+    if (normalizedAgents.some((agent: any) => !agent.Prompt?.trim()))
+      return next(new ClientException('El prompt del agente es obligatorio'))
+
+    if (normalizedAgents.some((agent: any) => !agent.IaTools?.trim()))
+      return next(new ClientException('IA Tools del agente es obligatorio'))
+
+    const requestedCodes = new Set(normalizedAgents.map((agent: any) => agent.ChatBotPromptCodigo))
+    if (requestedCodes.size !== normalizedAgents.length)
+      return next(new ClientException('La lista contiene códigos de agentes repetidos'))
+
+    const deletedCodes = deletedCodesInput.map((code: any) => String(code ?? '').trim())
+    if (deletedCodes.some((code: string) => !code || code.length > 5))
+      return next(new ClientException('La lista de eliminaciones contiene un código inválido'))
+
+    const uniqueDeletedCodes = new Set(deletedCodes)
+    if (uniqueDeletedCodes.size !== deletedCodes.length)
+      return next(new ClientException('La lista de eliminaciones contiene códigos repetidos'))
+
+    if (deletedCodes.some((code: string) => requestedCodes.has(code)))
+      return next(new ClientException('Un agente no puede guardarse y eliminarse al mismo tiempo'))
+
+    const usuario = BaseController.getUser(res)
+    const ip = this.getRemoteAddress(req)
+    const fecha = new Date()
+    const queryRunner = await dbServer.connection(usuario)
+
+    try {
+      await queryRunner.startTransaction()
+
+      const currentAgents = await queryRunner.query(`
+        SELECT ChatBotPromptCodigo
+        FROM ChatBotPrompt WITH (UPDLOCK, HOLDLOCK)
+      `)
+      const currentCodes = new Set(currentAgents.map((agent: any) => String(agent.ChatBotPromptCodigo).trim()))
+
+      if (deletedCodes.some((code: string) => !currentCodes.has(code)))
+        throw new ClientException('Uno de los agentes a eliminar ya no existe. Recargue la sección')
+
+      for (const code of deletedCodes) {
+        await queryRunner.query(`
+          DELETE FROM ChatBotPrompt
+          WHERE ChatBotPromptCodigo = @0
+        `, [code])
+      }
+
+      for (const agent of normalizedAgents) {
+        if (currentCodes.has(agent.ChatBotPromptCodigo)) {
+          await queryRunner.query(`
+            UPDATE ChatBotPrompt
+            SET Descripcion = @1,
+                Prompt = @2,
+                IaTools = @3,
+                AudFechaMod = @4,
+                AudUsuarioMod = @5,
+                AudIpMod = @6
+            WHERE ChatBotPromptCodigo = @0
+          `, [
+            agent.ChatBotPromptCodigo,
+            agent.Descripcion,
+            agent.Prompt,
+            agent.IaTools,
+            fecha,
+            usuario,
+            ip
+          ])
+        } else {
+          await queryRunner.query(`
+            INSERT INTO ChatBotPrompt (
+              ChatBotPromptCodigo,
+              Descripcion,
+              Prompt,
+              IaTools,
+              AudFechaIng,
+              AudFechaMod,
+              AudUsuarioIng,
+              AudUsuarioMod,
+              AudIpIng,
+              AudIpMod
+            ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
+          `, [
+            agent.ChatBotPromptCodigo,
+            agent.Descripcion,
+            agent.Prompt,
+            agent.IaTools,
+            fecha,
+            usuario,
+            ip
+          ])
+        }
+      }
+
+      const data = await this.getAgentsData(queryRunner)
+      await queryRunner.commitTransaction()
+      return this.jsonRes(data, res, 'Agentes guardados')
+    } catch (err) {
+      await this.rollbackTransaction(queryRunner)
+      return next(err)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   async setPrompt(req: any, res: any, next: any) {
     const iaPrompt = req.body.iaPrompt
     const iaPromptHash = req.body.iaPromptHash

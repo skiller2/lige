@@ -14,3 +14,5 @@ chatBotRouter.get(`/iaprompt`,[authMiddleware.verifyToken, authMiddleware.hasGro
 chatBotRouter.post(`/iaprompt`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.setPrompt(req, res, next) });
 chatBotRouter.get(`/iatools`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.getTools(req, res, next) });
 chatBotRouter.post(`/iatools`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.setTools(req, res, next) });
+chatBotRouter.get(`/agents`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.getAgents(req, res, next) });
+chatBotRouter.post(`/agents`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.setAgents(req, res, next) });

@@ -536,6 +536,19 @@ export class ApiService {
     )
   }
 
+  getChatBotAgents(): Observable<any> {
+    return this.http.get<ResponseJSON<any>>('mess/api/chatbot/agents').pipe(
+      map(res => res.data)
+    )
+  }
+
+  setChatBotAgents(agents: any[], deletedCodes: string[]): Observable<any> {
+    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/agents', { agents, deletedCodes }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      map(res => res.data)
+    )
+  }
+
 
 
   reiniciaChat(chatId: string): Observable<unknown> {
