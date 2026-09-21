@@ -8,6 +8,14 @@ export class ClientException extends Error {
   code: number;
   extended: any;
   constructor(message: string | string[], extended: any = '', code: number = 0) {
+    if (extended?.fieldErrors) {
+      const tmp = extended?.fieldErrors.filter(f=>f.fieldTree=='').map(f=>f.message)
+      if (message instanceof Array)
+      message=[...message,...tmp]
+    else 
+      message=[message,tmp]
+    }
+    
     if (message instanceof Array) {
       super(message.join(', '))
       this.messageArr = message
