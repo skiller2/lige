@@ -12,7 +12,30 @@
       <button nz-button nzType="default" (click)="gridData.reload()" nz-tooltip
         nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"><span nz-icon nzType="reload"
       nzTheme="outline"></span></button>
-    
+
+      @if (router.url === '/ges/impuesto_afip/listado') {
+        <!-- btn  enviar solicitud de pago -->
+        <button nz-button nzType="default" (click)="enviarSolicitudPagoPatagonia()"
+          [disabled]="accionEnCurso() !== null || !anio()" nz-tooltip
+          nzTooltipTitle="Enviar solicitud de pago al Banco Patagonia"><span nz-icon nzType="bank"
+        nzTheme="outline"></span></button>
+        <!-- btn  consultar estado de pago -->
+        <button nz-button nzType="default" (click)="consultarEstadoPagoPatagonia()"
+          [disabled]="accionEnCurso() !== null || !anio()" nz-tooltip
+          nzTooltipTitle="Consultar estado de pago al Banco Patagonia"><span nz-icon nzType="audit"
+        nzTheme="outline"></span></button>
+        <!-- btn  comprobante monotributo de una persona -->
+        <button nz-button nzType="default" (click)="obtenerComprobanteMonotributo()"
+          [disabled]="accionEnCurso() !== null || !anio() || PersonalId() == 0" nz-tooltip
+          nzTooltipTitle="Obtener comprobante monotributo de una persona"><span nz-icon nzType="file-protect"
+        nzTheme="outline"></span></button>
+        <!-- btn  comprobantes pendientes del período -->
+        <button nz-button nzType="default" (click)="obtenerComprobantesPendientes()"
+          [disabled]="accionEnCurso() !== null || !anio()" nz-tooltip
+          nzTooltipTitle="Obtener comprobantes pendientes del período"><span nz-icon nzType="cloud-download"
+        nzTheme="outline"></span></button>
+      }
+
     </nz-button-group>
   </div>
 
@@ -29,13 +52,6 @@
     @if (router.url === '/ges/impuesto_afip/listado') {
       <li nz-submenu nzTitle="Acciones">
         <ul>
-          <!--
-          <li nz-menu-item app-down-file [httpMethod]="'POST'"
-            [httpBody]="{desde: periodo(), options: listOptions(), cantxpag:4}"
-            httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
-            <span nz-icon nzType="download"></span><span style="white-space: normal;">Comp 4 x páginas</span>
-          </li>
-          -->
           <li nz-menu-item app-down-file [httpMethod]="'POST'"
             [httpBody]="{desde: periodo(), options: listOptions(), cantxpag:1}"
             httpUrl="api/impuestos_afip/download/comprobantes_filtrados/">
@@ -120,3 +136,31 @@
 </nz-card>
 <app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="PersonalId()" [visible]="visibleDetalle()"
 (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>
+
+<ng-template #footerRespuestaApi>
+  <button nz-button nzType="primary" (click)="respuestaApiVisible.set(false)">Cerrar</button>
+</ng-template>
+
+<nz-modal [nzVisible]="respuestaApiVisible()" (nzVisibleChange)="respuestaApiVisible.set($event)"
+  (nzOnCancel)="respuestaApiVisible.set(false)" [nzWidth]="900" [nzFooter]="footerRespuestaApi"
+  [nzTitle]="respuestaApiTitulo()">
+  <ng-container *nzModalContent>
+    @if (respuestaApiMensaje()) {
+      <nz-alert nzType="error" [nzMessage]="respuestaApiMensaje()" class="mb-md"></nz-alert>
+    }
+    @if (respuestaApiResultado().length === 0 && !respuestaApiMensaje()) {
+      <p>No hay referencias de pago pendientes de resultado en el período.</p>
+    }
+    @for (item of respuestaApiResultado(); track $index) {
+      <nz-card nzSize="small" class="mb-md">
+        <div nz-row nzType="flex" nzAlign="middle" nzJustify="space-between" class="mb-sm">
+          <strong>{{ item.titulo || item.ReferenciaPago || 'Respuesta' }}</strong>
+          @if (item.status) {
+            <nz-tag [nzColor]="item.ok ? 'green' : 'red'">HTTP {{ item.status }}</nz-tag>
+          }
+        </div>
+        <pre class="json-respuesta">{{ item.respuesta | json }}</pre>
+      </nz-card>
+    }
+  </ng-container>
+</nz-modal>

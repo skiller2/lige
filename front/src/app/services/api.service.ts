@@ -1143,6 +1143,53 @@ export class ApiService {
     );
   }
 
+  /** Cuántos monotributos entrarían en la solicitud de pago, para confirmar antes de ejecutarla. */
+  previoSolicitudPagoPatagonia(anio: number, mes: number, options: any) {
+    const parameter = { anio, mes, options }
+
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/patagonia/solicitud_pago/previo', parameter).pipe(
+      map((res: ResponseJSON<any>) => res.data),
+    )
+  }
+
+  enviarSolicitudPagoPatagonia(anio: number, mes: number, options: any) {
+    const parameter = { anio, mes, options }
+    this.notification.success('Respuesta', `Inicio solicitud de pago al Banco Patagonia`);
+
+    // El error no se notifica: la respuesta del banco se muestra en el modal de la pantalla.
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/patagonia/solicitud_pago', parameter, null,
+      { observe: 'body', context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
+        tap((res: ResponseJSON<any>) => this.response(res)),
+        map((res: ResponseJSON<any>) => res.data),
+      )
+  }
+
+  consultarEstadoPagoPatagonia(anio: number, mes: number) {
+    const parameter = { anio, mes }
+
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/patagonia/estado_pago', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      map((res: ResponseJSON<any>) => res.data),
+    )
+  }
+
+  obtenerComprobanteMonotributo(anio: number, mes: number, PersonalId: number) {
+    const parameter = { anio, mes, PersonalId }
+
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobante_monotributo', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  obtenerComprobantesPendientes(anio: number, mes: number) {
+    const parameter = { anio, mes }
+    this.notification.success('Respuesta', `Inicio obtención de comprobantes pendientes`);
+
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobantes_pendientes', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
   getTelefonos(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/telefonia/list', params).pipe(
       map((res: any) => res.data),
