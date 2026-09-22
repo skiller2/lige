@@ -27,3 +27,11 @@ cuentasBancariasRouter.post("/add", [authMiddleware.verifyToken, authMiddleware.
 cuentasBancariasRouter.post("/setbanco", [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`])], (req, res, next) => {
   cuentasBancariasController.setPersonalBanco(req, res, next);
 });
+
+cuentasBancariasRouter.post("/anular-pendientes-masivamente", [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`])], (req, res, next) => {
+  cuentasBancariasController.anularCuentasPendientesMasivamente(req, res, next);
+});
+
+cuentasBancariasRouter.post("/anular-pendientes-personal", [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`])], (req, res, next) => {
+  cuentasBancariasController.anularCuentasPendientesPersonal(req, res, next);
+});

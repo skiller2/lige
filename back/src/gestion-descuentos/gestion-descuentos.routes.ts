@@ -64,7 +64,7 @@ gestionDescuentosRouter.post("/objetivo",[authMiddleware.verifyToken, authMiddle
     gestionDescuentosController.getDescuentoObjetivo(req, res, next);
 });
 
-gestionDescuentosRouter.get("/objetivo/datos-auditoria/:ObjetivoId/:DescuentoId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+gestionDescuentosRouter.get("/objetivo/datos-auditoria/:ObjetivoId/:DescuentoId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gAuditoria'])], (req, res, next) => {
     gestionDescuentosController.getDescuentoObjetivoAuditoria(req, res, next);
 });
 

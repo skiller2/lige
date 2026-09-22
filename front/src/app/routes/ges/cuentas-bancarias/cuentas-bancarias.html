@@ -56,6 +56,13 @@
       <button nz-button nzType="default" [disabled]="hasMultipleRowsSelected()"
         (click)="openDrawerforPersonalBanco()" nz-tooltip
         nzTooltipTitle="{{ 'app.icon.bank' | i18n }}"><span nz-icon nzType="bank" nzTheme="outline"></span></button>
+      <button nz-button nzType="default" [disabled]="!selectedRows().length || isLoadingAnulacion()"
+        [nzLoading]="isLoadingAnulacion()" nz-popconfirm
+        nzPopconfirmTitle="¿Desea anular las cuentas pendientes seleccionadas? Cantidad: {{ selectedRows().length }}."
+        (nzOnConfirm)="anularPendientesSeleccionadas()" nz-tooltip
+        nzTooltipTitle="Anular Cuentas Pendientes">
+        <span nz-icon nzType="delete" nzTheme="outline"></span>
+      </button>
 
     </nz-button-group>
   </div>

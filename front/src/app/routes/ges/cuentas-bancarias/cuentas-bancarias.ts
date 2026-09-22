@@ -21,6 +21,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 interface CuentaBancariaRow {
   PersonalId?: number;
+  PersonalBancoId?: number;
   PersonalCUITCUILCUIT?: string | number | null;
 }
 
@@ -49,6 +50,7 @@ export class CuentasBancariasComponent {
   visiblePersonalBanco = model<boolean>(false)
   visibleCuentasBancariasAlta = model<boolean>(false)
   selectedRows = signal<CuentaBancariaRow[]>([])
+  isLoadingAnulacion = signal(false)
   hasMultipleRowsSelected = computed(() => this.selectedRows().length > 1)
   cuitSeleccionados = computed(() => [...new Set(
     this.selectedRows()
@@ -158,6 +160,27 @@ export class CuentasBancariasComponent {
 
   onAddorUpdate(_e: any) {
     this.gridData.reload()
+  }
+
+  async anularPendientesSeleccionadas(): Promise<void> {
+    if (!this.selectedRows().length || this.isLoadingAnulacion()) return
+
+    const cuentas = this.selectedRows().map(row => ({
+      PersonalId: Number(row.PersonalId),
+      PersonalBancoId: Number(row.PersonalBancoId)
+    }))
+
+    this.isLoadingAnulacion.set(true)
+    try {
+      await firstValueFrom(this.apiService.anularCuentasPendientes(cuentas))
+      this.angularGrid.slickGrid.setSelectedRows([])
+      this.selectedRows.set([])
+      this.personalId.set(0)
+      this.gridData.reload()
+    } catch (_e) {
+    } finally {
+      this.isLoadingAnulacion.set(false)
+    }
   }
 
   openDrawerforPersonalBanco(): void {

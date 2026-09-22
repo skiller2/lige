@@ -24,7 +24,7 @@
           <span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
         <!-- btn edición masiva: trabaja sobre todas las órdenes seleccionadas -->
         <button nz-button nzType="default" [disabled]="!ordenesSeleccionadas() || ordenesSeleccionadas().length ==0"
-          nz-tooltip nzTooltipTitle="Edición masiva" (click)="edicionMasiva()">
+          nz-tooltip nzTooltipTitle="Edición masiva" (click)="masivaVisible.set(true)">
           <span nz-icon nzType="profile" nzTheme="outline"></span></button>
       </nz-button-group>
   </ng-template>

@@ -647,6 +647,116 @@ export class CuentasBancariasController extends BaseController {
     }
   }
 
+  async anularCuentasPendientesMasivamente(req: any, res: Response, next: NextFunction) {
+    const usuario = res.locals.userName
+    const queryRunner = await getConnection(usuario)
+
+    try {
+      await queryRunner.startTransaction()
+
+      const cuentasRequest = req.body?.cuentas
+      if (!Array.isArray(cuentasRequest) || !cuentasRequest.length)
+        throw new ClientException('Debe seleccionar al menos una cuenta bancaria para anular.')
+
+      const cuentas: { PersonalId: number, PersonalBancoId: number }[] = cuentasRequest.map((cuenta: any) => ({
+        PersonalId: Number(cuenta?.PersonalId),
+        PersonalBancoId: Number(cuenta?.PersonalBancoId)
+      }))
+      cuentas.sort((a, b) => a.PersonalId - b.PersonalId || a.PersonalBancoId - b.PersonalBancoId)
+
+      const cuentasNoPendientes: string[] = []
+      for (const cuenta of cuentas) {
+        if (!Number.isInteger(cuenta.PersonalId) || cuenta.PersonalId <= 0)
+          throw new ClientException('Registro sin Persona asociada.')
+        if (!Number.isInteger(cuenta.PersonalBancoId) || cuenta.PersonalBancoId <= 0)
+          throw new ClientException(`Solo se pueden seleccionar registros con CBU pendiente de carga. Se selecciono registro sin cuenta.`)
+
+        const registros = await queryRunner.query(`
+          SELECT pb.PersonalId, pb.PersonalBancoId, pb.PersonalBancoCBU,
+            ISNULL(pb.IndNuevaCuenta, 0) IndNuevaCuenta, trim(b.BancoDescripcion) as BancoDescripcion,
+             CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre,  cuit.PersonalCUITCUILCUIT
+          FROM Personal per
+          left join PersonalBanco pb ON pb.PersonalId = per.PersonalId
+          left join Banco b ON pb.PersonalBancoBancoId = b.BancoId
+          LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+          WHERE pb.PersonalId = @0 AND pb.PersonalBancoId = @1
+        `, [cuenta.PersonalId, cuenta.PersonalBancoId])
+
+        if (!registros.length) {
+          throw new ClientException(`No se encontró a la persona con id ${cuenta.PersonalId}.`)
+        }
+
+        const registro = registros[0]
+
+        if (!registro?.PersonalBancoId)
+          throw new ClientException(`No se encontró la cuenta bancaria con id ${cuenta.PersonalBancoId} en la persona ${registro.ApellidoNombre} CUIT: ${registro.PersonalCUITCUILCUIT}.`)
+
+        const esPendienteSinCBU = registro.IndNuevaCuenta == 1 && !String(registro.PersonalBancoCBU ?? '').trim()
+        if (!esPendienteSinCBU) {
+          cuentasNoPendientes.push(`${registro.ApellidoNombre} CUIT: ${registro.PersonalCUITCUILCUIT} (${registro.BancoDescripcion})`)
+          continue
+        }
+
+        await queryRunner.query(`
+          DELETE FROM PersonalBanco
+          WHERE PersonalId = @0 AND PersonalBancoId = @1
+            AND IndNuevaCuenta = 1
+            AND NULLIF(TRIM(PersonalBancoCBU), '') IS NULL
+        `, [cuenta.PersonalId, cuenta.PersonalBancoId])
+      }
+
+      if (cuentasNoPendientes.length)
+        throw new ClientException(`Las siguientes personas no cuentan con CBU pendiente de carga: ${cuentasNoPendientes.join(', ')}.`)
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({ pendientesAnuladas: cuentas.length }, res, `Cuentas pendientes anuladas: ${cuentas.length}`)
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async anularCuentasPendientesPersonal(req: any, res: Response, next: NextFunction) {
+    const usuario = res.locals.userName
+    const queryRunner = await getConnection(usuario)
+    const PersonalId = Number(req.body?.PersonalId)
+
+    try {
+      await queryRunner.startTransaction()
+
+      if (!Number.isInteger(PersonalId) || PersonalId <= 0)
+        throw new ClientException('Debe seleccionar una persona válida.')
+
+      const cuentasPendientes = await queryRunner.query(`
+        SELECT PersonalBancoId
+        FROM PersonalBanco
+        WHERE PersonalId = @0
+          AND IndNuevaCuenta = 1
+          AND NULLIF(TRIM(PersonalBancoCBU), '') IS NULL
+      `, [PersonalId])
+
+      if (!cuentasPendientes.length)
+        throw new ClientException('No se encontraron cuentas con CBU pendiente de carga para anular.')
+
+      await queryRunner.query(`
+        DELETE FROM PersonalBanco
+        WHERE PersonalId = @0
+          AND IndNuevaCuenta = 1
+          AND NULLIF(TRIM(PersonalBancoCBU), '') IS NULL
+      `, [PersonalId])
+
+      await queryRunner.commitTransaction()
+      this.jsonRes({ pendientesAnuladas: cuentasPendientes.length }, res, `Cuentas pendientes anuladas: ${cuentasPendientes.length}`)
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   async setPersonalBancoQuerys(
     queryRunner: any,
     PersonalId: number,
@@ -864,7 +974,7 @@ export class CuentasBancariasController extends BaseController {
     if (regFechaMin) throw new ClientException(`La fecha desde debe ser mayor a la fecha ${regFechaMin.fecha.toLocaleDateString()}. (${regFechaMin.reg.ApellidoNombre} - CUIT: ${regFechaMin.reg.CUIT})`)
 
     // El completado del CBU cierra como maximo un vigente, por eso mas de uno es inconsistencia de datos
-    if (vigentes > 1) throw new ClientException(`No se puede dar de alta la cuenta. La persona cuenta con mas de un CBU vigente o a futuro. Cantidad: ${vigentes} (${vigente.ApellidoNombre} - CUIT: ${vigente.CUIT }) (Inconsistencia de datos).`)
+    if (vigentes > 1) throw new ClientException(`No se puede dar de alta la cuenta. La persona cuenta con mas de un CBU vigente o a futuro. Cantidad: ${vigentes} (${vigente.ApellidoNombre} - CUIT: ${vigente.CUIT}) (Inconsistencia de datos).`)
 
     await queryRunner.query(`
         DECLARE @nuevo int = (SELECT ISNULL(PersonalBancoUltNro, 0) + 1 FROM Personal WHERE PersonalId = @0)

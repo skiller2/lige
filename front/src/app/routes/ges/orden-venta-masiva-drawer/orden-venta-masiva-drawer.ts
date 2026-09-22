@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, model, output, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, output, resource, signal, untracked } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
@@ -40,6 +40,8 @@ export class OrdenVentaMasivaDrawerComponent {
 
   // Filas seleccionadas en la grilla de órdenes de venta
   ordenes = input<any[]>([])
+  comprobantesSeleccion = signal<any[]>([])
+  datosFacturacion = signal<any[]>([])
 
   visible = model<boolean>(false)
   placement: NzDrawerPlacement = 'left'
@@ -51,6 +53,26 @@ export class OrdenVentaMasivaDrawerComponent {
 
   optionsEstado = toSignal(this.searchService.getEstadoOrdenVenta(), { initialValue: [] as any[] })
   optionsComprobanteTipo = toSignal(this.searchService.getComprobanteTipoSearch(), { initialValue: [] as any[] })
+
+  private effect =  effect(()=>{
+    const visible = this.visible()
+    if (visible){
+
+      untracked(async ()=>{
+      console.log('presentar datos',this.ordenes())
+      const cs= await firstValueFrom(this.searchService.getOrdenVentaMasiva(this.ordenes()))
+      
+      this.comprobantesSeleccion.set(cs.comprobantes)
+      this.datosFacturacion.set(cs.clientes)
+
+      console.log('presentar datos',this.ordenes())
+      console.log('presentar datos',this.comprobantesSeleccion())
+      console.log('presentar datos',this.datosFacturacion())
+
+      })
+
+    }
+  })
 
   // La edición masiva es por cliente: se agrupan las órdenes seleccionadas por el suyo, con la
   // cantidad y el importe total de cada grupo
@@ -82,19 +104,10 @@ export class OrdenVentaMasivaDrawerComponent {
     return [...porCliente.values()]
   })
 
-  // CUIT, razón social y domicilio de los clientes de la selección
-  private datosFacturacion = resource({
-    params: () => ({ clientes: this.clientes().map(cliente => cliente.ClienteId) }),
-    loader: async ({ params }) => {
-      if (!params.clientes.length) return []
-      return await firstValueFrom(this.searchService.getDatosFacturacionOrdenVenta(params.clientes))
-    },
-    defaultValue: [] as any[]
-  })
 
   // Indexados por ClienteId, para buscarlos desde cada tarjeta
   facturacion = computed<Record<number, any>>(() =>
-    Object.fromEntries((this.datosFacturacion.value() ?? []).map(
+    Object.fromEntries((this.datosFacturacion() ?? []).map(
       (cliente: any) => [Number(cliente.ClienteId), cliente])))
 
   // Un grupo por cliente con lo que se va a aplicar a todas sus órdenes. Se rearma solo cuando
@@ -111,21 +124,7 @@ export class OrdenVentaMasivaDrawerComponent {
 
   clientesArray = computed<FormArray>(() => this.formMasivo().get('clientes') as FormArray)
 
-  // Comprobantes que ya tienen las órdenes seleccionadas y se pueden editar. Un mismo comprobante
-  // puede estar en varias órdenes: el back sólo devuelve los que tienen TODAS sus órdenes dentro
-  // de la selección, porque si no, editarlo cambiaría una orden que no se eligió.
-  private comprobantesSeleccion = resource({
-    params: () => ({
-      ordenes: (this.ordenes() ?? []).map(orden => Number(orden?.NroOrdenVenta)).filter(Number.isFinite)
-    }),
-    loader: async ({ params }) => {
-      if (!params.ordenes.length) return []
-      return await firstValueFrom(this.searchService.getComprobantesSeleccionOrdenVenta(params.ordenes))
-    },
-    defaultValue: [] as any[]
-  })
-
-  comprobantesEditables = computed<any[]>(() => this.comprobantesSeleccion.value() ?? [])
+  comprobantesEditables = computed<any[]>(() => this.comprobantesSeleccion() ?? [])
 
   // El tipo y el número originales identifican al comprobante: son los que el back usa para
   // encontrar sus filas, así que se guardan aparte de lo que se edita en pantalla
