@@ -1117,7 +1117,7 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
-  async getComprobantesSeleccion(req: Request, res: Response, next: NextFunction) {
+  async getOrdenVentaMasiva(req: Request, res: Response, next: NextFunction) {
     const NroOrdenVentas: number[] = req.body?.NroOrdenVentas || []
 
     const queryRunner = await getConnection(res.locals.userName);
@@ -1150,7 +1150,30 @@ export class OrdenVentaController extends BaseController {
         ORDER BY com.ComprobanteTipoCodigo, TRIM(com.ComprobanteNro)
       `, NroOrdenVentas);
 
-      this.jsonRes(comprobantes, res);
+
+      const clientes = await queryRunner.query(`
+        SELECT DISTINCT
+          cli.ClienteId,
+          TRIM(cli.ClienteDenominacion) AS ClienteDenominacion,
+          fac.ClienteFacturacionCUIT AS CUIT,
+          CONCAT_WS(' ', TRIM(dom.DomicilioDomCalle), TRIM(dom.DomicilioDomNro),
+            TRIM(loc.LocalidadDescripcion), TRIM(prov.ProvinciaDescripcion)) AS Domicilio
+        FROM Cliente cli
+        JOIN OrdenVenta ov ON ov.ClienteId=cli.ClienteId
+        LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
+          AND fac.ClienteFacturacionDesde <= @0
+          AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @0
+        LEFT JOIN NexoDomicilio nex ON nex.ClienteId = cli.ClienteId AND nex.NexoDomicilioActual = 1 AND nex.ClienteElementoDependienteId IS null
+        LEFT JOIN Domicilio dom ON dom.DomicilioId = nex.DomicilioId
+        LEFT JOIN Localidad loc ON loc.LocalidadId = dom.DomicilioLocalidadId
+          AND loc.ProvinciaId = dom.DomicilioProvinciaId AND loc.PaisId = dom.DomicilioPaisId
+        LEFT JOIN Provincia prov ON prov.ProvinciaId = dom.DomicilioProvinciaId AND prov.PaisId = dom.DomicilioPaisId
+        WHERE ov.NroOrdenVenta IN (${parametros})
+      `, [new Date(), ...NroOrdenVentas]);
+
+
+
+      this.jsonRes({comprobantes,clientes}, res);
     } catch (error) {
       return next(error);
     } finally {
@@ -1208,42 +1231,4 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
-  // Datos de facturación de los clientes de las órdenes seleccionadas. Es la misma información
-  // que muestra la edición masiva de custodias, pero servida desde este módulo para que quede
-  // bajo el mismo permiso que el resto de la pantalla.
-  async getDatosFacturacion(req: Request, res: Response, next: NextFunction) {
-    const NroOrdenVenta: number[] = req.body?.NroOrdenVentas || [];
-
-    const queryRunner = await getConnection(res.locals.userName);
-
-    try {
-      if (!NroOrdenVenta.length) return this.jsonRes([], res);
-
-      const clientes = await queryRunner.query(`
-        SELECT DISTINCT
-          cli.ClienteId,
-          TRIM(cli.ClienteDenominacion) AS ClienteDenominacion,
-          fac.ClienteFacturacionCUIT AS CUIT,
-          CONCAT_WS(' ', TRIM(dom.DomicilioDomCalle), TRIM(dom.DomicilioDomNro),
-            TRIM(loc.LocalidadDescripcion), TRIM(prov.ProvinciaDescripcion)) AS Domicilio
-        FROM Cliente cli
-        JOIN OrdenVenta ov ON ov.ClienteId=cli.ClienteId
-        LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
-          AND fac.ClienteFacturacionDesde <= @0
-          AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @0
-        LEFT JOIN NexoDomicilio nex ON nex.ClienteId = cli.ClienteId AND nex.NexoDomicilioActual = 1 AND nex.ClienteElementoDependienteId IS null
-        LEFT JOIN Domicilio dom ON dom.DomicilioId = nex.DomicilioId
-        LEFT JOIN Localidad loc ON loc.LocalidadId = dom.DomicilioLocalidadId
-          AND loc.ProvinciaId = dom.DomicilioProvinciaId AND loc.PaisId = dom.DomicilioPaisId
-        LEFT JOIN Provincia prov ON prov.ProvinciaId = dom.DomicilioProvinciaId AND prov.PaisId = dom.DomicilioPaisId
-        WHERE ov.NroOrdenVenta IN (${NroOrdenVenta.map((_, indice) => `@${indice + 1}`).join(',')})
-      `, [new Date(), ...NroOrdenVenta]);
-
-      this.jsonRes(clientes, res);
-    } catch (error) {
-      return next(error);
-    } finally {
-      await queryRunner.release();
-    }
-  }
 }

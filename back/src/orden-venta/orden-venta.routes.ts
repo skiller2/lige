@@ -40,8 +40,8 @@ ordenVentaRouter.post("/masiva", [authMiddleware.verifyToken, authMiddleware.ver
   ordenVentaController.setOrdenVentaMasiva(req, res, next);
 });
 
-ordenVentaRouter.post("/comprobantes-seleccion", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
-  ordenVentaController.getComprobantesSeleccion(req, res, next);
+ordenVentaRouter.post("/masiva-list", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
+  ordenVentaController.getOrdenVentaMasiva(req, res, next);
 });
 
 ordenVentaRouter.post("/anular",[authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'mOrdenVenta'])], (req, res, next) => {
@@ -56,10 +56,6 @@ ordenVentaRouter.get("/estados", [authMiddleware.verifyToken], (req, res, next) 
 
 ordenVentaRouter.get("/datos-auditoria/:NroOrdenVenta", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gAuditoria'])], (req, res, next) => {
   ordenVentaController.getOrdenVentaAuditoria(req, res, next);
-});
-
-ordenVentaRouter.post("/clientes-facturacion", [authMiddleware.verifyToken], (req, res, next) => {
-  ordenVentaController.getDatosFacturacion(req, res, next);
 });
 
 ordenVentaRouter.get("/:NroOrdenVenta", [authMiddleware.verifyToken,  authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {

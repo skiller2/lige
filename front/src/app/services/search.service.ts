@@ -1562,8 +1562,8 @@ export class SearchService {
     );
   }
 
-  getComprobantesSeleccionOrdenVenta(NroOrdenVentas: number[]): Observable<any> {
-    return this.http.post<ResponseJSON<any>>(`/api/orden-venta/comprobantes-seleccion`, { NroOrdenVentas }).pipe(
+  getOrdenVentaMasiva(NroOrdenVentas: number[]): Observable<any> {
+    return this.http.post<ResponseJSON<any>>(`/api/orden-venta/masiva-list`, { NroOrdenVentas }).pipe(
       map(res => res.data),
       catchError(() => of([]))
     );
@@ -1574,14 +1574,6 @@ export class SearchService {
     return this.http.get<ResponseJSON<any>>(`/api/orden-venta/datos-auditoria/${NroOrdenVenta}`).pipe(
       map(res => res.data),
       catchError(() => of(null))
-    );
-  }
-
-  // Datos de facturación de los clientes de las órdenes seleccionadas (edición masiva)
-  getDatosFacturacionOrdenVenta(NroOrdenVentas: number[]): Observable<any> {
-    return this.http.post<ResponseJSON<any>>(`/api/orden-venta/clientes-facturacion`, { NroOrdenVentas }).pipe(
-      map(res => res.data),
-      catchError(() => of([]))
     );
   }
 
