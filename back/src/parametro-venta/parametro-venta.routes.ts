@@ -17,7 +17,7 @@ parametrosVentaRouter.post('/add', [authMiddleware.verifyToken, authMiddleware.h
   parametrosVentaController.addParametroVenta(req, res, next)
 })
 
-parametrosVentaRouter.get('/options', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+parametrosVentaRouter.get('/options', [authMiddleware.verifyToken], (req, res, next) => {
   parametrosVentaController.getTipoProductoSearchOptions(req, res, next)
 })
 
@@ -42,12 +42,12 @@ parametrosVentaRouter.post('/rechazar-multiple', [authMiddleware.verifyToken, au
 })
 
 
-parametrosVentaRouter.get('/tipoCantidad_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+parametrosVentaRouter.get('/tipoCantidad_getOptions', [authMiddleware.verifyToken], (req, res, next) => {
   parametrosVentaController.getTipoCantidadSearchOptions(req, res, next)
 })
 
 
-parametrosVentaRouter.get('/tipoImporte_getOptions', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+parametrosVentaRouter.get('/tipoImporte_getOptions', [authMiddleware.verifyToken], (req, res, next) => {
   parametrosVentaController.getTipoImporteSearchOptions(req, res, next)
 })
 

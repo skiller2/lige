@@ -66,7 +66,10 @@ export class AuthMiddleware {
       if (res.locals?.skipMiddleware) return next()
       for (const myGrp of req?.groups) {
         for (const grp of group) {
-          if (myGrp.toLowerCase() === grp.toLowerCase()) return next()
+          if (myGrp.toLowerCase() === grp.toLowerCase()){
+            res.locals.hasGroup = true
+            return next()
+          }
         }
       }
 
@@ -80,7 +83,7 @@ export class AuthMiddleware {
       const stopTime = performance.now()
       const motivos = res.locals?.motivoSinPermiso ?? []
       const motivo = (motivos.length > 0) ? `<br /><br />${motivos.join('<br />')}` : ''
-      return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join()}${motivo}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
+      return res.status(409).json({ msg: `Requiere ser miembro del grupo ${group.join(', ')}.${motivo}`, data: [], stamp: new Date(), ms: res.locals.startTime - stopTime });
 
     }
   }
@@ -442,7 +445,10 @@ export class AuthMiddleware {
     if ((!GrupoActividad || GrupoActividad.length > 0) && PersonalId > 0) {
       // Tiene grupos de actividad, guardar en res.locals para uso posterior
       res.locals.verifyGrupoActividad = true
+      return next();
     }
+
+    res.locals.motivoSinPermiso = [`- No se encuentra como responsable/administrativo de ningún grupo de Actividad.`]
     return next()
   }
 
