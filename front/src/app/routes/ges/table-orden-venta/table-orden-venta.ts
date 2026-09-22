@@ -3,6 +3,7 @@ import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService } from '../../../services/api.service';
+import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
@@ -38,6 +39,8 @@ export class TableOrdenVentaComponent implements OnInit {
   startFilters = signal<Selections[]>([
     { index: 'Estado', condition: 'AND', operator: '<>', value: 'Facturado', closeable: true }
   ])
+  startFiltersReady = signal(false)
+  filtersReady = signal(false)
 
   // Filtros y orden de la grilla
   listOptions = signal<listOptionsT>({
@@ -46,22 +49,29 @@ export class TableOrdenVentaComponent implements OnInit {
   })
 
   private apiService = inject(ApiService)
+  private searchService = inject(SearchService)
   public angularUtilService = inject(AngularUtilService)
 
   // Columnas configuradas desde el backend (controlador de orden de venta, el mismo de carga asistencia)
   columns = toSignal(this.apiService.getCols('/api/orden-venta/cols-ordenes'), { initialValue: [] as Column[] })
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), refresh: this.refreshGrid() }),
-    loader: async () => {
-      const response = await firstValueFrom(this.apiService.getListOrdenesVenta(this.listOptions()));
+    params: () => this.filtersReady()
+      ? { options: this.listOptions(), refresh: this.refreshGrid() }
+      : undefined,
+    loader: async ({ params }) => {
+      const response = await firstValueFrom(this.apiService.getListOrdenesVenta(params.options));
       return response.list;
     },
     defaultValue: []
   }).value;
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.initializeGridOptions();
+
+    const filters = await firstValueFrom(this.searchService.getOrdenVentaFilters());
+    this.startFilters.update(currentFilters => [...currentFilters, ...filters]);
+    this.startFiltersReady.set(true);
   }
 
   private initializeGridOptions(): void {
@@ -81,6 +91,15 @@ export class TableOrdenVentaComponent implements OnInit {
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
     this.gridOptions.forceFitColumns = true;
+  }
+
+  listOptionsChange(options: listOptionsT): void {
+    this.listOptions.set(options);
+    const filtros = Array.isArray(options.filtros) ? options.filtros : [];
+    const initialFiltersApplied = this.startFilters().every(startFilter =>
+      filtros.some((filtro: any) => filtro.inicial === true && filtro.index === startFilter.index)
+    );
+    if (!this.filtersReady() && initialFiltersApplied) this.filtersReady.set(true);
   }
 
   angularGridReady(angularGrid: any): void {

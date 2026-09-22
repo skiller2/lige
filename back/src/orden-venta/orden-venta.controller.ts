@@ -2,7 +2,7 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { getConnection } from "../data-source.ts";
 import { AsistenciaController } from "../controller/asistencia.controller.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
-import type { Options } from "../schemas/filtro.ts";
+import type { Options, Selections } from "../schemas/filtro.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { QueryRunner } from "typeorm";
 import { ParametrosVentaController } from "../parametro-venta/parametro-venta.controller.ts";
@@ -140,6 +140,16 @@ const columnasGrillaOrdenes: any[] = [
     searchHidden: false
   },
   {
+    id: "GrupoActividadNumero",
+    name: "Grupo Actividad",
+    field: "GrupoActividadNumero",
+    fieldName: "ga.GrupoActividadNumero",
+    type: "string",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
     id: "Objetivo",
     name: "Objetivo",
     field: "Objetivo",
@@ -194,6 +204,27 @@ export class OrdenVentaController extends BaseController {
     this.jsonRes(columnasGrillaOrdenes, res);
   }
 
+  async getGridFilters(req: Request, res: Response) {
+    const startFilters: Selections[] = [];
+    const grupoActividad = Array.isArray(res.locals.GrupoActividad)
+      ? res.locals.GrupoActividad.map((grupo: any) => grupo.GrupoActividadNumero).join(';')
+      : '';
+
+    if (grupoActividad) {
+      startFilters.push({
+        index: 'GrupoActividadNumero',
+        condition: 'AND',
+        operator: '=',
+        value: grupoActividad,
+        closeable: Boolean(res.locals.authADGroup),
+        label: '',
+        originIdx: null
+      });
+    }
+
+    return this.jsonRes(startFilters, res);
+  }
+
   // Listado de cabeceras de órdenes de venta. El objetivo no está en OrdenVenta: se resuelve por
   // cliente/elemento dependiente, la misma relación que usa getOrdenVentaPeriodo.
   async getListOrdenesVenta(req: Request, res: Response, next: NextFunction) {
@@ -201,7 +232,7 @@ export class OrdenVentaController extends BaseController {
     try {
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
       const filterSql = filtrosToSql(options.filtros, columnasGrillaOrdenes);
-      const orderBy = orderToSQL(options.sort);
+      const orderBy = orderToSQL(options.sort);      
 
       const lista = await queryRunner.query(`
         SELECT
@@ -218,12 +249,17 @@ export class OrdenVentaController extends BaseController {
           ord.EstadoOrdenVentaCodigo,
           ${sqlEstadoOrden} AS Estado,
           ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar,
-          IIF((objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia
+          IIF((objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
+          ga.GrupoActividadNumero, gaobj.GrupoActividadId
         FROM OrdenVenta ord
         LEFT JOIN Cliente cli ON cli.ClienteId = ord.ClienteId
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = ord.ClienteId AND isnull(eledep.ClienteElementoDependienteId,0) = isnull(ord.ClienteElementoDependienteId,0)
         LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
         LEFT JOIN Objetivo obj ON obj.ClienteId = eledep.ClienteId and obj.ClienteElementoDependienteId = isnull(eledep.ClienteElementoDependienteId,0)
+        LEFT JOIN GrupoActividadObjetivo gaobj ON gaobj.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
+            AND gaobj.GrupoActividadObjetivoDesde <= EOMONTH(DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1))
+            AND ISNULL(gaobj.GrupoActividadObjetivoHasta, '9999-12-31') >= DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1)
+        LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gaobj.GrupoActividadId
         LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = ord.PeriodoAnio
         LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = ord.PeriodoMes
       

@@ -88,24 +88,36 @@ const getConfigPatagonia = async (queryRunner: QueryRunner): Promise<ConfigPatag
  */
 const getAccessToken = async (app: any, queryRunner: QueryRunner): Promise<string> => {
   const cacheado: TokenPatagonia = app?.locals?.BAPA_TOKEN_API;
-
   if (cacheado?.access_token && cacheado.expira > Date.now())
     return cacheado.access_token;
 
   const config = await getConfigPatagonia(queryRunner);
-
   const credenciales = Buffer.from(
     `${config.cliend_id}:${config.client_secret}`
   ).toString("base64");
 
-  const response = await fetch(`${config.host}/oauth/token`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${credenciales}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({ grant_type: "client_credentials" }).toString(),
-  });
+  // COMENTADO PARA NO HACER LLAMADOS REALES AL BANCO PATAOGNIA EN DESARROLLO
+
+  // const response = await fetch(`${config.host}/oauth/token`, {
+  //   method: "POST",
+  //   headers: {
+  //     Authorization: `Basic ${credenciales}`,
+  //     "Content-Type": "application/x-www-form-urlencoded",
+  //   },
+  //   body: new URLSearchParams({ grant_type: "client_credentials" }).toString(),
+  // });
+
+  // PARA TESTEAR
+  const response = {
+    ok: true,
+    status: 200,
+    text: async () => JSON.stringify({
+      token_type: "Bearer",
+      access_token: "TOKEN-DE-PRUEBA",
+      scope: "api_access",
+      expires_in: 3600,
+    }),
+  };
 
   const texto = await response.text();
   let respuesta: any;
