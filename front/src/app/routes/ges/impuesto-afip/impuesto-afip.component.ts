@@ -398,10 +398,33 @@ export class ImpuestoAfipComponent {
       'get', `/api/impuestos_afip/${anio}/${mes}/0/${PersonalId}?original=true`, null, null)
   }
 
+  /**
+   * Trae los comprobantes del período que quedaron pendientes (con solicitud enviada y sin
+   * documento). Es un proceso largo: el back devuelve el resumen y solo los que fallaron, que
+   * se muestran en el modal.
+   */
   async obtenerComprobantesPendientes() {
-    await this.ejecutarAccion('comprobantesPendientes', () =>
-      firstValueFrom(this.apiService.obtenerComprobantesPendientes(this.anio(), this.mes()))
-    )
+    const anio = this.anio()
+    const mes = this.mes()
+
+    await this.ejecutarAccion('comprobantesPendientes', async () => {
+      try {
+        const data: any = await firstValueFrom(this.apiService.obtenerComprobantesPendientes(anio, mes))
+        if (data?.resultados?.length)
+          this.mostrarRespuestaApi(
+            `Comprobantes pendientes con error - ${mes}/${anio}`,
+            data.resultados,
+            `${data.conError} de ${data.procesados} pendientes no devolvieron comprobante`
+          )
+      } catch (error: any) {
+        const msg = error?.error?.msg
+        this.mostrarRespuestaApi(
+          `Comprobantes pendientes - ${mes}/${anio}`,
+          this.bloquesRespuestaApi(error?.error?.data ?? error?.error ?? { error: error?.message ?? String(error) }),
+          Array.isArray(msg) ? msg.join(' ') : (msg ?? error?.message ?? String(error))
+        )
+      }
+    })
   }
 
   private async ejecutarAccion(accion: string, fn: () => Promise<unknown>) {

@@ -205,6 +205,10 @@ impuestosAfipRouter.post("/comprobante_monotributo", [authMiddleware.verifyToken
   impuestosAfipController.jobObtenerComprobanteMonotributo(req, res, next);
 });
 
+impuestosAfipRouter.post("/comprobantes_pendientes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  impuestosAfipController.jobObtenerComprobantesPendientes(req, res, next);
+});
+
 impuestosAfipRouter.get('/get_options', [authMiddleware.verifyToken], (req, res, next) => {
   impuestosAfipController.getOptions(req, res)
 });

@@ -829,6 +829,162 @@ export class ImpuestosAfipController extends BaseController {
   }
 
   /**
+   * Trae los comprobantes de monotributo que quedaron pendientes en el período: los que ya tienen
+   * ReferenciaPago (se mandó la solicitud al banco) pero todavía no tienen el documento cargado.
+   *
+   * Por cada uno consulta la API 9 (POST /batch/record/status), graba la respuesta en
+   * PersonalComprobantePagoAFIP.ResultadoPago sin el voucherBase64 y el PDF en Documento, con la
+   * misma función que usa la carga de un comprobante suelto. Un error en uno no corta el resto:
+   * se acumula y se devuelve para mostrarlo en la pantalla.
+   */
+  async jobObtenerComprobantesPendientes(req: Request, res: Response, next: NextFunction) {
+    const usuario = this.getUser(res)
+    const ip = this.getRemoteAddress(req)
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+
+    const queryRunner = await getConnection(usuario);
+
+    let EventoLogCodigo = 0
+    let procesados = 0
+    let conComprobante = 0
+    let conError = 0
+    // Solo los que fallaron: el listado completo no aporta y puede ser largo
+    const resultados: any[] = []
+
+    try {
+      if (!anio) throw new ClientException("Faltó indicar el anio.");
+      if (!mes) throw new ClientException("Faltó indicar el mes.");
+
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Obtener Comprobantes Monotributo Pendientes`,
+        { anio, mes, usuario, ip },
+        usuario,
+        ip,
+        "JOB"
+      ));
+
+      // Se valida la configuración y se autentica antes del loop: si algo de esto falla, el job
+      // termina con error en lugar de dejarlo como error de cada CUIT.
+      const config = await getConfigPatagonia(queryRunner)
+      await getAccessToken(req.app, queryRunner)
+
+      const pendientes = await queryRunner.query(
+        `SELECT com.PersonalComprobantePagoAFIPId, com.PersonalId, com.ReferenciaPago,
+          cuit.PersonalCUITCUILCUIT CUIT,
+          CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre
+        FROM PersonalComprobantePagoAFIP com
+        JOIN Personal per ON per.PersonalId = com.PersonalId
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = com.PersonalId
+          AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = com.PersonalId)
+        LEFT JOIN lige.dbo.liqmaperiodo peri ON peri.anio = @0 AND peri.mes = @1
+        LEFT JOIN Documento doc ON doc.PersonalId = com.PersonalId AND doc.DocumentoTipoCodigo = 'MONOT'
+          AND doc.DocumentoAnio = peri.anio AND doc.DocumentoMes = peri.mes
+        WHERE com.PersonalComprobantePagoAFIPAno = @0 AND com.PersonalComprobantePagoAFIPMes = @1
+          AND com.ReferenciaPago IS NOT NULL
+          AND doc.DocumentoId IS NULL
+        ORDER BY per.PersonalApellido, per.PersonalNombre`,
+        [anio, mes]
+      );
+
+      // Una consulta por CUIT, de a una: el servicio responde por beneficiario y el lote puede
+      // ser largo. Lo que se graba de cada uno queda commiteado antes de pasar al siguiente.
+      for (const pendiente of pendientes) {
+        procesados++
+        const CUIT = String(pendiente.CUIT ?? '').replace(/\D/g, '')
+
+        try {
+          if (!CUIT)
+            throw new ClientException(`La persona ${pendiente.ApellidoNombre} no tiene CUIT cargado`)
+
+          const estado = await consultarEstadoBeneficiario(req.app, queryRunner, config, CUIT, anio, mes)
+
+          if (!estado.ok) {
+            conError++
+            resultados.push({
+              titulo: `${pendiente.ApellidoNombre} - CUIT ${CUIT}`,
+              status: estado.status,
+              ok: false,
+              respuesta: sinVoucher(estado.respuesta)
+            })
+            continue
+          }
+
+          // El resultado se graba aunque la respuesta informe un error del lote: es el dato que
+          const resultado = sinVoucher(estado.respuesta)
+          await queryRunner.startTransaction()
+          await this.grabarResultadoPago(queryRunner, pendiente, anio, mes, resultado)
+          await queryRunner.commitTransaction()
+
+          const voucherBase64 = estado.respuesta?.voucherBase64
+          if (!voucherBase64) {
+            conError++
+            resultados.push({
+              titulo: `${pendiente.ApellidoNombre} - CUIT ${CUIT}`,
+              status: estado.status,
+              ok: false,
+              respuesta: resultado
+            })
+            continue
+          }
+
+          await queryRunner.startTransaction()
+          await this.grabarComprobantePDF(queryRunner, CUIT, pendiente.PersonalId, anio, mes, voucherBase64, usuario, ip)
+          await queryRunner.commitTransaction()
+          conComprobante++
+        } catch (error) {
+          await this.rollbackTransaction(queryRunner)
+          conError++
+          resultados.push({
+            titulo: `${pendiente.ApellidoNombre} - CUIT ${CUIT}`,
+            status: 0,
+            ok: false,
+            respuesta: { error: error instanceof Error ? error.message : String(error) }
+          })
+        }
+      }
+
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: `Procesado correctamente`,
+          'Registros Procesados': procesados,
+          'Comprobantes Obtenidos': conComprobante,
+          'Registros Con Error': conError
+        },
+        usuario,
+        ip
+      );
+
+      this.jsonRes(
+        { anio, mes, procesados, conComprobante, conError, resultados },
+        res,
+        `Se procesaron ${procesados} pendientes de ${mes}/${anio}: ${conComprobante} comprobante(s) obtenido(s), ${conError} con error`
+      );
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        {
+          res: error,
+          'Registros Procesados': procesados,
+          'Comprobantes Obtenidos': conComprobante,
+          'Registros Con Error': conError
+        },
+        usuario,
+        ip
+      );
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  /**
    * Graba en PersonalComprobantePagoAFIP el resultado que devolvió la API. Si todavía no existe
    * la fila del período la crea, numerando con PersonalComprobantePagoAFIPUltNro como hace
    * insertPDF, y aprovecha el externalReferenceId de la respuesta como ReferenciaPago.

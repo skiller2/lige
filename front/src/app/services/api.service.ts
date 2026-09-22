@@ -1201,9 +1201,12 @@ export class ApiService {
     const parameter = { anio, mes }
     this.notification.success('Respuesta', `Inicio obtención de comprobantes pendientes`);
 
-    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobantes_pendientes', parameter).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    )
+    // El error no se notifica: la respuesta de la API se muestra en el modal de la pantalla.
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobantes_pendientes', parameter, null,
+      { observe: 'body', context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
+        tap((res: ResponseJSON<any>) => this.response(res)),
+        map((res: ResponseJSON<any>) => res.data),
+      )
   }
 
   getTelefonos(params: any) {
