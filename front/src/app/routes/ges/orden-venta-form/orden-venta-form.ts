@@ -51,8 +51,8 @@ export interface Comprobante {
 
 export interface OrdenVentaForm {
   NroOrdenVenta: number;
-  PeriodoMes: number,
-  PeriodoAnio: number,
+  Periodo: Date,
+  ObjetivoId: number,
   ClienteId: number,
   ClienteElementoDependienteId: number,
   EstadoOrdenVentaCodigo: string,
@@ -95,6 +95,7 @@ export class OrdenVentaFormComponent {
   optionsTipoImporte = toSignal(this.searchService.getTipoImporteSearch(), { initialValue: [] })
   optionsComprobanteTipo = toSignal(this.searchService.getComprobanteTipoSearch(), { initialValue: [] })
   optionsTipoProducto = toSignal(this.searchService.getTipoProductoSearch(), { initialValue: [] })
+  optionsEstado = toSignal(this.searchService.getEstadoOrdenVenta(), { initialValue: [] })
 
   private readonly defaultProducto: Producto = {
     ItemOrdenVentaCodigo: 0,
@@ -119,8 +120,9 @@ export class OrdenVentaFormComponent {
 
   private readonly defaultOrdenVenta: OrdenVentaForm = {
     NroOrdenVenta: 0,
-    PeriodoMes: Number(this.anio()),
-    PeriodoAnio: Number(this.mes()),
+    Periodo: new Date(this.anio(),this.mes()-1,1),
+    ObjetivoId: 0,
+
     EstadoOrdenVentaCodigo: '',
     ClienteId: Number(this.ClienteId()),
     ClienteElementoDependienteId: Number(this.ClienteElementoDependienteId()),
@@ -264,9 +266,9 @@ export class OrdenVentaFormComponent {
     const newOrdenVenta = structuredClone(this.defaultOrdenVenta)
     newOrdenVenta.ClienteElementoDependienteId=Number(this.ClienteElementoDependienteId())
     newOrdenVenta.ClienteId=Number(this.ClienteId())
-    newOrdenVenta.PeriodoAnio=Number(this.anio())
-    newOrdenVenta.PeriodoMes=Number(this.mes())
+    newOrdenVenta.Periodo=new Date(this.anio(),this.mes()-1,1)
     newOrdenVenta.NroOrdenVenta=0
+    newOrdenVenta.EstadoOrdenVentaCodigo='PEN'
     this.ordenVenta.set(newOrdenVenta)
     this.formOrdenVenta().reset();
   }

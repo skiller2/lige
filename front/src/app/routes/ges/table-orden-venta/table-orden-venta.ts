@@ -93,13 +93,7 @@ export class TableOrdenVentaComponent implements OnInit {
 
   async handleSelectedRowsChanged(e: any): Promise<void> {
     const selectedRows = e.detail.args.rows;
-    const selectedData: any[] = [];
-
-    selectedRows.forEach((rowIndex: number) => {
-      const row = this.angularGrid.slickGrid.getDataItem(rowIndex);
-      if (row) selectedData.push(row);
-    });
-
-    this.ordenesSeleccionadas.set(selectedData);
+    const selectedData= selectedRows.map((r:any)=>this.angularGrid.slickGrid.getDataItem(r).NroOrdenVenta) 
+    this.ordenesSeleccionadas.set(selectedData)
   }
 }

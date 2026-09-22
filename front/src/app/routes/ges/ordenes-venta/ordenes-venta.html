@@ -40,22 +40,22 @@
           nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
           <span nz-icon nzType="plus" nzTheme="outline"></span></button>
         <!-- btn baja: la confirmación la abre la solapa, no el click -->
-        <button nz-button nzType="default" [disabled]="sinSeleccion()" (click)="anularOrdenVenta()"
+        <button nz-button nzType="default" [disabled]="ordenesSeleccionadas() && ordenesSeleccionadas().length ==0" (click)="anularOrdenVenta()"
           nz-popconfirm nzPopconfirmTitle="Está seguro que quiere anular esta Orden de Venta?"
           [nzPopconfirmTrigger]="null" [nzPopconfirmVisible]="enAnular()"
           (nzPopconfirmVisibleChange)="$event ? null : anularCancelado()"
           (nzOnConfirm)="bajaOrdenVenta()" nz-tooltip nzTooltipTitle="Anular">
           <span nz-icon nzType="delete" nzTheme="outline"></span></button>
         <!-- btn modificar: abre una orden, así que no vale con varias tildadas -->
-        <button nz-button nzType="default" [disabled]="!seleccionUnica()" nz-tooltip
+        <button nz-button nzType="default" [disabled]="ordenesSeleccionadas() && ordenesSeleccionadas().length !=1" nz-tooltip
           nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" (click)="modificarOrdenVenta()">
           <span nz-icon nzType="edit" nzTheme="outline"></span></button>
         <!-- btn consulta -->
-        <button nz-button nzType="default" [disabled]="!seleccionUnica()" nz-tooltip
+        <button nz-button nzType="default" [disabled]="ordenesSeleccionadas() && ordenesSeleccionadas().length !=1" nz-tooltip
           nzTooltipTitle="{{ 'app.icon.consult' | i18n }}" (click)="consultaOrdenVenta()">
           <span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
         <!-- btn edición masiva: trabaja sobre todas las órdenes seleccionadas -->
-        <button nz-button nzType="default" [disabled]="sinSeleccion()" nz-tooltip
+        <button nz-button nzType="default" [disabled]="ordenesSeleccionadas() && ordenesSeleccionadas().length ==0" nz-tooltip
           nzTooltipTitle="Edición masiva" (click)="edicionMasiva()">
           <span nz-icon nzType="profile" nzTheme="outline"></span></button>
       </nz-button-group>
@@ -72,16 +72,6 @@
 
   <!-- Período y objetivo de la orden. Solo se eligen en el alta: en el resto la identifican. -->
   <nz-form-item style="margin-top: 20px; margin-bottom: 20px;">
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Período</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-      @if (enAlta()) {
-      <nz-date-picker nzMode="month" nzFormat="MM/yyyy" style="width: 100%;" [ngModel]="periodoAlta()"
-        [ngModelOptions]="{ standalone: true }" (ngModelChange)="periodoAlta.set($event)" />
-      } @else {
-      <input nz-input [value]="periodoTexto()" readonly />
-      }
-    </nz-form-control>
-
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Objetivo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
       @if (enAlta()) {
@@ -92,18 +82,6 @@
       }
     </nz-form-control>
 
-    <!-- El estado sólo se elige desde esta pantalla: entrando por la carga de asistencia lo
-         resuelve el back según los comprobantes -->
-    <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Estado</nz-form-label>
-    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5">
-      <nz-select [ngModel]="estadoOrdenVenta()" [ngModelOptions]="{ standalone: true }"
-        (ngModelChange)="estadoOrdenVenta.set($event)" nzPlaceHolder="Estado" nzAllowClear
-        [nzDisabled]="soloLectura()" [nzDropdownMatchSelectWidth]="false" style="width: 100%;">
-        @for (option of optionsEstado(); track option.value) {
-        <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-        }
-      </nz-select>
-    </nz-form-control>
 
   </nz-form-item>
 
@@ -120,20 +98,20 @@
 
   <app-orden-venta-form #ordenVentaForm [anio]="anio()" [mes]="mes()"
     [ClienteId]="clienteId()" [ClienteElementoDependienteId]="clienteElementoDependienteId()"
-    [soloLectura]="soloLectura()" [origenCrud]="true" 
+    [soloLectura]="soloLectura()" [origenCrud]="true" [NroOrdenVenta]="this.ordenesSeleccionadas()?.[0] ?? 0" 
     (ordenVentaGuardada)="ordenVentaGuardada()" />
   <nz-divider></nz-divider>
 
   <div style="display: flex; align-items: flex-end; gap: 16px; margin-bottom: 60px;">
     <div style="flex: 1;">
-      @if (modo() === 'modificacion') {
+
       <span nz-tooltip nzTooltipTitle="Datos de Auditoría">
         <button nz-button nzType="default" nz-popover nzPopoverTrigger="click" nzPopoverPlacement="topLeft"
-          [nzPopoverContent]="auditoriaTemplate" [disabled]="!nroOrdenVentaAbierta()" (click)="loadAuditoria()">
+          [nzPopoverContent]="auditoriaTemplate"  (click)="loadAuditoria()">
           <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
         </button>
       </span>
-      }
+      
     </div>
 
   </div>

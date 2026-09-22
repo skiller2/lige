@@ -55,14 +55,6 @@ export class OrdenesVentaComponent {
 
   ordenesSeleccionadas = model<any[]>([])
 
-  ordenSeleccionada = computed(() => this.ordenesSeleccionadas()?.length > 0 ? this.ordenesSeleccionadas()[0] : null)
-
-  // La edición masiva trabaja sobre todas las órdenes seleccionadas
-  sinSeleccion = computed(() => this.ordenSeleccionada() == null)
-
-  // Modificación y consulta abren una orden: con más de una tildada no se sabe cuál
-  seleccionUnica = computed(() => this.ordenesSeleccionadas()?.length === 1)
-
   // Modo del detalle, según la solapa. En null la pantalla muestra el listado.
   modo = computed<ModoOrdenVenta>(() => MODO_POR_TAB[this.tabActual()] ?? null)
 
@@ -172,14 +164,16 @@ export class OrdenesVentaComponent {
 
     // Entrando por url a una solapa que necesita una orden tildada en la grilla no hay ninguna:
     // se vuelve al listado, que es de donde se elige
+    /*
     effect(() => {
       const tab = this.tabActual()
       if (tab === 'editar' || tab === 'consulta') {
         if (!this.ordenAbierta()) this.volverAlListado()
-      } else if ((tab === 'masiva' || tab === 'anular') && this.sinSeleccion()) {
+      } else if ((tab === 'masiva' || tab === 'anular') && this.ordenesSeleccionadas().length<1) {
         this.volverAlListado()
       }
     })
+    */
   }
 
   private irA(tab: TabOrdenVenta) {
@@ -206,27 +200,8 @@ export class OrdenesVentaComponent {
     defaultValue: { list: [], esNueva: false } as any
   })
 
-  items = computed<any[]>(() => this.itemsResource.value()?.list ?? [])
-
-  // El detalle se inicializó con el del mes anterior: se puede grabar sin modificarlo
-  detalleImportado = computed<boolean>(() =>
-    !!this.itemsResource.value()?.esNueva && this.items().length > 0)
-
-  // mm/aaaa, como se muestra el período en la carga de asistencia
-  periodoTexto = computed(() => this.anio() ? `${String(this.mes()).padStart(2, '0')}/${this.anio()}` : '')
-
-  // Detalle tal cual está en el formulario, con los ítems agregados o editados sin guardar
-  detalle = signal<any[]>([])
-
-  // Sin cliente resuelto el guardado no tiene contra qué grabar la orden
-  puedeGuardar = computed(() => this.periodoCompleto() && this.clienteId() != null)
-
   // Cambia al guardar: la fila de la grilla quedó vieja y hay que releer la lista
   refreshTick = signal(0)
-
-  // Orden abierta en el detalle: la de la fila, o la de la cabecera cuando el alta recién se grabó
-  nroOrdenVentaAbierta = computed<number>(() =>
-    Number(this.ordenAbierta()?.NroOrdenVenta ?? this.cabecera().NroOrdenVenta ?? 0))
 
   // Auditoría de la cabecera (alta / última modificación), igual que en el detalle de movimientos de efectos
   auditoria = signal<any>(null)
@@ -242,27 +217,23 @@ export class OrdenesVentaComponent {
 
   // Se pide al abrir el popover: así muestra la última modificación, aunque se acabe de guardar
   async loadAuditoria() {
-    const NroOrdenVenta = this.nroOrdenVentaAbierta()
+    const NroOrdenVenta = this.ordenesSeleccionadas()?.[0] ?? 0;
     // Se limpia para que no se vea la auditoría de la orden abierta antes
     this.auditoria.set(null)
     if (!NroOrdenVenta) return
     this.auditoria.set(await firstValueFrom(this.searchService.getOrdenVentaAuditoria(NroOrdenVenta)))
   }
 
-  anulando = signal(false)
-
   // Anular: las órdenes tildadas en la grilla pasan a estado cancelado. El detalle y los
   // comprobantes quedan como están, sólo cambia el estado.
   async bajaOrdenVenta() {
-    if (this.sinSeleccion() || this.anulando()) return
+    if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length!=1) return
 
     const NroOrdenVentas = this.ordenesSeleccionadas()
       .map(orden => Number(orden?.NroOrdenVenta))
       .filter(Number.isFinite)
 
-    if (!NroOrdenVentas.length) return
 
-    this.anulando.set(true)
     try {
       const respuesta = await firstValueFrom(this.apiService.anularOrdenesVenta(NroOrdenVentas))
 
@@ -272,20 +243,19 @@ export class OrdenesVentaComponent {
       this.ordenesSeleccionadas.set([])
       this.refreshTick.update(n => n + 1)
     } finally {
-      this.anulando.set(false)
       this.volverAlListado()
     }
   }
 
   // Edición masiva de las órdenes seleccionadas, agrupadas por cliente
   edicionMasiva() {
-    if (this.sinSeleccion()) return
+    if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length<1) return
     this.irA('masiva')
   }
 
   // Anular pide confirmación: la solapa es la que abre el cartel
   anularOrdenVenta() {
-    if (this.sinSeleccion()) return
+    if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length<1) return
     this.irA('anular')
   }
 
@@ -295,18 +265,13 @@ export class OrdenesVentaComponent {
   }
 
   modificarOrdenVenta() {
-    this.abrirDetalle('editar')
+    if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length!=1) return
+    this.irA('editar')
   }
 
   consultaOrdenVenta() {
-    this.abrirDetalle('consulta')
-  }
-
-  // La orden sale de la fila tildada: se guarda antes de navegar, porque la solapa sola no la sabe
-  private abrirDetalle(tab: TabOrdenVenta) {
-    if (!this.seleccionUnica()) return
-    this.ordenAbierta.set(this.ordenSeleccionada())
-    this.irA(tab)
+    if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length!=1) return
+    this.irA('consulta')
   }
 
   // Guardado el detalle se sigue trabajando sobre él: se releen los ítems, que vuelven con su código,

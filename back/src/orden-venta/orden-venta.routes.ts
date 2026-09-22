@@ -20,10 +20,6 @@ ordenVentaRouter.get("/cabecera/:ClienteId/:ClienteElementoDependienteId/:anio/:
   ordenVentaController.getCabecera(req, res, next);
 });
 
-ordenVentaRouter.get("/:NroOrdenVenta", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
-  ordenVentaController.getOrdenVenta(req, res, next);
-});
-
 ordenVentaRouter.get("/plantilla/:ClienteId/:ClienteElementoDependienteId/:anio/:mes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   ordenVentaController.getPlantillaOrdenVenta(req, res, next);
 });
@@ -48,9 +44,11 @@ ordenVentaRouter.post("/anular",[authMiddleware.verifyToken, authMiddleware.hasG
   ordenVentaController.anularOrdenesVenta(req, res, next);
 });
 
-ordenVentaRouter.get("/estados", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+
+ordenVentaRouter.get("/estados", [authMiddleware.verifyToken], (req, res, next) => {
   ordenVentaController.getEstados(req, res, next);
 });
+
 
 ordenVentaRouter.get("/datos-auditoria/:NroOrdenVenta", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gAuditoria'])], (req, res, next) => {
   ordenVentaController.getOrdenVentaAuditoria(req, res, next);
@@ -60,3 +58,6 @@ ordenVentaRouter.post("/clientes-facturacion", [authMiddleware.verifyToken, auth
   ordenVentaController.getDatosFacturacion(req, res, next);
 });
 
+ordenVentaRouter.get("/:NroOrdenVenta", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  ordenVentaController.getOrdenVenta(req, res, next);
+});

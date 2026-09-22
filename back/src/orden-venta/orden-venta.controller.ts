@@ -326,6 +326,7 @@ export class OrdenVentaController extends BaseController {
 
     ordenDs[0].items = items
     ordenDs[0].comprobantes = comprobantes
+    ordenDs[0].Periodo = new Date(ordenDs[0].PeriodoAnio, ordenDs[0].PeriodoMes-1, 1)
     return ordenDs[0]
   }
 
@@ -359,6 +360,7 @@ export class OrdenVentaController extends BaseController {
       ordenDs.NroOrdenVenta = 0
       ordenDs.PeriodoAnio = anio
       ordenDs.PeriodoMes = mes
+      ordenDs.Periodo= new Date(anio,mes-1,1)
 
       const { ImporteUnitarioA, ImporteUnitarioB, TotalHoraA, TotalHoraB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
 
@@ -637,8 +639,6 @@ export class OrdenVentaController extends BaseController {
 
   // Alta o modificación de la orden del período, con su detalle completo.
   async setOrdenVenta(req: Request, res: Response, next: NextFunction) {
-    const PeriodoMes = Number(req.body.PeriodoMes);
-    const PeriodoAnio = Number(req.body.PeriodoAnio);
     const ClienteId = Number(req.body.ClienteId);
     const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
     const itemsTmp: any[] = Array.isArray(req.body.items) ? req.body.items : [];
@@ -647,6 +647,8 @@ export class OrdenVentaController extends BaseController {
     const comprobantesTmp = Array.isArray(req.body.comprobantes) ? req.body.comprobantes : [];
     let NroOrdenVenta = req.body.NroOrdenVenta ?? null;
     const queryRunner = await getConnection(res.locals.userName);
+    const PeriodoMes = new Date(req.body.Periodo).getFullYear();
+    const PeriodoAnio = new Date(req.body.Periodo).getMonth()+1;
 
     try {
       const usuario = res.locals.userName;
