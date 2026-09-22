@@ -2498,6 +2498,18 @@ export class ApiService {
     );
   }
 
+  anularCuentasPendientes(cuentas: { PersonalId: number, PersonalBancoId: number }[]) {
+    return this.http.post<ResponseJSON<any>>(`/api/cuentas-bancarias/anular-pendientes-masivamente`, { cuentas }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
+  anularCuentasPendientesPersonal(PersonalId: number) {
+    return this.http.post<ResponseJSON<any>>(`/api/cuentas-bancarias/anular-pendientes-personal`, { PersonalId }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
+
   // INAES
   getINAESAltasBajas(parameters: any) {
     const { options } = parameters
