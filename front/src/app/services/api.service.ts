@@ -1189,9 +1189,12 @@ export class ApiService {
   obtenerComprobanteMonotributo(anio: number, mes: number, PersonalId: number) {
     const parameter = { anio, mes, PersonalId }
 
-    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobante_monotributo', parameter).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    )
+    // El error no se notifica: la respuesta de la API se muestra en el modal de la pantalla.
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobante_monotributo', parameter, null,
+      { observe: 'body', context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
+        tap((res: ResponseJSON<any>) => this.response(res)),
+        map((res: ResponseJSON<any>) => res.data),
+      )
   }
 
   obtenerComprobantesPendientes(anio: number, mes: number) {

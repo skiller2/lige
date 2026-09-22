@@ -34,6 +34,7 @@ import { SettingsService } from '@delon/theme';
 import { LoadingService } from '@delon/abc/loading';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { DownloadService } from '../../../services/download.service';
 
 @Component({
   imports: [
@@ -109,6 +110,7 @@ export class ImpuestoAfipComponent {
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
   private settingService = inject(SettingsService)
+  private downloadService = inject(DownloadService)
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
@@ -305,7 +307,7 @@ export class ImpuestoAfipComponent {
         this.respuestaApiPendiente = {
           titulo: `Solicitud de pago enviada - ${this.mes()}/${this.anio()}`,
           mensaje: '',
-          resultado: this.bloquesEnvio(data)
+          resultado: this.bloquesRespuestaApi(data)
         }
       } catch (error: any) {
         // Ante un rechazo se guarda la respuesta del banco para mostrarla al cerrarse la confirmación.
@@ -314,7 +316,7 @@ export class ImpuestoAfipComponent {
         this.respuestaApiPendiente = {
           titulo: `Error al enviar la solicitud de pago - ${this.mes()}/${this.anio()}`,
           mensaje: Array.isArray(msg) ? msg.join(' ') : (msg ?? error?.message ?? String(error)),
-          resultado: this.bloquesEnvio(error?.error?.data ?? error?.error ?? { error: error?.message ?? String(error) })
+          resultado: this.bloquesRespuestaApi(error?.error?.data ?? error?.error ?? { error: error?.message ?? String(error) })
         }
       }
     })
@@ -336,14 +338,14 @@ export class ImpuestoAfipComponent {
    * referencia como una respuesta suelta (un error), que se envuelve para mostrarla igual.
    */
   /**
-   * Arma los bloques del modal para un envío de lote: el body que se mandó y lo que contestó
+   * Arma los bloques del modal para una llamada a la API: el body que se mandó y lo que contestó
    * el banco. Si no viene el request (un error anterior al envío) muestra solo lo que haya.
    */
-  private bloquesEnvio(data: any) {
+  private bloquesRespuestaApi(data: any) {
     if (data?.request)
       return [
         { titulo: 'Request enviado', status: 0, ok: true, respuesta: data.request },
-        { titulo: 'Respuesta del banco', status: data.status ?? 0, ok: data.status == 201, respuesta: data.respuesta }
+        { titulo: 'Respuesta del banco', status: data.status ?? 0, ok: data.status >= 200 && data.status < 300, respuesta: data.respuesta }
       ]
 
     // Un error anterior al envío no trae request ni respuesta. ClientException manda el
@@ -363,13 +365,37 @@ export class ImpuestoAfipComponent {
     this.respuestaApiVisible.set(true)
   }
 
+  /**
+   * Trae de la API el comprobante de monotributo de la persona seleccionada. Si ya estaba en la
+   * base el back no consulta y se descarga el documento igual; si la API no lo devuelve, su
+   * respuesta se muestra en el mismo modal que usan las demás acciones del banco.
+   */
   async obtenerComprobanteMonotributo() {
     const PersonalId = this.PersonalId()
     if (!PersonalId) return
 
-    await this.ejecutarAccion('comprobantePersona', () =>
-      firstValueFrom(this.apiService.obtenerComprobanteMonotributo(this.anio(), this.mes(), PersonalId))
-    )
+    const anio = this.anio()
+    const mes = this.mes()
+
+    await this.ejecutarAccion('comprobantePersona', async () => {
+      try {
+        await firstValueFrom(this.apiService.obtenerComprobanteMonotributo(anio, mes, PersonalId))
+        this.descargarComprobante(anio, mes, PersonalId)
+      } catch (error: any) {
+        const msg = error?.error?.msg
+        this.mostrarRespuestaApi(
+          `Comprobante de monotributo - ${mes}/${anio}`,
+          this.bloquesRespuestaApi(error?.error?.data ?? error?.error ?? { error: error?.message ?? String(error) }),
+          Array.isArray(msg) ? msg.join(' ') : (msg ?? error?.message ?? String(error))
+        )
+      }
+    })
+  }
+
+  /** Baja el PDF guardado, el mismo documento que ofrece la columna de importe de la grilla. */
+  private descargarComprobante(anio: number, mes: number, PersonalId: number) {
+    this.downloadService.downloadFile(
+      'get', `/api/impuestos_afip/${anio}/${mes}/0/${PersonalId}?original=true`, null, null)
   }
 
   async obtenerComprobantesPendientes() {

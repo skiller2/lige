@@ -45,6 +45,7 @@ import {
 } from "./impuestos-afip.utils.ts";
 import { getFiltroFromRequest } from "./download-informe-utils/informe-filtro.ts";
 import { consultarEstadoLote } from "./patagonia-utils/batch-status.ts";
+import { consultarEstadoBeneficiario, sinVoucher } from "./patagonia-utils/record-status.ts";
 import { getAccessToken, getConfigPatagonia } from "./patagonia-utils/auth.ts";
 import { armarExternalReferenceId, armarItem, enviarLote } from "./patagonia-utils/batch-submit.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
@@ -694,6 +695,216 @@ export class ImpuestosAfipController extends BaseController {
     } finally {
       await queryRunner.release()
     }
+  }
+
+  /**
+   * Obtiene de la API del Banco Patagonia el comprobante de pago de monotributo de una persona
+   * (API 9 - POST /batch/record/status), consultando por CUIT, año y mes.
+   *
+   * Graba la respuesta en PersonalComprobantePagoAFIP.ResultadoPago sin el voucherBase64 (que es
+   * el PDF entero) y el PDF en Documento como MONOT. Si el documento ya está cargado no consulta:
+   * avisa con yaExiste para que la pantalla lo descargue directamente.
+   */
+  async jobObtenerComprobanteMonotributo(req: Request, res: Response, next: NextFunction) {
+    const usuario = this.getUser(res)
+    const ip = this.getRemoteAddress(req)
+    const anio = Number(req.body.anio)
+    const mes = Number(req.body.mes)
+    const PersonalId = Number(req.body.PersonalId)
+
+    const queryRunner = await getConnection(usuario);
+
+    let EventoLogCodigo = 0
+
+    try {
+      if (!anio) throw new ClientException("Faltó indicar el anio.");
+      if (!mes) throw new ClientException("Faltó indicar el mes.");
+      if (!PersonalId) throw new ClientException("Faltó indicar la persona.");
+
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Obtener Comprobante Monotributo`,
+        { anio, mes, PersonalId, usuario, ip },
+        usuario,
+        ip,
+        "JOB"
+      ));
+
+      const [persona] = await queryRunner.query(
+        `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT,
+          CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,
+          com.PersonalComprobantePagoAFIPId, com.ReferenciaPago, doc.DocumentoId
+        FROM Personal per
+        LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
+          AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
+        LEFT JOIN PersonalComprobantePagoAFIP com ON com.PersonalId = per.PersonalId
+          AND com.PersonalComprobantePagoAFIPAno = @1 AND com.PersonalComprobantePagoAFIPMes = @2
+        LEFT JOIN lige.dbo.liqmaperiodo peri ON peri.anio = @1 AND peri.mes = @2
+        LEFT JOIN Documento doc ON doc.PersonalId = per.PersonalId AND doc.DocumentoTipoCodigo = 'MONOT'
+          AND doc.DocumentoAnio = peri.anio AND doc.DocumentoMes = peri.mes
+        WHERE per.PersonalId = @0`,
+        [PersonalId, anio, mes]
+      );
+
+      if (!persona)
+        throw new ClientException(`No se pudo encontrar la persona ${PersonalId}`);
+
+      // Ya está en la base: no se vuelve a pedir a la API, la pantalla baja el documento
+      if (persona.DocumentoId) {
+        await this.eventoLogFin(
+          queryRunner,
+          EventoLogCodigo,
+          'COM',
+          { res: `El comprobante ya estaba cargado`, DocumentoId: persona.DocumentoId },
+          usuario,
+          ip
+        );
+
+        return this.jsonRes(
+          { PersonalId, anio, mes, yaExiste: true, DocumentoId: persona.DocumentoId },
+          res,
+          `El comprobante de ${mes}/${anio} ya estaba cargado: se descarga el documento`
+        );
+      }
+
+      const CUIT = String(persona.CUIT ?? '').replace(/\D/g, '')
+      if (!CUIT)
+        throw new ClientException(`La persona ${persona.ApellidoNombre} no tiene CUIT cargado`);
+
+      const config = await getConfigPatagonia(queryRunner)
+      const estado = await consultarEstadoBeneficiario(req.app, queryRunner, config, CUIT, anio, mes)
+
+      if (!estado.ok)
+        throw new ClientException(
+          `El Banco Patagonia no devolvió el comprobante del CUIT ${CUIT} (HTTP ${estado.status}).`,
+          { status: estado.status, request: estado.request, respuesta: sinVoucher(estado.respuesta) }
+        )
+
+      // El resultado se graba siempre que el servicio haya contestado, incluso cuando informa un
+      // error del lote: es el dato que después explica por qué no hay comprobante. Va sin el
+      // voucherBase64, que es el PDF y se guarda en Documento.
+      const resultado = sinVoucher(estado.respuesta)
+      await queryRunner.startTransaction()
+      const PersonalComprobantePagoAFIPId = await this.grabarResultadoPago(queryRunner, persona, anio, mes, resultado)
+      await queryRunner.commitTransaction()
+
+      const voucherBase64 = estado.respuesta?.voucherBase64
+      if (!voucherBase64)
+        throw new ClientException(
+          `La respuesta del Banco Patagonia no trae el comprobante del CUIT ${CUIT} (estado ${estado.respuesta?.status ?? 'desconocido'}).`,
+          { status: estado.status, request: estado.request, respuesta: resultado }
+        )
+
+      await queryRunner.startTransaction()
+      await this.grabarComprobantePDF(queryRunner, CUIT, persona.PersonalId, anio, mes, voucherBase64, usuario, ip)
+      await queryRunner.commitTransaction()
+
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        { res: `Procesado correctamente`, CUIT, PersonalComprobantePagoAFIPId },
+        usuario,
+        ip
+      );
+
+      this.jsonRes(
+        { PersonalId, anio, mes, yaExiste: false, PersonalComprobantePagoAFIPId, resultado },
+        res,
+        `Comprobante de monotributo de ${mes}/${anio} obtenido para ${persona.ApellidoNombre}`
+      );
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error, anio, mes, PersonalId },
+        usuario,
+        ip
+      );
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  /**
+   * Graba en PersonalComprobantePagoAFIP el resultado que devolvió la API. Si todavía no existe
+   * la fila del período la crea, numerando con PersonalComprobantePagoAFIPUltNro como hace
+   * insertPDF, y aprovecha el externalReferenceId de la respuesta como ReferenciaPago.
+   */
+  private async grabarResultadoPago(
+    queryRunner: QueryRunner,
+    persona: any,
+    anio: number,
+    mes: number,
+    resultado: any
+  ) {
+    const ResultadoPago = JSON.stringify(resultado)
+
+    if (persona.PersonalComprobantePagoAFIPId != null) {
+      await queryRunner.query(
+        `UPDATE PersonalComprobantePagoAFIP SET ResultadoPago = @2
+        WHERE PersonalComprobantePagoAFIPId = @0 AND PersonalId = @1`,
+        [persona.PersonalComprobantePagoAFIPId, persona.PersonalId, ResultadoPago]
+      );
+      return persona.PersonalComprobantePagoAFIPId
+    }
+
+    const [personal] = await queryRunner.query(
+      `SELECT PersonalComprobantePagoAFIPUltNro FROM Personal WHERE PersonalId = @0`,
+      [persona.PersonalId]
+    );
+    const PersonalComprobantePagoAFIPId = Number(personal?.PersonalComprobantePagoAFIPUltNro) + 1
+    const ReferenciaPago = persona.ReferenciaPago ?? resultado?.externalReferenceId ?? null
+
+    await queryRunner.query(
+      `INSERT INTO PersonalComprobantePagoAFIP (PersonalComprobantePagoAFIPId, PersonalId, PersonalComprobantePagoAFIPAno, PersonalComprobantePagoAFIPMes, ReferenciaPago, ResultadoPago)
+      VALUES (@0, @1, @2, @3, @4, @5)`,
+      [PersonalComprobantePagoAFIPId, persona.PersonalId, anio, mes, ReferenciaPago, ResultadoPago]
+    );
+    await queryRunner.query(
+      `UPDATE Personal SET PersonalComprobantePagoAFIPUltNro = @0 WHERE PersonalId = @1`,
+      [PersonalComprobantePagoAFIPId, persona.PersonalId]
+    );
+
+    return PersonalComprobantePagoAFIPId
+  }
+
+  /**
+   * Guarda el voucherBase64 que devolvió la API como documento MONOT de la persona, con el mismo
+   * tipo, nombre y fecha que usa la carga manual de comprobantes (insertPDF).
+   */
+  private async grabarComprobantePDF(
+    queryRunner: QueryRunner,
+    CUIT: string,
+    PersonalId: number,
+    anio: number,
+    mes: number,
+    voucherBase64: string,
+    usuario: string,
+    ip: string
+  ) {
+    const fileUploadController = new FileUploadController()
+    const tempfilename = fileUploadController.getRandomTempFileName('.pdf')
+    writeFileSync(tempfilename, Buffer.from(voucherBase64, 'base64'))
+
+    const fileObj = {
+      doctipo_id: "MONOT",
+      tableForSearch: "Documento",
+      ind_descarga_bot: 0,
+      tempfilename: basename(tempfilename),
+      originalname: `${CUIT}-${anio}-${mes}.pdf`,
+      fielname: '',
+      mimetype: "application/pdf"
+    }
+
+    await FileUploadController.handleDOCUpload(
+      PersonalId, null, null, null,
+      new Date(anio, mes - 1, 21), null,
+      `${CUIT}-${anio}-${mes}`,
+      anio, mes, fileObj, usuario, ip, queryRunner
+    )
   }
 
   async handleGetDescuentos(req: Request, res: Response, next: NextFunction) {

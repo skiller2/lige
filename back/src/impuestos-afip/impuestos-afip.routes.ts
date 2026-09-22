@@ -189,16 +189,20 @@ impuestosAfipRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.ha
   impuestosAfipController.getDescuentosGridList(req, res, next);
 });
 
-impuestosAfipRouter.post("/patagonia/solicitud_pago/previo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+impuestosAfipRouter.post("/patagonia/solicitud_pago/previo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   impuestosAfipController.getPrevioSolicitudPagoPatagonia(req, res, next);
 });
 
-impuestosAfipRouter.post("/patagonia/solicitud_pago", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+impuestosAfipRouter.post("/patagonia/solicitud_pago", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   impuestosAfipController.jobEnviarSolicitudPagoPatagonia(req, res, next);
 });
 
-impuestosAfipRouter.post("/patagonia/estado_pago", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+impuestosAfipRouter.post("/patagonia/estado_pago", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   impuestosAfipController.jobConsultarEstadoPagoPatagonia(req, res, next);
+});
+
+impuestosAfipRouter.post("/comprobante_monotributo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  impuestosAfipController.jobObtenerComprobanteMonotributo(req, res, next);
 });
 
 impuestosAfipRouter.get('/get_options', [authMiddleware.verifyToken], (req, res, next) => {
