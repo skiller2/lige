@@ -51,7 +51,7 @@ export interface Comprobante {
 
 export interface OrdenVentaForm {
   NroOrdenVenta: number;
-  Periodo: Date,
+  Periodo: Date | null,
   ObjetivoId: number,
   ClienteId: number,
   ClienteElementoDependienteId: number,
@@ -266,7 +266,10 @@ export class OrdenVentaFormComponent {
     const newOrdenVenta = structuredClone(this.defaultOrdenVenta)
     newOrdenVenta.ClienteElementoDependienteId=Number(this.ClienteElementoDependienteId())
     newOrdenVenta.ClienteId=Number(this.ClienteId())
-    newOrdenVenta.Periodo=new Date(this.anio(),this.mes()-1,1)
+    if (this.anio()>0 && this.mes()>0)
+      newOrdenVenta.Periodo=new Date(this.anio(),this.mes()-1,1)
+    else 
+      newOrdenVenta.Periodo=null
     newOrdenVenta.NroOrdenVenta=0
     newOrdenVenta.EstadoOrdenVentaCodigo='PEN'
     this.ordenVenta.set(newOrdenVenta)
@@ -290,6 +293,15 @@ export class OrdenVentaFormComponent {
     }
   })
 
+  auditoria = signal<any>(null)
+
+  // Se pide al abrir el popover: así muestra la última modificación, aunque se acabe de guardar
+  async loadAuditoria() {
+    // Se limpia para que no se vea la auditoría de la orden abierta antes
+    this.auditoria.set(null)
+    if (!this.NroOrdenVenta()) return
+    this.auditoria.set(await firstValueFrom(this.searchService.getOrdenVentaAuditoria(this.NroOrdenVenta())))
+  }
 
 
 }

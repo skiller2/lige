@@ -232,7 +232,7 @@ export class OrdenVentaController extends BaseController {
     try {
       const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null };
       const filterSql = filtrosToSql(options.filtros, columnasGrillaOrdenes);
-      const orderBy = orderToSQL(options.sort);      
+      const orderBy = orderToSQL(options.sort);
 
       const lista = await queryRunner.query(`
         SELECT
@@ -362,7 +362,7 @@ export class OrdenVentaController extends BaseController {
 
     ordenDs[0].items = items
     ordenDs[0].comprobantes = comprobantes
-    ordenDs[0].Periodo = new Date(ordenDs[0].PeriodoAnio, ordenDs[0].PeriodoMes-1, 1)
+    ordenDs[0].Periodo = new Date(ordenDs[0].PeriodoAnio, ordenDs[0].PeriodoMes - 1, 1)
     return ordenDs[0]
   }
 
@@ -396,7 +396,7 @@ export class OrdenVentaController extends BaseController {
       ordenDs.NroOrdenVenta = 0
       ordenDs.PeriodoAnio = anio
       ordenDs.PeriodoMes = mes
-      ordenDs.Periodo= new Date(anio,mes-1,1)
+      ordenDs.Periodo = new Date(anio, mes - 1, 1)
 
       const { ImporteUnitarioA, ImporteUnitarioB, TotalHoraA, TotalHoraB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
 
@@ -684,7 +684,7 @@ export class OrdenVentaController extends BaseController {
     let NroOrdenVenta = req.body.NroOrdenVenta ?? null;
     const queryRunner = await getConnection(res.locals.userName);
     const PeriodoMes = new Date(req.body.Periodo).getFullYear();
-    const PeriodoAnio = new Date(req.body.Periodo).getMonth()+1;
+    const PeriodoAnio = new Date(req.body.Periodo).getMonth() + 1;
 
     try {
       const usuario = res.locals.userName;
@@ -1191,7 +1191,18 @@ export class OrdenVentaController extends BaseController {
         WHERE ord.NroOrdenVenta = @0
       `, [NroOrdenVenta]);
 
-      this.jsonRes(auditoria[0] ?? null, res);
+
+
+
+      if (auditoria[0]) {
+        const row = auditoria[0]
+        const resp = [
+          { Evento: 'Alta', Usuario: row.AudUsuarioIng, Fecha: row.AudFechaIng, Ip: row.AudIpIng },
+          { Evento: 'Última modificación', Usuario: row.AudUsuarioMod, Fecha: row.AudFechaMod, Ip: row.AudIpMod }
+        ]
+        this.jsonRes(resp, res);
+      } else 
+        this.jsonRes([], res);
     } catch (error) {
       return next(error);
     } finally {

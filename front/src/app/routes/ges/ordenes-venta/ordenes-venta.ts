@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, resource, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { Router } from '@angular/router';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -13,21 +13,6 @@ import { OrdenVentaMasivaDrawerComponent } from '../orden-venta-masiva-drawer/or
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 
-// Listado, o el detalle abierto en uno de sus tres modos
-type ModoOrdenVenta = 'alta' | 'modificacion' | 'consulta' | null
-
-// Cada acción de la pantalla es una solapa, y cada solapa una url: /ges/ordenes-venta/<tab>
-type TabOrdenVenta = 'listado' | 'alta' | 'editar' | 'consulta' | 'masiva' | 'anular'
-
-const TABS: TabOrdenVenta[] = ['listado', 'alta', 'editar', 'consulta', 'masiva', 'anular']
-
-// Solapas que abren el detalle de una orden, con el modo en el que lo abren
-const MODO_POR_TAB: Partial<Record<TabOrdenVenta, ModoOrdenVenta>> = {
-  alta: 'alta',
-  editar: 'modificacion',
-  consulta: 'consulta'
-}
-
 @Component({
   selector: 'app-ordenes-venta',
   standalone: true,
@@ -40,128 +25,21 @@ export class OrdenesVentaComponent {
 
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
-  private notification = inject(NzNotificationService)
-  private router = inject(Router)
+  public router = inject(Router)
 
-  // Parámetro :tab de la ruta, que llega por withComponentInputBinding
-  tab = input<string>('listado')
 
-  // Una url desconocida cae en el listado
-  tabActual = computed<TabOrdenVenta>(() =>
-    TABS.includes(this.tab() as TabOrdenVenta) ? this.tab() as TabOrdenVenta : 'listado')
-
-  // Los mismos estados que ofrece la edición masiva
-  optionsEstado = toSignal(this.searchService.getEstadoOrdenVenta(), { initialValue: [] as any[] })
 
   ordenesSeleccionadas = model<any[]>([])
 
-  // Modo del detalle, según la solapa. En null la pantalla muestra el listado.
-  modo = computed<ModoOrdenVenta>(() => MODO_POR_TAB[this.tabActual()] ?? null)
+  soloLectura = computed(() => this.router.isActive('/ges/ordenes-venta/consulta',{}) )
 
-  // Drawer de edición masiva, sobre las órdenes seleccionadas en la grilla
-  enMasiva = computed(() => this.tabActual() === 'masiva')
-
-  // Confirmación de la anulación de las órdenes tildadas
-  enAnular = computed(() => this.tabActual() === 'anular')
-
-  detalleAbierto = computed(() => this.modo() != null)
-
-  // La consulta abre el mismo detalle que la modificación, pero sin poder editarlo ni guardarlo.
-  // Las órdenes "A Facturar" y "Facturado" tampoco se modifican: se abren como consulta.
-  soloLectura = computed(() => this.modo() === 'consulta' )
-
-  // En el alta aplica cuando el objetivo ya tiene orden en el período, que es la que se grabaría
-
-  // En el alta el período y el objetivo los elige el usuario; en el resto los trae la fila
-  enAlta = computed(() => this.modo() === 'alta')
-
-  // Fila de la grilla sobre la que se abrió el detalle. En el alta todavía no hay ninguna.
-  ordenAbierta = signal<any | null>(null)
-
-  // Período y objetivo elegidos en el alta
-  periodoAlta = signal<Date | null>(null)
-  objetivoAlta = signal<any>(null)
-
-  // Datos del objetivo elegido en el alta, como los emite app-objetivo-search
-  // ({ objetivoId, clienteId, ClienteElementoDependienteId, descripcion, fullName }). De acá sale
-  // el cliente con el que se graba: pedirlo a la cabecera haría que el resource dependa de sí mismo.
-  objetivoAltaInfo = signal<any>(null)
-
-  // Período y objetivo identifican a la orden, sea la de la fila o la que se está dando de alta
-  objetivoId = computed(() =>
-    Number((this.enAlta() ? this.objetivoAlta() : this.ordenAbierta()?.ObjetivoId) ?? 0))
-
-  anio = computed(() =>
-    this.enAlta() ? (this.periodoAlta()?.getFullYear() ?? 0) : Number(this.ordenAbierta()?.PeriodoAnio ?? 0))
-
-  mes = computed(() => {
-    if (!this.enAlta()) return Number(this.ordenAbierta()?.PeriodoMes ?? 0)
-    const periodo = this.periodoAlta()
-    return periodo ? periodo.getMonth() + 1 : 0
-  })
-
-  periodoCompleto = computed(() => this.objetivoId() > 0 && this.anio() > 0 && this.mes() > 0)
-
-  // Cliente y elemento dependiente de la orden: en el alta salen del objetivo elegido, y en el
-  // resto de la fila de la grilla. No se leen de la cabecera: es lo que pide el resource de abajo.
-  clienteId = computed<number | null>(() => {
-    const valor = this.enAlta() ? this.objetivoAltaInfo()?.clienteId : this.ordenAbierta()?.ClienteId
-    return valor == null ? null : Number(valor)
-  })
-
-  clienteElementoDependienteId = computed<number | null>(() => {
-    const valor = this.enAlta()
-      ? this.objetivoAltaInfo()?.ClienteElementoDependienteId
-      : this.ordenAbierta()?.ClienteElementoDependienteId
-    return valor == null ? null : Number(valor)
-  })
-
-  // Cabecera del período (/api/orden-venta/cabecera): órdenes del período, comprobantes y estado
-  private cabeceraResource = resource({
-    params: () => ({
-      ClienteId: this.clienteId(),
-      ClienteElementoDependienteId: this.clienteElementoDependienteId(),
-      anio: this.anio(),
-      mes: this.mes()
-    }),
-    loader: async ({ params }) => {
-      // Cero es un valor válido en el elemento dependiente: es el objetivo que no tiene
-      if (!params.ClienteId || params.ClienteElementoDependienteId == null || !params.anio || !params.mes)
-        return null
-
-      return await firstValueFrom(
-        this.apiService.getOrdenVentaCabecera(params.ClienteId, params.ClienteElementoDependienteId, params.anio, params.mes))
-    },
-    defaultValue: null as any
-  })
-
-  cabecera = computed<any>(() => this.cabeceraResource.value() ?? {})
-
-  // Comprobantes de la orden, tal cual están en Comprobante. Se editan en el detalle.
-  comprobantes = computed<any[]>(() => this.cabecera().Comprobantes ?? [])
-
-  // Estado con el que está guardada la orden. Una que todavía no se generó no tiene ninguno.
-  private estadoGuardado = computed<string | null>(() => this.cabecera().EstadoOrdenVentaCodigo ?? null)
-
-  // Estado elegido en pantalla. Se puede cambiar a mano, igual que en la edición masiva.
-  estadoOrdenVenta = signal<string | null>(null)
-
-  // Cambiar sólo el estado alcanza para habilitar el guardado, que si no mira el detalle
-  estadoCambiado = computed(() => (this.estadoOrdenVenta() ?? null) !== this.estadoGuardado())
-
+  masivaVisible = signal(false)
+  
   constructor() {
     // Al abrir otra orden el select arranca con el estado que tiene guardado
-    effect(() => this.estadoOrdenVenta.set(this.estadoGuardado()))
-
+  
     // El alta arranca en blanco, con el período en curso, que es el que se factura
-    effect(() => {
-      if (!this.enAlta()) return
-      this.ordenAbierta.set(null)
-      this.periodoAlta.set(new Date())
-      this.objetivoAlta.set(null)
-      this.objetivoAltaInfo.set(null)
-    })
-
+  
     // Entrando por url a una solapa que necesita una orden tildada en la grilla no hay ninguna:
     // se vuelve al listado, que es de donde se elige
     /*
@@ -176,53 +54,17 @@ export class OrdenesVentaComponent {
     */
   }
 
-  private irA(tab: TabOrdenVenta) {
+  private irA(tab: string) {
     this.router.navigate(['/', 'ges', 'ordenes-venta', tab])
   }
 
-  // En el alta el objetivo y el período elegidos pueden tener ya una orden: el guardado no la
-  // duplica, la modifica, y hay que avisarlo antes de tocar el detalle
-  ordenExistente = computed<number | null>(() =>
-    this.enAlta() ? (this.cabecera().NroOrdenVenta ?? null) : null)
-
   // Ítems de la orden (/api/orden-venta/list), el mismo detalle que edita la carga de asistencia.
   // Sin orden del período vuelve inicializado con el del mes anterior.
-  private itemsResource = resource({
-    params: () => ({ ClienteId: this.clienteId(), ClienteElementoDependienteId:this.clienteElementoDependienteId(), anio: this.anio(), mes: this.mes() }),
-    loader: async ({ params }) => {
-      if (!params.ClienteId || !params.ClienteElementoDependienteId || !params.anio || !params.mes) return { list: [], esNueva: false }
-
-      const response = await firstValueFrom(
-        this.apiService.getListOrdenVenta(params.ClienteId,params.ClienteElementoDependienteId, params.anio, params.mes))
-
-      return { ...response, list: response.list ?? [] }
-    },
-    defaultValue: { list: [], esNueva: false } as any
-  })
 
   // Cambia al guardar: la fila de la grilla quedó vieja y hay que releer la lista
   refreshTick = signal(0)
 
   // Auditoría de la cabecera (alta / última modificación), igual que en el detalle de movimientos de efectos
-  auditoria = signal<any>(null)
-
-  auditoriaFilas = computed(() => {
-    const auditoria = this.auditoria()
-    if (!auditoria) return []
-    return [
-      { Evento: 'Alta', Usuario: auditoria.AudUsuarioIng, Fecha: auditoria.AudFechaIng, Ip: auditoria.AudIpIng },
-      { Evento: 'Última modificación', Usuario: auditoria.AudUsuarioMod, Fecha: auditoria.AudFechaMod, Ip: auditoria.AudIpMod }
-    ]
-  })
-
-  // Se pide al abrir el popover: así muestra la última modificación, aunque se acabe de guardar
-  async loadAuditoria() {
-    const NroOrdenVenta = this.ordenesSeleccionadas()?.[0] ?? 0;
-    // Se limpia para que no se vea la auditoría de la orden abierta antes
-    this.auditoria.set(null)
-    if (!NroOrdenVenta) return
-    this.auditoria.set(await firstValueFrom(this.searchService.getOrdenVentaAuditoria(NroOrdenVenta)))
-  }
 
   // Anular: las órdenes tildadas en la grilla pasan a estado cancelado. El detalle y los
   // comprobantes quedan como están, sólo cambia el estado.
@@ -235,10 +77,7 @@ export class OrdenesVentaComponent {
 
 
     try {
-      const respuesta = await firstValueFrom(this.apiService.anularOrdenesVenta(NroOrdenVentas))
-
-      this.notification.success('Órdenes de venta', respuesta?.msg ?? 'Anulación exitosa')
-
+      await firstValueFrom(this.apiService.anularOrdenesVenta(NroOrdenVentas))
       // La selección quedó con el estado viejo y la grilla hay que releerla
       this.ordenesSeleccionadas.set([])
       this.refreshTick.update(n => n + 1)
@@ -250,7 +89,8 @@ export class OrdenesVentaComponent {
   // Edición masiva de las órdenes seleccionadas, agrupadas por cliente
   edicionMasiva() {
     if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length<1) return
-    this.irA('masiva')
+    this.masivaVisible.set(true)
+    //this.irA('masiva')
   }
 
   // Anular pide confirmación: la solapa es la que abre el cartel
@@ -261,7 +101,7 @@ export class OrdenesVentaComponent {
 
   // Cerrando el cartel sin confirmar se vuelve al listado
   anularCancelado() {
-    if (this.enAnular()) this.volverAlListado()
+     this.volverAlListado()
   }
 
   modificarOrdenVenta() {
@@ -271,32 +111,20 @@ export class OrdenesVentaComponent {
 
   consultaOrdenVenta() {
     if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length!=1) return
-    this.irA('consulta')
+    this.irA('detalle')
+  }
+
+  altaOrdenVenta() {
+    this.ordenesSeleccionadas.set([])
   }
 
   // Guardado el detalle se sigue trabajando sobre él: se releen los ítems, que vuelven con su código,
   // y se marca la grilla para que al volver al listado muestre el importe total nuevo
   ordenVentaGuardada() {
     this.refreshTick.update(n => n + 1)
-
-    // La orden ya existe: el alta pasa a ser una modificación, con el período y el objetivo fijos
-    if (this.enAlta()) {
-      this.ordenAbierta.set({
-        ObjetivoId: this.objetivoId(),
-        PeriodoAnio: this.anio(),
-        PeriodoMes: this.mes(),
-        ClienteId: this.clienteId(),
-        ClienteElementoDependienteId: this.clienteElementoDependienteId()
-      })
-      this.irA('editar')
-    }
-
-    this.itemsResource.reload()
-    this.cabeceraResource.reload()
   }
 
   volverAlListado() {
-    this.ordenAbierta.set(null)
     this.irA('listado')
   }
 }

@@ -229,4 +229,47 @@
   </nz-form-item>
   }
 
+
+  <div style="display: flex; align-items: flex-end; gap: 16px; margin-bottom: 60px;">
+    <div style="flex: 1;">
+
+      <span nz-tooltip nzTooltipTitle="Datos de Auditoría">
+        <button nz-button nzType="default" nz-popover nzPopoverTrigger="click" nzPopoverPlacement="topLeft"
+          [nzPopoverContent]="auditoriaTemplate" (click)="loadAuditoria()">
+          <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
+        </button>
+      </span>
+
+    </div>
+
+  </div>
+
+  <ng-template #auditoriaTemplate>
+    <div style="max-width: 640px; max-height: 240px; overflow: auto;">
+      @if (auditoria() && auditoria().length > 0) {
+      <nz-table #auditoriaTable [nzData]="auditoria()" nzSize="small" [nzShowPagination]="false"
+        [nzFrontPagination]="false">
+        <thead>
+          <tr>
+            <th>Evento</th>
+            <th>Usuario</th>
+            <th>Fecha</th>
+            <th>IP</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of auditoriaTable.data; track item.Evento) {
+          <tr>
+            <td>{{ item.Evento }}</td>
+            <td>{{ item.Usuario }}</td>
+            <td>{{ item.Fecha | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ item.Ip }}</td>
+          </tr>
+          }
+        </tbody>
+      </nz-table>
+      }
+    </div>
+  </ng-template>  
+
 </form>
