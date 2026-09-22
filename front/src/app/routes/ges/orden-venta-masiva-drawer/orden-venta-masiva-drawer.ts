@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, model, output, resource, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, output, resource, signal, untracked } from '@angular/core';
 import { CurrencyPipe } from '@angular/common';
 import { SHARED_IMPORTS } from '@shared';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
@@ -49,8 +49,28 @@ export class OrdenVentaMasivaDrawerComponent {
   private searchService = inject(SearchService)
   private notification = inject(NzNotificationService)
 
+
+
+
   optionsEstado = toSignal(this.searchService.getEstadoOrdenVenta(), { initialValue: [] as any[] })
   optionsComprobanteTipo = toSignal(this.searchService.getComprobanteTipoSearch(), { initialValue: [] as any[] })
+
+  private effect =  effect(()=>{
+    const visible = this.visible()
+    if (visible){
+
+      untracked(()=>{
+      console.log('presentar datos',this.ordenes())
+      this.comprobantesSeleccion.reload()
+      this.datosFacturacion.reload()
+      console.log('presentar datos',this.ordenes())
+      console.log('presentar datos',this.comprobantesSeleccion.value())
+      console.log('presentar datos',this.datosFacturacion.value())
+
+      })
+
+    }
+  })
 
   // La edición masiva es por cliente: se agrupan las órdenes seleccionadas por el suyo, con la
   // cantidad y el importe total de cada grupo
@@ -84,10 +104,10 @@ export class OrdenVentaMasivaDrawerComponent {
 
   // CUIT, razón social y domicilio de los clientes de la selección
   private datosFacturacion = resource({
-    params: () => ({ clientes: this.clientes().map(cliente => cliente.ClienteId) }),
+    params: () => ({ NroOrdenVentas: this.ordenes() }),
     loader: async ({ params }) => {
-      if (!params.clientes.length) return []
-      return await firstValueFrom(this.searchService.getDatosFacturacionOrdenVenta(params.clientes))
+      if (!params.NroOrdenVentas.length) return []
+      return await firstValueFrom(this.searchService.getDatosFacturacionOrdenVenta(params.NroOrdenVentas))
     },
     defaultValue: [] as any[]
   })
@@ -116,7 +136,7 @@ export class OrdenVentaMasivaDrawerComponent {
   // de la selección, porque si no, editarlo cambiaría una orden que no se eligió.
   private comprobantesSeleccion = resource({
     params: () => ({
-      ordenes: (this.ordenes() ?? []).map(orden => Number(orden?.NroOrdenVenta)).filter(Number.isFinite)
+      ordenes: (this.ordenes() ?? [])
     }),
     loader: async ({ params }) => {
       if (!params.ordenes.length) return []

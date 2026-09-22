@@ -1,5 +1,6 @@
 <nz-drawer [nzClosable]="true" [nzVisible]="visible()" [nzOffsetX]="0" [nzPlacement]="placement" [nzWidth]="1000"
   nzTitle="Edición Masiva de Órdenes de Venta" (nzOnClose)="visible.set(false)">
+@if (visible()) {
   <ng-container *nzDrawerContent>
 
     <form [formGroup]="formMasivo()">
@@ -118,4 +119,5 @@
     </nz-form-item>
 
   </ng-container>
+}
 </nz-drawer>
