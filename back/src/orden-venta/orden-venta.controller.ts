@@ -216,7 +216,7 @@ export class OrdenVentaController extends BaseController {
         condition: 'AND',
         operator: '=',
         value: grupoActividad,
-        closeable: Boolean(res.locals.authADGroup),
+        closeable: Boolean(res.locals.hasGroup),
         label: '',
         originIdx: null
       });

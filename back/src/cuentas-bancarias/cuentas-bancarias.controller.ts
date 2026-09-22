@@ -259,6 +259,7 @@ export class CuentasBancariasController extends BaseController {
       const filterSql = filtrosToSql(options.filtros, columns);
       const orderBy = orderToSQL(options.sort)
       const periodo = new Date(req.body.periodo)
+      periodo.setHours(0, 0, 0, 0);
 
       const lista: any[] = await this.getCuentasBancariasQuery(queryRunner, filterSql, orderBy, periodo)
 

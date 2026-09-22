@@ -4,47 +4,47 @@ import { ordenVentaController } from "../controller/controller.module.ts";
 
 export const ordenVentaRouter = Router();
 
-ordenVentaRouter.get("/cols-ordenes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
+ordenVentaRouter.get("/cols-ordenes", [authMiddleware.verifyToken], (req, res) => {
   ordenVentaController.getGridColsOrdenes(req, res);
 });
 
-ordenVentaRouter.get("/filters", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.authADGroup(['gSistemas'])], (req, res) => {
+ordenVentaRouter.get("/filters", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res) => {
   ordenVentaController.getGridFilters(req, res);
 });
 
-ordenVentaRouter.post("/list-ordenes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.post("/list-ordenes", [authMiddleware.verifyToken,  authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
   ordenVentaController.getListOrdenesVenta(req, res, next);
 });
 
-ordenVentaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
   ordenVentaController.getListOrdenVenta(req, res, next);
 });
 
-ordenVentaRouter.get("/cabecera/:ClienteId/:ClienteElementoDependienteId/:anio/:mes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.get("/cabecera/:ClienteId/:ClienteElementoDependienteId/:anio/:mes", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
   ordenVentaController.getCabecera(req, res, next);
 });
 
-ordenVentaRouter.get("/plantilla/:ClienteId/:ClienteElementoDependienteId/:anio/:mes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.get("/plantilla/:ClienteId/:ClienteElementoDependienteId/:anio/:mes", [authMiddleware.verifyToken,  authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
   ordenVentaController.getPlantillaOrdenVenta(req, res, next);
 });
 
-ordenVentaRouter.post("/save", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.post("/save", [authMiddleware.verifyToken,  authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones','mOrdenVenta'])], (req, res, next) => {
   ordenVentaController.setOrdenVenta(req, res, next);
 });
 
-ordenVentaRouter.get("/precio/:ObjetivoId/:anio/:mes/:ProductoCodigo", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.get("/precio/:ObjetivoId/:anio/:mes/:ProductoCodigo", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
   ordenVentaController.getPrecioProducto(req, res, next);
 });
 
-ordenVentaRouter.post("/masiva", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.post("/masiva", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
   ordenVentaController.setOrdenVentaMasiva(req, res, next);
 });
 
-ordenVentaRouter.post("/comprobantes-seleccion", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.post("/comprobantes-seleccion", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
   ordenVentaController.getComprobantesSeleccion(req, res, next);
 });
 
-ordenVentaRouter.post("/anular",[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.post("/anular",[authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'mOrdenVenta'])], (req, res, next) => {
   ordenVentaController.anularOrdenesVenta(req, res, next);
 });
 
@@ -58,10 +58,10 @@ ordenVentaRouter.get("/datos-auditoria/:NroOrdenVenta", [authMiddleware.verifyTo
   ordenVentaController.getOrdenVentaAuditoria(req, res, next);
 });
 
-ordenVentaRouter.post("/clientes-facturacion", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.post("/clientes-facturacion", [authMiddleware.verifyToken], (req, res, next) => {
   ordenVentaController.getDatosFacturacion(req, res, next);
 });
 
-ordenVentaRouter.get("/:NroOrdenVenta", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+ordenVentaRouter.get("/:NroOrdenVenta", [authMiddleware.verifyToken,  authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
   ordenVentaController.getOrdenVenta(req, res, next);
 });
