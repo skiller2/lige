@@ -34,10 +34,12 @@
       <app-table-orden-venta [(ordenesSeleccionadas)]="ordenesSeleccionadas" [refreshGrid]="refreshTick()" />
     </nz-tab>
 
-    <nz-tab [nzDisabled]="!router.isActive('/ges/ordenes-venta/detalle',{})">
+    <nz-tab [nzDisabled]="!router.isActive('/ges/ordenes-venta/detalle',{})" >
       <a *nzTabLink nz-tab-link [routerLink]="['/', 'ges', 'ordenes-venta', 'detalle']" >Detalle</a>
+      @if (router.isActive('/ges/ordenes-venta/detalle',{})){
       <app-orden-venta-form [soloLectura]="true" [origenCrud]="true"
         [NroOrdenVenta]="this.ordenesSeleccionadas()?.[0] ?? 0" />
+      }
     </nz-tab>
 
     <nz-tab [nzDisabled]="!router.isActive('/ges/ordenes-venta/alta',{})"><a *nzTabLink nz-tab-link [routerLink]="['/', 'ges', 'ordenes-venta', 'alta']">Alta</a>
@@ -46,15 +48,15 @@
     </nz-tab>
 
     <nz-tab [nzDisabled]="!router.isActive('/ges/ordenes-venta/editar',{})"><a *nzTabLink nz-tab-link [routerLink]="['/', 'ges', 'ordenes-venta', 'editar']">Editar</a>
+      @if (router.isActive('/ges/ordenes-venta/editar',{})){
+
       <app-orden-venta-form [soloLectura]="false" [origenCrud]="true"
         [NroOrdenVenta]="this.ordenesSeleccionadas()?.[0] ?? 0" (ordenVentaGuardada)="ordenVentaGuardada()" />
+      }
     </nz-tab>
 
   </nz-tabs>
 
 </nz-card>
 <app-orden-venta-masiva-drawer [ordenes]="ordenesSeleccionadas()" [visible]="masivaVisible()"
-  (visibleChange)="$event ? null : volverAlListado()" (guardado)="refreshTick.update(n => n + 1)" />
-
-<!-- El drawer lo abre la solapa, y al cerrarse se vuelve al listado. Se instancia recién al
-     abrirse para que sus resource no participen del render inicial de la pantalla. -->
+   (guardado)="refreshTick.update(n => n + 1)" />

@@ -71,18 +71,12 @@ export class OrdenesVentaComponent {
   async bajaOrdenVenta() {
     if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length!=1) return
 
-    const NroOrdenVentas = this.ordenesSeleccionadas()
-      .map(orden => Number(orden?.NroOrdenVenta))
-      .filter(Number.isFinite)
-
-
     try {
-      await firstValueFrom(this.apiService.anularOrdenesVenta(NroOrdenVentas))
+      await firstValueFrom(this.apiService.anularOrdenesVenta(this.ordenesSeleccionadas()))
       // La selección quedó con el estado viejo y la grilla hay que releerla
       this.ordenesSeleccionadas.set([])
       this.refreshTick.update(n => n + 1)
     } finally {
-      this.volverAlListado()
     }
   }
 
@@ -100,10 +94,6 @@ export class OrdenesVentaComponent {
   }
 
   // Cerrando el cartel sin confirmar se vuelve al listado
-  anularCancelado() {
-     this.volverAlListado()
-  }
-
   modificarOrdenVenta() {
     if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length!=1) return
     this.irA('editar')
@@ -124,7 +114,4 @@ export class OrdenesVentaComponent {
     this.refreshTick.update(n => n + 1)
   }
 
-  volverAlListado() {
-    this.irA('listado')
-  }
 }
