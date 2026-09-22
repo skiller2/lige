@@ -27,36 +27,9 @@ export class OrdenesVentaComponent {
   private searchService = inject(SearchService)
   public router = inject(Router)
 
-
-
   ordenesSeleccionadas = model<any[]>([])
-
   soloLectura = computed(() => this.router.isActive('/ges/ordenes-venta/consulta',{}) )
-
   masivaVisible = signal(false)
-  
-  constructor() {
-    // Al abrir otra orden el select arranca con el estado que tiene guardado
-  
-    // El alta arranca en blanco, con el período en curso, que es el que se factura
-  
-    // Entrando por url a una solapa que necesita una orden tildada en la grilla no hay ninguna:
-    // se vuelve al listado, que es de donde se elige
-    /*
-    effect(() => {
-      const tab = this.tabActual()
-      if (tab === 'editar' || tab === 'consulta') {
-        if (!this.ordenAbierta()) this.volverAlListado()
-      } else if ((tab === 'masiva' || tab === 'anular') && this.ordenesSeleccionadas().length<1) {
-        this.volverAlListado()
-      }
-    })
-    */
-  }
-
-  private irA(tab: string) {
-    this.router.navigate(['/', 'ges', 'ordenes-venta', tab])
-  }
 
   // Ítems de la orden (/api/orden-venta/list), el mismo detalle que edita la carga de asistencia.
   // Sin orden del período vuelve inicializado con el del mes anterior.
@@ -84,29 +57,9 @@ export class OrdenesVentaComponent {
   edicionMasiva() {
     if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length<1) return
     this.masivaVisible.set(true)
-    //this.irA('masiva')
   }
 
   // Anular pide confirmación: la solapa es la que abre el cartel
-  anularOrdenVenta() {
-    if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length<1) return
-    this.irA('anular')
-  }
-
-  // Cerrando el cartel sin confirmar se vuelve al listado
-  modificarOrdenVenta() {
-    if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length!=1) return
-    this.irA('editar')
-  }
-
-  consultaOrdenVenta() {
-    if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length!=1) return
-    this.irA('detalle')
-  }
-
-  altaOrdenVenta() {
-    this.ordenesSeleccionadas.set([])
-  }
 
   // Guardado el detalle se sigue trabajando sobre él: se releen los ítems, que vuelven con su código,
   // y se marca la grilla para que al volver al listado muestre el importe total nuevo
