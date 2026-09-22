@@ -34,6 +34,7 @@ export class PersonalBancoDrawerComponent {
     PersonalId = input(0)
     PersonalNombre = signal<string>("")
     isLoading = signal(false);
+    isLoadingPendientes = signal(false);
     visibleBanco = model<boolean>(false)
     placement: NzDrawerPlacement = 'left';
     onAddorUpdate = output()
@@ -124,6 +125,19 @@ export class PersonalBancoDrawerComponent {
 
         }
         this.isLoading.set(false)
+    }
+
+    async anularPendientes() {
+        this.isLoadingPendientes.set(true)
+        try {
+            await firstValueFrom(this.apiService.anularCuentasPendientesPersonal(this.formPersonalId()))
+            this.listaBancoPer.reload()
+            this.onAddorUpdate.emit()
+        } catch (e) {
+
+        } finally {
+            this.isLoadingPendientes.set(false)
+        }
     }
 
 }

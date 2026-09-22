@@ -53,7 +53,14 @@
 
     @if (listaBancoPer.value().length) {
       <nz-form-control style="text-align: right; margin-right: 25px;">
-        <button nzType="default" nz-button (click)="unsubscribeCBUs()" [nzLoading]="isLoading()" nz-tooltip nzTooltipTitle="Finalizar todos los CBUs vigentes.">
+        <button nzType="default" nz-button nz-popconfirm
+          nzPopconfirmTitle="¿Anular todas las cuentas con CBU pendiente de carga?"
+          (nzOnConfirm)="anularPendientes()" [nzLoading]="isLoadingPendientes()"
+          [disabled]="isLoading()" style="margin-right: 8px;">
+          Anular Pendientes
+        </button>
+        <button nzType="default" nz-button (click)="unsubscribeCBUs()" [nzLoading]="isLoading()"
+          [disabled]="isLoadingPendientes()" nz-tooltip nzTooltipTitle="Finalizar todos los CBUs vigentes.">
           Finalizar CBUs
         </button>
       </nz-form-control>
