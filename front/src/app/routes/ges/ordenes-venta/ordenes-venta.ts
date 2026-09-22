@@ -10,7 +10,6 @@ import { OrdenVentaFormComponent } from '../orden-venta-form/orden-venta-form';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 import { OrdenVentaMasivaDrawerComponent } from '../orden-venta-masiva-drawer/orden-venta-masiva-drawer';
 import { ApiService } from '../../../services/api.service';
-import { SearchService } from '../../../services/search.service';
 
 @Component({
   selector: 'app-ordenes-venta',

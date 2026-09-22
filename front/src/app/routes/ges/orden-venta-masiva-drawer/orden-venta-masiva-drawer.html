@@ -111,8 +111,8 @@
 
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-        <button nzType="primary" nz-button (click)="save()" [nzLoading]="guardando()"
-          [disabled]="(formMasivo().pristine && formComprobantes().pristine) || guardando()">
+        <button nzType="primary" nz-button (click)="save()" [nzLoading]="false"
+          [disabled]="(formMasivo().pristine && formComprobantes().pristine) ">
           {{ 'app.btn.save' | i18n }}
         </button>
       </nz-form-control>

@@ -5,7 +5,6 @@ import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 
@@ -49,7 +48,6 @@ export class OrdenVentaMasivaDrawerComponent {
   private fb = inject(FormBuilder)
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
-  private notification = inject(NzNotificationService)
 
   optionsEstado = toSignal(this.searchService.getEstadoOrdenVenta(), { initialValue: [] as any[] })
   optionsComprobanteTipo = toSignal(this.searchService.getComprobanteTipoSearch(), { initialValue: [] as any[] })
@@ -140,15 +138,13 @@ export class OrdenVentaMasivaDrawerComponent {
 
   comprobantesArray = computed<FormArray>(() => this.formComprobantes().get('comprobantes') as FormArray)
 
-  guardando = signal(false)
-
+  
   // Cambia al guardar: la grilla quedó vieja y hay que releerla
-  guardado = output<void>()
+  onOrdenVentaMasivaSave = output<void>()
 
   // Con "Facturado" elegido para el cliente, los datos del comprobante son obligatorios
   async save() {
-    if (this.guardando()) return
-
+  
     const clientes = this.clientesArray().getRawValue().map((cliente: any, indice: number) => ({
       ClienteId: cliente.ClienteId,
       // Las órdenes del cliente salen de la selección de la grilla, no del formulario
@@ -164,11 +160,6 @@ export class OrdenVentaMasivaDrawerComponent {
       String(cliente.EstadoOrdenVentaCodigo ?? '').trim().toUpperCase() === 'FAC'
       && (!cliente.ComprobanteTipoCodigo || !cliente.ComprobanteNro || cliente.ImporteTotal == null))
 
-    if (sinComprobante.length) {
-      this.notification.error('Órdenes de venta', sinComprobante.map((cliente: any) =>
-        `Cliente ${cliente.ClienteId}: para pasar a Facturado debe cargar el comprobante (tipo, número e importe total)`).join(' | '))
-      return
-    }
 
     // Sólo se mandan los comprobantes que se tocaron: el resto no tiene nada que actualizar
     const comprobantes = this.comprobantesArray().controls
@@ -184,15 +175,12 @@ export class OrdenVentaMasivaDrawerComponent {
         }
       })
 
-    this.guardando.set(true)
     try {
       const respuesta = await firstValueFrom(this.apiService.setOrdenVentaMasiva(clientes, comprobantes))
 
-      this.notification.success('Órdenes de venta', respuesta?.msg ?? 'Grabación exitosa')
-      this.guardado.emit()
+      this.onOrdenVentaMasivaSave.emit()
       this.visible.set(false)
     } finally {
-      this.guardando.set(false)
     }
   }
 }

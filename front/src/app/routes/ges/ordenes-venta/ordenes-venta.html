@@ -58,5 +58,5 @@
   </nz-tabs>
 
 </nz-card>
-<app-orden-venta-masiva-drawer [ordenes]="ordenesSeleccionadas()" [visible]="masivaVisible()"
-   (guardado)="refreshTick.update(n => n + 1)" />
+<app-orden-venta-masiva-drawer [ordenes]="ordenesSeleccionadas()" [(visible)]="masivaVisible"
+   (onOrdenVentaMasivaSave)="refreshTick.update(n => n + 1)" />
