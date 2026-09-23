@@ -59,4 +59,4 @@
 
 </nz-card>
 <app-orden-venta-masiva-drawer [ordenes]="ordenesSeleccionadas()" [(visible)]="masivaVisible"
-   (onOrdenVentaMasivaSave)="refreshTick.update(n => n + 1)" />
+   (onOrdenVentaMasivaSave)="ordenVentaGuardada()" />
