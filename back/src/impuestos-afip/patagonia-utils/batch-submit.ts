@@ -1,4 +1,5 @@
 import type { QueryRunner } from "typeorm";
+import { randomInt } from "node:crypto";
 import { ClientException } from "../../controller/base.controller.ts";
 import { getAccessToken } from "./auth.ts";
 import type { ConfigPatagonia } from "./auth.ts";
@@ -10,6 +11,9 @@ export interface ItemLote {
 }
 
 export interface EnvioLoteResponse {
+  /** Método y ruta completa que se llamó, para informarlos en los mensajes de error. */
+  method: string;
+  url: string;
   status: number;
   ok: boolean;
   /** Body tal cual se envió, para poder revisarlo desde la pantalla. */
@@ -17,22 +21,24 @@ export interface EnvioLoteResponse {
   respuesta: any;
 }
 
-const PREFIJO_REFERENCIA = "CUITEmpresa";
-const CUIT_EMPRESA = "30643445510";
-
 /**
- * Arma el externalReferenceId: CUITEmpresa{CUIT}-{YYYYMM}-{IDUnico}.
+ * Arma el externalReferenceId: {CUIT empresa}-{YYYYMM}-{5 dígitos aleatorios}.
+ * El CUIT sale de CuitEmpresa en los parámetros del Banco Patagonia (MONOT).
+ * @throws {ClientException} si falta el CuitEmpresa en los parámetros
  */
 const armarExternalReferenceId = (
   config: ConfigPatagonia,
   anio: number,
-  mes: number,
-  idUnico: number
+  mes: number
 ): string => {
-  const cuitEmpresa = String(config.cuit_empresa || CUIT_EMPRESA).replace(/\D/g, "");
-  const secuencia = String(idUnico).padStart(5, "0");
+  const cuitEmpresa = String(config.CuitEmpresa ?? "").replace(/\D/g, "");
+  if (!cuitEmpresa)
+    throw new ClientException(
+      `Falta el CuitEmpresa en los parámetros del Banco Patagonia (MONOT).`
+    );
+  const aleatorio = String(randomInt(0, 100000)).padStart(5, "0");
 
-  return `${PREFIJO_REFERENCIA}${cuitEmpresa}-${anio}${String(mes).padStart(2, "0")}-${secuencia}`;
+  return `${cuitEmpresa}-${anio}${String(mes).padStart(2, "0")}-${aleatorio}`;
 };
 
 /** Arma un item del lote a partir del CUIT de la persona (11 dígitos, sin guiones). */
@@ -67,15 +73,26 @@ const enviarLote = async (
     items,
   };
 
-  const response = await fetch(`${config.host}/batch/submit`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(request),
-  });
+  const method = "POST";
+  const url = `${config.host}/batch/submit`;
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+  } catch (error: any) {
+    // El banco no respondió (caída, DNS, timeout): se informa como status 0
+    return {
+      method, url, status: 0, ok: false, request,
+      respuesta: { error: error?.message, causa: error?.cause?.message },
+    };
+  }
 
   // Se lee como texto y recién después se intenta parsear, para no perder el
   // cuerpo cuando el servicio contesta un error que no es JSON.
@@ -87,7 +104,7 @@ const enviarLote = async (
     respuesta = texto;
   }
 
-  return { status: response.status, ok: response.ok, request, respuesta };
+  return { method, url, status: response.status, ok: response.ok, request, respuesta };
 };
 
 export { enviarLote, armarExternalReferenceId, armarItem };

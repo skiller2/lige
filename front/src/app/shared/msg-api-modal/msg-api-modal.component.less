@@ -1,0 +1,40 @@
+.encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.endpoint {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+// Las rutas de los endpoints no tienen espacios donde cortar
+.texto-cortable {
+  min-width: 0;
+  word-break: break-all;
+}
+
+.etiqueta {
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.json {
+  max-height: 320px;
+  margin: 0;
+  overflow: auto;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #fafafa;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+// El request es de consulta: ocupa menos lugar que la respuesta
+.json-compacto {
+  max-height: 120px;
+}

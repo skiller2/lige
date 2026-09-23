@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest, HttpResponseBase } from '@angular/common/http';
+import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest, HttpResponse, HttpResponseBase } from '@angular/common/http';
 import { Injector, inject } from '@angular/core';
 import { IGNORE_BASE_URL, _HttpClient } from '@delon/theme';
 import { environment } from '@env/environment';
@@ -9,6 +9,7 @@ import { tryRefreshToken } from './refresh-token';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { AudioService } from '../../services/audio.service';
 import { SILENT_NOTIFICATION_ERROR } from '../../../context-tokens';
+import { MsgApiModalService } from '../../shared/msg-api-modal/msg-api-modal.service';
 
 function handleData(injector: Injector, ev: HttpResponseBase, req: HttpRequest<any>, next: HttpHandlerFn): Observable<any> {
   checkStatus(injector, ev);
@@ -37,6 +38,13 @@ function handleData(injector: Injector, ev: HttpResponseBase, req: HttpRequest<a
       //     return of(ev);
       //   }
       // }
+      if (ev instanceof HttpResponse) {
+        // Un proceso por lotes responde 200 aunque fallen algunas llamadas a la API externa: esas
+        // vienen en data.msgapi y se muestran en el modal. Si todas salieron bien no se abre nada.
+        const llamadas = MsgApiModalService.llamadas(ev.body);
+        if (llamadas && MsgApiModalService.conError(llamadas))
+          injector.get(MsgApiModalService).mostrar(ev.body.msg, 'warning', llamadas);
+      }
       break;
     case 401:
       if (environment.api.refreshTokenEnabled && environment.api.refreshTokenType === 're-request') {
@@ -68,6 +76,18 @@ function handleData(injector: Injector, ev: HttpResponseBase, req: HttpRequest<a
   }
 }
 
+/**
+ * Si el error viene de una API externa (data.msgapi) muestra el detalle en el modal, que ya
+ * incluye el msg, en lugar de la notificación. Devuelve true si lo mostró.
+ */
+function mostrarMsgApi(injector: Injector, err: HttpErrorResponse, tipo: 'warning' | 'error'): boolean {
+  const llamadas = MsgApiModalService.llamadas(err.error);
+  if (!llamadas) return false;
+  injector.get(MsgApiModalService).mostrar(err.error.msg, tipo, llamadas);
+  injector.get(AudioService).playError();
+  return true;
+}
+
 function handleDataError(injector: Injector, err: HttpErrorResponse, req: HttpRequest<any>, next: HttpHandlerFn): Observable<any> {
   switch (err.status) {
     case 401:
@@ -77,6 +97,7 @@ function handleDataError(injector: Injector, err: HttpErrorResponse, req: HttpRe
       toLogin(injector);
       break;
     case 400:
+      if (mostrarMsgApi(injector, err, 'warning')) break;
       const warningMessage = err.error?.msg || CODEMESSAGE[400] || 'Solicitud incorrecta';
       injector.get(NzNotificationService).warning(`Advertencia`, warningMessage);
       break;
@@ -94,7 +115,7 @@ function handleDataError(injector: Injector, err: HttpErrorResponse, req: HttpRe
         break;
       }
 
-
+      if (mostrarMsgApi(injector, err, 'error')) break;
 
       let errortext = err.error?.msg ? err.error.msg : CODEMESSAGE[err.status] || err.statusText
 

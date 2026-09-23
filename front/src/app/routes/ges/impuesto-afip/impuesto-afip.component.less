@@ -1,11 +1,23 @@
-.json-respuesta {
-  max-height: 320px;
-  margin: 0;
-  overflow: auto;
-  font-size: 12px;
-  white-space: pre-wrap;
-  word-break: break-word;
-  background: #fafafa;
-  border-radius: 4px;
-  padding: 8px;
+// Contenedor de la botonera: sirve de referencia para ubicar el avance a su izquierda
+.acciones {
+  position: relative;
+}
+
+// Avance de "comprobantes pendientes" (proceso por chunks). Va posicionado en absoluto a la
+// izquierda de la botonera: no ocupa lugar en la fila, así que no mueve ni hace bajar los botones.
+.progreso-pendientes {
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+
+  nz-progress {
+    display: block;
+    width: 120px;
+  }
 }

@@ -3,6 +3,15 @@
   <div nz-row style="align-items: center; display: flex; justify-content: space-between; margin: 10px;">
     <nz-date-picker [(ngModel)]="periodo" nzFormat="MM/yyyy" nzMode="month"/>
 
+    <div class="acciones">
+    @if (progresoPendientes(); as progreso) {
+      <div class="progreso-pendientes">
+        <span>Pendientes {{ progreso.procesados }}/{{ progreso.total || '…' }}</span>
+        <nz-progress [nzPercent]="porcentajePendientes()" nzSize="small" nzStatus="active"></nz-progress>
+        <button nz-button nzSize="small" (click)="cancelarObtenerPendientes()">Cancelar</button>
+      </div>
+    }
+
     <nz-button-group nz-button nzButtonGroup>
       <!-- btn  detalle -->
       <button nz-button nzType="default" (click)="visibleDetalle.set(true)" [disabled]="PersonalId() == 0"
@@ -37,6 +46,7 @@
       }
 
     </nz-button-group>
+    </div>
   </div>
 
   <ul nz-menu nzMode="horizontal">
@@ -136,31 +146,3 @@
 </nz-card>
 <app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="PersonalId()" [visible]="visibleDetalle()"
 (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>
-
-<ng-template #footerRespuestaApi>
-  <button nz-button nzType="primary" (click)="respuestaApiVisible.set(false)">Cerrar</button>
-</ng-template>
-
-<nz-modal [nzVisible]="respuestaApiVisible()" (nzVisibleChange)="respuestaApiVisible.set($event)"
-  (nzOnCancel)="respuestaApiVisible.set(false)" [nzWidth]="900" [nzFooter]="footerRespuestaApi"
-  [nzTitle]="respuestaApiTitulo()">
-  <ng-container *nzModalContent>
-    @if (respuestaApiMensaje()) {
-      <nz-alert nzType="error" [nzMessage]="respuestaApiMensaje()" class="mb-md"></nz-alert>
-    }
-    @if (respuestaApiResultado().length === 0 && !respuestaApiMensaje()) {
-      <p>No hay referencias de pago pendientes de resultado en el período.</p>
-    }
-    @for (item of respuestaApiResultado(); track $index) {
-      <nz-card nzSize="small" class="mb-md">
-        <div nz-row nzType="flex" nzAlign="middle" nzJustify="space-between" class="mb-sm">
-          <strong>{{ item.titulo || item.ReferenciaPago || 'Respuesta' }}</strong>
-          @if (item.status) {
-            <nz-tag [nzColor]="item.ok ? 'green' : 'red'">HTTP {{ item.status }}</nz-tag>
-          }
-        </div>
-        <pre class="json-respuesta">{{ item.respuesta | json }}</pre>
-      </nz-card>
-    }
-  </ng-container>
-</nz-modal>

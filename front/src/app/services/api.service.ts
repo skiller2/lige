@@ -14,6 +14,7 @@ import { I18NService } from '@core';
 import { FieldTree, ValidationError } from '@angular/forms/signals';
 import { SILENT_NOTIFICATION_ERROR } from '../../context-tokens';
 import { toLogin } from '../core/net/helper';
+import { MsgApiModalService } from '../shared/msg-api-modal/msg-api-modal.service';
 
 @Injectable({
   providedIn: 'root',
@@ -1169,19 +1170,17 @@ export class ApiService {
     const parameter = { anio, mes, options }
     this.notification.success('Respuesta', `Inicio solicitud de pago al Banco Patagonia`);
 
-    // El error no se notifica: la respuesta del banco se muestra en el modal de la pantalla.
-    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/patagonia/solicitud_pago', parameter, null,
-      { observe: 'body', context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
-        tap((res: ResponseJSON<any>) => this.response(res)),
-        map((res: ResponseJSON<any>) => res.data),
-      )
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/patagonia/solicitud_pago', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      map((res: ResponseJSON<any>) => res.data),
+    )
   }
 
   consultarEstadoPagoPatagonia(anio: number, mes: number) {
     const parameter = { anio, mes }
 
     return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/patagonia/estado_pago', parameter).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
+      tap((res: ResponseJSON<any>) => this.responseApiExterna(res)),
       map((res: ResponseJSON<any>) => res.data),
     )
   }
@@ -1189,24 +1188,22 @@ export class ApiService {
   obtenerComprobanteMonotributo(anio: number, mes: number, PersonalId: number) {
     const parameter = { anio, mes, PersonalId }
 
-    // El error no se notifica: la respuesta de la API se muestra en el modal de la pantalla.
-    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobante_monotributo', parameter, null,
-      { observe: 'body', context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
-        tap((res: ResponseJSON<any>) => this.response(res)),
-        map((res: ResponseJSON<any>) => res.data),
-      )
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobante_monotributo', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+      map((res: ResponseJSON<any>) => res.data),
+    )
   }
 
-  obtenerComprobantesPendientes(anio: number, mes: number) {
-    const parameter = { anio, mes }
-    this.notification.success('Respuesta', `Inicio obtención de comprobantes pendientes`);
+  /**
+   * Procesa un chunk de comprobantes pendientes (como máximo `limite`), sin los PersonalId de
+   * `excluir`. No notifica: la pantalla repite la llamada y avisa una sola vez al terminar.
+   */
+  obtenerComprobantesPendientes(anio: number, mes: number, limite: number, excluir: number[]) {
+    const parameter = { anio, mes, limite, excluir }
 
-    // El error no se notifica: la respuesta de la API se muestra en el modal de la pantalla.
-    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobantes_pendientes', parameter, null,
-      { observe: 'body', context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
-        tap((res: ResponseJSON<any>) => this.response(res)),
-        map((res: ResponseJSON<any>) => res.data),
-      )
+    return this.http.post<ResponseJSON<any>>('/api/impuestos_afip/comprobantes_pendientes', parameter).pipe(
+      map((res: ResponseJSON<any>) => res.data),
+    )
   }
 
   getTelefonos(params: any) {
@@ -1299,6 +1296,15 @@ export class ApiService {
     return this.http
       .delete<ResponseJSON<any>>(`api/adelantos/${adelanto.PersonalId}`, adelanto)
       .pipe(tap((res: ResponseJSON<any>) => this.response(res)));
+  }
+
+  /**
+   * Como response(), pero si falló alguna de las llamadas a la API externa que informa
+   * data.msgapi no notifica: el interceptor ya muestra el modal con el detalle.
+   */
+  responseApiExterna(res: ResponseJSON<any>) {
+    if (MsgApiModalService.conError(MsgApiModalService.llamadas(res))) return
+    this.response(res)
   }
 
   response(res: ResponseJSON<any>) {

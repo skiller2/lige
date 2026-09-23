@@ -1,4 +1,4 @@
-import { Component, ViewChild, resource, inject, signal, computed } from '@angular/core';
+import { Component, DestroyRef, ViewChild, resource, inject, signal, computed } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { NzUploadChangeParam, NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -16,7 +16,7 @@ import {
   tap,
   throttleTime,
 } from 'rxjs';
-import { AsyncPipe, JsonPipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { DescuentoJSON } from '../../../shared/schemas/ResponseJSON';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -35,6 +35,12 @@ import { LoadingService } from '@delon/abc/loading';
 import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.component';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { DownloadService } from '../../../services/download.service';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
+import {
+  ComprobantesPendientesErroresComponent,
+  ComprobantesPendientesErroresData,
+  FallidoPendiente,
+} from './comprobantes-pendientes-errores/comprobantes-pendientes-errores.component';
 
 @Component({
   imports: [
@@ -57,7 +63,7 @@ export class CustomDescargaComprobanteComponent {
   templateUrl: './impuesto-afip.component.html',
   imports: [ SHARED_IMPORTS, NzAffixModule, NzIconModule,
     FiltroBuilderComponent, NzUploadModule,
-    AsyncPipe, JsonPipe, DetallePersonaComponent, PersonalSearchComponent
+    AsyncPipe, DetallePersonaComponent, PersonalSearchComponent
   ],
   styleUrls: ['./impuesto-afip.component.less'],
   providers: [AngularUtilService,
@@ -85,14 +91,6 @@ export class ImpuestoAfipComponent {
   visibleDetalle = signal<boolean>(false)
   toggle = signal<boolean>(false);
   accionEnCurso = signal<string | null>(null);
-  /** Respuesta del Banco Patagonia, tal cual la devuelve el servicio, para mostrarla en el modal. */
-  respuestaApiResultado = signal<any[]>([]);
-  respuestaApiTitulo = signal<string>('');
-  /** Motivo del rechazo (el msg del envelope), que se muestra arriba del JSON. */
-  respuestaApiMensaje = signal<string>('');
-  respuestaApiVisible = signal<boolean>(false);
-  /** Respuesta que quedó para mostrar una vez que se cierre el modal de confirmación. */
-  private respuestaApiPendiente: { titulo: string; mensaje: string; resultado: any } | null = null;
   listOptions = signal<listOptionsT>({ filtros: [], sort: null, })
   periodo = signal<Date|null>(null);
   anio = computed(() => { 
@@ -111,6 +109,7 @@ export class ImpuestoAfipComponent {
   private angularUtilService = inject(AngularUtilService)
   private settingService = inject(SettingsService)
   private downloadService = inject(DownloadService)
+  private notification = inject(NzNotificationService)
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
@@ -281,94 +280,30 @@ export class ImpuestoAfipComponent {
       return
     }
 
+    // Si el banco contesta con error el interceptor muestra el detalle en el modal de APIs
+    // externas, y lo abre recién cuando esta confirmación terminó de cerrarse.
     this.modal.confirm({
       nzTitle: 'Enviar solicitud de pago al Banco Patagonia',
       nzContent: `Período ${previo.mes}/${previo.anio}: se van a procesar ${previo.cantidad} monotributo(s). ¿Confirma?`,
       nzOkText: 'Ejecutar',
       nzCancelText: 'Cancelar',
-      nzOnOk: () => this.ejecutarSolicitudPagoPatagonia()
-    }).afterClose.subscribe(() => {
-      // El modal con la respuesta se abre recién cuando el de confirmación terminó de
-      // destruirse: si se abren superpuestos, el de arriba queda bloqueado por el overlay
-      // del de abajo y no se puede cerrar. El setTimeout espera a que el overlay se libere.
-      if (!this.respuestaApiPendiente) return
-      const { titulo, mensaje, resultado } = this.respuestaApiPendiente
-      this.respuestaApiPendiente = null
-      setTimeout(() => this.mostrarRespuestaApi(titulo, resultado, mensaje))
-    })
-  }
-
-  private async ejecutarSolicitudPagoPatagonia() {
-    await this.ejecutarAccion('solicitudPago', async () => {
-      try {
-        const data: any = await firstValueFrom(
-          this.apiService.enviarSolicitudPagoPatagonia(this.anio(), this.mes(), this.listOptions())
-        )
-        this.respuestaApiPendiente = {
-          titulo: `Solicitud de pago enviada - ${this.mes()}/${this.anio()}`,
-          mensaje: '',
-          resultado: this.bloquesRespuestaApi(data)
-        }
-      } catch (error: any) {
-        // Ante un rechazo se guarda la respuesta del banco para mostrarla al cerrarse la confirmación.
-        // El msg del envelope es el motivo del rechazo; el data, la respuesta cruda del banco.
-        const msg = error?.error?.msg
-        this.respuestaApiPendiente = {
-          titulo: `Error al enviar la solicitud de pago - ${this.mes()}/${this.anio()}`,
-          mensaje: Array.isArray(msg) ? msg.join(' ') : (msg ?? error?.message ?? String(error)),
-          resultado: this.bloquesRespuestaApi(error?.error?.data ?? error?.error ?? { error: error?.message ?? String(error) })
-        }
-      }
-    })
-  }
-
-  /** Consulta el estado de los lotes del período y muestra la respuesta cruda del banco en un modal. */
-  async consultarEstadoPagoPatagonia() {
-    await this.ejecutarAccion('estadoPago', async () => {
-      const resultados = await firstValueFrom(this.apiService.consultarEstadoPagoPatagonia(this.anio(), this.mes()))
-      this.mostrarRespuestaApi(
-        `Estado de pago Banco Patagonia - ${this.mes()}/${this.anio()}`,
-        resultados ?? []
+      nzOnOk: () => this.ejecutarAccion('solicitudPago', () =>
+        firstValueFrom(this.apiService.enviarSolicitudPagoPatagonia(this.anio(), this.mes(), this.listOptions()))
       )
     })
   }
 
-  /**
-   * Muestra en el modal la respuesta de la API. Acepta tanto el array de resultados por
-   * referencia como una respuesta suelta (un error), que se envuelve para mostrarla igual.
-   */
-  /**
-   * Arma los bloques del modal para una llamada a la API: el body que se mandó y lo que contestó
-   * el banco. Si no viene el request (un error anterior al envío) muestra solo lo que haya.
-   */
-  private bloquesRespuestaApi(data: any) {
-    if (data?.request)
-      return [
-        { titulo: 'Request enviado', status: 0, ok: true, respuesta: data.request },
-        { titulo: 'Respuesta del banco', status: data.status ?? 0, ok: data.status >= 200 && data.status < 300, respuesta: data.respuesta }
-      ]
-
-    // Un error anterior al envío no trae request ni respuesta. ClientException manda el
-    // extended vacío ('') cuando no se le pasa nada, y ahí no hay JSON que mostrar:
-    // el motivo ya se ve en el alert de arriba.
-    if (data === '' || data == null) return []
-
-    return [{ titulo: 'Detalle', status: 0, ok: false, respuesta: data }]
-  }
-
-  private mostrarRespuestaApi(titulo: string, resultado: any, mensaje = '') {
-    this.respuestaApiTitulo.set(titulo)
-    this.respuestaApiMensaje.set(mensaje)
-    this.respuestaApiResultado.set(
-      Array.isArray(resultado) ? resultado : [{ ReferenciaPago: '', status: 0, ok: false, respuesta: resultado }]
+  /** Consulta el estado de los lotes del período; si alguna referencia falla, el interceptor muestra la respuesta del banco. */
+  async consultarEstadoPagoPatagonia() {
+    await this.ejecutarAccion('estadoPago', () =>
+      firstValueFrom(this.apiService.consultarEstadoPagoPatagonia(this.anio(), this.mes()))
     )
-    this.respuestaApiVisible.set(true)
   }
 
   /**
    * Trae de la API el comprobante de monotributo de la persona seleccionada. Si ya estaba en la
-   * base el back no consulta y se descarga el documento igual; si la API no lo devuelve, su
-   * respuesta se muestra en el mismo modal que usan las demás acciones del banco.
+   * base el back no consulta y se descarga el documento igual; si la API no lo devuelve, el
+   * interceptor muestra su respuesta en el modal de APIs externas.
    */
   async obtenerComprobanteMonotributo() {
     const PersonalId = this.PersonalId()
@@ -378,17 +313,8 @@ export class ImpuestoAfipComponent {
     const mes = this.mes()
 
     await this.ejecutarAccion('comprobantePersona', async () => {
-      try {
-        await firstValueFrom(this.apiService.obtenerComprobanteMonotributo(anio, mes, PersonalId))
-        this.descargarComprobante(anio, mes, PersonalId)
-      } catch (error: any) {
-        const msg = error?.error?.msg
-        this.mostrarRespuestaApi(
-          `Comprobante de monotributo - ${mes}/${anio}`,
-          this.bloquesRespuestaApi(error?.error?.data ?? error?.error ?? { error: error?.message ?? String(error) }),
-          Array.isArray(msg) ? msg.join(' ') : (msg ?? error?.message ?? String(error))
-        )
-      }
+      await firstValueFrom(this.apiService.obtenerComprobanteMonotributo(anio, mes, PersonalId))
+      this.descargarComprobante(anio, mes, PersonalId)
     })
   }
 
@@ -398,32 +324,113 @@ export class ImpuestoAfipComponent {
       'get', `/api/impuestos_afip/${anio}/${mes}/0/${PersonalId}?original=true`, null, null)
   }
 
-  /**
-   * Trae los comprobantes del período que quedaron pendientes (con solicitud enviada y sin
-   * documento). Es un proceso largo: el back devuelve el resumen y solo los que fallaron, que
-   * se muestran en el modal.
-   */
+  // ---------------------------------------------------------------------------------------------
+  // Comprobantes pendientes por chunks
+  //
+  // Es un proceso largo (una consulta al banco por persona), así que en lugar de un solo request
+  // se llama al back de a TAMANIO_CHUNK personas hasta que no queden pendientes:
+  // - Los que fallan vuelven en `fallidos` y se mandan en `excluir` en la llamada siguiente, para
+  //   que el back no los vuelva a tomar y el ciclo termine.
+  // - Mientras corre se muestra el avance con un botón para cancelar. Lo ya procesado queda
+  //   grabado: volver a apretar el botón sigue con lo que falte.
+  // - Al terminar se avisa una sola vez: notificación si todo salió bien, o la tabla de errores
+  //   (ComprobantesPendientesErroresComponent) si alguno falló.
+  // ---------------------------------------------------------------------------------------------
+
+  /** Personas por llamada al back. */
+  private readonly TAMANIO_CHUNK = 20
+
+  /** Avance del proceso; null cuando no está corriendo. */
+  progresoPendientes = signal<{ procesados: number; total: number } | null>(null)
+  porcentajePendientes = computed(() => {
+    const p = this.progresoPendientes()
+    return p?.total ? Math.round((p.procesados * 100) / p.total) : 0
+  })
+  /** Lo revisa el ciclo antes de pedir el chunk siguiente. */
+  private cancelarPendientes = false
+
+  constructor() {
+    // Si se sale de la pantalla no se piden más chunks
+    inject(DestroyRef).onDestroy(() => (this.cancelarPendientes = true))
+  }
+
   async obtenerComprobantesPendientes() {
+    if (!this.anio() || !this.mes()) return
+    if (this.accionEnCurso()) return
+
+    // El período se fija al empezar: cambiarlo en pantalla no afecta al proceso en curso
     const anio = this.anio()
     const mes = this.mes()
+    const excluir: number[] = []
+    const fallidos: FallidoPendiente[] = []
+    let procesados = 0
+    let conComprobante = 0
+    let cancelado = false
 
-    await this.ejecutarAccion('comprobantesPendientes', async () => {
-      try {
-        const data: any = await firstValueFrom(this.apiService.obtenerComprobantesPendientes(anio, mes))
-        if (data?.resultados?.length)
-          this.mostrarRespuestaApi(
-            `Comprobantes pendientes con error - ${mes}/${anio}`,
-            data.resultados,
-            `${data.conError} de ${data.procesados} pendientes no devolvieron comprobante`
-          )
-      } catch (error: any) {
-        const msg = error?.error?.msg
-        this.mostrarRespuestaApi(
-          `Comprobantes pendientes - ${mes}/${anio}`,
-          this.bloquesRespuestaApi(error?.error?.data ?? error?.error ?? { error: error?.message ?? String(error) }),
-          Array.isArray(msg) ? msg.join(' ') : (msg ?? error?.message ?? String(error))
+    this.cancelarPendientes = false
+    this.accionEnCurso.set('comprobantesPendientes')
+    this.progresoPendientes.set({ procesados: 0, total: 0 })
+    try {
+      while (true) {
+        if (this.cancelarPendientes) {
+          cancelado = true
+          break
+        }
+        const chunk = await firstValueFrom(
+          this.apiService.obtenerComprobantesPendientes(anio, mes, this.TAMANIO_CHUNK, excluir)
         )
+        procesados += chunk.procesados
+        conComprobante += chunk.conComprobante
+        fallidos.push(...chunk.fallidos)
+        excluir.push(...chunk.fallidos.map((f: FallidoPendiente) => f.PersonalId))
+        this.progresoPendientes.set({ procesados, total: procesados + chunk.restantes })
+
+        // Sin procesados no hay avance posible: se corta aunque informe restantes
+        if (!chunk.restantes || !chunk.procesados) break
       }
+    } catch (_e) {
+      // El interceptor ya mostró el error del chunk (configuración, token, …). Lo procesado en
+      // los chunks anteriores quedó grabado y se informa igual abajo.
+    } finally {
+      this.progresoPendientes.set(null)
+      this.accionEnCurso.set(null)
+    }
+
+    this.informarPendientes(anio, mes, procesados, conComprobante, fallidos, cancelado)
+
+    try {
+      this.gridData.reload()
+      this.listaDescuentos.reload()
+    } catch (_e) { }
+  }
+
+  cancelarObtenerPendientes() {
+    this.cancelarPendientes = true
+  }
+
+  /** Aviso único al final de todos los chunks. */
+  private informarPendientes(anio: number, mes: number, procesados: number, conComprobante: number,
+    fallidos: FallidoPendiente[], cancelado: boolean) {
+    if (!procesados) {
+      if (!cancelado) this.notification.info('Respuesta', `No hay comprobantes pendientes en ${mes}/${anio}`)
+      return
+    }
+
+    const mensaje = `${cancelado ? 'Cancelado. ' : ''}Se procesaron ${procesados} pendientes de ${mes}/${anio}: `
+      + `${conComprobante} comprobante(s) obtenido(s), ${fallidos.length} con error`
+
+    if (!fallidos.length) {
+      this.notification.success('Respuesta', mensaje)
+      return
+    }
+
+    this.modal.create<ComprobantesPendientesErroresComponent, ComprobantesPendientesErroresData>({
+      nzTitle: 'Comprobantes pendientes con error',
+      nzContent: ComprobantesPendientesErroresComponent,
+      nzData: { mensaje, fallidos },
+      nzCentered: true,
+      nzWidth: 'min(1000px, calc(100vw - 32px))',
+      nzFooter: null,
     })
   }
 

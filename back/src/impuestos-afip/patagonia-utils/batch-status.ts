@@ -5,8 +5,13 @@ import type { ConfigPatagonia } from "./auth.ts";
 /** Resultado de consultar una referencia de pago contra el Banco Patagonia. */
 export interface EstadoLoteResponse {
   ReferenciaPago: string;
+  /** Método y ruta completa que se llamó, para informarlos en los mensajes de error. */
+  method: string;
+  url: string;
   status: number;
   ok: boolean;
+  /** Body tal cual se envió, para poder revisarlo desde la pantalla. */
+  request: any;
   respuesta: any;
 }
 
@@ -27,19 +32,32 @@ const consultarEstadoLote = async (
   const accessToken = await getAccessToken(app, queryRunner);
 
   // El servicio espera los tres campos como string; pageId y size son opcionales
-  const response = await fetch(`${config.host}/batch/status`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({
-      externalReferenceId: ReferenciaPago,
-      pageId: String(pageId),
-      size: String(size),
-    }),
-  });
+  const request = {
+    externalReferenceId: ReferenciaPago,
+    pageId: String(pageId),
+    size: String(size),
+  };
+
+  const method = "POST";
+  const url = `${config.host}/batch/status`;
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+  } catch (error: any) {
+    // El banco no respondió (caída, DNS, timeout): se informa como status 0
+    return {
+      ReferenciaPago, method, url, status: 0, ok: false, request,
+      respuesta: { error: error?.message, causa: error?.cause?.message },
+    };
+  }
 
   // Se lee como texto y recién después se intenta parsear, para no perder el
   // cuerpo cuando el servicio contesta un error que no es JSON.
@@ -53,8 +71,11 @@ const consultarEstadoLote = async (
 
   return {
     ReferenciaPago,
+    method,
+    url,
     status: response.status,
     ok: response.ok,
+    request,
     respuesta,
   };
 };

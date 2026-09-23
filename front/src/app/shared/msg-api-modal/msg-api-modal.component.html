@@ -1,0 +1,31 @@
+@if (mostrarMensaje) {
+  <nz-alert [nzType]="data.tipo" [nzMessage]="data.mensaje" class="mb-md texto-cortable"></nz-alert>
+}
+@for (llamada of data.llamadas; track $index) {
+  <div class="llamada mb-md">
+    <!-- Qué se llamó y qué devolvió, arriba del detalle -->
+    <div class="encabezado mb-sm">
+      <div class="texto-cortable">
+        @if (llamada.titulo) {
+          <div><strong>{{ llamada.titulo }}</strong></div>
+        }
+        @if (llamada.url) {
+          <code class="endpoint">{{ llamada.method }} {{ llamada.url }}</code>
+        }
+      </div>
+      @if (llamada.status) {
+        <nz-tag [nzColor]="esOk(llamada) ? 'green' : 'red'">HTTP {{ llamada.status }}</nz-tag>
+      }
+    </div>
+    <nz-card nzSize="small">
+      @if (llamada.request !== undefined) {
+        <div class="etiqueta">Request enviado</div>
+        <pre class="json json-compacto mb-sm">{{ llamada.request | json }}</pre>
+      }
+      @if (llamada.respuesta !== undefined) {
+        <div class="etiqueta">Respuesta</div>
+        <pre class="json">{{ llamada.respuesta | json }}</pre>
+      }
+    </nz-card>
+  </div>
+}

@@ -498,18 +498,33 @@ export class ImpuestosAfipController extends BaseController {
       if (aProcesar.size == 0)
         throw new ClientException(`No hay monotributos pendientes de solicitud en el período ${mes}/${anio}.`)
 
-      const idUnico = await BaseController.getProxNumero(queryRunner, `PagoPatagonia`, usuario, ip)
-      externalReferenceId = armarExternalReferenceId(config, anio, mes, idUnico)
+      // El número final es aleatorio: si ya se usó en otra solicitud se genera otro
+      for (let intento = 0; intento < 10 && !externalReferenceId; intento++) {
+        const candidato = armarExternalReferenceId(config, anio, mes)
+        const [usado] = await queryRunner.query(
+          `SELECT TOP 1 1 usado FROM PersonalComprobantePagoAFIP WHERE ReferenciaPago = @0`,
+          [candidato]
+        )
+        if (!usado) externalReferenceId = candidato
+      }
+      if (!externalReferenceId)
+        throw new ClientException(`No se pudo generar un externalReferenceId que no esté repetido.`)
 
       const items = [...aProcesar.keys()].map(CUIT => armarItem(CUIT, config.tipo_documento))
 
       const envio = await enviarLote(req.app, queryRunner, config, externalReferenceId, items)
 
+      // msgapi: la pantalla muestra el detalle de la llamada en el modal de APIs externas
+      const msgapi = {
+        method: envio.method,
+        url: envio.url,
+        status: envio.status,
+        request: envio.request,
+        respuesta: envio.respuesta
+      }
+
       if (envio.status != 201)
-        throw new ClientException(
-          `El Banco Patagonia rechazó la solicitud de pago (HTTP ${envio.status}).`,
-          { status: envio.status, request: envio.request, respuesta: envio.respuesta }
-        )
+        throw new ClientException(`${envio.method} ${envio.url}`, { msgapi })
 
       // Recién con el 201 se graba la referencia, para no dejar marcado lo que el banco no recibió.
       await queryRunner.startTransaction()
@@ -536,9 +551,7 @@ export class ImpuestosAfipController extends BaseController {
         {
           externalReferenceId,
           cantidad: registrosProcesados,
-          status: envio.status,
-          request: envio.request,
-          respuesta: envio.respuesta
+          msgapi
         },
         res,
         `Solicitud enviada con la referencia ${externalReferenceId} (${registrosProcesados} monotributos)`
@@ -652,15 +665,17 @@ export class ImpuestosAfipController extends BaseController {
         try {
           const estado = await consultarEstadoLote(req.app, queryRunner, config, ReferenciaPago, pageId, size)
           if (!estado.ok) referenciasConError++
-          resultados.push(estado)
+          resultados.push({
+            titulo: ReferenciaPago,
+            method: estado.method,
+            url: estado.url,
+            status: estado.status,
+            request: estado.request,
+            respuesta: estado.respuesta
+          })
         } catch (error) {
           referenciasConError++
-          resultados.push({
-            ReferenciaPago,
-            status: 0,
-            ok: false,
-            respuesta: { error: error instanceof Error ? error.message : String(error) }
-          })
+          resultados.push(this.msgApiDeError(ReferenciaPago, error))
         }
       }
 
@@ -677,7 +692,11 @@ export class ImpuestosAfipController extends BaseController {
         ip
       );
 
-      this.jsonRes(resultados, res, `Se consultaron ${referenciasProcesadas} referencias de pago`);
+      this.jsonRes(
+        { referenciasProcesadas, referenciasConError, msgapi: resultados },
+        res,
+        `Se consultaron ${referenciasProcesadas} referencias de pago`
+      );
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
       await this.eventoLogFin(queryRunner,
@@ -703,7 +722,8 @@ export class ImpuestosAfipController extends BaseController {
    *
    * Graba la respuesta en PersonalComprobantePagoAFIP.ResultadoPago sin el voucherBase64 (que es
    * el PDF entero) y el PDF en Documento como MONOT. Si el documento ya está cargado no consulta:
-   * avisa con yaExiste para que la pantalla lo descargue directamente.
+   * avisa con yaExiste para que la pantalla lo descargue directamente. Si la persona no tiene
+   * ReferenciaPago en el período (no se envió la solicitud de pago) tampoco consulta.
    */
   async jobObtenerComprobanteMonotributo(req: Request, res: Response, next: NextFunction) {
     const usuario = this.getUser(res)
@@ -767,6 +787,12 @@ export class ImpuestosAfipController extends BaseController {
         );
       }
 
+      // Sin solicitud de pago enviada el banco no tiene nada que devolver: no se consulta la API
+      if (!persona.ReferenciaPago)
+        throw new ClientException(
+          `${persona.ApellidoNombre} no tiene referencia de pago en ${mes}/${anio}: primero hay que enviar la solicitud de pago al Banco Patagonia`
+        );
+
       const CUIT = String(persona.CUIT ?? '').replace(/\D/g, '')
       if (!CUIT)
         throw new ClientException(`La persona ${persona.ApellidoNombre} no tiene CUIT cargado`);
@@ -775,10 +801,9 @@ export class ImpuestosAfipController extends BaseController {
       const estado = await consultarEstadoBeneficiario(req.app, queryRunner, config, CUIT, anio, mes)
 
       if (!estado.ok)
-        throw new ClientException(
-          `El Banco Patagonia no devolvió el comprobante del CUIT ${CUIT} (HTTP ${estado.status}).`,
-          { status: estado.status, request: estado.request, respuesta: sinVoucher(estado.respuesta) }
-        )
+        throw new ClientException(`El Banco Patagonia respondió con error al pedir el comprobante de ${mes}/${anio} de ${persona.ApellidoNombre} (referencia ${persona.ReferenciaPago})`, {
+          msgapi: { method: estado.method, url: estado.url, status: estado.status, request: estado.request, respuesta: sinVoucher(estado.respuesta) }
+        })
 
       // El resultado se graba siempre que el servicio haya contestado, incluso cuando informa un
       // error del lote: es el dato que después explica por qué no hay comprobante. Va sin el
@@ -790,10 +815,9 @@ export class ImpuestosAfipController extends BaseController {
 
       const voucherBase64 = estado.respuesta?.voucherBase64
       if (!voucherBase64)
-        throw new ClientException(
-          `La respuesta del Banco Patagonia no trae el comprobante del CUIT ${CUIT} (estado ${estado.respuesta?.status ?? 'desconocido'}).`,
-          { status: estado.status, request: estado.request, respuesta: resultado }
-        )
+        throw new ClientException(`El Banco Patagonia no devolvió el comprobante de ${mes}/${anio} de ${persona.ApellidoNombre} (referencia ${persona.ReferenciaPago})`, {
+          msgapi: { method: estado.method, url: estado.url, status: estado.status, request: estado.request, respuesta: resultado }
+        })
 
       await queryRunner.startTransaction()
       await this.grabarComprobantePDF(queryRunner, CUIT, persona.PersonalId, anio, mes, voucherBase64, usuario, ip)
@@ -836,21 +860,36 @@ export class ImpuestosAfipController extends BaseController {
    * PersonalComprobantePagoAFIP.ResultadoPago sin el voucherBase64 y el PDF en Documento, con la
    * misma función que usa la carga de un comprobante suelto. Un error en uno no corta el resto:
    * se acumula y se devuelve para mostrarlo en la pantalla.
+   *
+   * PROCESO POR CHUNKS: cada llamada procesa como máximo `limite` pendientes, para que ningún
+   * request dure demasiado (una consulta al banco por persona). La pantalla repite la llamada
+   * mientras `restantes` sea mayor a cero.
+   * - No hace falta offset: el que obtiene su comprobante pasa a tener documento y deja de ser
+   *   pendiente, así que la llamada siguiente toma solos a los que siguen.
+   * - Los que fallan siguen siendo pendientes: la pantalla los manda en `excluir` (PersonalId)
+   *   para que no vuelvan en cada chunk y el ciclo termine.
+   * - Los errores vuelven en `fallidos` y no en msgapi, para que el interceptor no abra un modal
+   *   por chunk: la pantalla los junta y muestra una sola tabla al final.
    */
   async jobObtenerComprobantesPendientes(req: Request, res: Response, next: NextFunction) {
     const usuario = this.getUser(res)
     const ip = this.getRemoteAddress(req)
     const anio = Number(req.body.anio)
     const mes = Number(req.body.mes)
+    // Tamaño del chunk: 20 por defecto, entre 1 y 100
+    const limite = Math.min(Math.max(Number(req.body.limite) || 20, 1), 100)
+    // Solo enteros: se arman directo en el NOT IN, así que no puede entrar otra cosa
+    const excluir: number[] = Array.isArray(req.body.excluir)
+      ? req.body.excluir.map(Number).filter((id: number) => Number.isInteger(id) && id > 0)
+      : []
 
     const queryRunner = await getConnection(usuario);
 
     let EventoLogCodigo = 0
     let procesados = 0
     let conComprobante = 0
-    let conError = 0
     // Solo los que fallaron: el listado completo no aporta y puede ser largo
-    const resultados: any[] = []
+    const fallidos: any[] = []
 
     try {
       if (!anio) throw new ClientException("Faltó indicar el anio.");
@@ -859,7 +898,7 @@ export class ImpuestosAfipController extends BaseController {
       ({ EventoLogCodigo } = await this.eventoLogInicio(
         queryRunner,
         `Obtener Comprobantes Monotributo Pendientes`,
-        { anio, mes, usuario, ip },
+        { anio, mes, limite, excluidos: excluir.length, usuario, ip },
         usuario,
         ip,
         "JOB"
@@ -870,10 +909,9 @@ export class ImpuestosAfipController extends BaseController {
       const config = await getConfigPatagonia(queryRunner)
       await getAccessToken(req.app, queryRunner)
 
-      const pendientes = await queryRunner.query(
-        `SELECT com.PersonalComprobantePagoAFIPId, com.PersonalId, com.ReferenciaPago,
-          cuit.PersonalCUITCUILCUIT CUIT,
-          CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre
+      // Pendientes = con ReferenciaPago y sin documento. Lo comparten la selección del chunk y
+      // el conteo de restantes; excluidos son los PersonalId que ya fallaron en esta ejecución.
+      const fromPendientes = (excluidos: number[]) => `
         FROM PersonalComprobantePagoAFIP com
         JOIN Personal per ON per.PersonalId = com.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = com.PersonalId
@@ -884,34 +922,44 @@ export class ImpuestosAfipController extends BaseController {
         WHERE com.PersonalComprobantePagoAFIPAno = @0 AND com.PersonalComprobantePagoAFIPMes = @1
           AND com.ReferenciaPago IS NOT NULL
           AND doc.DocumentoId IS NULL
-        ORDER BY per.PersonalApellido, per.PersonalNombre`,
-        [anio, mes]
+          ${excluidos.length ? `AND com.PersonalId NOT IN (${excluidos.join(',')})` : ''}`
+
+      const pendientes = await queryRunner.query(
+        `SELECT TOP (@2) com.PersonalComprobantePagoAFIPId, com.PersonalId, com.ReferenciaPago,
+          cuit.PersonalCUITCUILCUIT CUIT,
+          CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre
+        ${fromPendientes(excluir)}
+        ORDER BY per.PersonalApellido, per.PersonalNombre, com.PersonalId`,
+        [anio, mes, limite]
       );
 
-      // Una consulta por CUIT, de a una: el servicio responde por beneficiario y el lote puede
-      // ser largo. Lo que se graba de cada uno queda commiteado antes de pasar al siguiente.
+      // Una consulta por CUIT, de a una: el servicio responde por beneficiario. Lo que se graba
+      // de cada uno queda commiteado antes de pasar al siguiente, así que si el chunk se corta
+      // lo procesado no se pierde.
       for (const pendiente of pendientes) {
         procesados++
         const CUIT = String(pendiente.CUIT ?? '').replace(/\D/g, '')
+        // Datos de la persona para la fila de la tabla de errores
+        const persona = { PersonalId: pendiente.PersonalId, persona: pendiente.ApellidoNombre, CUIT }
 
         try {
           if (!CUIT)
-            throw new ClientException(`La persona ${pendiente.ApellidoNombre} no tiene CUIT cargado`)
+            throw new ClientException(`No tiene CUIT cargado`)
 
           const estado = await consultarEstadoBeneficiario(req.app, queryRunner, config, CUIT, anio, mes)
+          const llamada = { method: estado.method, url: estado.url, status: estado.status, request: estado.request }
 
           if (!estado.ok) {
-            conError++
-            resultados.push({
-              titulo: `${pendiente.ApellidoNombre} - CUIT ${CUIT}`,
-              status: estado.status,
-              ok: false,
+            fallidos.push({
+              ...persona, ...llamada,
+              error: estado.status ? `El banco respondió HTTP ${estado.status}` : `El banco no respondió`,
               respuesta: sinVoucher(estado.respuesta)
             })
             continue
           }
 
           // El resultado se graba aunque la respuesta informe un error del lote: es el dato que
+          // después explica por qué no hay comprobante.
           const resultado = sinVoucher(estado.respuesta)
           await queryRunner.startTransaction()
           await this.grabarResultadoPago(queryRunner, pendiente, anio, mes, resultado)
@@ -919,13 +967,7 @@ export class ImpuestosAfipController extends BaseController {
 
           const voucherBase64 = estado.respuesta?.voucherBase64
           if (!voucherBase64) {
-            conError++
-            resultados.push({
-              titulo: `${pendiente.ApellidoNombre} - CUIT ${CUIT}`,
-              status: estado.status,
-              ok: false,
-              respuesta: resultado
-            })
+            fallidos.push({ ...persona, ...llamada, error: `El banco no devolvió el comprobante`, respuesta: resultado })
             continue
           }
 
@@ -935,15 +977,19 @@ export class ImpuestosAfipController extends BaseController {
           conComprobante++
         } catch (error) {
           await this.rollbackTransaction(queryRunner)
-          conError++
-          resultados.push({
-            titulo: `${pendiente.ApellidoNombre} - CUIT ${CUIT}`,
-            status: 0,
-            ok: false,
-            respuesta: { error: error instanceof Error ? error.message : String(error) }
+          fallidos.push({
+            ...persona,
+            ...this.msgApiDeError('', error),
+            error: error instanceof Error ? error.message : String(error)
           })
         }
       }
+
+      // Lo que queda sin contar los que fallaron, ni los de antes ni los de este chunk
+      const [{ restantes }] = await queryRunner.query(
+        `SELECT COUNT(*) restantes ${fromPendientes([...excluir, ...fallidos.map(f => f.PersonalId)])}`,
+        [anio, mes]
+      )
 
       await this.eventoLogFin(
         queryRunner,
@@ -953,16 +999,17 @@ export class ImpuestosAfipController extends BaseController {
           res: `Procesado correctamente`,
           'Registros Procesados': procesados,
           'Comprobantes Obtenidos': conComprobante,
-          'Registros Con Error': conError
+          'Registros Con Error': fallidos.length,
+          'Restantes': restantes
         },
         usuario,
         ip
       );
 
       this.jsonRes(
-        { anio, mes, procesados, conComprobante, conError, resultados },
+        { anio, mes, procesados, conComprobante, conError: fallidos.length, restantes, fallidos },
         res,
-        `Se procesaron ${procesados} pendientes de ${mes}/${anio}: ${conComprobante} comprobante(s) obtenido(s), ${conError} con error`
+        `Se procesaron ${procesados} pendientes de ${mes}/${anio}: ${conComprobante} comprobante(s) obtenido(s), ${fallidos.length} con error`
       );
     } catch (error) {
       await this.rollbackTransaction(queryRunner)
@@ -973,7 +1020,7 @@ export class ImpuestosAfipController extends BaseController {
           res: error,
           'Registros Procesados': procesados,
           'Comprobantes Obtenidos': conComprobante,
-          'Registros Con Error': conError
+          'Registros Con Error': fallidos.length
         },
         usuario,
         ip
@@ -981,6 +1028,21 @@ export class ImpuestosAfipController extends BaseController {
       return next(error)
     } finally {
       await queryRunner.release()
+    }
+  }
+
+  /**
+   * Arma el msgapi de un error dentro de un proceso por lotes. Si el error ya trae el detalle de
+   * la llamada (por ejemplo, el token se venció en medio del lote y el banco rechazó renovarlo)
+   * se informa esa llamada; si no, solo el mensaje.
+   */
+  private msgApiDeError(titulo: string, error: unknown) {
+    const msgapi = error instanceof ClientException ? error.extended?.msgapi : null
+    if (msgapi) return { titulo, ...msgapi }
+    return {
+      titulo,
+      status: 0,
+      respuesta: { error: error instanceof Error ? error.message : String(error) }
     }
   }
 

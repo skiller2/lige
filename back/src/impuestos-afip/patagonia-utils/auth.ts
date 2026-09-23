@@ -9,7 +9,7 @@ export interface ConfigPatagonia {
   /** Cuenta de la empresa de donde se debitan los fondos. Solo la usa el envío del lote. */
   accountNumber: string;
   /** CUIT de la empresa, para armar el externalReferenceId. Solo lo usa el envío del lote. */
-  cuit_empresa: string;
+  CuitEmpresa: string;
   /** Código del catálogo de tipo de pago. */
   tipo_pago: string;
   /** Tipo de documento del beneficiario. */
@@ -54,7 +54,7 @@ const getConfigPatagonia = async (queryRunner: QueryRunner): Promise<ConfigPatag
   // El documento del banco nombra al campo "cliend_id"; se acepta también la forma correcta.
   const cliend_id = config?.cliend_id ?? (config as any)?.client_id;
 
-  // Solo se validan acá los datos de autenticación: accountNumber y cuit_empresa los usa
+  // Solo se validan acá los datos de autenticación: accountNumber y CuitEmpresa los usa
   // únicamente el envío del lote, y la consulta de estado tiene que andar sin ellos.
   if (!config?.host)
     throw new ClientException(
@@ -74,7 +74,7 @@ const getConfigPatagonia = async (queryRunner: QueryRunner): Promise<ConfigPatag
     cliend_id,
     client_secret: config.client_secret,
     accountNumber: config.accountNumber,
-    cuit_empresa: config.cuit_empresa,
+    CuitEmpresa: config.CuitEmpresa,
     // Códigos del catálogo: si no están en el parámetro se usan los del documento.
     tipo_pago: config.tipo_pago || "PAGO_MONOTRIBUTO",
     tipo_documento: config.tipo_documento || "CUIT",
@@ -96,28 +96,31 @@ const getAccessToken = async (app: any, queryRunner: QueryRunner): Promise<strin
     `${config.cliend_id}:${config.client_secret}`
   ).toString("base64");
 
+  const method = "POST";
+  const url = `${config.host}/oauth/token`;
+
   // COMENTADO PARA NO HACER LLAMADOS REALES AL BANCO PATAOGNIA EN DESARROLLO
 
-  // const response = await fetch(`${config.host}/oauth/token`, {
-  //   method: "POST",
-  //   headers: {
-  //     Authorization: `Basic ${credenciales}`,
-  //     "Content-Type": "application/x-www-form-urlencoded",
-  //   },
-  //   body: new URLSearchParams({ grant_type: "client_credentials" }).toString(),
-  // });
+  const response = await fetch(url, {
+    method,
+    headers: {
+      Authorization: `Basic ${credenciales}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({ grant_type: "client_credentials" }).toString(),
+  });
 
   // PARA TESTEAR
-  const response = {
-    ok: true,
-    status: 200,
-    text: async () => JSON.stringify({
-      token_type: "Bearer",
-      access_token: "TOKEN-DE-PRUEBA",
-      scope: "api_access",
-      expires_in: 3600,
-    }),
-  };
+  // const response = {
+  //  ok: true,
+  //   status: 200,
+  //   text: async () => JSON.stringify({
+  //     token_type: "Bearer",
+  //     access_token: "TOKEN-DE-PRUEBA",
+  //     scope: "api_access",
+  //     expires_in: 3600,
+  //   }),
+  // };
 
   const texto = await response.text();
   let respuesta: any;
@@ -129,8 +132,8 @@ const getAccessToken = async (app: any, queryRunner: QueryRunner): Promise<strin
 
   if (!response.ok || !respuesta?.access_token)
     throw new ClientException(
-      `No se pudo obtener el token del Banco Patagonia (HTTP ${response.status}).`,
-      respuesta
+      `${method} ${url}`,
+      { msgapi: { method, url, status: response.status, respuesta } }
     );
 
   const expiresIn = Number(respuesta.expires_in) || 0;

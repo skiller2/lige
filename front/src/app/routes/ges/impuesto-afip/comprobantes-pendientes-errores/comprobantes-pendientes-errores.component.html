@@ -1,0 +1,46 @@
+<nz-alert nzType="warning" [nzMessage]="data.mensaje" class="mb-md"></nz-alert>
+
+<nz-table #tabla [nzData]="data.fallidos" nzSize="small" [nzPageSize]="10" nzShowSizeChanger>
+  <thead>
+    <tr>
+      <th nzWidth="40px"></th>
+      <th [nzSortFn]="ordenarPorPersona">Persona</th>
+      <th nzWidth="130px">CUIT</th>
+      <th nzWidth="80px">HTTP</th>
+      <th [nzFilters]="filtrosError" [nzFilterFn]="filtrarPorError" [nzFilterMultiple]="true">Error</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (fila of tabla.data; track fila.PersonalId) {
+      <tr>
+        <td [nzExpand]="expandidos().has(fila.PersonalId)" (nzExpandChange)="alternar(fila.PersonalId, $event)"></td>
+        <td>{{ fila.persona }}</td>
+        <td>{{ fila.CUIT || '—' }}</td>
+        <td>
+          @if (fila.status) {
+            <nz-tag [nzColor]="esOk(fila) ? 'green' : 'red'">{{ fila.status }}</nz-tag>
+          } @else {
+            —
+          }
+        </td>
+        <td>{{ fila.error }}</td>
+      </tr>
+      <!-- Detalle de la llamada al banco: solo se arma cuando se abre la fila -->
+      <tr [nzExpand]="expandidos().has(fila.PersonalId)">
+        @if (expandidos().has(fila.PersonalId)) {
+          @if (fila.url) {
+            <code class="endpoint mb-sm">{{ fila.method }} {{ fila.url }}</code>
+          }
+          @if (fila.request !== undefined) {
+            <div class="etiqueta">Request enviado</div>
+            <pre class="json json-compacto mb-sm">{{ fila.request | json }}</pre>
+          }
+          @if (fila.respuesta !== undefined) {
+            <div class="etiqueta">Respuesta</div>
+            <pre class="json">{{ fila.respuesta | json }}</pre>
+          }
+        }
+      </tr>
+    }
+  </tbody>
+</nz-table>
