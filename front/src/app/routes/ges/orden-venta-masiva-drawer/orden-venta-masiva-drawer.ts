@@ -57,21 +57,19 @@ export class OrdenVentaMasivaDrawerComponent {
     if (visible){
 
       untracked(async ()=>{
-      console.log('presentar datos',this.ordenes())
-      const cs= await firstValueFrom(this.searchService.getOrdenVentaMasiva(this.ordenes()))
-      
-      this.comprobantesSeleccion.set(cs.comprobantes)
-      this.datosFacturacion.set(cs.clientes)
-
-      console.log('presentar datos',this.ordenes())
-      console.log('presentar datos',this.comprobantesSeleccion())
-      console.log('presentar datos',this.datosFacturacion())
-
+        this.load()
       })
 
     }
   })
 
+
+  private async load(){
+      const cs= await firstValueFrom(this.searchService.getOrdenVentaMasiva(this.ordenes()))
+      console.log('presentar datos',cs)
+  }
+
+  
   // La edición masiva es por cliente: se agrupan las órdenes seleccionadas por el suyo, con la
   // cantidad y el importe total de cada grupo
   clientes = computed<ClienteOrdenes[]>(() => {
