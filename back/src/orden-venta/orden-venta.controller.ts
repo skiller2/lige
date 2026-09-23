@@ -1230,5 +1230,4 @@ export class OrdenVentaController extends BaseController {
       await queryRunner.release();
     }
   }
-
 }

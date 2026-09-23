@@ -14,7 +14,7 @@ import { ApiService } from '../../../services/api.service';
 @Component({
   selector: 'app-ordenes-venta',
   standalone: true,
-  imports: [SHARED_IMPORTS, DatePipe, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
+  imports: [SHARED_IMPORTS, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
     ObjetivoSearchComponent, OrdenVentaMasivaDrawerComponent],
   templateUrl: './ordenes-venta.html',
   changeDetection: ChangeDetectionStrategy.OnPush,

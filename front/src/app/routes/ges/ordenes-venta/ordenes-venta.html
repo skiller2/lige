@@ -38,7 +38,7 @@
       <a *nzTabLink nz-tab-link [routerLink]="['/', 'ges', 'ordenes-venta', 'detalle']" >Detalle</a>
       @if (router.isActive('/ges/ordenes-venta/detalle',{})){
       <app-orden-venta-form [soloLectura]="true" [origenCrud]="true"
-        [NroOrdenVenta]="this.ordenesSeleccionadas()?.[0] ?? 0" />
+        [NroOrdenVenta]="this.ordenesSeleccionadas()[0] ?? 0" />
       }
     </nz-tab>
 
@@ -51,7 +51,7 @@
       @if (router.isActive('/ges/ordenes-venta/editar',{})){
 
       <app-orden-venta-form [soloLectura]="false" [origenCrud]="true"
-        [NroOrdenVenta]="this.ordenesSeleccionadas()?.[0] ?? 0" (ordenVentaGuardada)="ordenVentaGuardada()" />
+        [NroOrdenVenta]="this.ordenesSeleccionadas()[0] ?? 0" (ordenVentaGuardada)="ordenVentaGuardada()" />
       }
     </nz-tab>
 

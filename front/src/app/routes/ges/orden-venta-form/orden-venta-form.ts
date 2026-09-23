@@ -302,6 +302,4 @@ export class OrdenVentaFormComponent {
     if (!this.NroOrdenVenta()) return
     this.auditoria.set(await firstValueFrom(this.searchService.getOrdenVentaAuditoria(this.NroOrdenVenta())))
   }
-
-
 }
