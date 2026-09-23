@@ -12,8 +12,7 @@
 
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Objetivo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
-<!--      <app-objetivo-search  [formField]="formOrdenVenta.ObjetivoId" />
--->
+      <app-objetivo-search [formField]="formOrdenVenta.ObjetivoId" (valueExtendedChange)="objetivoChange($event)" />
     </nz-form-control>
 
 

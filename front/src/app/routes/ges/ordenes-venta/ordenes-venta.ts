@@ -15,7 +15,7 @@ import { ApiService } from '../../../services/api.service';
   selector: 'app-ordenes-venta',
   standalone: true,
   imports: [SHARED_IMPORTS, NzMenuModule, TableOrdenVentaComponent, OrdenVentaFormComponent,
-    ObjetivoSearchComponent, OrdenVentaMasivaDrawerComponent],
+    OrdenVentaMasivaDrawerComponent],
   templateUrl: './ordenes-venta.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -53,10 +53,8 @@ export class OrdenesVentaComponent {
     this.refreshTick.update(n => n + 1)
   }
 
-
-
   ngOnInit(): void {
-    if (this.currentUrl()!='ges/ordenes-venta/listado')
+    if (this.currentUrl()!='ges/ordenes-venta/listado' && this.currentUrl()!='ges/ordenes-venta/alta')
       this.router.navigateByUrl('ges/ordenes-venta/listado')
   }
 

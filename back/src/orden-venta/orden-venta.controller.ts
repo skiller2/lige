@@ -333,8 +333,9 @@ export class OrdenVentaController extends BaseController {
 
   async getOrdenVentaQuery(queryRunner: QueryRunner, NroOrdenVenta: number) {
     const ordenDs = await queryRunner.query(`SELECT ord.NroOrdenVenta, ord.ClienteId, ord.ClienteElementoDependienteId,
-        ord.PeriodoAnio,ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.Observaciones, est.Descripcion
-        FROM OrdenVenta ord 
+        ord.PeriodoAnio,ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.Observaciones, est.Descripcion, obj.ObjetivoId
+        FROM OrdenVenta ord
+        JOIN Objetivo obj ON obj.ClienteId=ord.ClienteId AND obj.ClienteElementoDependienteId=ord.ClienteElementoDependienteId
         JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
         WHERE ord.NroOrdenVenta =@0
         `, [NroOrdenVenta])

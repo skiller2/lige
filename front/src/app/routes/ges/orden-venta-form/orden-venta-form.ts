@@ -9,6 +9,7 @@ import { SearchService } from '../../../services/search.service';
 import { applyEach, disabled, form, FormField, required, submit } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
 import { NzCollapsePanelComponent } from 'ng-zorro-antd/collapse';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 
 
 // Productos que facturan las horas 'A' y 'B' cargadas en la asistencia
@@ -65,7 +66,7 @@ export interface OrdenVentaForm {
 @Component({
   selector: 'app-orden-venta-form',
   standalone: true,
-  imports: [SHARED_IMPORTS, CommonModule, FormsModule, FormField],
+  imports: [SHARED_IMPORTS, CommonModule, FormField, ObjetivoSearchComponent],
   templateUrl: './orden-venta-form.html',
   styleUrl: './orden-venta-form.less',
 })
@@ -120,7 +121,7 @@ export class OrdenVentaFormComponent {
 
   private readonly defaultOrdenVenta: OrdenVentaForm = {
     NroOrdenVenta: 0,
-    Periodo: new Date(this.anio(),this.mes()-1,1),
+    Periodo: new Date(this.anio(), this.mes() - 1, 1),
     ObjetivoId: 0,
 
     EstadoOrdenVentaCodigo: '',
@@ -134,7 +135,7 @@ export class OrdenVentaFormComponent {
   readonly ordenVenta = signal<OrdenVentaForm>(this.defaultOrdenVenta);
 
   readonly formOrdenVenta = form(this.ordenVenta, (p) => {
-    disabled(p, () => {return (this.soloLectura() )})
+    disabled(p, () => { return (this.soloLectura()) })
     //disabled(p, () => {return (this.soloLectura() || (String(p.EstadoOrdenVentaCodigo)=='FAC'))})
     applyEach(p.items, (productoPath) => {
       required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido', when: (ctx) => Number(ctx.valueOf(productoPath.Cantidad)) > 0, });
@@ -230,7 +231,7 @@ export class OrdenVentaFormComponent {
     if (this.ordenVenta().comprobantes.length == 0)
       this.addComprobante()
 
-    setTimeout(() => { this.formOrdenVenta().reset() }, 0);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
+    setTimeout(() => { this.formOrdenVenta().reset() }, 200);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
   }
 
   async loadPlantilla() {
@@ -241,7 +242,7 @@ export class OrdenVentaFormComponent {
     if (this.ordenVenta().comprobantes.length == 0)
       this.addComprobante()
 
-//    setTimeout(() => { this.formOrdenVenta().reset() }, 0);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
+    //    setTimeout(() => { this.formOrdenVenta().reset() }, 0);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
   }
 
 
@@ -264,23 +265,27 @@ export class OrdenVentaFormComponent {
 
   clearForm(): void {
     const newOrdenVenta = structuredClone(this.defaultOrdenVenta)
-    newOrdenVenta.ClienteElementoDependienteId=Number(this.ClienteElementoDependienteId())
-    newOrdenVenta.ClienteId=Number(this.ClienteId())
-    if (this.anio()>0 && this.mes()>0)
-      newOrdenVenta.Periodo=new Date(this.anio(),this.mes()-1,1)
-    else 
-      newOrdenVenta.Periodo=null
-    newOrdenVenta.NroOrdenVenta=0
-    newOrdenVenta.EstadoOrdenVentaCodigo='PEN'
+    newOrdenVenta.ClienteElementoDependienteId = Number(this.ClienteElementoDependienteId())
+    newOrdenVenta.ClienteId = Number(this.ClienteId())
+    if (this.anio() > 0 && this.mes() > 0)
+      newOrdenVenta.Periodo = new Date(this.anio(), this.mes() - 1, 1)
+    else
+      newOrdenVenta.Periodo = null
+    newOrdenVenta.NroOrdenVenta = 0
+    newOrdenVenta.EstadoOrdenVentaCodigo = 'PEN'
     this.ordenVenta.set(newOrdenVenta)
     this.formOrdenVenta().reset();
   }
+
+  public objetivoChange(obj:any){
+    this.ordenVenta.update(m => ({ ...m, ClienteId: obj.clienteId, ClienteElementoDependienteId:obj.ClienteElementoDependienteId }));
+  }
+
 
   private lastNroOrdenVenta = -5
   private effecto = effect(() => {
 
     const NroOrdenVenta = this.NroOrdenVenta()
-    console.log('cambio this.NroOrdenVenta', NroOrdenVenta)
     if (this.lastNroOrdenVenta !== NroOrdenVenta) {
       if (NroOrdenVenta > 0) {
         this.load(NroOrdenVenta);

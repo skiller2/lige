@@ -28,7 +28,6 @@ export class OrdenVentaDrawerComponent {
 
 
   private effecto = effect(async () => {
-
     const anio = this.anio()
     const mes = this.mes()
     const ClienteId = this.ClienteId()
@@ -41,10 +40,9 @@ export class OrdenVentaDrawerComponent {
         if (this.cabecera().Ordenes.length)
           this.ordenVentaSeleccionada.set(this.cabecera().Ordenes[0].NroOrdenVenta)
         else if (this.cabecera().NroOrdenVentaBase > 0)
-          this.ordenVentaSeleccionada.set(-2)
+          this.ordenVentaSeleccionada.set(-1) //Fuerzo Alta Nueva.  Si -2 entonces al entrar y salir graba orden desde plantilla
         else
-          this.ordenVentaSeleccionada.set(-1)
-
+          this.ordenVentaSeleccionada.set(-1) //Fuerzo Alta Nueva.
       }
     }
   })
@@ -89,7 +87,5 @@ export class OrdenVentaDrawerComponent {
       this.cabecera.set({})
     }
   }
-
-
 
 }
