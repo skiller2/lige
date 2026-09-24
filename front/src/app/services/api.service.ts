@@ -4,7 +4,7 @@ import { ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON
 import { Observable, catchError, defer, filter, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { formatDate, formatNumber } from '@angular/common';
-import { collectionFormatter, ExternalResource, Formatters, Column, Editors } from '@slickgrid-universal/common';
+import { ExternalResource, Formatters, Column, Editors } from '@slickgrid-universal/common';
 import { AngularUtilService, Formatter, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
@@ -263,8 +263,8 @@ export class ApiService {
 
       enableAutoTooltip: true,
       enableFiltering: false,
-      enableRowSelection: true,  //Se elimina en slickgrid 10
-      //enableSelection:true,   //Proximo cambio
+      //enableRowSelection: true,  //Se elimina en slickgrid 10
+      enableSelection:true,   //Proximo cambio
       enableGrouping: true,
       selectionOptions: {   //Se elimina en slickgrid 10
         selectActiveRow: true
@@ -376,7 +376,7 @@ export class ApiService {
           col.editor = { model: Editors['text'] }
 
           if (String(col.formatter) == 'collectionFormatter')
-            col.formatter = collectionFormatter
+            col.formatter = Formatters['collection']
 
           if (String(col.formatter) == 'complexObject')
             col.formatter = Formatters['complexObject']

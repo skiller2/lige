@@ -14,7 +14,7 @@ import { LoadingService } from '@delon/abc/loading';
 import { SettingsService } from '@delon/theme';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { TableINAESRecibosComponent } from '../table-inaes-recibos/table-inaes-recibos'
-import { ExternalResource } from '@slickgrid-universal/common';
+import { ExternalResource, ExternalResourceConstructor } from '@slickgrid-universal/common';
 import { InaesReg756_2025AltaCsvExportService } from '../../../services/inaes756-2025alta.export';
 import { InaesReg756_2025BajaCsvExportService } from '../../../services/inaes756-2025baja.export';
 import { InaesReg1000_21AltaCsvExportService } from '../../../services/inaes1000-21alta.export';
@@ -54,10 +54,10 @@ export class INAESComponent {
   private readonly loadingSrv = inject(LoadingService)
   private notification = inject(NzNotificationService)
   private settingsService = inject(SettingsService)
-  private reg1000_21AltaExportService: ExternalResource | InaesReg1000_21AltaCsvExportService = new InaesReg1000_21AltaCsvExportService();
-  private reg1000_21BajaExportService: ExternalResource | InaesReg1000_21BajaCsvExportService = new InaesReg1000_21BajaCsvExportService();
-  private reg756_2025AltaExportService: ExternalResource | InaesReg756_2025AltaCsvExportService = new InaesReg756_2025AltaCsvExportService();
-  private reg756_2025BajaExportService: ExternalResource | InaesReg756_2025BajaCsvExportService = new InaesReg756_2025BajaCsvExportService();
+  private reg1000_21AltaExportService  = new InaesReg1000_21AltaCsvExportService();
+  private reg1000_21BajaExportService  = new InaesReg1000_21BajaCsvExportService();
+  private reg756_2025AltaExportService  = new InaesReg756_2025AltaCsvExportService();
+  private reg756_2025BajaExportService  = new InaesReg756_2025BajaCsvExportService();
 
   columns = toSignal(this.apiService.getCols('/api/inaes/altas-bajas/cols')
     .pipe(map((cols: Column[]) => {
@@ -96,10 +96,10 @@ export class INAESComponent {
     //Habilitando exportación de .CSV
     this.gridOptions.textExportOptions = { exportWithFormatter: true }
     this.gridOptions.externalResources!.push(
-      this.reg1000_21AltaExportService as ExternalResource,
-      this.reg1000_21BajaExportService as ExternalResource,
-      this.reg756_2025AltaExportService as ExternalResource,
-      this.reg756_2025BajaExportService as ExternalResource
+      this.reg1000_21AltaExportService  as unknown as ExternalResourceConstructor,
+      this.reg1000_21BajaExportService  as unknown as ExternalResourceConstructor,
+      this.reg756_2025AltaExportService  as unknown as ExternalResourceConstructor,
+      this.reg756_2025BajaExportService as unknown as ExternalResourceConstructor
     );
   }
 
