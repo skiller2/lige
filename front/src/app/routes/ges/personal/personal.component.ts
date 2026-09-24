@@ -85,7 +85,6 @@ export class PersonalComponent {
   visibleCategoria = model<boolean>(false)
   visibleBanco = model<boolean>(false)
   visibleActa = model<boolean>(false)
-  hiddenColumnIds: string[] = [];
 
   childPerFormDrawer = viewChild.required<PersonalFormComponent>('perForm')
   childPerDetalleDrawer = viewChild.required<PersonalFormComponent>('perDetalle')
@@ -94,10 +93,6 @@ export class PersonalComponent {
 
   columns = toSignal(this.apiService.getCols('/api/personal/cols').pipe(
     map((cols) => {
-      // Guardar IDs de columnas que tienen showGridColumn: false
-      this.hiddenColumnIds = cols
-        .filter((col: any) => col.showGridColumn === false)
-        .map((col: Column) => col.id as string);
       return cols;
     })
   ), { initialValue: [] as Column[] })
@@ -165,11 +160,6 @@ export class PersonalComponent {
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
     })
-
-    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
-    }
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])

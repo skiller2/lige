@@ -50,12 +50,8 @@ export class TableImporteVentaVigilanciaComponent {
 
 
   formChange$ = new BehaviorSubject('');
-  hiddenColumnIds: string[] = [];
 
   columns$ = this.apiService.getCols('/api/importe-venta-vigilancia/cols').pipe(map((cols) => {
-    this.hiddenColumnIds = cols
-      .filter((col: any) => col.showGridColumn === false)
-      .map((col: Column) => col.id as string);
 
     let mapped = cols.map((col: Column) => {
       if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA')
@@ -201,10 +197,6 @@ export class TableImporteVentaVigilanciaComponent {
 
     this.angularGridEdit = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGridEdit.gridService.hideColumnByIds(this.hiddenColumnIds)
-    }
 
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)

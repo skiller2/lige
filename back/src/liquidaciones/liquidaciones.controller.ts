@@ -309,7 +309,7 @@ export class LiquidacionesController extends BaseController {
       sortable: true,
       searchHidden: true,
       hidden: false,
-      showGridColumn: false,
+      hidden: true,
     },
     {
       name: "Tipo Movimiento",
@@ -385,7 +385,7 @@ export class LiquidacionesController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
-      showGridColumn: false
+      hidden: true
     },
     {
       name: "Persona",
@@ -420,7 +420,7 @@ export class LiquidacionesController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
-      showGridColumn: false,
+      hidden: true,
     },
     {
       name: "Importe",
@@ -443,7 +443,7 @@ export class LiquidacionesController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
-      showGridColumn: false,
+      hidden: true,
     },
 
 

@@ -97,8 +97,6 @@ export class LiquidacionesComponent {
   gridOptions!: GridOption;
   gridOptionsEdit!: GridOption;
   gridOptionsImport!: GridOption;
-  hiddenColumnIds: string[] = [];
-
   gridDataInsert = [];
   uploading$ = new BehaviorSubject({ loading: false, event: null });
   selectedCuentalId = '';
@@ -227,10 +225,6 @@ export class LiquidacionesComponent {
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-     
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
-    }
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
@@ -351,9 +345,6 @@ export class LiquidacionesComponent {
   }
 
   columns = toSignal(this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols: Column<any>[]) => {
-    this.hiddenColumnIds = cols
-      .filter((col: any) => col.showGridColumn === false)
-      .map((col: Column) => col.id as string);
 
     cols
       .filter((col: Column) => ['ApellidoNombre', 'ClienteElementoDependienteDescripcion'].includes(String(col.id)))

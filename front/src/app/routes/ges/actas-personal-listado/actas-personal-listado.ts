@@ -33,7 +33,6 @@ export class ActasPersonalListadoComponent {
     filtros: [], // TODO: Agregar filtros iniciales aquí si es necesario (ej: [{field: 'Estado', operator: '=', value: 'Activo'}])
     sort: null,
   })
-  hiddenColumnIds: string[] = [];
 
   private angularUtilService = inject(AngularUtilService);
   private searchService = inject(SearchService);
@@ -43,9 +42,6 @@ export class ActasPersonalListadoComponent {
 
   columns = toSignal(this.apiService.getCols('/api/actas/cols-personal').pipe(
     map((cols: Column<any>[]) => {
-      this.hiddenColumnIds = cols
-        .filter((col: any) => col.showGridColumn === false)
-        .map((col: Column) => col.id as string);
       return cols
   })), { initialValue: [] as Column[] })
 
@@ -89,10 +85,6 @@ export class ActasPersonalListadoComponent {
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
     });
-
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds);
-    }
 
     if (this.apiService.isMobile()) {
       this.angularGrid.gridService.hideColumnByIds([]);

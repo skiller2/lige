@@ -91,7 +91,8 @@ export class INAESComponent {
     this.gridOptions.createFooterRow = true
     // this.gridOptions.enableCheckboxSelector = true
     this.gridOptions.forceFitColumns = true
-    this.gridOptions.enableExcelExport = true
+    this.gridOptions.enableExcelExport = true,
+    
 
     //Habilitando exportación de .CSV
     this.gridOptions.textExportOptions = { exportWithFormatter: true }
@@ -111,11 +112,6 @@ export class INAESComponent {
       columnTotal('CapitalIntegrado', this.angularGrid)
     })
 
-    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    const colIds = this.angularGrid.slickGrid.getColumns()
-      .filter(col => (col as any).showGridColumn == false || col.hidden == true)
-      .map(col => col.id);
-    this.angularGrid.gridService.hideColumnByIds(colIds)
 
     /*
     if (this.apiService.isMobile())

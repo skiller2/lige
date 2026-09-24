@@ -40,8 +40,7 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
-        maxWidth: 150,
-        showGridColumn: true
+        maxWidth: 150
     },
     {
         name: "Objetivo",
@@ -255,10 +254,9 @@ const listaColumnas: any[] = [
         field: "CoordinadorCuenta",
         fieldName: "cc.CoordinadorCuenta",
         type: 'string',
-        hidden: false,
         searchHidden: false,
         sortable: true,
-        showGridColumn: false
+        hidden: true
 
     },
     {

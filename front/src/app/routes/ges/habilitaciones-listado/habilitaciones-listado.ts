@@ -31,7 +31,6 @@ export class HabilitacionesListadoComponent {
     filtros: [],
     sort: null,
   })
-  hiddenColumnIds: string[] = [];
   refresh = input<number>(0)
   personalId = model<number>(0)
 
@@ -42,9 +41,6 @@ export class HabilitacionesListadoComponent {
 
   columns = toSignal(this.apiService.getCols('/api/habilitaciones/listado-cols').pipe(
     map((cols: Column<any>[]) => {
-      this.hiddenColumnIds = cols
-        .filter((col: any) => col.showGridColumn === false)
-        .map((col: Column) => col.id as string);
       return cols.map(col =>
         col.id === 'ApellidoNombre' ? { ...col, asyncPostRender: this.renderApellidoNombreComponent.bind(this) } : col
       )
@@ -90,10 +86,6 @@ export class HabilitacionesListadoComponent {
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
     });
-
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds);
-    }
 
     if (this.apiService.isMobile()) {
       this.angularGrid.gridService.hideColumnByIds([]);

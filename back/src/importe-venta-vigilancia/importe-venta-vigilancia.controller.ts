@@ -137,7 +137,7 @@ const columnasGrilla: any[] = [
     searchHidden: false,
     hidden: false,
     editable: false,
-    showGridColumn: false
+    hidden: true
 
   },
   {
@@ -163,7 +163,7 @@ const columnasGrilla: any[] = [
     hidden: false,
     searchHidden: true,
     editable: false,
-    showGridColumn: false
+    hidden: true
   },
   {
     name: "Rubro Objetivo",
@@ -175,7 +175,7 @@ const columnasGrilla: any[] = [
     hidden: false,
     searchHidden: true,
     editable: false,
-    showGridColumn: false
+    hidden: true
 
   },
   {

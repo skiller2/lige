@@ -246,9 +246,8 @@ const columnsAyudaAsistencial: any[] = [
     field: "PersonalPrestamoAudUsuarioIng",
     fieldName: "pres.PersonalPrestamoAudUsuarioIng",
     sortable: true,
-    hidden: false,
     searchHidden: false,
-    showGridColumn: false
+    hidden: true
   }
 ];
 

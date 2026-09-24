@@ -55,8 +55,6 @@ export class AyudaAsistencialComponent {
     mes = computed(() => { return this.periodo()? this.periodo().getMonth()+1 : 0 })
     viweButtonListado = signal(true)
     
-    hiddenColumnIds: string[] = [];
-
     canOpenDetalle = computed(() => {
         if (this.personalId() === 0) return false;
         if (this.viweButtonListado()) {
@@ -86,11 +84,9 @@ export class AyudaAsistencialComponent {
 
     columns = toSignal(this.apiService.getCols('/api/ayuda-asistencial/cols').pipe(map((cols: Column<any>[]) => {
         // Reiniciar el array de columnas ocultas
-        this.hiddenColumnIds = [];
 
         let mapped = cols.map((col: Column) => {
-            // Guardar IDs de columnas que tienen showGridColumn: false
-            if ((col as any).showGridColumn === false) this.hiddenColumnIds.push(col.id as string);
+            // Guardar IDs de columnas que tienen hidden: true
 
             if (col.id == 'PersonalPrestamoMonto') {
                 col.editor = {
@@ -203,10 +199,6 @@ export class AyudaAsistencialComponent {
 
         })
 
-        // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-        if (this.hiddenColumnIds.length > 0) {
-            this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
-        }
 
     }
 

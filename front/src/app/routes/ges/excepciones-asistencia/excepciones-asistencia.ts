@@ -56,12 +56,9 @@ export class ExcepcionesAsistenciaComponent {
   private apiService = inject(ApiService)
   private injector = inject(Injector)
   startFilters = signal<Selections[]>([])
-  hiddenColumnIds: string[] = [];
 
   columns$ = this.apiService.getCols('/api/excepciones-asistencia/cols').pipe(map((cols: Column<any>[]) => {
-    this.hiddenColumnIds = [];
     return cols.map(col => (
-      (col as any).showGridColumn === false && this.hiddenColumnIds.push(col.id as string),
       col.id === 'ObjetivoDescripcion' ? { ...col, asyncPostRender: this.renderAngularComponent.bind(this) } : col
     ));
   }));
@@ -120,11 +117,6 @@ export class ExcepcionesAsistenciaComponent {
       columnTotal('PersonalArt14Horas', this.angularGrid)
       columnTotal('PersonalArt14AdicionalHora', this.angularGrid)
     })
-
-    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
-    }
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])

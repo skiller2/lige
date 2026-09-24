@@ -219,7 +219,7 @@ const columns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    hidden: true
 
   },
   {
@@ -298,7 +298,7 @@ const columns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    hidden: true
   },
   {
     name: "Email",
@@ -309,7 +309,7 @@ const columns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    hidden: true
   },
   {
     name: "Fecha de Nacimiento",
@@ -322,7 +322,7 @@ const columns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    hidden: true
   },
   {
     name: "Identificador Bot",
@@ -347,7 +347,7 @@ const columns: any[] = [
     sortable: true,
     searchHidden: false,
     hidden: false,
-    showGridColumn: false
+    hidden: true
   },
 ]
 const inconsColumns: any[] = [
