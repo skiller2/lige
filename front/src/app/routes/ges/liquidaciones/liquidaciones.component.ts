@@ -293,15 +293,15 @@ export class LiquidacionesComponent {
     localStorage.setItem('mes', String(result.getMonth() + 1));
   }
 
-  columnsImport = [
+  columnsImport:Column[] = [
     {
       id: "id",
       name: "id",
       field: "id",
-      fieldName: "id.liquidaciones",
+//      fieldName: "id.liquidaciones",
       type: "number",
       sortable: true,
-      searchHidden: true,
+//      searchHidden: true,
       hidden: true
     },
     {
@@ -310,7 +310,7 @@ export class LiquidacionesComponent {
       id: "NombreApellido",
       field: "NombreApellido",
       sortable: true,
-      searchHidden: false,
+//      searchHidden: false,
       hidden: false,
     },
     {
@@ -319,7 +319,7 @@ export class LiquidacionesComponent {
       id: "cuit",
       field: "cuit",
       sortable: true,
-      searchHidden: false,
+//      searchHidden: false,
       hidden: false,
     },
     {
@@ -327,9 +327,8 @@ export class LiquidacionesComponent {
       type: "string",
       id: "Detalle",
       field: "Detalle",
-      searchType: "string",
       sortable: true,
-      searchHidden: false,
+//      searchHidden: false,
       hidden: false,
     },
 

@@ -21,10 +21,14 @@
 //@import '@slickgrid-universal/common/dist/styles/sass/material-svg-icons';
 
 
+.slick-column-name{
+  text-align: center;
+}
+
 .slick-column-name,
 .slick-sort-indicator {
-  float: none;
-  margin-bottom: auto;
+//  float: none;
+//  margin-bottom: auto;
 }
 
 .slickgrid-container {
