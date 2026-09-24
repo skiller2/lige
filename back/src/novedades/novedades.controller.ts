@@ -18,8 +18,6 @@ import puppeteer, { Browser, Page } from 'puppeteer';
 import { PDFDocument } from 'pdf-lib';
 import { unlink } from "node:fs/promises"
 
-
-
 const listaColumnas: any[] = [
     {
         id: "id",
@@ -257,7 +255,6 @@ const listaColumnas: any[] = [
 
 ];
 
-
 export class NovedadesController extends BaseController {
 
     directoryNovedad = (process.env.PATH_DOCUMENTS) ? process.env.PATH_DOCUMENTS : '.' + '/novedades'
@@ -311,6 +308,12 @@ export class NovedadesController extends BaseController {
                 ,nov.VisualizacionPersonaId
                 ,nov.VisualizacionTelefono 
                 ,nov.AudUsuarioIng
+                ,(
+                    SELECT STRING_AGG(CAST(docrel.DocumentoId AS VARCHAR(MAX)),',')
+                    FROM DocumentoRelaciones docrel
+                    LEFT JOIN Documento doc ON doc.DocumentoId = docrel.DocumentoId
+                    WHERE docrel.NovedadCodigo = nov.NovedadCodigo AND LOWER(doc.DocumentoNombreArchivo) LIKE '%.jpeg'
+                ) AS DocumentoId
                 ,1
             FROM Novedad nov
             LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod

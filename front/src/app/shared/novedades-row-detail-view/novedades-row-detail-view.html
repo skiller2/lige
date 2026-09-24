@@ -1,0 +1,25 @@
+<div class="row-detail">
+
+  @if (imagenes().length) {
+
+    <div class="image-gallery">
+      @for (url of imagenes(); track url) {
+        <!-- <div class="image-card"> -->
+          <app-image-loader
+            class="image-content"
+            [src]="url"
+          />
+        <!-- </div> -->
+      }
+    </div>
+
+  } @else {
+
+    <div class="empty-state">
+      <span nz-icon nzType="picture" nzTheme="outline"></span>
+      <span>Esta novedad no tiene imágenes.</span>
+    </div>
+
+  }
+
+</div>
