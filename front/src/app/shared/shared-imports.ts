@@ -23,6 +23,7 @@ import { DotToCommaDirective } from './dot-coma/dot-coma';
 
 import { I18NCurrencyPipe } from './utils/i18n-currency.pipe';
 import { SfErrorTipDirective } from './sf-error-tip/sf-error-tip';
+import { AutoRowHeightDirective } from './auto-row-height/auto-row-height';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
@@ -60,6 +61,7 @@ export const SHARED_IMPORTS = [
   NgxMaskDirective,
   DotToCommaDirective,
   SfErrorTipDirective,
+  AutoRowHeightDirective,
 
   ...SHARED_DELON_MODULES,
   ...SHARED_ZORRO_MODULES

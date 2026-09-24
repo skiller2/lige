@@ -11,7 +11,7 @@ export * from './utils/filter-type';
 export * from './down-file/down-file.directive'
 export * from './dot-coma/dot-coma'
 export * from './sf-error-tip/sf-error-tip';
-
+export * from './auto-row-height/auto-row-height';
 // Module
 export * from './shared-imports';
 export * from './json-schema/index';

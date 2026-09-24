@@ -25,11 +25,14 @@
   width: 100%;
   text-align: center;
 }
+
+/*
 .slick-column-name,
 .slick-sort-indicator {
 //  float: none;
 //  margin-bottom: auto;
 }
+*/
 
 .slickgrid-container {
   // .grid-canvas {
@@ -126,7 +129,12 @@
   margin-left: 0;
 }
 
-
+ .slickgrid-container .slick-cell.cell-wrap {
+  white-space: normal;
+  text-overflow: clip;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
 // .slick-row {
 //   .detail-view-toggle {
 //     &.expand, &.collapse {
