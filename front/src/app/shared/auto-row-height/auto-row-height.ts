@@ -14,9 +14,22 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
   private cache = new Map<any, number>();
 
-  private canvas = document.createElement('canvas');
+  private resizeObserver?: ResizeObserver;
+  //  private canvas = document.createElement('canvas');
 
-  private ctx = this.canvas.getContext('2d')!;
+  //  private ctx = this.canvas.getContext('2d')!;
+
+
+  private recalculateHeights(grid: SlickGrid) {
+    this.cache.clear();
+
+    for (let i = 0; i < grid.getDataLength(); i++) {
+      grid.invalidateRow(i);
+    }
+
+    grid.updateRowCount();
+    grid.render();
+  }
 
   ngAfterViewInit(): void {
     const grid = this.slickgrid.slickGrid;
@@ -25,10 +38,21 @@ export class AutoRowHeightDirective implements AfterViewInit {
       (grid, _row, item) => this.getHeight(grid, item);
 
     grid.onColumnsResized.subscribe(() => {
-      this.cache.clear();
-      grid.invalidateAllRows();
-      grid.render();
+      this.recalculateHeights(grid);
     });
+
+    this.resizeObserver = new ResizeObserver(() => {
+      this.recalculateHeights(grid);
+    });
+
+    this.resizeObserver.observe(
+      grid.getContainerNode()
+    );
+
+  }
+
+  ngOnDestroy() {
+    this.resizeObserver?.disconnect();
   }
 
   private getHeight(grid: SlickGrid, item: any): number {
@@ -43,29 +67,29 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
 
 
+    /*
+        const style = getComputedStyle(grid.getContainerNode());
+    
+        this.ctx.font = [
+          style.fontStyle,
+          style.fontWeight,
+          style.fontSize,
+          style.fontFamily,
+        ].join(' ');
+    
+        const fontSize = parseFloat(style.fontSize);
+    
+        const lineHeight =
+          style.lineHeight === 'normal'
+            ? fontSize * 1.2
+            : parseFloat(style.lineHeight);
+    */
 
-    const style = getComputedStyle(grid.getContainerNode());
-
-    this.ctx.font = [
-      style.fontStyle,
-      style.fontWeight,
-      style.fontSize,
-      style.fontFamily,
-    ].join(' ');
-
-    const fontSize = parseFloat(style.fontSize);
-
-    const lineHeight =
-      style.lineHeight === 'normal'
-        ? fontSize * 1.2
-        : parseFloat(style.lineHeight);
-
-    //let maxLines = 1;
     let height = 1;
 
     for (const column of grid.getColumns()) {
 
-      if (!column.field) {
+      if (!column.id || column.type != 'string') {
         continue;
       }
 
@@ -76,7 +100,7 @@ export class AutoRowHeightDirective implements AfterViewInit {
       const width = (header as HTMLElement)?.clientWidth ?? 200;
 
 
-      const text = String(item[column.field] ?? '');
+      const text = String(item[column.id] ?? '');
 
       const heightTmp = this.measureLines(
         text,
@@ -90,46 +114,32 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
     this.cache.set(key, height);
 
-    return height ;
+    return height;
   }
 
 
   private measure = document.createElement('div');
 
-  private measureLines(text: string, width: number, grid:SlickGrid): number {
+  private measureLines(text: string, width: number, grid: SlickGrid): number {
 
     const realCell = grid.getContainerNode()
-    .querySelector('.slick-cell') as HTMLElement;
-     
+      .querySelector('.slick-cell') as HTMLElement;
+
     if (realCell) {
-    const css = getComputedStyle(realCell);
+      const css = getComputedStyle(realCell);
 
-    this.measure.style.font = css.font;
-    this.measure.style.lineHeight = css.lineHeight;
-    this.measure.style.padding = css.padding;
-    this.measure.style.whiteSpace = css.whiteSpace;
-    this.measure.style.wordBreak = css.wordBreak;
-    this.measure.style.overflowWrap = css.overflowWrap;
-    this.measure.style.letterSpacing = css.letterSpacing;
-   
-    width = width - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight);    
-   
-  }
+      this.measure.style.font = css.font;
+      this.measure.style.lineHeight = css.lineHeight;
+      this.measure.style.padding = css.padding;
+      this.measure.style.whiteSpace = css.whiteSpace;
+      this.measure.style.wordBreak = css.wordBreak;
+      this.measure.style.overflowWrap = css.overflowWrap;
+      this.measure.style.letterSpacing = css.letterSpacing;
 
+      width = width - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight);
 
-    /*
-    this.measure.style.position = 'absolute';
-    this.measure.style.visibility = 'hidden';
-    this.measure.style.left = '-99999px';
+    }
 
-    this.measure.style.width = `${width}px`;
-
-    this.measure.style.whiteSpace = 'normal';
-    this.measure.style.overflowWrap = 'break-word';
-    this.measure.style.wordBreak = 'break-word';
-
-    this.measure.style.font = this.ctx.font;
-*/
     this.measure.style.width = `${width}px`;
     this.measure.textContent = text;
 
