@@ -15,6 +15,7 @@ import { FieldTree, ValidationError } from '@angular/forms/signals';
 import { SILENT_NOTIFICATION_ERROR } from '../../context-tokens';
 import { toLogin } from '../core/net/helper';
 import { MsgApiModalService } from '../shared/msg-api-modal/msg-api-modal.service';
+import { AngularRowDetailView } from '@slickgrid-universal/angular-row-detail-plugin';
 
 @Injectable({
   providedIn: 'root',
@@ -255,7 +256,7 @@ export class ApiService {
       enableColumnPicker: true,
       //enableExcelCopyBuffer: true,
       enableExcelExport: true,
-      externalResources: [xlsService as ExternalResource],
+      externalResources: [xlsService as ExternalResource, AngularRowDetailView],
 
       //enableTranslate: true,
       //i18n: I18NService,
