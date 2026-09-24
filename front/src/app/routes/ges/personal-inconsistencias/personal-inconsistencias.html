@@ -16,7 +16,7 @@
         </div>
       </div>
       <div class="gridInconsistencias container-fluid">
-        <angular-slickgrid gridId="gridInconsistencias" [columns]="columns()  | colsFilter" [options]="gridOptions"
+        <angular-slickgrid gridId="gridInconsistencias" [columns]="columns()" [options]="gridOptions"
           [dataset]="gridData.value()||[]" (onAngularGridCreated)="angularGridReady($event)"
           (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
         </angular-slickgrid>

@@ -88,7 +88,7 @@
         <div class="gridContainer container-fluid">
           <angular-slickgrid
             gridId="gridTelefonia" 
-            [columns]="columns() | colsFilter"
+            [columns]="columns()"
             [options]="gridOptions"
             [dataset]="gridData.value()"
             (onAngularGridCreated)="angularGridReady($event)"
@@ -173,7 +173,7 @@
         <div class="gridContainer container-fluid">
           <angular-slickgrid 
             gridId="gridImport" 
-            [columns]="columnsImport() | colsFilter" 
+            [columns]="columnsImport()" 
             [options]="gridOptions"
             [dataset]="gridDataImport()"
             (onAngularGridCreated)="angularGridImportReady($event)" >

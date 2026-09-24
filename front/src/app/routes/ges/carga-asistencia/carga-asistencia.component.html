@@ -302,7 +302,7 @@
 
   </form>
   <div class="grid-container-asis container-fluid">
-    <angular-slickgrid gridId="gridEdit" [columns]="columnas | colsFilter" [options]="gridOptionsEdit"
+    <angular-slickgrid gridId="gridEdit" [columns]="columnas" [options]="gridOptionsEdit"
       [dataset]="gridDataInsert || []" (onCellChange)="onCellChanged($event)"
       (onAngularGridCreated)="angularGridReadyEdit($event)">
     </angular-slickgrid>

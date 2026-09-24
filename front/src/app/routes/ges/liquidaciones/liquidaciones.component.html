@@ -153,7 +153,7 @@
           </div>
 
           <div class="gridContainer1 container-fluid">
-            <angular-slickgrid gridId="gridLiq" [columns]="columns() | colsFilter" [options]="gridOptions"
+            <angular-slickgrid gridId="gridLiq" [columns]="columns()" [options]="gridOptions"
               [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event)"
               (onSelectedRowsChanged)="handleSelectedRowsChanged1($event)">
               >
@@ -171,7 +171,7 @@
         <!-- <button nz-button nzType="primary" class="btn-add" data-test="add-new-item-top-btn" (click)="openCustomModal()" >Agregar nuevo registro</button>  -->
         <br>
         <div class="gridContainer2 container-fluid">
-          <angular-slickgrid gridId="gridEdit" [columns]="columnDefinitions | colsFilter" [options]="gridOptionsEdit"
+          <angular-slickgrid gridId="gridEdit" [columns]="columnDefinitions" [options]="gridOptionsEdit"
             [dataset]="gridDataInsert || []" (onAngularGridCreated)="angularGridReadyEdit($event)">
             <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->
           </angular-slickgrid>
@@ -256,7 +256,7 @@
         </form>
 
         <div class="gridContainer3 container-fluid">
-          <angular-slickgrid gridId="gridImport" class="" [columns]="columnsImport | colsFilter"
+          <angular-slickgrid gridId="gridImport" class="" [columns]="columnsImport"
             [options]="gridOptionsImport" [dataset]="(gridDataImport$ | async) || []">
           </angular-slickgrid>
         </div>

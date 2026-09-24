@@ -32,7 +32,7 @@
         <div class="gridContainercargaManual container-fluid">
           <angular-slickgrid 
             gridId="gridCargaManualPersonal" 
-            [columns]="columnas | colsFilter"
+            [columns]="columnas"
             [options]="gridOptionsEdit" 
             [dataset]="gridDataInsert || []"
             (onAngularGridCreated)="angularGridReady($event)"

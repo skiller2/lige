@@ -5,7 +5,7 @@
       <ng-template nz-tab>
         @if ((Contrato$|async); as columnas) {
           <div class="gridContainer1 container-fluid">
-            <angular-slickgrid gridId="grid22" class="" [columns]="columnas | colsFilter"
+            <angular-slickgrid gridId="grid22" class="" [columns]="columnas"
               [options]="gridOptions" [dataset]="(gridData$ | async) || []"
               (onAngularGridCreated)="angularGridReady($event)">
             </angular-slickgrid>
@@ -18,7 +18,7 @@
         <ng-template nz-tab>
           @if ((Domicilio$|async); as columnasDomicilio) {
             <div class=" gridContainer2 container-fluid">
-              <angular-slickgrid gridId="grid23" class="" [columns]="columnasDomicilio | colsFilter"
+              <angular-slickgrid gridId="grid23" class="" [columns]="columnasDomicilio"
                 [options]="gridOptionsDomicilio" [dataset]="(gridDataDomiicilio$ | async) || []"
                 (onAngularGridCreated)="angularGridReadyDomicilio($event)">
               </angular-slickgrid>
@@ -32,7 +32,7 @@
         <ng-template nz-tab>
           @if ((GrupoActividad$|async); as columnasGrupoActividad) {
             <div class=" gridContainer3 container-fluid">
-              <angular-slickgrid gridId="grid24" class="" [columns]="columnasGrupoActividad | colsFilter"
+              <angular-slickgrid gridId="grid24" class="" [columns]="columnasGrupoActividad"
                 [options]="gridOptionsGrupoActividad" [dataset]="(gridDataGrupoActividad$ | async) || []"
                 (onAngularGridCreated)="angularGridReadyGrupoActividad($event)">
               </angular-slickgrid>

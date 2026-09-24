@@ -87,7 +87,7 @@
   <div nz-tab>
     <div class="gridErrorPer container-fluid">
       <angular-slickgrid *ngIf="tableName() === 'PersonalOtroDescuento'" gridId="gridErrorPer"
-        [columns]="columnsPer  | colsFilter" [options]="gridOptionsPer" [dataset]="(gridDataImport$ | async) || []"
+        [columns]="columnsPer" [options]="gridOptionsPer" [dataset]="(gridDataImport$ | async) || []"
         (onAngularGridCreated)="angularGridReady($event)">
       </angular-slickgrid>
     </div>
@@ -96,7 +96,7 @@
   <div nz-tab>
     <div class="gridErrorObj container-fluid">
       <angular-slickgrid *ngIf="tableName() === 'ObjetivoDescuento'" gridId="gridErrorObj"
-        [columns]="columnsObj  | colsFilter" [options]="gridOptionsObj" [dataset]="(gridDataImport$ | async) || []"
+        [columns]="columnsObj" [options]="gridOptionsObj" [dataset]="(gridDataImport$ | async) || []"
         (onAngularGridCreated)="angularGridReady($event)">
       </angular-slickgrid>
     </div>

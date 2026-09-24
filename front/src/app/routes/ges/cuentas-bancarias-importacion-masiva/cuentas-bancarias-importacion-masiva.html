@@ -72,7 +72,7 @@
   </nz-form-item> -->
 
   <div class="gridError container-fluid">
-    <angular-slickgrid gridId="gridImport" [columns]="columns | colsFilter" [options]="gridOptions"
+    <angular-slickgrid gridId="gridImport" [columns]="columns" [options]="gridOptions"
       [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)">
     </angular-slickgrid>
   </div>

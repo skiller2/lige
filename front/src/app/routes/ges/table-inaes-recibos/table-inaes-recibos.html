@@ -27,7 +27,7 @@
 
     <div class="gridRecibos container-fluid">
       <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions"/>
-      <angular-slickgrid gridId="gridRecibos" [columns]="columns() | colsFilter"
+      <angular-slickgrid gridId="gridRecibos" [columns]="columns()"
         [options]="gridOptions" [dataset]="gridData.value()"
         (onAngularGridCreated)="angularGridReady($event)">
       </angular-slickgrid>
