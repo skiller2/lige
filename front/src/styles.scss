@@ -20,11 +20,11 @@
 
 //@import '@slickgrid-universal/common/dist/styles/sass/material-svg-icons';
 
-
-.slick-column-name{
+// Center header text
+.slick-header-column .slick-column-name {
+  width: 100%;
   text-align: center;
 }
-
 .slick-column-name,
 .slick-sort-indicator {
 //  float: none;
