@@ -126,8 +126,7 @@ const columnasGrillaOrdenes: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true,
-    cssClass: 'cell-wrap'
+    searchHidden: true
   },
   {
     id: "ObjetivoId",
@@ -158,8 +157,7 @@ const columnasGrillaOrdenes: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true,
-    cssClass: 'cell-wrap'
+    searchHidden: true
   },
   {
     id: "Estado",

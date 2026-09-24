@@ -33,7 +33,6 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
   ngAfterViewInit(): void {
     const grid = this.slickgrid.slickGrid;
-    console.log('directive ngAfterViewInit ')
     grid.getOptions().rowHeightProvider =
       (grid, _row, item) => this.getHeight(grid, item);
 
@@ -48,6 +47,25 @@ export class AutoRowHeightDirective implements AfterViewInit {
     this.resizeObserver.observe(
       grid.getContainerNode()
     );
+
+    const columns = grid.getColumns().map(c => ({
+      ...c,
+      cssClass: c.type === 'string'
+        ? `${c.cssClass ?? ''} cell-wrap`.trim()
+        : c.cssClass
+    }));
+
+    grid.setColumns(columns);
+
+    for (const column of grid.getColumns()) {
+
+      if (!column.id || column.type != 'string') {
+        continue;
+      }
+
+
+    }
+
 
   }
 
