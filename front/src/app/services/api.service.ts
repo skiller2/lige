@@ -393,7 +393,7 @@ export class ApiService {
             col.formatter = Formatters['dateEuro']
             col.editor = { model: Editors['date'] }
             col.cssClass = 'text-right'
-            //col.maxWidth = 100
+            col.maxWidth = 80
             //col.minWidth = 100
             col.width = 90
           } else if (String(col.type) == 'currency' || String(col.type) == 'money') {
