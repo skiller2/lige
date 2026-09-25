@@ -72,10 +72,11 @@ export class OrdenVentaDrawerComponent {
   }
 
   ordenVentaGuardada(NroOrdenVenta: number) {
-    console.log('trigger ordenVentaGuardada',NroOrdenVenta)
+
+    this.getCabecera(this.ClienteId(), this.ClienteElementoDependienteId(), this.anio(), this.mes())
+
     if (this.ordenVentaSeleccionada()!=NroOrdenVenta)
       this.ordenVentaSeleccionada.set(NroOrdenVenta)
-    this.getCabecera(this.ClienteId(), this.ClienteElementoDependienteId(), this.anio(), this.mes())
 
     this.ordenVentaChange.emit(NroOrdenVenta)
   }
