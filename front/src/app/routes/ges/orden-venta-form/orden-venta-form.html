@@ -1,7 +1,7 @@
 <form (ngSubmit)="save()">
   <p>{{ordenVenta() | json }}</p>
 
-
+@if (origenCrud()) {
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Periodo</nz-form-label>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" sfErrorTip>
@@ -28,7 +28,7 @@
 
     </nz-form-control>
   </nz-form-item>
-
+}
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Observaciones</nz-form-label>
