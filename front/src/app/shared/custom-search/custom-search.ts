@@ -33,6 +33,7 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
 
 
 export function totalRecords(angularGrid: AngularGridInstance, colid:string='') {
+    /*
     const visibleColumns = angularGrid.slickGrid.getVisibleColumns()
     if (visibleColumns.length == 0) return
     let colId = visibleColumns[0].id
@@ -43,9 +44,9 @@ export function totalRecords(angularGrid: AngularGridInstance, colid:string='') 
         }
     }
     const idx=angularGrid.slickGrid.getVisibleColumnIndex(colId)
+*/
 
-
-    const columnFooter = angularGrid.slickGrid.getFooterRowColumn(idx)
+    const columnFooter = angularGrid.slickGrid.getFooterRowColumn(0)
 
     if (!columnFooter) return
     let cantData
@@ -55,7 +56,8 @@ export function totalRecords(angularGrid: AngularGridInstance, colid:string='') 
     
         const items = angularGrid.slickGrid.getData().getItems().filter(row => row[colid] != '')
         cantData = items.length
-    } 
+    }
+    columnFooter.style.position='relative' 
     columnFooter.innerHTML = (cantData)? `Registros:  ${cantData}`:''
     columnFooter.title = columnFooter.innerHTML
 
