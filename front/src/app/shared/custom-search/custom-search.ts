@@ -2,7 +2,9 @@ import { AngularGridInstance, Column, Formatter } from 'angular-slickgrid';
 import { createDomElement } from '@slickgrid-universal/utils';
 
 export function columnTotal(column: string, angularGrid: AngularGridInstance) {
+    console.log('columnTotal',column)
     let columnFooter = angularGrid.slickGrid.getFooterRowColumn(column)
+    console.log('columnTotal',column,columnFooter)
     let list = angularGrid.dataView.getItems()
     if (list.length && columnFooter) {
 
@@ -30,7 +32,7 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
 
 
 export function totalRecords(angularGrid: AngularGridInstance, colid:string='') {
-    const visibleColumns = angularGrid.gridService.getVisibleColumnDefinitions()
+    const visibleColumns = angularGrid.gridService.getAllColumnDefinitions()
     if (visibleColumns.length == 0) return
     let colId = visibleColumns[0].id
     for (const col of visibleColumns) {
@@ -39,8 +41,8 @@ export function totalRecords(angularGrid: AngularGridInstance, colid:string='') 
             break
         }
     }
-    
     const columnFooter = angularGrid.slickGrid.getFooterRowColumn(colId)
+
     if (!columnFooter) return
     let cantData
     if (colid=='') {

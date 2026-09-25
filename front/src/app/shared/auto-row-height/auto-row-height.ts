@@ -48,25 +48,15 @@ export class AutoRowHeightDirective implements AfterViewInit {
       grid.getContainerNode()
     );
 
-    const columns = grid.getColumns().map(c => ({
-      ...c,
-      cssClass: c.type === 'string'
-        ? `${c.cssClass ?? ''} cell-wrap`.trim()
-        : c.cssClass
-    }));
-
-    grid.setColumns(columns);
 
     for (const column of grid.getColumns()) {
-
-      if (!column.id || column.type != 'string') {
+     if (!column.id || column.type != 'string') {
         continue;
       }
-
-
+      grid.updateColumnById(column.id, { cssClass: `${column.cssClass ?? ''} cell-wrap`.trim() })
     }
 
-
+    grid.updateColumns()
   }
 
   ngOnDestroy() {
@@ -74,34 +64,12 @@ export class AutoRowHeightDirective implements AfterViewInit {
   }
 
   private getHeight(grid: SlickGrid, item: any): number {
-    console.log('getHeight', item)
     const key = item.id ?? JSON.stringify(item);
-
     const cached = this.cache.get(key);
 
     if (cached) {
       return cached;
     }
-
-
-
-    /*
-        const style = getComputedStyle(grid.getContainerNode());
-    
-        this.ctx.font = [
-          style.fontStyle,
-          style.fontWeight,
-          style.fontSize,
-          style.fontFamily,
-        ].join(' ');
-    
-        const fontSize = parseFloat(style.fontSize);
-    
-        const lineHeight =
-          style.lineHeight === 'normal'
-            ? fontSize * 1.2
-            : parseFloat(style.lineHeight);
-    */
 
     let height = 1;
 
