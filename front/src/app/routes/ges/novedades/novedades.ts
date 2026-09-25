@@ -12,7 +12,6 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { NovedadesFormComponent } from '../novedades-form/novedades-form';
 import { SettingsService } from '@delon/theme';
 import { Selections } from '../../../shared/schemas/filtro';
-import { NovedadesRowDetailView } from '../../../shared/novedades-row-detail-view/novedades-row-detail-view';
 
 @Component({
   selector: 'app-novedades',
@@ -61,9 +60,8 @@ export class NovedadesComponent {
 
   async ngOnInit() {
 
-    this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, NovedadesRowDetailView)
-    // this.gridOptions.enableRowDetailView = this.apiService.isMobile()
-    this.gridOptions.enableRowDetailView = true;
+    this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
+    this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
 
