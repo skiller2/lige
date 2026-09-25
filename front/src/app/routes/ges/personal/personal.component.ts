@@ -144,7 +144,7 @@ export class PersonalComponent {
       }])
     } else {
       this.startFilters.set([{
-        index: 'SituacionRevistaId',
+        index: 'SituacionRevistaDescripcion',
         condition: 'AND',
         operator: '=',
         value: '2;10;12',

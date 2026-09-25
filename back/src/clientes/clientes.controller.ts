@@ -717,11 +717,11 @@ ${orderBy}`, [fechaActual])
             
             if (obj.DomicilioId) {
 
-                await domicilioController.updateDomicilio(queryRunner, obj.DomicilioId, obj.Domicilio, obj.DomicilioDomLugar)
+                await domicilioController.updateDomicilio(queryRunner, obj.DomicilioId, obj.Domicilio, obj.DomicilioDomLugar,null,null)
             
             } else {
 
-                const newDomicilioId = await domicilioController.addDomicilio(queryRunner, obj.Domicilio, obj.DomicilioDomLugar)
+                const newDomicilioId = await domicilioController.addDomicilio(queryRunner, obj.Domicilio, obj.DomicilioDomLugar,null,null)
                 
                 //Agregar nexo tambien
                 await queryRunner.query(

@@ -235,7 +235,7 @@ export class DepositosController extends BaseController {
       const ip = this.getRemoteAddress(req)
 
       const DepositoId = await this.insertDeposito(queryRunner, body, usuario, ip)
-      const DomicilioId = await domicilioController.addDomicilio(queryRunner, body.domicilio, null)
+      const DomicilioId = await domicilioController.addDomicilio(queryRunner, body.domicilio, null, null, null)
       // Agregar NexoDomicilio
       await queryRunner.query(
         `INSERT INTO NexoDomicilio (
@@ -353,7 +353,7 @@ export class DepositosController extends BaseController {
       // const usuario = res.locals.userName
       // const ip = this.getRemoteAddress(req)
 
-      await domicilioController.updateDomicilio(queryRunner, body.DomicilioId, body.domicilio, null)
+      await domicilioController.updateDomicilio(queryRunner, body.DomicilioId, body.domicilio, null, null, null)
       //Agregar Contactos del Deposito
       await this.depositoContactoUpdate(queryRunner, body.contactos, DepositoId)
 

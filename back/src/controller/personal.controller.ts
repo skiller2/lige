@@ -20,7 +20,7 @@ const PersonalSexoOptions: any[] = [
 const columns: any[] = [
   {
     id: "id",
-    name: "id",
+    name: "ID",
     field: "id",
     type: "number",
     fieldName: "per.PersonalId",
@@ -28,16 +28,16 @@ const columns: any[] = [
     searchHidden: true,
     hidden: true,
   },
-  {
-    id: "PersonalId",
-    name: "PersonalId",
-    field: "PersonalId",
-    type: "number",
-    fieldName: "per.PersonalId",
-    sortable: true,
-    searchHidden: true,
-    hidden: true,
-  },
+  // {
+  //   id: "PersonalId",
+  //   name: "PersonalId",
+  //   field: "PersonalId",
+  //   type: "number",
+  //   fieldName: "per.PersonalId",
+  //   sortable: true,
+  //   searchHidden: true,
+  //   hidden: true,
+  // },
   {
     id: "PersonalCUITCUILCUIT",
     name: "CUIT",
@@ -96,46 +96,50 @@ const columns: any[] = [
     searchHidden: false
   },
   {
-    name: "Grupo Actividad",
-    type: "string",
     id: "GrupoActividadDetalle",
-    field: "GrupoActividadDetalle",
-    fieldName: "ga.GrupoActividadDetalle",
-    sortable: true,
-    searchHidden: true
-  },
-  {
     name: "Grupo Actividad",
-    type: "number",
-    id: "GrupoActividadId",
-    field: "GrupoActividadId",
+    field: "GrupoActividadDetalle",
+    type: "string",
     fieldName: "ga.GrupoActividadId",
     searchComponent: 'inputForGrupoActividadSearch',
+    searchType: "number",
     sortable: false,
-    hidden: true,
+    hidden: false,
     searchHidden: false
   },
-  {
-    id: "SituacionRevistaId",
-    name: "Situacion Revista",
-    field: "SituacionRevistaId",
-    type: "number",
-    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
-    searchComponent: "inputForSituacionRevistaSearch",
-    searchType: "number",
-    sortable: true,
-    searchHidden: false,
-    hidden: true,
-  },
+  // {
+  //   name: "Grupo Actividad",
+  //   type: "number",
+  //   id: "GrupoActividadId",
+  //   field: "GrupoActividadId",
+  //   fieldName: "ga.GrupoActividadId",
+  //   searchComponent: 'inputForGrupoActividadSearch',
+  //   sortable: false,
+  //   hidden: true,
+  //   searchHidden: false
+  // },
+  // {
+  //   id: "SituacionRevistaId",
+  //   name: "Situacion Revista",
+  //   field: "SituacionRevistaId",
+  //   type: "number",
+  //   fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+  //   searchComponent: "inputForSituacionRevistaSearch",
+  //   searchType: "number",
+  //   sortable: true,
+  //   searchHidden: false,
+  //   hidden: true,
+  // },
   {
     id: "SituacionRevistaDescripcion",
     name: "Situación Revista",
     field: "SituacionRevistaDescripcion",
     type: "string",
-    fieldName: "sitrev.SituacionRevistaDescripcion",
-    searchType: "string",
+    fieldName: "sitrev.PersonalSituacionRevistaSituacionId",
+    searchComponent: "inputForSituacionRevistaSearch",
+    searchType: "number",
     sortable: true,
-    searchHidden: true,
+    searchHidden: false,
     hidden: false,
   },
   {
@@ -219,29 +223,27 @@ const columns: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    hidden: true
-
   },
-  {
-    name: "Dom. Calle",
-    type: "string",
-    id: "domCalleNro",
-    field: "domCalleNro",
-    fieldName: "perdom.domCalleNro",
-    sortable: true,
-    hidden: true,
-    searchHidden: false
-  },
-  {
-    name: "Dom. Código Postal",
-    type: "string",
-    id: "DomicilioCodigoPostal",
-    field: "domCalDomicilioCodigoPostalleNro",
-    fieldName: "perdom.DomicilioCodigoPostal",
-    sortable: true,
-    hidden: true,
-    searchHidden: false
-  },
+  // {
+  //   name: "Dom. Calle",
+  //   type: "string",
+  //   id: "domCalleNro",
+  //   field: "domCalleNro",
+  //   fieldName: "perdom.domCalleNro",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: false
+  // },
+  // {
+  //   name: "Dom. Código Postal",
+  //   type: "string",
+  //   id: "DomicilioCodigoPostal",
+  //   field: "domCalDomicilioCodigoPostalleNro",
+  //   fieldName: "perdom.DomicilioCodigoPostal",
+  //   sortable: true,
+  //   hidden: true,
+  //   searchHidden: false
+  // },
   {
     name: "Dom. Provincia",
     type: "number",
@@ -289,17 +291,17 @@ const columns: any[] = [
     hidden: true,
     searchHidden: false
   },
-  {
-    name: "Categoría",
-    type: "string",
-    id: "PersonalCategoriaCom",
-    field: "PersonalCategoriaCom",
-    fieldName: "percat.PersonalCategoriaCom",
-    sortable: true,
-    hidden: false,
-    searchHidden: true,
-    hidden: true
-  },
+  // {
+  //   name: "Categoría",
+  //   type: "string",
+  //   id: "PersonalCategoriaCom",
+  //   field: "PersonalCategoriaCom",
+  //   fieldName: "percat.PersonalCategoriaCom",
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: true,
+  //   hidden: true
+  // },
   {
     name: "Email",
     type: "string",
@@ -307,7 +309,6 @@ const columns: any[] = [
     field: "PersonalEmailEmail",
     fieldName: "email.PersonalEmailEmail",
     sortable: true,
-    hidden: false,
     searchHidden: true,
     hidden: true
   },
@@ -320,7 +321,6 @@ const columns: any[] = [
     searchType: "date",
     searchComponent: "inputForFechaSearch",
     sortable: true,
-    hidden: false,
     searchHidden: true,
     hidden: true
   },
@@ -346,7 +346,6 @@ const columns: any[] = [
     searchType: "string",
     sortable: true,
     searchHidden: false,
-    hidden: false,
     hidden: true
   },
 ]
@@ -2164,14 +2163,14 @@ LEFT JOIN(
 
     }
   }
-  //Esta funcion esta preparada para cuando se habilite el search-addr
-  private async newUpdatePerDomicilio(queryRunner: any, PersonalId: number, Domicilio: any) {
+  //Esta funcion esta preparada para cuando se habilite search-addr
+  private async newUpdatePerDomicilio(queryRunner: any, PersonalId: number, domicilio: any) {
 
     const NexoDomicilio = await queryRunner.query(
       `SELECT nex.DomicilioId, nex.NexoDomicilioActual FROM NexoDomicilio AS nex WHERE nex.PersonalId = @0 AND nex.NexoDomicilioActual = 1`,
       [PersonalId]
     )
-    const DomicilioId = NexoDomicilio[0] ? NexoDomicilio[0].DomicilioId : 0
+    let DomicilioId = NexoDomicilio[0] ? NexoDomicilio[0].DomicilioId : 0
 
     if (DomicilioId) { // UPDATE
       const Domicilio = await queryRunner.query(
@@ -2192,17 +2191,19 @@ LEFT JOIN(
         }
       }
       if (cambio) {
-        await domicilioController.updateDomicilio(queryRunner, DomicilioId, Domicilio, null)
+        await domicilioController.updateDomicilio(queryRunner, DomicilioId, domicilio.Domicilio, null, domicilio.Dpto, domicilio.Piso)
       }
 
     } else { // ADD
-      const newDomicilioId = await domicilioController.addDomicilio(queryRunner, Domicilio, null)
+      DomicilioId = await domicilioController.addDomicilio(queryRunner, domicilio.Domicilio, null, domicilio.Dpto, domicilio.Piso)
       await queryRunner.query(
         `INSERT INTO NexoDomicilio (DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, PersonalId) 
         VALUES ( @0,@1,@2,@3,@4,@5,@6)`,
-        [newDomicilioId, 1, 1, 1, 1, 1, PersonalId]
+        [DomicilioId, 1, 1, 1, 1, 1, PersonalId]
       )
     }
+
+
 
   }
 

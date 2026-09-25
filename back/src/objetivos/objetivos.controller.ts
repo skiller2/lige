@@ -2125,12 +2125,12 @@ outer APPLY (SELECT
             [ DomicilioId, 1, 0, 1, 0, 0, ClienteId, ClienteElementoDependienteId]
         )
     }
-    //Esta funcion esta preparada para cuando se habilite el search-addr
+    //Esta funcion esta preparada para cuando se habilite search-addr
     async newAddElementoDependienteDomicilio(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, DomicilioDomLugar: string, Domicilio:any) {
 
         await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual = 0 WHERE ClienteElementoDependienteId = @0 AND ClienteId = @1 `, [ClienteElementoDependienteId, ClienteId])
         
-        const DomicilioId = await domicilioController.addDomicilio(queryRunner, Domicilio, DomicilioDomLugar)
+        const DomicilioId = await domicilioController.addDomicilio(queryRunner, Domicilio, DomicilioDomLugar, null, null)
 
         await queryRunner.query(
             `INSERT INTO NexoDomicilio (
