@@ -23,10 +23,8 @@ export class AutoRowHeightDirective implements AfterViewInit {
   private recalculateHeights(grid: SlickGrid) {
     this.cache.clear();
 
-    for (let i = 0; i < grid.getDataLength(); i++) {
-      grid.invalidateRow(i);
-    }
-
+    grid.invalidateAllRows()
+//    grid.invalidateRowHeights();
     grid.updateRowCount();
     grid.render();
   }

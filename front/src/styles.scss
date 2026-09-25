@@ -111,13 +111,9 @@
 }
 
 .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
-//  display: var(--slick-grid-footer-display, block);
-//  align-items: var(--slick-grid-footer-align-items, center);
-//  justify-content: var(--slick-grid-footer-justify-content, normal);
   font-size: var(--slick-grid-footer-font-size, 13px);
   font-style: var(--slick-grid-footer-font-style, normal);
   font-weight: var(--slick-grid-footer-font-weight, bold);
-//  padding: var(--slick-grid-footer-cell-padding, 5px 0px);
   border-right: var(--slick-grid-footer-cell-border-left, 1px solid rgba(133, 133, 133, 0.20));
 }
 
@@ -164,4 +160,9 @@ nz-select-item {
 
 .ant-input-affix-wrapper{
   padding: 1px 11px !important;
+}
+
+.text-right{
+  text-align: right !important;
+  justify-content: flex-end !important;
 }
