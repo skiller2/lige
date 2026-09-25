@@ -36,7 +36,9 @@ export class OrdenVentaDrawerComponent {
     this.cabecera.set({})
     if (ClienteId > 0 && ClienteElementoDependienteId > 0 && anio > 0 && mes > 0 && visible) {
       await this.getCabecera(ClienteId, ClienteElementoDependienteId, anio, mes)
-      if (this.ordenVentaSeleccionada() == 0) {
+
+
+      if (this.ordenVentaSeleccionada() <= 0) {
         if (this.cabecera().Ordenes.length)
           this.ordenVentaSeleccionada.set(this.cabecera().Ordenes[0].NroOrdenVenta)
         else if (this.cabecera().NroOrdenVentaBase > 0)
