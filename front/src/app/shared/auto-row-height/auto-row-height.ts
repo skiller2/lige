@@ -30,9 +30,10 @@ export class AutoRowHeightDirective implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+
     const grid = this.slickgrid.slickGrid;
-    grid.getOptions().rowHeightProvider =
-      (grid, _row, item) => this.getHeight(grid, item);
+//    grid.getOptions().rowHeightProvider =
+//      (grid, _row, item) => this.getHeight(grid, item);
 
     grid.onColumnsResized.subscribe(() => {
       this.recalculateHeights(grid);
@@ -46,7 +47,6 @@ export class AutoRowHeightDirective implements AfterViewInit {
       grid.getContainerNode()
     );
 
-
     for (const column of grid.getColumns()) {
      if (!column.id || column.type != 'string') {
         continue;
@@ -55,9 +55,41 @@ export class AutoRowHeightDirective implements AfterViewInit {
     }
 
     grid.updateColumns()
+
+
+    const realCell = grid.getContainerNode()
+      .querySelector('.slick-column-name') as HTMLElement;
+
+
+    if (realCell) {
+  
+      const css = getComputedStyle(realCell);
+  
+      this.measure.style.font = css.font;
+      this.measure.style.lineHeight = css.lineHeight;
+      this.measure.style.padding = css.padding;
+      this.measure.style.paddingTop = css.paddingTop;
+      this.measure.style.paddingBottom = css.paddingBottom;
+      this.measure.style.paddingLeft = css.paddingLeft;
+      this.measure.style.paddingRight = css.paddingRight;
+
+      this.measure.style.whiteSpace = css.whiteSpace;
+      this.measure.style.wordBreak = css.wordBreak;
+      this.measure.style.overflowWrap = css.overflowWrap;
+      this.measure.style.letterSpacing = css.letterSpacing;
+    }
+//    this.measure.className="slick-cell cell-wrap"
+    this.measure.style.wordBreak = 'break-word';
+    this.measure.style.padding = '1px';
+
+    document.body.appendChild(this.measure);
+
+    grid.setOptions({enableVariableRowHeight: true, rowHeightProvider :
+      (grid, _row, item) => this.getHeight(grid, item)})
   }
 
   ngOnDestroy() {
+    document.body.removeChild(this.measure);
     this.resizeObserver?.disconnect();
   }
 
@@ -73,7 +105,7 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
     for (const column of grid.getColumns()) {
 
-      if (!column.id || column.type != 'string') {
+      if (column.hidden || column.type != 'string') {
         continue;
       }
 
@@ -83,16 +115,19 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
       const width = (header as HTMLElement)?.clientWidth ?? 200;
 
+/*
+    const realCell = grid.getContainerNode()
+      .querySelector('.slick-cell') as HTMLElement;
+
+    if (realCell) 
+      console.log("en getHeight",realCell,getComputedStyle(realCell))
+*/
+
 
       const text = String(item[column.id] ?? '');
 
-      const heightTmp = this.measureLines(
-        text,
-        width,//(column.width ?? 100) - 16
-        grid
-      );
+      const heightTmp = this.measureLines(text, width, grid);
 
-      //maxLines = Math.max(maxLines, lines);
       height = Math.max(height, heightTmp);
     }
 
@@ -106,32 +141,10 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
   private measureLines(text: string, width: number, grid: SlickGrid): number {
 
-    const realCell = grid.getContainerNode()
-      .querySelector('.slick-cell') as HTMLElement;
-
-    if (realCell) {
-      const css = getComputedStyle(realCell);
-
-      this.measure.style.font = css.font;
-      this.measure.style.lineHeight = css.lineHeight;
-      this.measure.style.padding = css.padding;
-      this.measure.style.whiteSpace = css.whiteSpace;
-      this.measure.style.wordBreak = css.wordBreak;
-      this.measure.style.overflowWrap = css.overflowWrap;
-      this.measure.style.letterSpacing = css.letterSpacing;
-
-      width = width - parseFloat(css.paddingLeft) - parseFloat(css.paddingRight);
-
-    }
-
     this.measure.style.width = `${width}px`;
     this.measure.textContent = text;
-
-    document.body.appendChild(this.measure);
-
+ 
     const height = this.measure.offsetHeight;
-
-    document.body.removeChild(this.measure);
 
     return Math.ceil(height);
   }
