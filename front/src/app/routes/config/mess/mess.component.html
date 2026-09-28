@@ -40,14 +40,24 @@
     <ng-template nz-tab>
       <nz-card nzSize="small" [nzBodyStyle]="{ padding: '12px' }">
         <nz-form-item>
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Persona</nz-form-label>
-          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Persona</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7">
             <app-personal-search (ngModelChange)="changePersona($event)" ngModel [anio]="0" [mes]="0" />
           </nz-form-control>
 
-          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzFor="chatId">Teléfono</nz-form-label>
-          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9">
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" nzFor="chatId">Teléfono</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
             <input nz-input name="chatId" type="text" id="chatId" [(ngModel)]="chatId" />
+          </nz-form-control>
+
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" nzFor="chatModel">Modelo</nz-form-label>
+          <nz-form-control [nzXs]="22" [nzSm]="22" [nzMd]="5">
+            <nz-select nzId="chatModel" nzPlaceHolder="Seleccione un modelo" nzAllowClear
+              [nzDropdownMatchSelectWidth]="false" [ngModel]="chatModel()" (ngModelChange)="changeChatModel($event)"
+              [ngModelOptions]="{ standalone: true }">
+              <nz-option nzValue="agents" nzLabel="Agents"></nz-option>
+              <nz-option nzValue="main-prompt" nzLabel="Main Prompt"></nz-option>
+            </nz-select>
           </nz-form-control>
         </nz-form-item>
 

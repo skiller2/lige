@@ -213,7 +213,7 @@ export class ChatBotController extends BaseController {
     const chatId = req.body.chatId
     botServer.chatmess[chatId] = []
     const ret = {}
-    return this.jsonRes(ret, res, 'ok');
+    return this.jsonRes(ret, res, 'Chat reiniciado correctamente');
   }
 
 
@@ -221,18 +221,55 @@ export class ChatBotController extends BaseController {
 
 
   async chat(req: Request, res: Response, next: NextFunction) {
+    const message = String(req.body.message ?? '').trim()
+    if (!message)
+      return this.jsonRes({ 'response': [] }, res, 'ok');
+    const personalId = Number(req.body.personalId)
+    if (!Number.isInteger(personalId) || personalId <= 0)
+      return next(new ClientException('Debe seleccionar una persona'))
+    const chatId = String(req.body.chatId ?? '').trim()
+    if (!chatId)
+      return next(new ClientException('El teléfono es obligatorio'))
+    const model: string = req.body.model
+    if (!model)
+      return next(new ClientException('Debe seleccionar un modelo'))
+
     const usuario = BaseController.getUser(res)
     const queryRunner= await dbServer.connection(usuario)
-    if (req.body.message.trim() == '')
-      return this.jsonRes({ 'response': [] }, res, 'ok');
-    const chatId: string = req.body.chatId
+    let iaPrompt = botServer.iaPrompt
+    let iaTools = botServer.iaTools
+
+    if (model == 'main-prompt') {
+      const rows = await queryRunner.query(`
+        SELECT Prompt, IaTools
+        FROM ChatBotPrompt
+        WHERE ChatBotPromptCodigo = @0
+      `, ['BMA'])
+      const mainPrompt = rows[0]
+      if (!mainPrompt)
+        return next(new ClientException('No se encontró el Main Prompt BMA'))
+      if (!mainPrompt.Prompt?.trim() || !mainPrompt.IaTools?.trim())
+        return next(new ClientException('BMA no tiene configurados el prompt y las herramientas'))
+
+      try {
+        iaTools = JSON.parse(mainPrompt.IaTools)
+      } catch {
+        return next(new ClientException('IA Tools de BMA no contiene un JSON válido'))
+      }
+      if (!Array.isArray(iaTools))
+        return next(new ClientException('IA Tools de BMA debe ser un arreglo JSON'))
+      iaPrompt = mainPrompt.Prompt
+    } else {
+      return next(new ClientException('Modelo "' + model + '" no soportado.'))
+    }
+
     if (!botServer.chatmess[chatId])
       botServer.chatmess[chatId] = []
 
     if (botServer.chatmess[chatId].length == 0)
-      botServer.chatmess[chatId].push({ id: 0, role: "system", content: botServer.iaPrompt, sendIt: true });
+      botServer.chatmess[chatId].push({ id: 0, role: "system", content: iaPrompt, sendIt: true });
 
-    botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, role: "user", content: req.body.message })
+    botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, role: "user", content: message })
 
     try {
       let recall = false
@@ -242,7 +279,7 @@ export class ChatBotController extends BaseController {
           model: "gpt-oss:120b",
           messages: botServer.chatmess[chatId],
           stream: false,
-          tools: botServer.iaTools,
+          tools: iaTools,
         });
 
         botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, ...responseIA.message });

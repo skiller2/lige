@@ -25,6 +25,8 @@ interface AgentsFormModel {
   agents: ChatBotPromptForm[];
 }
 
+type ChatModel = 'agents' | 'main-prompt'
+
 @Component({
   selector: 'app-mess',
   imports: [NzModalModule,
@@ -53,6 +55,8 @@ export class MessComponent {
   iaToolsHash = signal('')
   showTools = signal<boolean>(false);
   chatId = signal('');
+  personalId = signal<number | null>(null)
+  chatModel = signal<ChatModel | null>(null)
   msgs = signal<any[]>([])
   agentsLoading = signal(false)
   panelAbierto = signal<number | null>(null)
@@ -119,7 +123,12 @@ export class MessComponent {
       localStorage.setItem('chatId', this.chatId())
 
       try {
-        const resp: any = await firstValueFrom(this.apiService.sendChatMessage(this.chatform.usermsg().value(), this.chatId()))
+        const resp: any = await firstValueFrom(this.apiService.sendChatMessage(
+          this.chatform.usermsg().value(),
+          this.chatId(),
+          this.chatModel(),
+          this.personalId()
+        ))
         const newMsg: any[] = resp.response
         this.msgs.update(list => [...list, ...resp.response]);
         this.scrollChatToBottom()
@@ -143,6 +152,11 @@ export class MessComponent {
   async reiniciaChat() {
     const resp = await firstValueFrom(this.apiService.reiniciaChat(this.chatId()))
     this.msgs.set([])
+  }
+
+  async changeChatModel(model: ChatModel | null) {
+    this.chatModel.set(model)
+    await this.reiniciaChat()
   }
 
 
@@ -255,7 +269,11 @@ export class MessComponent {
   }
 
   async changePersona(PersonalId: number) {
-    if (!PersonalId) return
+    this.personalId.set(PersonalId || null)
+    if (!PersonalId) {
+      this.chatId.set('')
+      return
+    }
     const res = await firstValueFrom(this.apiService.getAccesoBot(PersonalId))
 
     if (res?.Telefono) {
