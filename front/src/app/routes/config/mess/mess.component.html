@@ -80,37 +80,6 @@
 
   </nz-tab>
   <nz-tab>
-    <a *nzTabLink nz-tab-link routerLink="/config/mess/ia-prompt">IA Prompt</a>
-    <ng-template nz-tab>
-    <nz-card>
-      <h4>IA Prompt</h4>
-      <form (ngSubmit)="setIaPrompt($event)">
-
-        <textarea placeholder="IA Prompt" style="width: 100%;
-    height: 800px;" [formField]="promptform.iaPrompt"></textarea>
-        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="promptform().submitting()"
-          [disabled]="promptform().submitting() || promptform().dirty()==false">Grabar</button>
-      </form>
-    </nz-card>
-    </ng-template>
-
-  </nz-tab>
-  <nz-tab>
-    <a *nzTabLink nz-tab-link routerLink="/config/mess/ia-herramientas">IA Herramientas</a>
-    <ng-template nz-tab>
-    <nz-card>
-      <h4>IA Prompt</h4>
-      <form (ngSubmit)="setIaTools($event)">
-        <textarea placeholder="IA Herramientas" style="width: 100%;
-    height: 800px;" [formField]="toolsform.iaTools"></textarea>
-        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="toolsform().submitting()"
-          [disabled]="toolsform().submitting() || toolsform().dirty()==false">Grabar</button>
-      </form>
-    </nz-card>
-    </ng-template>
-
-  </nz-tab>
-  <nz-tab>
     <a *nzTabLink nz-tab-link routerLink="/config/mess/agents">Agents</a>
     <ng-template nz-tab>
     <nz-card>
@@ -125,10 +94,12 @@
 
                 <ng-template #agentActions>
                   <div class="panel-actions">
-                    <button nz-button nzType="default" type="button" (click)="removeAgent(i, $event)" nz-tooltip
-                      nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-                      <span nz-icon nzType="delete" nzTheme="outline"></span>
-                    </button>
+                    @if (agentsModel().agents[i].ChatBotPromptCodigo !== 'BMA') {
+                      <button nz-button nzType="default" type="button" (click)="removeAgent(i, $event)" nz-tooltip
+                        nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+                        <span nz-icon nzType="delete" nzTheme="outline"></span>
+                      </button>
+                    }
                     @if ($last) {
                     <button nz-button nzType="primary" type="button" class="add-button" (click)="addAgent($event)"
                       nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">

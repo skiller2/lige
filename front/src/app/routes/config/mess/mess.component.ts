@@ -111,21 +111,6 @@ export class MessComponent {
 
 
 
-  promptform = form(signal({
-    iaPrompt: '',
-  }), (f) => {
-    required(f.iaPrompt)
-    minLength(f.iaPrompt,1)
-  })
-
-  toolsform = form(signal({
-    iaTools: '',
-  }), (f) => {
-    required(f.iaTools)
-    minLength(f.iaTools,1)
-  })
-
-
 
   async enviaChat(event: any) {
     event.preventDefault();
@@ -167,17 +152,6 @@ export class MessComponent {
 
     await this.loadAgents()
 
-    const resIAPrompt: any = await firstValueFrom(this.apiService.getIaPrompt())
-
-    this.promptform().reset({iaPrompt:resIAPrompt.data.iaPrompt})
-
-    this.iaPromptHash.set(resIAPrompt.data.iaPromptHash)
-
-    const resIATools: any = await firstValueFrom(this.apiService.getIaTools())
-    this.toolsform().reset({iaTools:resIATools.data.iaTools})
-
-    this.iaToolsHash.set(resIATools.data.iaToolsHash)
-
   }
 
   private setAgentsForm(data: any) {
@@ -190,6 +164,8 @@ export class MessComponent {
     }))
 
     this.agentsForm().reset({ agents })
+    this.iaPromptHash.set(data?.iaPromptHash ?? '')
+    this.iaToolsHash.set(data?.iaToolsHash ?? '')
     this.deletedAgentCodes.set([])
     this.panelAbierto.set(null)
   }
@@ -233,6 +209,7 @@ export class MessComponent {
 
     const agent = this.agentsModel().agents[index]
     if (!agent) return
+    if (agent.ChatBotPromptCodigo === 'BMA') return
 
     if (!agent.EsNuevo && agent.ChatBotPromptCodigo) {
       this.deletedAgentCodes.update(codes =>
@@ -255,8 +232,10 @@ export class MessComponent {
       const agents = form().value().agents
       const currentCodes = new Set(agents.map(agent => agent.ChatBotPromptCodigo))
       const deletedCodes = this.deletedAgentCodes().filter(code => !currentCodes.has(code))
-      const data = await firstValueFrom(this.apiService.setChatBotAgents(agents, deletedCodes))
+      const data = await firstValueFrom(this.apiService.setChatBotAgents(agents, deletedCodes, this.iaPromptHash(), this.iaToolsHash()))
       this.setAgentsForm(data)
+      if (data.bmaChanged)
+        this.msgs.set([])
       return undefined
     })
   }
@@ -276,37 +255,6 @@ export class MessComponent {
       this.chatId.set('')
     }
 
-  }
-
-
-  async setIaPrompt(event: any) {
-    event.preventDefault();
-    await submit(this.promptform, async (form) => {
-      localStorage.setItem('chatId', this.chatId())
-
-      try {
-        const resp: any = await firstValueFrom(this.apiService.setIaPrompt(form().value().iaPrompt,this.iaPromptHash()))
-        this.promptform().reset({ iaPrompt: resp.data.iaPrompt })
-        this.iaPromptHash.set(resp.data.iaPromptHash)
-        this.msgs.set([])
-      } catch { }
-      return undefined; // success
-    })
-  }
-
-  async setIaTools(event: any) {
-    event.preventDefault();
-    await submit(this.toolsform, async (form) => {
-      localStorage.setItem('chatId', this.chatId())
-
-      try {
-        const resp: any = await firstValueFrom(this.apiService.setIaTools(form().value().iaTools,this.iaToolsHash()))
-        this.toolsform().reset({ iaTools: resp.data.iaTools })
-        this.iaToolsHash.set(resp.data.iaToolsHash)
-        this.msgs.set([])
-      } catch { }
-      return undefined; // success
-    })
   }
 
 

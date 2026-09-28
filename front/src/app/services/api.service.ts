@@ -514,38 +514,14 @@ export class ApiService {
     )
   }
 
-  setIaPrompt(iaPrompt: string, iaPromptHash: string): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iaprompt', { iaPrompt, iaPromptHash }).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    )
-  }
-
-  getIaPrompt(): Observable<unknown> {
-    return this.http.get<ResponseJSON<any>>('mess/api/chatbot/iaprompt').pipe(
-      map(res => res)
-    )
-  }
-
-  setIaTools(iaTools: string, iaToolsHash: string): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iatools', { iaTools, iaToolsHash }).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    )
-  }
-
-  getIaTools(): Observable<unknown> {
-    return this.http.get<ResponseJSON<any>>('mess/api/chatbot/iatools').pipe(
-      map(res => res)
-    )
-  }
-
   getChatBotAgents(): Observable<any> {
     return this.http.get<ResponseJSON<any>>('mess/api/chatbot/agents').pipe(
       map(res => res.data)
     )
   }
 
-  setChatBotAgents(agents: any[], deletedCodes: string[]): Observable<any> {
-    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/agents', { agents, deletedCodes }).pipe(
+  setChatBotAgents(agents: any[], deletedCodes: string[], iaPromptHash: string, iaToolsHash: string): Observable<any> {
+    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/agents', { agents, deletedCodes, iaPromptHash, iaToolsHash }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
       map(res => res.data)
     )
