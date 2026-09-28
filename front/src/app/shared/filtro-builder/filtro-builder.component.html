@@ -1,7 +1,7 @@
 <nz-card style="max-height: 150px; overflow: auto; border:none !important;">
   <!-- TODO: quitar objeto de track  -->
-  @for (tag of localoptions.filtros; track tag) {
-  @if (tag.label && tag.label !="") {
+  @for (tag of localoptions.filtros; track tag.index) {
+  @if (tag.label && tag.label !="" && selections.originIdx != $index) {
   <nz-tag [nzMode]="(tag.closeable)?'closeable':'default'" (nzOnClose)="removeFiltro($index)" class="tag-ellipsis">
     <span class="app-tag-span tag-text" (click)="editFiltro($index)" style="cursor: pointer;"
       title="{{ tag.name }} {{ tag.operador }} {{ tag.label}}">
