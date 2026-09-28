@@ -198,14 +198,18 @@ export class ChatBotController extends BaseController {
     }
   }
 
-  async getChatbotParameters() {
-    const usuario = BaseController.getUser(null)
-    const queryRunner = await dbServer.connection(usuario)
+  async getChatbotParameters(queryRunner?: any) {
+    const releaseQueryRunner = !queryRunner
+    if (!queryRunner) {
+      const usuario = BaseController.getUser(null)
+      queryRunner = await dbServer.connection(usuario)
+    }
     try {
       const rows = await queryRunner.query(`SELECT Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`, ['BMA'])
       return rows[0] ?? null
     } finally {
-      await queryRunner.release()
+      if (releaseQueryRunner)
+        await queryRunner.release()
     }
   }
 
@@ -235,32 +239,34 @@ export class ChatBotController extends BaseController {
       return next(new ClientException('Debe seleccionar un modelo'))
 
     const usuario = BaseController.getUser(res)
-    const queryRunner= await dbServer.connection(usuario)
+    const queryRunner = await dbServer.connection(usuario)
     let iaPrompt = botServer.iaPrompt
     let iaTools = botServer.iaTools
 
-    if (model == 'main-prompt') {
-      const rows = await queryRunner.query(`
-        SELECT Prompt, IaTools
-        FROM ChatBotPrompt
-        WHERE ChatBotPromptCodigo = @0
-      `, ['BMA'])
-      const mainPrompt = rows[0]
-      if (!mainPrompt)
-        return next(new ClientException('No se encontró el Main Prompt BMA'))
-      if (!mainPrompt.Prompt?.trim() || !mainPrompt.IaTools?.trim())
-        return next(new ClientException('BMA no tiene configurados el prompt y las herramientas'))
+    switch (model) {
+      case 'main-prompt':
 
-      try {
-        iaTools = JSON.parse(mainPrompt.IaTools)
-      } catch {
-        return next(new ClientException('IA Tools de BMA no contiene un JSON válido'))
-      }
-      if (!Array.isArray(iaTools))
-        return next(new ClientException('IA Tools de BMA debe ser un arreglo JSON'))
-      iaPrompt = mainPrompt.Prompt
-    } else {
-      return next(new ClientException('Modelo "' + model + '" no soportado.'))
+        const mainPrompt = await this.getChatbotParameters(queryRunner)
+        if (!mainPrompt)
+          return next(new ClientException('No se encontró el Main Prompt BMA'))
+        if (!mainPrompt.Prompt?.trim() || !mainPrompt.IaTools?.trim())
+          return next(new ClientException('BMA no tiene configurados el prompt y las herramientas'))
+
+        try {
+          iaTools = JSON.parse(mainPrompt.IaTools)
+        } catch {
+          return next(new ClientException('IA Tools de BMA no contiene un JSON válido'))
+        }
+        if (!Array.isArray(iaTools))
+          return next(new ClientException('IA Tools de BMA debe ser un arreglo JSON'))
+        iaPrompt = mainPrompt.Prompt
+        break;
+      
+      case 'agents':
+        // desarrollar obtencion del prompt y herramientas base para agentes
+      default:
+        return next(new ClientException('Modelo "' + model + '" no soportado.'))
+        break;
     }
 
     if (!botServer.chatmess[chatId])
@@ -314,10 +320,10 @@ export class ChatBotController extends BaseController {
                 output = await personalController.getInfoEmpresa()
                 break;
               case 'getLastPeriodosOfComprobantesAFIP':
-                output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, tool.function.arguments.cant,queryRunner).then(array => { return array })
+                output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, tool.function.arguments.cant, queryRunner).then(array => { return array })
                 break;
               case 'getLastPeriodoOfComprobantes':
-                output = await documentosController.getLastPeriodoOfComprobantes(pId, tool.function.arguments.cant,queryRunner).then(array => { return array })
+                output = await documentosController.getLastPeriodoOfComprobantes(pId, tool.function.arguments.cant, queryRunner).then(array => { return array })
                 break;
               case 'getDocsPendDescarga':
                 output = await personalController.getDocsPendDescarga(pId)
@@ -345,7 +351,7 @@ export class ChatBotController extends BaseController {
                 break;
               case 'getURLDocumentoNew':
                 try {
-                  output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId,queryRunner)
+                  output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId, queryRunner)
                 } catch (e) {
                   output = { Error: e }
                 }
@@ -354,7 +360,7 @@ export class ChatBotController extends BaseController {
                 output = await novedadController.getBackupNovedad(pId)
                 break;
               case 'saveNovedad':
-                output = await novedadController.saveNovedad(pId, tool.function.arguments.novedad,queryRunner)
+                output = await novedadController.saveNovedad(pId, tool.function.arguments.novedad, queryRunner)
                 break;
               case 'getObjetivoByCodObjetivo':
                 output = await objetivoController.getObjetivoByCodObjetivo(tool.function.arguments.CodObjetivo)
@@ -363,7 +369,7 @@ export class ChatBotController extends BaseController {
                 output = await novedadController.getNovedadTipo()
                 break;
               case 'addNovedad':
-                output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, pId,queryRunner)
+                output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, pId, queryRunner)
                 break;
               case 'getNovedadesPendientesByResponsable':
                 output = await novedadController.getNovedadesPendientesByResponsable(pId)
@@ -379,7 +385,7 @@ export class ChatBotController extends BaseController {
 
             //            const output = await functionToCall(tool.function.arguments);
 
-             
+
 
             botServer.chatmess[chatId].push({
               id: botServer.chatmess[chatId].length, role: "tool", content: JSON.stringify(output), tool_name: tool.function.name,
@@ -474,13 +480,13 @@ export class ChatBotController extends BaseController {
       res.end();
     } catch (error) {
       return next(error)
-    }finally {
+    } finally {
     }
   }
 
   async addToDocLog(doc_id: number, telefono: string, PersonalId: number) {
     const usuario = BaseController.getUser(null)
-    const queryRunner= await dbServer.connection(usuario)
+    const queryRunner = await dbServer.connection(usuario)
     const fechaActual = new Date()
     await queryRunner.query(`INSERT INTO DocumentoDescargaLog (DocumentoId, FechaDescarga, Telefono, PersonalId, AudUsuarioIng, AudIpIng, AudFechaIng)
       VALUES (@0,@1,@2,@3,@4,@5,@6)`,
@@ -488,7 +494,7 @@ export class ChatBotController extends BaseController {
   }
 
   static async enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string) {
-    const queryRunner= await dbServer.connection(usuario)
+    const queryRunner = await dbServer.connection(usuario)
 
     const fechaActual = new Date()
     try {
@@ -508,7 +514,7 @@ export class ChatBotController extends BaseController {
 
   static async getColaMsg() {
     const usuario = BaseController.getUser(null)
-    const queryRunner= await dbServer.connection(usuario)
+    const queryRunner = await dbServer.connection(usuario)
     const fechaActual = new Date()
     return queryRunner.query(`
       SELECT col.FechaIngreso, col.PersonalId, tel.Telefono, col.TextoMensaje,
@@ -520,7 +526,7 @@ export class ChatBotController extends BaseController {
 
   static async updColaMsg(fecha_ingreso: Date, personal_id: number, method: string, provider: string) {
     const usuario = BaseController.getUser(null)
-    const queryRunner= await dbServer.connection(usuario)
+    const queryRunner = await dbServer.connection(usuario)
     const fechaActual = new Date()
 
     if (!method && !provider) throw new Error('Se debe especificar al menos method o provider para actualizar el mensaje en cola.');
