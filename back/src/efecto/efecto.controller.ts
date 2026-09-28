@@ -665,7 +665,7 @@ const listaColumnasEfectoGeneral: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: false,
-    width: 185,
+    width: 200,
   },
   {
     id: "PersonalId",
@@ -753,7 +753,7 @@ const listaColumnasEfectoGeneral: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    width: 150,
+    width: 100,
   },
   {
     id: "SucursalDescripcion",
@@ -761,7 +761,7 @@ const listaColumnasEfectoGeneral: any[] = [
     field: "SucursalDescripcion",
     fieldName: "COALESCE(sucpro.SucursalId, sucdep.SucursalId, sucobj.SucursalId, sucper.SucursalId)",
     searchComponent: "inputForSucursalSearch",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false,
     width: 160,
