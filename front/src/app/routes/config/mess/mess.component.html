@@ -52,7 +52,7 @@
 
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" nzFor="chatModel">Modelo</nz-form-label>
           <nz-form-control [nzXs]="22" [nzSm]="22" [nzMd]="5">
-            <nz-select nzId="chatModel" nzPlaceHolder="Seleccione un modelo" nzAllowClear
+            <nz-select nzId="chatModel" nzPlaceHolder="Seleccione un modelo"
               [nzDropdownMatchSelectWidth]="false" [ngModel]="chatModel()" (ngModelChange)="changeChatModel($event)"
               [ngModelOptions]="{ standalone: true }">
               <nz-option nzValue="agents" nzLabel="Agents"></nz-option>

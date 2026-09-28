@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, inject, input, model, signal, viewChild } from '@angular/core';
-import { applyEach, disabled, form, FormField, minLength, readonly, required, submit } from '@angular/forms/signals';
+import { Component, ElementRef, inject, model, signal, viewChild } from '@angular/core';
+import { applyEach, disabled, form, FormField, minLength, required, submit } from '@angular/forms/signals';
 
 import { SHARED_IMPORTS } from '@shared';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -56,7 +56,7 @@ export class MessComponent {
   showTools = signal<boolean>(false);
   chatId = signal('');
   personalId = signal<number | null>(null)
-  chatModel = signal<ChatModel | null>(null)
+  chatModel = signal<ChatModel | null>('main-prompt')
   msgs = signal<any[]>([])
   agentsLoading = signal(false)
   panelAbierto = signal<number | null>(null)
@@ -119,7 +119,7 @@ export class MessComponent {
 
   async enviaChat(event: any) {
     event.preventDefault();
-    await submit(this.chatform, async (form) => {
+    await submit(this.chatform, async () => {
       localStorage.setItem('chatId', this.chatId())
 
       try {
@@ -129,7 +129,6 @@ export class MessComponent {
           this.chatModel(),
           this.personalId()
         ))
-        const newMsg: any[] = resp.response
         this.msgs.update(list => [...list, ...resp.response]);
         this.scrollChatToBottom()
 //        form.usermsg().setControlValue('')
@@ -150,7 +149,7 @@ export class MessComponent {
   }
 
   async reiniciaChat() {
-    const resp = await firstValueFrom(this.apiService.reiniciaChat(this.chatId()))
+    await firstValueFrom(this.apiService.reiniciaChat(this.chatId()))
     this.msgs.set([])
   }
 
@@ -169,7 +168,6 @@ export class MessComponent {
 
     try {
       this.ms.set(await firstValueFrom(this.apiService.getChatBotDelay()))
-      let imagenCount = 0
       this.getMessInfo()
       //setInterval(() => { this.imagenUrl.set(`./mess/api/chatbot/qr/${imagenCount++}`) }, 3000)
     } catch (error) {}
