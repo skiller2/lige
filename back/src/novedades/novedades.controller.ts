@@ -46,44 +46,49 @@ const listaColumnas: any[] = [
         type: "string",
         id: "SucursalDescripcion",
         field: "SucursalDescripcion",
-        fieldName: "suc.SucursalDescripcion",
+        fieldName: "suc.SucursalId",
+        searchComponent: "inputForSucursalSearch",
+        searchType: "number",
         sortable: true,
         hidden: false,
         searchHidden: true,
 
     },
-    {
-        name: "Sucursal Objetivo",
-        type: "string",
-        id: "SucursalId",
-        field: "SucursalId",
-        fieldName: "suc.SucursalId",
-        searchComponent: "inputForSucursalSearch",
-        sortable: false,
-        hidden: true,
-        searchHidden: false
-    },
+    // {
+    //     name: "Sucursal Objetivo",
+    //     type: "number",
+    //     id: "SucursalId",
+    //     field: "SucursalId",
+    //     fieldName: "suc.SucursalId",
+    //     searchComponent: "inputForSucursalSearch",
+    //     searchType: "number",
+    //     sortable: false,
+    //     hidden: true,
+    //     searchHidden: false
+    // },
     {
         name: "Cliente",
         type: "string",
         id: "ClienteDenominacion",
         field: "ClienteDenominacion",
-        fieldName: "cli.ClienteDenominacion",
-        sortable: true,
-        hidden: false,
-        searchHidden: true
-    },
-    {
-        name: "Cliente",
-        type: "string",
-        id: "ClienteId",
-        field: "ClienteId",
         fieldName: "cli.ClienteId",
         searchComponent: "inputForClientSearch",
+        searchType: "number",
         sortable: true,
-        hidden: true,
+        hidden: false,
         searchHidden: false
     },
+    // {
+    //     name: "Cliente",
+    //     type: "number",
+    //     id: "ClienteId",
+    //     field: "ClienteId",
+    //     fieldName: "cli.ClienteId",
+    //     searchType: "number",
+    //     sortable: true,
+    //     hidden: true,
+    //     searchHidden: false
+    // },
     {
         name: "Cod. Objetivo",
         type: "string",
@@ -97,12 +102,13 @@ const listaColumnas: any[] = [
     },
 
     {
-        name: "Objetivo",
+        name: "ObjetivoId",
         type: "number",
         id: "ObjetivoId",
         field: "ObjetivoId",
         fieldName: " obj.ObjetivoId",
         searchComponent: "inputForObjetivoSearch",
+        searchType: "number",
         sortable: true,
         hidden: true,
         searchHidden: false
@@ -127,7 +133,6 @@ const listaColumnas: any[] = [
         hidden: false,
         searchHidden: true
     },
-
     {
         name: "Grupo Actividad",
         type: "number",
@@ -135,6 +140,7 @@ const listaColumnas: any[] = [
         field: "GrupoActividadId",
         fieldName: "ga.GrupoActividadId",
         searchComponent: 'inputForGrupoActividadSearch',
+        searchType: "number",
         sortable: false,
         hidden: true,
         searchHidden: false
@@ -154,22 +160,24 @@ const listaColumnas: any[] = [
         type: "string",
         id: "NovedadTipo",
         field: "NovedadTipo",
-        fieldName: "NovedadTipo",
+        fieldName: "novtip.NovedadTipoCod",
+        searchComponent: "inputForTipoNovedadSearch",
+        searchType: "string",
         sortable: true,
         hidden: false,
-        searchHidden: true,
-    },
-    {
-        name: "Tipo novedad",
-        type: "string",
-        id: "NovedadTipoCod",
-        field: "NovedadTipoCod",
-        fieldName: "novtip.NovedadTipoCod",
-        sortable: true,
-        hidden: true,
         searchHidden: false,
-        searchComponent: "inputForTipoNovedadSearch"
     },
+    // {
+    //     name: "NovedadTipoCod",
+    //     type: "string",
+    //     id: "NovedadTipoCod",
+    //     field: "NovedadTipoCod",
+    //     fieldName: "novtip.NovedadTipoCod",
+    //     searchType: "string",
+    //     sortable: true,
+    //     hidden: true,
+    //     searchHidden: false,
+    // },
     {
         name: "Descripción",
         type: "string",
@@ -240,7 +248,16 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
-
+    },
+    {
+        name: "Archivos Adjuntos",
+        type: "number",
+        id: "CantDocumentos",
+        field: "CantDocumentos",
+        fieldName: "CantDocumentos",
+        sortable: true,
+        hidden: false,
+        searchHidden: true,
     },
     {
         name: "Usuario Ing.",
@@ -309,11 +326,11 @@ export class NovedadesController extends BaseController {
                 ,nov.VisualizacionTelefono 
                 ,nov.AudUsuarioIng
                 ,(
-                    SELECT STRING_AGG(CAST(docrel.DocumentoId AS VARCHAR(MAX)),',')
+                    SELECT COUNT(docrel.DocumentoId)
                     FROM DocumentoRelaciones docrel
                     LEFT JOIN Documento doc ON doc.DocumentoId = docrel.DocumentoId
-                    WHERE docrel.NovedadCodigo = nov.NovedadCodigo AND LOWER(doc.DocumentoNombreArchivo) LIKE '%.jpeg'
-                ) AS DocumentoId
+                    WHERE docrel.NovedadCodigo = nov.NovedadCodigo
+                ) AS CantDocumentos
                 ,1
             FROM Novedad nov
             LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
