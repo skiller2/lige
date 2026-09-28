@@ -254,10 +254,10 @@ const listaColumnas: any[] = [
         type: "number",
         id: "CantDocumentos",
         field: "CantDocumentos",
-        fieldName: "CantDocumentos",
+        fieldName: "docs.CantDocumentos",
         sortable: true,
         hidden: false,
-        searchHidden: true,
+        searchHidden: false,
     },
     {
         name: "Usuario Ing.",
@@ -325,12 +325,7 @@ export class NovedadesController extends BaseController {
                 ,nov.VisualizacionPersonaId
                 ,nov.VisualizacionTelefono 
                 ,nov.AudUsuarioIng
-                ,(
-                    SELECT COUNT(docrel.DocumentoId)
-                    FROM DocumentoRelaciones docrel
-                    LEFT JOIN Documento doc ON doc.DocumentoId = docrel.DocumentoId
-                    WHERE docrel.NovedadCodigo = nov.NovedadCodigo
-                ) AS CantDocumentos
+                ,docs.CantDocumentos
                 ,1
             FROM Novedad nov
             LEFT JOIN NovedadTipo novtip on novtip.NovedadTipoCod=nov.NovedadTipoCod
@@ -343,6 +338,13 @@ export class NovedadesController extends BaseController {
             LEFT JOIN GrupoActividadJerarquico gajer on gajer.GrupoActividadId=ga.GrupoActividadId  and gajer.GrupoActividadJerarquicoDesde<=nov.Fecha and ISNULL(gajer.GrupoActividadJerarquicoHasta,'9999-12-31')>=nov.Fecha and gajer.GrupoActividadJerarquicoComo='J'
             LEFT JOIN Personal jerper on jerper.PersonalId=gajer.GrupoActividadJerarquicoPersonalId
             LEFT JOIN Sucursal suc on suc.SucursalId=ele.ClienteElementoDependienteSucursalId
+            CROSS APPLY (
+                SELECT COUNT(docrel.DocumentoId) AS CantDocumentos
+                FROM DocumentoRelaciones docrel
+                LEFT JOIN Documento doc 
+                    ON doc.DocumentoId = docrel.DocumentoId
+                WHERE docrel.NovedadCodigo = nov.NovedadCodigo
+            ) docs
 
             WHERE (${condition}) AND ${filterSql} ${orderBy}`, [year, month])
     }
@@ -936,7 +938,7 @@ export class NovedadesController extends BaseController {
 
         try {
             if (!NovedadCodigo)
-                throw new ClientException(`Debe selccionar una Novedad`)
+                throw new ClientException(`Debe seleccionar una Novedad`)
 
             const waterMark = `<div style="position: fixed; bottom: 500px; left: 50px; z-index: 10000; font-size:200px; color: red; transform:rotate(-60deg);
                             opacity: 0.6;">PRUEBA</div>`
@@ -971,13 +973,21 @@ export class NovedadesController extends BaseController {
             //         WHERE NovedadCodigo IN (@0)
             //     `,[NovedadCodigo])
 
-            //     docRelaciones = docRelaciones.filter(doc => {
-            //         const nombre = doc.DocumentoNombreArchivo.toLowerCase();
-            //         return nombre.endsWith('.png') ||
-            //                 nombre.endsWith('.jpg') ||
-            //                 nombre.endsWith('.jpeg')
-            //     });
-            // const imgsPath = docRelaciones.map(doc => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
+            //Filtra Documentos Relacionados
+            // let imgsDoc:any[] = []
+            // let cantPDFs:number = 0
+            // let cantOther:number = 0
+            // docRelaciones.forEach(doc => {
+            //     const nombre = doc.DocumentoNombreArchivo.toLowerCase();
+            //     if(nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg')){ // Por Imagen
+            //         imgsDoc.push(doc)
+            //     } else if(nombre.endsWith('.pdf')){ // Por PDF
+            //         cantPDFs++
+            //     } else { // Otros
+            //         cantOther++
+            //     }
+            // });
+            // const imgsPath = imgsDoc.map(doc => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
 
             await this.createPdf(filePath, personaNombre, cuit, objetivoDomicilio[0]?.domCompleto, asociado, grupo,
                 NovedadInfo, page, htmlContent.body + waterMark, htmlContent.header, htmlContent.footer)
@@ -1007,7 +1017,9 @@ export class NovedadesController extends BaseController {
         htmlContent: string,
         headerContent: string,
         footerContent: string,
-        imgsPaths: string[] = []
+        imgsPaths: string[] = [],
+        cantPdfs: number = 0,
+        cantOther: number = 0,
     ) {
         domicilioObj = (domicilioObj && domicilioObj != '()') ? domicilioObj : 'Sin especificar'
         asociado = (asociado) ? asociado.toString() : 'Pendiente'
@@ -1032,6 +1044,8 @@ export class NovedadesController extends BaseController {
         htmlContent = htmlContent.replace(/\${accionTomada}/g, novedadInfo.Accion);
         htmlContent = htmlContent.replace(/\${registradoPorNombre}/g, personaNombre);
         htmlContent = htmlContent.replace(/\${registradoPorNroAsociado}/g, asociado);
+        htmlContent = htmlContent.replace(/\${cantpdfs}/g, cantPdfs.toString());
+        htmlContent = htmlContent.replace(/\${cantother}/g, cantOther.toString());
 
         let htmlObjetivo = `${novedadInfo.CodObj} - ${novedadInfo.ClienteDenominacion} ${novedadInfo.DescripcionObj}`
         let htmlCoor = `${novedadInfo.ApellidoNombreJerarquico}`
@@ -1202,17 +1216,24 @@ export class NovedadesController extends BaseController {
                     WHERE dr.NovedadCodigo IN (@0)
                 `, [novedad.NovedadCodigo])
 
-                //Filtra Documentos Relacionados por imagen
-                const imgsDoc = docRelaciones.filter(doc => {
+                //Filtra Documentos Relacionados
+                let imgsDoc:any[] = []
+                let cantPDFs:number = 0
+                let cantOther:number = 0
+                docRelaciones.forEach(doc => {
                     const nombre = doc.DocumentoNombreArchivo.toLowerCase();
-                    return nombre.endsWith('.png') ||
-                        nombre.endsWith('.jpg') ||
-                        nombre.endsWith('.jpeg')
+                    if(nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg')){ // Por Imagen
+                        imgsDoc.push(doc)
+                    } else if(nombre.endsWith('.pdf')){ // Por PDF
+                        cantPDFs++
+                    } else { // Otros
+                        cantOther++
+                    }
                 });
                 const imgsPath = imgsDoc.map(doc => `${process.env.PATH_DOCUMENTS}/${doc.DocumentoPath}`);
 
                 await this.createPdf(filePath, personaNombre, cuit, objetivoDomicilio[0]?.domCompleto, asociado, grupo,
-                    novedad, page, body, header, footer, imgsPath)
+                    novedad, page, body, header, footer, imgsPath, cantPDFs, cantOther)
 
                 //Filtra Documentos Relacionados por pdf
                 const pdfsDoc = docRelaciones.filter(doc => {
