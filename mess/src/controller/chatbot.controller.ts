@@ -1,7 +1,6 @@
 import { BaseController, ClientException } from "./base.controller.ts";
 import type { NextFunction, Request, Response } from "express";
 import { existsSync, readFileSync } from "node:fs";
-import { readFile, writeFile } from 'node:fs/promises';
 import CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
 import { documentosController, personalController, novedadController, objetivoController } from "./controller.module.ts";
@@ -19,7 +18,12 @@ export class ChatBotController extends BaseController {
       ORDER BY prompt.ChatBotPromptCodigo
     `)
 
-    return { agents }
+    const mainAgent = agents.find((agent: any) => String(agent.ChatBotPromptCodigo).trim() === 'BMA')
+    return {
+      agents,
+      iaPromptHash: mainAgent ? CryptoJS.SHA256(mainAgent.Prompt ?? '').toString(CryptoJS.enc.Hex) : '',
+      iaToolsHash: mainAgent ? CryptoJS.SHA256(mainAgent.IaTools ?? '').toString(CryptoJS.enc.Hex) : ''
+    }
   }
 
   async getAgents(req: Request, res: Response, next: NextFunction) {
@@ -77,6 +81,21 @@ export class ChatBotController extends BaseController {
     if (deletedCodes.some((code: string) => requestedCodes.has(code)))
       return next(new ClientException('Un agente no puede guardarse y eliminarse al mismo tiempo'))
 
+    if (deletedCodes.includes('BMA'))
+      return next(new ClientException('No se puede eliminar el agente principal BMA'))
+
+    const mainAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'BMA')
+    let mainTools: any[] | null = null
+    if (mainAgent) {
+      try {
+        mainTools = JSON.parse(mainAgent.IaTools)
+      } catch (err) {
+        return next(new ClientException('IA Tools de BMA no contiene un JSON válido'))
+      }
+      if (!Array.isArray(mainTools))
+        return next(new ClientException('IA Tools de BMA debe ser un arreglo JSON'))
+    }
+
     const usuario = BaseController.getUser(res)
     const ip = this.getRemoteAddress(req)
     const fecha = new Date()
@@ -86,10 +105,19 @@ export class ChatBotController extends BaseController {
       await queryRunner.startTransaction()
 
       const currentAgents = await queryRunner.query(`
-        SELECT ChatBotPromptCodigo
+        SELECT ChatBotPromptCodigo, Prompt, IaTools
         FROM ChatBotPrompt WITH (UPDLOCK, HOLDLOCK)
       `)
       const currentCodes = new Set(currentAgents.map((agent: any) => String(agent.ChatBotPromptCodigo).trim()))
+
+      if (mainAgent) {
+        const currentMain = currentAgents.find((agent: any) => String(agent.ChatBotPromptCodigo).trim() === 'BMA')
+        if (!currentMain)
+          throw new ClientException('No se encontró el agente principal BMA. Recargue la sección')
+        if (req.body.iaPromptHash !== CryptoJS.SHA256(currentMain.Prompt ?? '').toString(CryptoJS.enc.Hex) ||
+          req.body.iaToolsHash !== CryptoJS.SHA256(currentMain.IaTools ?? '').toString(CryptoJS.enc.Hex))
+          throw new ClientException('Hay cambios posteriores a la última lectura')
+      }
 
       if (deletedCodes.some((code: string) => !currentCodes.has(code)))
         throw new ClientException('Uno de los agentes a eliminar ya no existe. Recargue la sección')
@@ -149,7 +177,19 @@ export class ChatBotController extends BaseController {
 
       const data = await this.getAgentsData(queryRunner)
       await queryRunner.commitTransaction()
-      return this.jsonRes(data, res, 'Agentes guardados')
+      let bmaChanged = false
+      if (mainAgent) {
+        const promptHash = CryptoJS.SHA256(mainAgent.Prompt).toString(CryptoJS.enc.Hex)
+        const toolsHash = CryptoJS.SHA256(mainAgent.IaTools).toString(CryptoJS.enc.Hex)
+        bmaChanged = promptHash !== botServer.iaPromptHash || toolsHash !== botServer.iaToolsHash
+        botServer.iaPrompt = mainAgent.Prompt
+        botServer.iaPromptHash = promptHash
+        botServer.iaTools = mainTools
+        botServer.iaToolsHash = toolsHash
+        if (bmaChanged)
+          botServer.chatmess = []
+      }
+      return this.jsonRes({ ...data, bmaChanged }, res, 'Agentes guardados')
     } catch (err) {
       await this.rollbackTransaction(queryRunner)
       return next(err)
@@ -158,89 +198,15 @@ export class ChatBotController extends BaseController {
     }
   }
 
-  async setPrompt(req: any, res: any, next: any) {
-    const iaPrompt = req.body.iaPrompt
-    const iaPromptHash = req.body.iaPromptHash
-    const usuario = BaseController.getUser(null)
-    const queryRunner = await dbServer.connection(usuario)
-    const ParametroGeneralCodigo = 'BOT'
-    
-    try {
-      if (iaPromptHash !== botServer.iaPromptHash)
-        throw new ClientException('Hay cambios posteriores a la última lectura')
-
-      const ParametroGeneral = await queryRunner.query(`SELECT ParametroGeneralCodigo FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, [ParametroGeneralCodigo])
-      if (ParametroGeneral.length) {
-        let Parametros = JSON.parse(ParametroGeneral[0])
-        Parametros.iaPrompt = iaPrompt
-        await queryRunner.query(
-          `UPDATE ParametroGeneral 
-          SET Parametros = @1, AudFechaMod= @2, AudUsuarioMod= @3, AudIpMod= @4
-          WHERE ParametroGeneralCodigo = @0`, 
-          [ParametroGeneralCodigo, JSON.stringify(Parametros), new Date(), usuario, '127.0.0.1']
-        )
-      } else {
-        await queryRunner.query(
-          `INSERT INTO ParametroGeneral (
-          ParametroGeneralCodigo,Parametros,AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod
-          ) VALUES (@0,@1,@2,@2,@3,@3,@4,@4)`, 
-          [ParametroGeneralCodigo, JSON.stringify({iaPrompt}), new Date(), usuario, '127.0.0.1']
-        )
-      }
-
-      botServer.iaPrompt = iaPrompt
-      botServer.iaPromptHash = CryptoJS.SHA256(iaPrompt).toString(CryptoJS.enc.Hex);
-
-      botServer.chatmess = []
-      const ret = { iaPrompt, iaPromptHash: botServer.iaPromptHash }
-      return this.jsonRes(ret, res, 'ok');
-    } catch (err) {
-      return next(err)
-    }
-  }
-
-  async setTools(req: any, res: any, next: any) {
-    const iaTools = req.body.iaTools
-    const iaToolsHash = req.body.iaToolsHash
-
-    try {
-      JSON.parse(iaTools)
-
-      if (iaToolsHash !== botServer.iaToolsHash)
-        throw new ClientException('Hay cambios posteriores a la última lectura')
-
-      await writeFile(`${this.pathDocuments}/ia-tools.json`, iaTools, { encoding: 'utf8' })
-      botServer.iaTools = JSON.parse(iaTools)
-      botServer.iaToolsHash = CryptoJS.SHA256(iaTools).toString(CryptoJS.enc.Hex);
-
-      botServer.chatmess = []
-      const ret = { iaTools, iaToolsHash: botServer.iaToolsHash }
-
-      return this.jsonRes(ret, res, 'ok');
-
-    } catch (err) {
-      if (err instanceof SyntaxError)
-        err = new ClientException(`Error de syntaxis JSON ${err.message}`)
-      return next(err)
-    }
-
-  }
-
-  async getTools(req: any, res: any, next: any) {
-    const ret = { iaTools: JSON.stringify(botServer.iaTools, null, 2), iaToolsHash: botServer.iaToolsHash }
-    return this.jsonRes(ret, res, 'ok');
-  }
-
   async getChatbotParameters() {
     const usuario = BaseController.getUser(null)
     const queryRunner = await dbServer.connection(usuario)
-    const ParametroGeneral = await queryRunner.query(`SELECT ParametroGeneralCodigo FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, ['BOT'])
-    return ParametroGeneral[0]? JSON.parse(ParametroGeneral[0]) : null
-  }
-
-  async getPrompt(req: any, res: any, next: any) {
-    const ret = { iaPrompt: botServer.iaPrompt, iaPromptHash: botServer.iaPromptHash }
-    return this.jsonRes(ret, res, 'ok');
+    try {
+      const rows = await queryRunner.query(`SELECT Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`, ['BMA'])
+      return rows[0] ?? null
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   async reinicia(req: Request, res: Response, next: NextFunction) {

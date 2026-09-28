@@ -61,7 +61,6 @@ export class PreciosProductosComponent {
   angularGridEdit!: AngularGridInstance;
   // gridObjEdit!: SlickGrid;
   gridOptionsEdit!: GridOption;
-  hiddenColumnIds: string[] = [];
 
   tipoProducto = []
   detailViewRowCount = 1
@@ -80,9 +79,6 @@ export class PreciosProductosComponent {
       }),
       map((data) => {
         let mapped = data.cols.map((col: Column) => {
-          if ((col as any).showGridColumn === false) {
-            this.hiddenColumnIds.push(col.id as string)
-          }
           switch (col.id) {
             case 'ProductoCodigo':
               col.editor = {
@@ -357,11 +353,6 @@ export class PreciosProductosComponent {
     this.angularGridEdit.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGridEdit)
     })
-
-    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGridEdit.gridService.hideColumnByIds(this.hiddenColumnIds);
-    }
 
     if (this.apiService.isMobile())
       this.angularGridEdit.gridService.hideColumnByIds([])

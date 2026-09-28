@@ -30,7 +30,7 @@
   @if(columns$ | async; as columnas) {
 
     <div class="gridContainer container-fluid">
-      <angular-slickgrid gridId="gridImporteVenta" class="" [columns]="columnas | colsFilter"
+      <angular-slickgrid gridId="gridImporteVenta" class="" [columns]="columnas"
         [options]="gridOptions" [dataset]="gridDataImport()"
       (onAngularGridCreated)="angularGridReady($event)"></angular-slickgrid>
     </div>

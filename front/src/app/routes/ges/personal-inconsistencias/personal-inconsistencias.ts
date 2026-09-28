@@ -30,7 +30,6 @@ export class PersonalInconsistenciasComponent {
   rows: number[] = [];
   detailViewRowCount = 1;
   excelExportService = new ExcelExportService();
-  hiddenColumnIds: string[] = [];
   anio = input<number>(0)
   mes = input<number>(0)
   reload = input<number>(0)
@@ -56,9 +55,6 @@ export class PersonalInconsistenciasComponent {
 
   columns = toSignal(
     this.apiService.getCols('/api/personal/inconsistencias-cols').pipe(map((cols: Column<any>[]) => {
-      this.hiddenColumnIds = cols
-        .filter((col: any) => col.showGridColumn === false)
-        .map((col: Column) => col.id as string);
       return cols.map(col =>
         col.id === 'ApellidoNombre' ? { ...col, asyncPostRender: this.renderApellidoNombreComponent.bind(this) } : col
       )

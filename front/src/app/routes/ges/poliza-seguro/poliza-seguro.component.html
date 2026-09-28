@@ -27,7 +27,7 @@
         <div class="gridContainerPoliza container-fluid">
           <angular-slickgrid 
             gridId="gridPoliza" 
-            [columns]="columnas | colsFilter"
+            [columns]="columnas"
             [options]="gridOptions" 
             [dataset]="(gridData$ | async) || []"
             (onAngularGridCreated)="angularGridReady($event)"

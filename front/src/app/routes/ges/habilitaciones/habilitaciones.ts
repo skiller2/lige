@@ -42,7 +42,6 @@ export class HabilitacionesComponent {
   detailViewRowCount = 1;
   excelExportService = new ExcelExportService()
   listOptions =  signal<listOptionsT>({ filtros: [], sort: null })
-  hiddenColumnIds: string[] = [];
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
@@ -69,9 +68,6 @@ export class HabilitacionesComponent {
 
   columns = toSignal(this.apiService.getCols('/api/habilitaciones/cols').pipe(
     map((cols: Column<any>[]) => {
-      this.hiddenColumnIds = cols
-        .filter((col: any) => col.showGridColumn === false)
-        .map((col: Column) => col.id as string);
       return cols.map(col =>
         col.id === 'ApellidoNombre' ? { ...col, asyncPostRender: this.renderApellidoNombreComponent.bind(this) } : col
       )
@@ -142,11 +138,6 @@ export class HabilitacionesComponent {
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
       totalRecords(this.angularGrid)
     })
-
-    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds);
-    }
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])

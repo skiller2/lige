@@ -72,8 +72,7 @@ const altasBajasColumns: any[] = [
     searchType: "number",
     sortable: true,
     searchHidden: true,
-    hidden: false,
-    showGridColumn: false,
+    hidden: true,
   },
   {
     id: "PersonalCUITCUILCUIT",
@@ -99,7 +98,7 @@ const altasBajasColumns: any[] = [
     searchType: "number",
     sortable: true,
     searchHidden: false,
-    hidden: true,
+    hidden: false,
     excludeFromExport: true,
   },
   {
@@ -111,7 +110,7 @@ const altasBajasColumns: any[] = [
     searchType: "string",
     sortable: true,
     searchHidden: true,
-    hidden: false,
+    hidden: true,
     params: { exportHeader: 'Apellido' }
   },
   {
@@ -123,7 +122,7 @@ const altasBajasColumns: any[] = [
     searchType: "string",
     sortable: true,
     searchHidden: true,
-    hidden: false,
+    hidden: true,
     params: { exportHeader: 'Nombre' }
   },
 
@@ -135,9 +134,8 @@ const altasBajasColumns: any[] = [
     fieldName: "DNI",
     sortable: true,
     searchHidden: true,
-    hidden: false,
     excludeFromExport: true,
-    showGridColumn: false,
+    hidden: true,
   },
   {
     id: "SituacionRevistaId",
@@ -162,7 +160,6 @@ const altasBajasColumns: any[] = [
     sortable: true,
     searchHidden: true,
     hidden: false,
-    showGridColumn: true,
     excludeFromExport: true,
   },
   {
@@ -174,8 +171,6 @@ const altasBajasColumns: any[] = [
     searchType: "date",
     sortable: true,
     searchHidden: true,
-    hidden: false,
-    showGridColumn: true,
     excludeFromExport: true,
   },
   {
@@ -186,8 +181,6 @@ const altasBajasColumns: any[] = [
     fieldName: "sitrev.PersonalSituacionRevistaMotivo",
     sortable: true,
     searchHidden: true,
-    hidden: false,
-    showGridColumn: true,
     excludeFromExport: true,
   },
   {
@@ -201,8 +194,7 @@ const altasBajasColumns: any[] = [
     searchType: "string",
     sortable: true,
     searchHidden: true,
-    hidden: false,
-    showGridColumn: false,
+    hidden: true,
   },
   {
     id: 'RazonSocial',
@@ -213,8 +205,7 @@ const altasBajasColumns: any[] = [
     searchType: "string",
     sortable: true,
     searchHidden: true,
-    hidden: false,
-    showGridColumn: false,
+    hidden: true,
     params: { exportHeader: 'Razon Social' }
   },
 
@@ -229,8 +220,7 @@ const altasBajasColumns: any[] = [
     searchType: "string",
     sortable: true,
     searchHidden: true,
-    hidden: false,
-    showGridColumn: false,
+    hidden: true,
   },
   {
     id: "PersonalFechaNacimiento",
@@ -241,9 +231,8 @@ const altasBajasColumns: any[] = [
     searchComponent: "inputForFechaSearch",
     searchType: "date",
     sortable: true,
-    hidden: false,
+    hidden: true,
     searchHidden: true,
-    showGridColumn: false,
   },
   {
     id: 'ProvinciaDescripcion',
@@ -255,7 +244,6 @@ const altasBajasColumns: any[] = [
     searchType: "number",
     sortable: true,
     searchHidden: false,
-    hidden: false,
     params: { exportHeader: 'Provincia' }
   },
   {
@@ -290,9 +278,8 @@ const altasBajasColumns: any[] = [
     type: "string",
     fieldName: "perdom.DomicilioDomCalle",
     sortable: true,
-    hidden: false,
     searchHidden: true,
-    showGridColumn: false,
+    hidden: true,
     params: { exportHeader: 'Calle' }
   },
   {
@@ -302,9 +289,8 @@ const altasBajasColumns: any[] = [
     type: "string",
     fieldName: "perdom.DomicilioDomNro",
     sortable: true,
-    hidden: false,
     searchHidden: true,
-    showGridColumn: false,
+    hidden: true,
     params: { exportHeader: 'Número' }
   },
   {
@@ -314,9 +300,8 @@ const altasBajasColumns: any[] = [
     type: "number",
     fieldName: "perdom.ProvinciaINAES",
     sortable: true,
-    hidden: false,
     searchHidden: true,
-    showGridColumn: false,
+    hidden: true,
     params: { exportHeader: 'ProvinciaDeptoLocalidad' }
   },
   {
@@ -326,9 +311,8 @@ const altasBajasColumns: any[] = [
     type: "string",
     fieldName: "perdom.Domicilio",
     sortable: true,
-    hidden: false,
     searchHidden: true,
-    showGridColumn: false,
+    hidden: true,
     params: { exportHeader: 'Calle' }
   },
   {
@@ -338,9 +322,8 @@ const altasBajasColumns: any[] = [
     type: "string",
     fieldName: "email.PersonalEmailEmail",
     sortable: true,
-    hidden: false,
     searchHidden: true,
-    showGridColumn: false,
+    hidden: true,
     params: { exportHeader: 'Mail' }
   },
   {
@@ -362,9 +345,7 @@ const altasBajasColumns: any[] = [
     type: "currency",
     fieldName: "",
     sortable: true,
-    hidden: false,
     searchHidden: true,
-    showGridColumn: true,
     params: { exportHeader: 'Capital Suscripto' }
   },
   {
@@ -374,9 +355,7 @@ const altasBajasColumns: any[] = [
     type: "currency",
     fieldName: "",
     sortable: true,
-    hidden: false,
     searchHidden: true,
-    showGridColumn: true,
     params: { exportHeader: 'Capital Integrado' }
   },
   {
@@ -437,7 +416,7 @@ const altasBajasColumns: any[] = [
     searchHidden: true,
     hidden: false,
     excludeFromExport: true,
-    // showGridColumn: false,
+    // hidden: true,
   },
   {
     id: 'Detalle',
@@ -459,9 +438,8 @@ const altasBajasColumns: any[] = [
     formatter: 'collectionFormatter',
     params: { collection: getOptionsTipoDocumento, exportHeader: 'Tipo Documento' },
     searchHidden: true,
-    hidden: false,
     excludeFromExport: true,
-    showGridColumn: false,
+    hidden: true,
   },
   {
     id: "ValorCuota",
@@ -470,9 +448,8 @@ const altasBajasColumns: any[] = [
     type: "currency",
     fieldName: "",
     sortable: true,
-    hidden: false,
     searchHidden: true,
-    showGridColumn: false,
+    hidden: true,
     params: { exportHeader: 'Valor Cuota' }
   },
   {
@@ -484,9 +461,8 @@ const altasBajasColumns: any[] = [
     formatter: 'collectionFormatter',
     params: { collection: getOptionsNivelRiego, exportHeader: 'Nivel de riesgo' },
     sortable: true,
-    hidden: false,
     searchHidden: true,
-    showGridColumn: false,
+    hidden: true,
   },
   {
     id: "PEP",
@@ -497,9 +473,8 @@ const altasBajasColumns: any[] = [
     formatter: 'collectionFormatter',
     params: { collection: getOptionsPEP, exportHeader: 'PEP' },
     sortable: true,
-    hidden: false,
     searchHidden: true,
-    showGridColumn: false,
+    hidden: true,
   },
 ]
 

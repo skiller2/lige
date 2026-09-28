@@ -530,7 +530,7 @@
             <nz-list nzBordered nzSize="small">
               @let personaMonotributo = $personaMonotributo | async;
 
-              @if (selectedPersonalId() > 0 && personaMonotributo.length > 0) {
+              @if (selectedPersonalId() > 0 && personaMonotributo?.length > 0) {
               <!-- TODO: quitar objeto de track  -->
               @for (monotributo of personaMonotributo; track monotributo) {
               <nz-list-item>

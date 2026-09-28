@@ -38,7 +38,7 @@
         </div>
       </div>
       <div class="gridDescPersonal container-fluid">
-        <angular-slickgrid gridId="gridDescPersonal" [columns]="columns()  | colsFilter" [options]="gridOptions"
+        <angular-slickgrid gridId="gridDescPersonal" [columns]="columns()" [options]="gridOptions"
           [dataset]="gridData.value()||[]" (onAngularGridCreated)="angularGridReady($event)"
           (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
         </angular-slickgrid>

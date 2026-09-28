@@ -6,7 +6,7 @@
 
     <div class="gridContainerCondVenta container-fluid">
       @if (columns().length){
-      <angular-slickgrid gridId="gridCondVenta" [columns]="columns() | colsFilter" [options]="gridOptions"
+      <angular-slickgrid gridId="gridCondVenta" [columns]="columns()" [options]="gridOptions"
         [dataset]="gridData()" (onAngularGridCreated)="angularGridReady($event)"
         (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
       </angular-slickgrid>

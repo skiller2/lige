@@ -85,12 +85,11 @@ export class TableOrdenVentaComponent implements OnInit {
     );
 
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
-    // Columna de check: la edición masiva trabaja sobre varias órdenes a la vez
     this.gridOptions.enableCheckboxSelector = true;
-    this.gridOptions.selectionOptions = { selectActiveRow: false };
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
     this.gridOptions.forceFitColumns = true;
+//    this.gridOptions.enableVariableRowHeight = true
   }
 
   listOptionsChange(options: listOptionsT): void {
@@ -112,7 +111,7 @@ export class TableOrdenVentaComponent implements OnInit {
 
   async handleSelectedRowsChanged(e: any): Promise<void> {
     const selectedRows = e.detail.args.rows;
-    const selectedData= selectedRows.map((r:any)=>this.angularGrid.slickGrid.getDataItem(r).NroOrdenVenta) 
+    const selectedData = selectedRows.map((r: any) => this.angularGrid.slickGrid.getDataItem(r).NroOrdenVenta)
     this.ordenesSeleccionadas.set(selectedData)
   }
 }

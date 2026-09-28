@@ -1,6 +1,6 @@
 import { Component, inject, signal, model, computed, ViewEncapsulation, input, effect, output, resource, untracked } from '@angular/core';
 import { tap, firstValueFrom, queueScheduler, timeout } from 'rxjs';
-import { AngularUtilService, queueMicrotaskOrSetTimeout } from 'angular-slickgrid';
+import { AngularUtilService } from 'angular-slickgrid';
 import { SHARED_IMPORTS } from '@shared';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';

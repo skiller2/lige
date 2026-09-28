@@ -44,19 +44,9 @@ export class TableINAESRecibosComponent {
   startFilters = signal<Selections[]>([])
   periodo = signal<Date>(new Date())
   loadingExport = signal<boolean>(false)
-
-  hiddenColumnIds: string[] = [];
-
   columns = toSignal(this.apiService.getCols('/api/inaes/recibos/cols')
     .pipe(map((cols: Column[]) => {
-      // Guardar IDs de columnas que tienen showGridColumn: false
-      this.hiddenColumnIds = cols
-
-        .filter((col: any) => col.showGridColumn === false)
-        .map((col: Column) => col.id as string);
-      //    this.columnsForExport = cols
-      //        .filter((col: any) => col.excludeFromExport != true)
-      //        .map((col: Column) => col.id as string);
+      // Guardar IDs de columnas que tienen hidden: true
 
       cols
       .filter((col: Column) => ['ApellidoNombre'].includes(String(col.id)))
@@ -117,10 +107,6 @@ export class TableINAESRecibosComponent {
       columnTotal('OtrasRetenciones', this.angularGrid)
     });
 
-    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
-    }
   }
 
   async exportGrid(): Promise<void> {
@@ -143,13 +129,6 @@ export class TableINAESRecibosComponent {
       filename: `inaes-recibos-${this.periodo().getFullYear()}-${this.periodo().getMonth() + 1}`,
       format: 'csv',
     });
-
-
-    //this.gridData.reload()
-
-    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    if (this.hiddenColumnIds.length > 0)
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
 
     this.loadingExport.set(false)
   }

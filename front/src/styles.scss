@@ -20,12 +20,19 @@
 
 //@import '@slickgrid-universal/common/dist/styles/sass/material-svg-icons';
 
+// Center header text
+.slick-header-column .slick-column-name {
+  width: 100%;
+  text-align: center;
+}
 
+/*
 .slick-column-name,
 .slick-sort-indicator {
-  float: none;
-  margin-bottom: auto;
+//  float: none;
+//  margin-bottom: auto;
 }
+*/
 
 .slickgrid-container {
   // .grid-canvas {
@@ -104,13 +111,9 @@
 }
 
 .slickgrid-container .slick-footerrow .slick-footerrow-columns .slick-footerrow-column {
-  display: var(--slick-grid-footer-display, block);
-  align-items: var(--slick-grid-footer-align-items, center);
-  justify-content: var(--slick-grid-footer-justify-content, normal);
   font-size: var(--slick-grid-footer-font-size, 13px);
   font-style: var(--slick-grid-footer-font-style, normal);
   font-weight: var(--slick-grid-footer-font-weight, bold);
-  padding: var(--slick-grid-footer-cell-padding, 5px 0px);
   border-right: var(--slick-grid-footer-cell-border-left, 1px solid rgba(133, 133, 133, 0.20));
 }
 
@@ -122,7 +125,13 @@
   margin-left: 0;
 }
 
-
+ .slickgrid-container .slick-cell.cell-wrap {
+  white-space: normal;
+  text-overflow: clip;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
 // .slick-row {
 //   .detail-view-toggle {
 //     &.expand, &.collapse {
@@ -152,4 +161,9 @@ nz-select-item {
 
 .ant-input-affix-wrapper{
   padding: 1px 11px !important;
+}
+
+.text-right{
+  text-align: right !important;
+  justify-content: flex-end !important;
 }

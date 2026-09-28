@@ -21,7 +21,7 @@
         </nz-button-group>
       </div>
       <div class="gridContainerGAP container-fluid">
-        <angular-slickgrid gridId="gridEditGAP" [columns]="columnsPersonal() | colsFilter"
+        <angular-slickgrid gridId="gridEditGAP" [columns]="columnsPersonal()"
           [options]="gridOptionsEdit" [dataset]="gridDataPersonal.value()"
           (onAngularGridCreated)="angularGridReadyEdit($event)"
           (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">

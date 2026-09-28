@@ -577,7 +577,7 @@ export class DomicilioController extends BaseController {
   }
 
   // Agrega un nuevo registro a la tabla Domicilio, devuelve el id del nuevo registro
-  async addDomicilio(queryRunner: any, domicilio: any, DomicilioDomLugar: string|null) {
+  async addDomicilio(queryRunner: any, domicilio: any, DomicilioDomLugar: string|null, DomicilioDomDpto: string|null, DomicilioDomPiso: string|null) {
     const address: any = domicilio.address
     let { PaisId, ProvinciaId, LocalidadId, BarrioId } = domicilio.verAddress
 
@@ -640,11 +640,12 @@ export class DomicilioController extends BaseController {
 
     await queryRunner.query(
       `INSERT INTO Domicilio (
-          DomicilioDomLugar, DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
+          DomicilioDomLugar, DomicilioDomPiso, DomicilioDomDpto,
+          DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
           DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId,
           DomicilioCompleto, DomicilioJson) 
-      VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9)`,
-      [DomicilioDomLugar, address.road, address.house_number,
+      VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`,
+      [DomicilioDomLugar, DomicilioDomPiso, DomicilioDomDpto, address.road, address.house_number,
         address.postcode, PaisId, ProvinciaId, LocalidadId,
         BarrioId, domicilio.display_name, JSON.stringify(domicilio)]
     )
@@ -653,7 +654,7 @@ export class DomicilioController extends BaseController {
     return resDomicilio[0][''] // New DomicilioId
   }
 
-  async updateDomicilio(queryRunner: any, domicilioId:number, domicilio: any, DomicilioDomLugar: string|null) {
+  async updateDomicilio(queryRunner: any, domicilioId:number, domicilio: any, DomicilioDomLugar: string|null, DomicilioDomDpto: string|null, DomicilioDomPiso: string|null) {
 
     const address: any = domicilio.address
     let { PaisId, ProvinciaId, LocalidadId, BarrioId } = domicilio.verAddress
@@ -720,11 +721,13 @@ export class DomicilioController extends BaseController {
       `UPDATE Domicilio
       SET DomicilioDomLugar=@1, DomicilioDomCalle=@2, DomicilioDomNro=@3, DomicilioCodigoPostal=@4, 
           DomicilioPaisId=@5, DomicilioProvinciaId=@6, DomicilioLocalidadId=@7, DomicilioBarrioId=@8,
-          DomicilioCompleto=@9, DomicilioJson=@10
+          DomicilioCompleto=@9, DomicilioJson=@10, DomicilioDomPiso=@11, DomicilioDomDpto=@12
       WHERE DomicilioId IN (@0)`,
       [ domicilioId, DomicilioDomLugar, address.road, address.house_number,
         address.postcode, PaisId, ProvinciaId, LocalidadId,
-        BarrioId, domicilio.display_name, JSON.stringify(domicilio)]
+        BarrioId, domicilio.display_name, JSON.stringify(domicilio),
+        DomicilioDomPiso, DomicilioDomDpto
+      ]
     )
   }
 }

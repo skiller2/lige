@@ -8,7 +8,7 @@
       <div class="gridContainerObjetivosEfecto container-fluid">
         <angular-slickgrid 
           gridId="gridObjetivosEfecto" 
-          [columns]="columns() | colsFilter"
+          [columns]="columns()"
           [options]="gridOptions" 
           [dataset]="gridData.value()"
           (onAngularGridCreated)="angularGridReady($event)"

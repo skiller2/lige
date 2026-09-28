@@ -12,7 +12,7 @@
         <div class="gridContainerPersonalSeguro container-fluid">
           <angular-slickgrid 
             gridId="gridPersonalSeguro" 
-            [columns]="columnas | colsFilter"
+            [columns]="columnas"
             [options]="gridOptions" 
             [dataset]="(gridData$ | async) || []"
             (onAngularGridCreated)="angularGridReady($event)" >

@@ -7,7 +7,7 @@ import { CUITPipe } from './utils/cuit-pipe';
 import { AGEPipe } from './utils/age-pipe';
 import { ImageCropperModule } from 'ngx-image-cropper';
 import { AppDownFileDirective } from './down-file/down-file.directive';
-import { AngularSlickgridModule } from 'angular-slickgrid';
+//import { AngularSlickgridModule } from 'angular-slickgrid';
 import { AngularSlickgridComponent, GridOption } from 'angular-slickgrid';
 //import { RowDetailViewComponent } from './row-detail-view/row-detail-view.component';
 //import { RowPreloadDetailComponent } from './row-preload-detail/row-preload-detail.component';
@@ -23,11 +23,12 @@ import { DotToCommaDirective } from './dot-coma/dot-coma';
 
 import { I18NCurrencyPipe } from './utils/i18n-currency.pipe';
 import { SfErrorTipDirective } from './sf-error-tip/sf-error-tip';
+import { AutoRowHeightDirective } from './auto-row-height/auto-row-height';
 
 // #region third libs
 // import { NgxTinymceModule } from 'ngx-tinymce';
 
-const THIRDMODULES: Array<Type<any>> = [ImageCropperModule, AngularSlickgridModule,];
+const THIRDMODULES: Array<Type<any>> = [ImageCropperModule];
 // #endregion
 
 export type listOptionsT = {
@@ -55,10 +56,12 @@ export const SHARED_IMPORTS = [
   AppFilterPipe,
   AppDownFileDirective,
   ColsFilterPipe,
-  AngularSlickgridModule,
+  //AngularSlickgridModule,
+  AngularSlickgridComponent,
   NgxMaskDirective,
   DotToCommaDirective,
   SfErrorTipDirective,
+  AutoRowHeightDirective,
 
   ...SHARED_DELON_MODULES,
   ...SHARED_ZORRO_MODULES

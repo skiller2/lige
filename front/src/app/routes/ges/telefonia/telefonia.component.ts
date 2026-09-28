@@ -92,15 +92,15 @@ export class TelefoniaComponent {
     sort: null,
   })
 
-  columnsImport = signal([
+  columnsImport = signal<Column[]>([
     {
       id: "EfectoEfectoIndividualId",
       name: "EfectoEfectoIndividualId",
       field: "EfectoEfectoIndividualId",
-      fieldName: "efeind.EfectoEfectoIndividualId",
+//      fieldName: "efeind.EfectoEfectoIndividualId",
       type: "number",
       sortable: true,
-      searchHidden: true,
+//      searchHidden: true,
       hidden: true
     },
     {
@@ -109,8 +109,6 @@ export class TelefoniaComponent {
       id: "TelefoniaNro",
       field: "TelefoniaNro",
       sortable: true,
-      searchHidden: false,
-      hidden: false,
       maxWidth: 150
     },
     {
@@ -118,10 +116,7 @@ export class TelefoniaComponent {
       type: "string",
       id: "Detalle",
       field: "Detalle",
-      searchType: "string",
       sortable: true,
-      searchHidden: false,
-      hidden: false,
     },
   ])
 

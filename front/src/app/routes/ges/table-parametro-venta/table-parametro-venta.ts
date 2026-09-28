@@ -76,9 +76,6 @@ export class TableParametroVentaComponent implements OnInit {
     sort: null
   })
 
-  // IDs de columnas ocultas
-  hiddenColumnIds: string[] = [];
-
   private apiService = inject(ApiService)
   public angularUtilService = inject(AngularUtilService)
   public searchService = inject(SearchService)
@@ -87,11 +84,6 @@ export class TableParametroVentaComponent implements OnInit {
   columns = toSignal(
     this.apiService.getCols('/api/parametros-venta/cols').pipe(
       map((cols) => {
-        // Guardar IDs de columnas que tienen showGridColumn: false
-        this.hiddenColumnIds = cols
-          .filter((col: any) => col.showGridColumn === false)
-          .map((col: Column) => col.id as string);
-
         // Agregar formatter para PeriodoFacturacion
         const periodoFacturacionCol = cols.find((col: Column) => col.id === 'PeriodoFacturacion');
         if (periodoFacturacionCol) {
@@ -164,10 +156,6 @@ export class TableParametroVentaComponent implements OnInit {
       totalRecords(this.angularGrid);
     });
 
-    // Ocultar columnas basadas en la propiedad showGridColumn de cada columna
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds);
-    }
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([]);

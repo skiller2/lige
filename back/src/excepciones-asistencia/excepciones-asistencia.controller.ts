@@ -144,7 +144,7 @@ const columnsExcepcionesAsistencia: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    hidden: true
 
   },
   {
@@ -154,7 +154,7 @@ const columnsExcepcionesAsistencia: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    hidden: true
 
   },
   {
@@ -232,7 +232,7 @@ const columnsExcepcionesAsistencia: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    hidden: true
 
   },
   {
@@ -242,7 +242,7 @@ const columnsExcepcionesAsistencia: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    hidden: true
   },
   {
     id: 'PersonalArt14AudFechaMod', name: 'Fecha Ultima Modificación.', field: 'PersonalArt14AudFechaMod',
@@ -251,7 +251,7 @@ const columnsExcepcionesAsistencia: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    hidden: true
   },
   {
     id: 'PersonalArt14AudUsuarioMod', name: 'Usuario Ultima Modificación.', field: 'PersonalArt14AudUsuarioMod',
@@ -260,7 +260,7 @@ const columnsExcepcionesAsistencia: any[] = [
     sortable: true,
     hidden: false,
     searchHidden: true,
-    showGridColumn: false
+    hidden: true
   },
 
 ]

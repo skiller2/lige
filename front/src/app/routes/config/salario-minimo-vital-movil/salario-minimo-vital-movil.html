@@ -20,7 +20,7 @@
   
   @if (columnsData(); as columnas) {
     <div class="gridContainer2 container-fluid">
-      <angular-slickgrid gridId="gridEdit" [columns]="columnas  | colsFilter"
+      <angular-slickgrid gridId="gridEdit" [columns]="columnas"
         [options]="gridOptionsEdit" [dataset]="data()"
         (onAngularGridCreated)="angularGridReadyEdit($event)"
         (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"

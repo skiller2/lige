@@ -218,7 +218,7 @@ export class ParametrosVentaController extends BaseController {
             searchHidden: false,
             searchComponent: "inputForNumberAdvancedSearch",
             searchType: "numberAdvanced",
-            showGridColumn: false
+            hidden: true
         },
         {
             name: "Productos con Importe Lista Precio",
@@ -231,7 +231,7 @@ export class ParametrosVentaController extends BaseController {
             searchHidden: false,
             searchComponent: "inputForNumberAdvancedSearch",
             searchType: "numberAdvanced",
-            showGridColumn: false
+            hidden: true
         },
         {
             name: "Fecha Ingreso",
@@ -242,7 +242,7 @@ export class ParametrosVentaController extends BaseController {
             sortable: true,
             hidden: false,
             searchHidden: true,
-            showGridColumn: false
+            hidden: true
 
         },
         {
@@ -254,7 +254,7 @@ export class ParametrosVentaController extends BaseController {
             sortable: true,
             hidden: false,
             searchHidden: true,
-            showGridColumn: false
+            hidden: true
 
         },
         {
@@ -266,7 +266,7 @@ export class ParametrosVentaController extends BaseController {
             sortable: true,
             hidden: false,
             searchHidden: true,
-            showGridColumn: false
+            hidden: true
 
         },
         {
@@ -278,7 +278,7 @@ export class ParametrosVentaController extends BaseController {
             sortable: true,
             hidden: false,
             searchHidden: true,
-            showGridColumn: false
+            hidden: true
 
         }
 

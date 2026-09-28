@@ -97,8 +97,6 @@ export class LiquidacionesComponent {
   gridOptions!: GridOption;
   gridOptionsEdit!: GridOption;
   gridOptionsImport!: GridOption;
-  hiddenColumnIds: string[] = [];
-
   gridDataInsert = [];
   uploading$ = new BehaviorSubject({ loading: false, event: null });
   selectedCuentalId = '';
@@ -227,10 +225,6 @@ export class LiquidacionesComponent {
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.gridObj = angularGrid.detail.slickGrid;
-     
-    if (this.hiddenColumnIds.length > 0) {
-      this.angularGrid.gridService.hideColumnByIds(this.hiddenColumnIds)
-    }
 
     if (this.apiService.isMobile())
       this.angularGrid.gridService.hideColumnByIds([])
@@ -299,15 +293,15 @@ export class LiquidacionesComponent {
     localStorage.setItem('mes', String(result.getMonth() + 1));
   }
 
-  columnsImport = [
+  columnsImport:Column[] = [
     {
       id: "id",
       name: "id",
       field: "id",
-      fieldName: "id.liquidaciones",
+//      fieldName: "id.liquidaciones",
       type: "number",
       sortable: true,
-      searchHidden: true,
+//      searchHidden: true,
       hidden: true
     },
     {
@@ -316,7 +310,7 @@ export class LiquidacionesComponent {
       id: "NombreApellido",
       field: "NombreApellido",
       sortable: true,
-      searchHidden: false,
+//      searchHidden: false,
       hidden: false,
     },
     {
@@ -325,7 +319,7 @@ export class LiquidacionesComponent {
       id: "cuit",
       field: "cuit",
       sortable: true,
-      searchHidden: false,
+//      searchHidden: false,
       hidden: false,
     },
     {
@@ -333,9 +327,8 @@ export class LiquidacionesComponent {
       type: "string",
       id: "Detalle",
       field: "Detalle",
-      searchType: "string",
       sortable: true,
-      searchHidden: false,
+//      searchHidden: false,
       hidden: false,
     },
 
@@ -351,9 +344,6 @@ export class LiquidacionesComponent {
   }
 
   columns = toSignal(this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols: Column<any>[]) => {
-    this.hiddenColumnIds = cols
-      .filter((col: any) => col.showGridColumn === false)
-      .map((col: Column) => col.id as string);
 
     cols
       .filter((col: Column) => ['ApellidoNombre', 'ClienteElementoDependienteDescripcion'].includes(String(col.id)))

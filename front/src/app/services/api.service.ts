@@ -4,7 +4,7 @@ import { ResponseDescuentos, ResponseJSON } from '../shared/schemas/ResponseJSON
 import { Observable, catchError, defer, filter, map, of, tap, throwError } from 'rxjs';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { formatDate, formatNumber } from '@angular/common';
-import { collectionFormatter, ExternalResource, Formatters, Column, Editors } from '@slickgrid-universal/common';
+import { ExternalResource, Formatters, Column, Editors } from '@slickgrid-universal/common';
 import { AngularUtilService, Formatter, GridOption } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { HttpContext } from '@angular/common/http';
@@ -15,6 +15,7 @@ import { FieldTree, ValidationError } from '@angular/forms/signals';
 import { SILENT_NOTIFICATION_ERROR } from '../../context-tokens';
 import { toLogin } from '../core/net/helper';
 import { MsgApiModalService } from '../shared/msg-api-modal/msg-api-modal.service';
+import { AngularRowDetailView } from '@slickgrid-universal/angular-row-detail-plugin';
 
 @Injectable({
   providedIn: 'root',
@@ -255,7 +256,7 @@ export class ApiService {
       enableColumnPicker: true,
       //enableExcelCopyBuffer: true,
       enableExcelExport: true,
-      externalResources: [xlsService as ExternalResource],
+      externalResources: [xlsService as ExternalResource, AngularRowDetailView],
 
       //enableTranslate: true,
       //i18n: I18NService,
@@ -263,8 +264,8 @@ export class ApiService {
 
       enableAutoTooltip: true,
       enableFiltering: false,
-      enableRowSelection: true,  //Se elimina en slickgrid 10
-      //enableSelection:true,   //Proximo cambio
+      //enableRowSelection: true,  //Se elimina en slickgrid 10
+      enableSelection:true,   //Proximo cambio
       enableGrouping: true,
       selectionOptions: {   //Se elimina en slickgrid 10
         selectActiveRow: true
@@ -376,7 +377,7 @@ export class ApiService {
           col.editor = { model: Editors['text'] }
 
           if (String(col.formatter) == 'collectionFormatter')
-            col.formatter = collectionFormatter
+            col.formatter = Formatters['collection']
 
           if (String(col.formatter) == 'complexObject')
             col.formatter = Formatters['complexObject']
@@ -392,9 +393,9 @@ export class ApiService {
             col.formatter = Formatters['dateEuro']
             col.editor = { model: Editors['date'] }
             col.cssClass = 'text-right'
-            col.maxWidth = 100
-            col.minWidth = 100
-            col.width = 100
+            col.maxWidth = 80
+            //col.minWidth = 100
+            col.width = 90
           } else if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters['currency']
             col.type = 'float'
@@ -413,7 +414,7 @@ export class ApiService {
           } else if (col.type == 'number') {
             col.formatter = Formatters['decimal']
             col.params = {...col.params, maxDecimal: 4, minDecimal: 0 }
-            col.cssClass = 'text-right'
+            col.cssClass = col.cssClass ?? 'text-right'
             col.exportWithFormatter = false
           } else if (col.type == 'object')
             col.type = 'object'
@@ -513,38 +514,14 @@ export class ApiService {
     )
   }
 
-  setIaPrompt(iaPrompt: string, iaPromptHash: string): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iaprompt', { iaPrompt, iaPromptHash }).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    )
-  }
-
-  getIaPrompt(): Observable<unknown> {
-    return this.http.get<ResponseJSON<any>>('mess/api/chatbot/iaprompt').pipe(
-      map(res => res)
-    )
-  }
-
-  setIaTools(iaTools: string, iaToolsHash: string): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/iatools', { iaTools, iaToolsHash }).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res)),
-    )
-  }
-
-  getIaTools(): Observable<unknown> {
-    return this.http.get<ResponseJSON<any>>('mess/api/chatbot/iatools').pipe(
-      map(res => res)
-    )
-  }
-
   getChatBotAgents(): Observable<any> {
     return this.http.get<ResponseJSON<any>>('mess/api/chatbot/agents').pipe(
       map(res => res.data)
     )
   }
 
-  setChatBotAgents(agents: any[], deletedCodes: string[]): Observable<any> {
-    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/agents', { agents, deletedCodes }).pipe(
+  setChatBotAgents(agents: any[], deletedCodes: string[], iaPromptHash: string, iaToolsHash: string): Observable<any> {
+    return this.http.post<ResponseJSON<any>>('mess/api/chatbot/agents', { agents, deletedCodes, iaPromptHash, iaToolsHash }).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
       map(res => res.data)
     )

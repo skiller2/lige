@@ -18,8 +18,8 @@ import { zh_CN as zorroLang } from 'ng-zorro-antd/i18n';
 import { routes } from './routes/routes';
 import { ICONS } from '../style-icons';
 import { ICONS_AUTO } from '../style-icons-auto';
-import { AngularSlickgridModule } from 'angular-slickgrid';
-//import { AngularSlickgridComponent, GridOption } from 'angular-slickgrid';
+//import { AngularSlickgridModule } from 'angular-slickgrid';
+import { AngularSlickgridComponent, GridOption } from 'angular-slickgrid';
 
 import { DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -100,8 +100,8 @@ const providers: Array<Provider | EnvironmentProviders> = [
 
 
 
-  importProvidersFrom(AngularSlickgridModule.forRoot()),
-//  importProvidersFrom(AngularSlickgridComponent, { provide: 'defaultGridOption', useValue: gridOptionConfig }),
+  //importProvidersFrom(AngularSlickgridModule.forRoot()),
+  //importProvidersFrom(AngularSlickgridComponent, { provide: 'defaultGridOption', useValue: gridOptionConfig }),
 
   importProvidersFrom(
     ServiceWorkerModule.register('ngsw-worker.js', {

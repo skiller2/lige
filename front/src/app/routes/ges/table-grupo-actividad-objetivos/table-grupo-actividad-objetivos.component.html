@@ -19,7 +19,7 @@
         </nz-button-group>
       </div>
       <div class="gridContainerGAO container-fluid">
-        <angular-slickgrid gridId="gridEditGAO" [columns]="columnsObjetivos()  | colsFilter" [options]="gridOptionsEdit"
+        <angular-slickgrid gridId="gridEditGAO" [columns]="columnsObjetivos()" [options]="gridOptionsEdit"
           [dataset]="gridDataObjetivos.value()" (onAngularGridCreated)="angularGridReadyEdit($event)"
           (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"  (onBeforeEditCell)="handleOnBeforeEditCell($event)">
           <!-- (onBeforeEditCell)="onBeforeEditCell($event)" -->

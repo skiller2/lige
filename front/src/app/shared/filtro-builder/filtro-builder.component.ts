@@ -355,6 +355,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
     this.options.update(v => ({ ...this.localoptions }))
     this.optionsChange.emit({ ...this.localoptions, filtros: [...this.localoptions.filtros] });
     this.saveLocalStorage()
+    
+    if (this.selections.originIdx == indexToRemove) {
+      this.resetSelections()
+    }
   }
 
   async editFiltro(originIdx: number) {

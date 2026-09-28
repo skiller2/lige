@@ -28,7 +28,6 @@ import { flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescri
 import { toAsk, httpInject } from "@builderbot-plugins/openai-assistants/dist/index.cjs"
 import { Ollama } from "ollama";
 import { ClientException } from "./controller/base.controller.ts";
-import { readFile } from "node:fs/promises";
 import { chatBotController } from "./controller/controller.module.ts";
 
 
@@ -65,7 +64,6 @@ export class BotServer {
   public iaPrompt: string
   public iaPromptHash: string
   public ollama: Ollama
-  public pathDocuments:string
 
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
@@ -76,7 +74,6 @@ export class BotServer {
 
   constructor(provider: string) {
     this.ASSISTANT_ID = process.env.ASSISTANT_ID ?? ''
-    this.pathDocuments = process.env.PATH_DOCUMENTS ?? ''
     switch (provider) {
       case "BAILEY":
         this.adapterProvider = createProvider(BaileysProvider, {
@@ -316,7 +313,7 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
       }, 3000); // Reducido a 3 segundos
 
       const handler = (noticeData: any) => {
-         
+
 
         const errorMessage = noticeData?.instructions?.[0] || JSON.stringify(noticeData);
         const is24HourError = errorMessage?.includes('24 hours') ||
@@ -519,39 +516,27 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
 
       // Listener global para ver todos los webhooks de status
       this.adapterProvider.on('notice', (noticeData) => {
-         
+
       });
     }
 
-    try {
-      const Parameters = await chatBotController.getChatbotParameters()
-      if (Parameters) {
-        this.iaPrompt = Parameters.iaPrompt
-      } else {
-        this.iaPrompt = await readFile(`${this.pathDocuments}/ia-prompt.txt`,'utf8')
-      }
-      this.iaPromptHash = CryptoJS.SHA256(this.iaPrompt).toString(CryptoJS.enc.Hex);
+    const parameters = await chatBotController.getChatbotParameters()
+    if (!parameters?.Prompt?.trim() || !parameters?.IaTools?.trim())
+      throw new Error('Faltan el prompt o las herramientas de BMA')
 
-    } catch (error) {
-      console.log(`Error leyendo prompt ${error}` )
-    }
+    const iaTools = JSON.parse(parameters.IaTools)
+    if (!Array.isArray(iaTools))
+      throw new Error('Las herramientas de BMA deben ser un arreglo JSON')
 
-    try {
-      const iaTools = await readFile(`${this.pathDocuments}/ia-tools.json`,'utf8')
-      this.iaToolsHash = CryptoJS.SHA256(this.iaTools).toString(CryptoJS.enc.Hex);
-      this.iaTools = JSON.parse(iaTools)
-     
-    } catch (error) {
-      console.log(`Error leyendo tools ${error}` )
-    }
-
+    this.iaPrompt = parameters.Prompt
+    this.iaPromptHash = CryptoJS.SHA256(parameters.Prompt).toString(CryptoJS.enc.Hex)
+    this.iaTools = iaTools
+    this.iaToolsHash = CryptoJS.SHA256(parameters.IaTools).toString(CryptoJS.enc.Hex)
 
     if (this.adapterProvider)
       this.botHandle.httpServer(this.botPort)
     //    console.log('botHandle', this.botHandle)
     //    console.log('adapterProvider', this.adapterProvider)
-
-
 
     /*
     

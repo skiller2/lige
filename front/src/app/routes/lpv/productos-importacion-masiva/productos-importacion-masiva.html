@@ -39,7 +39,7 @@
   <div nz-tab>
     <div class="gridErrorPro container-fluid">
       <angular-slickgrid
-        gridId="gridErrorPro" [columns]="columnsPro  | colsFilter" [options]="gridOptionsPro"
+        gridId="gridErrorPro" [columns]="columnsPro" [options]="gridOptionsPro"
         [dataset]="(gridDataImport$ | async) || []" (onAngularGridCreated)="angularGridReady($event)" >
       </angular-slickgrid>
     </div>

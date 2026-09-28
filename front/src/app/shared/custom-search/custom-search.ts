@@ -2,7 +2,9 @@ import { AngularGridInstance, Column, Formatter } from 'angular-slickgrid';
 import { createDomElement } from '@slickgrid-universal/utils';
 
 export function columnTotal(column: string, angularGrid: AngularGridInstance) {
-    let columnFooter = angularGrid.slickGrid.getFooterRowColumn(column)
+
+    const idx=angularGrid.slickGrid.getVisibleColumnIndex(column)
+    let columnFooter = angularGrid.slickGrid.getFooterRowColumn(idx)
     let list = angularGrid.dataView.getItems()
     if (list.length && columnFooter) {
 
@@ -17,6 +19,7 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
             }
 
             totalDisplay = String((columnDetail.formatter) ? columnDetail.formatter(0, 0, gridDataTotal, columnDetail, null, angularGrid.slickGrid) : gridDataTotal)
+
             columnFooter.classList.add(String(columnDetail?.cssClass));
         } else {
             totalDisplay = list.length.toString()
@@ -30,17 +33,21 @@ export function columnTotal(column: string, angularGrid: AngularGridInstance) {
 
 
 export function totalRecords(angularGrid: AngularGridInstance, colid:string='') {
-    const visibleColumns = angularGrid.gridService.getVisibleColumnDefinitions()
+    /*
+    const visibleColumns = angularGrid.slickGrid.getVisibleColumns()
     if (visibleColumns.length == 0) return
     let colId = visibleColumns[0].id
     for (const col of visibleColumns) {
-        if ('fieldName' in col) {
+        if (!col.excludeFromColumnPicker && col.width!>50) {
             colId=col.id
             break
         }
     }
-    
-    const columnFooter = angularGrid.slickGrid.getFooterRowColumn(colId)
+    const idx=angularGrid.slickGrid.getVisibleColumnIndex(colId)
+*/
+
+    const columnFooter = angularGrid.slickGrid.getFooterRowColumn(0)
+
     if (!columnFooter) return
     let cantData
     if (colid=='') {
@@ -49,7 +56,8 @@ export function totalRecords(angularGrid: AngularGridInstance, colid:string='') 
     
         const items = angularGrid.slickGrid.getData().getItems().filter(row => row[colid] != '')
         cantData = items.length
-    } 
+    }
+    columnFooter.style.position='relative' 
     columnFooter.innerHTML = (cantData)? `Registros:  ${cantData}`:''
     columnFooter.title = columnFooter.innerHTML
 

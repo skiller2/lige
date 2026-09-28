@@ -1,113 +1,112 @@
-<nz-card class="small-margin">
-  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="getMessInfo()">
-    Obtener estado mess
-  </button>
-  <p>{{ messInfo() | json }}</p>
+<nz-card class="small-margin" nzSize="small" nzTitle="Parámetros ChatBot WhatsApp"
+  [nzBodyStyle]="{ padding: '8px 12px' }">
+  <nz-row [nzGutter]="[16, 8]" [nzAlign]="'middle'">
+    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <nz-space-compact nzBlock>
+        <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="getMessInfo()">
+          Obtener estado mess
+        </button>
+        <nz-tag nzColor="blue">{{ messInfo() | json }}</nz-tag>
+      </nz-space-compact>
+    </nz-col>
 
-  <h3>Parametros ChatBot WhatsApp</h3>
-  <h4>Tiempo entre mensajes</h4>
-  <input #inputElement style="width: 120px" nz-input nz-tooltip nzOverlayClassName="numeric-input"
-    (ngModelChange)="msChange($event)" [ngModel]="ms()" placeholder="Input a number" />
-  <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="setMs()">
-    Cambiar
-  </button>
-  <br>
-  <img [src]="imagenUrl()" alt="QR">
+    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="12">
+      <nz-form-item>
+        <nz-form-label [nzXs]="24" [nzSm]="8" [nzMd]="10" nzFor="chatbot-delay">
+          Tiempo entre mensajes
+        </nz-form-label>
+        <nz-form-control [nzXs]="24" [nzSm]="16" [nzMd]="14">
+          <nz-space-compact nzBlock>
+            <input #inputElement id="chatbot-delay" nz-input nz-tooltip nzOverlayClassName="numeric-input"
+              (ngModelChange)="msChange($event)" [ngModel]="ms()" placeholder="Input a number" />
+            <button nz-popconfirm nzType="primary" class="btn-add" nz-button (click)="setMs()">
+              Cambiar
+            </button>
+          </nz-space-compact>
+        </nz-form-control>
+      </nz-form-item>
+    </nz-col>
 
+    @if (imagenUrl()) {
+    <nz-col [nzXs]="24" [nzSm]="24" [nzMd]="4">
+      <img nz-image width="72" height="72" [nzSrc]="imagenUrl()" alt="QR">
+    </nz-col>
+    }
+  </nz-row>
 </nz-card>
 <nz-tabs nzLinkRouter>
   <nz-tab>
     <a *nzTabLink nz-tab-link routerLink="/config/mess/conversacion">Conversación</a>
     <ng-template nz-tab>
-    <nz-card>
-      <h4>Conversación</h4>
-      <nz-form-label [nzSpan]="5">Persona</nz-form-label>
+      <nz-card nzSize="small" [nzBodyStyle]="{ padding: '12px' }">
+        <nz-form-item>
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Persona</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9">
+            <app-personal-search (ngModelChange)="changePersona($event)" ngModel [anio]="0" [mes]="0" />
+          </nz-form-control>
 
-      <nz-form-control [nzSpan]="19">
-        <app-personal-search (ngModelChange)="changePersona($event)" ngModel [anio]="0" [mes]="0" />
-      </nz-form-control>
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzFor="chatId">Teléfono</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="9">
+            <input nz-input name="chatId" type="text" id="chatId" [(ngModel)]="chatId" />
+          </nz-form-control>
+        </nz-form-item>
 
-      <nz-form-label [nzSpan]="6" nzFor="chatId">Teléfono</nz-form-label>
-      <nz-form-control [nzSpan]="14">
-        <input nz-input name="chatId" type="text" id="chatId" [(ngModel)]="chatId" />
-      </nz-form-control>
+        <nz-card nzSize="small"
+          [nzBodyStyle]="{ height: 'clamp(360px, 52vh, 680px)', minHeight: '320px', maxHeight: '680px', overflowY: 'auto', overscrollBehavior: 'contain', resize: 'vertical', padding: '8px' }">
+          <div #chatMessages class="chat-messages">
+            <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line"
+              [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
 
-      <nz-card style="min-height: 300px;">
+              @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
 
-        <div class="chat-messages">
-          <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line"
-            [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
+              <nz-card nzSize="small" [nzBodyStyle]="{ fontSize: '13px' }">
 
-            @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
+                @if (msg.content && msg.role !== 'tool') {
+                <markdown [data]="msg.content"></markdown>
+                } @else {
+                <markdown [data]="toJsonString(msg.content||msg.tool_calls,true) | language:'json'"></markdown>
 
-            <nz-card nzSize="small">
+                }
+                @if (showTools()){
+                <div>{{ msg.thinking }}</div>
 
-              @if (msg.content && msg.role !== 'tool') {
-              <markdown [data]="msg.content"></markdown>
-              } @else {
-              <markdown [data]="toJsonString(msg.content||msg.tool_calls,true) | language:'json'"></markdown>
+                }
 
+
+              </nz-card>
               }
-              @if (showTools()){
-              <div>{{ msg.thinking }}</div>
-
-              }
-
-
-            </nz-card>
-            }
+            </div>
           </div>
-        </div>
+        </nz-card>
 
+        <form nz-form nzLayout="horizontal" (ngSubmit)="enviaChat($event)">
+          <nz-form-item nz-row [nzGutter]="8">
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+              <nz-space-compact nzBlock>
+                <input nz-input nz-tooltip [formField]="chatform.usermsg" />
+                <button nzType="primary" class="btn-add" nz-button type="submit"
+                  [nzLoading]="chatform().submitting()"
+                  [disabled]="chatform().submitting() || chatform().dirty()==false">Enviar</button>
+              </nz-space-compact>
+            </nz-form-control>
+
+            <nz-form-control [nzXs]="24" [nzSm]="12" [nzMd]="3">
+              <button nzBlock nzType="primary" class="btn-add" nz-button type="button"
+                (click)="reiniciaChat()">Reiniciar</button>
+            </nz-form-control>
+
+            <nz-form-control [nzXs]="24" [nzSm]="12" [nzMd]="5">
+              <label nz-checkbox [ngModel]="showTools()" (ngModelChange)="showTools.set($event)"
+                [ngModelOptions]="{ standalone: true }">
+                Mostrar uso de herramientas
+              </label>
+            </nz-form-control>
+          </nz-form-item>
+        </form>
       </nz-card>
-
-      <form (ngSubmit)="enviaChat($event)">
-        <input style="width: 300px" nz-input nz-tooltip [formField]="chatform.usermsg" />
-        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="chatform().submitting()"
-          [disabled]="chatform().submitting() || chatform().dirty()==false">Enviar</button>
-      </form>
-      <button nzType="primary" class="btn-add" nz-button (click)="reiniciaChat()">Reiniciar</button>
-
-      <label style="display:inline-flex; gap:8px; align-items:center; margin-left: 12px;">
-        <input type="checkbox" [checked]="showTools()" (change)="toggleShowTools($event)" />
-        Mostrar uso de herramientas
-      </label>
-
-    </nz-card>
     </ng-template>
 
 
-
-  </nz-tab>
-  <nz-tab>
-    <a *nzTabLink nz-tab-link routerLink="/config/mess/ia-prompt">IA Prompt</a>
-    <ng-template nz-tab>
-    <nz-card>
-      <h4>IA Prompt</h4>
-      <form (ngSubmit)="setIaPrompt($event)">
-
-        <textarea placeholder="IA Prompt" style="width: 100%;
-    height: 800px;" [formField]="promptform.iaPrompt"></textarea>
-        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="promptform().submitting()"
-          [disabled]="promptform().submitting() || promptform().dirty()==false">Grabar</button>
-      </form>
-    </nz-card>
-    </ng-template>
-
-  </nz-tab>
-  <nz-tab>
-    <a *nzTabLink nz-tab-link routerLink="/config/mess/ia-herramientas">IA Herramientas</a>
-    <ng-template nz-tab>
-    <nz-card>
-      <h4>IA Prompt</h4>
-      <form (ngSubmit)="setIaTools($event)">
-        <textarea placeholder="IA Herramientas" style="width: 100%;
-    height: 800px;" [formField]="toolsform.iaTools"></textarea>
-        <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="toolsform().submitting()"
-          [disabled]="toolsform().submitting() || toolsform().dirty()==false">Grabar</button>
-      </form>
-    </nz-card>
-    </ng-template>
 
   </nz-tab>
   <nz-tab>
@@ -125,10 +124,12 @@
 
                 <ng-template #agentActions>
                   <div class="panel-actions">
-                    <button nz-button nzType="default" type="button" (click)="removeAgent(i, $event)" nz-tooltip
-                      nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-                      <span nz-icon nzType="delete" nzTheme="outline"></span>
-                    </button>
+                    @if (agentsModel().agents[i].ChatBotPromptCodigo !== 'BMA') {
+                      <button nz-button nzType="default" type="button" (click)="removeAgent(i, $event)" nz-tooltip
+                        nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+                        <span nz-icon nzType="delete" nzTheme="outline"></span>
+                      </button>
+                    }
                     @if ($last) {
                     <button nz-button nzType="primary" type="button" class="add-button" (click)="addAgent($event)"
                       nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">

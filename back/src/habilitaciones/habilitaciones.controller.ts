@@ -235,7 +235,7 @@ const GridColums: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
-        showGridColumn: false
+        hidden: true
 
     },
     {
@@ -280,7 +280,7 @@ const GridColums: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
-        showGridColumn: false
+        hidden: true
 
     },
     {
@@ -292,7 +292,7 @@ const GridColums: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
-        showGridColumn: false
+        hidden: true
 
     },
     {
@@ -304,7 +304,7 @@ const GridColums: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
-        showGridColumn: false
+        hidden: true
 
     },
     {
@@ -316,7 +316,7 @@ const GridColums: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
-        showGridColumn: false
+        hidden: true
 
     }
 ];

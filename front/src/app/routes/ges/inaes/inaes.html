@@ -59,7 +59,7 @@
             </div>
           </div>
           <div class="gridContainer container-fluid">
-            <angular-slickgrid gridId="gridINAES" class="" [columns]="columns() | colsFilter"
+            <angular-slickgrid gridId="gridINAES" class="" [columns]="columns()"
               [options]="gridOptions" [dataset]="gridData.value()"
               (onAngularGridCreated)="angularGridReady($event)">
             </angular-slickgrid>

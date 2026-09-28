@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect } from '@angular/core';
-import { AngularGridInstance, AngularUtilService, GridOption } from 'angular-slickgrid';
+import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect, resource } from '@angular/core';
+import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
@@ -12,6 +12,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { NovedadesFormComponent } from '../novedades-form/novedades-form';
 import { SettingsService } from '@delon/theme';
 import { Selections } from '../../../shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-novedades',
@@ -26,16 +27,15 @@ export class NovedadesComponent {
   angularGrid!: AngularGridInstance;
   gridOptions!: GridOption;
   gridDataInsert: any[] = [];
-  detailViewRowCount = 1;
+  detailViewRowCount = 5;
   editNovedadNovedadCodigo = signal(0)
   editNovedadObjetivoId = signal(0)
   childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
-  listNovedades$ = new BehaviorSubject('')
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  });
   selectedIndex = signal(0)
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
@@ -54,7 +54,7 @@ export class NovedadesComponent {
   private injector = inject(Injector)
   startFilters = signal<Selections[]>([])
 
-  columns$ = this.apiService.getCols('/api/novedades/cols')
+  columns = toSignal(this.apiService.getCols('/api/novedades/cols'), { initialValue: [] as Column[] })
 
   // firstFilter = false
 
@@ -75,22 +75,21 @@ export class NovedadesComponent {
       const mes = this.mes()
       localStorage.setItem('anio',String(anio))
       localStorage.setItem('mes',String(mes))
-      this.listNovedades$.next('')
+      // this.listNovedades$.next('')
     }, { injector: this.injector });
 
     this.settingsService.setLayout('collapsed', true)
   }
 
-  gridData$ = this.listNovedades$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getListNovedades(this.listOptions, this.periodo())
-        .pipe(map(data => { 
-          this.cantRegistros.set(data.total)
-          return data.list 
-        }))
-    })
-  )
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), periodo: this.periodo()}),
+    loader: async ({ params }) => {
+      const response = await firstValueFrom(this.searchService.getListNovedades(params.options, params.periodo));
+      this.cantRegistros.set(response.total)
+      return response.list;
+    },
+    defaultValue: []
+  });
 
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
@@ -118,17 +117,12 @@ export class NovedadesComponent {
   }
 
   reloadListado() {
-    this.listNovedades$.next('')
+    this.gridData.reload()
     this.selectedIndex.set(1)
   }
 
-  listOptionsChange(options: any) {
-    this.listOptions = options
-    this.listNovedades$.next('')
-  }
-
   async handleAddOrUpdate(event: any) {
-    this.listNovedades$.next('')
+    this.gridData.reload()
     if (event === 'delete') {
       //this.editNovedadNovedadCodigo.set(0)
       this.selectedIndex.set(1)
@@ -159,7 +153,7 @@ export class NovedadesComponent {
   async deleteNovedadInput() {
 
     await firstValueFrom(this.apiService.deleteNovedad(this.editNovedadNovedadCodigo(), this.editNovedadObjetivoId()))
-    this.listNovedades$.next('')
+    this.gridData.reload()
   }
 
   selectedDate (){

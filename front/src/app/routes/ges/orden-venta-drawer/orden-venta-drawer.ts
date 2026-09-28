@@ -36,7 +36,9 @@ export class OrdenVentaDrawerComponent {
     this.cabecera.set({})
     if (ClienteId > 0 && ClienteElementoDependienteId > 0 && anio > 0 && mes > 0 && visible) {
       await this.getCabecera(ClienteId, ClienteElementoDependienteId, anio, mes)
-      if (this.ordenVentaSeleccionada() == 0) {
+
+
+      if (this.ordenVentaSeleccionada() <= 0) {
         if (this.cabecera().Ordenes.length)
           this.ordenVentaSeleccionada.set(this.cabecera().Ordenes[0].NroOrdenVenta)
         else if (this.cabecera().NroOrdenVentaBase > 0)
@@ -70,10 +72,11 @@ export class OrdenVentaDrawerComponent {
   }
 
   ordenVentaGuardada(NroOrdenVenta: number) {
-    console.log('trigger ordenVentaGuardada',NroOrdenVenta)
+
+    this.getCabecera(this.ClienteId(), this.ClienteElementoDependienteId(), this.anio(), this.mes())
+
     if (this.ordenVentaSeleccionada()!=NroOrdenVenta)
       this.ordenVentaSeleccionada.set(NroOrdenVenta)
-    this.getCabecera(this.ClienteId(), this.ClienteElementoDependienteId(), this.anio(), this.mes())
 
     this.ordenVentaChange.emit(NroOrdenVenta)
   }

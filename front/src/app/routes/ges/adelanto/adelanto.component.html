@@ -50,7 +50,7 @@
         <ng-template nz-tab>
           <shared-filtro-builder  [startFilters]="startFilters()"  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
           <div class="gridContainer container-fluid">
-            <angular-slickgrid gridId="grid22" class="" [columns]="columnas | colsFilter"
+            <angular-slickgrid gridId="grid22" class="" [columns]="columnas"
               [options]="gridOptions" [dataset]="(gridData$ | async) || []"
               (onAngularGridCreated)="angularGridReady($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
             </angular-slickgrid>

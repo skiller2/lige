@@ -684,8 +684,8 @@ export class OrdenVentaController extends BaseController {
     const comprobantesTmp = Array.isArray(req.body.comprobantes) ? req.body.comprobantes : [];
     let NroOrdenVenta = req.body.NroOrdenVenta ?? null;
     const queryRunner = await getConnection(res.locals.userName);
-    const PeriodoMes = new Date(req.body.Periodo).getFullYear();
-    const PeriodoAnio = new Date(req.body.Periodo).getMonth() + 1;
+    const PeriodoAnio = new Date(req.body.Periodo).getFullYear();
+    const PeriodoMes = new Date(req.body.Periodo).getMonth() + 1;
 
     try {
       const usuario = res.locals.userName;
