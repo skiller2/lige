@@ -414,7 +414,7 @@ export class ApiService {
           } else if (col.type == 'number') {
             col.formatter = Formatters['decimal']
             col.params = {...col.params, maxDecimal: 4, minDecimal: 0 }
-            col.cssClass = 'text-right'
+            col.cssClass = col.cssClass ?? 'text-right'
             col.exportWithFormatter = false
           } else if (col.type == 'object')
             col.type = 'object'

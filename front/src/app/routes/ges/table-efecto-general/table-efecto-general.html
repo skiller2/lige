@@ -13,7 +13,7 @@
           [options]="gridOptions"
           [dataset]="gridData.value()"
           (onAngularGridCreated)="angularGridReady($event)"
-          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
+          (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" autoRowHeight>
         </angular-slickgrid>
       </div>
     }
