@@ -827,8 +827,14 @@ export class OrdenVentaController extends BaseController {
   async setOrdenVentaMasiva(req: Request, res: Response, next: NextFunction) {
     const todosLosGrupos: any[] = Array.isArray(req.body?.clientes) ? req.body.clientes : [];
 
-    const comprobantesEditados: any[] = Array.isArray(req.body?.comprobantes)
+    // La pantalla manda el formulario entero: todos los comprobantes, con sus valores originales.
+    // Solo se procesan los que cambiaron; el índice de la lista completa es el de los fieldErrors.
+    const todosLosComprobantes: any[] = Array.isArray(req.body?.comprobantes)
       ? req.body.comprobantes : [];
+    const comprobantesEditados = todosLosComprobantes.filter(comprobante =>
+      String(comprobante?.ComprobanteTipoCodigo ?? '').trim() !== String(comprobante?.ComprobanteTipoCodigoOriginal ?? '').trim() ||
+      String(comprobante?.ComprobanteNro ?? '').trim() !== String(comprobante?.ComprobanteNroOriginal ?? '').trim() ||
+      Number(comprobante?.ImporteTotal) !== Number(comprobante?.ImporteTotalOriginal));
 
     const queryRunner = await getConnection(res.locals.userName);
 
@@ -851,61 +857,68 @@ export class OrdenVentaController extends BaseController {
       if (!grupos.length && !comprobantesEditados.length)
         throw new ClientException('No hay nada para aplicar, cargue el comprobante o el estado');
 
-      const errores: string[] = [];
+      // Errores por campo: fieldTree es la ruta en el modelo del formulario (clientes[i].Campo,
+      // comprobantes[i].Campo), así la pantalla marca el campo. El índice es el de la lista que
+      // mandó la pantalla (todosLosGrupos), no el de los grupos filtrados.
+      const fieldErrors: { fieldTree: string, kind: string, message: string }[] = [];
+      const errorCampo = (fieldTree: string, message: string) =>
+        fieldErrors.push({ fieldTree, kind: 'server', message });
 
       // Cada grupo tiene que traer sus órdenes, y el comprobante va completo o vacío
-      for (const grupo of grupos) {
-        const donde = `Cliente ${grupo?.ClienteId}`;
+      for (const [indice, grupo] of todosLosGrupos.entries()) {
+        if (!grupos.includes(grupo)) continue;
+        const campo = `clientes[${indice}]`;
         const ordenes: number[] = Array.isArray(grupo?.NroOrdenVentas)
           ? grupo.NroOrdenVentas.map(Number).filter(Number.isFinite) : [];
 
         if (!ordenes.length)
-          errores.push(`${donde}: no tiene órdenes seleccionadas`);
+          errorCampo('', `Cliente ${grupo?.ClienteId}: no tiene órdenes seleccionadas`);
 
         const tipo = String(grupo?.ComprobanteTipoCodigo ?? '').trim();
         const numero = String(grupo?.ComprobanteNro ?? '').trim();
         const conComprobante = !!tipo || !!numero || cargado(grupo?.ImporteTotal);
 
         if (conComprobante) {
-          if (!tipo) errores.push(`${donde}: el tipo de comprobante es obligatorio`);
-          if (!numero) errores.push(`${donde}: el número de comprobante es obligatorio`);
+          if (!tipo) errorCampo(`${campo}.ComprobanteTipoCodigo`, 'El tipo de comprobante es obligatorio');
+          if (!numero) errorCampo(`${campo}.ComprobanteNro`, 'El número de comprobante es obligatorio');
 
           if (!cargado(grupo?.ImporteTotal))
-            errores.push(`${donde}: el importe total es obligatorio`);
+            errorCampo(`${campo}.ImporteTotal`, 'El importe total es obligatorio');
           else if (!Number.isFinite(Number(grupo.ImporteTotal)))
-            errores.push(`${donde}: el importe total '${grupo.ImporteTotal}' no es un número válido`);
+            errorCampo(`${campo}.ImporteTotal`, `El importe total '${grupo.ImporteTotal}' no es un número válido`);
         }
 
         // Pasar a "Facturado" obliga a cargar el comprobante, con todos sus datos
         if (String(grupo?.EstadoOrdenVentaCodigo ?? '').trim() === ESTADO_ORDEN_VENTA_FACTURADA && !conComprobante)
-          errores.push(`${donde}: para pasar a Facturado debe cargar el comprobante (tipo, número e importe total)`);
+          errorCampo(`${campo}.EstadoOrdenVentaCodigo`, 'Para pasar a Facturado debe cargar el comprobante (tipo, número e importe total)');
       }
 
       // Los tres campos del comprobante editado son NOT NULL: van completos o no se manda
-      for (const [indice, comprobante] of comprobantesEditados.entries()) {
+      for (const [indice, comprobante] of todosLosComprobantes.entries()) {
+        if (!comprobantesEditados.includes(comprobante)) continue;
+        const campo = `comprobantes[${indice}]`;
         const tipoOriginal = String(comprobante?.ComprobanteTipoCodigoOriginal ?? '').trim();
         const numeroOriginal = String(comprobante?.ComprobanteNroOriginal ?? '').trim();
-        const donde = `Comprobante ${tipoOriginal || '?'} ${numeroOriginal || indice + 1}`;
 
         if (!tipoOriginal || !numeroOriginal) {
-          errores.push(`${donde}: no se puede identificar el comprobante a editar`);
+          errorCampo('', `Comprobante ${indice + 1}: no se puede identificar el comprobante a editar`);
           continue;
         }
 
         if (!String(comprobante?.ComprobanteTipoCodigo ?? '').trim())
-          errores.push(`${donde}: el tipo de comprobante es obligatorio`);
+          errorCampo(`${campo}.ComprobanteTipoCodigo`, 'El tipo de comprobante es obligatorio');
 
         if (!String(comprobante?.ComprobanteNro ?? '').trim())
-          errores.push(`${donde}: el número de comprobante es obligatorio`);
+          errorCampo(`${campo}.ComprobanteNro`, 'El número de comprobante es obligatorio');
 
         if (!cargado(comprobante?.ImporteTotal))
-          errores.push(`${donde}: el importe total es obligatorio`);
+          errorCampo(`${campo}.ImporteTotal`, 'El importe total es obligatorio');
         else if (!Number.isFinite(Number(comprobante.ImporteTotal)))
-          errores.push(`${donde}: el importe total '${comprobante.ImporteTotal}' no es un número válido`);
+          errorCampo(`${campo}.ImporteTotal`, `El importe total '${comprobante.ImporteTotal}' no es un número válido`);
       }
 
-      if (errores.length)
-        throw new ClientException(errores);
+      if (fieldErrors.length)
+        throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors });
 
       // Los tipos de comprobante y los estados elegidos tienen que existir
       const tipos = [...new Set([
@@ -1118,15 +1131,37 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
+  /**
+   * Datos de la edición masiva para las órdenes seleccionadas, con la misma forma que el modelo
+   * del formulario (OrdenVentaMasivaForm en el front), así la pantalla lo carga tal cual:
+   * - clientes: un grupo por cliente con sus órdenes, objetivos, cantidad e importe (para mostrar)
+   *   y los campos que se editan (estado y comprobante nuevo) vacíos.
+   * - comprobantes: los que tienen todas sus órdenes dentro de la selección, con el tipo, número
+   *   e importe originales aparte de los que se editan (el back los usa para encontrar sus filas).
+   */
   async getOrdenVentaMasiva(req: Request, res: Response, next: NextFunction) {
-    const NroOrdenVentas: number[] = req.body?.NroOrdenVentas || []
+    const NroOrdenVentas: number[] = Array.isArray(req.body?.NroOrdenVentas)
+      ? [...new Set(req.body.NroOrdenVentas.map(Number).filter(Number.isFinite))] as number[]
+      : []
 
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      if (!NroOrdenVentas.length) return this.jsonRes([], res);
+      if (!NroOrdenVentas.length) return this.jsonRes({ clientes: [], comprobantes: [] }, res);
 
       const parametros = NroOrdenVentas.map((_, indice) => `@${indice}`).join(',');
+
+      const ordenes = await queryRunner.query(`
+        SELECT ord.NroOrdenVenta, ord.ClienteId,
+          TRIM(ISNULL(cli.ClienteDenominacion,'')) AS Cliente,
+          CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(eledep.ClienteElementoDependienteDescripcion)) AS Objetivo,
+          ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar
+        FROM OrdenVenta ord
+        LEFT JOIN Cliente cli ON cli.ClienteId = ord.ClienteId
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = ord.ClienteId AND ISNULL(eledep.ClienteElementoDependienteId,0) = ISNULL(ord.ClienteElementoDependienteId,0)
+        WHERE ord.NroOrdenVenta IN (${parametros})
+        ORDER BY ord.ClienteId, ord.NroOrdenVenta
+      `, NroOrdenVentas);
 
       const comprobantes = await queryRunner.query(`
         SELECT
@@ -1152,29 +1187,71 @@ export class OrdenVentaController extends BaseController {
       `, NroOrdenVentas);
 
 
-      const clientes = await queryRunner.query(`
+      // La fecha va al final: los números de orden ocupan @0..@n-1, igual que en las otras consultas
+      const facturacion = await queryRunner.query(`
         SELECT DISTINCT
           cli.ClienteId,
-          TRIM(cli.ClienteDenominacion) AS ClienteDenominacion,
           fac.ClienteFacturacionCUIT AS CUIT,
           CONCAT_WS(' ', TRIM(dom.DomicilioDomCalle), TRIM(dom.DomicilioDomNro),
             TRIM(loc.LocalidadDescripcion), TRIM(prov.ProvinciaDescripcion)) AS Domicilio
         FROM Cliente cli
         JOIN OrdenVenta ov ON ov.ClienteId=cli.ClienteId
         LEFT JOIN ClienteFacturacion fac ON fac.ClienteId = cli.ClienteId
-          AND fac.ClienteFacturacionDesde <= @0
-          AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @0
+          AND fac.ClienteFacturacionDesde <= @${NroOrdenVentas.length}
+          AND ISNULL(fac.ClienteFacturacionHasta, '9999-12-31') >= @${NroOrdenVentas.length}
         LEFT JOIN NexoDomicilio nex ON nex.ClienteId = cli.ClienteId AND nex.NexoDomicilioActual = 1 AND nex.ClienteElementoDependienteId IS null
         LEFT JOIN Domicilio dom ON dom.DomicilioId = nex.DomicilioId
         LEFT JOIN Localidad loc ON loc.LocalidadId = dom.DomicilioLocalidadId
           AND loc.ProvinciaId = dom.DomicilioProvinciaId AND loc.PaisId = dom.DomicilioPaisId
         LEFT JOIN Provincia prov ON prov.ProvinciaId = dom.DomicilioProvinciaId AND prov.PaisId = dom.DomicilioPaisId
         WHERE ov.NroOrdenVenta IN (${parametros})
-      `, [new Date(), ...NroOrdenVentas]);
+      `, [...NroOrdenVentas, new Date()]);
 
+      // Un grupo por cliente: la edición masiva aplica el mismo estado y comprobante a todas sus órdenes
+      const porCliente = new Map<number, any>();
+      for (const orden of ordenes) {
+        const ClienteId = Number(orden.ClienteId);
+        if (!porCliente.has(ClienteId)) {
+          const datos = facturacion.find((f: any) => Number(f.ClienteId) === ClienteId);
+          porCliente.set(ClienteId, {
+            ClienteId,
+            Cliente: orden.Cliente,
+            CUIT: datos?.CUIT ?? '',
+            Domicilio: datos?.Domicilio ?? '',
+            NroOrdenVentas: [],
+            Objetivos: [],
+            Cantidad: 0,
+            ImporteTotalOrdenes: 0,
+            // Lo que se edita: vacío, se aplica solo lo que se cargue
+            EstadoOrdenVentaCodigo: '',
+            ComprobanteTipoCodigo: '',
+            ComprobanteNro: '',
+            ImporteTotal: '',
+          });
+        }
+        const cliente = porCliente.get(ClienteId);
+        cliente.NroOrdenVentas.push(Number(orden.NroOrdenVenta));
+        cliente.Cantidad++;
+        cliente.ImporteTotalOrdenes += Number(orden.ImporteTotalAFacturar);
+        const objetivo = String(orden.Objetivo ?? '').trim();
+        if (objetivo && !cliente.Objetivos.includes(objetivo)) cliente.Objetivos.push(objetivo);
+      }
 
-
-      this.jsonRes({comprobantes,clientes}, res);
+      this.jsonRes({
+        clientes: [...porCliente.values()],
+        // Los originales identifican las filas a actualizar; los otros tres son los que se editan
+        comprobantes: comprobantes.map((comprobante: any) => ({
+          ComprobanteTipoCodigoOriginal: String(comprobante.ComprobanteTipoCodigo ?? '').trim(),
+          ComprobanteNroOriginal: String(comprobante.ComprobanteNro ?? '').trim(),
+          ImporteTotalOriginal: comprobante.ImporteTotal,
+          ComprobanteTipoCodigo: String(comprobante.ComprobanteTipoCodigo ?? '').trim(),
+          ComprobanteNro: String(comprobante.ComprobanteNro ?? '').trim(),
+          ImporteTotal: comprobante.ImporteTotal == null ? '' : String(comprobante.ImporteTotal),
+          ComprobanteTipo: comprobante.ComprobanteTipo,
+          ClienteId: comprobante.ClienteId,
+          CantidadOrdenes: comprobante.CantidadOrdenes,
+        })),
+      }, res);
     } catch (error) {
       return next(error);
     } finally {

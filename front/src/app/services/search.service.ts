@@ -1565,7 +1565,7 @@ export class SearchService {
   getOrdenVentaMasiva(NroOrdenVentas: number[]): Observable<any> {
     return this.http.post<ResponseJSON<any>>(`/api/orden-venta/masiva-list`, { NroOrdenVentas }).pipe(
       map(res => res.data),
-      catchError(() => of([]))
+      catchError(() => of({ clientes: [], comprobantes: [] }))
     );
   }
 

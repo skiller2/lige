@@ -2072,9 +2072,8 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/orden-venta/save', ordenVenta);
   }
 
-  setOrdenVentaMasiva(clientes: any[], comprobantes: any[] = []) {
-
-    return this.http.post<ResponseJSON<any>>('/api/orden-venta/masiva', { clientes, comprobantes });
+  setOrdenVentaMasiva(ordenVentaMasiva: any) {
+    return this.http.post<ResponseJSON<any>>('/api/orden-venta/masiva', ordenVentaMasiva);
   }
 
   // Las órdenes seleccionadas pasan a estado cancelado
