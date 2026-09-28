@@ -52,14 +52,14 @@
         </nz-form-item>
 
         <nz-card nzSize="small"
-          [nzBodyStyle]="{ height: 'clamp(360px, 52vh, 680px)', overflowY: 'auto', overscrollBehavior: 'contain', padding: '8px' }">
-          <div class="chat-messages">
+          [nzBodyStyle]="{ height: 'clamp(360px, 52vh, 680px)', minHeight: '320px', maxHeight: '680px', overflowY: 'auto', overscrollBehavior: 'contain', resize: 'vertical', padding: '8px' }">
+          <div #chatMessages class="chat-messages">
             <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line"
               [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
 
               @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
 
-              <nz-card nzSize="small">
+              <nz-card nzSize="small" [nzBodyStyle]="{ fontSize: '13px' }">
 
                 @if (msg.content && msg.role !== 'tool') {
                 <markdown [data]="msg.content"></markdown>

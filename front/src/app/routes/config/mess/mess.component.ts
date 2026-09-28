@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, input, model, signal } from '@angular/core';
+import { Component, ElementRef, inject, input, model, signal, viewChild } from '@angular/core';
 import { applyEach, disabled, form, FormField, minLength, readonly, required, submit } from '@angular/forms/signals';
 
 import { SHARED_IMPORTS } from '@shared';
@@ -57,6 +57,7 @@ export class MessComponent {
   agentsLoading = signal(false)
   panelAbierto = signal<number | null>(null)
   deletedAgentCodes = signal<string[]>([])
+  readonly chatMessages = viewChild<ElementRef<HTMLDivElement>>('chatMessages')
 
   readonly agentsModel = signal<AgentsFormModel>({ agents: [] })
 
@@ -121,6 +122,7 @@ export class MessComponent {
         const resp: any = await firstValueFrom(this.apiService.sendChatMessage(this.chatform.usermsg().value(), this.chatId()))
         const newMsg: any[] = resp.response
         this.msgs.update(list => [...list, ...resp.response]);
+        this.scrollChatToBottom()
 //        form.usermsg().setControlValue('')
         this.chatform().reset({ usermsg: '' })
         
@@ -128,6 +130,14 @@ export class MessComponent {
       return undefined; // success
     })
 
+  }
+
+  private scrollChatToBottom() {
+    requestAnimationFrame(() => {
+      const scrollContainer = this.chatMessages()?.nativeElement.parentElement
+      if (scrollContainer)
+        scrollContainer.scrollTop = scrollContainer.scrollHeight
+    })
   }
 
   async reiniciaChat() {
