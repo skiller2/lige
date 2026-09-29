@@ -22,11 +22,7 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
   private recalculateHeights(grid: SlickGrid) {
     this.cache.clear();
-
-    grid.invalidateAllRows()
-//    grid.invalidateRowHeights();
-    grid.updateRowCount();
-    grid.render();
+    grid.invalidateRowHeights();
   }
 
   ngAfterViewInit(): void {
@@ -36,6 +32,11 @@ export class AutoRowHeightDirective implements AfterViewInit {
 //      (grid, _row, item) => this.getHeight(grid, item);
 
     grid.onColumnsResized.subscribe(() => {
+      this.recalculateHeights(grid);
+    });
+
+    // Ajuste automático de anchos (autosize / forceFit)
+    grid.onAutosizeColumns.subscribe(() => {
       this.recalculateHeights(grid);
     });
 
@@ -109,11 +110,7 @@ export class AutoRowHeightDirective implements AfterViewInit {
         continue;
       }
 
-      const header = grid
-        .getContainerNode()
-        .querySelector('.slick-header-column[id*=' + column.id + ']');
-
-      const width = (header as HTMLElement)?.clientWidth ?? 200;
+      const width = column.width ?? 200;
 
 /*
     const realCell = grid.getContainerNode()
