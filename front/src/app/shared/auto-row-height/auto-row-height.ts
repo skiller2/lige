@@ -28,8 +28,8 @@ export class AutoRowHeightDirective implements AfterViewInit {
   ngAfterViewInit(): void {
 
     const grid = this.slickgrid.slickGrid;
-//    grid.getOptions().rowHeightProvider =
-//      (grid, _row, item) => this.getHeight(grid, item);
+    //    grid.getOptions().rowHeightProvider =
+    //      (grid, _row, item) => this.getHeight(grid, item);
 
     grid.onColumnsResized.subscribe(() => {
       this.recalculateHeights(grid);
@@ -49,7 +49,7 @@ export class AutoRowHeightDirective implements AfterViewInit {
     );
 
     for (const column of grid.getColumns()) {
-     if (!column.id || column.type != 'string') {
+      if (!column.id || column.type != 'string') {
         continue;
       }
       grid.updateColumnById(column.id, { cssClass: `${column.cssClass ?? ''} cell-wrap`.trim() })
@@ -63,9 +63,9 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
 
     if (realCell) {
-  
+
       const css = getComputedStyle(realCell);
-  
+
       this.measure.style.font = css.font;
       this.measure.style.lineHeight = css.lineHeight;
       this.measure.style.padding = css.padding;
@@ -79,14 +79,16 @@ export class AutoRowHeightDirective implements AfterViewInit {
       this.measure.style.overflowWrap = css.overflowWrap;
       this.measure.style.letterSpacing = css.letterSpacing;
     }
-//    this.measure.className="slick-cell cell-wrap"
+    //    this.measure.className="slick-cell cell-wrap"
     this.measure.style.wordBreak = 'break-word';
     this.measure.style.padding = '1px';
 
     document.body.appendChild(this.measure);
 
-    grid.setOptions({enableVariableRowHeight: true, rowHeightProvider :
-      (grid, _row, item) => this.getHeight(grid, item)})
+    grid.setOptions({
+      enableVariableRowHeight: true, rowHeightProvider:
+        (grid, _row, item) => this.getHeight(grid, item)
+    })
   }
 
   ngOnDestroy() {
@@ -112,13 +114,13 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
       const width = column.width ?? 200;
 
-/*
-    const realCell = grid.getContainerNode()
-      .querySelector('.slick-cell') as HTMLElement;
-
-    if (realCell) 
-      console.log("en getHeight",realCell,getComputedStyle(realCell))
-*/
+      /*
+          const realCell = grid.getContainerNode()
+            .querySelector('.slick-cell') as HTMLElement;
+      
+          if (realCell) 
+            console.log("en getHeight",realCell,getComputedStyle(realCell))
+      */
 
 
       const text = String(item[column.id] ?? '');
@@ -140,7 +142,7 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
     this.measure.style.width = `${width}px`;
     this.measure.textContent = text;
- 
+
     const height = this.measure.offsetHeight;
 
     return Math.ceil(height);

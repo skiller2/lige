@@ -63,11 +63,7 @@ export class NovedadesComponent {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
-    this.gridOptions.createFooterRow = true,
-
-    this.gridOptions.forceFitColumns = true;
-    this.gridOptions.autoFitColumnsOnFirstLoad = true;
-    this.gridOptions.enableAutoSizeColumns = true;
+    this.gridOptions.createFooterRow = true;
 
 
     const filter = await firstValueFrom(this.searchService.getNovedadesFilters())

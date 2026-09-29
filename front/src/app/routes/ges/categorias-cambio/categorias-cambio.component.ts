@@ -125,7 +125,7 @@ export class CategoriasCambioComponent {
     //    rowHeight: 45, // increase row height so that the ng-select fits in the cell
     //    autoHeight: true,    
     editable: true,
-    enableCellMenu: true,
+    enableCellMenu: false,
     enableCellNavigation: true,
     //    enableAutoResize: true,
     enableColumnPicker: true,

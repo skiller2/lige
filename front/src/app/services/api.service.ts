@@ -189,6 +189,7 @@ export class ApiService {
       },
 
       enableAutoResize: true,
+      forceFitColumns: true, // Las columnas siempre ocupan el ancho del grid
       // gridAutosizeColsMode: GridAutosizeColsMode.fitColsToViewport,
 
       contextMenu: {
@@ -250,7 +251,7 @@ export class ApiService {
       //    rowHeight: 45, // increase row height so that the ng-select fits in the cell
       //    autoHeight: true,    
       editable: false,
-      enableCellMenu: true,
+      enableCellMenu: false, // No se usa; activo devuelve el foco a la celda clickeada antes y salta el scroll
       enableCellNavigation: true,
       //    enableAutoResize: true,
       enableColumnPicker: true,
