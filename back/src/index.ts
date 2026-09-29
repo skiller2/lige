@@ -162,19 +162,19 @@ async function main() {
     await movimientoStockController.jobMigrateMovimientoToMovimientoStock(mockReq, null, (ret: any) => ret)
   });
 
-  // scheduleJob('8 0 * * *', async function (fireDate) {  //At 12:08 AM
-  //   const actual = new Date()
-  //   const anio = actual.getFullYear()
-  //   const mes = actual.getMonth() + 1
+  scheduleJob('8 0 * * *', async function (fireDate) {  //At 12:08 AM
+    const actual = new Date()
+    const anio = actual.getFullYear()
+    const mes = actual.getMonth() + 1
 
-  //   const mockReq: any = {
-  //     body: { anio, mes },
-  //     headers: {},
-  //     socket: { remoteAddress: '127.0.0.1' }
-  //   }
+    const mockReq: any = {
+      body: { anio, mes },
+      headers: {},
+      socket: { remoteAddress: '127.0.0.1' }
+    }
 
-  //   await personalController.jobMsgCumpleanios(mockReq, null, (ret: any) => ret)
-  // });
+    await personalController.jobMsgCumpleanios(mockReq, null, (ret: any) => ret)
+  });
 
 
 
