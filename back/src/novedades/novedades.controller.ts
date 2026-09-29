@@ -38,7 +38,7 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: false,
-        maxWidth: 100
+        maxWidth: 80
 
     },
     {
@@ -186,7 +186,8 @@ const listaColumnas: any[] = [
         fieldName: "nov.Descripcion",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: false,
+        width: 300,
     },
     {
         name: "Acción",
@@ -196,7 +197,8 @@ const listaColumnas: any[] = [
         fieldName: "nov.Accion",
         sortable: true,
         hidden: false,
-        searchHidden: false
+        searchHidden: false,
+        width: 300,
     },
     {
         name: "Fecha",
@@ -248,6 +250,7 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: true,
+        maxWidth: 80
     },
     {
         name: "Archivos Adjuntos",
@@ -258,6 +261,8 @@ const listaColumnas: any[] = [
         sortable: true,
         hidden: false,
         searchHidden: false,
+        maxWidth: 80,
+        cssClass: "text-center"
     },
     {
         name: "Usuario Ing.",
@@ -836,22 +841,22 @@ export class NovedadesController extends BaseController {
             const ParametroGeneralCodigo = 'NOV'
             const usuario = this.getUser(res)
             const ip = this.getRemoteAddress(req)
-            const fecha:Date = new Date()
-            const Parametros = {Cabecera: header, Cuerpo:body, Pie:footer, OtrosParametros: null}
+            const fecha: Date = new Date()
+            const Parametros = { Cabecera: header, Cuerpo: body, Pie: footer, OtrosParametros: null }
 
             const ParametroGeneral = await queryRunner.query(`SELECT ParametroGeneralCodigo FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, [ParametroGeneralCodigo])
             if (ParametroGeneral.length) {
                 await queryRunner.query(
                     `UPDATE ParametroGeneral 
                     SET Parametros = @1,  AudFechaMod= @2, AudUsuarioMod= @3, AudIpMod= @4
-                    WHERE ParametroGeneralCodigo = @0`, 
+                    WHERE ParametroGeneralCodigo = @0`,
                     [ParametroGeneralCodigo, JSON.stringify(Parametros), fecha, usuario, ip]
                 )
             } else {
                 await queryRunner.query(
                     `INSERT INTO ParametroGeneral (
                     ParametroGeneralCodigo,Parametros,AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod
-                    ) VALUES (@0,@1,@2,@2,@3,@3,@4,@4)`, 
+                    ) VALUES (@0,@1,@2,@2,@3,@3,@4,@4)`,
                     [ParametroGeneralCodigo, JSON.stringify(Parametros), fecha, usuario, ip]
                 )
             }
@@ -891,7 +896,7 @@ export class NovedadesController extends BaseController {
         }
     }
 
-    async getNovedadHtmlContentGeneral(queryRunner:any, fechaNovedad: Date, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
+    async getNovedadHtmlContentGeneral(queryRunner: any, fechaNovedad: Date, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
 
         const imgPath = `./assets/logo-lince-full.svg`
         const imgBuffer = await fsPromises.readFile(imgPath);
@@ -904,7 +909,7 @@ export class NovedadesController extends BaseController {
         const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
         const imgBase64inaes = imgBufferinaes.toString('base64');
 
-        const ParametroGeneral =  await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = 'NOV'`)
+        const ParametroGeneral = await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = 'NOV'`)
         if (ParametroGeneral.length) {
             const Parametros = JSON.parse(ParametroGeneral[0].Parametros)
             if (!header) header = Parametros.Cabecera
@@ -913,7 +918,7 @@ export class NovedadesController extends BaseController {
         } else {
             header = (header) ? header : (fs.existsSync(this.PathNovedadTemplate.header) ? fs.readFileSync(this.PathNovedadTemplate.header + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.headerDef, 'utf-8'))
             body = (body) ? body : (fs.existsSync(this.PathNovedadTemplate.body) ? fs.readFileSync(this.PathNovedadTemplate.body + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.bodyDef, 'utf-8'))
-            footer = (footer) ? footer : (fs.existsSync(this.PathNovedadTemplate.footer) ? fs.readFileSync(this.PathNovedadTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.footerDef, 'utf-8'))   
+            footer = (footer) ? footer : (fs.existsSync(this.PathNovedadTemplate.footer) ? fs.readFileSync(this.PathNovedadTemplate.footer + ((prev) ? '.old' : ''), 'utf-8') : fs.readFileSync(this.PathNovedadTemplate.footerDef, 'utf-8'))
         }
 
         if (!raw) {
@@ -1217,14 +1222,14 @@ export class NovedadesController extends BaseController {
                 `, [novedad.NovedadCodigo])
 
                 //Filtra Documentos Relacionados
-                let imgsDoc:any[] = []
-                let cantPDFs:number = 0
-                let cantOther:number = 0
+                let imgsDoc: any[] = []
+                let cantPDFs: number = 0
+                let cantOther: number = 0
                 docRelaciones.forEach(doc => {
                     const nombre = doc.DocumentoNombreArchivo.toLowerCase();
-                    if(nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg')){ // Por Imagen
+                    if (nombre.endsWith('.png') || nombre.endsWith('.jpg') || nombre.endsWith('.jpeg')) { // Por Imagen
                         imgsDoc.push(doc)
-                    } else if(nombre.endsWith('.pdf')){ // Por PDF
+                    } else if (nombre.endsWith('.pdf')) { // Por PDF
                         cantPDFs++
                     } else { // Otros
                         cantOther++

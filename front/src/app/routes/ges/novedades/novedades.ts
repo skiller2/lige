@@ -38,8 +38,8 @@ export class NovedadesComponent {
   });
   selectedIndex = signal(0)
   periodo = signal<Date>(new Date())
-  anio = computed(() => this.periodo()?this.periodo().getFullYear() : 0)
-  mes = computed(() => this.periodo()?this.periodo().getMonth()+1 : 0)
+  anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
+  mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
   cantRegistros = signal<number>(0)
   isLoading = signal<boolean>(false)
 
@@ -63,7 +63,12 @@ export class NovedadesComponent {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridListContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
-    this.gridOptions.createFooterRow = true
+    this.gridOptions.createFooterRow = true,
+
+    this.gridOptions.forceFitColumns = true;
+    this.gridOptions.autoFitColumnsOnFirstLoad = true;
+    this.gridOptions.enableAutoSizeColumns = true;
+
 
     const filter = await firstValueFrom(this.searchService.getNovedadesFilters())
     this.startFilters.set(filter)
@@ -73,8 +78,8 @@ export class NovedadesComponent {
     effect(async () => {
       const anio = this.anio()
       const mes = this.mes()
-      localStorage.setItem('anio',String(anio))
-      localStorage.setItem('mes',String(mes))
+      localStorage.setItem('anio', String(anio))
+      localStorage.setItem('mes', String(mes))
       // this.listNovedades$.next('')
     }, { injector: this.injector });
 
@@ -82,7 +87,7 @@ export class NovedadesComponent {
   }
 
   gridData = resource({
-    params: () => ({ options: this.listOptions(), periodo: this.periodo()}),
+    params: () => ({ options: this.listOptions(), periodo: this.periodo() }),
     loader: async ({ params }) => {
       const response = await firstValueFrom(this.searchService.getListNovedades(params.options, params.periodo));
       this.cantRegistros.set(response.total)
@@ -101,8 +106,13 @@ export class NovedadesComponent {
       this.angularGrid.gridService.hideColumnByIds([])
   }
 
+  // Con el listado oculto el contenedor mide 0 y el resizer reacomodaría las columnas
+  onTabChange(index: number) {
+    this.angularGrid?.resizerService.pauseResizer(index !== 1)
+  }
+
   handleSelectedRowsChanged(e: any): void {
-     
+
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     if (row?.id) {
@@ -156,7 +166,7 @@ export class NovedadesComponent {
     this.gridData.reload()
   }
 
-  selectedDate (){
+  selectedDate() {
     const now = new Date(); //date
     const anio =
       Number(localStorage.getItem('anio')) > 0
