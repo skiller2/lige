@@ -884,7 +884,7 @@ export class PersonalController extends BaseController {
   }
 
   private async listPersonalQuery(queryRunner: any, filterSql: any, orderBy: any) {
-    return await queryRunner.query(`
+    const ds= await queryRunner.query(`
     
       SELECT
         ROW_NUMBER() OVER (ORDER BY per.PersonalId, sitrev.PersonalSituacionRevistaSituacionId) AS id,
@@ -940,10 +940,6 @@ LEFT JOIN(
         JOIN TipoPersonalActa tip ON tip.TipoPersonalActaCodigo = a.TipoPersonalActaCodigo
         WHERE a.TipoPersonalActaCodigo IN ('ALT','BAJ','REI','BD') 
  ) act ON act.PersonalId=per.PersonalId 
-
-
-
-
 
       LEFT JOIN (
         SELECT p.PersonalId, p.PersonalSituacionRevistaSituacionId, s.SituacionRevistaDescripcion,p.PersonalSituacionRevistaDesde,
@@ -1029,6 +1025,8 @@ LEFT JOIN(
         WHERE (1=1)
         AND (${filterSql})
         ${orderBy}`)
+
+    return ds
   }
 
   async getGridList(req: any, res: Response, next: NextFunction) {
@@ -4513,5 +4511,106 @@ UNION ALL
     }
   }
 
+  async jobMsgCumpleanios(req: any, res: Response, next: NextFunction) {
+    const options = {}
+    const usuario = this.getUser(res)
+    const ip = this.getRemoteAddress(req)
+
+    const queryRunner = await getConnection(usuario);
+    const fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
+    const anio = fechaActual.getFullYear()
+    const mes = fechaActual.getMonth() + 1
+    const fechaAyer = new Date()
+    fechaAyer.setDate(fechaAyer.getDate() - 1);
+    fechaAyer.setHours(0, 0, 0, 0)
+
+    let EventoLogCodigo = 0
+
+
+    try {
+
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Mensaje Cumpleaños`,
+        { usuario, ip },
+        usuario,
+        ip,
+        "JOB"
+      ));
+
+      const param = await queryRunner.query(`SELECT par.Parametros FROM ParametroGeneral par WHERE par.ParametroGeneralCodigo='CUMPL'`)
+      const msgTexto =  (param[0])? param[0].Parametros:''
+
+      if (!msgTexto)
+        throw new ClientException('Parametro "CUMPL" no encontrado o vacío')
+
+      const options: Options = {
+        filtros: [
+          {
+            "index": "SituacionRevistaDescripcion",
+            "condition": "AND",
+            "operador": "=",
+            "valor": [
+              "2;10;12"
+            ],
+          },
+          {
+            "index": "PersonalFechaIngreso",
+            "condition": "AND",
+            "operador": "RAW",
+            "valor": [
+              " MONTH(PersonalFechaNacimiento) = MONTH(GETDATE()) AND DAY(PersonalFechaNacimiento) = DAY(GETDATE()) "
+            ],
+          }
+        ], sort: null, extra: null
+      };
+      const filterSql = filtrosToSql(options.filtros, columns);
+      const orderBy = orderToSQL(options.sort)
+
+
+      const personas = await this.listPersonalQuery(queryRunner, filterSql, orderBy);
+      const ClaseMensaje= 'CUMPLE'
+      const TextoMensaje= msgTexto
+      for (const persona of personas) {
+        const PersonalId=persona.PersonalId
+        console.log(`Envío ${TextoMensaje} a ${PersonalId}`)
+
+        await queryRunner.query(`INSERT INTO BotColaMensajes (FechaIngreso, PersonalId, ClaseMensaje, TextoMensaje, FechaProceso, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudFechaMod, AudIpMod) 
+            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10)`, [fechaActual, PersonalId, ClaseMensaje, TextoMensaje, null, usuario, ip, fechaActual, usuario, fechaActual, ip])
+
+
+      }
+
+
+      const resp = `Se procesaron ${personas.length} mensajes de cumpleaños`
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: resp,
+          cantidad: personas.length,
+        },
+        usuario,
+        ip
+      );
+
+      if (res)
+        this.jsonRes({ list: [] }, res, resp);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
+  }
 
 }

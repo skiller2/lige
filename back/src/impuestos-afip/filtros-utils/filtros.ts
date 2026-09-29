@@ -97,7 +97,7 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
         continue;
       }
 
-      if (type == 'date') {
+      if (type == 'date' && filtro.operador!="RAW") {
         const valtmp = new Date(valorBusqueda)
         valtmp.setHours(0, 0, 0, 0)
         valorBusqueda = valtmp.toISOString().split('T')[0]
