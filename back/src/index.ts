@@ -17,7 +17,7 @@ import { GestionDescuentosController } from "./gestion-descuentos/gestion-descue
 
 import { version, GlobalWorkerOptions, getDocument } from "pdfjs-dist";
 import { ClientException } from './controller/base.controller.ts';
-import { domicilioController, movimientoStockController } from './controller/controller.module.ts';
+import { domicilioController, movimientoStockController, personalController } from './controller/controller.module.ts';
 
 
 function createMinimalPDF(): ArrayBuffer {
@@ -160,6 +160,20 @@ async function main() {
     }
 
     await movimientoStockController.jobMigrateMovimientoToMovimientoStock(mockReq, null, (ret: any) => ret)
+  });
+
+  scheduleJob('8 0 * * *', async function (fireDate) {  //At 12:08 AM
+    const actual = new Date()
+    const anio = actual.getFullYear()
+    const mes = actual.getMonth() + 1
+
+    const mockReq: any = {
+      body: { anio, mes },
+      headers: {},
+      socket: { remoteAddress: '127.0.0.1' }
+    }
+
+    await personalController.jobMsgCumpleanios(mockReq, null, (ret: any) => ret)
   });
 
 

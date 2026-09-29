@@ -4556,6 +4556,14 @@ UNION ALL
             ],
           },
           {
+            "index": "rt.telefono",
+            "condition": "AND",
+            "operador": "RAW",
+            "valor": [
+              " rt.telefono IS NOT NULL "
+            ],
+          },
+          {
             "index": "PersonalFechaIngreso",
             "condition": "AND",
             "operador": "RAW",
@@ -4570,18 +4578,17 @@ UNION ALL
 
 
       const personas = await this.listPersonalQuery(queryRunner, filterSql, orderBy);
-      const ClaseMensaje= 'CUMPLE'
+      const ClaseMensaje= `CUMPLE${anio}`
       const TextoMensaje= msgTexto
       for (const persona of personas) {
         const PersonalId=persona.PersonalId
-        console.log(`Envío ${TextoMensaje} a ${PersonalId}`)
 
         await queryRunner.query(`INSERT INTO BotColaMensajes (FechaIngreso, PersonalId, ClaseMensaje, TextoMensaje, FechaProceso, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudFechaMod, AudIpMod) 
-            VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10)`, [fechaActual, PersonalId, ClaseMensaje, TextoMensaje, null, usuario, ip, fechaActual, usuario, fechaActual, ip])
-
+            SELECT @0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10 
+            WHERE NOT EXISTS (SELECT * FROM BotColaMensajes WHERE PersonalId=@1 AND ClaseMensaje=@2)
+            `, [fechaActual, PersonalId, ClaseMensaje, TextoMensaje, null, usuario, ip, fechaActual, usuario, fechaActual, ip])
 
       }
-
 
       const resp = `Se procesaron ${personas.length} mensajes de cumpleaños`
       await this.eventoLogFin(
