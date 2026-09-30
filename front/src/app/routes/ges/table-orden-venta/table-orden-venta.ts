@@ -37,7 +37,7 @@ export class TableOrdenVentaComponent implements OnInit {
 
   // Por omisión no se muestran las órdenes ya facturadas
   startFilters = signal<Selections[]>([
-    { index: 'Estado', condition: 'AND', operator: '<>', value: 'Facturado', closeable: true }
+    { index: 'EstadoOrdenVentaCodigo', condition: 'AND', operator: '<>', value: 'FAC', label: 'Facturado', closeable: true }
   ])
   startFiltersReady = signal(false)
   filtersReady = signal(false)

@@ -160,6 +160,17 @@ const columnasGrillaOrdenes: any[] = [
     searchHidden: true
   },
   {
+    id: "EstadoOrdenVentaCodigo",
+    name: "Estado",
+    field: "EstadoOrdenVentaCodigo",
+    fieldName: "ord.EstadoOrdenVentaCodigo",
+    type: "string",
+    searchComponent: "inputForEstadoOrdenVentaSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false
+  },
+  {
     id: "Estado",
     name: "Estado",
     field: "Estado",
@@ -167,7 +178,7 @@ const columnasGrillaOrdenes: any[] = [
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: false,
+    searchHidden: true,
     maxWidth: 140
   },
   {
