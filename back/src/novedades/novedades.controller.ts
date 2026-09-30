@@ -193,8 +193,8 @@ const listaColumnas: any[] = [
     {
         name: "Descripción Normalizada",
         type: "string",
-        id: "Descripcion",
-        field: "Descripcion",
+        id: "DescripcionNormalizada",
+        field: "DescripcionNormalizada",
         fieldName: "nov.DescripcionNormalizada",
         sortable: true,
         hidden: false,
@@ -215,8 +215,8 @@ const listaColumnas: any[] = [
     {
         name: "Acción Normalizada",
         type: "string",
-        id: "Accion",
-        field: "Accion",
+        id: "AccionNormalizada",
+        field: "AccionNormalizada",
         fieldName: "nov.AccionNormalizada",
         sortable: true,
         hidden: false,
