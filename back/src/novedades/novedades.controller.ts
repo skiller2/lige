@@ -1086,7 +1086,7 @@ export class NovedadesController extends BaseController {
 
         // Agrego imagenes al HTML - Documentos Realcionados
         let htmlImgs = imgsPaths.length ? `<tr>` : ``
-        const imgsPorFila = 3;
+        const imgsPorFila = 1;
         for (let index = 0; index < imgsPaths.length; index++) {
             const path = imgsPaths[index];
             if (!fs.existsSync(path)) { continue };
@@ -1102,10 +1102,10 @@ export class NovedadesController extends BaseController {
             }
 
             htmlImgs += `
-                <td style="width:${100 / imgsPorFila}%; text-align:center;">
-                    <img 
-                        src="data:image/${ext};base64,${imgBase64}" 
-                        style="width:150px; display:block; margin:5px auto;"
+                <td style="width:${100 / imgsPorFila}%; text-align:center; page-break-inside:avoid;">
+                    <img
+                        src="data:image/${ext};base64,${imgBase64}"
+                        style="max-width:100%; max-height:480px; width:auto; height:auto; display:block; margin:5px auto;"
                         alt="imagen"
                     />
                 </td>`;

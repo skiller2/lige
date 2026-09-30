@@ -142,7 +142,6 @@ const columnsExcepcionesAsistencia: any[] = [
     fieldName: 'art.PersonalArt14Anulacion',
     type: 'date',
     sortable: true,
-    hidden: false,
     searchHidden: true,
     hidden: true
 
@@ -152,7 +151,6 @@ const columnsExcepcionesAsistencia: any[] = [
     fieldName: 'art.AnulacionUsuario',
     type: 'string',
     sortable: true,
-    hidden: false,
     searchHidden: true,
     hidden: true
 
@@ -230,7 +228,6 @@ const columnsExcepcionesAsistencia: any[] = [
     fieldName: 'art.PersonalArt14AudFechaIng',
     type: 'date',
     sortable: true,
-    hidden: false,
     searchHidden: true,
     hidden: true
 
@@ -240,7 +237,6 @@ const columnsExcepcionesAsistencia: any[] = [
     fieldName: 'art.PersonalArt14AudUsuarioIng',
     type: 'string',
     sortable: true,
-    hidden: false,
     searchHidden: true,
     hidden: true
   },
@@ -249,7 +245,6 @@ const columnsExcepcionesAsistencia: any[] = [
     fieldName: 'art.PersonalArt14AudFechaMod',
     type: 'date',
     sortable: true,
-    hidden: false,
     searchHidden: true,
     hidden: true
   },
@@ -258,7 +253,6 @@ const columnsExcepcionesAsistencia: any[] = [
     fieldName: 'art.PersonalArt14AudUsuarioMod',
     type: 'string',
     sortable: true,
-    hidden: false,
     searchHidden: true,
     hidden: true
   },

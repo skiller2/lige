@@ -135,7 +135,6 @@ const columnasGrilla: any[] = [
     searchType: "string",
     sortable: true,
     searchHidden: false,
-    hidden: false,
     editable: false,
     hidden: true
 
@@ -160,7 +159,6 @@ const columnasGrilla: any[] = [
     field: "ProvinciaDescripcion",
     fieldName: "objdom.ProvinciaDescripcion",
     sortable: true,
-    hidden: false,
     searchHidden: true,
     editable: false,
     hidden: true
@@ -172,7 +170,6 @@ const columnasGrilla: any[] = [
     field: "RubroClienteDescripcion",
     fieldName: "rub.RubroClienteDescripcion",
     sortable: true,
-    hidden: false,
     searchHidden: true,
     editable: false,
     hidden: true
