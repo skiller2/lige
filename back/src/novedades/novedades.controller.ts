@@ -350,6 +350,8 @@ export class NovedadesController extends BaseController {
                 ,nov.VisualizacionFecha
                 ,nov.Accion
                 ,nov.Descripcion
+                ,nov.AccionNormalizada
+                ,nov.DescripcionNormalizada
                 ,nov.VisualizacionPersonaId
                 ,nov.VisualizacionTelefono 
                 ,nov.AudUsuarioIng
@@ -525,7 +527,14 @@ export class NovedadesController extends BaseController {
             Obj.ClienteId = objetivo[0].ClienteId
             Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
 
-            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, NovedadId, AudFechaMod, usuarioName, ip, Obj.ClienteId, Obj.ClienteElementoDependienteId)
+            await this.initIA()
+            const prompt = await this.getIAPrompt(queryRunner)
+            const respuestaIA = await this.normalizarNovedad(prompt,Obj.Descripcion, Obj.Accion)
+            const DescripcionNormalizada=respuestaIA?.DescripcionNormalizada
+            const AccionNormalizada=respuestaIA?.AccionNormalizada
+
+            
+            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, DescripcionNormalizada, AccionNormalizada, NovedadId, AudFechaMod, usuarioName, ip, Obj.ClienteId, Obj.ClienteElementoDependienteId)
 
             let array_id = []
             let doc_id = 0
@@ -572,11 +581,11 @@ export class NovedadesController extends BaseController {
         }
     }
 
-    async updateNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, NovedadCodigo: any, AudFechaMod: any, AudUsuarioMod: any, AudIpMod: any, ClienteId: any, ClienteElementoDependienteId: any) {
+    async updateNovedadTable(queryRunner: QueryRunner, Fecha: Date, NovedadTipoCod: string, Descripcion: string, Accion: string, DescripcionNormalizada: string, AccionNormalizada: string, NovedadCodigo: number, AudFechaMod: Date, AudUsuarioMod: string, AudIpMod: string, ClienteId: number, ClienteElementoDependienteId: number) {
         await queryRunner.query(`
-            UPDATE Novedad SET Fecha = @0, NovedadTipoCod = @1, Descripcion = @2, Accion = @3, AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7, ClienteId = @8, ClienteElementoDependienteId = @9, Descripcion = NULL, Accion = NULL 
+            UPDATE Novedad SET Fecha = @0, NovedadTipoCod = @1, Descripcion = @2, Accion = @3, AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7, ClienteId = @8, ClienteElementoDependienteId = @9, DescripcionNormalizada = @10, AccionNormalizada = @11 
             where NovedadCodigo = @4`
-            , [Fecha, NovedadTipoCod, Descripcion, Accion, NovedadCodigo, AudFechaMod, AudUsuarioMod, AudIpMod, ClienteId, ClienteElementoDependienteId])
+            , [Fecha, NovedadTipoCod, Descripcion, Accion, NovedadCodigo, AudFechaMod, AudUsuarioMod, AudIpMod, ClienteId, ClienteElementoDependienteId,DescripcionNormalizada,AccionNormalizada])
     }
 
 
@@ -605,8 +614,13 @@ export class NovedadesController extends BaseController {
             if (!Obj.PersonalId)
                 Obj.PersonalId = PersonalId
 
+            await this.initIA()
+            const prompt = await this.getIAPrompt(queryRunner)
+            const respuestaIA = await this.normalizarNovedad(prompt,Obj.Descripcion, Obj.Accion)
+            const DescripcionNormalizada=respuestaIA?.DescripcionNormalizada
+            const AccionNormalizada=respuestaIA?.AccionNormalizada
 
-            await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.ClienteId, Obj.ClienteElementoDependienteId,
+            await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, DescripcionNormalizada, AccionNormalizada, Obj.ClienteId, Obj.ClienteElementoDependienteId,
                 Obj.Telefono, ip, Obj.PersonalId, novedadId, usuarioName)
 
 
@@ -684,8 +698,8 @@ export class NovedadesController extends BaseController {
         }
     }
 
-    async addNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, ClienteId: any,
-        ClienteElementoDependienteId: any, Telefono: any, ip: any, PersonalId: any, novedadId: any, usuarioName: any) {
+    async addNovedadTable(queryRunner: QueryRunner, Fecha: Date, NovedadTipoCod: number, Descripcion: string, Accion: string,DescripcionNormalizada: string, AccionNormalizada: string, ClienteId: number,
+        ClienteElementoDependienteId: number, Telefono: string, ip: string, PersonalId: number, novedadId: number, usuarioName: string) {
 
         const now = new Date();
         const AudFechaIng = now;
@@ -736,10 +750,12 @@ export class NovedadesController extends BaseController {
                 AudUsuarioMod,
                 Accion,
                 VisualizacionFecha,
-                VisualizacionPersonaId
+                VisualizacionPersonaId,
+                DescripcionNormalizada,
+                AccionNormalizada
             )
             VALUES (
-                @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17
+                @0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19
             )
             `,
             [
@@ -760,7 +776,9 @@ export class NovedadesController extends BaseController {
                 AudUsuarioMod,
                 Accion,
                 VisualizacionFecha,
-                VisualizacionPersonaId
+                VisualizacionPersonaId,
+                DescripcionNormalizada,
+                AccionNormalizada
             ]
         );
     }
@@ -1344,22 +1362,48 @@ export class NovedadesController extends BaseController {
         return await pdfFinal.save();
     }
 
+    private servicioIA: Ollama = null
+    private async initIA() {
+        this.servicioIA = new Ollama({
+            host: "https://ollama.com",
+            headers: {
+                Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
+            },
+        });
+
+    }
+
+    private async normalizarNovedad(prompt: string, Descripcion: string, Accion: string) {
+        const IAmessages = [{ role: "system", content: prompt }, { role: "user", content: `{Descripcion:${Descripcion},Accion:${Accion}` }]
+        const response = await this.servicioIA.chat({ model: "gpt-oss:120b", messages: IAmessages, stream: false });
+
+        return JSON.parse(response.message.content)
+    }
+
+    private async getIAPrompt(queryRunner: QueryRunner) {
+        const param = await queryRunner.query(`SELECT par.Parametros FROM ParametroGeneral par WHERE par.ParametroGeneralCodigo='NOVPR'`)
+        const prompt = (param[0]) ? param[0].Parametros : ''
+
+        if (!prompt)
+            throw new ClientException('No se encontró parámetro "NOVPR"')
+        return prompt
+    }
+
+
     async jobNormalizarNovedades(req: any, res: Response, next: NextFunction) {
-        const options = {}
         const usuario = this.getUser(res)
         const ip = this.getRemoteAddress(req)
 
         const queryRunner = await getConnection(usuario);
         const fechaActual = new Date()
-        fechaActual.setHours(0, 0, 0, 0)
-        const anio = fechaActual.getFullYear()
-        const mes = fechaActual.getMonth() + 1
-        const fechaAyer = new Date()
-        fechaAyer.setDate(fechaAyer.getDate() - 1);
-        fechaAyer.setHours(0, 0, 0, 0)
+        //fechaActual.setHours(0, 0, 0, 0)
+        //const anio = fechaActual.getFullYear()
+        //const mes = fechaActual.getMonth() + 1
+        //const fechaAyer = new Date()
+        //fechaAyer.setDate(fechaAyer.getDate() - 1);
+        //fechaAyer.setHours(0, 0, 0, 0)
 
         let EventoLogCodigo = 0
-
 
         try {
 
@@ -1372,47 +1416,28 @@ export class NovedadesController extends BaseController {
                 "JOB"
             ));
 
-            const novedades = await queryRunner.query(`SELECT nov.* FROM Novedades nov WHERE nov.DescripcionNormalizada IS NULL OR AccionNormalizada IS NULL`)
+            const novedades = await queryRunner.query(`SELECT nov.* FROM Novedad nov WHERE nov.DescripcionNormalizada IS NULL OR AccionNormalizada IS NULL`)
 
-            const param = await queryRunner.query(`SELECT par.Parametros FROM ParametroGeneral par WHERE par.ParametroGeneralCodigo='NOVPR'`)
-            const prompt = (param[0]) ? param[0].Parametros : ''
+            const prompt = await this.getIAPrompt(queryRunner)
 
-            const ollama = new Ollama({
-                host: "https://ollama.com",
-                headers: {
-                    Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
-                },
-            });
-
+            await this.initIA()
 
             for (const novedad of novedades) {
                 const NovedadCodigo = novedad.NovedadCodigo
                 const Descripcion = novedad.Descripcion
                 const Accion = novedad.Accion
 
-                const response = await ollama.chat({
-                    model: "gpt-oss:120b",
-                    messages: [{ role: "user", content: {Descripcion,Accion}.toString() }],
-                    stream: true,
-                });
+                const respuestaIA = await this.normalizarNovedad(prompt, Descripcion, Accion)
 
-                let objectResp = ''
-                for await (const part of response) {
-                    objectResp += part.message.content;
-                }
-                const respuestaIA = JSON.parse(objectResp) 
-                console.log('respuestaIA',respuestaIA)
+                const DescripcionNormalizada = respuestaIA?.DescripcionNormalizada
+                const AccionNormalizada = respuestaIA?.AccionNormalizada
 
+                if (!DescripcionNormalizada || !AccionNormalizada)
+                    continue
 
-                const DescripcionNormalizada = respuestaIA.DescripcionNormalizada
-                const AccionNormalizada = respuestaIA.AccionNormalizada
-
-
-
-
-//                await queryRunner.query(`UPDATE Novedad SET DescripcionNormalizada=@1, AccionNormalizada=@2, AudUsuarioMod=@3, AudFechaMod=@4, AudIpMod=@5 
-//                WHERE  NovedadCodigo=@0 `,
-//                    [NovedadCodigo, DescripcionNormalizada, AccionNormalizada, usuario, fechaActual, ip])
+                await queryRunner.query(`UPDATE Novedad SET DescripcionNormalizada=@1, AccionNormalizada=@2, AudUsuarioMod=@3, AudFechaMod=@4, AudIpMod=@5 
+                WHERE  NovedadCodigo=@0 `,
+                    [NovedadCodigo, DescripcionNormalizada, AccionNormalizada, usuario, fechaActual, ip])
 
             }
 
