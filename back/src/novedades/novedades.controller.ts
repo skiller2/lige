@@ -1078,10 +1078,10 @@ export class NovedadesController extends BaseController {
             }
 
             htmlImgs += `
-                <td style="width:${100 / imgsPorFila}%; text-align:center;">
-                    <img 
-                        src="data:image/${ext};base64,${imgBase64}" 
-                        style="width:150px; display:block; margin:5px auto;"
+                <td style="width:${100 / imgsPorFila}%; text-align:center; page-break-inside:avoid;">
+                    <img
+                        src="data:image/${ext};base64,${imgBase64}"
+                        style="max-width:100%; max-height:480px; width:auto; height:auto; display:block; margin:5px auto;"
                         alt="imagen"
                     />
                 </td>`;
