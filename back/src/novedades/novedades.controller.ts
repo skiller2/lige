@@ -1431,8 +1431,7 @@ export class NovedadesController extends BaseController {
 
                 const DescripcionNormalizada = respuestaIA?.DescripcionNormalizada
                 const AccionNormalizada = respuestaIA?.AccionNormalizada
-
-                if (!DescripcionNormalizada || !AccionNormalizada)
+                if (!DescripcionNormalizada && !AccionNormalizada)
                     continue
 
                 await queryRunner.query(`UPDATE Novedad SET DescripcionNormalizada=@1, AccionNormalizada=@2, AudUsuarioMod=@3, AudFechaMod=@4, AudIpMod=@5 
