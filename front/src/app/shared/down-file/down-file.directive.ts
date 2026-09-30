@@ -1,4 +1,4 @@
-import { Directive, ElementRef, EventEmitter, HostListener, Input, output  } from '@angular/core';
+import { Directive, ElementRef, EventEmitter, HostListener, Input, output, model  } from '@angular/core';
 import { finalize } from 'rxjs';
 import { saveAs } from 'file-saver';
 import { HttpClient, HttpResponse } from '@angular/common/http';
@@ -18,6 +18,7 @@ export class AppDownFileDirective {
 
     readonly success = output<HttpResponse<Blob>>();
     readonly error = output<any>();
+    loading = model(false);
     // readonly success: EventEmitter<HttpResponse<Blob>>;
     // readonly error: EventEmitter<any>;
 
@@ -31,6 +32,7 @@ export class AppDownFileDirective {
         if (this.notificationMsg != "")
             this.notificationService.info('',this.notificationMsg)
         this.setDisabled(true);
+        this.loading.set(true);
         this._http
             .request(this.httpMethod, this.httpUrl, {
                 params: this.httpData || {},
@@ -38,7 +40,10 @@ export class AppDownFileDirective {
                 observe: 'response',
                 body: this.httpBody
             })
-            .pipe(finalize(() => this.setDisabled(false)))
+            .pipe(finalize(() => {
+                this.setDisabled(false)
+                this.loading.set(false);
+            }))
             .subscribe({
                 next: (res) => {
                     if (res.status !== 200 || res.body!.size <= 0) {

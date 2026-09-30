@@ -13,6 +13,7 @@ import { NovedadesFormComponent } from '../novedades-form/novedades-form';
 import { SettingsService } from '@delon/theme';
 import { Selections } from '../../../shared/schemas/filtro';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-novedades',
@@ -41,7 +42,8 @@ export class NovedadesComponent {
   anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
   cantRegistros = signal<number>(0)
-  isLoading = signal<boolean>(false)
+  // isLoading = signal<boolean>(false)
+  downloading = signal<boolean>(false)
 
   childAlta = viewChild.required<NovedadesFormComponent>('novedadesFormAlta')
   childDeta = viewChild.required<NovedadesFormComponent>('novedadesFormDeta')
@@ -52,11 +54,18 @@ export class NovedadesComponent {
   private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
   private injector = inject(Injector)
+  private readonly loadingSrv = inject(LoadingService)
   startFilters = signal<Selections[]>([])
 
   columns = toSignal(this.apiService.getCols('/api/novedades/cols'), { initialValue: [] as Column[] })
 
-  // firstFilter = false
+  downloadingFiles = effect(() => {
+    if (this.downloading()){
+      this.loadingSrv.open({ type: 'spin', text: '' })
+    } else {
+      this.loadingSrv.close()
+    }
+  });
 
   async ngOnInit() {
 
