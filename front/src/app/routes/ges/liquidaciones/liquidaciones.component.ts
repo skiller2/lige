@@ -51,6 +51,7 @@ import { RecibosModalComponent } from '../recibos-modal/recibos-modal'
 import { MonotributosModalComponent } from '../monotributos-modal/monotributos-modal'
 import { Selections } from '../../../shared/schemas/filtro';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { SettingsService } from '@delon/theme';
 
 @Component({
   selector: 'app-liquidaciones',
@@ -80,6 +81,7 @@ export class LiquidacionesComponent {
   private angularUtilService = inject(AngularUtilService);
   private notification = inject(NzNotificationService);
   private readonly loadingSrv = inject(LoadingService);
+  private settingsService = inject(SettingsService);
 
   periodo = signal<Date>(new Date())
   startFilters = signal(<Selections[]>[])
@@ -153,7 +155,7 @@ export class LiquidacionesComponent {
         })
 
         break;
-      case 'ClienteElementoDependienteDescripcion':
+      case 'Objetivo':
         Object.assign(componentOutput.componentRef.instance, { link: '/ges/detalle_asistencia/objetivo', params: { ObjetivoId: dataContext.objetivo_id }, detail: cellNode.innerText })
 
         break;
@@ -346,7 +348,7 @@ export class LiquidacionesComponent {
   columns = toSignal(this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols: Column<any>[]) => {
 
     cols
-      .filter((col: Column) => ['ApellidoNombre', 'ClienteElementoDependienteDescripcion'].includes(String(col.id)))
+      .filter((col: Column) => ['ApellidoNombre', 'Objetivo'].includes(String(col.id)))
       .forEach((col: Column) => col.asyncPostRender = this.renderAngularComponent.bind(this))
 
     return cols
@@ -600,6 +602,7 @@ export class LiquidacionesComponent {
     this.gridOptionsImport = this.apiService.getDefaultGridOptions('.gridContainer3', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
     this.gridOptionsImport.enableRowDetailView = this.apiService.isMobile()
 
+    this.settingsService.setLayout('collapsed', true)
 
 
   }

@@ -309,7 +309,6 @@ export class LiquidacionesController extends BaseController {
       sortable: true,
       searchHidden: true,
       hidden: false,
-      hidden: true,
     },
     {
       name: "Tipo Movimiento",
@@ -355,14 +354,27 @@ export class LiquidacionesController extends BaseController {
       searchHidden: false
     },
     {
-      name: "Objetivo",
+      name: "Cliente",
+      type: "number",
+      id: "ClienteId",
+      field: "ClienteId",
+      fieldName: "COALESCE(obj.ClienteId, cus.ClienteId)",
+      searchComponent: "inputForClientSearch",
+      searchType: "number",
+      sortable: true,
+      searchHidden: false,
+      hidden: true
+    },
+    {
+      id: "Objetivo",
       type: "string",
-      id: "ClienteElementoDependienteDescripcion",
-      field: "ClienteElementoDependienteDescripcion",
+      name: "Objetivo",
+      field: "Objetivo",
       fieldName: "li.objetivo_id",
       searchComponent: "inputForObjetivoSearch",
       searchType: "number",
       sortable: true,
+      hidden: false,
       searchHidden: false
     },
     {
@@ -385,7 +397,6 @@ export class LiquidacionesController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
-      hidden: true
     },
     {
       name: "Persona",
@@ -420,7 +431,6 @@ export class LiquidacionesController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
-      hidden: true,
     },
     {
       name: "Importe",
@@ -443,7 +453,7 @@ export class LiquidacionesController extends BaseController {
       sortable: true,
       searchHidden: false,
       hidden: false,
-      hidden: true,
+
     },
 
 
@@ -463,9 +473,14 @@ export class LiquidacionesController extends BaseController {
 
     try {
       const liqudacion = await queryRunner.query(
-        `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,eledep.ClienteElementoDependienteDescripcion,CONCAT(cus.CustodiaCodigo, ' ', cli.ClienteDenominacion,' ',FORMAT (cus.FechaInicio,'dd/MM/yyyy') ) AS CustodiaDescripcion,  CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
+        `SELECT li.movimiento_id, li.movimiento_id AS id,CONCAT(per.mes,'/',per.anio) AS periodo,tipomo.des_movimiento,li.fecha,li.detalle,
+        CASE WHEN obj.ObjetivoId IS NOT NULL THEN CONCAT( obj.ClienteId, '/', obj.ClienteElementoDependienteId, ' ', trim(cliobj.ClienteDenominacion), ' ', trim(eledep.ClienteElementoDependienteDescripcion)) 
+        ELSE NULL END AS Objetivo,
+        CASE WHEN cus.CustodiaCodigo IS NOT NULL THEN CONCAT(cus.CustodiaCodigo, ' ', trim(cli.ClienteDenominacion), ' ', FORMAT(cus.FechaInicio,'dd/MM/yyyy'))
+        ELSE NULL END AS CustodiaDescripcion,
+        CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
         li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.horas, cuit.PersonalCUITCUILCUIT,
-        cat.CategoriaPersonalDescripcion
+        cat.CategoriaPersonalDescripcion, COALESCE(obj.ClienteId, cus.ClienteId) AS ClienteId
         FROM lige.dbo.liqmamovimientos AS li
         INNER JOIN lige.dbo.liqcotipomovimiento AS tipomo ON li.tipo_movimiento_id = tipomo.tipo_movimiento_id 
         INNER JOIN lige.dbo.liqmaperiodo AS per ON li.periodo_id = per.periodo_id 
@@ -474,6 +489,7 @@ export class LiquidacionesController extends BaseController {
         LEFT JOIN CategoriaPersonal cat ON cat.TipoAsociadoId=li.tipo_asociado_id AND cat.CategoriaPersonalId =li.categoria_personal_id
         LEFT JOIN Objetivo AS obj ON li.objetivo_id = obj.ObjetivoId
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND eledep.ClienteId = obj.ClienteId
+        LEFT JOIN Cliente AS cliobj ON cliobj.ClienteId = obj.ClienteId
         LEFT JOIN Custodia AS cus ON cus.CustodiaCodigo = li.custodia_id
         LEFT JOIN Cliente AS cli ON cli.ClienteId = cus.ClienteId
         WHERE per.anio = @0 AND per.mes = @1 AND (${filterSql}) 
