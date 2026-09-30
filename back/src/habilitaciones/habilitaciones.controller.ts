@@ -233,7 +233,6 @@ const GridColums: any[] = [
         field: "Detalle",
         fieldName: "e.Detalle",
         sortable: true,
-        hidden: false,
         searchHidden: true,
         hidden: true
 
@@ -278,7 +277,6 @@ const GridColums: any[] = [
         field: "AudFechaIng",
         fieldName: "b.AudFechaIng",
         sortable: true,
-        hidden: false,
         searchHidden: true,
         hidden: true
 
@@ -290,7 +288,6 @@ const GridColums: any[] = [
         field: "AudUsuarioIng",
         fieldName: "b.AudUsuarioIng",
         sortable: true,
-        hidden: false,
         searchHidden: true,
         hidden: true
 
@@ -302,7 +299,6 @@ const GridColums: any[] = [
         field: "AudFechaMod",
         fieldName: "b.AudFechaMod",
         sortable: true,
-        hidden: false,
         searchHidden: true,
         hidden: true
 
@@ -314,7 +310,6 @@ const GridColums: any[] = [
         field: "AudUsuarioMod",
         fieldName: "b.AudUsuarioMod",
         sortable: true,
-        hidden: false,
         searchHidden: true,
         hidden: true
 

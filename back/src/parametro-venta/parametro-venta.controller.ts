@@ -214,7 +214,6 @@ export class ParametrosVentaController extends BaseController {
             field: "TipoImporteFijo",
             fieldName: "cvd.TipoImporteFijo",
             sortable: true,
-            hidden: false,
             searchHidden: false,
             searchComponent: "inputForNumberAdvancedSearch",
             searchType: "numberAdvanced",
@@ -227,7 +226,6 @@ export class ParametrosVentaController extends BaseController {
             field: "TipoImporteListaPrecio",
             fieldName: "cvd.TipoImporteListaPrecio",
             sortable: true,
-            hidden: false,
             searchHidden: false,
             searchComponent: "inputForNumberAdvancedSearch",
             searchType: "numberAdvanced",
@@ -240,7 +238,6 @@ export class ParametrosVentaController extends BaseController {
             field: "AudFechaIng",
             fieldName: "conven.AudFechaIng",
             sortable: true,
-            hidden: false,
             searchHidden: true,
             hidden: true
 
@@ -252,7 +249,6 @@ export class ParametrosVentaController extends BaseController {
             field: "AudUsuarioIng",
             fieldName: "conven.AudUsuarioIng",
             sortable: true,
-            hidden: false,
             searchHidden: true,
             hidden: true
 
@@ -264,7 +260,6 @@ export class ParametrosVentaController extends BaseController {
             field: "AudFechaMod",
             fieldName: "conven.AudFechaMod",
             sortable: true,
-            hidden: false,
             searchHidden: true,
             hidden: true
 
@@ -276,7 +271,6 @@ export class ParametrosVentaController extends BaseController {
             field: "AudUsuarioMod",
             fieldName: "conven.AudUsuarioMod",
             sortable: true,
-            hidden: false,
             searchHidden: true,
             hidden: true
 
