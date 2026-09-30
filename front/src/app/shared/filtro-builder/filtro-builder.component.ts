@@ -10,6 +10,7 @@ import {
   model,
   output,
   signal,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Filtro, Options, Selections } from '../schemas/filtro';
@@ -71,6 +72,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   readonly fieldsToSelect = input<any[]>([])
   readonly keyLocalstorage = input<string>("")
 
+  private cdr = inject(ChangeDetectorRef);
   private searchService = inject(SearchService)
   private settingsService = inject(SettingsService)
   private elRef = inject(ElementRef)
@@ -496,11 +498,12 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
       index: { searchComponent: '', name: '', type: '', searchType: '' },
       condition: 'AND',
       operator: '',
-      value: '',
+      value: null,
       label: '',
       closeable: true,
-      originIdx: null
-    };
+      originIdx: null,
+      inicial: false
+    }
     this.valueExtended = { fullName: '' }
   }
 
@@ -856,8 +859,10 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
             switch (action) {
               case 'searchCUITsFromFile':
                 res = await firstValueFrom(this.apiService.getCUITsFromINAESFile({ file: Response.data }))
-                this.selections.value = res.cuits.join(";")
-                this.selections.label = res.cuits.join(";")
+                const CUITs = res.cuits.join(";")
+                this.selections.value = CUITs
+                this.selections.label = CUITs
+                this.cdr.detectChanges(); //Eliminar linea si 'this.selections' es signal
                 break;
               default:
                 break;
