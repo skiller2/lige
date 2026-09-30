@@ -170,6 +170,7 @@ export class FiltroBuilderComponent implements ControlValueAccessor {
   $optionsHabilitacionClase = this.searchService.getHabilitacionClaseOptions();
   $optionsHabilitacionEstado = this.searchService.getEstadosHabilitaciones();
   $optionsEventoLogClase = this.searchService.getEventoLogClaseOptions();
+  $optionsEstadoOrdenVenta = this.searchService.getEstadoOrdenVenta();
 
   // Opciones fijas para filtrar el tipo de destino de un movimiento de stock.
   // Los value deben coincidir exactamente con el CASE del backend (incluido el acento de 'Depósito').

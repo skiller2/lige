@@ -298,6 +298,15 @@
       }
     </nz-select>
     }
+    @if (selections.field.searchComponent=='inputForEstadoOrdenVentaSearch') {
+    <nz-select [(ngModel)]="listOfSelectedValue" nzAllowClear style="width:100%" nzMode="multiple"
+      nzPlaceHolder="Estado" nzShowSearch (ngModelChange)="multipleSelectedValue($event)"
+      [nzDropdownMatchSelectWidth]="false" (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsEstadoOrdenVenta | async; track option.value) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+      }
+    </nz-select>
+    }
     @if (selections.field.searchComponent=='inputForPrestamoAprobadoSearch') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Estado" nzShowSearch
       (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
