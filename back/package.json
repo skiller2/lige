@@ -32,6 +32,7 @@
       "node-xlsx": "^0.24.0",
       "numero-a-letras": "^1.0.6",
       "numeros_a_palabras": "^1.0.8",
+      "ollama": "^0.6.4",
       "pdf-lib": "^1.17.1",
       "pdfjs-dist": "^5.7.284",
       "pdfkit": "^0.14.0",

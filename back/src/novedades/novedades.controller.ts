@@ -17,6 +17,7 @@ import { promises as fsPromises } from 'fs';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { PDFDocument } from 'pdf-lib';
 import { unlink } from "node:fs/promises"
+import { Ollama } from "ollama";
 
 const listaColumnas: any[] = [
     {
@@ -190,11 +191,33 @@ const listaColumnas: any[] = [
         width: 300,
     },
     {
+        name: "Descripción Normalizada",
+        type: "string",
+        id: "Descripcion",
+        field: "Descripcion",
+        fieldName: "nov.DescripcionNormalizada",
+        sortable: true,
+        hidden: false,
+        searchHidden: false,
+        width: 300,
+    },
+    {
         name: "Acción",
         type: "string",
         id: "Accion",
         field: "Accion",
         fieldName: "nov.Accion",
+        sortable: true,
+        hidden: false,
+        searchHidden: false,
+        width: 300,
+    },
+    {
+        name: "Acción Normalizada",
+        type: "string",
+        id: "Accion",
+        field: "Accion",
+        fieldName: "nov.AccionNormalizada",
         sortable: true,
         hidden: false,
         searchHidden: false,
@@ -551,7 +574,8 @@ export class NovedadesController extends BaseController {
 
     async updateNovedadTable(queryRunner: any, Fecha: any, NovedadTipoCod: any, Descripcion: any, Accion: any, NovedadCodigo: any, AudFechaMod: any, AudUsuarioMod: any, AudIpMod: any, ClienteId: any, ClienteElementoDependienteId: any) {
         await queryRunner.query(`
-            UPDATE Novedad SET Fecha = @0, NovedadTipoCod = @1, Descripcion = @2, Accion = @3, AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7, ClienteId = @8, ClienteElementoDependienteId = @9 where NovedadCodigo = @4`
+            UPDATE Novedad SET Fecha = @0, NovedadTipoCod = @1, Descripcion = @2, Accion = @3, AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7, ClienteId = @8, ClienteElementoDependienteId = @9, Descripcion = NULL, Accion = NULL 
+            where NovedadCodigo = @4`
             , [Fecha, NovedadTipoCod, Descripcion, Accion, NovedadCodigo, AudFechaMod, AudUsuarioMod, AudIpMod, ClienteId, ClienteElementoDependienteId])
     }
 
@@ -1320,4 +1344,105 @@ export class NovedadesController extends BaseController {
         return await pdfFinal.save();
     }
 
+    async jobNormalizarNovedades(req: any, res: Response, next: NextFunction) {
+        const options = {}
+        const usuario = this.getUser(res)
+        const ip = this.getRemoteAddress(req)
+
+        const queryRunner = await getConnection(usuario);
+        const fechaActual = new Date()
+        fechaActual.setHours(0, 0, 0, 0)
+        const anio = fechaActual.getFullYear()
+        const mes = fechaActual.getMonth() + 1
+        const fechaAyer = new Date()
+        fechaAyer.setDate(fechaAyer.getDate() - 1);
+        fechaAyer.setHours(0, 0, 0, 0)
+
+        let EventoLogCodigo = 0
+
+
+        try {
+
+            ({ EventoLogCodigo } = await this.eventoLogInicio(
+                queryRunner,
+                `Normaliza Novedades`,
+                { usuario, ip },
+                usuario,
+                ip,
+                "JOB"
+            ));
+
+            const novedades = await queryRunner.query(`SELECT nov.* FROM Novedades nov WHERE nov.DescripcionNormalizada IS NULL OR AccionNormalizada IS NULL`)
+
+            const param = await queryRunner.query(`SELECT par.Parametros FROM ParametroGeneral par WHERE par.ParametroGeneralCodigo='NOVPR'`)
+            const prompt = (param[0]) ? param[0].Parametros : ''
+
+            const ollama = new Ollama({
+                host: "https://ollama.com",
+                headers: {
+                    Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
+                },
+            });
+
+
+            for (const novedad of novedades) {
+                const NovedadCodigo = novedad.NovedadCodigo
+                const Descripcion = novedad.Descripcion
+                const Accion = novedad.Accion
+
+                const response = await ollama.chat({
+                    model: "gpt-oss:120b",
+                    messages: [{ role: "user", content: {Descripcion,Accion}.toString() }],
+                    stream: true,
+                });
+
+                let objectResp = ''
+                for await (const part of response) {
+                    objectResp += part.message.content;
+                }
+                const respuestaIA = JSON.parse(objectResp) 
+                console.log('respuestaIA',respuestaIA)
+
+
+                const DescripcionNormalizada = respuestaIA.DescripcionNormalizada
+                const AccionNormalizada = respuestaIA.AccionNormalizada
+
+
+
+
+//                await queryRunner.query(`UPDATE Novedad SET DescripcionNormalizada=@1, AccionNormalizada=@2, AudUsuarioMod=@3, AudFechaMod=@4, AudIpMod=@5 
+//                WHERE  NovedadCodigo=@0 `,
+//                    [NovedadCodigo, DescripcionNormalizada, AccionNormalizada, usuario, fechaActual, ip])
+
+            }
+
+            const resp = `Se normalizaron ${novedades.length} novedades`
+            await this.eventoLogFin(
+                queryRunner,
+                EventoLogCodigo,
+                'COM',
+                {
+                    res: resp,
+                    cantidad: novedades.length,
+                },
+                usuario,
+                ip
+            );
+
+            if (res)
+                this.jsonRes({ list: [] }, res, resp);
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+            await this.eventoLogFin(queryRunner,
+                EventoLogCodigo,
+                'ERR',
+                { res: error },
+                usuario,
+                ip
+            );
+            return next(error)
+        } finally {
+            await queryRunner.release();
+        }
+    }
 }
