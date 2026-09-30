@@ -1062,7 +1062,7 @@ export class NovedadesController extends BaseController {
 
         // Agrego imagenes al HTML - Documentos Realcionados
         let htmlImgs = imgsPaths.length ? `<tr>` : ``
-        const imgsPorFila = 3;
+        const imgsPorFila = 1;
         for (let index = 0; index < imgsPaths.length; index++) {
             const path = imgsPaths[index];
             if (!fs.existsSync(path)) { continue };
