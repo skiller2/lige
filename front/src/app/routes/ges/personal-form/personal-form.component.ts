@@ -81,6 +81,8 @@ export interface ParametroPersonalForm {
   PersonalVehiculoPatente: string; Cilindrada: string;
   LugarFisicoLegajoId: number;
   LugarFisicoLegajoDesde: string;
+  HorasPactadas: number;
+  HorasPactadasDesde: string;
 }
 
 @Component({
@@ -104,6 +106,8 @@ export class PersonalFormComponent {
   enableSelectReset = signal<boolean>(true)
   private lastLugarFisicoLegajoId: number | null | undefined = undefined;
   ubicacionLegajoHistory = signal<any[]>([])
+  private horasPactadasCargadas: { Horas: number | null, Desde: string } = { Horas: null, Desde: '' }
+  horasPactadasHistory = signal<any[]>([])
   personalId = model<number>(0);
   readonly = input<boolean>(false);
   urlUpload = '/api/personal/upload'
@@ -140,6 +144,8 @@ export class PersonalFormComponent {
     PersonalVehiculoPatente: '', Cilindrada: '',
     LugarFisicoLegajoId: 0,
     LugarFisicoLegajoDesde: '',
+    HorasPactadas: NaN,
+    HorasPactadasDesde: '',
   }
 
   // formPer = this.fb.group({ ...this.defaultPersonalForm })
@@ -298,6 +304,20 @@ export class PersonalFormComponent {
         }));
       }
 
+      // Al cambiar las horas cargadas se exige un nuevo Desde
+      const horasActuales = this.normalizarHoras(this.parametroPersonal().HorasPactadas)
+      if (
+        this.horasPactadasCargadas.Horas !== null &&
+        horasActuales !== null &&
+        horasActuales !== this.horasPactadasCargadas.Horas &&
+        this.mismaFecha(this.parametroPersonal().HorasPactadasDesde, this.horasPactadasCargadas.Desde)
+      ) {
+        this.parametroPersonal.update(m => ({
+          ...m,
+          HorasPactadasDesde: '',
+        }));
+      }
+
     }
 
     // if (this.readonly()) {
@@ -341,6 +361,7 @@ export class PersonalFormComponent {
       }))
 
       this.lastLugarFisicoLegajoId = infoPersonal.LugarFisicoLegajoId || null;
+      this.horasPactadasCargadas = { Horas: this.normalizarHoras(infoPersonal.HorasPactadas), Desde: infoPersonal.HorasPactadasDesde || '' }
 
       setTimeout(() => {
         this.formParametroPersonal().reset()
@@ -350,6 +371,7 @@ export class PersonalFormComponent {
       return;
     }
 
+    this.horasPactadasCargadas = { Horas: null, Desde: '' }
     this.enableSelectReset.set(true)
   }
 
@@ -389,6 +411,20 @@ export class PersonalFormComponent {
   async loadUbicacionLegajoHistory() {
     const history = await firstValueFrom(this.searchService.getHistoriaUbicacionLegajoPersona(this.personalId()))
     this.ubicacionLegajoHistory.set(history)
+  }
+
+  async loadHorasPactadasHistory() {
+    const history = await firstValueFrom(this.searchService.getHistoriaHorasPactadasPersona(this.personalId()))
+    this.horasPactadasHistory.set(history)
+  }
+
+  private normalizarHoras(valor: any): number | null {
+    return (valor === null || valor === undefined || valor === '' || Number.isNaN(Number(valor))) ? null : Number(valor)
+  }
+
+  private mismaFecha(a: any, b: any): boolean {
+    if (!a || !b) return false
+    return new Date(a).toDateString() === new Date(b).toDateString()
   }
 
   addTelefono(e?: MouseEvent): void {

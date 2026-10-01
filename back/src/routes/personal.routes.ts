@@ -179,6 +179,10 @@ personalRouter.get(`${base}/historial/ubicacion-legajo/:personalId`, [authMiddle
   personalController.getHistoryPersonalUbicacionLegajo(req, res, next);
 });
 
+personalRouter.get(`${base}/historial/horas-pactadas/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gAuditoria`])], (req, res, next) => {
+  personalController.getHistoryPersonalHorasPactadas(req, res, next);
+});
+
 personalRouter.get(`${base}/historial/banco/:personalId`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`Liquidaciones`, `Liquidaciones Consultas`])], (req, res, next) => {
   personalController.getHistoryPersonalBanco(req, res, next);
 });

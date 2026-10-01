@@ -552,6 +552,60 @@
       </nz-form-control>
     </nz-form-item>
 
+    <nz-form-item class="marginElement bloque-horas-pactadas">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Horas Pactadas</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
+        <input nz-input placeholder="" [formField]="formParametroPersonal.HorasPactadas" type="number" step="0.5" />
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha desde</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+        <nz-date-picker [formField]="formParametroPersonal.HorasPactadasDesde" nzFormat="dd/MM/yyyy"></nz-date-picker>
+      </nz-form-control>
+
+      @if (personalId()) {
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="1" style="text-align: right;">
+        <span nz-tooltip nzTooltipTitle="Historial de Horas Pactadas">
+          <a nz-button nzType="default" nz-popover nzPopoverTrigger="click" nzPopoverPlacement="topRight"
+            nzPopoverTitle="Historial de Horas Pactadas" [nzPopoverContent]="horasPactadasHistoryTemplate"
+            (click)="loadHorasPactadasHistory()">
+            <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
+          </a>
+        </span>
+        <ng-template #horasPactadasHistoryTemplate>
+          <div class="ubicacion-legajo-history-popover">
+            <nz-table #horasPactadasHistoryTable [nzData]="horasPactadasHistory()" [nzShowPagination]="false">
+              <thead>
+                <tr>
+                  <th>Horas</th>
+                  <th>Desde</th>
+                  <th>Hasta</th>
+                  <th>Creado por</th>
+                  <th>Fecha creación</th>
+                  <th>Modificado por</th>
+                  <th>Fecha modificación</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of horasPactadasHistoryTable.data; track item.id) {
+                <tr>
+                  <td>{{ item.Horas }}</td>
+                  <td>{{ item.Desde }}</td>
+                  <td>{{ item.Hasta }}</td>
+                  <td>{{ item.AudUsuarioIng }}</td>
+                  <td>{{ item.AudFechaIng }}</td>
+                  <td>{{ item.AudUsuarioMod }}</td>
+                  <td>{{ item.AudFechaMod }}</td>
+                </tr>
+                }
+              </tbody>
+            </nz-table>
+          </div>
+        </ng-template>
+      </nz-form-control>
+      }
+    </nz-form-item>
+
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Ley / R.I. Nro</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
