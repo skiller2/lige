@@ -142,7 +142,8 @@ export class AddrSearchComponent
       tap(() => this.loading.set(true)),
 
       switchMap(term =>
-        this.searchService.getDireccionNominatim(term)
+        //this.searchService.getDireccionNominatim(term)
+        this.searchService.getDireccionAPIFY(term)
       ),
 
       tap({
