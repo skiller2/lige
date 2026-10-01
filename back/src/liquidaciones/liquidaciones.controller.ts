@@ -479,7 +479,7 @@ export class LiquidacionesController extends BaseController {
         CASE WHEN cus.CustodiaCodigo IS NOT NULL THEN CONCAT(cus.CustodiaCodigo, ' ', trim(cli.ClienteDenominacion), ' ', FORMAT(cus.FechaInicio,'dd/MM/yyyy'))
         ELSE NULL END AS CustodiaDescripcion,
         CONCAT(TRIM(pers.PersonalApellido),', ', TRIM(pers.PersonalNombre)) AS ApellidoNombre,
-        li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.horas, cuit.PersonalCUITCUILCUIT,
+        li.tipocuenta_id, li.importe * tipomo.signo AS importe, li.tipo_movimiento_id, li.persona_id,li.objetivo_id, li.custodia_id, li.horas, cuit.PersonalCUITCUILCUIT,
         cat.CategoriaPersonalDescripcion, COALESCE(obj.ClienteId, cus.ClienteId) AS ClienteId
         FROM lige.dbo.liqmamovimientos AS li
         INNER JOIN lige.dbo.liqcotipomovimiento AS tipomo ON li.tipo_movimiento_id = tipomo.tipo_movimiento_id 

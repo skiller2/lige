@@ -284,10 +284,14 @@ export class CustodiaComponent {
     ngAfterViewInit(): void {
 
         const ClienteId = Number(this.route.snapshot.paramMap.get('ClienteId'))
+        const CustodiaCodigo = Number(this.route.snapshot.paramMap.get('CustodiaCodigo'))
 
         setTimeout(() => {
             if (ClienteId > 0) {
                 this.startFilters.set([{ index: 'ClienteId', condition: 'AND', operator: '=', value: String(ClienteId), closeable: true }])
+            }
+            if (CustodiaCodigo > 0) {
+                this.startFilters.set([{ index: 'id', condition: 'AND', operator: '=', value: String(CustodiaCodigo), closeable: true }])
             }
         }, 1000)
     }

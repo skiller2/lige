@@ -98,6 +98,17 @@ const getAccessToken = async (app: any, queryRunner: QueryRunner): Promise<strin
 
   const method = "POST";
   const url = `${config.host}/oauth/token`;
+  const body = { grant_type: "client_credentials" };
+
+  const request = {
+    headers: {
+      Authorization: "Basic base64(cliend_id:client_secret)",
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    cliend_id: config.cliend_id,
+    client_secret: config.client_secret,
+    body,
+  };
 
   // COMENTADO PARA NO HACER LLAMADOS REALES AL BANCO PATAOGNIA EN DESARROLLO
 
@@ -107,7 +118,7 @@ const getAccessToken = async (app: any, queryRunner: QueryRunner): Promise<strin
       Authorization: `Basic ${credenciales}`,
       "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: new URLSearchParams({ grant_type: "client_credentials" }).toString(),
+    body: new URLSearchParams(body).toString(),
   });
 
   // PARA TESTEAR
@@ -133,7 +144,7 @@ const getAccessToken = async (app: any, queryRunner: QueryRunner): Promise<strin
   if (!response.ok || !respuesta?.access_token)
     throw new ClientException(
       `${method} ${url}`,
-      { msgapi: { method, url, status: response.status, respuesta } }
+      { msgapi: { method, url, status: response.status, request, respuesta } }
     );
 
   const expiresIn = Number(respuesta.expires_in) || 0;
