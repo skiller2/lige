@@ -30,7 +30,6 @@ import { ApiService } from '../../../services/api.service';
 })
 export class InitV1Component implements OnInit {
   private readonly ngZone = inject(NgZone);
-  private stmactual: Date = new Date();
   private platform = inject(Platform)
   @ViewChild("g2horas") g2horas!: G2BarComponent;
   private doc = inject(DOCUMENT);
@@ -201,8 +200,8 @@ export class InitV1Component implements OnInit {
   public objetivosSinAsistencia = resource({
     params: () => null,
     loader: async () => {
-      const stmactual = new Date();
-      stmactual.setMonth(stmactual.getMonth() - 1)
+      const hoy = new Date();
+      const stmactual = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
 
       const mes = stmactual.getMonth() + 1;
       const anio = stmactual.getFullYear();
@@ -215,8 +214,8 @@ export class InitV1Component implements OnInit {
   public reaperturasAsistencia = resource({
     params: () => null,
     loader: async () => {
-      const stmactual = new Date();
-      stmactual.setMonth(stmactual.getMonth() - 1)
+      const hoy = new Date();
+      const stmactual = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
 
       const mes = stmactual.getMonth() + 1;
       const anio = stmactual.getFullYear();
@@ -239,8 +238,8 @@ export class InitV1Component implements OnInit {
   public licenciasInconsistentes = resource({
     params: () => null,
     loader: async () => {
-      const stmactual = new Date();
-      stmactual.setMonth(stmactual.getMonth() - 1)
+      const hoy = new Date();
+      const stmactual = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
 
       const mes = stmactual.getMonth() + 1;
       const anio = stmactual.getFullYear();
@@ -253,10 +252,8 @@ export class InitV1Component implements OnInit {
   public custodiasPendientes = resource({
     params: () => null,
     loader: async () => {
-      const stmactual = new Date();
-
-
-      stmactual.setMonth(stmactual.getMonth() - 1)
+      const hoy = new Date();
+      const stmactual = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
 
       const mes = stmactual.getMonth() + 1;
       const anio = stmactual.getFullYear();
