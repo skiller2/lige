@@ -159,6 +159,10 @@ export class LiquidacionesComponent {
         Object.assign(componentOutput.componentRef.instance, { link: '/ges/detalle_asistencia/objetivo', params: { ObjetivoId: dataContext.objetivo_id }, detail: cellNode.innerText })
 
         break;
+      case 'CustodiaDescripcion':
+        Object.assign(componentOutput.componentRef.instance, { link: '/ges/cust/objetivos', params: { CustodiaCodigo: dataContext.custodia_id }, detail: cellNode.innerText })
+
+        break;
 
       default:
         return;
@@ -348,7 +352,7 @@ export class LiquidacionesComponent {
   columns = toSignal(this.apiService.getCols('/api/liquidaciones/cols').pipe(map((cols: Column<any>[]) => {
 
     cols
-      .filter((col: Column) => ['ApellidoNombre', 'Objetivo'].includes(String(col.id)))
+      .filter((col: Column) => ['ApellidoNombre', 'Objetivo', 'CustodiaDescripcion'].includes(String(col.id)))
       .forEach((col: Column) => col.asyncPostRender = this.renderAngularComponent.bind(this))
 
     return cols
