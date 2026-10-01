@@ -1087,8 +1087,8 @@ export class NovedadesController extends BaseController {
         htmlContent = htmlContent.replace(/\${novedaCodigo}/g, novedadInfo.NovedadCodigo);
         htmlContent = htmlContent.replace(/\${fechaNovedad}/g, this.formatDate(new Date(novedadInfo.Fecha)));
         htmlContent = htmlContent.replace(/\${tipoNovedad}/g, novedadInfo.NovedadTipo);
-        htmlContent = htmlContent.replace(/\${descripcionNovedad}/g, novedadInfo.Descripcion);
-        htmlContent = htmlContent.replace(/\${accionTomada}/g, novedadInfo.Accion);
+        htmlContent = htmlContent.replace(/\${descripcionNovedad}/g, novedadInfo.DescripcionNormalizada);
+        htmlContent = htmlContent.replace(/\${accionTomada}/g, novedadInfo.AccionNormalizada);
         htmlContent = htmlContent.replace(/\${registradoPorNombre}/g, personaNombre);
         htmlContent = htmlContent.replace(/\${registradoPorNroAsociado}/g, asociado);
         htmlContent = htmlContent.replace(/\${cantpdfs}/g, cantPdfs.toString());
