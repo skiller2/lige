@@ -215,7 +215,9 @@
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
           <div class="h2 mt0">{{ objetivosActivosSinHabilitaciones.value().data.ObjetivosSinHabilitacion }}</div>
+          <a class="link-reset" [routerLink]="['/ges/objetivos/listado']" [queryParams]="{ ObjetivoHabilitado: 0 }">
             <p class="text-nowrap mb0">Objetivos Activos sin habilitación</p>
+          </a>
         </div>
 
       </div>
