@@ -16,9 +16,11 @@ export class ImporteVentaVigilanciaComponent {
   periodo = model<any>(new Date())
   anio = signal(0)
   mes = signal(0)
-  reloadForm = model<any>(false)
   private settingsService = inject(SettingsService)
   objetivoIdSelected = model(0)
+  tabIndex = signal<number>(0)
+
+  childVentaVigTable = viewChild.required<TableImporteVentaVigilanciaComponent>('venVigTable')
 
   ngAfterViewInit(): void {
     const now = new Date(); //date
@@ -49,8 +51,5 @@ export class ImporteVentaVigilanciaComponent {
 
   }
 
-  resetForm() {
-    this.reloadForm.set(true)
-  }
 
 }

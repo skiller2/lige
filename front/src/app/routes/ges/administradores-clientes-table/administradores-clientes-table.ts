@@ -1,23 +1,25 @@
 
 
-import { Component, Inject, computed } from '@angular/core';
+import { Component, computed, signal, resource, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SHARED_IMPORTS } from '@shared';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { BehaviorSubject, debounceTime, map, switchMap, tap, firstValueFrom } from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Column } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
-interface ListOptions {
-  filtros: any[];
-  extra: any;
-  sort: any;
-}
+// interface ListOptions {
+//   filtros: any[];
+//   extra: any;
+//   sort: any;
+// }
 
 @Component({
   selector: 'app-administradores-clientes-table',
@@ -34,52 +36,44 @@ interface ListOptions {
 })
 export class AdministradoresClientesTableComponent {
 
-
-  private formChange$ = new BehaviorSubject<string>('');
-  tableLoading$ = new BehaviorSubject<boolean>(false);
-  columns$ = this.apiService.getCols('/api/administradores/cols-clientes');
   private angularGridEdit!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
   gridOptions!: GridOption;
-    private dataAngularGrid: any[] = [];
-    private personalEstudios: any[] = [];
+  private dataAngularGrid: any[] = [];
+  private personalEstudios: any[] = [];
   private excelExportService = new ExcelExportService();
-
-  private listOptions: ListOptions = {
+  private readonly loadingSrv = inject(LoadingService)
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-    extra: null,
-  };
+  });
 
-  constructor(
-    private apiService: ApiService,
-    private angularUtilService: AngularUtilService,
-    public searchService: SearchService
-  ) { }
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
 
+  columns = toSignal(this.apiService.getCols('/api/administradores/cols-clientes'), { initialValue: [] as Column[] })
 
-
-  gridData$ = this.formChange$.pipe(
-    debounceTime(250),
-    switchMap(() => this.apiService.setListAdministradoresClientes({ options: this.listOptions }).pipe(
-      map(data => {
-        this.dataAngularGrid = data.list;
-        return data.list;
-      }),
-      doOnSubscribe(() => this.tableLoading$.next(true)),
-      tap({ complete: () => this.tableLoading$.next(false) })
-    ))
-  );
+  gridData = resource({
+      params: () => ({ options: this.listOptions() }),
+      loader: async ({ params }) => {
+        let response = []
+        this.loadingSrv.open({ type: 'spin', text: '' })
+        try {
+          const res = await firstValueFrom(this.apiService.setListAdministradoresClientes({ options: params.options }));
+          response = res.list;
+        } catch (error) {}
+        
+        this.loadingSrv.close()
+        return response || [];
+      },
+      defaultValue: []
+    });
 
   ngOnInit(): void {
     this.initializeGridOptions();
   }
-
-  cambios = computed(async () => {
-    this.formChange$.next('');
-  });
-
 
   private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions(
@@ -93,11 +87,6 @@ export class AdministradoresClientesTableComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
-  }
-
-  listOptionsChange(options: any): void {
-    this.listOptions = options;
-    this.formChange$.next('');
   }
 
   angularGridReady(angularGrid: any): void {

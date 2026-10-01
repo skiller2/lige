@@ -58,6 +58,7 @@ export class DocumentoComponent {
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
+  tabIndex = signal<number>(0)
   docId = signal<number>(0)
   visibleAlta = signal<boolean>(false)
   visibleEdit = signal<boolean>(false)
@@ -191,10 +192,10 @@ export class DocumentoComponent {
   onTabsetChange(_event: any) {
     switch (_event.index) {
       case 2: //HISTORIAL DESCARGAS
-        this.childHistorialDescargas().list('')
+        this.childHistorialDescargas().gridData.reload()
         break;
       case 3: //LISTA DE PENDIENTES
-        this.childListaPendientes().list('')
+        this.childListaPendientes().gridData.reload()
         break;
       default:
         break;
@@ -214,6 +215,23 @@ export class DocumentoComponent {
     } catch (error) {
     } finally {
       this.loadingDelete.set(false);
+    }
+  }
+
+  refreshGrid(){
+    switch (this.tabIndex()) {
+      case 1:
+        this.gridData.reload()
+        break;
+      case 2: //HISTORIAL DESCARGAS
+        this.childHistorialDescargas().gridData.reload()
+        break;
+      case 3: //LISTA DE PENDIENTES
+        this.childListaPendientes().gridData.reload()
+        break;
+    
+      default:
+        break;
     }
   }
 
