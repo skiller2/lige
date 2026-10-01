@@ -91,6 +91,9 @@ export class TableINAESRecibosComponent {
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
     this.gridOptions.forceFitColumns = true;
+    // Sin export genérico en menús: se exporta solo con el botón de recibos
+    this.gridOptions.contextMenu = { ...this.gridOptions.contextMenu, hideExportCsvCommand: true, hideExportExcelCommand: true }
+    this.gridOptions.gridMenu = { ...this.gridOptions.gridMenu, hideExportCsvCommand: true, hideExportExcelCommand: true, hideExportTextDelimitedCommand: true }
     //Habilitando exportación de .CSV
     this.gridOptions.textExportOptions = { exportWithFormatter: true }
     this.gridOptions.externalResources = [this.INAESExportService as ExternalResource]
