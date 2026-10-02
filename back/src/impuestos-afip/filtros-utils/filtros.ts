@@ -43,6 +43,19 @@ const isOptions = (options: any): options is Options => {
 const isCondition = (condition: any): boolean =>
   condition == "AND" || condition == "OR";
 
+// Escapa comillas simples para literales T-SQL
+const sqlStr = (valor: any): string => String(valor).replaceAll("'", "''");
+
+// Convierte a número o rechaza el filtro
+const sqlNum = (valor: any, columna: any): number => {
+  if (typeof valor === 'boolean') return valor ? 1 : 0;
+  const txt = String(valor).trim().replaceAll(',', '.');
+  const num = Number(txt);
+  if (txt === '' || !Number.isFinite(num))
+    throw new ClientException(`Valor inválido en filtro '${columna?.name ?? columna?.id}': ${valor}`);
+  return num;
+};
+
 
 /**
  * 
@@ -99,6 +112,8 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
 
       if (type == 'date' && filtro.operador!="RAW") {
         const valtmp = new Date(valorBusqueda)
+        if (isNaN(valtmp.getTime()))
+          throw new ClientException(`Fecha inválida en filtro '${columna?.name ?? columna?.id}': ${valorBusqueda}`)
         valtmp.setHours(0, 0, 0, 0)
         valorBusqueda = valtmp.toISOString().split('T')[0]
       }
@@ -107,20 +122,19 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
       switch (filtro.operador) {
         case "LIKE":
           if (fieldName === "ApellidoNombre")
-            filterString.push(` (per.PersonalNombre LIKE '%${valorBusqueda}%' OR per.PersonalApellido LIKE '%${valorBusqueda}%')`)
+            filterString.push(` (per.PersonalNombre LIKE '%${sqlStr(valorBusqueda)}%' OR per.PersonalApellido LIKE '%${sqlStr(valorBusqueda)}%')`)
           else if (fieldName === "ApellidoNombreJ")
-            filterString.push(` (perjer.PersonalNombre LIKE '%${valorBusqueda}%' OR perjer.PersonalApellido LIKE '%${valorBusqueda}%')`)
+            filterString.push(` (perjer.PersonalNombre LIKE '%${sqlStr(valorBusqueda)}%' OR perjer.PersonalApellido LIKE '%${sqlStr(valorBusqueda)}%')`)
           else if(type == 'date'){
             const valor = valorBusqueda.split('/').reverse().join('/');
             filterString.push(`${fieldName} >= '${valor} 00:00:00' AND ${fieldName} <= '${valor} 23:59:59'`)
           } else {
-            if (String(valorBusqueda).indexOf(';') == 0)
-              filterString.push(`${fieldName} LIKE '%${valorBusqueda}%'`)
+            if (String(valorBusqueda).indexOf(';') == -1)
+              filterString.push(`${fieldName} LIKE '%${sqlStr(valorBusqueda)}%'`)
             else {
-              //Falta splitear el valor 
               const vals = String(valorBusqueda).split(';')
               for (const val of vals)
-              filterString.push(`${fieldName} LIKE '%${val.trim()}%'`)
+              filterString.push(`${fieldName} LIKE '%${sqlStr(val.trim())}%'`)
             }
           }
           break;
@@ -132,10 +146,13 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
             if (valorBusqueda === '' || valorBusqueda === null || valorBusqueda === 'null')
               filterString.push(`${fieldName} IS NULL`)
             else {
-              if (String(valorBusqueda).indexOf(';') == 0)
-                filterString.push(`${fieldName} = ${String(valorBusqueda).replaceAll(',', '.')}`)
+              const nums = String(valorBusqueda).split(';').filter(v => v.trim() !== '').map(v => sqlNum(v, columna))
+              if (nums.length == 0)
+                throw new ClientException(`Valor inválido en filtro '${columna?.name ?? columna?.id}': ${valorBusqueda}`)
+              if (nums.length == 1)
+                filterString.push(`${fieldName} = ${nums[0]}`)
               else
-                filterString.push(`${fieldName} IN (${String(valorBusqueda).replaceAll(',', '.').replaceAll(';', ',')})`)
+                filterString.push(`${fieldName} IN (${nums.join(',')})`)
             }
           } else if (type == 'date') {
             filterString.push(`(${fieldName} >= '${valorBusqueda} 00:00:00' AND ${fieldName} <= '${valorBusqueda} 23:59:59') `)
@@ -145,10 +162,10 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
             const vals =String(valorBusqueda).split(';').map(value => value.trim());
             // Si el campo es CategoriaCod y el valor contiene "/", usar CHARINDEX en lugar de IN
             if (fieldName.includes('CategoriaCod') && vals.some(v => v.includes('/'))) {
-              const charIndexConditions = vals.map(v => `CHARINDEX('${v}', ${fieldName}) > 0`).join(' OR ');
+              const charIndexConditions = vals.map(v => `CHARINDEX('${sqlStr(v)}', ${fieldName}) > 0`).join(' OR ');
               filterString.push(`(${charIndexConditions})`)
             } else {
-              filterString.push(`${fieldName} IN ('${vals.join('\',\'')}')`)
+              filterString.push(`${fieldName} IN ('${vals.map(sqlStr).join('\',\'')}')`)
             }
           }
           break;
@@ -174,12 +191,11 @@ const filtrosToSql = (filtros: Filtro[], cols: any[]): string => {
           }
         case "<>":
           if (type == 'number' || type == 'float' || type=='currency') {
-            const valor = (!isNaN(parseFloat(valorBusqueda))) ? parseFloat(valorBusqueda) : '0';
-            filterString.push(`${fieldName} ${filtro.operador} ${valor}`)
+            filterString.push(`${fieldName} ${filtro.operador} ${sqlNum(valorBusqueda, columna)}`)
           }else if(type == 'date'){
             filterString.push(`${fieldName} < '${valorBusqueda} 00:00:00' AND ${fieldName} > '${valorBusqueda} 23:59:59`)
           }else {
-            filterString.push(`${fieldName} ${filtro.operador} '${valorBusqueda}'`)
+            filterString.push(`${fieldName} ${filtro.operador} '${sqlStr(valorBusqueda)}'`)
           }
 
           break;
@@ -208,7 +224,17 @@ const getOptionsFromRequest = (req: Request): Options => {
 };
 
 const orderToSQL = (s: CustomSort[]): String => {
-  return (s && s.length) ? 'ORDER BY ' + s.map(x => `${x.fieldName} ${x.direction}`).join(',') : ''
+  if (!(s && s.length)) return ''
+  return 'ORDER BY ' + s.map(x => {
+    // Solo nombres de columna (alias.Campo) y dirección ASC/DESC
+    const fieldName = String(x?.fieldName ?? '')
+    const direction = String(x?.direction ?? '').toUpperCase()
+    if (!/^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$/.test(fieldName))
+      throw new ClientException(`Orden inválido: ${fieldName}`)
+    if (!['', 'ASC', 'DESC'].includes(direction))
+      throw new ClientException(`Dirección de orden inválida: ${x?.direction}`)
+    return `${fieldName} ${direction}`
+  }).join(',')
 };
 
 
