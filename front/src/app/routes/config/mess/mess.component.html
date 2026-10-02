@@ -57,6 +57,7 @@
               [ngModelOptions]="{ standalone: true }">
               <nz-option nzValue="agents" nzLabel="Agents"></nz-option>
               <nz-option nzValue="main-prompt" nzLabel="Main Prompt"></nz-option>
+              <nz-option nzValue="lige-prompt" nzLabel="Lige Prompt"></nz-option>
             </nz-select>
           </nz-form-control>
         </nz-form-item>
@@ -120,7 +121,7 @@
 
   </nz-tab>
   <nz-tab>
-    <a *nzTabLink nz-tab-link routerLink="/config/mess/agents">Agents</a>
+    <a *nzTabLink nz-tab-link routerLink="/config/mess/agents">Prompts</a>
     <ng-template nz-tab>
     <nz-card>
       @if (agentsLoading()) {
@@ -134,7 +135,7 @@
 
                 <ng-template #agentActions>
                   <div class="panel-actions">
-                    @if (agentsModel().agents[i].ChatBotPromptCodigo !== 'BMA') {
+                    @if (agentsModel().agents[i].EsNuevo || !['BMA', 'LP'].includes(agentsModel().agents[i].ChatBotPromptCodigo.trim())) {
                       <button nz-button nzType="default" type="button" (click)="removeAgent(i, $event)" nz-tooltip
                         nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
                         <span nz-icon nzType="delete" nzTheme="outline"></span>

@@ -18,11 +18,14 @@ export class ChatBotController extends BaseController {
       ORDER BY prompt.ChatBotPromptCodigo
     `)
 
-    const mainAgent = agents.find((agent: any) => String(agent.ChatBotPromptCodigo).trim() === 'BMA')
+    const prompts = ['BMA', 'LP'].map(code => {
+      const agent = agents.find((agent: any) => String(agent.ChatBotPromptCodigo).trim() === code)
+      return { code, Prompt: agent ? agent.Prompt ?? '' : null, IaTools: agent ? agent.IaTools ?? '' : null }
+    })
     return {
       agents,
-      iaPromptHash: mainAgent ? CryptoJS.SHA256(mainAgent.Prompt ?? '').toString(CryptoJS.enc.Hex) : '',
-      iaToolsHash: mainAgent ? CryptoJS.SHA256(mainAgent.IaTools ?? '').toString(CryptoJS.enc.Hex) : ''
+      iaPromptHash: CryptoJS.SHA256(JSON.stringify(prompts.map(agent => [agent.code, agent.Prompt]))).toString(CryptoJS.enc.Hex),
+      iaToolsHash: CryptoJS.SHA256(JSON.stringify(prompts.map(agent => [agent.code, agent.IaTools]))).toString(CryptoJS.enc.Hex)
     }
   }
 
@@ -83,17 +86,23 @@ export class ChatBotController extends BaseController {
 
     if (deletedCodes.includes('BMA'))
       return next(new ClientException('No se puede eliminar el agente principal BMA'))
+    if (deletedCodes.includes('LP'))
+      return next(new ClientException('No se puede eliminar el Lige Prompt LP'))
 
     const mainAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'BMA')
+    const ligeAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'LP')
     let mainTools: any[] | null = null
-    if (mainAgent) {
+    for (const agent of [mainAgent, ligeAgent].filter(Boolean)) {
+      let tools: any
       try {
-        mainTools = JSON.parse(mainAgent.IaTools)
+        tools = JSON.parse(agent.IaTools)
       } catch (err) {
-        return next(new ClientException('IA Tools de BMA no contiene un JSON válido'))
+        return next(new ClientException(`IA Tools de ${agent.ChatBotPromptCodigo} no contiene un JSON válido`))
       }
-      if (!Array.isArray(mainTools))
-        return next(new ClientException('IA Tools de BMA debe ser un arreglo JSON'))
+      if (!Array.isArray(tools))
+        return next(new ClientException(`IA Tools de ${agent.ChatBotPromptCodigo} debe ser un arreglo JSON`))
+      if (agent.ChatBotPromptCodigo === 'BMA')
+        mainTools = tools
     }
 
     const usuario = BaseController.getUser(res)
@@ -114,10 +123,23 @@ export class ChatBotController extends BaseController {
         const currentMain = currentAgents.find((agent: any) => String(agent.ChatBotPromptCodigo).trim() === 'BMA')
         if (!currentMain)
           throw new ClientException('No se encontró el agente principal BMA. Recargue la sección')
-        if (req.body.iaPromptHash !== CryptoJS.SHA256(currentMain.Prompt ?? '').toString(CryptoJS.enc.Hex) ||
-          req.body.iaToolsHash !== CryptoJS.SHA256(currentMain.IaTools ?? '').toString(CryptoJS.enc.Hex))
+      }
+
+      if (mainAgent || ligeAgent) {
+        const prompts = ['BMA', 'LP'].map(code => {
+          const agent = currentAgents.find((agent: any) => String(agent.ChatBotPromptCodigo).trim() === code)
+          return { code, Prompt: agent ? agent.Prompt ?? '' : null, IaTools: agent ? agent.IaTools ?? '' : null }
+        })
+        const iaPromptHash = CryptoJS.SHA256(JSON.stringify(prompts.map(agent => [agent.code, agent.Prompt]))).toString(CryptoJS.enc.Hex)
+        const iaToolsHash = CryptoJS.SHA256(JSON.stringify(prompts.map(agent => [agent.code, agent.IaTools]))).toString(CryptoJS.enc.Hex)
+        if (req.body.iaPromptHash !== iaPromptHash || req.body.iaToolsHash !== iaToolsHash)
           throw new ClientException('Hay cambios posteriores a la última lectura')
       }
+
+      const currentLige = currentAgents.find((agent: any) => String(agent.ChatBotPromptCodigo).trim() === 'LP')
+      const lpChanged = !!ligeAgent && (
+        !currentLige || ligeAgent.Prompt !== currentLige.Prompt || ligeAgent.IaTools !== currentLige.IaTools
+      )
 
       if (deletedCodes.some((code: string) => !currentCodes.has(code)))
         throw new ClientException('Uno de los agentes a eliminar ya no existe. Recargue la sección')
@@ -186,9 +208,11 @@ export class ChatBotController extends BaseController {
         botServer.iaPromptHash = promptHash
         botServer.iaTools = mainTools
         botServer.iaToolsHash = toolsHash
-        if (bmaChanged)
-          botServer.chatmess = []
       }
+      // Se conserva el campo de respuesta existente para informar el reinicio por BMA o LP.
+      bmaChanged = bmaChanged || lpChanged
+      if (bmaChanged)
+        botServer.chatmess = []
       return this.jsonRes({ ...data, bmaChanged }, res, 'Agentes guardados')
     } catch (err) {
       await this.rollbackTransaction(queryRunner)
@@ -198,14 +222,14 @@ export class ChatBotController extends BaseController {
     }
   }
 
-  async getChatbotParameters(queryRunner?: any) {
+  async getChatbotParameters(queryRunner?: any, promptCodigo = 'BMA') {
     const releaseQueryRunner = !queryRunner
     if (!queryRunner) {
       const usuario = BaseController.getUser(null)
       queryRunner = await dbServer.connection(usuario)
     }
     try {
-      const rows = await queryRunner.query(`SELECT Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`, ['BMA'])
+      const rows = await queryRunner.query(`SELECT Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`, [promptCodigo])
       return rows[0] ?? null
     } finally {
       if (releaseQueryRunner)
@@ -245,21 +269,31 @@ export class ChatBotController extends BaseController {
 
       switch (model) {
         case 'main-prompt':
-
-          const mainPrompt = await this.getChatbotParameters(queryRunner)
-          if (!mainPrompt)
-            return next(new ClientException('No se encontró el Main Prompt BMA'))
-          if (!mainPrompt.Prompt?.trim() || !mainPrompt.IaTools?.trim())
-            return next(new ClientException('BMA no tiene configurados el prompt y las herramientas'))
+        case 'lige-prompt':
+          const promptCodigo = model === 'lige-prompt' ? 'LP' : 'BMA'
+          const promptNombre = model === 'lige-prompt' ? 'Lige Prompt' : 'Main Prompt'
+          const parameters = await this.getChatbotParameters(queryRunner, promptCodigo)
+          if (!parameters)
+            return next(new ClientException(`No se encontró el ${promptNombre} ${promptCodigo}`))
+          if (!parameters.Prompt?.trim() || !parameters.IaTools?.trim())
+            return next(new ClientException(`${promptCodigo} no tiene configurados el prompt y las herramientas`))
 
           try {
-            iaTools = JSON.parse(mainPrompt.IaTools)
+            iaTools = JSON.parse(parameters.IaTools)
           } catch {
-            return next(new ClientException('IA Tools de BMA no contiene un JSON válido'))
+            return next(new ClientException(`IA Tools de ${promptCodigo} no contiene un JSON válido`))
           }
           if (!Array.isArray(iaTools))
-            return next(new ClientException('IA Tools de BMA debe ser un arreglo JSON'))
-          iaPrompt = mainPrompt.Prompt
+            return next(new ClientException(`IA Tools de ${promptCodigo} debe ser un arreglo JSON`))
+          iaPrompt = parameters.Prompt
+          if (model === 'lige-prompt') {
+            const contextoUsuario = {
+              usuario,
+              grupos: (req as Request & { groups?: string[] }).groups ?? [],
+              gruposActividad: res.locals.GrupoActividad ?? []
+            }
+            iaPrompt = iaPrompt.replaceAll('{{CONTEXTO_USUARIO}}', () => JSON.stringify(contextoUsuario))
+          }
           break;
 
         case 'agents':
@@ -269,9 +303,9 @@ export class ChatBotController extends BaseController {
           break;
       }
 
-      console.log(`[IA][${chatId}] prompt BMA ${iaPrompt?.length ?? 0} car. | tools (${iaTools.length}): ${iaTools.map((t: any) => t?.function?.name).join(', ')}`)
+      console.log(`[IA][${chatId}] prompt ${model === 'lige-prompt' ? 'LP' : 'BMA'} ${iaPrompt?.length ?? 0} car. | tools (${iaTools.length}): ${iaTools.map((t: any) => t?.function?.name).join(', ')}`)
 
-      if (!botServer.chatmess[chatId])
+      if (!botServer.chatmess[chatId] || botServer.chatmess[chatId][0]?.content !== iaPrompt)
         botServer.chatmess[chatId] = []
 
       if (botServer.chatmess[chatId].length == 0)
