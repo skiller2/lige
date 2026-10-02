@@ -21,7 +21,6 @@ import { LoadingService } from '@delon/abc/loading';
 })
 export class SeguroComponent {
 
-
   fechaActual = signal(new Date())
   fechaseguro = model(new Date())
   calendarView = signal(false)

@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Inject, input, model, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, inject, input, model, Output, signal, resource } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
-import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Column } from 'angular-slickgrid';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
@@ -10,6 +10,8 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
 import { PolizaSeguroDrawerComponent } from '../poliza-seguro-drawer/poliza-seguro-drawer.component';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
 interface ListOptions {
   filtros: any[];
@@ -39,9 +41,7 @@ interface PolizaSeguro {
 export class PolizaSeguroComponent {
   
   @Output() valueGridEvent = new EventEmitter<PolizaSeguro[]>();
-  private formChange$ = new BehaviorSubject<string>('');
-  tableLoading$ = new BehaviorSubject<boolean>(false);
-  columns$ = this.apiService.getCols('/api/seguros/cols-poliza');
+  
   gridOptions!: GridOption;
   private gridObj!: SlickGrid;
   private dataAngularGrid: PolizaSeguro[] = [];
@@ -59,33 +59,38 @@ export class PolizaSeguroComponent {
   selectedPoliza = signal<PolizaSeguro | null>(null)
   isDeleting = signal<boolean>(false)
 
-  private listOptions: ListOptions = {
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
+  private readonly loadingSrv = inject(LoadingService)
+
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
     extra: null,
-  };
+  });
 
-  constructor(
-    private apiService: ApiService,
-    private angularUtilService: AngularUtilService,
-    public searchService: SearchService
-  ) { }
+  columns = toSignal(this.apiService.getCols('/api/seguros/cols-poliza'), { initialValue: [] as Column[] })
+
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        const res = await firstValueFrom(this.apiService.getListPolizaSeguro({ options: params.options }));
+        response = res.list;
+      } catch (error) {}
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   ngOnInit(): void {
     this.initializeGridOptions();
   }
-
-  gridData$ = this.formChange$.pipe(
-    debounceTime(250),
-    switchMap(() => this.apiService.getListPolizaSeguro({ options: this.listOptions }).pipe(
-      map(data => {
-        this.dataAngularGrid = data.list;
-        return data.list;
-      }),
-      doOnSubscribe(() => this.tableLoading$.next(true)),
-      tap({ complete: () => this.tableLoading$.next(false) })
-    ))
-  );
 
   private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainerPoliza',
@@ -114,11 +119,6 @@ export class PolizaSeguroComponent {
     });
   }
 
-  listOptionsChange(options: any): void {
-    this.listOptions = options;
-    this.formChange$.next('');
-  }
-
   handleSelectedRowsChanged(e: any): void {
 
     const selrow = e.detail.args.rows[0]
@@ -138,7 +138,7 @@ export class PolizaSeguroComponent {
   onRefreshPolizaSeguro(){
     // Al recargar la grilla la fila seleccionada deja de ser válida
     this.selectedPoliza.set(null)
-    this.formChange$.next('')
+    this.gridData.reload()
   }
 
   async deletePoliza() {
@@ -154,7 +154,7 @@ export class PolizaSeguroComponent {
         TipoSeguroCodigo: poliza.TipoSeguroCodigo
       }))
       this.selectedPoliza.set(null)
-      this.formChange$.next('')
+      this.gridData.reload()
     } catch (error) {
       // El mensaje de error lo muestra el apiService
     }

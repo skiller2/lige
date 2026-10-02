@@ -1,20 +1,24 @@
 <nz-card class="small-margin">
-  <form nz-form #objpendForm="ngForm">
-    <ng-container>
-      @if ((columns$|async); as columnas) {
-        <div nz-tab>
-          <shared-filtro-builder  [fieldsToSelect]="columnas" [startFilters]="startFilters" (optionsChange)="listOptionsChange($event)"  />
-          @if ((columns$|async); as columnas) {
-            <div class="gridContainer1 container-fluid">
-              <angular-slickgrid gridId="gridEdit1" class="" [columns]="columnas"
-                [options]="gridOptions" [dataset]="(gridData$ | async) || []"
-                (onAngularGridCreated)="angularGridReady($event)">
-              </angular-slickgrid>
-            </div>
-          }
+  <ng-container>
+    @if (columns().length) {
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <div style="width: 80%;">
+          <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()"
+            [(options)]="listOptions" /> 
         </div>
-      }
-    </ng-container>
-  </form>
+        <nz-button-group nz-button nzButtonGroup>
+          <!-- btn  reload -->
+          <button nz-button nzType="default" (click)="gridData.reload()"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"><span nz-icon nzType="reload" nzTheme="outline"></span></button>
+        </nz-button-group>
+      </div>
+      <div class="gridContainer1 container-fluid">
+        <angular-slickgrid gridId="gridEdit1" class="" [columns]="columns()"
+          [options]="gridOptions" [dataset]="gridData.value()"
+          (onAngularGridCreated)="angularGridReady($event)">
+        </angular-slickgrid>
+      </div>
+    }
+  </ng-container>
 </nz-card>
 

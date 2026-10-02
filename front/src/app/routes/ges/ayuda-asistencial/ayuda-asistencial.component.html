@@ -2,11 +2,11 @@
   <ul nz-menu nzMode="horizontal">
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','listado']" (click)="viweButtonListado.set(true)">Listado</a>
+      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','listado']" >Listado</a>
     </li>
     <li nz-menu-item nzMatchRouter>
       <span nz-icon nzType=""></span>
-      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','cuotas']" (click)="onCuotasClick()">Cuotas</a>
+      <a [routerLink]="['/', 'ges', 'ayuda_asistencial','cuotas']" >Cuotas</a>
     </li>
     <!-- <li nz-menu-item nzMatchRouter>
     <span nz-icon nzType=""></span>
@@ -21,7 +21,11 @@
     </nz-form-control>
 
     <nz-form-control style="display: flex; justify-content:center; align-items:end;">
-      @if(viweButtonListado()) {
+      <!-- btn  reload -->
+      <button nz-button nzType="default" (click)="refreshGrid()"
+        nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"><span nz-icon nzType="reload"
+      nzTheme="outline"></span></button>
+      @if(tabIndex() === 1) {
         <button nzType="default" nz-button nz-popconfirm nzPopconfirmTitle="¿Aprobar {{rows.length}} registros?" (nzOnConfirm)="aprobarReg()" [disabled]="!rows.length || loadingRec() || loadingCuo()" [nzLoading]="loadingApr()" nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}">
           <span nz-icon nzType="check" nzTheme="outline"></span>
         </button>
@@ -42,7 +46,8 @@
 
   </nz-form-item>
 
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [nzLinkExact]="false">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex" [nzLinkExact]="false">
+    <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/ayuda_asistencial/listado">Listado</a>
         @if (columns().length) {
@@ -70,7 +75,7 @@
     </nz-tab>
   </nz-tabs>
 </nz-card>
-<app-ayuda-asistencial-drawer [periodo]="periodo()" [(visible)]="visibleDrawer" (onAddorUpdate)="refreshGrid($event)"></app-ayuda-asistencial-drawer>
+<app-ayuda-asistencial-drawer [periodo]="periodo()" [(visible)]="visibleDrawer" (onAddorUpdate)="refreshGrid()"></app-ayuda-asistencial-drawer>
 
 <app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="personalId()" [visible]="visibleDetalle()"
 (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>

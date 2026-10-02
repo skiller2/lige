@@ -1,18 +1,16 @@
 <nz-card #tabestudio class="small-margin">
-  @if (cambios()|async) {}
   <ng-container>
-    <shared-filtro-builder  [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
-
-    @if(columns$ | async; as columnas) {
-      <div class="gridContainerInst container-fluid">
-        <angular-slickgrid 
-          gridId="gridInst" 
-          [columns]="columnas"
-          [options]="gridOptions" 
-          [dataset]="(gridData$ | async) || []"
-          (onAngularGridCreated)="angularGridReady($event)">
-        </angular-slickgrid>
-      </div>
+    @if(columns().length) {
+    <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" />
+    <div class="gridContainerInst container-fluid">
+      <angular-slickgrid 
+        gridId="gridInst" 
+        [columns]="columns()"
+        [options]="gridOptions" 
+        [dataset]="gridData.value()"
+        (onAngularGridCreated)="angularGridReady($event)">
+      </angular-slickgrid>
+    </div>
     }
   </ng-container>
 </nz-card> 

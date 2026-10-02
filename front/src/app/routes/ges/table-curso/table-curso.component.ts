@@ -1,21 +1,17 @@
-import { Component, Inject, Output, EventEmitter, computed, input } from '@angular/core';
+import { Component, inject, Output, EventEmitter, signal, resource } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SHARED_IMPORTS } from '@shared';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { firstValueFrom } from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Column } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { totalRecords } from '../../../shared/custom-search/custom-search';
-
-interface ListOptions {
-  filtros: any[];
-  extra: any;
-  sort: any;
-}
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
 interface PersonalEstudio {
   PersonalId: number;
@@ -43,12 +39,6 @@ interface PersonalEstudio {
 export class TableCursoComponent {
   @Output() valueGridEvent = new EventEmitter<PersonalEstudio[]>();
 
-
-
-  private formChange$ = new BehaviorSubject<string>('');
-  tableLoading$ = new BehaviorSubject<boolean>(false);
-  columns$ = this.apiService.getCols('/api/curso/cols');
-  RefreshCurso = input<boolean>(false);
   private angularGridEdit!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
@@ -56,43 +46,37 @@ export class TableCursoComponent {
   private dataAngularGrid: PersonalEstudio[] = [];
   private personalEstudios: PersonalEstudio[] = [];
   private excelExportService = new ExcelExportService();
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
+  private readonly loadingSrv = inject(LoadingService)
 
-  private listOptions: ListOptions = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-    extra: null,
-  };
+  });
 
-  constructor(
-    private apiService: ApiService,
-    private angularUtilService: AngularUtilService,
-    public searchService: SearchService
-  ) { }
+  columns = toSignal(this.apiService.getCols('/api/curso/cols'), { initialValue: [] as Column[] })
 
-
-
-  gridData$ = this.formChange$.pipe(
-    debounceTime(250),
-    switchMap(() => this.apiService.setListCursos({ options: this.listOptions }).pipe(
-      map(data => {
-        this.dataAngularGrid = data.list;
-        return data.list;
-      }),
-      doOnSubscribe(() => this.tableLoading$.next(true)),
-      tap({ complete: () => this.tableLoading$.next(false) })
-    ))
-  );
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        const res = await firstValueFrom(this.apiService.setListCursos({ options: params.options }));
+        response = res.list;
+      } catch (error) {}
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   ngOnInit(): void {
     this.initializeGridOptions();
   }
-
-  cambios = computed(async () => {
-    this.RefreshCurso()
-    this.formChange$.next('');
-    
-  });
-
 
   private initializeGridOptions(): void {
     this.gridOptions = this.apiService.getDefaultGridOptions(
@@ -106,11 +90,6 @@ export class TableCursoComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile();
     this.gridOptions.showFooterRow = true;
     this.gridOptions.createFooterRow = true;
-  }
-
-  listOptionsChange(options: any): void {
-    this.listOptions = options;
-    this.formChange$.next('');
   }
 
   angularGridReady(angularGrid: any): void {

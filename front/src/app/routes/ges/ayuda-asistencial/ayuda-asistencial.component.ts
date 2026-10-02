@@ -53,25 +53,14 @@ export class AyudaAsistencialComponent {
     periodo = signal(new Date())
     anio = computed(() => { return this.periodo()? this.periodo().getFullYear() : 0 })
     mes = computed(() => { return this.periodo()? this.periodo().getMonth()+1 : 0 })
-    viweButtonListado = signal(true)
+    tabIndex = signal<number>(0)
     
     canOpenDetalle = computed(() => {
         if (this.personalId() === 0) return false;
-        if (this.viweButtonListado()) {
+        if (this.tabIndex() === 1) {
             return this.rows.length === 1;
         }
         return this.rowsSelectedCountCuotas() === 1;
-    });
-
-    private reloadTableEffect = effect(() => {
-        const viewListado = this.viweButtonListado();
-        const tableComponent = this.tableCuotas();
-
-        if (!viewListado && tableComponent) {
-            setTimeout(() => {
-                tableComponent.reload();
-            }, 0);
-        }
     });
 
     private apiService = inject(ApiService)
@@ -137,10 +126,6 @@ export class AyudaAsistencialComponent {
     });
 
     async ngOnInit() {
-        // Verificar la ruta actual al inicializar para establecer el valor correcto del signal
-        const currentUrl = this.router.url;
-        this.viweButtonListado.set(currentUrl.includes('/listado'));
-
         this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
         this.gridOptions.enableRowDetailView = false
         this.gridOptions.autoEdit = true
@@ -346,13 +331,19 @@ export class AyudaAsistencialComponent {
     openDrawerforConsultDetalle(): void {
         this.visibleDetalle.set(true)
     }
-
-    onCuotasClick(): void {
-        this.viweButtonListado.set(false);
-    }
-
-    async refreshGrid(_e: any) {
-        this.gridData.reload()
+    
+    refreshGrid(){
+        switch (this.tabIndex()) {
+            case 1:
+                this.gridData.reload()
+                break;
+            case 2:
+                this.tableCuotas()?.gridData.reload()
+                break;
+        
+            default:
+            break;
+        }
     }
 
 }
