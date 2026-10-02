@@ -644,11 +644,6 @@ export class ImpuestosAfipController extends BaseController {
         "JOB"
       ));
 
-      // Se valida la configuración y se autentica antes del loop: si algo de esto falla,
-      // el job termina con error en lugar de dejarlo como error de cada referencia.
-      const config = await getConfigPatagonia(queryRunner)
-      await getAccessToken(req.app, queryRunner)
-
       const referencias = await queryRunner.query(
         `SELECT DISTINCT com.ReferenciaPago
         FROM PersonalComprobantePagoAFIP com
@@ -658,6 +653,30 @@ export class ImpuestosAfipController extends BaseController {
           AND com.ResultadoPago IS NULL`,
         [anio, mes]
       );
+
+      // Sin solicitud de pago enviada el banco no tiene nada que devolver: no se consulta la API
+      // (ni siquiera por el token)
+      if (!referencias.length) {
+        await this.eventoLogFin(
+          queryRunner,
+          EventoLogCodigo,
+          'COM',
+          { res: `Sin referencias de pago para consultar`, 'Referencias Procesadas': 0, 'Referencias Con Error': 0 },
+          usuario,
+          ip
+        );
+
+        return this.jsonRes(
+          { referenciasProcesadas, referenciasConError, msgapi: resultados },
+          res,
+          `No hay solicitudes de pago enviadas en ${mes}/${anio}: primero hay que enviar la solicitud de pago al Banco Patagonia`
+        );
+      }
+
+      // Se valida la configuración y se autentica antes del loop: si algo de esto falla,
+      // el job termina con error en lugar de dejarlo como error de cada referencia.
+      const config = await getConfigPatagonia(queryRunner)
+      await getAccessToken(req.app, queryRunner)
 
       // Una consulta por referencia: un error en una no corta el resto del lote.
       for (const { ReferenciaPago } of referencias) {
@@ -753,7 +772,7 @@ export class ImpuestosAfipController extends BaseController {
       const [persona] = await queryRunner.query(
         `SELECT per.PersonalId, cuit.PersonalCUITCUILCUIT CUIT,
           CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,
-          com.PersonalComprobantePagoAFIPId, com.ReferenciaPago, doc.DocumentoId
+          com.PersonalComprobantePagoAFIPId, com.ReferenciaPago, doc.DocumentoId, doc.DocumentoPath
         FROM Personal per
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId
           AND cuit.PersonalCUITCUILId = (SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId)
@@ -771,6 +790,10 @@ export class ImpuestosAfipController extends BaseController {
 
       // Ya está en la base: no se vuelve a pedir a la API, la pantalla baja el documento
       if (persona.DocumentoId) {
+        // Sin el archivo en disco la descarga fallaría: se avisa eso en lugar de "ya estaba cargado"
+        if (!existsSync(join(FileUploadController.pathDocuments, persona.DocumentoPath ?? '')))
+          throw new ClientException(`El archivo de monotributo no se encontró ${mes}/${anio}, CUIT:${persona.CUIT} .`);
+
         await this.eventoLogFin(
           queryRunner,
           EventoLogCodigo,
@@ -904,11 +927,6 @@ export class ImpuestosAfipController extends BaseController {
         "JOB"
       ));
 
-      // Se valida la configuración y se autentica antes del loop: si algo de esto falla, el job
-      // termina con error en lugar de dejarlo como error de cada CUIT.
-      const config = await getConfigPatagonia(queryRunner)
-      await getAccessToken(req.app, queryRunner)
-
       // Pendientes = con ReferenciaPago y sin documento. Lo comparten la selección del chunk y
       // el conteo de restantes; excluidos son los PersonalId que ya fallaron en esta ejecución.
       const fromPendientes = (excluidos: number[]) => `
@@ -933,6 +951,12 @@ export class ImpuestosAfipController extends BaseController {
         [anio, mes, limite]
       );
 
+      // Sin pendientes no se llama al banco (ni siquiera por el token): el loop no corre y
+      // restantes da 0. Con pendientes se valida la configuración y se autentica antes del loop:
+      // si algo de esto falla, el job termina con error en lugar de dejarlo como error de cada CUIT.
+      const config = pendientes.length ? await getConfigPatagonia(queryRunner) : null
+      if (config) await getAccessToken(req.app, queryRunner)
+
       // Una consulta por CUIT, de a una: el servicio responde por beneficiario. Lo que se graba
       // de cada uno queda commiteado antes de pasar al siguiente, así que si el chunk se corta
       // lo procesado no se pierde.
@@ -946,7 +970,7 @@ export class ImpuestosAfipController extends BaseController {
           if (!CUIT)
             throw new ClientException(`No tiene CUIT cargado`)
 
-          const estado = await consultarEstadoBeneficiario(req.app, queryRunner, config, CUIT, anio, mes)
+          const estado = await consultarEstadoBeneficiario(req.app, queryRunner, config!, CUIT, anio, mes)
           const llamada = { method: estado.method, url: estado.url, status: estado.status, request: estado.request }
 
           if (!estado.ok) {

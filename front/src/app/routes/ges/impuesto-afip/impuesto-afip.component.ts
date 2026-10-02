@@ -366,6 +366,7 @@ export class ImpuestoAfipComponent {
     let procesados = 0
     let conComprobante = 0
     let cancelado = false
+    let conErrorChunk = false
 
     this.cancelarPendientes = false
     this.accionEnCurso.set('comprobantesPendientes')
@@ -391,12 +392,13 @@ export class ImpuestoAfipComponent {
     } catch (_e) {
       // El interceptor ya mostró el error del chunk (configuración, token, …). Lo procesado en
       // los chunks anteriores quedó grabado y se informa igual abajo.
+      conErrorChunk = true
     } finally {
       this.progresoPendientes.set(null)
       this.accionEnCurso.set(null)
     }
 
-    this.informarPendientes(anio, mes, procesados, conComprobante, fallidos, cancelado)
+    this.informarPendientes(anio, mes, procesados, conComprobante, fallidos, cancelado, conErrorChunk)
 
     try {
       this.gridData.reload()
@@ -410,9 +412,11 @@ export class ImpuestoAfipComponent {
 
   /** Aviso único al final de todos los chunks. */
   private informarPendientes(anio: number, mes: number, procesados: number, conComprobante: number,
-    fallidos: FallidoPendiente[], cancelado: boolean) {
+    fallidos: FallidoPendiente[], cancelado: boolean, conErrorChunk: boolean) {
     if (!procesados) {
-      if (!cancelado) this.notification.info('Respuesta', `No hay comprobantes pendientes en ${mes}/${anio}`)
+      // Si un chunk falló (configuración, token, …) no se sabe si había pendientes: el error ya
+      // lo mostró el interceptor.
+      if (!cancelado && !conErrorChunk) this.notification.info('Respuesta', `No hay comprobantes pendientes en ${mes}/${anio}`)
       return
     }
 
