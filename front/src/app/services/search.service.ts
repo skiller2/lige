@@ -501,10 +501,10 @@ export class SearchService {
   async getDireccionNominatim(direccion: string) {
     const direccionLimpia = direccion.trim();
     if (!direccionLimpia) return [];
-    const manual:any = {
+    const manual: any = {
       place_id: 0,
       display_name: direccionLimpia,
-      address: {road:'', house_number:'', state_district:'', state:'', postcode:''},
+      address: { road: '', house_number: '', state_district: '', state: '', postcode: '' },
       manual: true
     };
 
@@ -513,10 +513,12 @@ export class SearchService {
     url.searchParams.append("q", direccionLimpia);
     url.searchParams.append("polygon_geojson", "1");
     url.searchParams.append("countrycodes", "AR");
-    url.searchParams.append("layer", "address");
-    url.searchParams.append("limit", "30");
+    //url.searchParams.append("layer", "address");
+    url.searchParams.append("limit", "60");
     url.searchParams.append("format", "jsonv2");
     url.searchParams.append("addressdetails", "1");
+    url.searchParams.append("entrances", "1");
+    url.searchParams.append("class", "amenity");
 
     const response = await fetch(url, {
       headers: {
@@ -524,43 +526,47 @@ export class SearchService {
         "Accept-Language": "es-ES"
       }
     });
-    let result:any =[]
+    let result: any = []
     if (!response.ok) {
       // throw new Error(`Error HTTP ${response.status}`);
       console.warn(`Nominatim respondió HTTP ${response.status}`);
     } else {
       result = await response.json()
 
-      for (const item of result) {
 
-        const { road, house_number, town, state, state_district, postcode } = item.address || {};
+      result = result
+        .filter((item: any) => item.address?.house_number)
+        .map((item: any) => {
+          const { road, house_number, town, state, state_district, postcode } = item.address || {};
 
-        item.display_name = [
-          [road, house_number].filter(Boolean).join(" "),
-          state_district || town,
-          state,
-          postcode
-        ]
-          .filter(Boolean)
-          .join(", ");
-        
-      }
+          item.display_name = [
+            [road, house_number].filter(Boolean).join(" "),
+            state_district || town,
+            state,
+            postcode
+          ]
+            .filter(Boolean)
+            .join(", ");
+          return item
+        })
+
     }
 
     const arrayAdress = direccionLimpia.split(',').map(x => x.trim())
     if (arrayAdress.length >= 3) {
       const [calleNumero, state_district, state, postcode] = arrayAdress
       const match = calleNumero?.split(' ')
-      let numero:any = ''
-      let calle:any = ''
-      if (isNaN(Number(match[match.length-1]))) {
+      let numero: any = ''
+      let calle: any = ''
+      if (isNaN(Number(match[match.length - 1]))) {
         calle = match.join(' ')
       } else {
         numero = match.pop()
         calle = match.join(' ')
       }
-      result.push({...manual, 
-        address:{
+      result.push({
+        ...manual,
+        address: {
           road: calle,
           house_number: numero,
           state_district: state_district ?? '',
@@ -575,34 +581,51 @@ export class SearchService {
   }
 
 
-  getDireccionAPIFY(direccion: string): Observable<any[]> {
-    if (!direccion || direccion == '') {
-      return of([]);
-    }
+  async getDireccionAPIFY(direccion: string) {
+    const direccionLimpia = direccion.trim();
+    if (!direccionLimpia) return [];
+    const manual: any = {
+      place_id: 0,
+      display_name: direccionLimpia,
+      address: { road: '', house_number: '', state_district: '', state: '', postcode: '' },
+      manual: true
+    };
 
     const params = new URLSearchParams({
       text: direccion,
       apiKey: 'f5cdd3892a38432fbcd0edc786268446',
       limit: '5',
       lang: 'es',
-      filter: 'countrycode=ar',
-      format:'json' 
+      filter: 'countrycode:ar',
+      format: 'json',
+      type: 'amenity'
 
     });
 
-    return new Observable<any[]>(observer => {
+    const response = await fetch('https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
+    let result: any = []
+    if (!response.ok) {
+      // throw new Error(`Error HTTP ${response.status}`);
+      console.warn(`APIFY respondió HTTP ${response.status}`);
+    } else {
+      result = await response.json()
 
-      fetch('https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
-        .then(res => res.json())
-        .then(data => {
-          observer.next(data?.features || []);
-          observer.complete();
+      result = result.results
+
+
+      result = result
+        //.filter((item: any) => item.address?.housenumber)
+        .map((item: any) => {
+          const { street, road, housenumber, town, state, suburb, state_district, postcode } = item;
+
+          item.display_name = `${street || road} ${housenumber} ${suburb || state || state_district || town} ${postcode}`
+          item.address = { state: item.state, house_number: item.housenumber, state_district: item.state_district, city: item.city, suburb:item.suburb, town:item.suburb }
+
+          return item
         })
-        .catch(error => {
-          observer.next([]);
-          observer.complete();
-        });
-    });
+    }
+
+    return result
   }
 
 
@@ -1970,6 +1993,17 @@ export class SearchService {
     );
   }
 
+  getHistoriaHorasPactadasPersona(id: number): Observable<any> {
+    if (!id) return of([]);
+    return this.http.get<ResponseJSON<any>>(`api/personal/historial/horas-pactadas/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+
+        return of([]);
+      })
+    );
+  }
+
   getSitRevistaNoOptions(): Observable<any> {
     return this.http.get<ResponseJSON<any>>(`api/personal/sitrevista/no-options`).pipe(
       map(res => res.data),
@@ -2499,7 +2533,7 @@ export class SearchService {
     //   return of([]);
     // }
 
-     if (!listOptions.filtros.length) {
+    if (!listOptions.filtros.length) {
       this.notification.warning('Advertencia', `Por favor, ingrese al menos un filtro para visualizar los datos.`);
       return of([]);
     }
@@ -2804,7 +2838,7 @@ export class SearchService {
       return of([]);
     }
     return this.http
-      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', {table: table, fieldName: fieldName, value: values, soloConStock, soloConIndividual, soloConEfecto }).pipe(map(res => {
+      .post<ResponseJSON<ResponseBySearchEfecto>>('api/efecto/searchEfecto', { table: table, fieldName: fieldName, value: values, soloConStock, soloConIndividual, soloConEfecto }).pipe(map(res => {
         if (res.data.recordsArray) return res.data.recordsArray;
         else return [];
       }),
@@ -2906,13 +2940,13 @@ export class SearchService {
       );
   }
 
-  getProvinciaFromName(fieldName:string, provincia:string, paisId?:number): Observable<any[]> {
+  getProvinciaFromName(fieldName: string, provincia: string, paisId?: number): Observable<any[]> {
     if (!provincia || provincia == '') return of([]);
     return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/provincia', {
-        fieldName: fieldName,
-        value: provincia,
-        PaisId: paisId? paisId: 0,
-      })
+      fieldName: fieldName,
+      value: provincia,
+      PaisId: paisId ? paisId : 0,
+    })
       .pipe(
         map(res => {
           if (res.data.recordsArray) return res.data.recordsArray;
@@ -2924,14 +2958,14 @@ export class SearchService {
       );
   }
 
-  getLocalidadFromName(fieldName:string, localidad:string, provinciaId:number, paisId?:number): Observable<any[]> {
+  getLocalidadFromName(fieldName: string, localidad: string, provinciaId: number, paisId?: number): Observable<any[]> {
     if (!localidad || localidad == '') return of([]);
     return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/localidad', {
-        fieldName: fieldName,
-        value: localidad,
-        ProvinciaId: provinciaId,
-        PaisId: paisId? paisId: 0
-      })
+      fieldName: fieldName,
+      value: localidad,
+      ProvinciaId: provinciaId,
+      PaisId: paisId ? paisId : 0
+    })
       .pipe(
         map(res => {
           if (res.data.recordsArray) return res.data.recordsArray;
@@ -2943,15 +2977,15 @@ export class SearchService {
       );
   }
 
-  getBarrioFromName(fieldName:string, barrio:string, localidadId:number, provinciaId:number, paisId?:number): Observable<any[]> {
+  getBarrioFromName(fieldName: string, barrio: string, localidadId: number, provinciaId: number, paisId?: number): Observable<any[]> {
     if (!barrio || barrio == '') return of([]);
     return this.http.post<ResponseJSON<ResponseBySearch>>('api/domicilio/search/barrio', {
-        fieldName: fieldName,
-        value: barrio,
-        LocalidadId: localidadId,
-        ProvinciaId: provinciaId,
-        PaisId: paisId? paisId: 0
-      })
+      fieldName: fieldName,
+      value: barrio,
+      LocalidadId: localidadId,
+      ProvinciaId: provinciaId,
+      PaisId: paisId ? paisId : 0
+    })
       .pipe(
         map(res => {
           if (res.data.recordsArray) return res.data.recordsArray;

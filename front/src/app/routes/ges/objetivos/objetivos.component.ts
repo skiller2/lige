@@ -219,6 +219,9 @@ export class ObjetivosComponent {
       if (params['GrupoActividadId'] == '0') {
         filter.push({ index: 'GrupoActividadId', condition: 'AND', operator: '=', value: null, closeable: true })
       }
+      if (params['ObjetivoHabilitado'] == '0') {
+        filter.push({ index: 'ObjetivoHabilitado', condition: 'AND', operator: '=', value: '0', label: 'NO', closeable: true })
+      }
 
       this.startFilters.set(filter)
 

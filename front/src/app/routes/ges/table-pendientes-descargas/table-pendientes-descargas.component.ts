@@ -1,5 +1,5 @@
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
-import { Component, input, inject, ViewChild} from '@angular/core';
+import { Component, input, inject, ViewChild, signal, resource} from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, debounceTime, firstValueFrom, map, switchMap, tap } from 'rxjs';
@@ -14,6 +14,8 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { Selections } from '../../../shared/schemas/filtro';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
     selector: 'app-table-pendientes-descargas',
@@ -29,28 +31,37 @@ export class TablePendientesDescargasComponent {
     angularGrid!: AngularGridInstance;
     gridDetalleOptions!: GridOption;
     excelExportService = new ExcelExportService();
-    list$ = new BehaviorSubject('');
-    docId = input(0)
-    listOptions: listOptionsT = {
-        filtros: [],
-        sort: null,
-    };
     detailViewRowCount = 1;
-    startFilters: Selections[]=[]
 
+    private readonly loadingSrv = inject(LoadingService)
     private angularUtilServicePersonal = inject(AngularUtilService)
     private searchService = inject(SearchService)
     private apiService = inject(ApiService)
 
-    columns$ = this.apiService.getCols(`/api/documento/cols-no-download`)
+    docId = input(0)
+    listOptions = signal<listOptionsT>({
+        filtros: [],
+        sort: null,
+    });
+    startFilters = signal<Selections[]>([])
 
-    gridData$ = this.list$.pipe(
-        debounceTime(500),
-        switchMap(() => {
-            return this.searchService.getDocumentoNoDownloadList(this.docId(), this.listOptions)
-            .pipe(map(data => { return data.list }))
-        })
-    )
+    columns = toSignal(this.apiService.getCols(`/api/documento/cols-no-download`), { initialValue: [] as Column[] })
+
+    gridData = resource({
+        params: () => ({ options: this.listOptions() }),
+        loader: async ({ params }) => {
+            let response = []
+            this.loadingSrv.open({ type: 'spin', text: '' })
+            try {
+                const res = await firstValueFrom(this.searchService.getDocumentoNoDownloadList(this.docId(), params.options));
+                response = res.list;
+            } catch (error) {}
+            
+            this.loadingSrv.close()
+            return response || [];
+        },
+        defaultValue: []
+    });
 
     async ngOnInit() {
         this.gridDetalleOptions = this.apiService.getDefaultGridOptions('.gridNoDescargas', this.detailViewRowCount, this.excelExportService, this.angularUtilServicePersonal, this, RowDetailViewComponent)
@@ -59,16 +70,12 @@ export class TablePendientesDescargasComponent {
         this.gridDetalleOptions.showFooterRow = true
         this.gridDetalleOptions.createFooterRow = true
 
-        this.startFilters = [
+        this.startFilters.set([
             {index:'SituacionRevistaId', condition:'AND', operator:'=', value:'2;10;11;12;20', closeable: true},
-        ]
+        ])
     }
 
     ngOnDestroy() {
-    }
-
-    list(event: any) {
-        this.list$.next(event);
     }
 
     async angularGridReady(angularGrid: any) {
@@ -79,11 +86,6 @@ export class TablePendientesDescargasComponent {
         if (this.apiService.isMobile())
             this.angularGrid.gridService.hideColumnByIds([])
 
-    }
-
-    listOptionsChange(options: any) {
-        this.listOptions = options;
-        this.list('')
     }
 
     renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {

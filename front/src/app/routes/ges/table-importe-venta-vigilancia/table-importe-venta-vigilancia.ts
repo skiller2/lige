@@ -1,6 +1,6 @@
-import { Component, inject, input, model, effect, signal, Injector } from '@angular/core';
+import { Component, inject, input, model, effect, signal, Injector, resource } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { BehaviorSubject, debounceTime, map, switchMap, tap, firstValueFrom, timer } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -17,12 +17,7 @@ import { ActivatedRoute } from '@angular/router';
 import { LoadingService } from '@delon/abc/loading';
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { Selections } from '../../../shared/schemas/filtro';
-
-type listOptionsT = {
-  filtros: any[],
-  extra: any,
-  sort: any,
-}
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-table-importe-venta-vigilancia',
@@ -40,7 +35,6 @@ export class TableImporteVentaVigilanciaComponent {
 
   anio = input<any>(0)
   mes = input<any>(0)
-  reloadForm = model<any>(false)
   rowLocked = signal<boolean>(false);
   objetivoIdSelected = model(0)
   private readonly loadingSrv = inject(LoadingService);
@@ -48,10 +42,20 @@ export class TableImporteVentaVigilanciaComponent {
   private apiService = inject(ApiService)
   private angularUtilService = inject(AngularUtilService)
 
+  excelExportService = new ExcelExportService()
+  angularGridEdit!: AngularGridInstance;
+  gridObj!: SlickGrid;
+  detailViewRowCount = 9
+  gridOptions!: GridOption
+  gridDataLen = 0
+  dataAngularGrid: any
+  listOptions = signal<listOptionsT>({
+    filtros: [],
+    sort: null,
+  });
+  startFilters = signal<Selections[]>([])
 
-  formChange$ = new BehaviorSubject('');
-
-  columns$ = this.apiService.getCols('/api/importe-venta-vigilancia/cols').pipe(map((cols) => {
+  columns = toSignal(this.apiService.getCols('/api/importe-venta-vigilancia/cols').pipe(map((cols) => {
 
     let mapped = cols.map((col: Column) => {
       if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA')
@@ -67,48 +71,23 @@ export class TableImporteVentaVigilanciaComponent {
     });
 
     return mapped
-  }));
+  })), { initialValue: [] as Column[] })
 
-  excelExportService = new ExcelExportService()
-  angularGridEdit!: AngularGridInstance;
-  gridObj!: SlickGrid;
-  detailViewRowCount = 9
-  gridOptions!: GridOption
-  gridDataLen = 0
-  listOptions: listOptionsT = {
-    filtros: [],
-    sort: null,
-    extra: null,
-  }
-  dataAngularGrid: any
-  startFilters: Selections[] = []
-
-  listOptionsChange(options: any) {
-    this.listOptions = options
-    this.formChange$.next('')
-  }
-
-  gridData$ = this.formChange$.pipe(
-    debounceTime(250),
-    switchMap(() => {
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), anio:this.anio(), mes:this.mes() }),
+    loader: async ({ params }) => {
+      let response = []
       this.loadingSrv.open({ type: 'spin', text: '' })
-
-      return this.apiService
-        .getListImporteVentaVigilancia(this.listOptions, this.anio(), this.mes())
-        .pipe(
-          map(data => {
-            this.dataAngularGrid = data.list
-            return data.list
-          }),
-          doOnSubscribe(() => { }),
-          tap({
-            complete: () => {
-              this.loadingSrv.close()
-            }
-          })
-        );
-    })
-  )
+      try {
+        const res = await firstValueFrom(this.apiService.getListImporteVentaVigilancia(params.options, params.anio, params.mes));
+        response = res.list;
+      } catch (error) {}
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainerOrd', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -165,28 +144,11 @@ export class TableImporteVentaVigilanciaComponent {
       }
     }
 
-    // Effect para detectar cambios en la fecha y recargar datos
-    effect(async () => {
-      if (this.anio() && this.mes()) {
-        this.formChange$.next('')
-      }
-      if (this.reloadForm()) {
-        this.reloadForm.set(false)
-        this.formChange$.next('')
-
-      }
-    }, { injector: this.injector });
-
-    this.startFilters = []
   }
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     cellNode.replaceChildren(componentOutput.domElement)
-  }
-
-  formChanged(_event: any) {
-    this.listOptionsChange(this.listOptions)
   }
 
   ngOnDestroy() {

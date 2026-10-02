@@ -1,37 +1,41 @@
 <nz-card class="small-margin">
+  <div nz-row style="align-items: center; display: flex; justify-content: space-between;">
+    <div nz-row nzSpan="12">
+      <nz-form-label [nzSpan]="10">Periodo</nz-form-label>
+      <nz-form-control [nzSpan]="14">
+        <nz-date-picker nzMode="month"  [(ngModel)]="periodo" (ngModelChange)="dateChange($event)" />
+      </nz-form-control>
 
-  <div nz-col nzSpan="12">
-    <nz-form-control>
-
-      <nz-form-label [nzSpan]="2">Periodo</nz-form-label>
-      <nz-date-picker nzMode="month"  [(ngModel)]="periodo" (ngModelChange)="dateChange($event)" />
-    </nz-form-control>
-  </div>
-
-
-  <div nz-row class="contentStyle">
-    <div nz-col nzSpan="13" class="listStyle">
-      <ul nz-menu nzMode="horizontal" style="display: flex;">
-        <li nz-menu-item nzMatchRouter>
-          <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'adelanto','listado']">Listado</a>
-        </li>
-        <li nz-menu-item nzMatchRouter>
-          <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'adelanto','carga']">Carga</a>
-        </li>
-
-        @if (router.url === '/ges/adelanto/listado') {
-          <li nz-submenu nzTitle="Acciones">
-            <ul>
-              <li nz-menu-item (click)="exportGrid()">
-                <span nz-icon nzType="download"></span>XLS
-              </li>
-            </ul>
-          </li>
-        }
-      </ul>
     </div>
+
+    <ul nz-menu nzMode="horizontal">
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'adelanto','listado']">Listado</a>
+      </li>
+      <li nz-menu-item nzMatchRouter>
+        <span nz-icon nzType=""></span>
+        <a [routerLink]="['/', 'ges', 'adelanto','carga']">Carga</a>
+      </li>
+
+      @if (router.url === '/ges/adelanto/listado') {
+      <li nz-submenu nzTitle="Acciones">
+        <ul>
+          <li nz-menu-item (click)="exportGrid()">
+            <span nz-icon nzType="download"></span>XLS
+          </li>
+        </ul>
+      </li>
+      }
+    </ul>
+
+    <nz-button-group nz-button nzButtonGroup>
+      <!-- btn  reload -->
+      <button nz-button nzType="default" (click)="gridData.reload()" [disabled]="tabIndex() != 1">
+        <span nz-icon nzType="reload" nzTheme="outline" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}"></span>
+      </button>
+
+    </nz-button-group>
   </div>
   <form nz-form #adelanto="ngForm" class="">
 
@@ -42,16 +46,16 @@
     </nz-form-control>
   </nz-form-item> -->
 
-  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav">
+  <nz-tabs nzCentered nzLinkRouter class="hide-ant-tabs-nav" [(nzSelectedIndex)]="tabIndex">
     <nz-tab></nz-tab>
     <nz-tab>
       <a nz-tab-link routerLink="/ges/adelanto/listado">Listado</a>
-      @if ((columns$|async); as columnas) {
+      @if (columns().length) {
         <ng-template nz-tab>
-          <shared-filtro-builder  [startFilters]="startFilters()"  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" />
+          <shared-filtro-builder  [startFilters]="startFilters()"  [fieldsToSelect]="columns()" [(options)]="listOptions" />
           <div class="gridContainer container-fluid">
-            <angular-slickgrid gridId="grid22" class="" [columns]="columnas"
-              [options]="gridOptions" [dataset]="(gridData$ | async) || []"
+            <angular-slickgrid gridId="grid22" class="" [columns]="columns()"
+              [options]="gridOptions" [dataset]="gridData.value()"
               (onAngularGridCreated)="angularGridReady($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
             </angular-slickgrid>
           </div>

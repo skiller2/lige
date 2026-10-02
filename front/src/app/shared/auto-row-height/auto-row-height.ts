@@ -82,6 +82,11 @@ export class AutoRowHeightDirective implements AfterViewInit {
     //    this.measure.className="slick-cell cell-wrap"
     this.measure.style.wordBreak = 'break-word';
     this.measure.style.padding = '1px';
+    // Fuera de pantalla e invisible; sigue midiendo offsetHeight
+    this.measure.style.position = 'absolute';
+    this.measure.style.visibility = 'hidden';
+    this.measure.style.left = '-9999px';
+    this.measure.style.top = '0';
 
     document.body.appendChild(this.measure);
 
@@ -92,7 +97,7 @@ export class AutoRowHeightDirective implements AfterViewInit {
   }
 
   ngOnDestroy() {
-    document.body.removeChild(this.measure);
+    this.measure.remove();
     this.resizeObserver?.disconnect();
   }
 

@@ -1,4 +1,4 @@
-import { Component, ViewChild, inject, signal } from '@angular/core';
+import { Component, ViewChild, inject, signal, resource, computed } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { AngularGridInstance, AngularUtilService, Column, Editors, GridOption, OnEventArgs, SlickGrid } from 'angular-slickgrid';
@@ -17,8 +17,8 @@ import { SearchService } from '../../../services/search.service';
 import { ViewResponsableComponent } from "../../../shared/view-responsable/view-responsable.component";
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
 import { Selections } from '../../../shared/schemas/filtro';
-
-
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-adelanto',
@@ -28,27 +28,40 @@ import { Selections } from '../../../shared/schemas/filtro';
   imports: [...SHARED_IMPORTS, FiltroBuilderComponent, CommonModule, PersonalSearchComponent, ViewResponsableComponent]
 })
 export class AdelantoComponent {
-  startFilters = signal<Selections[]>([])
-  constructor(private settingService: SettingsService, public router: Router, private angularUtilService: AngularUtilService, private excelExportService: ExcelExportService) { }
+  
   @ViewChild('adelanto', { static: true }) adelanto!: NgForm;
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
+  private settingService = inject(SettingsService)
+  private angularUtilService = inject(AngularUtilService)
+  private readonly loadingSrv = inject(LoadingService)
+  private excelExportService = new ExcelExportService();
+  public router = inject(Router);
 
   selectedPeriod = { year: 0, month: 0 };
-
   formChange$ = new BehaviorSubject('');
   tableLoading$ = new BehaviorSubject(false);
   saveLoading$ = new BehaviorSubject(false);
   deleteLoading$ = new BehaviorSubject(false);
   objetivos$ = new Observable<any>
+  angularGrid!: AngularGridInstance;
+  gridObj!: SlickGrid;
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
+
+  tabIndex = signal<number>(0)
   periodo = signal(new Date())
+  listOptions = signal<listOptionsT>({
+    filtros: [],
+    sort: null,
+  });
+  startFilters = signal<Selections[]>([])
+
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     if (colDef.params.component && dataContext.monto > 0) {
       const componentOutput = this.angularUtilService.createAngularComponent(colDef.params.component)
-      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio: this.selectedPeriod.year, mes: this.selectedPeriod.month })
+      Object.assign(componentOutput.componentRef.instance, { item: dataContext, anio: this.periodo().getFullYear(), mes: this.periodo().getMonth()+1 })
       cellNode.append(componentOutput.domElement)
       //setTimeout(() => cellNode.append(componentOutput.domElement))
     }
@@ -71,35 +84,25 @@ export class AdelantoComponent {
   //  return mapped
   //}));
 
-    columns$ = this.apiService.getCols('/api/adelantos/cols');
+  columns = toSignal(this.apiService.getCols('/api/adelantos/cols'), { initialValue: [] as Column[] })
 
-  angularGrid!: AngularGridInstance;
-  gridObj!: SlickGrid;
-
-  listOptions: listOptionsT = {
-    filtros: [],
-    sort: null,
-  };
-
-
-  gridData$ = this.formChange$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      //const periodo = this.adelanto.form.get('periodo')?.value
-      return this.apiService
-        .getPersonasAdelanto(
-          { anio: this.selectedPeriod.year, mes: this.selectedPeriod.month, options: this.listOptions }
-        )
-        .pipe(
-          map((data: any) => {
-            this.gridDataLen = data.list.length
-            return data.list
-          }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
-        )
-    })
-  )
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), periodo:this.periodo() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        const res = await firstValueFrom(this.apiService.getPersonasAdelanto(
+          { anio: params.periodo.getFullYear(), mes: params.periodo.getMonth()+1, options: params.options }
+        ))
+        response = res.list;
+      } catch (error) {}
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   async ngOnInit() {
     const now = new Date(); //date
@@ -129,12 +132,12 @@ export class AdelantoComponent {
       try {
         if (item.PersonalPrestamoMonto == 0) {
           const res = await firstValueFrom(this.apiService
-            .delAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto, anio: this.selectedPeriod.year, mes: this.selectedPeriod.month }))
+            .delAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto, anio: this.periodo().getFullYear(), mes: this.periodo().getMonth()+1 }))
           item = { ...item, PersonalPrestamoAudFechaIng: null, PersonalPrestamoMonto: null, FormaPrestamoDescripcion: null }
 
         } else if (item.PersonalPrestamoMonto > 0) {
           const res: any = await firstValueFrom(this.apiService
-            .addAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto, anio: this.selectedPeriod.year, mes: this.selectedPeriod.month }))
+            .addAdelanto({ PersonalId: item.PersonalId, monto: item.PersonalPrestamoMonto, anio: this.periodo().getFullYear(), mes: this.periodo().getMonth()+1 }))
 
           const resObj = res?.data
           if (resObj)
@@ -168,13 +171,13 @@ export class AdelantoComponent {
   $personaResponsables = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() => {
-      this.objetivos$ = this.searchService.getAsistenciaPersona(this.adelanto.form.get('PersonalId')?.value, this.selectedPeriod.year, this.selectedPeriod.month)
+      this.objetivos$ = this.searchService.getAsistenciaPersona(this.adelanto.form.get('PersonalId')?.value, this.periodo().getFullYear(), this.periodo().getMonth()+1)
 
       return this.apiService
         .getPersonaResponsables(
           this.adelanto.form.get('PersonalId')?.value,
-          this.selectedPeriod.year,
-          this.selectedPeriod.month,
+          this.periodo().getFullYear(),
+          this.periodo().getMonth()+1
 
         )
         .pipe(
@@ -187,13 +190,34 @@ export class AdelantoComponent {
     )
   );
 
+  // listaAdelantos = resource({
+  //   params: () => ({ periodo:this.periodo(), PersonalId: this.adelanto.form.get('PersonalId')?.value }),
+  //   loader: async ({ params }) => {
+  //     let response = []
+  //     this.loadingSrv.open({ type: 'spin', text: '' })
+  //     try {
+  //       if (params.PersonalId) {
+  //         const res = await firstValueFrom(this.apiService.getAdelantos(
+  //           params.periodo.getFullYear(), params.periodo.getMonth()+1, params.PersonalId
+  //         ))
+  //         response = res.list;
+  //       }
+        
+  //     } catch (error) {}
+      
+  //     this.loadingSrv.close()
+  //     return response || [];
+  //   },
+  //   defaultValue: []
+  // });
+
   listaAdelantos$ = this.formChange$.pipe(
     debounceTime(500),
     switchMap(() =>
       this.apiService
         .getAdelantos(
-          this.selectedPeriod.year,
-          this.selectedPeriod.month,
+          this.periodo().getFullYear(),
+          this.periodo().getMonth()+1,
           this.adelanto.form.get('PersonalId')?.value
         )
         .pipe(
@@ -219,8 +243,8 @@ export class AdelantoComponent {
 
   SaveForm() {
     const vals = this.adelanto.value
-    vals.anio = this.selectedPeriod.year
-    vals.mes = this.selectedPeriod.month
+    vals.anio = this.periodo().getFullYear()
+    vals.mes = this.periodo().getMonth()+1
     this.apiService
       .addAdelanto(vals)
       .pipe(
@@ -270,12 +294,6 @@ export class AdelantoComponent {
       filename: 'adelantos-listado',
       format: 'xlsx'
     });
-  }
-
-  listOptionsChange(options: any) {
-    this.listOptions = options;
-    this.formChange$.next('');
-
   }
 
   handleOnBeforeEditCell(e: Event) {

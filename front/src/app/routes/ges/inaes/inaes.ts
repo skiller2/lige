@@ -91,8 +91,9 @@ export class INAESComponent {
     this.gridOptions.createFooterRow = true
     // this.gridOptions.enableCheckboxSelector = true
     this.gridOptions.forceFitColumns = true
-    this.gridOptions.enableExcelExport = true,
-    
+    // Sin export genérico en menús: se exporta solo con los botones de cada resolución
+    this.gridOptions.contextMenu = { ...this.gridOptions.contextMenu, hideExportCsvCommand: true, hideExportExcelCommand: true }
+    this.gridOptions.gridMenu = { ...this.gridOptions.gridMenu, hideExportCsvCommand: true, hideExportExcelCommand: true, hideExportTextDelimitedCommand: true }
 
     //Habilitando exportación de .CSV
     this.gridOptions.textExportOptions = { exportWithFormatter: true }

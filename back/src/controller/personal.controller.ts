@@ -1586,6 +1586,114 @@ LEFT JOIN(
 
   }
 
+  private async setPersonalHorasPactadas(queryRunner: any, PersonalId: number, infoPersonal: any, usuario: string, ip: string) {
+    const valorHoras = infoPersonal.HorasPactadas
+    // Campo vacío: no se modifica lo registrado
+    if (valorHoras === null || valorHoras === undefined || valorHoras === '') return
+
+    const Horas = Number(valorHoras)
+    if (Number.isNaN(Horas) || Horas <= 0) {
+      throw new ClientException('Las Horas Pactadas deben ser un número mayor a 0.')
+    }
+    if (!Number.isInteger(Horas * 2)) {
+      throw new ClientException('Las Horas Pactadas solo admiten valores enteros o con decimal .5')
+    }
+
+    if (!infoPersonal.HorasPactadasDesde) {
+      throw new ClientException('Debe completar Fecha desde para las Horas Pactadas.')
+    }
+    const nuevaDesde = new Date(infoPersonal.HorasPactadasDesde)
+    if (Number.isNaN(nuevaDesde.getTime())) {
+      throw new ClientException('La Fecha desde de las Horas Pactadas no es valida.')
+    }
+    nuevaDesde.setHours(0, 0, 0, 0)
+
+    const AudNow = new Date()
+    const toTime = (fecha: any) => { const d = new Date(fecha); d.setHours(0, 0, 0, 0); return d.getTime() }
+
+    const registrosExistentes = await queryRunner.query(`
+      SELECT PersonalHorasPactadasCodigo, Horas, Desde, Hasta
+      FROM PersonalHorasPactadas
+      WHERE PersonalId = @0
+      ORDER BY Desde ASC, PersonalHorasPactadasCodigo ASC
+    `, [PersonalId])
+
+    const registroSiguiente = registrosExistentes.find((registro: any) => toTime(registro.Desde) > nuevaDesde.getTime())
+    if (registroSiguiente) {
+      throw new ClientException(`Existe un registro de horas pactadas con fecha desde ${new Date(registroSiguiente.Desde).toLocaleDateString('es-AR')} (${registroSiguiente.Horas} hs) el cual es posterior a la fecha desde que se esta ingresando (${nuevaDesde.toLocaleDateString('es-AR')}).`)
+    }
+
+    const registroMismoDesde = registrosExistentes.find((registro: any) => toTime(registro.Desde) === nuevaDesde.getTime())
+    if (registroMismoDesde) {
+      if (Number(registroMismoDesde.Horas) === Horas) return
+
+      await queryRunner.query(`
+        UPDATE PersonalHorasPactadas SET
+          Horas = @2,
+          AudUsuarioMod = @3,
+          AudIpMod = @4,
+          AudFechaMod = @5
+        WHERE PersonalId = @0 AND PersonalHorasPactadasCodigo = @1
+      `, [PersonalId, registroMismoDesde.PersonalHorasPactadasCodigo, Horas, usuario, ip, AudNow])
+      return
+    }
+
+    const registroAnterior = registrosExistentes[registrosExistentes.length - 1]
+    if (registroAnterior) {
+      const anteriorHasta = registroAnterior.Hasta ? toTime(registroAnterior.Hasta) : toTime('9999-12-31')
+
+      if (nuevaDesde.getTime() <= anteriorHasta) {
+        // Mismas horas dentro del período vigente: no se genera un nuevo registro
+        if (Number(registroAnterior.Horas) === Horas) return
+
+        const nuevoHastaAnterior = new Date(nuevaDesde)
+        nuevoHastaAnterior.setDate(nuevoHastaAnterior.getDate() - 1)
+
+        await queryRunner.query(`
+          UPDATE PersonalHorasPactadas SET
+            Hasta = @2,
+            AudUsuarioMod = @3,
+            AudIpMod = @4,
+            AudFechaMod = @5
+          WHERE PersonalId = @0 AND PersonalHorasPactadasCodigo = @1
+        `, [PersonalId, registroAnterior.PersonalHorasPactadasCodigo, nuevoHastaAnterior, usuario, ip, AudNow])
+      }
+    }
+
+    await this.addPersonalHorasPactadas(queryRunner, PersonalId, Horas, nuevaDesde, null, usuario, ip, AudNow)
+  }
+
+  private async addPersonalHorasPactadas(queryRunner: any, PersonalId: number, Horas: number, Desde: Date, Hasta: Date | null, usuario: string, ip: string, AudNow: Date) {
+    const PersonalHorasPactadas = await queryRunner.query(`
+      SELECT ISNULL(PersonalHorasPactadasUltCodigo, 0) + 1 AS newPersonalHorasPactadasCodigo
+      FROM Personal
+      WHERE PersonalId = @0
+    `, [PersonalId])
+
+    await queryRunner.query(`
+      INSERT INTO PersonalHorasPactadas (
+        PersonalHorasPactadasCodigo,
+        PersonalId,
+        Horas,
+        Desde,
+        Hasta,
+
+        AudUsuarioIng,
+        AudIpIng,
+        AudFechaIng,
+        AudUsuarioMod,
+        AudIpMod,
+        AudFechaMod
+      )
+      VALUES (@0, @1, @2, @3, @4
+      , @5, @6, @7, @5, @6, @7)
+
+      UPDATE Personal SET
+        PersonalHorasPactadasUltCodigo = @0
+      WHERE PersonalId = @1
+    `, [PersonalHorasPactadas[0].newPersonalHorasPactadasCodigo, PersonalId, Horas, Desde, Hasta, usuario, ip, AudNow])
+  }
+
   async addPersonal(req: any, res: Response, next: NextFunction) {
     const queryRunner = await getConnection(res.locals.userName);
     const CUIT: number = req.body.CUIT
@@ -1635,6 +1743,8 @@ LEFT JOIN(
       await this.updateSucursalPrincipal(queryRunner, PersonalId, SucursalId)
 
       await this.setPersonalUbicacionLegajo(queryRunner, PersonalId, req.body, usuario, ip)
+
+      await this.setPersonalHorasPactadas(queryRunner, PersonalId, req.body, usuario, ip)
 
       //Telefonos
       for (const telefono of telefonos) {
@@ -2465,6 +2575,8 @@ LEFT JOIN(
 
       await this.setPersonalUbicacionLegajo(queryRunner, PersonalId, req.body, usuario, ip)
 
+      await this.setPersonalHorasPactadas(queryRunner, PersonalId, req.body, usuario, ip)
+
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
       )
@@ -2534,7 +2646,8 @@ LEFT JOIN(
       per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
       per.PersonalLeyNro LeyNro,
       per.TipoVehiculoId, per.VehiculoMarcaId, per.VehiculoMarcaModeloId, TRIM(per.PersonalVehiculoPatente) AS PersonalVehiculoPatente, TRIM(per.Cilindrada) AS Cilindrada,
-      ubleg.LugarFisicoLegajoId, ubleg.PersonalUbicacionLegajoDesde LugarFisicoLegajoDesde
+      ubleg.LugarFisicoLegajoId, ubleg.PersonalUbicacionLegajoDesde LugarFisicoLegajoDesde,
+      hpac.Horas HorasPactadas, hpac.Desde HorasPactadasDesde
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
@@ -2551,6 +2664,13 @@ LEFT JOIN(
           AND ubmax.PersonalUbicacionLegajoDesde <= @1
           AND ISNULL(ubmax.PersonalUbicacionLegajoHasta, '9999-12-31') >= @1
         ORDER BY ubmax.PersonalUbicacionLegajoDesde DESC, ubmax.PersonalUbicacionLegajoId DESC
+      )
+      LEFT JOIN PersonalHorasPactadas hpac ON hpac.PersonalId = per.PersonalId AND hpac.PersonalHorasPactadasCodigo = (
+        SELECT TOP 1 hpmax.PersonalHorasPactadasCodigo
+        FROM PersonalHorasPactadas hpmax
+        WHERE hpmax.PersonalId = per.PersonalId
+          AND ISNULL(hpmax.Hasta, '9999-12-31') >= CONVERT(DATE, @1)
+        ORDER BY hpmax.Desde DESC, hpmax.PersonalHorasPactadasCodigo DESC
       )
       WHERE per.PersonalId = @0
       `, [personalId, new Date()]
@@ -4412,6 +4532,36 @@ UNION ALL
         LEFT JOIN LugarFisicoLegajo lfl ON lfl.LugarFisicoLegajoId = pul.LugarFisicoLegajoId
         WHERE pul.PersonalId = @0
         ORDER BY pul.PersonalUbicacionLegajoDesde asc
+      `, [PersonalId])
+
+      this.jsonRes(history, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  async getHistoryPersonalHorasPactadas(req: any, res: Response, next: NextFunction) {
+    const PersonalId = Number(req.params.personalId)
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const history = await queryRunner.query(`
+        SELECT
+          hp.PersonalHorasPactadasCodigo id,
+          hp.Horas,
+          CONVERT(VARCHAR(10), hp.Desde, 103) Desde,
+          CASE
+            WHEN hp.Hasta IS NULL THEN ''
+            ELSE CONVERT(VARCHAR(10), hp.Hasta, 103)
+          END Hasta,
+          TRIM(hp.AudUsuarioIng) AudUsuarioIng,
+          CONVERT(VARCHAR(10), hp.AudFechaIng, 103) AudFechaIng,
+          TRIM(hp.AudUsuarioMod) AudUsuarioMod,
+          CONVERT(VARCHAR(10), hp.AudFechaMod, 103) AudFechaMod
+        FROM PersonalHorasPactadas hp
+        WHERE hp.PersonalId = @0
+        ORDER BY hp.Desde asc, hp.PersonalHorasPactadasCodigo asc
       `, [PersonalId])
 
       this.jsonRes(history, res);

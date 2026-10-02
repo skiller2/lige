@@ -215,7 +215,9 @@
       <div nz-row nzType="flex" nzAlign="middle" class="ant-btn-danger rounded-md">
         <div nz-col nzSpan="12" class="p-md text-white">
           <div class="h2 mt0">{{ objetivosActivosSinHabilitaciones.value().data.ObjetivosSinHabilitacion }}</div>
+          <a class="link-reset" [routerLink]="['/ges/objetivos/listado']" [queryParams]="{ ObjetivoHabilitado: 0 }">
             <p class="text-nowrap mb0">Objetivos Activos sin habilitación</p>
+          </a>
         </div>
 
       </div>
@@ -269,7 +271,7 @@
         </div>
         <div nz-col nzSpan="12">
           <g2-mini-bar height="35" color="#fff" borderWidth="3" [padding]="[5, 30]"
-            [data]="objetivosSinAsistencia.value().data.objetivosSinAsistencia" yTooltipSuffix=""
+            [data]="objetivosSinAsistenciaCur.value().data.objetivosSinAsistencia" yTooltipSuffix=""
             (ready)="fixDark($event)"></g2-mini-bar>
         </div>
       </div>

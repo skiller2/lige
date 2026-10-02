@@ -220,10 +220,6 @@ export class ChatBotController extends BaseController {
     return this.jsonRes(ret, res, 'Chat reiniciado correctamente');
   }
 
-
-
-
-
   async chat(req: Request, res: Response, next: NextFunction) {
     const message = String(req.body.message ?? '').trim()
     if (!message)
@@ -238,176 +234,209 @@ export class ChatBotController extends BaseController {
     if (!model)
       return next(new ClientException('Debe seleccionar un modelo'))
 
+    const inicioChat = Date.now()
+    console.log(`[IA][${chatId}] inicio chat model=${model} personalId=${personalId} mensaje=${message.length} car. historial=${botServer.chatmess[chatId]?.length ?? 0} msgs`)
+
     const usuario = BaseController.getUser(res)
     const queryRunner = await dbServer.connection(usuario)
-    let iaPrompt = botServer.iaPrompt
-    let iaTools = botServer.iaTools
-
-    switch (model) {
-      case 'main-prompt':
-
-        const mainPrompt = await this.getChatbotParameters(queryRunner)
-        if (!mainPrompt)
-          return next(new ClientException('No se encontró el Main Prompt BMA'))
-        if (!mainPrompt.Prompt?.trim() || !mainPrompt.IaTools?.trim())
-          return next(new ClientException('BMA no tiene configurados el prompt y las herramientas'))
-
-        try {
-          iaTools = JSON.parse(mainPrompt.IaTools)
-        } catch {
-          return next(new ClientException('IA Tools de BMA no contiene un JSON válido'))
-        }
-        if (!Array.isArray(iaTools))
-          return next(new ClientException('IA Tools de BMA debe ser un arreglo JSON'))
-        iaPrompt = mainPrompt.Prompt
-        break;
-      
-      case 'agents':
-        // desarrollar obtencion del prompt y herramientas base para agentes
-      default:
-        return next(new ClientException('Modelo "' + model + '" no soportado.'))
-        break;
-    }
-
-    if (!botServer.chatmess[chatId])
-      botServer.chatmess[chatId] = []
-
-    if (botServer.chatmess[chatId].length == 0)
-      botServer.chatmess[chatId].push({ id: 0, role: "system", content: iaPrompt, sendIt: true });
-
-    botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, role: "user", content: message })
-
     try {
-      let recall = false
-      do {
-        recall = false
-        const responseIA = await botServer.ollama.chat({
-          model: "gpt-oss:120b",
-          messages: botServer.chatmess[chatId],
-          stream: false,
-          tools: iaTools,
-        });
+      let iaPrompt = botServer.iaPrompt
+      let iaTools = botServer.iaTools
 
-        botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, ...responseIA.message });
+      switch (model) {
+        case 'main-prompt':
 
-        if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
+          const mainPrompt = await this.getChatbotParameters(queryRunner)
+          if (!mainPrompt)
+            return next(new ClientException('No se encontró el Main Prompt BMA'))
+          if (!mainPrompt.Prompt?.trim() || !mainPrompt.IaTools?.trim())
+            return next(new ClientException('BMA no tiene configurados el prompt y las herramientas'))
 
-          const stateRes = await personalController.getPersonaState(chatId);
-          const autoPersonalId = stateRes.stateData?.personalId;
-
-          for (const tool of responseIA.message.tool_calls) {
-            let output = {}
-            const pId = autoPersonalId || tool.function.arguments.personalId;
-            switch (tool.function.name) {
-              case 'genTelCode':
-                const linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
-                const ret = await personalController.genTelCode(chatId)
-                output = { url: `https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, encTelNro: ret.encTelNro, linkVigenciaHs }
-                break;
-              case 'getPersonaState':
-                output = await personalController.getPersonaState(chatId)
-                break;
-              case 'delTelefonoPersona':
-                output = await personalController.delTelefonoPersona(chatId)
-                break;
-              case 'removeCode':
-                output = await personalController.removeCode(chatId)
-                break;
-              case 'getInfoPersonal':
-                output = await personalController.getInfoPersonal(pId, chatId)
-                break;
-              case 'getInfoEmpresa':
-                output = await personalController.getInfoEmpresa()
-                break;
-              case 'getLastPeriodosOfComprobantesAFIP':
-                output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, tool.function.arguments.cant, queryRunner).then(array => { return array })
-                break;
-              case 'getLastPeriodoOfComprobantes':
-                output = await documentosController.getLastPeriodoOfComprobantes(pId, tool.function.arguments.cant, queryRunner).then(array => { return array })
-                break;
-              case 'getDocsPendDescarga':
-                output = await personalController.getDocsPendDescarga(pId)
-                break;
-              case 'getAdelantoLimits':
-                tool.function.arguments.fecha = new Date()
-                output = await PersonalController.getAdelantoLimits(tool.function.arguments.fecha)
-                break;
-              case 'getPersonalAdelanto':
-                const anioA = tool.function.arguments.anio || new Date().getFullYear();
-                const mesA = tool.function.arguments.mes || new Date().getMonth() + 1;
-                output = await PersonalController.getPersonalAdelanto(pId, anioA, mesA)
-                break;
-              case 'deletePersonalAdelanto':
-                const anioD = tool.function.arguments.anio || new Date().getFullYear();
-                const mesD = tool.function.arguments.mes || new Date().getMonth() + 1;
-                await personalController.deletePersonalAdelanto(pId, anioD, mesD)
-                output = { response: 'OK' }
-                break;
-              case 'setPersonalAdelanto':
-                const anioS = tool.function.arguments.anio || new Date().getFullYear();
-                const mesS = tool.function.arguments.mes || new Date().getMonth() + 1;
-                await personalController.setPersonalAdelanto(pId, anioS, mesS, tool.function.arguments.importe)
-                output = { response: 'OK' }
-                break;
-              case 'getURLDocumentoNew':
-                try {
-                  output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId, queryRunner)
-                } catch (e) {
-                  output = { Error: e }
-                }
-                break;
-              case 'getBackupNovedad':
-                output = await novedadController.getBackupNovedad(pId)
-                break;
-              case 'saveNovedad':
-                output = await novedadController.saveNovedad(pId, tool.function.arguments.novedad, queryRunner)
-                break;
-              case 'getObjetivoByCodObjetivo':
-                output = await objetivoController.getObjetivoByCodObjetivo(tool.function.arguments.CodObjetivo)
-                break;
-              case 'getNovedadTipo':
-                output = await novedadController.getNovedadTipo()
-                break;
-              case 'addNovedad':
-                output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, pId, queryRunner)
-                break;
-              case 'getNovedadesPendientesByResponsable':
-                output = await novedadController.getNovedadesPendientesByResponsable(pId)
-                break;
-              case 'setNovedadVisualizacion':
-                //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
-                output = {}
-                break;
-
-              default:
-                throw new Error(`Función desconocida: ${tool.function.name}`);
-            }
-
-            //            const output = await functionToCall(tool.function.arguments);
-
-
-
-            botServer.chatmess[chatId].push({
-              id: botServer.chatmess[chatId].length, role: "tool", content: JSON.stringify(output), tool_name: tool.function.name,
-            });
+          try {
+            iaTools = JSON.parse(mainPrompt.IaTools)
+          } catch {
+            return next(new ClientException('IA Tools de BMA no contiene un JSON válido'))
           }
-          recall = true
-        }
-      } while (recall);
+          if (!Array.isArray(iaTools))
+            return next(new ClientException('IA Tools de BMA debe ser un arreglo JSON'))
+          iaPrompt = mainPrompt.Prompt
+          break;
 
-    } catch (err) {
-      err = new ClientException(`Error al procesar el mensaje del chatbot: ${err.message}`, { err });
-      return next(err)
+        case 'agents':
+          // desarrollar obtencion del prompt y herramientas base para agentes
+        default:
+          return next(new ClientException('Modelo "' + model + '" no soportado.'))
+          break;
+      }
+
+      console.log(`[IA][${chatId}] prompt BMA ${iaPrompt?.length ?? 0} car. | tools (${iaTools.length}): ${iaTools.map((t: any) => t?.function?.name).join(', ')}`)
+
+      if (!botServer.chatmess[chatId])
+        botServer.chatmess[chatId] = []
+
+      if (botServer.chatmess[chatId].length == 0)
+        botServer.chatmess[chatId].push({ id: 0, role: "system", content: iaPrompt, sendIt: true });
+
+      botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, role: "user", content: message })
+
+      let vuelta = 0
+      let toolActual = ''
+      try {
+        let recall = false
+        do {
+          recall = false
+          toolActual = ''
+          vuelta++
+          // Corte de seguridad ante un bucle de tool_calls
+          if (vuelta > 10)
+            throw new Error('Se superó el límite de 10 llamadas a la IA en un mismo mensaje')
+
+          console.log(`[IA][${chatId}] vuelta ${vuelta} → ollama (${botServer.chatmess[chatId].length} msgs)`)
+          const inicioIA = Date.now()
+          const responseIA = await botServer.ollama.chat({
+            model: "gpt-oss:120b",
+            messages: botServer.chatmess[chatId],
+            stream: false,
+            tools: iaTools,
+          });
+
+          console.log(`[IA][${chatId}] vuelta ${vuelta} ← ollama ${Date.now() - inicioIA} ms | done_reason=${responseIA.done_reason} | tokens in/out=${responseIA.prompt_eval_count}/${responseIA.eval_count}`)
+          if (responseIA.message.thinking)
+            console.log(`[IA][${chatId}]   thinking (${responseIA.message.thinking.length} car.): ${responseIA.message.thinking.slice(0, 200).replace(/\s+/g, ' ')}`)
+          if (responseIA.message.content)
+            console.log(`[IA][${chatId}]   content (${responseIA.message.content.length} car.): ${responseIA.message.content.slice(0, 200).replace(/\s+/g, ' ')}`)
+
+          botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, ...responseIA.message });
+
+          if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
+            console.log(`[IA][${chatId}]   tool_calls: ${responseIA.message.tool_calls.map(t => t.function.name).join(', ')}`)
+
+            const stateRes = await personalController.getPersonaState(chatId);
+            const autoPersonalId = stateRes.stateData?.personalId;
+
+            for (const tool of responseIA.message.tool_calls) {
+              let output = {}
+              const pId = autoPersonalId || tool.function.arguments.personalId;
+              toolActual = tool.function.name
+              console.log(`[IA][${chatId}]   → tool ${tool.function.name} pId=${pId} (${autoPersonalId ? 'estado' : 'arg IA'}) args=${JSON.stringify(tool.function.arguments)?.slice(0, 200)}`)
+              const inicioTool = Date.now()
+              switch (tool.function.name) {
+                case 'genTelCode':
+                  const linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
+                  const ret = await personalController.genTelCode(chatId)
+                  output = { url: `https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, encTelNro: ret.encTelNro, linkVigenciaHs }
+                  break;
+                case 'getPersonaState':
+                  output = await personalController.getPersonaState(chatId)
+                  break;
+                case 'delTelefonoPersona':
+                  output = await personalController.delTelefonoPersona(chatId)
+                  break;
+                case 'removeCode':
+                  output = await personalController.removeCode(chatId)
+                  break;
+                case 'getInfoPersonal':
+                  output = await personalController.getInfoPersonal(pId, chatId)
+                  break;
+                case 'getInfoEmpresa':
+                  output = await personalController.getInfoEmpresa()
+                  break;
+                case 'getLastPeriodosOfComprobantesAFIP':
+                  output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, tool.function.arguments.cant, queryRunner).then(array => { return array })
+                  break;
+                case 'getLastPeriodoOfComprobantes':
+                  output = await documentosController.getLastPeriodoOfComprobantes(pId, tool.function.arguments.cant, queryRunner).then(array => { return array })
+                  break;
+                case 'getDocsPendDescarga':
+                  output = await personalController.getDocsPendDescarga(pId)
+                  break;
+                case 'getAdelantoLimits':
+                  tool.function.arguments.fecha = new Date()
+                  output = await PersonalController.getAdelantoLimits(tool.function.arguments.fecha)
+                  break;
+                case 'getPersonalAdelanto':
+                  const anioA = tool.function.arguments.anio || new Date().getFullYear();
+                  const mesA = tool.function.arguments.mes || new Date().getMonth() + 1;
+                  output = await PersonalController.getPersonalAdelanto(pId, anioA, mesA)
+                  break;
+                case 'deletePersonalAdelanto':
+                  const anioD = tool.function.arguments.anio || new Date().getFullYear();
+                  const mesD = tool.function.arguments.mes || new Date().getMonth() + 1;
+                  await personalController.deletePersonalAdelanto(pId, anioD, mesD)
+                  output = { response: 'OK' }
+                  break;
+                case 'setPersonalAdelanto':
+                  const anioS = tool.function.arguments.anio || new Date().getFullYear();
+                  const mesS = tool.function.arguments.mes || new Date().getMonth() + 1;
+                  await personalController.setPersonalAdelanto(pId, anioS, mesS, tool.function.arguments.importe)
+                  output = { response: 'OK' }
+                  break;
+                case 'getURLDocumentoNew':
+                  try {
+                    output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId, queryRunner)
+                  } catch (e) {
+                    console.log(`[IA][${chatId}]   ! getURLDocumentoNew falló: ${e?.message}`)
+                    output = { Error: e }
+                  }
+                  break;
+                case 'getBackupNovedad':
+                  output = await novedadController.getBackupNovedad(pId)
+                  break;
+                case 'saveNovedad':
+                  output = await novedadController.saveNovedad(pId, tool.function.arguments.novedad, queryRunner)
+                  break;
+                case 'getObjetivoByCodObjetivo':
+                  output = await objetivoController.getObjetivoByCodObjetivo(tool.function.arguments.CodObjetivo)
+                  break;
+                case 'getNovedadTipo':
+                  output = await novedadController.getNovedadTipo()
+                  break;
+                case 'addNovedad':
+                  output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, pId, queryRunner)
+                  break;
+                case 'getNovedadesPendientesByResponsable':
+                  output = await novedadController.getNovedadesPendientesByResponsable(pId)
+                  break;
+                case 'setNovedadVisualizacion':
+                  //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
+                  output = {}
+                  break;
+
+                default:
+                  throw new Error(`Función desconocida: ${tool.function.name}`);
+              }
+
+              //            const output = await functionToCall(tool.function.arguments);
+
+              const outputJson = JSON.stringify(output)
+              console.log(`[IA][${chatId}]   ← tool ${tool.function.name} ${Date.now() - inicioTool} ms | ${outputJson?.length ?? 0} car.: ${outputJson?.slice(0, 200)}`)
+
+              botServer.chatmess[chatId].push({
+                id: botServer.chatmess[chatId].length, role: "tool", content: outputJson, tool_name: tool.function.name,
+              });
+            }
+            recall = true
+          }
+        } while (recall);
+
+      } catch (err) {
+        console.error(`[IA][${chatId}] ERROR vuelta=${vuelta} tool=${toolActual || '-'} tras ${Date.now() - inicioChat} ms:`, err)
+        err = new ClientException(`Error al procesar el mensaje del chatbot: ${err.message}`, { err });
+        return next(err)
+      }
+
+      const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({
+        id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls, thinking: m.thinking
+      }));
+
+      botServer.chatmess[chatId].forEach(m => m.sendIt = true)
+
+      console.log(`[IA][${chatId}] fin chat ${vuelta} vuelta(s) en ${Date.now() - inicioChat} ms | ${response.length} msgs al front`)
+
+      return this.jsonRes({ 'response': response }, res, 'ok');
+    } finally {
+      await queryRunner.release()
     }
-
-    const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({
-      id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls, thinking: m.thinking
-    }));
-
-    botServer.chatmess[chatId].forEach(m => m.sendIt = true)
-
-    return this.jsonRes({ 'response': response }, res, 'ok');
-
   }
 
 
