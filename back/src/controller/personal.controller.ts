@@ -103,7 +103,7 @@ const columns: any[] = [
     fieldName: "ga.GrupoActividadId",
     searchComponent: 'inputForGrupoActividadSearch',
     searchType: "number",
-    sortable: false,
+    sortable: true,
     hidden: false,
     searchHidden: false
   },

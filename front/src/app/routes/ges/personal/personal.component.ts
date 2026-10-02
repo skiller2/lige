@@ -136,10 +136,11 @@ export class PersonalComponent {
 
     if (PersonalIds) {
       this.startFilters.set([{
-        index: 'PersonalId',
+        index: 'id',
         condition: 'AND',
         operator: '=',
         value: PersonalIds,
+        label: `${PersonalIds.split(';').length} asociados`,
         closeable: true,
       }])
     } else {
