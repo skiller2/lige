@@ -57,6 +57,8 @@ export class NovedadesFormComponent {
     VisualizacionTelefono: '',
     PersonalId: 0,
     Telefono: '',
+    DescripcionNormalizada: '',
+    AccionNormalizada: '',
   })
 
   objetivoDetalleChange(event: any) {
@@ -113,15 +115,14 @@ export class NovedadesFormComponent {
     try {
       if (this.NovedadCodigo()) {
          
-        let result = await firstValueFrom(this.apiService.updateNovedad(form, this.NovedadCodigo()))
-        await this.load()
+        await firstValueFrom(this.apiService.updateNovedad(form, this.NovedadCodigo()))
 
       } else {
          
         let result = await firstValueFrom(this.apiService.addNovedad(form))
         this.NovedadCodigo.set(result.data.novedadId)
-        await this.load()
       }
+      await this.load()
       this.onAddorUpdate.emit('save')
       this.formCli.markAsUntouched()
       this.formCli.markAsPristine()
