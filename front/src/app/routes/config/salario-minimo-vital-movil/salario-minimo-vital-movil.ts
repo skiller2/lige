@@ -10,6 +10,8 @@ import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
+import { Selections } from '../../../shared/schemas/filtro';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-sueldo-minimo-vital-movil',
@@ -27,6 +29,7 @@ export class SalarioMinimoVitalMovil {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
+  private readonly loadingSrv = inject(LoadingService)
   columnDefinitions: Column[] = []
 
   //listSalarioMinimoVitalMovil$ = new BehaviorSubject('')
@@ -39,22 +42,17 @@ export class SalarioMinimoVitalMovil {
   excelExportService = new ExcelExportService()
   gridDataInsert: any[] = []
   hasNewItems = signal(false)
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
-  startFilters: any[] = []
-
-  listOptionsChange(options: any) {
-    this.listOptions = options
-    this.refreshSMVM.update(v => v + 1)
-  }
+  });
+  startFilters = signal<Selections[]>([])
 
   lastPeriod = signal<Date>(new Date())
 
-  dateChange(val: Date) {
-    this.refreshSMVM.update(v => v + 1)
-  }
+  // dateChange(val: Date) {
+  //   this.refreshSMVM.update(v => v + 1)
+  // }
 
   columns = resource({
     params: () => ({}),
@@ -241,16 +239,18 @@ export class SalarioMinimoVitalMovil {
   }
 
   grid = resource({
-    params: () => ({options: this.listOptions, refresh: this.refreshSMVM() }),
-    loader: async () => {
+    params: () => ({options: this.listOptions(), refresh: this.refreshSMVM() }),
+    loader: async ({ params }) => {
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      let list:any = []
       await new Promise(resolve => setTimeout(resolve, 500))
-      const response = await firstValueFrom(this.searchService.getListSMVM(this.listOptions ))
+      const response = await firstValueFrom(this.searchService.getListSMVM(params.options ))
       if (response.list.length > 0){
         // Guardar la fecha de período mayor
         this.lastPeriod.set(response.list[0].SalarioMinimoVitalMovilDesde)
         this.cleanerVariables();
             this.editSalarioMinimoVitalMovilId.set(0)
-            const list = (response.list || []).map((item: any) => {
+            list = (response.list || []).map((item: any) => {
               // Los registros existentes tienen ID y están completos
               if (item.id) {
                 item.SalarioMinimoVitalMovilId = item.id;
@@ -263,10 +263,9 @@ export class SalarioMinimoVitalMovil {
             this.gridDataInsert = list;
             // Lo recién traído de la base no tiene cambios pendientes
             this.hasNewItems.set(false);
-            return list;
-      }else{
-        return [];
       }
+      this.loadingSrv.close()
+      return list
     }
   })
 

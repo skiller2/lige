@@ -12,6 +12,11 @@
     <div nz-col style="display: flex;flex-direction: row-reverse;">
 
       <nz-button-group nz-button nzButtonGroup>
+        <!-- btn  reload -->
+        <button nz-button nzType="default" (click)="gridData.reload()"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}">
+          <nz-icon nzType="reload" nzTheme="outline" />
+        </button>
         <button nz-button nzType="default" [disabled]="!rows().length || loadingRec() || loadingPen()" [nzLoading]="loadingApr()" nz-tooltip nzTooltipTitle="{{ 'app.icon.aprobar' | i18n }}"
           nz-popconfirm nzPopconfirmTitle="¿Aprobar {{rows().length}} registros?" (nzOnConfirm)="aprobarReg()">
           <nz-icon nzType="check" nzTheme="outline" />
@@ -39,7 +44,7 @@
       <ul nz-menu nzMode="horizontal" style="display: flex;">
         <li nz-menu-item nzMatchRouter>
           <span nz-icon nzType=""></span>
-          <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'listado']" (click)="reloadList()" >{{ 'ges.asistenciaexcepciones' | i18n }} </a>
+          <a [routerLink]="['/', 'ges', 'excepciones-asistencia', 'listado']" >{{ 'ges.asistenciaexcepciones' | i18n }} </a>
         </li>
       </ul>
     </div>
@@ -50,12 +55,12 @@
 
     <nz-tab>
       <a nz-tab-link routerLink="/ges/excepciones-asistencia/listado"  >{{ 'app.icon.objectives' | i18n }} </a>
-      @if ((columns$|async); as columnas) {
+      @if (columns().length) {
         <ng-template nz-tab>
-          <shared-filtro-builder  [fieldsToSelect]="columnas" (optionsChange)="listOptionsChange($event)" [startFilters]="startFilters()" />
+          <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions" [startFilters]="startFilters()" />
           <div class="gridListContainer container-fluid" >
-            <angular-slickgrid gridId="grid" [columns]="columnas" [options]="gridOptions"
-              [dataset]="(gridData$ | async) || []" (onAngularGridCreated)="angularGridReady($event)"
+            <angular-slickgrid gridId="grid" [columns]="columns()" [options]="gridOptions"
+              [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event)"
               (onSelectedRowsChanged)="handleSelectedRowsChanged($event)">
             </angular-slickgrid>
           </div>

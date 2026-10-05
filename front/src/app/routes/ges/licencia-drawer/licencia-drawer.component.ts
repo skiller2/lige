@@ -1,6 +1,6 @@
 import { NzDrawerPlacement } from 'ng-zorro-antd/drawer';
 import { SHARED_IMPORTS } from '@shared';
-import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, TemplateRef, } from '@angular/core';
+import { Component, ChangeDetectionStrategy, model, input, computed, inject, viewChild, signal, output, } from '@angular/core';
 import { NzDescriptionsModule } from 'ng-zorro-antd/descriptions';
 import { FormControl, NgForm } from '@angular/forms';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
@@ -34,16 +34,17 @@ export interface Option {
 
 export class LicenciaDrawerComponent {
   ngForm = viewChild.required(NgForm);
-  PersonalId = model<number>(0)
-  visibleHistorial = model<boolean>(false)
+  
   PersonalLicenciaId = input.required<number>()
   selectedPeriod = input.required<any>()
   tituloDrawer = input.required<string>()
-  openDrawerForConsult = input<boolean>(false)
-  RefreshLicencia = model<boolean>(false)
+  
   private apiService = inject(ApiService)
   formChange$ = new BehaviorSubject('');
   private notification = inject(NzNotificationService);
+  openDrawerForConsult = input<boolean>(false)
+  PersonalId = model<number>(0)
+  visibleHistorial = model<boolean>(false)
   PersonalIdForEdit = 0
   SucursalId = 0
   ArchivoIdForDelete = 0;
@@ -52,6 +53,7 @@ export class LicenciaDrawerComponent {
   options: any[] = [];
   files = model([]);
   //fileUploaded = false;
+  onAddorUpdate = output()
 
 
 
@@ -143,7 +145,7 @@ export class LicenciaDrawerComponent {
       this.ngForm().form.markAsUntouched()
       this.ngForm().form.markAsPristine()
       //this.fileUploaded = false
-      this.RefreshLicencia.set(true)
+      this.onAddorUpdate.emit()
       this.formChange$.next("")
     } catch (error) {
 
