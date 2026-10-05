@@ -74,6 +74,7 @@ import { InaesController } from "../inaes/inaes.controller.ts";
 import { ProveedoresController } from "../proveedores/proveedores.controller.ts";
 import { DepositosController } from "../despositos/despositos.controller.ts";
 import { ParametroGeneralController } from "../parametro-general/parametro-general.controller.ts";
+import { TipoAsociadoController } from "../tipo-asociado/tipo-asociado.controller.ts";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -133,6 +134,7 @@ export const administradoresController = new AdministradoresController()
 export const importeVentaVigilanciaController = new ImporteVentaVigilanciaController()
 export const facturacionController = new FacturacionController()
 export const novedadesController = new NovedadesController()
+export const tipoAsociadoController = new TipoAsociadoController()
 export const eventoLogController = new EventoLogController()
 export const excepcionesAsistenciaController = new ExcepcionesAsistenciaController()
 export const compensaGeneralACordinadorController = new CompensaGeneralACordinadorController()
