@@ -1,13 +1,12 @@
 <ng-container>
-    <shared-filtro-builder  [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
-
-    @if(columns$ | async; as columnas) {
+    @if(columns().length) {
+      <shared-filtro-builder  [fieldsToSelect]="columns()" [(options)]="listOptions" />
       <div class="gridContainerCut container-fluid">
         <angular-slickgrid 
           gridId="gridCut" 
-          [columns]="columnas"
+          [columns]="columns()"
           [options]="gridOptions" 
-          [dataset]="(gridData$ | async) || []"
+          [dataset]="gridData.value()"
           (onAngularGridCreated)="angularGridReady($event)"
           (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"
         ></angular-slickgrid>

@@ -1,4 +1,4 @@
-import { Component, ViewChild, computed, inject, model, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ViewChild, computed, inject, model, signal, ChangeDetectionStrategy, viewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router'; 
 import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS } from '@shared';
@@ -32,15 +32,10 @@ export class EstudiosComponent {
 
   @ViewChild('estudiosForm', { static: true }) estudiosForm: NgForm = new NgForm([], []);
   
-
-  
   PersonalId = signal<number>(0);
   PersonalEstudioId = signal<number>(0);
   visibleDrawer = signal<boolean>(false);
   disabled = signal<boolean>(false);
-  RefreshEstudio = signal<boolean>(false);
-  RefreshCurso = signal<boolean>(false);
-  RefreshInstituciones = signal<boolean>(false);
   ListEstudios$ = new BehaviorSubject('');
   selectedTab = signal<string>('estudios');
   visibleHistorial = signal<boolean>(false);
@@ -57,12 +52,13 @@ export class EstudiosComponent {
 
   constructor(private settingsService: SettingsService,private router: Router) {}
 
+  childEstTable = viewChild.required<TableEstudiosComponent>('estudiosTable')
+  childCurTable = viewChild.required<TableCursoComponent>('cursoTable')
+  childInsTable = viewChild.required<TableInstitucionesComponent>('institucionesTable')
+
   ngOnInit() {
-  
-  this.settingsService.setLayout('collapsed', true);
+    this.settingsService.setLayout('collapsed', true);
   }
-
-
 
   actualizarValorDrawer(event: any) {
      
@@ -99,18 +95,14 @@ export class EstudiosComponent {
   }
 
   openDrawerforEdit() {
-   
     this.disabled.set(false);
     this.visibleDrawer.set(true);
-    this.RefreshEstudio.set(false)
   }
 
 
   openDrawerforConsult() {
-   
     this.disabled.set(true);
     this.visibleDrawer.set(true);
-    this.RefreshEstudio.set(false)
   }
 
 
@@ -119,7 +111,6 @@ export class EstudiosComponent {
     this.disabled.set(false);
     this.PersonalEstudioId.set(0);
     this.visibleDrawer.set(true);
-    this.RefreshEstudio.set(false)
   }
 
 
@@ -130,22 +121,17 @@ export class EstudiosComponent {
     this.disabled.set(false);
     this.CursoHabilitacionSelectedId.set(0);
     this.visibleDrawerCurso.set(true);
-    this.RefreshCurso.set(false)
   }
 
   openDrawerCursoforConsult() {
-   
     this.disabled.set(true);
     this.visibleDrawerCurso.set(true);
-    this.RefreshCurso.set(false)
   }
 
   
   openDrawerCursoforEdit() {
-   
     this.disabled.set(false);
     this.visibleDrawerCurso.set(true);
-    this.RefreshCurso.set(false)
   }
 
 
@@ -156,28 +142,39 @@ export class EstudiosComponent {
     this.disabled.set(false);
     this.CentroCapacitacionId.set(0);
     this.visibleDrawerInstituciones.set(true);
-    this.RefreshInstituciones.set(false)
   }
 
   openDrawerInstitucionesforSede() {
    
     this.disabled.set(false);
     this.visibleDrawerSedes.set(true);
-    this.RefreshInstituciones.set(false)
   }
 
   openDrawerInstitucionesforConsult() {
-   
     this.disabled.set(true);
     this.visibleDrawerInstituciones.set(true);
-    this.RefreshInstituciones.set(false)
   }
   
   openDrawerInstitucionesforEdit() {
-   
     this.disabled.set(false);
     this.visibleDrawerInstituciones.set(true);
-    this.RefreshInstituciones.set(false)
+  }
+  
+  refreshGrid(){
+    switch (this.selectedTab()) {
+      case 'estudios':
+        this.childEstTable().gridData.reload()
+        break;
+      case 'cursos':
+        this.childCurTable().gridData.reload()
+        break;
+      case 'instituciones':
+        this.childInsTable().gridData.reload()
+        break;
+    
+      default:
+        break;
+    }
   }
 
 

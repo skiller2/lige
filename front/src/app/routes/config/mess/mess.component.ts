@@ -25,7 +25,7 @@ interface AgentsFormModel {
   agents: ChatBotPromptForm[];
 }
 
-type ChatModel = 'agents' | 'main-prompt'
+type ChatModel = 'agents' | 'main-prompt' | 'lige-prompt'
 
 @Component({
   selector: 'app-mess',
@@ -231,7 +231,7 @@ export class MessComponent {
 
     const agent = this.agentsModel().agents[index]
     if (!agent) return
-    if (agent.ChatBotPromptCodigo === 'BMA') return
+    if (!agent.EsNuevo && ['BMA', 'LP'].includes(agent.ChatBotPromptCodigo.trim())) return
 
     if (!agent.EsNuevo && agent.ChatBotPromptCodigo) {
       this.deletedAgentCodes.update(codes =>

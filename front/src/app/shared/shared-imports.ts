@@ -34,6 +34,7 @@ const THIRDMODULES: Array<Type<any>> = [ImageCropperModule];
 export type listOptionsT = {
   filtros: any[],
   sort: any,
+  extra?: any
 }
 
 

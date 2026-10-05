@@ -2,12 +2,12 @@ import {
   Component,
   ViewChild,
   inject,EventEmitter,Output,
-  model
+  model, signal, resource
 } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import {
-  BehaviorSubject,
+  firstValueFrom,
   debounceTime,
   map,
   switchMap,
@@ -26,12 +26,8 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
 import { Selections } from '../../../shared/schemas/filtro';
-
-type listOptionsT = {
-  filtros: any[],
-  extra: any,
-  sort: any,
-}
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
 @Component({
   selector: 'app-table-seguros-list',
@@ -52,52 +48,42 @@ export class TableSeguroListComponent {
   private readonly route = inject(ActivatedRoute);
 
   @Output()valueGridEvent = new EventEmitter();
-  RefreshLicencia = model<boolean>(false)
 
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService:SearchService) { }
-  formChange$ = new BehaviorSubject('');
-  tableLoading$ = new BehaviorSubject(false);
-  
-
-  columns$ = this.apiService.getCols('/api/seguros/cols').pipe(map((cols) => {
-
-    return cols
-  }));
+  private settingService = inject(SettingsService)
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
+  private readonly loadingSrv = inject(LoadingService)
 
   excelExportService = new ExcelExportService()
   angularGridEdit!: AngularGridInstance;
   gridObj!: SlickGrid;
   detailViewRowCount = 9
   gridOptions!: GridOption
-  gridDataLen = 0
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
     extra: null,
-  }
-  dataAngularGrid:any
-  startFilters: Selections[] = []
+  });
+  startFilters = signal<Selections[]>([])
 
-  listOptionsChange(options: any) {
-    this.listOptions = options
-    this.formChange$.next('')
-  }
+  columns = toSignal(this.apiService.getCols('/api/seguros/cols'), { initialValue: [] as Column[] })
 
-  gridData$ = this.formChange$.pipe(
-    debounceTime(250),
-    switchMap(() => {
-      return this.apiService
-        .getListSeguros({ options: this.listOptions } )
-        .pipe(
-          map(data => {
-            this.dataAngularGrid = data.list
-            return data.list
-          }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
-        );
-    })
-  )
+  gridData = resource({
+    params: () => ({ options: this.listOptions() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        const res = await firstValueFrom(this.apiService.getListSeguros({ options: params.options }));
+        response = res.list;
+      } catch (error) {}
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -106,28 +92,20 @@ export class TableSeguroListComponent {
     this.gridOptions.createFooterRow = true
 
     const dateToday = new Date();
-    this.startFilters = [
-     {index:'PersonalSeguroDesde', condition:'AND', operator:'<=', value: dateToday, closeable: true},
-     {index:'PersonalSeguroHasta', condition:'AND', operator:'>=', value: dateToday, closeable: true},
-     {index:'SituacionRevistaId', condition:'AND',operator:'=', value: '2;10;11;12', closeable: true}]
+    this.startFilters.set([
+      {index:'PersonalSeguroDesde', condition:'AND', operator:'<=', value: dateToday, closeable: true},
+      {index:'PersonalSeguroHasta', condition:'AND', operator:'>=', value: dateToday, closeable: true},
+      {index:'SituacionRevistaId', condition:'AND',operator:'=', value: '2;10;11;12', closeable: true}
+    ])
   }
-
-  
 
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     cellNode.replaceChildren(componentOutput.domElement)
-}
-
-
-  formChanged(_event: any) {
-    this.listOptionsChange(this.listOptions)
   }
 
-  ngOnDestroy() {
-  }
+  ngOnDestroy() {}
   
-
   angularGridReady(angularGrid: any) {
 
     this.angularGridEdit = angularGrid.detail
@@ -144,10 +122,6 @@ export class TableSeguroListComponent {
     });
     
    
-  }
-
-  valueRowSelectes(value:number){
-    this.dataAngularGrid
   }
 
   exportGrid() {

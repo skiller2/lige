@@ -1,15 +1,16 @@
-import { Component, Output, EventEmitter, computed, input, signal, effect, model,inject } from '@angular/core';
+import { Component, Output, EventEmitter, computed, input, signal, effect, model,inject, resource } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SHARED_IMPORTS } from '@shared';
-import { BehaviorSubject, debounceTime, map, switchMap, tap } from 'rxjs';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { firstValueFrom, debounceTime, map, switchMap, tap } from 'rxjs';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
-import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption } from 'angular-slickgrid';
+import { AngularGridInstance, AngularUtilService, SlickGrid, GridOption, Column } from 'angular-slickgrid';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { LoadingService } from '@delon/abc/loading';
 
 
@@ -45,67 +46,43 @@ interface PersonalEstudio {
 export class TableAyudaAsistencialCuotasComponent {
   @Output() valueGridEvent = new EventEmitter<PersonalEstudio[]>();
 
-  anio = signal<number>(0);
-  mes = signal<number>(0);
-
-  private readonly loadingSrv = inject(LoadingService);
-
-  private formChange$ = new BehaviorSubject<string>('');
-  tableLoading$ = new BehaviorSubject<boolean>(false);
-  columns$ = this.apiService.getCols('/api/ayuda-asistencial/cols/cuotas');
-  private angularGridEdit!: AngularGridInstance;
+  private angularUtilService = inject(AngularUtilService)
   private gridObj!: SlickGrid;
-  rows: number[] = []
+  private angularGridEdit!: AngularGridInstance;
   private readonly detailViewRowCount = 9;
-  gridOptions!: GridOption;
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
+  private readonly loadingSrv = inject(LoadingService);
   private dataAngularGrid: PersonalEstudio[] = [];
   private personalEstudios: PersonalEstudio[] = [];
   private excelExportService = new ExcelExportService();
+  gridOptions!: GridOption;
+  rows: number[] = []
   periodo = input<Date>(new Date());
-  private listOptions: ListOptions = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-    extra: null,
-  };
+  });
   personalId = model<number>(0);
   rowsSelectedCount = model<number>(0);
 
-  effect =     effect(() => {
-      const periodoValue = this.periodo();
-      if (periodoValue) {
-        this.anio.set(periodoValue.getFullYear());
-        this.mes.set(periodoValue.getMonth() + 1);
-        
-      }else{
-        this.anio.set(0);
-        this.mes.set(0);
-      }
-      this.formChange$.next('');
-    });
+  columns = toSignal(this.apiService.getCols('/api/ayuda-asistencial/cols/cuotas'), { initialValue: [] as Column[] })
 
-  constructor(
-    private apiService: ApiService,
-    private angularUtilService: AngularUtilService,
-    public searchService: SearchService
-  ) {
-  }
-
-
-  gridData$ = this.formChange$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-        this.loadingSrv.open({ type: 'spin', text: '' })
-        return this.apiService.getListAyudaAsistencialCuotas(this.anio(), this.mes(), { options: this.listOptions })
-        .pipe(
-            map(data => { 
-               this.dataAngularGrid = data.list;
-              return data.list; }),
-            doOnSubscribe(() => { }),
-            tap({ complete: () => { this.loadingSrv.close() } })
-        )
-    })
-)
-
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), periodo:this.periodo() }),
+    loader: async ({ params }) => {
+      let response = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        const res = await firstValueFrom(this.apiService.getListAyudaAsistencialCuotas(params.periodo.getFullYear(), params.periodo.getMonth()+1, { options: params.options }));
+        response = res.list;
+      } catch (error) {}
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   ngOnInit(): void {
     this.initializeGridOptions();
@@ -126,12 +103,6 @@ export class TableAyudaAsistencialCuotasComponent {
 
   }
 
-  listOptionsChange(options: any): void {
-    this.listOptions = options;
-    this.formChange$.next('');
-  }
-
-
   angularGridReady(angularGrid: any): void {
     this.angularGridEdit = angularGrid.detail;
     this.gridObj = angularGrid.detail.slickGrid;
@@ -140,9 +111,7 @@ export class TableAyudaAsistencialCuotasComponent {
       totalRecords(this.angularGridEdit)
       columnTotal('importetotal', this.angularGridEdit)
       columnTotal('importe', this.angularGridEdit)
-
-
-  })
+    })
 
     this.angularGridEdit.slickGrid.onClick.subscribe((_e: any, args: { row: number }) => {
       this.personalEstudios = [this.dataAngularGrid[args.row]];
@@ -179,9 +148,6 @@ export class TableAyudaAsistencialCuotasComponent {
             this.personalId.set(0);
         }
     }
-}
-
-  reload(): void {
-    this.formChange$.next('');
   }
+
 } 
