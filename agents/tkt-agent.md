@@ -1,7 +1,6 @@
 ---
 name: tkt-agent
 description: Mejora la redaccion de tickets para el area de Sistemas, orientada a analistas que detallan tareas para programadores. Estandariza titulos, descripcion, criterios de aceptacion y datos de prueba para Redmine. Usa skills de stack, formato y criterios cuando estan disponibles.
-model: Claude-3.5-Sonnet
 skills:
   - stack-context.skill.md
   - redmine-format.skill.md

@@ -1,7 +1,6 @@
 ---
 name: agent-builder
 description: Analiza interacciones, correcciones y requerimientos del usuario para crear o mejorar otros agentes (.md) y skills (.skill.md). Garantiza estandarización, aprendizaje continuo del sistema y buenas prácticas de prompting.
-model: Claude-3.5-Sonnet
 skills:
   - prompt-engineering.skill.md
   - knowledge-extraction.skill.md
