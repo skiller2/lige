@@ -64,6 +64,7 @@ import { inaesRouter } from "../inaes/inaes.routes.ts";
 import { ordenVentaRouter } from "../orden-venta/orden-venta.routes.ts";
 import { proveedoresRouter } from "../proveedores/proveedores.routes.ts";
 import { depositosRouter } from "../despositos/despositos.routes.ts";
+import { parametroGeneralRouter } from "../parametro-general/parametro-general.routes.ts";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -131,4 +132,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/orden-venta", ordenVentaRouter);
   server.setRoute("/api/proveedores", proveedoresRouter);
   server.setRoute("/api/depositos", depositosRouter);
+  server.setRoute("/api/parametro-general", parametroGeneralRouter);
 }

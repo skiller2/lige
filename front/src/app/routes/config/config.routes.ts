@@ -26,5 +26,10 @@ export const ConfigRoutes: Routes = [
     path: 'salario-minimo-vital-movil',
     loadComponent: () => import('./salario-minimo-vital-movil/salario-minimo-vital-movil').then(c => c.SalarioMinimoVitalMovil),
   },
- 
+  { path: 'parametros-generales', redirectTo: 'parametros-generales/listado' },
+  {
+    path: 'parametros-generales/:tab',
+    loadComponent: () => import('./parametros-generales/parametros-generales').then(c => c.ParametrosGeneralesComponent),
+  },
+
 ];

@@ -1,0 +1,14 @@
+
+  <ng-container>
+    <shared-filtro-builder [fieldsToSelect]="columns()" [(options)]="listOptions"
+      [keyLocalstorage]="constructor.name" />
+
+    <div class="gridContainerParametroGeneral container-fluid">
+      @if (columns().length){
+      <angular-slickgrid gridId="gridParametroGeneral" [columns]="columns()" [options]="gridOptions"
+        [dataset]="gridData()" (onAngularGridCreated)="angularGridReady($event)"
+        (onSelectedRowsChanged)="handleSelectedRowsChanged($event)" autoRowHeight>
+      </angular-slickgrid>
+      }
+    </div>
+  </ng-container>

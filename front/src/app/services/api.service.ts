@@ -2060,6 +2060,31 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/orden-venta/anular', { NroOrdenVentas });
   }
 
+  getListParametrosGenerales(options: any) {
+
+    return this.http.post<ResponseJSON<any>>('/api/parametro-general/list', { options }).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of({ total: 0, list: [] }))
+    );
+  }
+
+  getParametroGeneral(ParametroGeneralCodigo: string) {
+    return this.http.get<ResponseJSON<any>>(`/api/parametro-general/${encodeURIComponent(ParametroGeneralCodigo)}`).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of({}))
+    );
+  }
+
+  // Alta indica si el código es nuevo: el código es la clave y lo carga el usuario
+  setParametroGeneral(parametroGeneral: any, Alta: boolean) {
+    return this.http.post<ResponseJSON<any>>('/api/parametro-general/save', { ...parametroGeneral, Alta });
+  }
+
+  deleteParametroGeneral(ParametroGeneralCodigo: string) {
+
+    return this.http.post<ResponseJSON<any>>('/api/parametro-general/baja', { ParametroGeneralCodigo });
+  }
+
   getPrecioProductoOrdenVenta(ObjetivoId: number, anio: number, mes: number, ProductoCodigo: string) {
 
     return this.http.get<ResponseJSON<any>>(`/api/orden-venta/precio/${ObjetivoId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
