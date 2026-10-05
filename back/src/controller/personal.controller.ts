@@ -348,6 +348,17 @@ const columns: any[] = [
     searchHidden: false,
     hidden: true
   },
+  {
+    name: "Nacionalidad",
+    type: "string",
+    id: "NacionalidadDescripcion",
+    field: "NacionalidadDescripcion",
+    fieldName: "nac.NacionalidadDescripcion",
+    searchType: "string",
+    sortable: true,
+    searchHidden: false,
+    hidden: true
+  },
 ]
 const inconsColumns: any[] = [
   {
@@ -912,6 +923,7 @@ export class PersonalController extends BaseController {
         act.ActaFechaActa,
         act.TipoPersonalActaDescripcion,
         per.PersonalSexo,
+        nac.NacionalidadDescripcion,
         1
 
       FROM Personal per
@@ -1022,6 +1034,7 @@ LEFT JOIN(
 					) AS percat on percat.PersonalId= per.PersonalId
 		LEFT JOIN PersonalEmail email on email.PersonalId=per.PersonalId and email.PersonalEmailInactivo=0
     LEFT JOIN BotRegTelefonoPersonal rt ON rt.PersonalId = per.PersonalId
+    left join Nacionalidad nac on nac.NacionalidadId = per.PersonalNacionalidadId
         WHERE (1=1)
         AND (${filterSql})
         ${orderBy}`)
