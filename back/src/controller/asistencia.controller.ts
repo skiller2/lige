@@ -657,7 +657,7 @@ export class AsistenciaController extends BaseController {
       `, [ObjetivoId, anio, mes])
 
       if (!ordenesVenta[0]?.NroOrdenVenta && !ordenesVenta[0]?.ObjetivoHabilitacionNecesariaId) {
-        // TODO: DESCOMENTAR CUANDO SE HABILITE EN PRODUCCION EL USO
+        // TODO: DESCOMENTAR CUANDO SE HABILITE EN PRODUCCION EL USO DE ORDEN DE VENTA
         // throw new ClientException(`No se puede finalizar la carga. El objetivo debe tener al menos una órden de venta cargada para el período ${anio}/${mes}`)
       }
 
@@ -3820,6 +3820,7 @@ export class AsistenciaController extends BaseController {
 
       //Validación de Excepción de Asistencia
       excepAsistencia = await this.getExcepAsistenciaPorObjetivoQuery(objetivoId, desde, queryRunner)
+      const sinHorasNormales = this.valExcepSinHorasNormales(gridData, excepAsistencia)
 
       for (index = 0; index < gridData.length; index++) {
         let item = gridData[index]
@@ -3834,7 +3835,7 @@ export class AsistenciaController extends BaseController {
         let error: any[] = []
         //Validación de los datos ingresados
         if (!item.apellidoNombre.id || !item.forma.id || !item.categoria.id || !item.categoria.tipoId) {
-          error.push(`Los campos de Persona, Forma y Categoria NO pueden estar vacios`)
+          error.push(`Los campos de Persona, Forma y Categoria NO pueden estar vacios.`)
           errores.push(`Fila ${index + 1}:\n${error.join(`\n`)}`)
           continue
         }
@@ -3844,12 +3845,12 @@ export class AsistenciaController extends BaseController {
         const cant = gridData.find((i: any) => (i.apellidoNombre.id == item.apellidoNombre.id && i.forma.id == item.forma.id && i.categoria.id == item.categoria.id && i.categoria.tipoId == item.categoria.tipoId && i.id != item.id))
 
         if (cant)
-          error.push(`La persona ya tiene un registro existente con misma forma y categoría`)
+          error.push(`La persona ya tiene un registro existente con misma forma y categoría.`)
 
         //Validación Categoria del Personal
         const valCategoriaPersonal: any = await this.valCategoriaPersonal(item, sucursalId, queryRunner)
         if (valCategoriaPersonal instanceof ClientException) {
-          error.push(`La categoría ${item.categoria.fullName} no se encuentra habilitada para ${item.apellidoNombre.fullName}`)
+          error.push(`La categoría ${item.categoria.fullName} no se encuentra habilitada para ${item.apellidoNombre.fullName}.`)
         }
 
 
@@ -3863,9 +3864,15 @@ export class AsistenciaController extends BaseController {
           //Validación de Excepción de Asistencia
           const tieneArt14 = excepAsistencia.some((obj: any) => obj.PersonalId == item.personalId)
           if (!totalhs && tieneArt14)
-            error.push(`La persona tiene Art14 y no tienen horas cargadas`)
+            error.push(`La persona tiene Art14 y no tienen horas cargadas.`)
           else if (totalhs < 1)
-            error.push(`El total de horas tiene que ser superior o igual a 1`)
+            error.push(`El total de horas tiene que ser superior o igual a 1.`)
+        }
+
+        //Validación de excepción sin horas normales (una vez por persona)
+        if (sinHorasNormales.has(item.personalId)) {
+          sinHorasNormales.delete(item.personalId)
+          error.push(`Posee una excepción cargada y no cuenta con horas normales registradas en planilla.`)
         }
 
         if (error.length) {
@@ -3875,15 +3882,35 @@ export class AsistenciaController extends BaseController {
         }
       }
 
+      //Personas con excepción que no figuran en la planilla
+      for (const nombre of sinHorasNormales.values())
+        errores.push(`${nombre}:\nPosee una excepción cargada y no cuenta con horas normales registradas en planilla.`)
+
     }
     if (gridData.length == 0) {
-      errores.push(`El objetivo debe poseer al menos una persona con una hora registrada`)
+      errores.push(`El objetivo debe poseer al menos una persona con una hora registrada.`)
     }
     if (errores.length) {
       return new ClientException(errores)
     }
 
     return { gridData, excepAsistencia }
+  }
+
+  valExcepSinHorasNormales(gridData: any[], excepAsistencia: any[]) {
+    // Suma de horas normales (forma N) por persona
+    const horasNormales = new Map<number, number>()
+    for (const row of gridData)
+      if (row.forma?.id == 'N')
+        horasNormales.set(row.apellidoNombre.id, (horasNormales.get(row.apellidoNombre.id) ?? 0) + (row.total ?? 0))
+
+    // Personas con excepción y sin horas normales, sin repetir
+    const sinHoras = new Map<number, string>()
+    for (const excep of excepAsistencia)
+      if (!horasNormales.get(excep.PersonalId))
+        sinHoras.set(excep.PersonalId, excep.ApellidoNombre)
+
+    return sinHoras
   }
 
   async getTiposHoraQuery() {
