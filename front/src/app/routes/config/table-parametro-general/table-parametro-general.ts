@@ -82,6 +82,14 @@ export class TableParametroGeneralComponent implements OnInit {
     });
   }
 
+  // Limpia la selección de la grilla
+  clearSelection(): void {
+    if (this.angularGrid?.slickGrid) {
+      this.angularGrid.slickGrid.setSelectedRows([]);
+    }
+    this.parametrosSeleccionados.set([]);
+  }
+
   async handleSelectedRowsChanged(e: any): Promise<void> {
     const selectedRows = e.detail.args.rows;
     const selectedData = selectedRows.map((r: any) => this.angularGrid.slickGrid.getDataItem(r).ParametroGeneralCodigo)

@@ -27,7 +27,7 @@
 
   <nz-tabs nzLinkRouter [nzTabBarExtraContent]="extraTemplate">
     <nz-tab><a *nzTabLink nz-tab-link [routerLink]="['/', 'config', 'parametros-generales', 'listado']">Listado</a>
-      <app-table-parametro-general [(parametrosSeleccionados)]="parametrosSeleccionados" [refreshGrid]="refreshTick()" />
+      <app-table-parametro-general #tableParametroGeneral [(parametrosSeleccionados)]="parametrosSeleccionados" [refreshGrid]="refreshTick()" />
     </nz-tab>
 
     <nz-tab [nzDisabled]="!router.isActive('/config/parametros-generales/detalle',{})" >

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, model, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { NavigationEnd, Router } from '@angular/router';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
@@ -20,7 +20,9 @@ export class ParametrosGeneralesComponent {
   private apiService = inject(ApiService)
   public router = inject(Router)
 
-  parametrosSeleccionados = model<any[]>([])
+  // signal y no model(): la app usa withComponentInputBinding y el router, en cada navegación,
+  // pisa todos los inputs de la pantalla con lo que trae la ruta (undefined para este)
+  parametrosSeleccionados = signal<any[]>([])
   private currentUrl = toSignal(
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
@@ -32,6 +34,7 @@ export class ParametrosGeneralesComponent {
 
   soloLectura = computed(() => this.currentUrl()==='/config/parametros-generales/detalle')
   refreshTick = signal(0)
+  childTableParametroGeneral = viewChild<TableParametroGeneralComponent>('tableParametroGeneral')
 
   async bajaParametroGeneral() {
     if (this.parametrosSeleccionados() && this.parametrosSeleccionados().length != 1) return
@@ -50,6 +53,7 @@ export class ParametrosGeneralesComponent {
 
   // Al grabar un alta se pasa directo a editar el registro recién creado
   parametroGeneralAlta(ParametroGeneralCodigo: string) {
+    this.childTableParametroGeneral()?.clearSelection()
     this.parametrosSeleccionados.set([ParametroGeneralCodigo])
     this.refreshTick.update(n => n + 1)
     this.router.navigate(['/', 'config', 'parametros-generales', 'editar'])

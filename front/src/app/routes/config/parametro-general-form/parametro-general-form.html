@@ -9,9 +9,20 @@
 
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Parámetros</nz-form-label>
+    <!-- El lenguaje de Monaco se fija al crear el editor: por eso se cambia de control y no de lenguaje.
+         El @if envuelve el nz-form-control entero: si cambiara solo el control adentro, sfErrorTip
+         leería el [formField] nuevo antes de que tenga valor (NG0950). -->
+    @if (esJson()) {
+    <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19" sfErrorTip>
+      <nz-code-editor [formField]="formParametroGeneral.Parametros" style="height: 300px; border: 1px solid #d9d9d9;"
+        [nzEditorOption]="{ language: 'json', readOnly: soloLectura(), minimap: { enabled: false }, automaticLayout: true }"
+        (nzEditorInitialized)="editorListo()" />
+    </nz-form-control>
+    } @else {
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19" sfErrorTip>
       <textarea nz-input rows="12" [formField]="formParametroGeneral.Parametros"></textarea>
     </nz-form-control>
+    }
   </nz-form-item>
 
   @if (!soloLectura()) {

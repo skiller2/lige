@@ -98,7 +98,7 @@ export class ParametroGeneralController extends BaseController {
   async setParametroGeneral(req: Request, res: Response, next: NextFunction) {
     const Alta = req.body.Alta === true;
     const ParametroGeneralCodigo = String(req.body.ParametroGeneralCodigo ?? '').trim().toUpperCase();
-    const Parametros = String(req.body.Parametros ?? '');
+    let Parametros = String(req.body.Parametros ?? '');
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
@@ -115,9 +115,10 @@ export class ParametroGeneralController extends BaseController {
       if (!Parametros.trim())
         fieldErrors.push({ fieldTree: `Parametros`, kind: 'server', message: 'Los parámetros no pueden estar vacíos' })
       else if (Parametros.trim().startsWith('{') || Parametros.trim().startsWith('[')) {
-        // Si tiene forma de JSON, tiene que ser un JSON válido
+        // Si tiene forma de JSON, tiene que ser un JSON válido. Se graba compacto: la pantalla lo
+        // muestra con sangría para editarlo.
         try {
-          JSON.parse(Parametros)
+          Parametros = JSON.stringify(JSON.parse(Parametros))
         } catch (error) {
           fieldErrors.push({ fieldTree: `Parametros`, kind: 'server', message: `JSON inválido: ${error instanceof Error ? error.message : String(error)}` })
         }
