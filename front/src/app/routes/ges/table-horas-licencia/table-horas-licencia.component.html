@@ -1,20 +1,14 @@
 <nz-card class="small-margin">
-  <form nz-form #objpendForm="ngForm">
     <ng-container>
 
-      <shared-filtro-builder  [fieldsToSelect]="columns$ | async" (optionsChange)="listOptionsChange($event)" />
-
-      @if ((columns$|async); as columnas) {
-        <div class="gridContainer2 container-fluid">
-          <angular-slickgrid gridId="gridEdit2" [columns]="columnas"
-            [options]="gridOptionsEdit" [dataset]="(gridData$ | async) || []"
-            (onAngularGridCreated)="angularGridReadyEdit($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
-          </angular-slickgrid>
-        </div>
-      }
+    @if (columns().length) {
+      <shared-filtro-builder  [fieldsToSelect]="columns()" [(options)]="listOptions" />
+      <div class="gridContainer2 container-fluid">
+        <angular-slickgrid gridId="gridEdit2" [columns]="columns()"
+          [options]="gridOptionsEdit" [dataset]="gridData.value()"
+          (onAngularGridCreated)="angularGridReadyEdit($event)" (onBeforeEditCell)="handleOnBeforeEditCell($event)">
+        </angular-slickgrid>
+      </div>
+    }
     </ng-container>
-
-
-  </form>
 </nz-card>
-

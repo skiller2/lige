@@ -1,7 +1,6 @@
 ---
 name: Documentador de Codigo y Mapa de Ramas
 description: Genera, mantiene y corrige documentacion tecnica del codigo. Construye mapa de ramas y funciones, y actualiza la documentacion segun cambios en el repositorio.
-model: GPT-5.3-Codex
 skills:
   - stack-context.skill.md
 ---

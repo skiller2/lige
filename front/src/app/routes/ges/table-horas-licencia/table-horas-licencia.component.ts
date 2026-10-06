@@ -1,10 +1,9 @@
 import {
   Component,
   ViewChild,
-  inject, input, SimpleChanges, EventEmitter, Output
+  inject, input, signal, EventEmitter, Output, resource
 } from '@angular/core';
-import { NgForm } from '@angular/forms';
-import { SHARED_IMPORTS } from '@shared';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import {
   BehaviorSubject,
   debounceTime,
@@ -26,12 +25,8 @@ import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
-
-type listOptionsT = {
-  filtros: any[],
-  extra: any,
-  sort: any,
-}
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
 interface PersonalLicenciaHoras {
   PersonalId: number;
@@ -63,13 +58,13 @@ interface PersonalLicenciaHoras {
 export class  TableHorasLicenciaComponent {
 
   private readonly route = inject(ActivatedRoute);
+  private apiService = inject(ApiService)
+  private searchService = inject(SearchService)
+  private settingService = inject(SettingsService)
+  private angularUtilService = inject(AngularUtilService)
+  private readonly loadingSrv = inject(LoadingService)
 
   @Output() valueGridEvent = new EventEmitter();
-
-
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService: SearchService) { }
-  formChange$ = new BehaviorSubject('');
-  tableLoading$ = new BehaviorSubject(false);
 
   columnDefinitions: Column[] = [];
   columnas: Column[] = [];
@@ -80,23 +75,19 @@ export class  TableHorasLicenciaComponent {
   gridOptionsEdit!: GridOption;
   gridObjEdit!: SlickGrid;
   gridDataLen = 0
-  listOptions: listOptionsT = {
-    filtros: [],
-    sort: null,
-    extra: null,
-  }
   dataAngularGrid: any
   PersonalLicenciaHoras: PersonalLicenciaHoras[] = [];
   rowLocked: boolean = false;
 
   anio = input<number>();
   mes = input<number>();
+  listOptions = signal<listOptionsT>({
+    filtros: [],
+    sort: null,
+    extra: null
+  });
 
-  ngOnChanges(changes: SimpleChanges) {
-    this.formChange$.next("");
-  }
-
-  columns$ = this.apiService.getCols('/api/carga-licencia/colsHoras').pipe(map((cols) => {
+  columns = toSignal(this.apiService.getCols('/api/carga-licencia/cols').pipe(map((cols) => {
     return cols.map((col: Column) => {
       if (col.id == 'PersonalLicenciaAplicaPeriodoHorasMensuales') {
         col.editor = {
@@ -114,40 +105,27 @@ export class  TableHorasLicenciaComponent {
       return col
     });
 
-  }));
+  })), { initialValue: [] as Column[] })
 
-
-  listOptionsChange(options: any) {
-    this.listOptions = options;
-
-    this.listOptions.filtros = this.listOptions.filtros.filter((fil: any) => {
-      return (fil.index != 'anio' && fil.index != 'mes') ? true : false
-    })
-
-    // this.listOptions.filtros.push({ index: 'anio', operador: '=', condition: 'AND', valor: localStorage.getItem('anio') })
-    // this.listOptions.filtros.push({ index: 'mes', operador: '=', condition: 'AND', valor: localStorage.getItem('mes') })
-
-    this.formChange$.next('')
-  }
-
-  gridData$ = this.formChange$.pipe(
-    debounceTime(250),
-    switchMap(() => {
-      this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path == 'todos') }
-      return this.apiService
-        .getListHorasLicencia(
-          { options: this.listOptions }, this.anio(), this.mes()
-        )
-        .pipe(
-          map(data => {
-            this.dataAngularGrid = data.list
-            return data.list
-          }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
-        );
-    })
-  )
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes:this.mes() }),
+    loader: async ({ params }) => {
+      let response:any = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        params.options.extra = { 'todos': (this.route.snapshot.url[1].path == 'todos') }
+        const res = await firstValueFrom(this.apiService.getListHorasLicencia(
+          {options: params.options}, params.anio, params.mes
+        ));
+        this.dataAngularGrid = res.list;
+        response = res.list;
+      } catch (error) {}
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   ngOnInit() {
 
@@ -186,7 +164,7 @@ export class  TableHorasLicenciaComponent {
          
         row.total = res.data?.total
         row.PersonalLicenciaAplicaPeriodoHorasMensuales = res.data?.PersonalLicenciaAplicaPeriodoHorasMensuales
-        this.formChange$.next('')
+        this.gridData.reload()
         this.rowLocked = false
       } catch (e: any) {
 
@@ -214,11 +192,6 @@ export class  TableHorasLicenciaComponent {
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     cellNode.replaceChildren(componentOutput.domElement)
-  }
-
-
-  formChanged(_event: any) {
-    this.listOptionsChange(this.listOptions)
   }
 
   ngOnDestroy() {

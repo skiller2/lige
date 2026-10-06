@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect, model } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, viewChild, computed, Injector, effect, model, resource } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, GridOption, Column } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
@@ -11,6 +11,8 @@ import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-bu
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { SettingsService } from '@delon/theme';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
 // icons
 import { NzIconModule, provideNzIconsPatch } from 'ng-zorro-antd/icon';
@@ -35,10 +37,10 @@ export class ExcepcionesAsistenciaComponent {
   childIsPristine = signal(true)
   excelExportService = new ExcelExportService()
   listExcepcionesAsistencia$ = new BehaviorSubject('')
-  listOptions: listOptionsT = {
+  listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
-  };
+  });
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
@@ -55,15 +57,29 @@ export class ExcepcionesAsistenciaComponent {
   private settingsService = inject(SettingsService)
   private apiService = inject(ApiService)
   private injector = inject(Injector)
+  private readonly loadingSrv = inject(LoadingService)
   startFilters = signal<Selections[]>([])
 
-  columns$ = this.apiService.getCols('/api/excepciones-asistencia/cols').pipe(map((cols: Column<any>[]) => {
+  columns = toSignal(this.apiService.getCols('/api/excepciones-asistencia/cols').pipe(map((cols: Column<any>[]) => {
     return cols.map(col => (
       col.id === 'ObjetivoDescripcion' ? { ...col, asyncPostRender: this.renderAngularComponent.bind(this) } : col
     ));
-  }));
+  })), { initialValue: [] as Column[] })
 
-  tableLoading$ = new BehaviorSubject(false);
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), periodo: this.periodo() }),
+    loader: async ({ params }) => {
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      let response:any = []
+      try {
+        const res = await firstValueFrom(this.searchService.getListExcepcionesAsistencia(params.options, params.periodo));
+        response = res.list
+      } catch (error) {}
+      this.loadingSrv.close()
+      return response;
+    },
+    defaultValue: []
+  });
 
   // firstFilter = false
 
@@ -91,23 +107,10 @@ export class ExcepcionesAsistenciaComponent {
       const mes = this.mes()
       localStorage.setItem('mes', String(mes));
       localStorage.setItem('anio', String(anio));
-      this.listExcepcionesAsistencia$.next('')
     }, { injector: this.injector });
 
     this.settingsService.setLayout('collapsed', true)
   }
-
-  gridData$ = this.listExcepcionesAsistencia$.pipe(
-    debounceTime(500),
-    switchMap(() => {
-      return this.searchService.getListExcepcionesAsistencia(this.listOptions, this.periodo())
-        .pipe(
-          map(data => { return data.list }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
-        )
-    })
-  )
 
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
@@ -144,15 +147,6 @@ export class ExcepcionesAsistenciaComponent {
     }
   }
 
-  reloadList() {
-    this.listExcepcionesAsistencia$.next('')
-  }
-
-  listOptionsChange(options: any) {
-    this.listOptions = options
-    this.listExcepcionesAsistencia$.next('')
-  }
-
   async aprobarReg() {
     this.loadingApr.set(true)
     this.rowsError.set([])
@@ -173,7 +167,7 @@ export class ExcepcionesAsistenciaComponent {
     }
     try {
       const res: any = await firstValueFrom(this.apiService.excepcionesAsistenciaAprobar({ ids: reg, rows: this.rows() }))
-      this.listExcepcionesAsistencia$.next('')
+      this.gridData.reload()
     } catch (error: any) {
       let rows: any[] = error.error.data
        
@@ -194,7 +188,7 @@ export class ExcepcionesAsistenciaComponent {
      
     try {
       await firstValueFrom(this.apiService.excepcionesAsistenciaRechazar({ ids: ids, rows: this.rows() }))
-      this.listExcepcionesAsistencia$.next('')
+      this.gridData.reload()
     } catch (error: any) {
       let rows: any[] = error.error.data
        
@@ -215,7 +209,7 @@ export class ExcepcionesAsistenciaComponent {
      
     try {
       const res: any = await firstValueFrom(this.apiService.excepcionesAsistenciaPendiente({ ids: ids, rows: this.rows() }))
-      this.listExcepcionesAsistencia$.next('')
+      this.gridData.reload()
     } catch (error: any) {
       let rows: any[] = error.error.data
        

@@ -1,4 +1,4 @@
-import { Component, SimpleChanges, ViewChild, computed, input, model, signal } from '@angular/core';
+import { Component, SimpleChanges, viewChild, computed, input, model, signal } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,6 +31,7 @@ export class CargaLicenciasComponent {
   openDrawerForConsult = false
   inputForConsult = true
   RefreshLicencia = false;
+  tabIndex = signal<number>(0)
   loadingDelete = signal<boolean>(false)
 
   constructor(
@@ -47,6 +48,8 @@ export class CargaLicenciasComponent {
       return { year: 0, month: 0 }
   })
 
+  childLicenciaTable = viewChild.required<TableAbmLicenciaComponent>('licenciasTable')
+  childHorasTable = viewChild.required<TableHorasLicenciaComponent>('horasTable')
 
   ngAfterViewInit(): void {
     const now = new Date(); //date
@@ -97,13 +100,11 @@ export class CargaLicenciasComponent {
   }
 
   openDrawerforConsultHistory(): void{
-
     //this.tituloDrawer = ""
     // this.openDrawerForConsult = false
     // this.visibleDrawer = false 
     this.visibleHistorial.set(true)
-    
-       
+     
   }
 
   inputConsult(value:boolean){
@@ -118,6 +119,19 @@ export class CargaLicenciasComponent {
       this.RefreshLicencia = true
     }
     this.loadingDelete.set(false)
+  }
+
+  refreshGrid(){
+    switch (this.tabIndex()) {
+      case 1: //Licencias
+        this.childLicenciaTable().gridData.reload()
+        break
+      case 2: //Horas
+        this.childHorasTable().gridData.reload()
+        break;
+      default:
+        break;
+    }
   }
   
 }

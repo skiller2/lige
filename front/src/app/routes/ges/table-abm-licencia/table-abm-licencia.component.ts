@@ -1,17 +1,7 @@
+import { Component, inject, input, EventEmitter, Output, signal, resource } from '@angular/core';
+import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import {
-  Component,
-  ViewChild,
-  inject,input,SimpleChanges,EventEmitter,Output,
-  model
-} from '@angular/core';
-import { NgForm } from '@angular/forms';
-import { SHARED_IMPORTS } from '@shared';
-import {
-  BehaviorSubject,
-  debounceTime,
-  map,
-  switchMap,
-  tap,
+  firstValueFrom,
 } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
@@ -25,12 +15,8 @@ import { SettingsService } from '@delon/theme';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { CustomLinkComponent } from '../../../shared/custom-link/custom-link.component';
 import { ActivatedRoute } from '@angular/router';
-
-type listOptionsT = {
-  filtros: any[],
-  extra: any,
-  sort: any,
-}
+import { toSignal } from '@angular/core/rxjs-interop';
+import { LoadingService } from '@delon/abc/loading';
 
 interface PersonalLicencia {
   PersonalId: number;
@@ -59,24 +45,14 @@ interface PersonalLicencia {
 })
 export class TableAbmLicenciaComponent {
 
-  @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
-    new NgForm([], []);
   private readonly route = inject(ActivatedRoute);
+  private apiService = inject(ApiService)
+  private searchService = inject(SearchService)
+  private settingService = inject(SettingsService)
+  private angularUtilService = inject(AngularUtilService)
+  private readonly loadingSrv = inject(LoadingService)
 
   @Output()valueGridEvent = new EventEmitter();
-  RefreshLicencia = model<boolean>(false)
-
-  constructor(private settingService: SettingsService, public apiService: ApiService, private angularUtilService: AngularUtilService, public searchService:SearchService) { }
-  formChange$ = new BehaviorSubject('');
-  tableLoading$ = new BehaviorSubject(false);
-  
-
-
-  columns$ = this.apiService.getCols('/api/carga-licencia/cols').pipe(map((cols) => {
-    
-    //cols[8].asyncPostRender = this.renderAngularComponent.bind(this)
-    return cols
-  }));
 
   excelExportService = new ExcelExportService()
   angularGridEdit!: AngularGridInstance;
@@ -84,58 +60,39 @@ export class TableAbmLicenciaComponent {
   detailViewRowCount = 9
   gridOptions!: GridOption
   gridDataLen = 0
-  listOptions: listOptionsT = {
-    filtros: [],
-    sort: null,
-    extra: null,
-  }
+  
   dataAngularGrid:any
   personalLicencias: PersonalLicencia[] = [];
 
 
- anio = input<number>();
- mes = input<number>();
+  anio = input<number>();
+  mes = input<number>();
+  listOptions = signal<listOptionsT>({
+    filtros: [],
+    sort: null,
+    extra: null
+  });
 
-  ngOnChanges(changes: SimpleChanges) {
-    if ((changes['RefreshLicencia'] && changes['RefreshLicencia'].currentValue==true ) || changes['anio'] || changes['mes'] )
-      this.formChange$.next("");
-  }
-
- 
-
-
-  listOptionsChange(options: any) {
-    this.listOptions = options;
-
-    this.listOptions.filtros = this.listOptions.filtros.filter((fil: any) => {
-      return (fil.index != 'anio' && fil.index != 'mes') ? true : false
-    })
-
-    // this.listOptions.filtros.push({ index: 'anio', operador: '=', condition: 'AND', valor: localStorage.getItem('anio') })
-    // this.listOptions.filtros.push({ index: 'mes', operador: '=', condition: 'AND', valor: localStorage.getItem('mes') })
-
-    this.formChange$.next('')
-     
-  }
-
-  gridData$ = this.formChange$.pipe(
-    debounceTime(250),
-    switchMap(() => {
-      this.listOptions.extra = { 'todos': (this.route.snapshot.url[1].path=='todos')}
-      return this.apiService
-        .getListCargaLicencia(
-          { options: this.listOptions }, this.anio(), this.mes()
-        )
-        .pipe(
-          map(data => {
-            this.dataAngularGrid = data.list
-            return data.list
-          }),
-          doOnSubscribe(() => this.tableLoading$.next(true)),
-          tap({ complete: () => this.tableLoading$.next(false) })
-        );
-    })
-  )
+  columns = toSignal(this.apiService.getCols('/api/carga-licencia/cols'), { initialValue: [] as Column[] })
+  gridData = resource({
+    params: () => ({ options: this.listOptions(), anio: this.anio(), mes:this.mes() }),
+    loader: async ({ params }) => {
+      let response:any = []
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      try {
+        params.options.extra = { 'todos': (this.route.snapshot.url[1].path == 'todos') }
+        const res = await firstValueFrom(this.apiService.getListCargaLicencia(
+          {options: params.options}, params.anio, params.mes
+        ));
+        this.dataAngularGrid = res.list;
+        response = res.list;
+      } catch (error) {}
+      
+      this.loadingSrv.close()
+      return response || [];
+    },
+    defaultValue: []
+  });
 
   ngOnInit() {
     this.gridOptions = this.apiService.getDefaultGridOptions('.gridContainer1', this.detailViewRowCount, this.excelExportService, this.angularUtilService, this, RowDetailViewComponent)
@@ -150,11 +107,6 @@ export class TableAbmLicenciaComponent {
   renderAngularComponent(cellNode: HTMLElement, row: number, dataContext: any, colDef: Column) {
     const componentOutput = this.angularUtilService.createAngularComponent(CustomLinkComponent)
     cellNode.replaceChildren(componentOutput.domElement)
-}
-
-
-  formChanged(_event: any) {
-    this.listOptionsChange(this.listOptions)
   }
 
   ngOnDestroy() {
