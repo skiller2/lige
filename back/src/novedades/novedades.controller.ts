@@ -653,7 +653,10 @@ export class NovedadesController extends BaseController {
 
     async fileNovedadUpload(queryRunner: any, Obj: any, usuarioId: any, ip: any, novedadId: any, usuarioName: any, file: any, array_id: any, doc_id: any) {
 
-        let result = await FileUploadController.handleDOCUpload(null, null, null, null, new Date(), null, file.doctipo_id, null, null, file, usuarioName, ip, queryRunner)
+        // Archivo ya persistido sin reemplazo: no hay nada que subir
+        if (file.id && !file.tempfilename) return
+
+        let result = await FileUploadController.handleDOCUpload(null, null, null, file.id ?? null, new Date(), null, file.doctipo_id, null, null, file, usuarioName, ip, queryRunner)
 
 
         if (result && typeof result === 'object') {
