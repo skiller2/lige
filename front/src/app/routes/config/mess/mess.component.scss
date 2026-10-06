@@ -66,6 +66,22 @@ nz-card {
   white-space: pre-line;
 }
 
+.chat-line.log {
+  margin-bottom: 2px;
+}
+
+.log-line {
+  font-family: monospace;
+  font-size: 11px;
+  color: #8c8c8c;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.log-line.log-error {
+  color: #cf1322;
+}
+
 .agents-form {
   textarea {
     width: 100%;

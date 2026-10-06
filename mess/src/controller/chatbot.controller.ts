@@ -259,7 +259,16 @@ export class ChatBotController extends BaseController {
       return next(new ClientException('Debe seleccionar un modelo'))
 
     const inicioChat = Date.now()
-    console.log(`[IA][${chatId}] inicio chat model=${model} personalId=${personalId} mensaje=${message.length} car. historial=${botServer.chatmess[chatId]?.length ?? 0} msgs`)
+    // Logs para el chat del front; pos = id del próximo mensaje de chatmess
+    const logs: any[] = []
+    const log = (texto: string, nivel: 'info' | 'error' = 'info', err?: any) => {
+      if (nivel === 'error')
+        console.error(`[IA][${chatId}] ${texto}`, err ?? '')
+      else
+        console.log(`[IA][${chatId}] ${texto}`)
+      logs.push({ id: `log-${inicioChat}-${logs.length}`, role: 'log', nivel, content: texto, pos: botServer.chatmess[chatId]?.length ?? 0 })
+    }
+    log(`inicio chat model=${model} personalId=${personalId} mensaje=${message.length} car. historial=${botServer.chatmess[chatId]?.length ?? 0} msgs`)
 
     const usuario = BaseController.getUser(res)
     const queryRunner = await dbServer.connection(usuario)
@@ -303,10 +312,13 @@ export class ChatBotController extends BaseController {
           break;
       }
 
-      console.log(`[IA][${chatId}] prompt ${model === 'lige-prompt' ? 'LP' : 'BMA'} ${iaPrompt?.length ?? 0} car. | tools (${iaTools.length}): ${iaTools.map((t: any) => t?.function?.name).join(', ')}`)
+      log(`prompt ${model === 'lige-prompt' ? 'LP' : 'BMA'} ${iaPrompt?.length ?? 0} car. | tools (${iaTools.length}): ${iaTools.map((t: any) => t?.function?.name).join(', ')}`)
 
-      if (!botServer.chatmess[chatId] || botServer.chatmess[chatId][0]?.content !== iaPrompt)
+      if (!botServer.chatmess[chatId] || botServer.chatmess[chatId][0]?.content !== iaPrompt) {
         botServer.chatmess[chatId] = []
+        // Al reiniciar el historial, los logs previos van al principio
+        logs.forEach(t => t.pos = 0)
+      }
 
       if (botServer.chatmess[chatId].length == 0)
         botServer.chatmess[chatId].push({ id: 0, role: "system", content: iaPrompt, sendIt: true });
@@ -325,7 +337,7 @@ export class ChatBotController extends BaseController {
           if (vuelta > 10)
             throw new Error('Se superó el límite de 10 llamadas a la IA en un mismo mensaje')
 
-          console.log(`[IA][${chatId}] vuelta ${vuelta} → ollama (${botServer.chatmess[chatId].length} msgs)`)
+          log(`vuelta ${vuelta} → ollama (${botServer.chatmess[chatId].length} msgs)`)
           const inicioIA = Date.now()
           const responseIA = await botServer.ollama.chat({
             model: "gpt-oss:120b",
@@ -334,16 +346,16 @@ export class ChatBotController extends BaseController {
             tools: iaTools,
           });
 
-          console.log(`[IA][${chatId}] vuelta ${vuelta} ← ollama ${Date.now() - inicioIA} ms | done_reason=${responseIA.done_reason} | tokens in/out=${responseIA.prompt_eval_count}/${responseIA.eval_count}`)
+          log(`vuelta ${vuelta} ← ollama ${Date.now() - inicioIA} ms | done_reason=${responseIA.done_reason} | tokens in/out=${responseIA.prompt_eval_count}/${responseIA.eval_count}`)
           if (responseIA.message.thinking)
-            console.log(`[IA][${chatId}]   thinking (${responseIA.message.thinking.length} car.): ${responseIA.message.thinking.slice(0, 200).replace(/\s+/g, ' ')}`)
+            log(`  thinking (${responseIA.message.thinking.length} car.): ${responseIA.message.thinking.slice(0, 200).replace(/\s+/g, ' ')}`)
           if (responseIA.message.content)
-            console.log(`[IA][${chatId}]   content (${responseIA.message.content.length} car.): ${responseIA.message.content.slice(0, 200).replace(/\s+/g, ' ')}`)
+            log(`  content (${responseIA.message.content.length} car.): ${responseIA.message.content.slice(0, 200).replace(/\s+/g, ' ')}`)
 
           botServer.chatmess[chatId].push({ id: botServer.chatmess[chatId].length, ...responseIA.message });
 
           if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
-            console.log(`[IA][${chatId}]   tool_calls: ${responseIA.message.tool_calls.map(t => t.function.name).join(', ')}`)
+            log(`  tool_calls: ${responseIA.message.tool_calls.map(t => t.function.name).join(', ')}`)
 
             const stateRes = await personalController.getPersonaState(chatId);
             const autoPersonalId = stateRes.stateData?.personalId;
@@ -352,8 +364,9 @@ export class ChatBotController extends BaseController {
               let output = {}
               const pId = autoPersonalId || tool.function.arguments.personalId;
               toolActual = tool.function.name
-              console.log(`[IA][${chatId}]   → tool ${tool.function.name} pId=${pId} (${autoPersonalId ? 'estado' : 'arg IA'}) args=${JSON.stringify(tool.function.arguments)?.slice(0, 200)}`)
+              log(`  → tool ${tool.function.name} pId=${pId} (${autoPersonalId ? 'estado' : 'arg IA'}) args=${JSON.stringify(tool.function.arguments)?.slice(0, 200)}`)
               const inicioTool = Date.now()
+
               switch (tool.function.name) {
                 case 'genTelCode':
                   const linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
@@ -409,7 +422,7 @@ export class ChatBotController extends BaseController {
                   try {
                     output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId, queryRunner)
                   } catch (e) {
-                    console.log(`[IA][${chatId}]   ! getURLDocumentoNew falló: ${e?.message}`)
+                    log(`  ! getURLDocumentoNew falló: ${e?.message}`, 'error', e)
                     output = { Error: e }
                   }
                   break;
@@ -435,6 +448,12 @@ export class ChatBotController extends BaseController {
                   //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
                   output = {}
                   break;
+                case 'listAgents':
+                  output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt`)
+                  break;
+                case 'changeAgent':
+                  output = await queryRunner.query(`Select Prompt, iatools from ChatBotPrompt where ChatBotPromptCodigo = @0`, [tool.function.arguments.agentId])
+                  break;
 
                 default:
                   throw new Error(`Función desconocida: ${tool.function.name}`);
@@ -443,7 +462,7 @@ export class ChatBotController extends BaseController {
               //            const output = await functionToCall(tool.function.arguments);
 
               const outputJson = JSON.stringify(output)
-              console.log(`[IA][${chatId}]   ← tool ${tool.function.name} ${Date.now() - inicioTool} ms | ${outputJson?.length ?? 0} car.: ${outputJson?.slice(0, 200)}`)
+              log(`  ← tool ${tool.function.name} ${Date.now() - inicioTool} ms | ${outputJson?.length ?? 0} car.: ${outputJson?.slice(0, 200)}`)
 
               botServer.chatmess[chatId].push({
                 id: botServer.chatmess[chatId].length, role: "tool", content: outputJson, tool_name: tool.function.name,
@@ -454,18 +473,29 @@ export class ChatBotController extends BaseController {
         } while (recall);
 
       } catch (err) {
-        console.error(`[IA][${chatId}] ERROR vuelta=${vuelta} tool=${toolActual || '-'} tras ${Date.now() - inicioChat} ms:`, err)
-        err = new ClientException(`Error al procesar el mensaje del chatbot: ${err.message}`, { err });
+        log(`ERROR vuelta=${vuelta} tool=${toolActual || '-'} tras ${Date.now() - inicioChat} ms: ${err?.message}`, 'error', err)
+        err = new ClientException(`Error al procesar el mensaje del chatbot: ${err.message}`, { logs: logs.map(({ pos, ...t }) => t) });
         return next(err)
       }
 
-      const response = botServer.chatmess[chatId].filter(m => m?.sendIt != true).map(m => ({
-        id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls, thinking: m.thinking
-      }));
-
+      const nuevos = botServer.chatmess[chatId].filter(m => m?.sendIt != true)
       botServer.chatmess[chatId].forEach(m => m.sendIt = true)
 
-      console.log(`[IA][${chatId}] fin chat ${vuelta} vuelta(s) en ${Date.now() - inicioChat} ms | ${response.length} msgs al front`)
+      log(`fin chat ${vuelta} vuelta(s) en ${Date.now() - inicioChat} ms | ${nuevos.length} msgs al front`)
+
+      // Arma la respuesta en orden: cada log va antes del mensaje cuyo id es su pos
+      const response: any[] = []
+      const logsPendientes = [...logs]
+      for (const m of nuevos) {
+        // Primero los logs escritos antes de que se agregara este mensaje
+        while (logsPendientes.length > 0 && logsPendientes[0].pos <= m.id) {
+          const { pos, ...log } = logsPendientes.shift()
+          response.push(log)
+        }
+        response.push({ id: m.id, content: m.content, role: m.role, tool_calls: m.tool_calls, thinking: m.thinking })
+      }
+      // Al final, los logs posteriores al último mensaje (ej: "fin chat")
+      response.push(...logsPendientes.map(({ pos, ...log }) => log))
 
       return this.jsonRes({ 'response': response }, res, 'ok');
     } finally {

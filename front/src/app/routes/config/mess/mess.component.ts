@@ -134,7 +134,14 @@ export class MessComponent {
 //        form.usermsg().setControlValue('')
         this.chatform().reset({ usermsg: '' })
         
-      } catch { }
+      } catch (e: any) {
+        // Ante un error, mess devuelve los logs en data.logs
+        const logs = e?.error?.data?.logs
+        if (Array.isArray(logs)) {
+          this.msgs.update(list => [...list, ...logs])
+          this.scrollChatToBottom()
+        }
+      }
       return undefined; // success
     })
 
