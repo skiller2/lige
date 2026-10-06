@@ -1061,6 +1061,8 @@ export class AsistenciaController extends BaseController {
           ) {
             throw new ClientException("Categoría de equivalencia, debe ser distinta a la vigente de la persona")
           }
+          // todo: validar tambien que la categoria de equivalencia debe ser superior al vigente de la persona. Tengo que ver el valor hora o que atribuye a que sea superior?
+
         } else {
 
           Equivalencia.CategoriaPersonalId =
