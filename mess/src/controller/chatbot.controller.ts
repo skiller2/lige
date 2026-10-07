@@ -691,6 +691,8 @@ export class ChatBotController extends BaseController {
         // Corte de seguridad ante un bucle de tool_calls
         if (vuelta > 10)
           throw new Error('Se superó el límite de 10 llamadas a la IA en un mismo mensaje')
+
+        console.log('tools',botServer.iaHistorial[chatId].tools)
         const responseIA = await botServer.ollama.chat({
           model: "gpt-oss:120b",
           messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
@@ -788,17 +790,17 @@ export class ChatBotController extends BaseController {
                 //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
                 output = {}
                 break;
-              case 'listAgents':
-                output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt where BasePrompt != 0`)
+              case 'getAgentes':
+                output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt where BasePrompt = 0 AND Activo=1`)
                 break;
-              case 'changeAgent':
+              case 'tranferirAgente':
                 output = await this.getChatBotAgent(queryRunner, tool.function.arguments.agentId)
                 botServer.iaHistorial[chatId].tools = (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
                 botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
                 botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
 
                 botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent });
-                // botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent })
+                botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent })
 
                 break;
 
