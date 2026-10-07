@@ -13,6 +13,7 @@ export class ChatBotController extends BaseController {
       SELECT
         prompt.ChatBotPromptCodigo,
         prompt.Descripcion,
+        prompt.Tipo,
         prompt.Prompt,
         prompt.IaTools
       FROM ChatBotPrompt prompt
@@ -55,14 +56,18 @@ export class ChatBotController extends BaseController {
       ChatBotPromptCodigo: String(agent?.ChatBotPromptCodigo ?? '').trim(),
       Descripcion: String(agent?.Descripcion ?? '').trim() || null,
       Prompt: agent?.Prompt == null ? null : String(agent.Prompt),
-      IaTools: agent?.IaTools == null ? null : String(agent.IaTools)
+      IaTools: agent?.IaTools == null ? null : String(agent.IaTools),
+      Tipo: String(agent?.Tipo ?? '').trim() || null
     }))
 
     if (normalizedAgents.some((agent: any) => !agent.ChatBotPromptCodigo || agent.ChatBotPromptCodigo.length > 5))
       return next(new ClientException('El código del agente es obligatorio y admite hasta 5 caracteres'))
 
-    if (normalizedAgents.some((agent: any) => !agent.Descripcion || agent.Descripcion.length > 50))
-      return next(new ClientException('La descripción del agente es obligatoria y admite hasta 50 caracteres'))
+    // if (normalizedAgents.some((agent: any) => !agent.Descripcion || agent.Descripcion.length > 50))
+    //   return next(new ClientException('La descripción del agente es obligatoria y admite hasta 50 caracteres'))
+
+    if (normalizedAgents.some((agent: any) => !agent.Tipo))
+      return next(new ClientException('El tipo del agente es obligatorio'))
 
     if (normalizedAgents.some((agent: any) => !agent.Prompt?.trim()))
       return next(new ClientException('El prompt del agente es obligatorio'))
@@ -93,7 +98,8 @@ export class ChatBotController extends BaseController {
     const mainAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'BMA')
     const ligeAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'LP')
     let mainTools: any[] | null = null
-    for (const agent of [mainAgent, ligeAgent].filter(Boolean)) {
+    // Valida que IaTools de cada agente sea un arreglo JSON
+    for (const agent of normalizedAgents) {
       let tools: any
       try {
         tools = JSON.parse(agent.IaTools)
@@ -161,7 +167,8 @@ export class ChatBotController extends BaseController {
                 IaTools = @3,
                 AudFechaMod = @4,
                 AudUsuarioMod = @5,
-                AudIpMod = @6
+                AudIpMod = @6,
+                Tipo = @7
             WHERE ChatBotPromptCodigo = @0
           `, [
             agent.ChatBotPromptCodigo,
@@ -170,7 +177,8 @@ export class ChatBotController extends BaseController {
             agent.IaTools,
             fecha,
             usuario,
-            ip
+            ip,
+            agent.Tipo
           ])
         } else {
           await queryRunner.query(`
@@ -184,8 +192,9 @@ export class ChatBotController extends BaseController {
               AudUsuarioIng,
               AudUsuarioMod,
               AudIpIng,
-              AudIpMod
-            ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
+              AudIpMod,
+              Tipo
+            ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6, @7)
           `, [
             agent.ChatBotPromptCodigo,
             agent.Descripcion,
@@ -193,7 +202,8 @@ export class ChatBotController extends BaseController {
             agent.IaTools,
             fecha,
             usuario,
-            ip
+            ip,
+            agent.Tipo
           ])
         }
       }
@@ -230,7 +240,7 @@ export class ChatBotController extends BaseController {
       queryRunner = await dbServer.connection(usuario)
     }
     try {
-      const rows = await queryRunner.query(`SELECT Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`, [promptCodigo])
+      const rows = await queryRunner.query(`SELECT Prompt, IaTools, Tipo, Descripcion FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`, [promptCodigo])
       return rows[0] ?? null
     } finally {
       if (releaseQueryRunner)
@@ -308,7 +318,7 @@ export class ChatBotController extends BaseController {
           break;
 
         case 'agents':
-          // desarrollar obtencion del prompt y herramientas base para agentes
+        // desarrollar obtencion del prompt y herramientas base para agentes
         default:
           return next(new ClientException('Modelo "' + model + '" no soportado.'))
           break;
@@ -451,7 +461,7 @@ export class ChatBotController extends BaseController {
                   output = {}
                   break;
                 case 'listAgents':
-                  output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt`)
+                  output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt where BasePrompt != 0`)
                   break;
                 case 'changeAgent':
                   output = await queryRunner.query(`Select Prompt, iatools from ChatBotPrompt where ChatBotPromptCodigo = @0`, [tool.function.arguments.agentId])
@@ -633,21 +643,35 @@ export class ChatBotController extends BaseController {
 
   async getChatBotAgent(queryRunner: QueryRunner, ChatBotPromptCodigo: string) {
     const rows = await queryRunner.query(
-      `SELECT ChatBotPromptCodigo, Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`,
+      `SELECT ChatBotPromptCodigo, Prompt, Tipo, IaTools, BasePrompt FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0 and Activo=1`,
       [ChatBotPromptCodigo]
     )
     if (rows.length === 0)
       throw new ClientException(`No se encontró el agente con código ${ChatBotPromptCodigo}`)
-    return {ChatBotPromptCodigo: rows[0].ChatBotPromptCodigo, Prompt: rows[0].Prompt, IaTools: rows[0].IaTools}
+
+    if (rows[0].BasePrompt == 0) {
+      // prompt base + agent
+      const basePrompt = await queryRunner.query(`SELECT ChatBotPromptCodigo, Prompt, IaTools FROM ChatBotPrompt WHERE BasePrompt=1 and Activo=1`)
+      if (basePrompt.length > 0) {
+        rows[0].Prompt = `${basePrompt[0].Prompt}\nEspecialista Activo: ${rows[0].Tipo}\n\n${rows[0].Prompt}`
+        // Tools del base + las del agente
+        const toolsBase = basePrompt[0].IaTools ? JSON.parse(basePrompt[0].IaTools) : []
+        const toolsAgente = rows[0].IaTools ? JSON.parse(rows[0].IaTools) : []
+        rows[0].IaTools = JSON.stringify([...toolsBase, ...toolsAgente])
+        console.info('Combined IaTools:', rows[0].IaTools)
+      }
+    }
+
+    return { ChatBotPromptCodigo: rows[0].ChatBotPromptCodigo, Prompt: rows[0].Prompt, IaTools: rows[0].IaTools }
   }
 
   async chatAgent(req: Request, res: Response, next: NextFunction) {
     const message = String(req.body.message ?? '').trim()
     if (!message)
       return this.jsonRes({ 'response': [] }, res, 'ok');
-    const personalId = Number(req.body.personalId)
-    if (!Number.isInteger(personalId) || personalId <= 0)
-      return next(new ClientException('Debe seleccionar una persona'))
+//    const personalId = Number(req.body.personalId)
+//    if (!Number.isInteger(personalId) || personalId <= 0)
+//      return next(new ClientException('Debe seleccionar una persona'))
     const chatId = String(req.body.chatId ?? '').trim()
     if (!chatId)
       return next(new ClientException('El teléfono es obligatorio'))
@@ -658,14 +682,13 @@ export class ChatBotController extends BaseController {
     if (!botServer.chatmess[chatId]) {
       botServer.chatmess[chatId] = []
     }
-
     let recall = false
     let vuelta = 0
 
-    if (!botServer.iaHistorial[chatId]?.msgs?.length ) {
-      const agent = await this.getChatBotAgent(queryRunner, 'BMA')
-      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? ''  }
-      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: agent?.ChatBotPromptCodigo ?? '' });
+    if (!botServer.iaHistorial[chatId]?.msgs?.length) {
+      const agent = await this.getChatBotAgent(queryRunner, 'BP')
+      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '' }
+      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '' });
     }
     botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent })
 
@@ -676,13 +699,14 @@ export class ChatBotController extends BaseController {
         // Corte de seguridad ante un bucle de tool_calls
         if (vuelta > 10)
           throw new Error('Se superó el límite de 10 llamadas a la IA en un mismo mensaje')
+
+        console.log('tools',botServer.iaHistorial[chatId].tools)
         const responseIA = await botServer.ollama.chat({
           model: "gpt-oss:120b",
           messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
           stream: false,
           tools: botServer.iaHistorial[chatId].tools,
         });
-        
         botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, ...responseIA.message, agent: botServer.iaHistorial[chatId].agent });
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
@@ -774,16 +798,18 @@ export class ChatBotController extends BaseController {
                 //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
                 output = {}
                 break;
-              case 'listAgents':
-                output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt`)
+              case 'getAgentes':
+                output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt where BasePrompt = 0 AND Activo=1`)
                 break;
-              case 'changeAgent':
+              case 'transferirAgente':
                 output = await this.getChatBotAgent(queryRunner, tool.function.arguments.agentId)
-                botServer.iaHistorial[chatId].tools= (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
-                botServer.iaHistorial[chatId].prompt= (output as any)?.Prompt ?? ''
-                botServer.iaHistorial[chatId].agent= (output as any)?.ChatBotPromptCodigo ?? ''
-                
+                botServer.iaHistorial[chatId].tools = (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
+                botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
+                botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
+
                 botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent });
+                botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent })
+
                 break;
 
               default:
@@ -805,7 +831,9 @@ export class ChatBotController extends BaseController {
       botServer.iaHistorial[chatId].msgs.forEach(m => m.sendIt = true)
 
       return this.jsonRes({ 'response': nuevos }, res, 'ok');
-    } finally {
+    } catch (err) {
+        return next(new ClientException(err.message));
+    }  finally {
       await queryRunner.release()
     }
   }

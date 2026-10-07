@@ -145,11 +145,15 @@
             <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line"
               [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
 
-              @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
+              @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls && msg.role !== 'system')) {
 
               <nz-card nzSize="small" [nzBodyStyle]="{ fontSize: '13px' }">
                 @if (showTools() && msg.thinking){
                 <div class="thinking">Pensando: {{ msg.thinking }}</div>
+                }
+
+                @if (msg.role === 'system') {
+                <div class="system-title">Prompt de sistema{{ msg.agent ? ' · ' + msg.agent : '' }}</div>
                 }
 
                 @if (msg.content && msg.role !== 'tool') {
@@ -236,8 +240,15 @@
                   <input nz-input [formField]="agent.ChatBotPromptCodigo" />
                 </nz-form-control>
 
-                <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Descripción</nz-form-label>
+                <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Tipo</nz-form-label>
                 <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
+                  <input nz-input [formField]="agent.Tipo" />
+                </nz-form-control>
+              </nz-form-item>
+
+              <nz-form-item>
+                <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Descripción</nz-form-label>
+                <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
                   <input nz-input [formField]="agent.Descripcion" />
                 </nz-form-control>
               </nz-form-item>

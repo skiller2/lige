@@ -2621,6 +2621,21 @@ export class ApiService {
   //   );
   // }
 
+  //Tipo Asociado
+  onchangecellTP(params: any) {
+
+    return this.http.post<ResponseJSON<any>>('/api/tipo-asociado/onchangecell', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
+  deleteTP(TipoAsociadoId: any) {
+    const parameter = { TipoAsociadoId: TipoAsociadoId }
+    return this.http.delete<ResponseJSON<any>>(`/api/tipo-asociado/delete/${TipoAsociadoId}`).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

@@ -1430,6 +1430,14 @@ export class SearchService {
     );
   }
 
+  getListTP(filters: any) {
+    const parameter = { options: filters }
+    return this.http.post<ResponseJSON<any>>('/api/tipo-asociado/list', parameter).pipe(
+      map((res: { data: any; }) => res.data),
+      catchError(() => of({ total: 0, list: [] }))
+    );
+  }
+
   getListGrupoActividadResponsables(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/grupo-actividad/listResponsables', parameter).pipe(

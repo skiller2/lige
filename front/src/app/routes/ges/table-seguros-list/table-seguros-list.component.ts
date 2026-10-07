@@ -1,10 +1,8 @@
 import {
   Component,
-  ViewChild,
   inject,EventEmitter,Output,
   model, signal, resource
 } from '@angular/core';
-import { NgForm } from '@angular/forms';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import {
   firstValueFrom,
@@ -43,8 +41,6 @@ providers: [AngularUtilService],
 })
 export class TableSeguroListComponent {
 
-  @ViewChild('objpendForm', { static: true }) objpendForm: NgForm =
-    new NgForm([], []);
   private readonly route = inject(ActivatedRoute);
 
   @Output()valueGridEvent = new EventEmitter();
@@ -77,9 +73,10 @@ export class TableSeguroListComponent {
       try {
         const res = await firstValueFrom(this.apiService.getListSeguros({ options: params.options }));
         response = res.list;
-      } catch (error) {}
-      
-      this.loadingSrv.close()
+      } catch (error) {} 
+      finally {
+        this.loadingSrv.close();
+      }
       return response || [];
     },
     defaultValue: []
@@ -90,7 +87,9 @@ export class TableSeguroListComponent {
     this.gridOptions.enableRowDetailView = this.apiService.isMobile()
     this.gridOptions.showFooterRow = true
     this.gridOptions.createFooterRow = true
+  }
 
+  ngAfterViewInit() {
     const dateToday = new Date();
     this.startFilters.set([
       {index:'PersonalSeguroDesde', condition:'AND', operator:'<=', value: dateToday, closeable: true},
@@ -133,5 +132,3 @@ export class TableSeguroListComponent {
 
  
 }
- 
-

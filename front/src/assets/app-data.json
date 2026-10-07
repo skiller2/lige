@@ -320,6 +320,11 @@
               "icon": "anticon-profile"
             },
             {
+              "text": "Tipo Asociado",
+              "link": "/config/tipo-asociado",
+              "icon": "anticon-profile"
+            },
+            {
               "text": "Valor Hora",
               "icon": "anticon-profile",
               "link": "/ges/valor-hora"
