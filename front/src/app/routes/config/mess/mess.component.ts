@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 
 interface ChatBotPromptForm {
   ChatBotPromptCodigo: string;
+  Descripcion: string;
   Tipo: string;
   Prompt: string;
   IaTools: string;
@@ -221,6 +222,7 @@ export class MessComponent {
   private setAgentsForm(data: any) {
     const agents = (data?.agents ?? []).map((agent: any): ChatBotPromptForm => ({
       ChatBotPromptCodigo: agent.ChatBotPromptCodigo ?? '',
+      Descripcion: agent.Descripcion ?? '',
       Tipo: agent.Tipo ?? '',
       Prompt: agent.Prompt ?? '',
       IaTools: agent.IaTools ?? '',
@@ -256,6 +258,7 @@ export class MessComponent {
     event.stopPropagation()
     const agent: ChatBotPromptForm = {
       ChatBotPromptCodigo: '',
+      Descripcion: '',
       Tipo: '',
       Prompt: '',
       IaTools: '',

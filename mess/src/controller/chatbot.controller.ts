@@ -56,14 +56,18 @@ export class ChatBotController extends BaseController {
       ChatBotPromptCodigo: String(agent?.ChatBotPromptCodigo ?? '').trim(),
       Descripcion: String(agent?.Descripcion ?? '').trim() || null,
       Prompt: agent?.Prompt == null ? null : String(agent.Prompt),
-      IaTools: agent?.IaTools == null ? null : String(agent.IaTools)
+      IaTools: agent?.IaTools == null ? null : String(agent.IaTools),
+      Tipo: String(agent?.Tipo ?? '').trim() || null
     }))
 
     if (normalizedAgents.some((agent: any) => !agent.ChatBotPromptCodigo || agent.ChatBotPromptCodigo.length > 5))
       return next(new ClientException('El código del agente es obligatorio y admite hasta 5 caracteres'))
 
-    if (normalizedAgents.some((agent: any) => !agent.Descripcion || agent.Descripcion.length > 50))
-      // return next(new ClientException('La descripción del agente es obligatoria y admite hasta 50 caracteres'))
+    // if (normalizedAgents.some((agent: any) => !agent.Descripcion || agent.Descripcion.length > 50))
+    //   return next(new ClientException('La descripción del agente es obligatoria y admite hasta 50 caracteres'))
+
+    if (normalizedAgents.some((agent: any) => !agent.Tipo))
+      return next(new ClientException('El tipo del agente es obligatorio'))
 
     if (normalizedAgents.some((agent: any) => !agent.Prompt?.trim()))
       return next(new ClientException('El prompt del agente es obligatorio'))
@@ -163,7 +167,8 @@ export class ChatBotController extends BaseController {
                 IaTools = @3,
                 AudFechaMod = @4,
                 AudUsuarioMod = @5,
-                AudIpMod = @6
+                AudIpMod = @6,
+                Tipo = @7
             WHERE ChatBotPromptCodigo = @0
           `, [
             agent.ChatBotPromptCodigo,
@@ -172,7 +177,8 @@ export class ChatBotController extends BaseController {
             agent.IaTools,
             fecha,
             usuario,
-            ip
+            ip,
+            agent.Tipo
           ])
         } else {
           await queryRunner.query(`
@@ -186,8 +192,9 @@ export class ChatBotController extends BaseController {
               AudUsuarioIng,
               AudUsuarioMod,
               AudIpIng,
-              AudIpMod
-            ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6)
+              AudIpMod,
+              Tipo
+            ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6, @7)
           `, [
             agent.ChatBotPromptCodigo,
             agent.Descripcion,
@@ -195,7 +202,8 @@ export class ChatBotController extends BaseController {
             agent.IaTools,
             fecha,
             usuario,
-            ip
+            ip,
+            agent.Tipo
           ])
         }
       }

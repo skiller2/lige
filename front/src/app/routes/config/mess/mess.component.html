@@ -247,6 +247,13 @@
               </nz-form-item>
 
               <nz-form-item>
+                <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Descripción</nz-form-label>
+                <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
+                  <input nz-input [formField]="agent.Descripcion" />
+                </nz-form-control>
+              </nz-form-item>
+
+              <nz-form-item>
                 <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Prompt</nz-form-label>
                 <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
                   <textarea nz-input [formField]="agent.Prompt" rows="14"></textarea>
