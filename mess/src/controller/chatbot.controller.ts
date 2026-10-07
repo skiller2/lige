@@ -793,7 +793,7 @@ export class ChatBotController extends BaseController {
               case 'getAgentes':
                 output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt where BasePrompt = 0 AND Activo=1`)
                 break;
-              case 'tranferirAgente':
+              case 'transferirAgente':
                 output = await this.getChatBotAgent(queryRunner, tool.function.arguments.agentId)
                 botServer.iaHistorial[chatId].tools = (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
                 botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
