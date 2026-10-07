@@ -823,7 +823,9 @@ export class ChatBotController extends BaseController {
       botServer.iaHistorial[chatId].msgs.forEach(m => m.sendIt = true)
 
       return this.jsonRes({ 'response': nuevos }, res, 'ok');
-    } finally {
+    } catch (err) {
+        return next(new ClientException(err.message));
+    }  finally {
       await queryRunner.release()
     }
   }
