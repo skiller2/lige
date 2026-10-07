@@ -31,5 +31,9 @@ export const ConfigRoutes: Routes = [
     path: 'parametros-generales/:tab',
     loadComponent: () => import('./parametros-generales/parametros-generales').then(c => c.ParametrosGeneralesComponent),
   },
+  {
+    path: 'tipo-asociado',
+    loadComponent: () => import('./tipo-asociado/tipo-asociado').then(c => c.TipoAsociadoComponent),
+  },
 
 ];

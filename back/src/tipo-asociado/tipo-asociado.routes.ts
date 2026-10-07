@@ -12,3 +12,11 @@ tipoAsociadoRouter.get("/cols", [authMiddleware.verifyToken], (req, res) => {
 tipoAsociadoRouter.post('/list', [authMiddleware.verifyToken], (req, res, next) => {
   tipoAsociadoController.list(req, res, next)
 })
+
+tipoAsociadoRouter.post(`/onchangecell`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    tipoAsociadoController.onchangecell(req, res, next);
+});
+
+tipoAsociadoRouter.delete(`/delete/:TipoAsociadoId`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+    tipoAsociadoController.delete(req, res, next);
+});

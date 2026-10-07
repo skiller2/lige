@@ -1,0 +1,38 @@
+<nz-card class="small-margin">
+  @if (columnsGrid(); as columnas) {
+  <div nz-row nzAlign="middle" nzJustify="space-between">
+    <div nz-col nzSpan="18">
+      <shared-filtro-builder #thd [fieldsToSelect]="columnas" [(options)]="listOptions" [startFilters]="startFilters()"/>
+    </div>
+    <div nz-col style="display: flex; gap: 8px;">
+      <nz-button-group nz-button nzButtonGroup>
+        <!-- btn  reload -->
+        <button nz-button nzType="default" (click)="grid.reload()"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}">
+          <nz-icon nzType="reload" nzTheme="outline" />
+        </button>
+        <!-- btn  add -->
+        <button nz-button nzType="default" (click)="selectNewItemRow()"
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+          <nz-icon nzType="plus" nzTheme="outline"/>
+        </button>
+        <!-- btn  delete -->
+        <button nz-button nzType="default" [disabled]="!this.editTipoAsociadoId()"
+          nz-popconfirm nzPopconfirmTitle="¿Confirmar eliminación de registro?" (nzOnConfirm)="deleteItem()" 
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+          <nz-icon nzType="delete" nzTheme="outline" />
+        </button>
+      </nz-button-group>
+    </div>
+  </div>
+  
+  <div class="gridContainer container-fluid">
+      <angular-slickgrid gridId="gridTipoAsociado" [columns]="columnas"
+      [options]="gridOptions" [dataset]="data()"
+      (onAngularGridCreated)="angularGridReady($event)"
+      (onSelectedRowsChanged)="handleSelectedRowsChanged($event)"
+      (onCellChange)="onCellChanged($event)">
+      </angular-slickgrid>
+  </div>
+  }
+</nz-card>
