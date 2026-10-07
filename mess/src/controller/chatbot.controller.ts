@@ -653,15 +653,15 @@ export class ChatBotController extends BaseController {
       // prompt base + agent
       const basePrompt = await queryRunner.query(`SELECT ChatBotPromptCodigo, Prompt, IaTools FROM ChatBotPrompt WHERE BasePrompt=1 and Activo=1`)
       if (basePrompt.length > 0) {
-        rows[0].Prompt = `${basePrompt[0].Prompt}\nEspecialista Activo: ${rows[0].Tipo}\n\n${rows[0].Prompt}`
+        rows[0].Prompt = `${basePrompt[0].Prompt}\n\n[Agente Activo]: ${rows[0].Tipo}\n\n${rows[0].Prompt}`
         // Tools del base + las del agente
         const toolsBase = basePrompt[0].IaTools ? JSON.parse(basePrompt[0].IaTools) : []
         const toolsAgente = rows[0].IaTools ? JSON.parse(rows[0].IaTools) : []
         rows[0].IaTools = JSON.stringify([...toolsBase, ...toolsAgente])
+        console.log('Combined prompt:', rows[0].Prompt)
         console.info('Combined IaTools:', rows[0].IaTools)
       }
     }
-
     return { ChatBotPromptCodigo: rows[0].ChatBotPromptCodigo, Prompt: rows[0].Prompt, IaTools: rows[0].IaTools }
   }
 
@@ -686,7 +686,7 @@ export class ChatBotController extends BaseController {
     let vuelta = 0
 
     if (!botServer.iaHistorial[chatId]?.msgs?.length) {
-      const agent = await this.getChatBotAgent(queryRunner, 'BP')
+      const agent = await this.getChatBotAgent(queryRunner, 'AUTH')
       botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '' }
       botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '' });
     }
