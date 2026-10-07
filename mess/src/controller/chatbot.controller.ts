@@ -93,7 +93,8 @@ export class ChatBotController extends BaseController {
     const mainAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'BMA')
     const ligeAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'LP')
     let mainTools: any[] | null = null
-    for (const agent of [mainAgent, ligeAgent].filter(Boolean)) {
+    // Valida que IaTools de cada agente sea un arreglo JSON
+    for (const agent of normalizedAgents) {
       let tools: any
       try {
         tools = JSON.parse(agent.IaTools)
@@ -308,7 +309,7 @@ export class ChatBotController extends BaseController {
           break;
 
         case 'agents':
-          // desarrollar obtencion del prompt y herramientas base para agentes
+        // desarrollar obtencion del prompt y herramientas base para agentes
         default:
           return next(new ClientException('Modelo "' + model + '" no soportado.'))
           break;
@@ -451,7 +452,7 @@ export class ChatBotController extends BaseController {
                   output = {}
                   break;
                 case 'listAgents':
-                  output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt`)
+                  output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt where BasePrompt != 0`)
                   break;
                 case 'changeAgent':
                   output = await queryRunner.query(`Select Prompt, iatools from ChatBotPrompt where ChatBotPromptCodigo = @0`, [tool.function.arguments.agentId])
@@ -633,12 +634,26 @@ export class ChatBotController extends BaseController {
 
   async getChatBotAgent(queryRunner: QueryRunner, ChatBotPromptCodigo: string) {
     const rows = await queryRunner.query(
-      `SELECT ChatBotPromptCodigo, Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`,
+      `SELECT ChatBotPromptCodigo, Prompt, Tipo, IaTools, BasePrompt FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0 and Activo=1`,
       [ChatBotPromptCodigo]
     )
     if (rows.length === 0)
       throw new ClientException(`No se encontró el agente con código ${ChatBotPromptCodigo}`)
-    return {ChatBotPromptCodigo: rows[0].ChatBotPromptCodigo, Prompt: rows[0].Prompt, IaTools: rows[0].IaTools}
+
+    if (rows[0].BasePrompt == 0){
+      // prompt base + agent
+      const basePrompt = await queryRunner.query(`SELECT ChatBotPromptCodigo, Prompt, IaTools FROM ChatBotPrompt WHERE BasePrompt=1 and Activo=1`)
+      if (basePrompt.length > 0) {
+        rows[0].Prompt = `${basePrompt[0].Prompt}\nEspecialista Activo: ${rows[0].Tipo}\n\n${rows[0].Prompt}`
+        // Tools del base + las del agente
+        const toolsBase = basePrompt[0].IaTools ? JSON.parse(basePrompt[0].IaTools) : []
+        const toolsAgente = rows[0].IaTools ? JSON.parse(rows[0].IaTools) : []
+        rows[0].IaTools = JSON.stringify([...toolsBase, ...toolsAgente])
+        console.info('Combined IaTools:', rows[0].IaTools)
+      }
+    }
+
+    return { ChatBotPromptCodigo: rows[0].ChatBotPromptCodigo, Prompt: rows[0].Prompt, IaTools: rows[0].IaTools }
   }
 
   async chatAgent(req: Request, res: Response, next: NextFunction) {
@@ -662,10 +677,10 @@ export class ChatBotController extends BaseController {
     let recall = false
     let vuelta = 0
 
-    if (!botServer.iaHistorial[chatId]?.msgs?.length ) {
-      const agent = await this.getChatBotAgent(queryRunner, 'BMA')
-      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? ''  }
-      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: agent?.ChatBotPromptCodigo ?? '' });
+    if (!botServer.iaHistorial[chatId]?.msgs?.length) {
+      const agent = await this.getChatBotAgent(queryRunner, 'BP')
+      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '' }
+      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '' });
     }
     botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent })
 
@@ -682,7 +697,6 @@ export class ChatBotController extends BaseController {
           stream: false,
           tools: botServer.iaHistorial[chatId].tools,
         });
-        
         botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, ...responseIA.message, agent: botServer.iaHistorial[chatId].agent });
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
@@ -775,15 +789,17 @@ export class ChatBotController extends BaseController {
                 output = {}
                 break;
               case 'listAgents':
-                output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt`)
+                output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt where BasePrompt != 0`)
                 break;
               case 'changeAgent':
                 output = await this.getChatBotAgent(queryRunner, tool.function.arguments.agentId)
-                botServer.iaHistorial[chatId].tools= (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
-                botServer.iaHistorial[chatId].prompt= (output as any)?.Prompt ?? ''
-                botServer.iaHistorial[chatId].agent= (output as any)?.ChatBotPromptCodigo ?? ''
-                
+                botServer.iaHistorial[chatId].tools = (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
+                botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
+                botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
+
                 botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent });
+                // botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent })
+                
                 break;
 
               default:
