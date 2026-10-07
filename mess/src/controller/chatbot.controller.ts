@@ -631,15 +631,17 @@ export class ChatBotController extends BaseController {
   }
 
 
-  async getChatBotAgent(queryRunner: QueryRunner, agentCode: string) {
+  async getChatBotAgent(queryRunner: QueryRunner, ChatBotPromptCodigo: string) {
     const rows = await queryRunner.query(
-      `SELECT Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`,
-      [agentCode]
+      `SELECT ChatBotPromptCodigo, Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`,
+      [ChatBotPromptCodigo]
     )
-    return rows[0] ?? null
+    if (rows.length === 0)
+      throw new ClientException(`No se encontró el agente con código ${ChatBotPromptCodigo}`)
+    return {ChatBotPromptCodigo: rows[0].ChatBotPromptCodigo, Prompt: rows[0].Prompt, IaTools: rows[0].IaTools}
   }
 
-  async chatagent(req: Request, res: Response, next: NextFunction) {
+  async chatAgent(req: Request, res: Response, next: NextFunction) {
     const message = String(req.body.message ?? '').trim()
     if (!message)
       return this.jsonRes({ 'response': [] }, res, 'ok');
@@ -660,14 +662,12 @@ export class ChatBotController extends BaseController {
     let recall = false
     let vuelta = 0
 
-console.log('estado',botServer.iaHistorial[chatId]?.msgs?.length)
-
     if (!botServer.iaHistorial[chatId]?.msgs?.length ) {
       const agent = await this.getChatBotAgent(queryRunner, 'BMA')
-      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: 'BMA'}
-      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true });
+      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? ''  }
+      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: agent?.ChatBotPromptCodigo ?? '' });
     }
-    botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message })
+    botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent })
 
     try {
       do {
@@ -676,15 +676,14 @@ console.log('estado',botServer.iaHistorial[chatId]?.msgs?.length)
         // Corte de seguridad ante un bucle de tool_calls
         if (vuelta > 10)
           throw new Error('Se superó el límite de 10 llamadas a la IA en un mismo mensaje')
-
         const responseIA = await botServer.ollama.chat({
           model: "gpt-oss:120b",
-          messages: botServer.iaHistorial[chatId].msgs,
+          messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
           stream: false,
           tools: botServer.iaHistorial[chatId].tools,
         });
         
-        botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, ...responseIA.message });
+        botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, ...responseIA.message, agent: botServer.iaHistorial[chatId].agent });
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
 
@@ -779,7 +778,12 @@ console.log('estado',botServer.iaHistorial[chatId]?.msgs?.length)
                 output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt`)
                 break;
               case 'changeAgent':
-                output = await queryRunner.query(`Select Prompt, iatools from ChatBotPrompt where ChatBotPromptCodigo = @0`, [tool.function.arguments.agentId])
+                output = await this.getChatBotAgent(queryRunner, tool.function.arguments.agentId)
+                botServer.iaHistorial[chatId].tools= (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
+                botServer.iaHistorial[chatId].prompt= (output as any)?.Prompt ?? ''
+                botServer.iaHistorial[chatId].agent= (output as any)?.ChatBotPromptCodigo ?? ''
+                
+                botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent });
                 break;
 
               default:
@@ -791,7 +795,7 @@ console.log('estado',botServer.iaHistorial[chatId]?.msgs?.length)
             const outputJson = JSON.stringify(output)
 
             botServer.iaHistorial[chatId].msgs.push({
-              id: botServer.iaHistorial[chatId].msgs.length, role: "tool", content: outputJson, tool_name: tool.function.name,
+              id: botServer.iaHistorial[chatId].msgs.length, role: "tool", content: outputJson, tool_name: tool.function.name, agent: botServer.iaHistorial[chatId].agent
             });
           }
           recall = true

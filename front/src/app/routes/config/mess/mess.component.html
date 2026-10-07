@@ -154,7 +154,7 @@
                 } @else {
                 <markdown [data]="toJsonString(msg.content||msg.tool_calls,true) | language:'json'"></markdown>
                 }
-                @if (msg.thinking){
+                @if (showTools() && msg.thinking){
                 <div class="thinking">Pensando: {{ msg.thinking }}</div>
                 }
               </nz-card>
