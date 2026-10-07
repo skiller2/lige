@@ -13,6 +13,7 @@ export class ChatBotController extends BaseController {
       SELECT
         prompt.ChatBotPromptCodigo,
         prompt.Descripcion,
+        prompt.Tipo,
         prompt.Prompt,
         prompt.IaTools
       FROM ChatBotPrompt prompt
@@ -62,7 +63,7 @@ export class ChatBotController extends BaseController {
       return next(new ClientException('El código del agente es obligatorio y admite hasta 5 caracteres'))
 
     if (normalizedAgents.some((agent: any) => !agent.Descripcion || agent.Descripcion.length > 50))
-      return next(new ClientException('La descripción del agente es obligatoria y admite hasta 50 caracteres'))
+      // return next(new ClientException('La descripción del agente es obligatoria y admite hasta 50 caracteres'))
 
     if (normalizedAgents.some((agent: any) => !agent.Prompt?.trim()))
       return next(new ClientException('El prompt del agente es obligatorio'))
@@ -231,7 +232,7 @@ export class ChatBotController extends BaseController {
       queryRunner = await dbServer.connection(usuario)
     }
     try {
-      const rows = await queryRunner.query(`SELECT Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`, [promptCodigo])
+      const rows = await queryRunner.query(`SELECT Prompt, IaTools, Tipo, Descripcion FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`, [promptCodigo])
       return rows[0] ?? null
     } finally {
       if (releaseQueryRunner)
@@ -640,7 +641,7 @@ export class ChatBotController extends BaseController {
     if (rows.length === 0)
       throw new ClientException(`No se encontró el agente con código ${ChatBotPromptCodigo}`)
 
-    if (rows[0].BasePrompt == 0){
+    if (rows[0].BasePrompt == 0) {
       // prompt base + agent
       const basePrompt = await queryRunner.query(`SELECT ChatBotPromptCodigo, Prompt, IaTools FROM ChatBotPrompt WHERE BasePrompt=1 and Activo=1`)
       if (basePrompt.length > 0) {
@@ -673,7 +674,6 @@ export class ChatBotController extends BaseController {
     if (!botServer.chatmess[chatId]) {
       botServer.chatmess[chatId] = []
     }
-
     let recall = false
     let vuelta = 0
 
@@ -799,7 +799,7 @@ export class ChatBotController extends BaseController {
 
                 botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent });
                 // botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent })
-                
+
                 break;
 
               default:

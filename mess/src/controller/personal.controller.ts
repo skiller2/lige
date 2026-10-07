@@ -186,6 +186,7 @@ export class PersonalController extends BaseController {
     let stateData: any = {}
     let firstName = ""
     let codigo = 0
+    let identificadorVinculado = false
     //force
 
     if (res.length) {
@@ -198,9 +199,13 @@ export class PersonalController extends BaseController {
       firstName = tmpName.charAt(0).toUpperCase() + tmpName.slice(1).toLowerCase()
 
       codigo = res[0].Codigo
+
+      if (res[0].Telefono === telefono) {
+        identificadorVinculado = true
+      }
     }
 
-    return { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo }
+    return { activo, stateData, PersonalSituacionRevistaSituacionId, firstName, codigo, identificadorVinculado }
   }
 
   async getPersonalQuery(telefono: string, PersonalId: number) {

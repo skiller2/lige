@@ -15,7 +15,7 @@ import { FormsModule } from '@angular/forms';
 
 interface ChatBotPromptForm {
   ChatBotPromptCodigo: string;
-  Descripcion: string;
+  Tipo: string;
   Prompt: string;
   IaTools: string;
   EsNuevo: boolean;
@@ -69,7 +69,7 @@ export class MessComponent {
     applyEach(p.agents, agent => {
       disabled(agent.ChatBotPromptCodigo, ctx => !ctx.valueOf(agent.EsNuevo))
       required(agent.ChatBotPromptCodigo, { message: 'El código es obligatorio' })
-      required(agent.Descripcion, { message: 'La descripción es obligatoria' })
+      required(agent.Tipo, { message: 'El tipo es obligatorio' })
       required(agent.Prompt, { message: 'El prompt es obligatorio' })
       required(agent.IaTools, { message: 'IA Tools es obligatorio' })
     })
@@ -221,7 +221,7 @@ export class MessComponent {
   private setAgentsForm(data: any) {
     const agents = (data?.agents ?? []).map((agent: any): ChatBotPromptForm => ({
       ChatBotPromptCodigo: agent.ChatBotPromptCodigo ?? '',
-      Descripcion: agent.Descripcion ?? '',
+      Tipo: agent.Tipo ?? '',
       Prompt: agent.Prompt ?? '',
       IaTools: agent.IaTools ?? '',
       EsNuevo: false
@@ -247,8 +247,8 @@ export class MessComponent {
   agentTitle(index: number): string {
     const agent = this.agentsModel().agents[index]
     if (agent?.EsNuevo && !agent?.ChatBotPromptCodigo) return 'Nuevo agente'
-    const description = agent?.Descripcion || 'Sin descripción'
-    return `${agent?.ChatBotPromptCodigo || 'Sin código'} - ${description}`
+    const tipo = agent?.Tipo || 'Sin tipo'
+    return `${agent?.ChatBotPromptCodigo || 'Sin código'} - ${tipo}`
   }
 
   addAgent(event: Event) {
@@ -256,7 +256,7 @@ export class MessComponent {
     event.stopPropagation()
     const agent: ChatBotPromptForm = {
       ChatBotPromptCodigo: '',
-      Descripcion: '',
+      Tipo: '',
       Prompt: '',
       IaTools: '',
       EsNuevo: true

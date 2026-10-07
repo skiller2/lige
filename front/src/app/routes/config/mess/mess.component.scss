@@ -63,6 +63,24 @@ markdown p {
 }
 
 
+.chat-line.system {
+  justify-content: center;
+
+  nz-card {
+    width: 100%;
+    background-color: #f9f0ff;
+    border-left: 4px solid #722ed1;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+}
+
+.system-title {
+  font-weight: 600;
+  color: #722ed1;
+  margin-bottom: 4px;
+}
+
 .thinking {
   justify-content: flex-start;
   background-color: #fffbe6;
