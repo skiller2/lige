@@ -58,6 +58,11 @@
           ]
         },
         {
+          "text": "Registro Asistencia",
+          "link": "/ges/registro-asistencia",
+          "icon": "anticon-profile"
+        },
+        {
           "text": "Clientes",
           "link": "/ges/clientes",
           "icon": "anticon-profile"
