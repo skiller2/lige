@@ -148,14 +148,20 @@
               @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
 
               <nz-card nzSize="small" [nzBodyStyle]="{ fontSize: '13px' }">
+                @if (showTools() && msg.thinking){
+                <div class="thinking">Pensando: {{ msg.thinking }}</div>
+                }
 
                 @if (msg.content && msg.role !== 'tool') {
                 <markdown [data]="msg.content"></markdown>
                 } @else {
-                <markdown [data]="toJsonString(msg.content||msg.tool_calls,true) | language:'json'"></markdown>
-                }
-                @if (showTools() && msg.thinking){
-                <div class="thinking">Pensando: {{ msg.thinking }}</div>
+                  @if (msg.tool_name) {
+                    <span>{{msg.tool_name}} response:</span>
+                  }                  
+                <markdown>
+                  
+                  {{toJsonString(msg.content||msg.tool_calls,true) | language:'json'}}
+                </markdown>
                 }
               </nz-card>
               }
