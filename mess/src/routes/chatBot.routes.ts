@@ -9,6 +9,7 @@ chatBotRouter.post(`/delay`, [authMiddleware.verifyToken, authMiddleware.hasGrou
 chatBotRouter.post(`/sendAlert`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],(req, res, next) => { chatBotController.sendAlert(req, res, next) });
 chatBotRouter.post(`/gotoFlow`, (req, res, next) => { chatBotController.gotoFlow(req, res, next) });
 chatBotRouter.post(`/chat`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.chat(req, res, next) });
+chatBotRouter.post(`/chatagent`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.chatagent(req, res, next) });
 chatBotRouter.post(`/reinicia`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.reinicia(req, res, next) });
 chatBotRouter.get(`/agents`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.getAgents(req, res, next) });
 chatBotRouter.post(`/agents`,[authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => { chatBotController.setAgents(req, res, next) });

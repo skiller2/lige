@@ -52,9 +52,8 @@
 
           <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" nzFor="chatModel">Modelo</nz-form-label>
           <nz-form-control [nzXs]="22" [nzSm]="22" [nzMd]="5">
-            <nz-select nzId="chatModel" nzPlaceHolder="Seleccione un modelo"
-              [nzDropdownMatchSelectWidth]="false" [ngModel]="chatModel()" (ngModelChange)="changeChatModel($event)"
-              [ngModelOptions]="{ standalone: true }">
+            <nz-select nzId="chatModel" nzPlaceHolder="Seleccione un modelo" [nzDropdownMatchSelectWidth]="false"
+              [ngModel]="chatModel()" (ngModelChange)="changeChatModel($event)" [ngModelOptions]="{ standalone: true }">
               <nz-option nzValue="agents" nzLabel="Agents"></nz-option>
               <nz-option nzValue="main-prompt" nzLabel="Main Prompt"></nz-option>
               <nz-option nzValue="lige-prompt" nzLabel="Lige Prompt"></nz-option>
@@ -99,8 +98,7 @@
             <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
               <nz-space-compact nzBlock>
                 <input nz-input nz-tooltip [formField]="chatform.usermsg" />
-                <button nzType="primary" class="btn-add" nz-button type="submit"
-                  [nzLoading]="chatform().submitting()"
+                <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="chatform().submitting()"
                   [disabled]="chatform().submitting() || chatform().dirty()==false">Enviar</button>
               </nz-space-compact>
             </nz-form-control>
@@ -125,63 +123,134 @@
 
   </nz-tab>
   <nz-tab>
+    <a *nzTabLink nz-tab-link routerLink="/config/mess/conversacion-agent">Conversación Agent</a>
+    <ng-template nz-tab>
+      <nz-card nzSize="small" [nzBodyStyle]="{ padding: '12px' }">
+        <nz-form-item>
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Persona</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7">
+            <app-personal-search (ngModelChange)="changePersona($event)" ngModel [anio]="0" [mes]="0" />
+          </nz-form-control>
+
+          <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" nzFor="chatId">Teléfono</nz-form-label>
+          <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
+            <input nz-input name="chatId" type="text" id="chatId" [(ngModel)]="chatId" />
+          </nz-form-control>
+
+        </nz-form-item>
+
+        <nz-card nzSize="small"
+          [nzBodyStyle]="{ height: 'clamp(360px, 52vh, 680px)', minHeight: '320px', maxHeight: '680px', overflowY: 'auto', overscrollBehavior: 'contain', resize: 'vertical', padding: '8px' }">
+          <div #chatMessages class="chat-messages">
+            <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line"
+              [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
+
+              @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls)) {
+
+              <nz-card nzSize="small" [nzBodyStyle]="{ fontSize: '13px' }">
+
+                @if (msg.content && msg.role !== 'tool') {
+                <markdown [data]="msg.content"></markdown>
+                } @else {
+                <markdown [data]="toJsonString(msg.content||msg.tool_calls,true) | language:'json'"></markdown>
+                }
+                @if (msg.thinking){
+                <div class="thinking">Pensando: {{ msg.thinking }}</div>
+                }
+              </nz-card>
+              }
+            </div>
+          </div>
+        </nz-card>
+
+        <form nz-form nzLayout="horizontal" (ngSubmit)="enviaChatAgent($event)">
+          <nz-form-item nz-row [nzGutter]="8">
+            <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+              <nz-space-compact nzBlock>
+                <input nz-input nz-tooltip [formField]="chatform.usermsg" />
+                <button nzType="primary" class="btn-add" nz-button type="submit" [nzLoading]="chatform().submitting()"
+                  [disabled]="chatform().submitting() || chatform().dirty()==false">Enviar</button>
+              </nz-space-compact>
+            </nz-form-control>
+
+            <nz-form-control [nzXs]="24" [nzSm]="12" [nzMd]="3">
+              <button nzBlock nzType="primary" class="btn-add" nz-button type="button"
+                (click)="reiniciaChat()">Reiniciar</button>
+            </nz-form-control>
+
+            <nz-form-control [nzXs]="24" [nzSm]="12" [nzMd]="5">
+              <label nz-checkbox [ngModel]="showTools()" (ngModelChange)="showTools.set($event)"
+                [ngModelOptions]="{ standalone: true }">
+                Mostrar uso de herramientas
+              </label>
+            </nz-form-control>
+          </nz-form-item>
+        </form>
+      </nz-card>
+    </ng-template>
+
+
+
+  </nz-tab>
+
+  <nz-tab>
     <a *nzTabLink nz-tab-link routerLink="/config/mess/agents">Prompts</a>
     <ng-template nz-tab>
-    <nz-card>
-      @if (agentsLoading()) {
+      <nz-card>
+        @if (agentsLoading()) {
         <nz-spin nzSimple></nz-spin>
-      } @else {
+        } @else {
         <form class="agents-form" (ngSubmit)="setAgents($event)">
           <nz-collapse nzAccordion>
             @for (agent of agentsForm.agents; let i = $index; track $index) {
-              <nz-collapse-panel [nzHeader]="agentTitle(i)" [nzExtra]="agentActions"
-                [nzActive]="panelAbierto() === i" (nzActiveChange)="$event ? panelAbierto.set(i) : null">
+            <nz-collapse-panel [nzHeader]="agentTitle(i)" [nzExtra]="agentActions" [nzActive]="panelAbierto() === i"
+              (nzActiveChange)="$event ? panelAbierto.set(i) : null">
 
-                <ng-template #agentActions>
-                  <div class="panel-actions">
-                    @if (agentsModel().agents[i].EsNuevo || !['BMA', 'LP'].includes(agentsModel().agents[i].ChatBotPromptCodigo.trim())) {
-                      <button nz-button nzType="default" type="button" (click)="removeAgent(i, $event)" nz-tooltip
-                        nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
-                        <span nz-icon nzType="delete" nzTheme="outline"></span>
-                      </button>
-                    }
-                    @if ($last) {
-                    <button nz-button nzType="primary" type="button" class="add-button" (click)="addAgent($event)"
-                      nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
-                      <span nz-icon nzType="plus"></span>
-                    </button>
-                    }
-                  </div>
-                </ng-template>
+              <ng-template #agentActions>
+                <div class="panel-actions">
+                  @if (agentsModel().agents[i].EsNuevo || !['BMA',
+                  'LP'].includes(agentsModel().agents[i].ChatBotPromptCodigo.trim())) {
+                  <button nz-button nzType="default" type="button" (click)="removeAgent(i, $event)" nz-tooltip
+                    nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
+                    <span nz-icon nzType="delete" nzTheme="outline"></span>
+                  </button>
+                  }
+                  @if ($last) {
+                  <button nz-button nzType="primary" type="button" class="add-button" (click)="addAgent($event)"
+                    nz-tooltip nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
+                    <span nz-icon nzType="plus"></span>
+                  </button>
+                  }
+                </div>
+              </ng-template>
 
-                <nz-form-item>
-                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Código</nz-form-label>
-                  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
-                    <input nz-input [formField]="agent.ChatBotPromptCodigo" 
-                       />
-                  </nz-form-control>
+              <nz-form-item>
+                <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Código</nz-form-label>
+                <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
+                  <input nz-input [formField]="agent.ChatBotPromptCodigo" />
+                </nz-form-control>
 
-                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Descripción</nz-form-label>
-                  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
-                    <input nz-input [formField]="agent.Descripcion" />
-                  </nz-form-control>
-                </nz-form-item>
+                <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Descripción</nz-form-label>
+                <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
+                  <input nz-input [formField]="agent.Descripcion" />
+                </nz-form-control>
+              </nz-form-item>
 
-                <nz-form-item>
-                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Prompt</nz-form-label>
-                  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
-                    <textarea nz-input [formField]="agent.Prompt" rows="14"></textarea>
-                  </nz-form-control>
-                </nz-form-item>
+              <nz-form-item>
+                <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Prompt</nz-form-label>
+                <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
+                  <textarea nz-input [formField]="agent.Prompt" rows="14"></textarea>
+                </nz-form-control>
+              </nz-form-item>
 
-                <nz-form-item>
-                  <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">IA Tools</nz-form-label>
-                  <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
-                    <textarea nz-input [formField]="agent.IaTools" rows="14"></textarea>
-                  </nz-form-control>
-                </nz-form-item>
+              <nz-form-item>
+                <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">IA Tools</nz-form-label>
+                <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
+                  <textarea nz-input [formField]="agent.IaTools" rows="14"></textarea>
+                </nz-form-control>
+              </nz-form-item>
 
-              </nz-collapse-panel>
+            </nz-collapse-panel>
             }
           </nz-collapse>
 
@@ -197,8 +266,8 @@
             </button>
           </div>
         </form>
-      }
-    </nz-card>
+        }
+      </nz-card>
     </ng-template>
   </nz-tab>
 </nz-tabs>

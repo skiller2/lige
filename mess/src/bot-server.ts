@@ -69,6 +69,7 @@ export class BotServer {
   public userLocks = new Map(); // New lock mechanism
 
   public chatmess: any[] = []
+  public iaHistorial:any[]=[]
   public iaTools: any;
   public iaToolsHash: string
 

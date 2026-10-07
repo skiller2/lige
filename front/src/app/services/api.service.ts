@@ -266,7 +266,7 @@ export class ApiService {
       enableAutoTooltip: true,
       enableFiltering: false,
       //enableRowSelection: true,  //Se elimina en slickgrid 10
-      enableSelection:true,   //Proximo cambio
+      enableSelection: true,   //Proximo cambio
       enableGrouping: true,
       selectionOptions: {   //Se elimina en slickgrid 10
         selectActiveRow: true
@@ -400,13 +400,13 @@ export class ApiService {
           } else if (String(col.type) == 'currency' || String(col.type) == 'money') {
             col.formatter = Formatters['currency']
             col.type = 'float'
-            col.params = {...col.params, maxDecimal: 2, minDecimal: 2 }
+            col.params = { ...col.params, maxDecimal: 2, minDecimal: 2 }
             col.cssClass = 'text-right'
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
             col.exportWithFormatter = false
           } else if (String(col.type) == 'float' || String(col.type) == 'decimal') {
             col.formatter = Formatters['decimal'],
-              col.params = {...col.params, maxDecimal: 2, minDecimal: 0 }
+              col.params = { ...col.params, maxDecimal: 2, minDecimal: 0 }
             col.editor = { model: Editors['float'], decimal: 2, valueStep: 1, minValue: 0, maxValue: 100000000 }
             col.type = 'float'
             col.cssClass = 'text-right'
@@ -414,7 +414,7 @@ export class ApiService {
 
           } else if (col.type == 'number') {
             col.formatter = Formatters['decimal']
-            col.params = {...col.params, maxDecimal: 4, minDecimal: 0 }
+            col.params = { ...col.params, maxDecimal: 4, minDecimal: 0 }
             col.cssClass = col.cssClass ?? 'text-right'
             col.exportWithFormatter = false
           } else if (col.type == 'object')
@@ -508,12 +508,20 @@ export class ApiService {
     )
   }
 
-    sendChatMessage(message: string, chatId: string, model: string | null, personalId: number | null): Observable<unknown> {
+  sendChatMessage(message: string, chatId: string, model: string | null, personalId: number | null): Observable<unknown> {
     return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/chat`, { message, chatId, model, personalId }).pipe(
       //tap((res: ResponseJSON<any>) => this.response(res)),
       map((res: any) => res.data)
     )
   }
+
+  sendChatMessageAgent(message: string, chatId: string, model: string | null, personalId: number | null): Observable<unknown> {
+    return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/chatagent`, { message, chatId, model, personalId }).pipe(
+      //tap((res: ResponseJSON<any>) => this.response(res)),
+      map((res: any) => res.data)
+    )
+  }
+
 
   getChatBotAgents(): Observable<any> {
     return this.http.get<ResponseJSON<any>>('mess/api/chatbot/agents').pipe(
@@ -1292,7 +1300,7 @@ export class ApiService {
     this.notification.success('Respuesta', `${res.msg} ${tiempoConsido}`);
   }
 
-  getHorasFacturacion(anio: number, mes: number, ClienteId: number, ClienteElementoDependienteId:number) {
+  getHorasFacturacion(anio: number, mes: number, ClienteId: number, ClienteElementoDependienteId: number) {
     const path = `/api/asistencia/horasFacturacion/${anio}/${mes}/${ClienteId}/${ClienteElementoDependienteId}`;
     return this.http.get(path).pipe(
       map((res: any) => res.data)
@@ -2016,7 +2024,7 @@ export class ApiService {
 
   // Con NroOrdenVenta se pide una orden puntual del período; en cero, la última. Con Plantilla
   // se ignoran las órdenes del período y el detalle sale del modelo de los meses anteriores.
-  getListOrdenVenta(ClienteId: number, ClienteElementoDependienteId:number, anio: number, mes: number, NroOrdenVenta = 0, Plantilla = false) {
+  getListOrdenVenta(ClienteId: number, ClienteElementoDependienteId: number, anio: number, mes: number, NroOrdenVenta = 0, Plantilla = false) {
 
     return this.http.post<ResponseJSON<any>>('/api/orden-venta/list', { ClienteId, ClienteElementoDependienteId, anio, mes, NroOrdenVenta, Plantilla }).pipe(
       map((res: { data: any; }) => res.data),
@@ -2024,7 +2032,7 @@ export class ApiService {
     );
   }
 
-  getOrdenVentaCabecera(ClienteId: number, ClienteElementoDependienteId:number, anio: number, mes: number) {
+  getOrdenVentaCabecera(ClienteId: number, ClienteElementoDependienteId: number, anio: number, mes: number) {
 
     return this.http.get<ResponseJSON<any>>(`/api/orden-venta/cabecera/${ClienteId}/${ClienteElementoDependienteId}/${anio}/${mes}`).pipe(
       map((res: { data: any; }) => res.data),
@@ -2032,7 +2040,7 @@ export class ApiService {
     );
   }
 
-  getOrdenVenta(NroOrdenVenta:number) {
+  getOrdenVenta(NroOrdenVenta: number) {
     return this.http.get<ResponseJSON<any>>(`/api/orden-venta/${NroOrdenVenta}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of({ total: 0, list: [] }))

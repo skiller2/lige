@@ -5,6 +5,7 @@ import CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
 import { documentosController, personalController, novedadController, objetivoController } from "./controller.module.ts";
 import { PersonalController } from "./personal.controller.ts";
+import type { QueryRunner } from "typeorm";
 
 export class ChatBotController extends BaseController {
   private async getAgentsData(queryRunner: any) {
@@ -240,6 +241,7 @@ export class ChatBotController extends BaseController {
   async reinicia(req: Request, res: Response, next: NextFunction) {
     const chatId = req.body.chatId
     botServer.chatmess[chatId] = []
+    botServer.iaHistorial[chatId] = { msgs: [], tools: [], prompt: '', agent: '' }
     const ret = {}
     return this.jsonRes(ret, res, 'Chat reiniciado correctamente');
   }
@@ -626,6 +628,182 @@ export class ChatBotController extends BaseController {
 
     return queryRunner.query(`UPDATE BotColaMensajes SET FechaProceso = @0, AudUsuarioMod=@3, AudFechaMod=@0, AudIpMod=@4 , SentMethod=@5, SentProvider=@6
       WHERE FechaIngreso = @1 AND PersonalId = @2`, [fechaActual, fecha_ingreso, personal_id, usuario, '127.0.0.1', method, provider]);
+  }
+
+
+  async getChatBotAgent(queryRunner: QueryRunner, agentCode: string) {
+    const rows = await queryRunner.query(
+      `SELECT Prompt, IaTools FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`,
+      [agentCode]
+    )
+    return rows[0] ?? null
+  }
+
+  async chatagent(req: Request, res: Response, next: NextFunction) {
+    const message = String(req.body.message ?? '').trim()
+    if (!message)
+      return this.jsonRes({ 'response': [] }, res, 'ok');
+    const personalId = Number(req.body.personalId)
+    if (!Number.isInteger(personalId) || personalId <= 0)
+      return next(new ClientException('Debe seleccionar una persona'))
+    const chatId = String(req.body.chatId ?? '').trim()
+    if (!chatId)
+      return next(new ClientException('El teléfono es obligatorio'))
+
+    const usuario = BaseController.getUser(res)
+    const queryRunner = await dbServer.connection(usuario)
+
+    if (!botServer.chatmess[chatId]) {
+      botServer.chatmess[chatId] = []
+    }
+
+    let recall = false
+    let vuelta = 0
+
+console.log('estado',botServer.iaHistorial[chatId]?.msgs?.length)
+
+    if (!botServer.iaHistorial[chatId]?.msgs?.length ) {
+      const agent = await this.getChatBotAgent(queryRunner, 'BMA')
+      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: 'BMA'}
+      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true });
+    }
+    botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message })
+
+    try {
+      do {
+        recall = false
+        vuelta++
+        // Corte de seguridad ante un bucle de tool_calls
+        if (vuelta > 10)
+          throw new Error('Se superó el límite de 10 llamadas a la IA en un mismo mensaje')
+
+        const responseIA = await botServer.ollama.chat({
+          model: "gpt-oss:120b",
+          messages: botServer.iaHistorial[chatId].msgs,
+          stream: false,
+          tools: botServer.iaHistorial[chatId].tools,
+        });
+        
+        botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, ...responseIA.message });
+
+        if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
+
+          const stateRes = await personalController.getPersonaState(chatId);
+          const autoPersonalId = stateRes.stateData?.personalId;
+
+          for (const tool of responseIA.message.tool_calls) {
+            let output = {}
+            const pId = autoPersonalId || tool.function.arguments.personalId;
+
+            switch (tool.function.name) {
+              case 'genTelCode':
+                const linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
+                const ret = await personalController.genTelCode(chatId)
+                output = { url: `https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, encTelNro: ret.encTelNro, linkVigenciaHs }
+                break;
+              case 'getPersonaState':
+                output = await personalController.getPersonaState(chatId)
+                break;
+              case 'delTelefonoPersona':
+                output = await personalController.delTelefonoPersona(chatId)
+                break;
+              case 'removeCode':
+                output = await personalController.removeCode(chatId)
+                break;
+              case 'getInfoPersonal':
+                output = await personalController.getInfoPersonal(pId, chatId)
+                break;
+              case 'getInfoEmpresa':
+                output = await personalController.getInfoEmpresa()
+                break;
+              case 'getLastPeriodosOfComprobantesAFIP':
+                output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, tool.function.arguments.cant, queryRunner).then(array => { return array })
+                break;
+              case 'getLastPeriodoOfComprobantes':
+                output = await documentosController.getLastPeriodoOfComprobantes(pId, tool.function.arguments.cant, queryRunner).then(array => { return array })
+                break;
+              case 'getDocsPendDescarga':
+                output = await personalController.getDocsPendDescarga(pId)
+                break;
+              case 'getAdelantoLimits':
+                tool.function.arguments.fecha = new Date()
+                output = await PersonalController.getAdelantoLimits(tool.function.arguments.fecha)
+                break;
+              case 'getPersonalAdelanto':
+                const anioA = tool.function.arguments.anio || new Date().getFullYear();
+                const mesA = tool.function.arguments.mes || new Date().getMonth() + 1;
+                output = await PersonalController.getPersonalAdelanto(pId, anioA, mesA)
+                break;
+              case 'deletePersonalAdelanto':
+                const anioD = tool.function.arguments.anio || new Date().getFullYear();
+                const mesD = tool.function.arguments.mes || new Date().getMonth() + 1;
+                await personalController.deletePersonalAdelanto(pId, anioD, mesD)
+                output = { response: 'OK' }
+                break;
+              case 'setPersonalAdelanto':
+                const anioS = tool.function.arguments.anio || new Date().getFullYear();
+                const mesS = tool.function.arguments.mes || new Date().getMonth() + 1;
+                await personalController.setPersonalAdelanto(pId, anioS, mesS, tool.function.arguments.importe)
+                output = { response: 'OK' }
+                break;
+              case 'getURLDocumentoNew':
+                try {
+                  output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId, queryRunner)
+                } catch (e) {
+                  output = { Error: e }
+                }
+                break;
+              case 'getBackupNovedad':
+                output = await novedadController.getBackupNovedad(pId)
+                break;
+              case 'saveNovedad':
+                output = await novedadController.saveNovedad(pId, tool.function.arguments.novedad, queryRunner)
+                break;
+              case 'getObjetivoByCodObjetivo':
+                output = await objetivoController.getObjetivoByCodObjetivo(tool.function.arguments.CodObjetivo)
+                break;
+              case 'getNovedadTipo':
+                output = await novedadController.getNovedadTipo()
+                break;
+              case 'addNovedad':
+                output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, pId, queryRunner)
+                break;
+              case 'getNovedadesPendientesByResponsable':
+                output = await novedadController.getNovedadesPendientesByResponsable(pId)
+                break;
+              case 'setNovedadVisualizacion':
+                //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
+                output = {}
+                break;
+              case 'listAgents':
+                output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt`)
+                break;
+              case 'changeAgent':
+                output = await queryRunner.query(`Select Prompt, iatools from ChatBotPrompt where ChatBotPromptCodigo = @0`, [tool.function.arguments.agentId])
+                break;
+
+              default:
+                throw new Error(`Función desconocida: ${tool.function.name}`);
+            }
+
+            //            const output = await functionToCall(tool.function.arguments);
+
+            const outputJson = JSON.stringify(output)
+
+            botServer.iaHistorial[chatId].msgs.push({
+              id: botServer.iaHistorial[chatId].msgs.length, role: "tool", content: outputJson, tool_name: tool.function.name,
+            });
+          }
+          recall = true
+        }
+      } while (recall);
+      const nuevos = botServer.iaHistorial[chatId].msgs.filter(m => m?.sendIt != true)
+      botServer.iaHistorial[chatId].msgs.forEach(m => m.sendIt = true)
+
+      return this.jsonRes({ 'response': nuevos }, res, 'ok');
+    } finally {
+      await queryRunner.release()
+    }
   }
 
 }
