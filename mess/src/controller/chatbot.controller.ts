@@ -661,9 +661,9 @@ export class ChatBotController extends BaseController {
     const message = String(req.body.message ?? '').trim()
     if (!message)
       return this.jsonRes({ 'response': [] }, res, 'ok');
-    const personalId = Number(req.body.personalId)
-    if (!Number.isInteger(personalId) || personalId <= 0)
-      return next(new ClientException('Debe seleccionar una persona'))
+//    const personalId = Number(req.body.personalId)
+//    if (!Number.isInteger(personalId) || personalId <= 0)
+//      return next(new ClientException('Debe seleccionar una persona'))
     const chatId = String(req.body.chatId ?? '').trim()
     if (!chatId)
       return next(new ClientException('El teléfono es obligatorio'))
