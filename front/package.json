@@ -50,6 +50,7 @@
     "@delon/theme": "^21.0.4",
     "@delon/util": "^21.0.4",
     "@geoapify/geocoder-autocomplete": "^2.1.0",
+    "@mediapipe/tasks-vision": "^1.1.0",
     "@ngx-translate/core": "^16.0.4",
     "@slickgrid-universal/angular-row-detail-plugin": "^10.11.0",
     "@slickgrid-universal/common": "^10.11.0",

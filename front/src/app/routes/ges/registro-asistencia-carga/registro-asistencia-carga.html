@@ -1,0 +1,39 @@
+<div class="registro-asistencia">
+
+  <div class="titulo">Registro de asistencia</div>
+  <div class="subtitulo">Ubique su rostro dentro del círculo y mire a la cámara</div>
+
+  <!-- Visor circular: el anillo cambia según el estado (halo azul listo, verde marcado, rojo error) -->
+  <div [class]="'visor visor-' + estado()" [style.--progreso]="progreso()">
+    <div class="circulo">
+      <video #video autoplay muted playsinline></video>
+
+      @if (estado() === 'iniciando' || estado() === 'marcando') {
+      <div class="velo">
+        <nz-spin nzSimple nzSize="large"></nz-spin>
+      </div>
+      }
+
+      @if (estado() === 'marcado') {
+      <div class="velo velo-ok">
+        <span nz-icon nzType="check-circle" nzTheme="outline"></span>
+      </div>
+      }
+    </div>
+  </div>
+
+  <div [class]="'mensaje mensaje-' + tipoAlerta()">{{ mensaje() }}</div>
+
+  @switch (estado()) {
+    @case ('sinPermiso') {
+    <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="iniciarCamara()">Reintentar</button>
+    }
+    @case ('error') {
+    <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="iniciarCamara()">Reintentar</button>
+    }
+    @case ('marcado') {
+    <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="nuevoRegistro()">Nuevo registro</button>
+    }
+  }
+
+</div>
