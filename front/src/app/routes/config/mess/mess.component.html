@@ -143,9 +143,9 @@
           [nzBodyStyle]="{ height: 'clamp(360px, 52vh, 680px)', minHeight: '320px', maxHeight: '680px', overflowY: 'auto', overscrollBehavior: 'contain', resize: 'vertical', padding: '8px' }">
           <div #chatMessages class="chat-messages">
             <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line"
-              [ngClass]="msg.tool_calls ? 'tool-call' : msg.role">
+              [ngClass]="msg.derivacion ? 'derivacion' : (msg.tool_calls ? 'tool-call' : msg.role)">
 
-              @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls && msg.role !== 'system')) {
+              @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls && msg.role !== 'system' && !msg.derivacion)) {
 
               <nz-card nzSize="small" [nzBodyStyle]="{ fontSize: '13px' }">
                 @if (showTools() && msg.thinking){
@@ -154,6 +154,10 @@
 
                 @if (msg.role === 'system') {
                 <div class="system-title">Prompt de sistema{{ msg.agent ? ' · ' + msg.agent : '' }}</div>
+                }
+
+                @if (msg.derivacion) {
+                <div class="derivacion-title">Consulta derivada{{ msg.agent ? ' · ' + msg.agent : '' }}</div>
                 }
 
                 @if (msg.content && msg.role !== 'tool') {

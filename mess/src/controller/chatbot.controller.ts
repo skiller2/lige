@@ -98,7 +98,8 @@ export class ChatBotController extends BaseController {
       return next(new ClientException('No se puede eliminar el agente principal BMA'))
     if (deletedCodes.includes('LP'))
       return next(new ClientException('No se puede eliminar el Lige Prompt LP'))
-
+    // if (deletedCodes.includes('BP'))
+    //   return next(new ClientException('No se puede eliminar el Lige Prompt BP'))
     const mainAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'BMA')
     const ligeAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'LP')
     let mainTools: any[] | null = null
@@ -605,9 +606,13 @@ export class ChatBotController extends BaseController {
     const usuario = BaseController.getUser(null)
     const queryRunner = await dbServer.connection(usuario)
     const fechaActual = new Date()
-    await queryRunner.query(`INSERT INTO DocumentoDescargaLog (DocumentoId, FechaDescarga, Telefono, PersonalId, AudUsuarioIng, AudIpIng, AudFechaIng)
-      VALUES (@0,@1,@2,@3,@4,@5,@6)`,
-      [doc_id, fechaActual, telefono, PersonalId, usuario, '127.0.0.1', fechaActual])
+    try {
+      await queryRunner.query(`INSERT INTO DocumentoDescargaLog (DocumentoId, FechaDescarga, Telefono, PersonalId, AudUsuarioIng, AudIpIng, AudFechaIng)
+        VALUES (@0,@1,@2,@3,@4,@5,@6)`,
+        [doc_id, fechaActual, telefono, PersonalId, usuario, '127.0.0.1', fechaActual])
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   static async enqueBotMsg(personal_id: number, texto_mensaje: string, clase_mensaje: string, usuario: string, ip: string) {
@@ -682,9 +687,9 @@ export class ChatBotController extends BaseController {
     const message = String(req.body.message ?? '').trim()
     if (!message)
       return this.jsonRes({ 'response': [] }, res, 'ok');
-//    const personalId = Number(req.body.personalId)
-//    if (!Number.isInteger(personalId) || personalId <= 0)
-//      return next(new ClientException('Debe seleccionar una persona'))
+    //    const personalId = Number(req.body.personalId)
+    //    if (!Number.isInteger(personalId) || personalId <= 0)
+    //      return next(new ClientException('Debe seleccionar una persona'))
     const chatId = String(req.body.chatId ?? '').trim()
     if (!chatId)
       return next(new ClientException('El teléfono es obligatorio'))
@@ -713,7 +718,7 @@ export class ChatBotController extends BaseController {
         if (vuelta > 10)
           throw new Error('Se superó el límite de 10 llamadas a la IA en un mismo mensaje')
 
-        console.log('tools',botServer.iaHistorial[chatId].tools)
+        console.log('tools', botServer.iaHistorial[chatId].tools)
         const responseIA = await botServer.ollama.chat({
           model: "gpt-oss:120b",
           messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
@@ -726,6 +731,7 @@ export class ChatBotController extends BaseController {
 
           const stateRes = await personalController.getPersonaState(chatId);
           const autoPersonalId = stateRes.stateData?.personalId;
+          // meto control de descarga pendiente de docs para doble validacion al derivar y no alucine la ia?
 
           for (const tool of responseIA.message.tool_calls) {
             let output = {}
@@ -785,8 +791,11 @@ export class ChatBotController extends BaseController {
               case 'getURLDocumentoNew':
                 try {
                   output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId, queryRunner)
+                  // Registra la entrega igual que flowDescargaDocs
+                  await this.addToDocLog(tool.function.arguments.DocumentoId, chatId, pId)
                 } catch (e) {
-                  output = { Error: e }
+                  console.error(`[IA][${chatId}] getURLDocumentoNew falló DocumentoId=${tool.function.arguments.DocumentoId}: ${e?.message}`, e?.extended ?? '')
+                  output = { Error: 'ARCHIVO_NO_DISPONIBLE', mensaje: 'El archivo no se encuentra disponible.' }
                 }
                 break;
               case 'getBackupNovedad':
@@ -815,13 +824,28 @@ export class ChatBotController extends BaseController {
                 output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt where BasePrompt = 0 AND Activo=1`)
                 break;
               case 'transferirAgente':
+                // Solo se deriva con el acceso verificado por el backend
+                if (!stateRes.activo || !stateRes.identificadorVinculado || stateRes.codigo) {
+                  output = { Error: 'No se puede derivar: el acceso de la persona no está verificado. Completá la verificación antes de derivar.' }
+                  break;
+                }
+                // Al salir de AUTH no deben quedar documentos pendientes de descarga
+                if (botServer.iaHistorial[chatId].agent === 'AUTH') {
+                  const docsPend = await personalController.getDocsPendDescarga(pId)
+                  if (docsPend.length) {
+                    output = { Error: 'No se puede derivar: la persona tiene documentos pendientes de descarga. Ofrecé descargarlos antes de derivar.' }
+                    break;
+                  }
+                }
                 output = await this.getChatBotAgent(queryRunner, tool.function.arguments.agentId)
                 botServer.iaHistorial[chatId].tools = (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
                 botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
                 botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
 
                 botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent });
-                botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent })
+                // Consulta resumida por la IA; si no la envía, se usa el último mensaje
+                const consulta = String(tool.function.arguments.consulta ?? '').trim() || message
+                botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: consulta, derivacion: true, agent: botServer.iaHistorial[chatId].agent })
 
                 break;
 
@@ -845,8 +869,8 @@ export class ChatBotController extends BaseController {
 
       return this.jsonRes({ 'response': nuevos }, res, 'ok');
     } catch (err) {
-        return next(new ClientException(err.message));
-    }  finally {
+      return next(new ClientException(err.message));
+    } finally {
       await queryRunner.release()
     }
   }

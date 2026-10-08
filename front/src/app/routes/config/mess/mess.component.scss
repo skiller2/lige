@@ -81,6 +81,25 @@ markdown p {
   margin-bottom: 4px;
 }
 
+// Consulta que un agente pasa a otro al derivar
+.chat-line.derivacion {
+  justify-content: center;
+
+  nz-card {
+    width: 100%;
+    background-color: #fff7e6;
+    border-left: 4px solid #fa8c16;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+}
+
+.derivacion-title {
+  font-weight: 600;
+  color: #fa8c16;
+  margin-bottom: 4px;
+}
+
 .thinking {
   justify-content: flex-start;
   background-color: #fffbe6;
