@@ -4,11 +4,11 @@ import { salarioMinimoVitalMovilController } from "../controller/controller.modu
 
 export const salarioMinimoVitalMovilRouter = Router();
 
-salarioMinimoVitalMovilRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+salarioMinimoVitalMovilRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'gPersonal', 'gPersonalCon'])], (req, res, next) => {
     salarioMinimoVitalMovilController.getGridCols(req, res, next);
 });
 
-salarioMinimoVitalMovilRouter.post(`/list`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+salarioMinimoVitalMovilRouter.post(`/list`, [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'gPersonal', 'gPersonalCon'])], (req, res, next) => {
     salarioMinimoVitalMovilController.getGridList(req, res, next);
 });
 
