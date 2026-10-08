@@ -105,6 +105,22 @@
   }
 }
 
+// Línea de ubicación, debajo del mensaje
+.ubicacion {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 8px;
+  margin-top: -8px;
+  font-size: 12px;
+  text-align: center;
+  color: #8c8c8c;
+
+  &.ubicacion-imprecisa { color: #fa8c16; }
+  &.ubicacion-sinPermiso,
+  &.ubicacion-error { color: #ff4d4f; }
+}
+
 .mensaje {
   min-height: 22px;
   font-size: 14px;

@@ -20,10 +20,25 @@ const INTERVALO_DETECCION_MS = 200
 const TIEMPO_ESTABLE_MS = 1000
 
 // Ubicación del rostro, en proporción del lado del círculo (el video se recorta a un cuadrado)
-const TAMANIO_MINIMO_ROSTRO = 0.45
-const DESVIO_MAXIMO_CENTRO = 0.08
+const TAMANIO_MINIMO_ROSTRO = 0.40
+const DESVIO_MAXIMO_CENTRO = 0.10
 
 const GUIA_INICIAL = 'Ubique su rostro dentro del círculo'
+
+// Ubicación: se acepta una lectura con precisión de hasta PRECISION_MAXIMA_M metros, y se espera
+// hasta ESPERA_UBICACION_MS cada lectura antes de informar que no se pudo obtener
+const PRECISION_MAXIMA_M = 100
+const ESPERA_UBICACION_MS = 15000
+
+type EstadoUbicacion = 'obteniendo' | 'lista' | 'imprecisa' | 'sinPermiso' | 'error'
+
+export interface Ubicacion {
+  latitud: number
+  longitud: number
+  // Radio de error informado por el dispositivo, en metros
+  precision: number
+  momento: Date
+}
 
 @Component({
   selector: 'app-registro-asistencia-carga',
@@ -51,6 +66,18 @@ export class RegistroAsistenciaCargaComponent {
   // 0..1: cuánto falta para marcar solo; se muestra llenando el anillo
   readonly progreso = signal(0)
 
+  // Ubicación: se sigue con watchPosition, que se va afinando; al marcar se usa la última
+  private vigilanciaUbicacion: number | null = null
+  readonly ubicacion = signal<Ubicacion | null>(null)
+  readonly estadoUbicacion = signal<EstadoUbicacion>('obteniendo')
+  readonly detalleUbicacion = signal('')
+  readonly linkMapa = computed(() => {
+    const ubicacion = this.ubicacion()
+    // /maps/place/ abre la ficha del punto, que muestra la dirección aproximada debajo de las
+    // coordenadas (con ?q= solo busca las coordenadas y muchas veces no muestra la calle)
+    return ubicacion ? `https://www.google.com/maps/place/${ubicacion.latitud},${ubicacion.longitud}` : ''
+  })
+
   readonly mensaje = computed(() => {
     switch (this.estado()) {
       case 'iniciando': return 'Iniciando cámara...'
@@ -72,8 +99,9 @@ export class RegistroAsistenciaCargaComponent {
   })
 
   constructor() {
-    // Al salir de la pantalla se apaga la cámara y la detección
+    // Al salir de la pantalla se apaga la cámara, la detección y el seguimiento de la ubicación
     inject(DestroyRef).onDestroy(() => {
+      this.detenerUbicacion()
       this.detenerDeteccion()
       this.detector?.close()
       this.detector = null
@@ -82,7 +110,52 @@ export class RegistroAsistenciaCargaComponent {
   }
 
   ngAfterViewInit(): void {
+    // La ubicación se pide en paralelo con la cámara, para tenerla lista al detectar el rostro
+    this.iniciarUbicacion()
     this.iniciarCamara()
+  }
+
+  iniciarUbicacion() {
+    this.detenerUbicacion()
+
+    // Igual que la cámara, sin HTTPS (salvo localhost) el navegador no da la ubicación
+    if (!navigator.geolocation) {
+      this.detalleUbicacion.set('El navegador no permite obtener la ubicación.')
+      this.estadoUbicacion.set('error')
+      return
+    }
+
+    this.estadoUbicacion.set('obteniendo')
+    this.vigilanciaUbicacion = navigator.geolocation.watchPosition(
+      (posicion) => {
+        const ubicacion: Ubicacion = {
+          latitud: posicion.coords.latitude,
+          longitud: posicion.coords.longitude,
+          precision: Math.round(posicion.coords.accuracy),
+          momento: new Date(posicion.timestamp),
+        }
+        this.ubicacion.set(ubicacion)
+        this.estadoUbicacion.set(ubicacion.precision <= PRECISION_MAXIMA_M ? 'lista' : 'imprecisa')
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          this.estadoUbicacion.set('sinPermiso')
+          return
+        }
+        // Con una lectura ya obtenida, un tiempo agotado no se informa: se sigue con la última
+        if (this.ubicacion()) return
+        this.detalleUbicacion.set(error.code === error.TIMEOUT
+          ? 'No se pudo obtener la ubicación (tiempo agotado).'
+          : `No se pudo obtener la ubicación: ${error.message}`)
+        this.estadoUbicacion.set('error')
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: ESPERA_UBICACION_MS }
+    )
+  }
+
+  private detenerUbicacion() {
+    if (this.vigilanciaUbicacion !== null) navigator.geolocation.clearWatch(this.vigilanciaUbicacion)
+    this.vigilanciaUbicacion = null
   }
 
   async iniciarCamara() {
@@ -122,8 +195,10 @@ export class RegistroAsistenciaCargaComponent {
     this.estado.set('marcando')
 
     const foto = this.capturarFoto()
-    // TODO: enviar la foto al back para el reconocimiento facial y registrar la asistencia
-    console.log('Foto capturada', foto.length)
+    const ubicacion = this.ubicacion()
+    // TODO: enviar la foto y la ubicación al back para el reconocimiento facial, la validación
+    // del lugar y el registro de la asistencia
+    console.log('Marcado', { fotoBytes: foto.length, ubicacion })
     await new Promise(resolve => setTimeout(resolve, 1000))   // Simula la respuesta del back
 
     this.horaMarcada.set(new Date())

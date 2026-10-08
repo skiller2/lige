@@ -24,6 +24,30 @@
 
   <div [class]="'mensaje mensaje-' + tipoAlerta()">{{ mensaje() }}</div>
 
+  <!-- Ubicación: momentáneamente con coordenadas y link al mapa, para validarla -->
+  <div [class]="'ubicacion ubicacion-' + estadoUbicacion()">
+    @switch (estadoUbicacion()) {
+      @case ('obteniendo') {
+      <span>Obteniendo ubicación...</span>
+      }
+      @case ('sinPermiso') {
+      <span>Sin permiso de ubicación.</span>
+      <a (click)="iniciarUbicacion()">Reintentar</a>
+      }
+      @case ('error') {
+      <span>{{ detalleUbicacion() }}</span>
+      <a (click)="iniciarUbicacion()">Reintentar</a>
+      }
+      @default {
+      <span>
+        {{ ubicacion()!.latitud.toFixed(6) }}, {{ ubicacion()!.longitud.toFixed(6) }}
+        (±{{ ubicacion()!.precision }} m{{ estadoUbicacion() === 'imprecisa' ? ', imprecisa' : '' }})
+      </span>
+      <a [href]="linkMapa()" target="_blank" rel="noopener">Ver en mapa</a>
+      }
+    }
+  </div>
+
   @switch (estado()) {
     @case ('sinPermiso') {
     <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="iniciarCamara()">Reintentar</button>
