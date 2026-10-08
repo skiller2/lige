@@ -15,7 +15,9 @@ export class ChatBotController extends BaseController {
         prompt.Descripcion,
         prompt.Tipo,
         prompt.Prompt,
-        prompt.IaTools
+        prompt.IaTools,
+        prompt.BasePrompt,
+        prompt.Activo
       FROM ChatBotPrompt prompt
       ORDER BY prompt.ChatBotPromptCodigo
     `)
@@ -57,7 +59,9 @@ export class ChatBotController extends BaseController {
       Descripcion: String(agent?.Descripcion ?? '').trim() || null,
       Prompt: agent?.Prompt == null ? null : String(agent.Prompt),
       IaTools: agent?.IaTools == null ? null : String(agent.IaTools),
-      Tipo: String(agent?.Tipo ?? '').trim() || null
+      Tipo: String(agent?.Tipo ?? '').trim() || null,
+      BasePrompt: !!agent?.BasePrompt,
+      Activo: !!agent?.Activo
     }))
 
     if (normalizedAgents.some((agent: any) => !agent.ChatBotPromptCodigo || agent.ChatBotPromptCodigo.length > 5))
@@ -168,7 +172,9 @@ export class ChatBotController extends BaseController {
                 AudFechaMod = @4,
                 AudUsuarioMod = @5,
                 AudIpMod = @6,
-                Tipo = @7
+                Tipo = @7,
+                BasePrompt = @8,
+                Activo = @9
             WHERE ChatBotPromptCodigo = @0
           `, [
             agent.ChatBotPromptCodigo,
@@ -178,7 +184,9 @@ export class ChatBotController extends BaseController {
             fecha,
             usuario,
             ip,
-            agent.Tipo
+            agent.Tipo,
+            agent.BasePrompt,
+            agent.Activo
           ])
         } else {
           await queryRunner.query(`
@@ -193,8 +201,10 @@ export class ChatBotController extends BaseController {
               AudUsuarioMod,
               AudIpIng,
               AudIpMod,
-              Tipo
-            ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6, @7)
+              Tipo,
+              BasePrompt,
+              Activo
+            ) VALUES (@0, @1, @2, @3, @4, @4, @5, @5, @6, @6, @7, @8, @9)
           `, [
             agent.ChatBotPromptCodigo,
             agent.Descripcion,
@@ -203,7 +213,9 @@ export class ChatBotController extends BaseController {
             fecha,
             usuario,
             ip,
-            agent.Tipo
+            agent.Tipo,
+            agent.BasePrompt,
+            agent.Activo
           ])
         }
       }
@@ -653,15 +665,15 @@ export class ChatBotController extends BaseController {
       // prompt base + agent
       const basePrompt = await queryRunner.query(`SELECT ChatBotPromptCodigo, Prompt, IaTools FROM ChatBotPrompt WHERE BasePrompt=1 and Activo=1`)
       if (basePrompt.length > 0) {
-        rows[0].Prompt = `${basePrompt[0].Prompt}\nEspecialista Activo: ${rows[0].Tipo}\n\n${rows[0].Prompt}`
+        rows[0].Prompt = `${basePrompt[0].Prompt}\n\n[Agente Activo]: ${rows[0].Tipo}\n\n${rows[0].Prompt}`
         // Tools del base + las del agente
         const toolsBase = basePrompt[0].IaTools ? JSON.parse(basePrompt[0].IaTools) : []
         const toolsAgente = rows[0].IaTools ? JSON.parse(rows[0].IaTools) : []
         rows[0].IaTools = JSON.stringify([...toolsBase, ...toolsAgente])
+        console.log('Combined prompt:', rows[0].Prompt)
         console.info('Combined IaTools:', rows[0].IaTools)
       }
     }
-
     return { ChatBotPromptCodigo: rows[0].ChatBotPromptCodigo, Prompt: rows[0].Prompt, IaTools: rows[0].IaTools }
   }
 
@@ -686,7 +698,7 @@ export class ChatBotController extends BaseController {
     let vuelta = 0
 
     if (!botServer.iaHistorial[chatId]?.msgs?.length) {
-      const agent = await this.getChatBotAgent(queryRunner, 'BP')
+      const agent = await this.getChatBotAgent(queryRunner, 'AUTH')
       botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '' }
       botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '' });
     }

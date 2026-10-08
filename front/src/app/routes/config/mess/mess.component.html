@@ -254,6 +254,18 @@
               </nz-form-item>
 
               <nz-form-item>
+                <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Base Prompt</nz-form-label>
+                <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+                  <label nz-checkbox [formField]="agent.BasePrompt"></label>
+                </nz-form-control>
+
+                <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Activo</nz-form-label>
+                <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+                  <label nz-checkbox [formField]="agent.Activo"></label>
+                </nz-form-control>
+              </nz-form-item>
+
+              <nz-form-item>
                 <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Prompt</nz-form-label>
                 <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
                   <textarea nz-input [formField]="agent.Prompt" rows="14"></textarea>

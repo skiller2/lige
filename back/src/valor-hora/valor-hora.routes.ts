@@ -4,15 +4,15 @@ import { valorHoraController } from "../controller/controller.module.ts";
 
 export const valorHoraRouter = Router();
 
-valorHoraRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res) => {
+valorHoraRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'Liquidaciones', 'Liquidaciones Consultas', 'mValorHora','mValorHoraCon'])], (req, res) => {
     valorHoraController.getValorHoraCols(req, res);
 });
 
-valorHoraRouter.post("/data", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+valorHoraRouter.post("/data", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'Liquidaciones', 'Liquidaciones Consultas', 'mValorHora','mValorHoraCon'])], (req, res, next) => {
     valorHoraController.getValorHoraData(req, res, next);
 });
 
-valorHoraRouter.get("/categorias-personal", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'Liquidaciones', 'Liquidaciones Consultas'])], (req, res, next) => {
+valorHoraRouter.get("/categorias-personal", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gConsejo', 'gConsejoCon', 'Liquidaciones', 'Liquidaciones Consultas', 'mValorHora','mValorHoraCon'])], (req, res, next) => {
     valorHoraController.getCategoriasPersonal(req, res, next);
 });
 

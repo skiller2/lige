@@ -35,25 +35,16 @@ const columnasGrilla: any[] = [
     name: "Sucursal Persona",
     type: "number",
     id: "SucursalId",
-    field: "SucursalId",
-    fieldName: "SucursalId",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
     searchComponent: "inputForSucursalSearch",
-    hidden: true,
+    hidden: false,
     searchHidden: false,
     sortable: true
   },
+  
   {
-    name: "Sucursal Persona",
-    type: "string",
-    id: "SucursalDescripcion",
-    field: "SucursalDescripcion",
-    fieldName: "suc.SucursalDescripcion",
-    hidden: false,
-    searchHidden: true,
-    sortable: true
-  },
-  {
-    name: "PersonalLicenciaAplicaPeriodoAplicaEl",
+    name: "Periodo Aplica",
     type: "string",
     id: "PersonalLicenciaAplicaPeriodoAplicaEl",
     field: "PersonalLicenciaAplicaPeriodoAplicaEl",
@@ -63,7 +54,7 @@ const columnasGrilla: any[] = [
     sortable: true
   },
   {
-    name: "anio",
+    name: "Año",
     type: "number",
     id: "anio",
     field: "anio",
@@ -73,7 +64,7 @@ const columnasGrilla: any[] = [
     sortable: true
   },
   {
-    name: "mes",
+    name: "Mes",
     type: "number",
     id: "mes",
     field: "mes",
@@ -303,21 +294,11 @@ const columnasGrillaHoras: any[] = [
     name: "Sucursal Persona",
     type: "number",
     id: "SucursalId",
-    field: "SucursalId",
-    fieldName: "SucursalId",
-    searchComponent: "inputForSucursalSearch",
-    hidden: true,
-    searchHidden: false,
-    sortable: true
-  },
-  {
-    name: "Sucursal Persona",
-    type: "string",
-    id: "SucursalDescripcion",
     field: "SucursalDescripcion",
-    fieldName: "suc.SucursalDescripcion",
-    searchHidden: true,
+    fieldName: "suc.SucursalId",
+    searchComponent: "inputForSucursalSearch",
     hidden: false,
+    searchHidden: false,
     sortable: true
   },
   {

@@ -19,6 +19,8 @@ interface ChatBotPromptForm {
   Tipo: string;
   Prompt: string;
   IaTools: string;
+  BasePrompt: boolean;
+  Activo: boolean;
   EsNuevo: boolean;
 }
 
@@ -226,6 +228,8 @@ export class MessComponent {
       Tipo: agent.Tipo ?? '',
       Prompt: agent.Prompt ?? '',
       IaTools: agent.IaTools ?? '',
+      BasePrompt: !!agent.BasePrompt,
+      Activo: !!agent.Activo,
       EsNuevo: false
     }))
 
@@ -262,6 +266,8 @@ export class MessComponent {
       Tipo: '',
       Prompt: '',
       IaTools: '',
+      BasePrompt: false,
+      Activo: true,
       EsNuevo: true
     }
 

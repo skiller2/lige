@@ -87,7 +87,7 @@ export class  TableHorasLicenciaComponent {
     extra: null
   });
 
-  columns = toSignal(this.apiService.getCols('/api/carga-licencia/cols').pipe(map((cols) => {
+  columns = toSignal(this.apiService.getCols('/api/carga-licencia/colsHoras').pipe(map((cols) => {
     return cols.map((col: Column) => {
       if (col.id == 'PersonalLicenciaAplicaPeriodoHorasMensuales') {
         col.editor = {
