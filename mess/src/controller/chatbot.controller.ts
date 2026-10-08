@@ -665,7 +665,8 @@ export class ChatBotController extends BaseController {
       // prompt base + agent
       const basePrompt = await queryRunner.query(`SELECT ChatBotPromptCodigo, Prompt, IaTools FROM ChatBotPrompt WHERE BasePrompt=1 and Activo=1`)
       if (basePrompt.length > 0) {
-        rows[0].Prompt = `${basePrompt[0].Prompt}\n\n[Agente Activo]: ${rows[0].Tipo}\n\n${rows[0].Prompt}`
+        // todo: inyectar prompt de agente en lugar especifico del prompt base
+        rows[0].Prompt = `${basePrompt[0].Prompt}\n\n[Agente Activo: ${rows[0].Tipo}]\n\n${rows[0].Prompt}\n\n[Fin Agente Activo]`
         // Tools del base + las del agente
         const toolsBase = basePrompt[0].IaTools ? JSON.parse(basePrompt[0].IaTools) : []
         const toolsAgente = rows[0].IaTools ? JSON.parse(rows[0].IaTools) : []
