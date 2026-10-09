@@ -295,6 +295,11 @@
           "icon": "anticon-profile",
           "children": [
             {
+              "text": "Categoría Personal",
+              "link": "/config/categoria-personal",
+              "icon": "anticon-profile"
+            },
+            {
               "text": "ChatBot",
               "link": "/config/mess",
               "icon": "anticon-info"

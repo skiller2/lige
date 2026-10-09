@@ -35,5 +35,9 @@ export const ConfigRoutes: Routes = [
     path: 'tipo-asociado',
     loadComponent: () => import('./tipo-asociado/tipo-asociado').then(c => c.TipoAsociadoComponent),
   },
+  {
+    path: 'categoria-personal',
+    loadComponent: () => import('./categoria-personal/categoria-personal').then(c => c.CategoriaPersonalComponent),
+  },
 
 ];
