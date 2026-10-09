@@ -1,6 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import type { Detection, FaceDetector } from '@mediapipe/tasks-vision';
+import { firstValueFrom } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { form, FormField, required, submit } from '@angular/forms/signals';
+import { ApiService } from '../../../services/api.service';
+import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
 
 // icons
 import { provideNzIconsPatch } from 'ng-zorro-antd/icon';
@@ -8,27 +13,45 @@ import { CheckCircleOutline } from '@ant-design/icons-angular/icons';
 
 // Estados de la pantalla de marcado: definen el mensaje y qué botón se muestra (el marcado lo
 // dispara la detección de rostro, no un botón)
-type EstadoMarcado = 'iniciando' | 'sinPermiso' | 'error' | 'listo' | 'marcando' | 'marcado'
+type EstadoMarcado = 'iniciando' | 'sinPermiso' | 'error' | 'listo' | 'marcando' | 'marcado' | 'noEncontrado' | 'confirmado'
+
+// Dónde registra la asistencia la persona reconocida
+export interface ConfirmacionForm {
+  TipoLugar: string          // 'OBJ' | 'CUS'
+  ObjetivoId: number | null
+  CustodiaCodigo: string
+}
 
 // MediaPipe se sirve desde la app: angular.json copia el wasm y el modelo está en src/assets
 const MEDIAPIPE_WASM = 'assets/mediapipe/wasm'
 const MEDIAPIPE_MODELO = 'assets/mediapipe/models/blaze_face_short_range.tflite'
 
-// Cada cuánto se analiza un cuadro del video, y cuánto tiene que quedarse quieto el rostro bien
-// ubicado para marcar solo
-const INTERVALO_DETECCION_MS = 200
-const TIEMPO_ESTABLE_MS = 1000
-
-// Ubicación del rostro, en proporción del lado del círculo (el video se recorta a un cuadrado)
-const TAMANIO_MINIMO_ROSTRO = 0.40
-const DESVIO_MAXIMO_CENTRO = 0.10
-
 const GUIA_INICIAL = 'Ubique su rostro dentro del círculo'
 
-// Ubicación: se acepta una lectura con precisión de hasta PRECISION_MAXIMA_M metros, y se espera
-// hasta ESPERA_UBICACION_MS cada lectura antes de informar que no se pudo obtener
-const PRECISION_MAXIMA_M = 100
-const ESPERA_UBICACION_MS = 15000
+// Configuración de la pantalla: viene de ParametroGeneral (ROSTR y UBICA) a través del back
+export interface ConfiguracionRegistroAsistencia {
+  rostro: {
+    // Cada cuánto se analiza un cuadro del video, y cuánto tiene que quedarse quieto el rostro
+    // bien ubicado para marcar solo
+    intervaloDeteccionMs: number
+    tiempoEstableMs: number
+    // Ubicación del rostro, en proporción del lado del círculo (el video se recorta a un cuadrado)
+    tamanioMinimoRostro: number
+    desvioMaximoCentro: number
+    // Confianza mínima de MediaPipe para considerar que hay un rostro (0..1)
+    confianzaMinimaDeteccion: number
+    // Lado de la foto que se manda al back: chica para no pasar el límite de 100 KB del back
+    ladoFoto: number
+  }
+  ubicacion: {
+    // Se acepta una lectura con precisión de hasta precisionMaximaMetros, y se espera hasta
+    // esperaUbicacionMs cada lectura antes de informar que no se pudo obtener
+    precisionMaximaMetros: number
+    esperaUbicacionMs: number
+    // Distancia máxima al objetivo para marcar (la valida el back cuando haya coordenadas de objetivos)
+    distanciaMaximaMetros: number
+  }
+}
 
 type EstadoUbicacion = 'obteniendo' | 'lista' | 'imprecisa' | 'sinPermiso' | 'error'
 
@@ -43,7 +66,7 @@ export interface Ubicacion {
 @Component({
   selector: 'app-registro-asistencia-carga',
   standalone: true,
-  imports: [SHARED_IMPORTS],
+  imports: [SHARED_IMPORTS, FormField, ObjetivoSearchComponent],
   providers: [provideNzIconsPatch([CheckCircleOutline])],
   templateUrl: './registro-asistencia-carga.html',
   styleUrl: './registro-asistencia-carga.less',
@@ -57,6 +80,23 @@ export class RegistroAsistenciaCargaComponent {
   readonly estado = signal<EstadoMarcado>('iniciando')
   readonly detalleError = signal('')
   readonly horaMarcada = signal<Date | null>(null)
+  // Persona que reconoció el back
+  readonly personaEncontrada = signal('')
+  private readonly personalIdEncontrado = signal<number | null>(null)
+
+  // Confirmación: una vez reconocido, se elige el objetivo o la custodia donde se registra
+  private readonly defaultConfirmacion: ConfirmacionForm = { TipoLugar: '', ObjetivoId: null, CustodiaCodigo: '' }
+  readonly confirmacion = signal<ConfirmacionForm>(structuredClone(this.defaultConfirmacion))
+  readonly formConfirmacion = form(this.confirmacion, (p) => {
+    required(p.TipoLugar, { message: 'Elija dónde registra la asistencia' })
+    required(p.ObjetivoId, { message: 'Elija el objetivo', when: (ctx) => ctx.valueOf(p.TipoLugar) == 'OBJ' })
+    required(p.CustodiaCodigo, { message: 'Ingrese la custodia', when: (ctx) => ctx.valueOf(p.TipoLugar) == 'CUS' })
+  })
+
+  private apiService = inject(ApiService)
+  readonly optionsTipoLugar = toSignal(this.apiService.getTiposLugarRegistroAsistencia(), { initialValue: [] })
+  // Se lee al abrir la pantalla; sin ella no arranca ni la cámara ni la ubicación
+  private config: ConfiguracionRegistroAsistencia | null = null
 
   // Detección de rostro: es lo que marca la asistencia
   private detector: FaceDetector | null = null
@@ -85,15 +125,25 @@ export class RegistroAsistenciaCargaComponent {
       case 'error': return this.detalleError()
       case 'listo': return this.guia()
       case 'marcando': return 'Registrando asistencia...'
-      case 'marcado': return `Asistencia registrada ${this.horaMarcada()?.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) ?? ''}`
+      case 'marcado': return `Rostro encontrado: ${this.personaEncontrada()} (${this.horaMarcada()?.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) ?? ''})`
+      case 'noEncontrado': return 'Rostro no encontrado'
+      case 'confirmado': return `Asistencia confirmada: ${this.personaEncontrada()}`
     }
+  })
+
+  // Hora del marcado en 24 hs, para la tarjeta de la persona reconocida
+  readonly horaMarcadaTexto = computed(() => {
+    const hora = this.horaMarcada()
+    return hora ? `${hora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false })} hs` : ''
   })
 
   readonly tipoAlerta = computed(() => {
     switch (this.estado()) {
       case 'sinPermiso':
-      case 'error': return 'error'
-      case 'marcado': return 'success'
+      case 'error':
+      case 'noEncontrado': return 'error'
+      case 'marcado':
+      case 'confirmado': return 'success'
       default: return 'info'
     }
   })
@@ -110,13 +160,31 @@ export class RegistroAsistenciaCargaComponent {
   }
 
   ngAfterViewInit(): void {
+    this.iniciar()
+  }
+
+  // Lee la configuración (si todavía no la tiene) y arranca la ubicación y la cámara. Es también lo
+  // que hace Reintentar.
+  async iniciar() {
+    this.estado.set('iniciando')
+    if (!this.config) {
+      try {
+        this.config = await firstValueFrom(this.apiService.getConfiguracionRegistroAsistencia())
+      } catch (e: any) {
+        this.detalleError.set(`No se pudo leer la configuración del registro de asistencia: ${e?.error?.msg ?? e?.message ?? e}`)
+        this.estado.set('error')
+        return
+      }
+    }
     // La ubicación se pide en paralelo con la cámara, para tenerla lista al detectar el rostro
-    this.iniciarUbicacion()
+    if (this.vigilanciaUbicacion === null) this.iniciarUbicacion()
     this.iniciarCamara()
   }
 
   iniciarUbicacion() {
     this.detenerUbicacion()
+    if (!this.config) return
+    const { precisionMaximaMetros, esperaUbicacionMs } = this.config.ubicacion
 
     // Igual que la cámara, sin HTTPS (salvo localhost) el navegador no da la ubicación
     if (!navigator.geolocation) {
@@ -135,11 +203,18 @@ export class RegistroAsistenciaCargaComponent {
           momento: new Date(posicion.timestamp),
         }
         this.ubicacion.set(ubicacion)
-        this.estadoUbicacion.set(ubicacion.precision <= PRECISION_MAXIMA_M ? 'lista' : 'imprecisa')
+        this.estadoUbicacion.set(ubicacion.precision <= precisionMaximaMetros ? 'lista' : 'imprecisa')
+        // La línea de ubicación de la pantalla está comentada: por ahora se informa por consola
+        console.log('[registro-asistencia] Ubicación', {
+          ...ubicacion,
+          estado: this.estadoUbicacion(),
+          mapa: this.linkMapa(),
+        })
       },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
           this.estadoUbicacion.set('sinPermiso')
+          console.log('[registro-asistencia] Ubicación: sin permiso')
           return
         }
         // Con una lectura ya obtenida, un tiempo agotado no se informa: se sigue con la última
@@ -148,8 +223,9 @@ export class RegistroAsistenciaCargaComponent {
           ? 'No se pudo obtener la ubicación (tiempo agotado).'
           : `No se pudo obtener la ubicación: ${error.message}`)
         this.estadoUbicacion.set('error')
+        console.log('[registro-asistencia] Ubicación: error', this.detalleUbicacion())
       },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: ESPERA_UBICACION_MS }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: esperaUbicacionMs }
     )
   }
 
@@ -196,17 +272,45 @@ export class RegistroAsistenciaCargaComponent {
 
     const foto = this.capturarFoto()
     const ubicacion = this.ubicacion()
-    // TODO: enviar la foto y la ubicación al back para el reconocimiento facial, la validación
-    // del lugar y el registro de la asistencia
-    console.log('Marcado', { fotoBytes: foto.length, ubicacion })
-    await new Promise(resolve => setTimeout(resolve, 1000))   // Simula la respuesta del back
 
-    this.horaMarcada.set(new Date())
-    this.estado.set('marcado')
+    // El back compara el rostro con las fotos del personal. Por ahora solo informa: no graba nada.
+    try {
+      const respuesta = await firstValueFrom(this.apiService.marcarRegistroAsistencia({ foto, ubicacion }))
+      this.horaMarcada.set(new Date())
+      this.personaEncontrada.set(respuesta?.ApellidoNombre || `PersonalId ${respuesta?.PersonalId}`)
+      this.personalIdEncontrado.set(respuesta?.PersonalId ?? null)
+      this.estado.set(respuesta?.encontrado ? 'marcado' : 'noEncontrado')
+    } catch (e: any) {
+      this.detalleError.set(`No se pudo registrar la asistencia: ${e?.error?.msg ?? e?.message ?? e}`)
+      this.estado.set('error')
+    }
+  }
+
+  // Confirma la asistencia de la persona reconocida en el objetivo o la custodia elegidos
+  async confirmarAsistencia() {
+    if (this.estado() !== 'marcado' || this.formConfirmacion().submitting() || !this.formConfirmacion().valid()) return
+
+    await submit(this.formConfirmacion, async (form) => {
+      try {
+        await firstValueFrom(this.apiService.confirmarRegistroAsistencia({
+          ...form().value(),
+          PersonalId: this.personalIdEncontrado(),
+          ubicacion: this.ubicacion(),
+        }))
+        this.estado.set('confirmado')
+      } catch (e: any) {
+        return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors)
+      }
+      return undefined
+    })
   }
 
   nuevoRegistro() {
     this.horaMarcada.set(null)
+    this.personaEncontrada.set('')
+    this.personalIdEncontrado.set(null)
+    this.confirmacion.set(structuredClone(this.defaultConfirmacion))
+    this.formConfirmacion().reset()
     this.reiniciarProgreso(GUIA_INICIAL)
     this.estado.set('listo')
     this.programarDeteccion()
@@ -234,7 +338,7 @@ export class RegistroAsistenciaCargaComponent {
     const opciones = (delegate: 'GPU' | 'CPU') => ({
       baseOptions: { modelAssetPath: MEDIAPIPE_MODELO, delegate },
       runningMode: 'VIDEO' as const,
-      minDetectionConfidence: 0.6,
+      minDetectionConfidence: this.config!.rostro.confianzaMinimaDeteccion,
     })
     // La GPU es más rápida pero no está en todos los dispositivos
     try {
@@ -246,7 +350,7 @@ export class RegistroAsistenciaCargaComponent {
 
   private programarDeteccion() {
     this.detenerDeteccion()
-    this.temporizadorDeteccion = setTimeout(() => this.detectar(), INTERVALO_DETECCION_MS)
+    this.temporizadorDeteccion = setTimeout(() => this.detectar(), this.config!.rostro.intervaloDeteccionMs)
   }
 
   private detenerDeteccion() {
@@ -271,7 +375,7 @@ export class RegistroAsistenciaCargaComponent {
       } else {
         this.guia.set('Mantenga la posición...')
         this.estableDesde ??= ahora
-        const progreso = Math.min((ahora - this.estableDesde) / TIEMPO_ESTABLE_MS, 1)
+        const progreso = Math.min((ahora - this.estableDesde) / this.config!.rostro.tiempoEstableMs, 1)
         this.progreso.set(progreso)
         if (progreso >= 1) {
           this.marcar()
@@ -291,12 +395,13 @@ export class RegistroAsistenciaCargaComponent {
     if (!caja) return GUIA_INICIAL
 
     // El círculo muestra el cuadrado central del video
+    const { tamanioMinimoRostro, desvioMaximoCentro } = this.config!.rostro
     const lado = Math.min(ancho, alto)
-    if (caja.width / lado < TAMANIO_MINIMO_ROSTRO) return 'Acérquese a la cámara'
+    if (caja.width / lado < tamanioMinimoRostro) return 'Acérquese a la cámara'
 
     const desvioX = Math.abs(caja.originX + caja.width / 2 - ancho / 2) / lado
     const desvioY = Math.abs(caja.originY + caja.height / 2 - alto / 2) / lado
-    if (desvioX > DESVIO_MAXIMO_CENTRO || desvioY > DESVIO_MAXIMO_CENTRO) return 'Centre el rostro en el círculo'
+    if (desvioX > desvioMaximoCentro || desvioY > desvioMaximoCentro) return 'Centre el rostro en el círculo'
 
     return null
   }
@@ -307,14 +412,19 @@ export class RegistroAsistenciaCargaComponent {
     this.progreso.set(0)
   }
 
-  // Cuadro actual del video como JPEG (sin espejar: la vista sí se muestra espejada)
+  // Recorte cuadrado central del video (lo que se ve en el círculo) como JPEG de ladoFoto x
+  // ladoFoto, sin espejar (la vista sí se muestra espejada)
   private capturarFoto(): string {
     const video = this.video().nativeElement
+    const ladoFoto = this.config!.rostro.ladoFoto
+    const lado = Math.min(video.videoWidth, video.videoHeight)
     const canvas = document.createElement('canvas')
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height)
-    return canvas.toDataURL('image/jpeg', 0.9)
+    canvas.width = ladoFoto
+    canvas.height = ladoFoto
+    canvas.getContext('2d')?.drawImage(video,
+      (video.videoWidth - lado) / 2, (video.videoHeight - lado) / 2, lado, lado,
+      0, 0, ladoFoto, ladoFoto)
+    return canvas.toDataURL('image/jpeg', 0.85)
   }
 
   private detenerCamara() {

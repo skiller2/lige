@@ -1,7 +1,10 @@
 <div class="registro-asistencia">
 
-  <div class="titulo">Registro de asistencia</div>
-  <div class="subtitulo">Ubique su rostro dentro del círculo y mire a la cámara</div>
+  <!-- Encabezado: mismo estilo que el nombre de la persona reconocida (negrita y línea gris debajo) -->
+  <div class="encabezado">
+    <div class="titulo">Registro de asistencia</div>
+    <div class="subtitulo">Ubique su rostro dentro del círculo y mire a la cámara</div>
+  </div>
 
   <!-- Visor circular: el anillo cambia según el estado (halo azul listo, verde marcado, rojo error) -->
   <div [class]="'visor visor-' + estado()" [style.--progreso]="progreso()">
@@ -14,7 +17,7 @@
       </div>
       }
 
-      @if (estado() === 'marcado') {
+      @if (estado() === 'marcado' || estado() === 'confirmado') {
       <div class="velo velo-ok">
         <span nz-icon nzType="check-circle" nzTheme="outline"></span>
       </div>
@@ -22,9 +25,65 @@
     </div>
   </div>
 
+  <!-- Persona reconocida: el nombre destacado con el check, y debajo el estado y la hora; el resto
+       de los estados, el mensaje -->
+  @if (estado() === 'marcado' || estado() === 'confirmado') {
+  <div class="persona">
+    <div class="persona-nombre">
+      <span class="persona-check" nz-icon nzType="check-circle" nzTheme="outline"></span>
+      {{ personaEncontrada() }}
+    </div>
+    <div class="persona-detalle">
+      {{ estado() === 'marcado' ? 'Rostro encontrado' : 'Asistencia confirmada' }} · {{ horaMarcadaTexto() }}
+    </div>
+  </div>
+  } @else {
   <div [class]="'mensaje mensaje-' + tipoAlerta()">{{ mensaje() }}</div>
+  }
 
-  <!-- Ubicación: momentáneamente con coordenadas y link al mapa, para validarla -->
+  <!-- Reconocida la persona, elige dónde registra la asistencia. Cada nz-form-item va entero dentro
+       de su @if: si cambiara solo el control, sfErrorTip leería el [formField] antes de tener valor -->
+  @if (estado() === 'marcado') {
+  <form nz-form nzLayout="vertical" class="confirmacion" (ngSubmit)="confirmarAsistencia()">
+    <nz-form-item>
+      <nz-form-label nzRequired>Registrar en</nz-form-label>
+      <nz-form-control sfErrorTip>
+        <nz-select nzPlaceHolder="Objetivo o custodia" nzAllowClear [formField]="formConfirmacion.TipoLugar"
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%;">
+          @for (option of optionsTipoLugar(); track option.value) {
+          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    @if (confirmacion().TipoLugar === 'OBJ') {
+    <nz-form-item>
+      <nz-form-label nzRequired>Objetivo</nz-form-label>
+      <nz-form-control sfErrorTip>
+        <app-objetivo-search [formField]="formConfirmacion.ObjetivoId" />
+      </nz-form-control>
+    </nz-form-item>
+    }
+
+    @if (confirmacion().TipoLugar === 'CUS') {
+    <nz-form-item>
+      <nz-form-label nzRequired>Custodia</nz-form-label>
+      <nz-form-control sfErrorTip>
+        <input nz-input [formField]="formConfirmacion.CustodiaCodigo" placeholder="Código de la custodia" />
+      </nz-form-control>
+    </nz-form-item>
+    }
+
+    <button nz-button nzType="primary" nzShape="round" nzSize="large" nzBlock type="submit"
+      [nzLoading]="formConfirmacion().submitting()"
+      [disabled]="formConfirmacion().submitting() || !formConfirmacion().valid()">
+      Confirmar asistencia
+    </button>
+  </form>
+  }
+
+  <!-- Ubicación: comentada por ahora; se informa por consola (console.log en iniciarUbicacion).
   <div [class]="'ubicacion ubicacion-' + estadoUbicacion()">
     @switch (estadoUbicacion()) {
       @case ('obteniendo') {
@@ -47,16 +106,25 @@
       }
     }
   </div>
+  -->
 
   @switch (estado()) {
     @case ('sinPermiso') {
-    <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="iniciarCamara()">Reintentar</button>
+    <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="iniciar()">Reintentar</button>
     }
     @case ('error') {
-    <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="iniciarCamara()">Reintentar</button>
+    <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="iniciar()">Reintentar</button>
     }
     @case ('marcado') {
-    <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="nuevoRegistro()">Nuevo registro</button>
+    <button nz-button nzType="default" nzShape="circle" nzSize="large" (click)="nuevoRegistro()" nz-tooltip
+      nzTooltipTitle="Nuevo registro"><span nz-icon nzType="reload" nzTheme="outline"></span></button>
+    }
+    @case ('confirmado') {
+    <button nz-button nzType="default" nzShape="circle" nzSize="large" (click)="nuevoRegistro()" nz-tooltip
+      nzTooltipTitle="Nuevo registro"><span nz-icon nzType="reload" nzTheme="outline"></span></button>
+    }
+    @case ('noEncontrado') {
+    <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="nuevoRegistro()">Intentar de nuevo</button>
     }
   }
 

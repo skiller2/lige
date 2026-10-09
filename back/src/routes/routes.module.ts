@@ -65,6 +65,7 @@ import { ordenVentaRouter } from "../orden-venta/orden-venta.routes.ts";
 import { proveedoresRouter } from "../proveedores/proveedores.routes.ts";
 import { depositosRouter } from "../despositos/despositos.routes.ts";
 import { parametroGeneralRouter } from "../parametro-general/parametro-general.routes.ts";
+import { registroAsistenciaRouter } from "../registro-asistencia/registro-asistencia.routes.ts";
 import { tipoAsociadoRouter } from "../tipo-asociado/tipo-asociado.routes.ts";
 
 export function makeRoutes(server: WebServer) {
@@ -134,5 +135,6 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/proveedores", proveedoresRouter);
   server.setRoute("/api/depositos", depositosRouter);
   server.setRoute("/api/parametro-general", parametroGeneralRouter);
+  server.setRoute("/api/registro-asistencia", registroAsistenciaRouter);
   server.setRoute("/api/tipo-asociado", tipoAsociadoRouter);
 }

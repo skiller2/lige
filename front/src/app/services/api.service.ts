@@ -2068,6 +2068,37 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/orden-venta/anular', { NroOrdenVentas });
   }
 
+  // Configuración del registro de asistencia (ParametroGeneral ROSTR y UBICA)
+  getConfiguracionRegistroAsistencia() {
+    return this.http.get<ResponseJSON<any>>('/api/registro-asistencia/configuracion').pipe(
+      map((res: { data: any; }) => res.data)
+    );
+  }
+
+  // Dónde se registra la asistencia (Objetivo / Custodia)
+  getTiposLugarRegistroAsistencia() {
+    return this.http.get<ResponseJSON<any>>('/api/registro-asistencia/tipos-lugar').pipe(
+      map((res: { data: any; }) => res.data),
+      // Sin opciones el combo queda vacío: el error se deja en la consola para poder diagnosticarlo
+      catchError((error) => {
+        console.error('No se pudieron leer los tipos de lugar del registro de asistencia', error)
+        return of([])
+      })
+    );
+  }
+
+  // Confirmación de la asistencia de la persona reconocida, con el objetivo o la custodia elegidos
+  confirmarRegistroAsistencia(confirmacion: any) {
+    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/confirmar', confirmacion);
+  }
+
+  // Marcado de asistencia por reconocimiento facial: foto (data URL JPEG) y ubicación del dispositivo
+  marcarRegistroAsistencia(marcado: { foto: string, ubicacion: any }) {
+    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/marcar', marcado).pipe(
+      map((res: { data: any; }) => res.data)
+    );
+  }
+
   getListParametrosGenerales(options: any) {
 
     return this.http.post<ResponseJSON<any>>('/api/parametro-general/list', { options }).pipe(

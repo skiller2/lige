@@ -13,17 +13,21 @@
   background: linear-gradient(180deg, #f0f5ff 0%, #ffffff 60%);
 }
 
-.titulo {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1f1f1f;
-}
-
-.subtitulo {
-  margin-top: -8px;
-  font-size: 13px;
-  color: #8c8c8c;
+// Encabezado: misma tipografía que el nombre de la persona reconocida (.persona)
+.encabezado {
   text-align: center;
+
+  .titulo {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f1f1f;
+  }
+
+  .subtitulo {
+    margin-top: 2px;
+    font-size: 13px;
+    color: #8c8c8c;
+  }
 }
 
 // El anillo es la sombra del visor; entre el anillo y el video queda un borde blanco (padding)
@@ -73,12 +77,14 @@
     box-shadow: 0 0 0 4px @anillo-azul;
   }
 
-  &.visor-marcado {
+  &.visor-marcado,
+  &.visor-confirmado {
     box-shadow: 0 0 0 4px #52c41a, 0 0 24px 4px rgba(82, 196, 26, 0.4);
   }
 
   &.visor-sinPermiso,
-  &.visor-error {
+  &.visor-error,
+  &.visor-noEncontrado {
     box-shadow: 0 0 0 4px #ff4d4f;
   }
 }
@@ -102,6 +108,40 @@
     color: #fff;
     font-size: 80px;
     filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.35));
+  }
+}
+
+// Persona reconocida: sin recuadro, el nombre con un check verde y una línea gris debajo
+.persona {
+  text-align: center;
+
+  .persona-nombre {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1f1f1f;
+  }
+
+  .persona-check {
+    font-size: 22px;
+    color: #52c41a;
+  }
+
+  .persona-detalle {
+    margin-top: 2px;
+    font-size: 13px;
+    color: #8c8c8c;
+  }
+}
+
+// Confirmación (objetivo o custodia), debajo del mensaje
+.confirmacion {
+  width: 100%;
+
+  .ant-form-item {
+    margin-bottom: 12px;
   }
 }
 
