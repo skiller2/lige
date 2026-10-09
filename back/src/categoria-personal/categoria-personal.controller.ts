@@ -10,7 +10,17 @@ const listaColumnas: any[] = [
     name: 'id',
     field: 'id',
     type: 'number',
-    fieldName: 'TipoAsociadoId',
+    searchType: 'number',
+    sortable: true,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: 'TipoAsociadoId',
+    name: 'Tipo Asociado Id',
+    field: 'TipoAsociadoId',
+    type: 'number',
+    fieldName: 'ta.TipoAsociadoId',
     searchType: 'number',
     sortable: true,
     hidden: true,
@@ -18,29 +28,40 @@ const listaColumnas: any[] = [
   },
   {
     id: 'TipoAsociadoDescripcion',
-    name: 'Descripcion',
+    name: 'Tipo Asociado',
     field: 'TipoAsociadoDescripcion',
     type: 'string',
-    fieldName: 'TipoAsociadoDescripcion',
+    fieldName: 'ta.TipoAsociadoDescripcion',
     searchType: 'string',
     sortable: true,
     hidden: false,
     searchHidden: false,
   },
   {
-    id: 'Categorias',
-    name: 'Categorías',
-    field: 'Categorias',
-    fieldName: 'Categorias',
+    id: 'CategoriaPersonalDescripcion',
+    name: 'Descripcion',
+    field: 'CategoriaPersonalDescripcion',
     type: 'string',
+    fieldName: 'cp.CategoriaPersonalDescripcion',
     searchType: 'string',
     sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: true
+  },
+  {
+    id: 'CategoriaPersonalInactivo',
+    name: 'Inactivo',
+    field: 'CategoriaPersonalInactivo',
+    type: 'boolean',
+    fieldName: 'cp.CategoriaPersonalInactivo',
+    searchType: 'boolean',
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
   },
 ];
 
-export class TipoAsociadoController extends BaseController {
+export class CategoriaPersonalController extends BaseController {
 
   async getGridCols(req, res) {
     this.jsonRes(listaColumnas, res);
@@ -48,21 +69,17 @@ export class TipoAsociadoController extends BaseController {
 
   async list(req: any, res: Response, next: NextFunction) {
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
-    // const orderBy = orderToSQL(req.body.options.sort)
+    const orderBy = orderToSQL(req.body.options.sort)
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
       const tipoAsociados = await queryRunner.query(
-          `SELECT tp.TipoAsociadoId AS id, TRIM(tp.TipoAsociadoDescripcion) AS TipoAsociadoDescripcion, TRIM(tp.TipoAsociadoAsigna) AS TipoAsociadoAsigna, TRIM(tp.TipoAsociadoTieneAsistencia) AS TipoAsociadoTieneAsistencia,
-          STRING_AGG(TRIM(cp.CategoriaPersonalDescripcion), ', ') AS Categorias
-          FROM TipoAsociado tp
-          LEFT JOIN CategoriaPersonal cp ON tp.TipoAsociadoId = cp.TipoAsociadoId
+          `SELECT CONCAT(ta.TipoAsociadoId,'-',cp.CategoriaPersonalId) AS id, TRIM(ta.TipoAsociadoDescripcion) AS TipoAsociadoDescripcion,
+          cp.CategoriaPersonalId, TRIM(cp.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion, cp.CategoriaPersonalInactivo
+          FROM CategoriaPersonal cp
+          LEFT JOIN TipoAsociado ta ON ta.TipoAsociadoId = cp.TipoAsociadoId
           WHERE ${filterSql}
-          GROUP BY
-            tp.TipoAsociadoId,
-            tp.TipoAsociadoDescripcion,
-            tp.TipoAsociadoAsigna,
-            tp.TipoAsociadoTieneAsistencia;`)
+          ${orderBy}`)
 
       this.jsonRes(
         {
@@ -143,49 +160,55 @@ export class TipoAsociadoController extends BaseController {
       await queryRunner.startTransaction();
 
       const row = req.body;
-      const TipoAsociadoDescripcion:string = row.TipoAsociadoDescripcion;
-      const TipoAsociadoAsigna:string = row.TipoAsociadoAsigna;
-      const TipoAsociadoTieneAsistencia:string = row.TipoAsociadoTieneAsistencia;
+      const TipoAsociadoId:number = row.TipoAsociadoId;
+      const CategoriaPersonalDescripcion:string = row.CategoriaPersonalDescripcion;
+      const CategoriaPersonalInactivo:string = row.CategoriaPersonalInactivo;
 
       // Si no tiene ID, es un nuevo registro
-      if (!row.TipoAsociadoId) {
+      if (!TipoAsociadoId && !row.CategoriaPersonalId) {
         // Validar antes de insertar
-        await this.validateForm(row, 'I', queryRunner);
+        // await this.validateForm(row, 'I', queryRunner);
 
         const inserted = await queryRunner.query(
-          `INSERT INTO TipoAsociado (
-            TipoAsociadoDescripcion,
-            TipoAsociadoAsigna,
-            CategoriaPersonalUltNro,
-            TipoAsociadoTieneAsistencia
+          `INSERT INTO CategoriaPersonal (
+            TipoAsociadoId,
+            CategoriaPersonalDescripcion,
+            CategoriaPersonalConPreocupacional,
+            CategoriaPersonalInactivo
           )
-          OUTPUT INSERTED.TipoAsociadoId
-          VALUES (@0, @1, @2, @3)`, 
-          [ TipoAsociadoDescripcion,
-            TipoAsociadoAsigna,
-            null, // CategoriaPersonalUltNro
-            TipoAsociadoTieneAsistencia ]
+          OUTPUT INSERTED.CategoriaPersonalId
+          VALUES (@0, @1, @2, @3, @4, @5)`, 
+          [ TipoAsociadoId,
+            CategoriaPersonalDescripcion,
+            'N', // CategoriaPersonalConPreocupacional
+            CategoriaPersonalInactivo ]
         );
 
-        const newId: number = inserted[0]?.TipoAsociadoId ?? null;
+        const newId: number = inserted[0]?.CategoriaPersonalId ?? null;
+
+        await queryRunner.query(
+          `UPDATE TipoAsociado SET
+            CategoriaPersonalUltNro = @1
+          WHERE TipoAsociadoId = @0`, 
+          [ TipoAsociadoId, newId ]
+        );
 
         await queryRunner.commitTransaction();
         this.jsonRes({ TipoAsociadoId: newId }, res);
       } else {
         // Es una actualización
-        await this.validateForm(row, 'U', queryRunner);
+        // await this.validateForm(row, 'U', queryRunner);
 
         await queryRunner.query(`
-          UPDATE TipoAsociado SET
-            TipoAsociadoDescripcion = @1,
-            TipoAsociadoAsigna = @2,
-            TipoAsociadoTieneAsistencia = @3
-          WHERE TipoAsociadoId = @0
+          UPDATE CategoriaPersonal SET
+            CategoriaPersonalDescripcion = @2,
+            CategoriaPersonalInactivo = @3
+          WHERE CategoriaPersonalId = @0 AND TipoAsociadoId = @1
         `, [
-          row.TipoAsociadoId,
-          TipoAsociadoDescripcion,
-          TipoAsociadoAsigna,
-          TipoAsociadoTieneAsistencia
+          row.CategoriaPersonalId,
+          TipoAsociadoId,
+          CategoriaPersonalDescripcion,
+          CategoriaPersonalInactivo
         ]);
 
         await queryRunner.commitTransaction();
@@ -202,8 +225,9 @@ export class TipoAsociadoController extends BaseController {
   async delete(req: any, res: Response, next: NextFunction) {
 
     const TipoAsociadoId = req.params.TipoAsociadoId;
+    const CategoriaPersonalId = req.params.CategoriaPersonalId;
 
-    if (!TipoAsociadoId) {
+    if (!TipoAsociadoId && !CategoriaPersonalId) {
       throw new ClientException('El ID del registro es requerido');
     }
 
@@ -212,12 +236,12 @@ export class TipoAsociadoController extends BaseController {
     try {
       await queryRunner.startTransaction();
 
-      const categorias = await queryRunner.query(`SELECT CategoriaPersonalId FROM CategoriaPersonal WHERE TipoAsociadoId = @0`, [TipoAsociadoId]);
-      if (categorias.length > 0) {
-        throw new ClientException('No se puede eliminar el tipo de asociado porque tiene categorías asociadas');
+      const asistencia = await queryRunner.query(`SELECT CategoriaPersonalAsistenciaId FROM CategoriaPersonalAsistencia WHERE TipoAsociadoId = @0 AND CategoriaPersonalId = @1`, [TipoAsociadoId, CategoriaPersonalId]);
+      if (asistencia.length > 0) {
+        throw new ClientException('No se puede eliminar la categoria porque tiene asistencias asociadas');
       }
 
-      await queryRunner.query(`DELETE FROM TipoAsociado WHERE TipoAsociadoId = @0`, [TipoAsociadoId]);
+      await queryRunner.query(`DELETE FROM CategoriaPersonal WHERE TipoAsociadoId = @0 AND CategoriaPersonalId = @1`, [TipoAsociadoId, CategoriaPersonalId]);
       await queryRunner.commitTransaction();
       this.jsonRes({}, res, 'Registro eliminado exitoso');
     } catch (error) {
