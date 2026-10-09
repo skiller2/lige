@@ -1,0 +1,55 @@
+<nz-drawer [nzClosable]="true" [nzVisible]="visible()" nzPlacement="left" [nzWidth]="640" nzTitle="Edición masiva de Custodias"
+  (nzOnClose)="visible.set(false)">
+  <!-- Sin @if alrededor: nz-drawer busca este template una sola vez al crearse -->
+  <ng-container *nzDrawerContent>
+
+    <form (ngSubmit)="save()">
+      <p class="marginElement"><strong>Periodo Tomado: {{ periodo() | date:'MM/yyyy' }}</strong></p>
+
+      <!-- Un grupo por cliente: el estado se aplica a todas sus custodias -->
+      @for (cliente of formEstadoMasivo.clientes; let i = $index; track i) {
+        <nz-card nzType="inner" nzTitle="{{ estadoMasivo().clientes[i].ClienteId }} - {{ estadoMasivo().clientes[i].Cliente }}"
+          class="marginElement">
+
+          <nz-form-item class="marginElement">
+            <nz-form-label [nzXs]="24" [nzMd]="8" nzRequired>Estado</nz-form-label>
+            <nz-form-control [nzXs]="24" [nzMd]="16" sfErrorTip>
+              <nz-select [formField]="cliente.EstadoCodigo" nzPlaceHolder="Estado" nzAllowClear
+                [nzDropdownMatchSelectWidth]="false" style="width: 100%;">
+                @for (option of optionsEstadoCust(); track option.value) {
+                  <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+                }
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          @if (esFacturado(i)) {
+            <nz-form-item class="marginElement">
+              <nz-form-label [nzXs]="24" [nzMd]="8" nzRequired>Número de Factura</nz-form-label>
+              <nz-form-control [nzXs]="24" [nzMd]="16" sfErrorTip>
+                <input nz-input [formField]="cliente.NumeroFactura" type="number" />
+              </nz-form-control>
+            </nz-form-item>
+          }
+
+          <!-- Datos de consulta: no se editan -->
+          <p>CUIT: {{ estadoMasivo().clientes[i].CUIT }}</p>
+          <p>Razón social: {{ estadoMasivo().clientes[i].RazonSocial }}</p>
+          <p>Domicilio: {{ estadoMasivo().clientes[i].Domicilio }}</p>
+          <p>Custodias seleccionadas: {{ estadoMasivo().clientes[i].Cantidad }}</p>
+          <p>Importe Total: {{ estadoMasivo().clientes[i].ImporteTotal | I18NCurrency }}</p>
+        </nz-card>
+      }
+
+      <nz-form-item>
+        <nz-form-control class="acciones-form">
+          <button nzType="primary" nz-button type="submit" [nzLoading]="formEstadoMasivo().submitting()"
+            [disabled]="formEstadoMasivo().submitting() || !formEstadoMasivo().dirty() || !formEstadoMasivo().valid()">
+            {{ 'app.btn.save' | i18n }}
+          </button>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+
+  </ng-container>
+</nz-drawer>
