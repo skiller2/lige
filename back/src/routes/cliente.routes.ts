@@ -14,7 +14,7 @@ clienteRouter.post(
 
 clienteRouter.post(
   `${base}/facturacion`,
-  [authMiddleware.verifyToken, authMiddleware.hasGroup(['Administrativo'])],
+  [authMiddleware.verifyToken],
   (req, res, next) => {
     clienteController.getClientesBillingData(req, res, next);
   }

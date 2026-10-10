@@ -1500,39 +1500,48 @@ export class CustodiaController extends BaseController {
             // const ResponsableId = 699
             const ResponsableId = res.locals.PersonalId
             await queryRunner.startTransaction()
+            // Un elemento por cliente: el front lo arma como "clientes", de ahí el fieldTree de los errores
             const forms: any[] = req.body
-            let errores: any[] = []
+            const fieldErrors: { fieldTree: string, kind: string, message: string }[] = []
+            const errorCampo = (fieldTree: string, message: string) => fieldErrors.push({ fieldTree, kind: 'server', message })
 
-            for (const form of forms) {
+            const authEditLiquidaciones: boolean = await this.hasGroup(req, 'Liquidaciones')
+            const authModuleEdit: boolean = await this.hasGroup(req, 'mCustodias')
+            const fullEdit: boolean = await this.hasGroup(req, 'gSistemas')
+
+            for (const [index, form] of forms.entries()) {
                 const ids: number[] = form.custodiasIds
                 const EstadoCodigo: number = form.EstadoCodigo
                 const NumeroFactura: number = form.NumeroFactura
-
-                const authEditLiquidaciones: boolean = await this.hasGroup(req, 'Liquidaciones')
-                const authModuleEdit: boolean = await this.hasGroup(req, 'mCustodias')
-                const fullEdit: boolean = await this.hasGroup(req, 'gSistemas')
+                const campoEstado = `clientes[${index}].EstadoCodigo`
 
                 if (EstadoCodigo == 4 && !NumeroFactura) {
-                    throw new ClientException(`El Número de Factura es invalido.`)
+                    errorCampo(`clientes[${index}].NumeroFactura`, `El Número de Factura es inválido.`)
+                    continue
                 }
 
                 for (const id of ids) {
                     let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
                     infoCustodia = infoCustodia[0]
 
+                    if (!infoCustodia) {
+                        errorCampo(campoEstado, `Codigo ${id}: No se encontró la custodia.`)
+                        continue
+                    }
+
                     if (!authEditLiquidaciones && !authModuleEdit && infoCustodia.ResponsableId != ResponsableId) {
-                        errores.push(`Codigo ${id}: Solo el responsable, los usuarios con grupo 'mCustodias' o 'Liquidaciones' pueden modificar la custodia.`)
+                        errorCampo(campoEstado, `Codigo ${id}: Solo el responsable, los usuarios con grupo 'mCustodias' o 'Liquidaciones' pueden modificar la custodia.`)
                         continue
                     }
 
                     if (!authEditLiquidaciones && EstadoCodigo == 4) {
-                        errores.push(`Codigo ${id}: Solo el grupo 'Liquidaciones', pueden grabar estado Facturado`)
+                        errorCampo(campoEstado, `Codigo ${id}: Solo el grupo 'Liquidaciones' puede grabar estado Facturado.`)
                         continue
                     }
                     //Validaciones
                     if (infoCustodia.EstadoCodigo == 4 && EstadoCodigo != infoCustodia.EstadoCodigo) {
                         if (!fullEdit) {
-                            errores.push(`Codigo ${id}: No se puede modificar el estado.`)
+                            errorCampo(campoEstado, `Codigo ${id}: No se puede modificar el estado.`)
                             continue
                         }
                     }
@@ -1555,16 +1564,17 @@ export class CustodiaController extends BaseController {
                         }
                     }
                     if (msgError.length) {
-                        errores.push(`Codigo ${id}:` + msgError)
+                        errorCampo(campoEstado, `Codigo ${id}: ${msgError}`)
                         continue
                     }
 
                     infoCustodia.EstadoCodigo = EstadoCodigo
                     if (EstadoCodigo == 4)
                         infoCustodia.NumeroFactura = NumeroFactura
+                    // Los errores de la custodia completa se marcan en el Estado del cliente
                     const erroresForm = this.valCustodiaForm(infoCustodia, queryRunner)
                     if (erroresForm.length) {
-                        errores.push(`Codigo ${id}: ${erroresForm.map(e => e.message).join(', ')}`)
+                        errorCampo(campoEstado, `Codigo ${id}: ${erroresForm.map(e => e.message).join(', ')}`)
                         continue
                     }
 
@@ -1573,9 +1583,8 @@ export class CustodiaController extends BaseController {
 
             }
 
-            if (errores.length) {
-                throw new ClientException(errores)
-            }
+            if (fieldErrors.length)
+                throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
 
             await queryRunner.commitTransaction()
             return this.jsonRes({}, res, 'Carga Exitosa');
