@@ -972,12 +972,11 @@ export class CustodiaController extends BaseController {
 
     async addObjetivoCustodia(req: any, res: Response, next: NextFunction) {
         const queryRunner = await getConnection(res.locals.userName);
-        let errores = []
+        const fieldErrors: { fieldTree: string, kind: string, message: string }[] = []
+        const errorCampo = (fieldTree: string, message: string) => fieldErrors.push({ fieldTree, kind: 'server', message })
 
         try {
             await queryRunner.startTransaction()
-            if (!req.body.ClienteId || !req.body.FechaInicio || !req.body.Origen)
-                throw new ClientException(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios.`)
 
             const usuario = res.locals.userName
             const ip = this.getRemoteAddress(req)
@@ -995,10 +994,10 @@ export class CustodiaController extends BaseController {
 
             const responsable = responsableQuery[0].ApellidoNombre
 
-
-            const valCustodiaForm = this.valCustodiaForm(req.body, queryRunner)
-            if (valCustodiaForm instanceof ClientException)
-                throw valCustodiaForm
+            // Sin los datos básicos no se puede insertar la cabecera: se corta acá
+            fieldErrors.push(...this.valCustodiaForm(req.body, queryRunner))
+            if (fieldErrors.length)
+                throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
 
             // const newCustodiaCodigo = await BaseController.getProxNumero(queryRunner, `objetivocustodia`, usuario, ip)
             const newCustodiaCodigo = await BaseController.getProxNumero(queryRunner, `Custodia`, usuario, ip)
@@ -1015,92 +1014,84 @@ export class CustodiaController extends BaseController {
             `)
 
             if (new Date(objetivoCustodia.FechaInicio) <= new Date(periodo[0].FechaCierre))
-                errores.push(`La Fecha inicio de la custodia no puede estar comprendida en un período ya cerrado`)
+                errorCampo('FechaInicio', `La Fecha inicio de la custodia no puede estar comprendida en un período ya cerrado`)
 
             if (new Date(objetivoCustodia.FechaInicio).getFullYear() != objetivoCustodia.anio || new Date(objetivoCustodia.FechaInicio).getMonth() + 1 != objetivoCustodia.mes)
-                errores.push(`La Fecha inicio debe pertenecer al período seleccionado ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
-
-
+                errorCampo('FechaInicio', `La Fecha inicio debe pertenecer al período seleccionado ${objetivoCustodia.mes}/${objetivoCustodia.anio}`)
 
             await this.addObjetivoCustodiaQuery(queryRunner, objetivoCustodia, usuario, ip)
 
-            var seen = {};
-            var hasDupPersonal = objetivoCustodia.personal.some(function (currentObject) {
-                if (!currentObject.PersonalId) return false
-                return seen.hasOwnProperty(currentObject.PersonalId)
-                    || (seen[currentObject.PersonalId] = false);
-            });
-            if (hasDupPersonal)
-                errores.push(`Hay personal duplicado`)
+            const dupPersonal = new Set()
+            objetivoCustodia.personal.forEach((obj: any, index: number) => {
+                if (!obj.PersonalId) return
+                if (dupPersonal.has(obj.PersonalId))
+                    errorCampo(`personal[${index}].PersonalId`, `Personal duplicado`)
+                dupPersonal.add(obj.PersonalId)
+            })
 
             //NEW TABLE
             await queryRunner.query(`DELETE FROM PersonalCustodia WHERE CustodiaCodigo = @0`, [newCustodiaCodigo])
 
             let errorCantPersonal: boolean = true
-            for (const obj of objetivoCustodia.personal) {
-                if (obj.PersonalId) {
-                    errorCantPersonal = false
-                    //Validaciones para FechaLiquidacion
-                    if (FechaLiquidacion && !obj.Importe) {
-                        errores.push(`El campo Importe de Personal NO puede estar vacío.`)
-                        break
-                    }
-
-                    if (FechaLiquidacion && !obj.HorasTrabajadas) {
-                        errores.push(`El campo Horas de Personal NO puede estar vacío.`)
-                        break
-                    }
-
-
-                    // if(this.valByEstado(objetivoCustodia.EstadoCodigo) && !obj.Importe)
-                    //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
-                    const erroresPersona = await this.validPersona(obj.PersonalId, new Date(objetivoCustodia.FechaInicio), queryRunner, usuario, ip);
-                    errores = [...errores, ...erroresPersona]
-
-                    await this.addRegistroPersonalCustodiaQuery(queryRunner, newCustodiaCodigo, obj, usuario, ip)
+            for (const [index, obj] of objetivoCustodia.personal.entries()) {
+                if (!obj.PersonalId) continue
+                errorCantPersonal = false
+                //Validaciones para FechaLiquidacion
+                if (FechaLiquidacion && !obj.HorasTrabajadas) {
+                    errorCampo(`personal[${index}].HorasTrabajadas`, `El campo Horas de Personal NO puede estar vacío.`)
+                    continue
                 }
+                if (FechaLiquidacion && !obj.Importe) {
+                    errorCampo(`personal[${index}].HorasTrabajadas`, `El Importe de Personal NO puede estar vacío.`)
+                    continue
+                }
+
+                const erroresPersona = await this.validPersona(obj.PersonalId, new Date(objetivoCustodia.FechaInicio), queryRunner, usuario, ip);
+                for (const mensaje of erroresPersona)
+                    errorCampo(`personal[${index}].PersonalId`, mensaje)
+
+                await this.addRegistroPersonalCustodiaQuery(queryRunner, newCustodiaCodigo, obj, usuario, ip)
             }
 
-            var hasDupVehiculos = objetivoCustodia.vehiculos.some(function (currentObject) {
-                if (!currentObject.Patente) return false
-                return seen.hasOwnProperty(currentObject.Patente)
-                    || (seen[currentObject.Patente] = false);
-            });
-            if (hasDupVehiculos)
-                errores.push(`Hay vehículos duplicados`)
+            const dupPatente = new Set()
+            objetivoCustodia.vehiculos.forEach((obj: any, index: number) => {
+                if (!obj.Patente) return
+                if (dupPatente.has(obj.Patente))
+                    errorCampo(`vehiculos[${index}].Patente`, `Vehículo duplicado`)
+                dupPatente.add(obj.Patente)
+            })
 
             //NEW  TABLE
             await queryRunner.query(`DELETE VehiculoCustodia WHERE CustodiaCodigo = @0`, [newCustodiaCodigo])
 
             let errorCantVehiculo: boolean = true
-            for (const obj of objetivoCustodia.vehiculos) {
-                if (obj.Patente) {
-                    if (obj.Patente.length < 6) {
-                        errores.push(`La patente no puede tener menos de 6 caracteres.`)
-                        continue
-                    }
-                    errorCantVehiculo = false
-                    if (FechaLiquidacion && (!obj.ImporteVehiculo || !obj.PersonalId)) {
-                        errores.push(`Los campos relacionados al vehículo ${obj.Patente} NO pueden estar vacíos.`)
-                        continue
-                    }
-                    if (!obj.PersonalId) {
-                        errores.push(`Debe completar el campo Dueño del vehículo ${obj.Patente}`)
-                        continue
-                    }
-
-                    await this.addRegistroVehiculoCustodiaQuery(queryRunner, newCustodiaCodigo, obj, usuario, ip)
+            for (const [index, obj] of objetivoCustodia.vehiculos.entries()) {
+                if (!obj.Patente) continue
+                if (obj.Patente.length < 6) {
+                    errorCampo(`vehiculos[${index}].Patente`, `La patente no puede tener menos de 6 caracteres.`)
+                    continue
                 }
+                errorCantVehiculo = false
+                if (FechaLiquidacion && !obj.ImporteVehiculo) {
+                    errorCampo(`vehiculos[${index}].ImporteVehiculo`, `El Importe del vehículo ${obj.Patente} NO puede estar vacío.`)
+                    continue
+                }
+                if (!obj.PersonalId) {
+                    errorCampo(`vehiculos[${index}].PersonalId`, `Debe completar el campo Dueño del vehículo ${obj.Patente}`)
+                    continue
+                }
+
+                await this.addRegistroVehiculoCustodiaQuery(queryRunner, newCustodiaCodigo, obj, usuario, ip)
             }
 
             if (errorCantVehiculo)
-                errores.push(`Debe haber al menos un vehículo por custodia.`)
+                errorCampo(`vehiculos[0].Patente`, `Debe haber al menos un vehículo por custodia.`)
 
             if (errorCantPersonal)
-                errores.push(`Debe de haber al menos una persona por custodia.`)
+                errorCampo(`personal[0].PersonalId`, `Debe haber al menos una persona por custodia.`)
 
-            if (errores.length)
-                throw new ClientException(errores.join(`\n`))
+            if (fieldErrors.length)
+                throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
 
             await queryRunner.commitTransaction()
             return this.jsonRes({ custodiaId: newCustodiaCodigo, responsable, AudUsuarioIng: usuario, AudFechaIng: fechaActual }, res, 'Carga Exitosa');
@@ -1182,7 +1173,8 @@ export class CustodiaController extends BaseController {
     async updateObjetivoCustodia(req: any, res: Response, next: NextFunction) {
         const usuario = res.locals.userName
         const queryRunner = await getConnection(usuario);
-        let errores = []
+        const fieldErrors: { fieldTree: string, kind: string, message: string }[] = []
+        const errorCampo = (fieldTree: string, message: string) => fieldErrors.push({ fieldTree, kind: 'server', message })
 
         try {
             await queryRunner.startTransaction()
@@ -1194,6 +1186,8 @@ export class CustodiaController extends BaseController {
 
             let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, CustodiaCodigo)
             infoCustodia = infoCustodia[0]
+            if (!infoCustodia)
+                throw new ClientException(`No se encontró la custodia ${CustodiaCodigo}.`)
 
             if (objetivoCustodia.EstadoCodigo == 0) {
                 infoCustodia.FechaLiquidacion = null
@@ -1207,21 +1201,20 @@ export class CustodiaController extends BaseController {
                 throw new ClientException(`No se puede modificar los registros con estado Facturado.`)
             }
 
-            const valCustodiaForm = this.valCustodiaForm(objetivoCustodia, queryRunner)
-            if (valCustodiaForm instanceof ClientException)
-                throw valCustodiaForm
+            fieldErrors.push(...this.valCustodiaForm(objetivoCustodia, queryRunner))
+            if (fieldErrors.length)
+                throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
 
             let listPersonal = await this.getRegPersonalObjCustodiaQuery(queryRunner, CustodiaCodigo)
             let listVehiculo = await this.getRegVehiculoObjCustodiaQuery(queryRunner, CustodiaCodigo)
 
-            var seen = {};
-            var hasDupPersonal = objetivoCustodia.personal.some(function (currentObject) {
-                if (!currentObject.PersonalId) return false
-                return seen.hasOwnProperty(currentObject.PersonalId)
-                    || (seen[currentObject.PersonalId] = false);
-            });
-            if (hasDupPersonal)
-                errores.push(`Hay personal duplicado`)
+            const dupPersonal = new Set()
+            objetivoCustodia.personal.forEach((obj: any, index: number) => {
+                if (!obj.PersonalId) return
+                if (dupPersonal.has(obj.PersonalId))
+                    errorCampo(`personal[${index}].PersonalId`, `Personal duplicado`)
+                dupPersonal.add(obj.PersonalId)
+            })
 
             // guardo registro pasado
             const newCustodiaCambiosCodigo = await BaseController.getProxNumero(queryRunner, `CustodiaCambios`, usuario, ip)
@@ -1241,80 +1234,76 @@ export class CustodiaController extends BaseController {
 
             //NEW TABLE
             await queryRunner.query(`DELETE FROM PersonalCustodia WHERE CustodiaCodigo = @0`, [CustodiaCodigo])
+            // Al pasar a un estado de cierre sin liquidar, los importes son obligatorios
+            const cierraSinLiquidar = this.valByEstado(objetivoCustodia.EstadoCodigo) && !infoCustodia.FechaLiquidacion
+            const fechaLiquidada = infoCustodia.FechaLiquidacion ? this.dateOutputFormat(infoCustodia.FechaLiquidacion) : ''
+
             let errorCantPersonal: boolean = true
-            for (const obj of objetivoCustodia.personal) {
-                if (obj.PersonalId) {
-                    errorCantPersonal = false
-                    //Validaciones para FechaLiquidacion
-                    if ((this.valByEstado(objetivoCustodia.EstadoCodigo) && !infoCustodia.FechaLiquidacion) && !obj.Importe) {
-                        errores.push(`El campo Importe de Personal NO puede esta vacío.`)
-                        break
-                    }
-                    if (infoCustodia.FechaLiquidacion && !this.comparePersonal(obj, listPersonal)) {
-                        errores.push(`NO se pueden modificar los campos del Personal. La custodia fue liquidada el día ${this.dateOutputFormat(infoCustodia.FechaLiquidacion)}.`)
-                        break
-                    }
-
-                    if ((this.valByEstado(objetivoCustodia.EstadoCodigo) && !infoCustodia.FechaLiquidacion) && !obj.HorasTrabajadas) {
-                        errores.push(`El campo Horas de Personal NO puede estar vacío.`)
-                        break
-                    }
-
-                    //
-                    // if(this.valByEstado(objetivoCustodia.EstadoCodigo) && !obj.Importe)
-                    //     errores.push(`El campo Importe de Personal NO pueden estar vacios.`)
-
-
-                    const erroresPersona = await this.validPersona(obj.PersonalId, new Date(objetivoCustodia.FechaInicio), queryRunner, usuario, ip);
-                    errores = [...errores, ...erroresPersona]
-
-                    await this.addRegistroPersonalCustodiaQuery(queryRunner, CustodiaCodigo, obj, usuario, ip)
+            for (const [index, obj] of objetivoCustodia.personal.entries()) {
+                if (!obj.PersonalId) continue
+                errorCantPersonal = false
+                if (infoCustodia.FechaLiquidacion && !this.comparePersonal(obj, listPersonal)) {
+                    errorCampo(`personal[${index}].PersonalId`, `NO se pueden modificar los campos del Personal. La custodia fue liquidada el día ${fechaLiquidada}.`)
+                    continue
                 }
+                if (cierraSinLiquidar && !obj.HorasTrabajadas) {
+                    errorCampo(`personal[${index}].HorasTrabajadas`, `El campo Horas de Personal NO puede estar vacío.`)
+                    continue
+                }
+                if (cierraSinLiquidar && !obj.Importe) {
+                    errorCampo(`personal[${index}].HorasTrabajadas`, `El Importe de Personal NO puede estar vacío.`)
+                    continue
+                }
+
+                const erroresPersona = await this.validPersona(obj.PersonalId, new Date(objetivoCustodia.FechaInicio), queryRunner, usuario, ip);
+                for (const mensaje of erroresPersona)
+                    errorCampo(`personal[${index}].PersonalId`, mensaje)
+
+                await this.addRegistroPersonalCustodiaQuery(queryRunner, CustodiaCodigo, obj, usuario, ip)
             }
 
-            var hasDupVehiculos = objetivoCustodia.vehiculos.some(function (currentObject) {
-                if (!currentObject.Patente) return false
-                return seen.hasOwnProperty(currentObject.Patente)
-                    || (seen[currentObject.Patente] = false);
-            });
-            if (hasDupVehiculos)
-                errores.push(`Hay vehículos duplicados`)
+            const dupPatente = new Set()
+            objetivoCustodia.vehiculos.forEach((obj: any, index: number) => {
+                if (!obj.Patente) return
+                if (dupPatente.has(obj.Patente))
+                    errorCampo(`vehiculos[${index}].Patente`, `Vehículo duplicado`)
+                dupPatente.add(obj.Patente)
+            })
+
             //NEW  TABLE
             await queryRunner.query(`DELETE VehiculoCustodia WHERE CustodiaCodigo = @0`, [CustodiaCodigo])
             let errorCantVehiculo: boolean = true
-            for (const obj of objetivoCustodia.vehiculos) {
-                if (obj.Patente) {
-                    errorCantVehiculo = false
-                    if (obj.Patente.length < 6) {
-                        errores.push(`La patente no puede tener menos de 6 caracteres.`)
-                        continue
-                    }
-                    //Validaciones para FechaLiquidacion
-                    if (((this.valByEstado(objetivoCustodia.EstadoCodigo) && !infoCustodia.FechaLiquidacion)) && (!obj.ImporteVehiculo || !obj.PersonalId)) {
-                        errores.push(`Los campos relacionados a la Patente ${obj.Patente} NO pueden estar vacio.`)
-                        continue
-                    }
-                    if (infoCustodia.FechaLiquidacion && !this.compareVehiculo(obj, listVehiculo)) {
-                        errores.push(`NO se pueden modificar los campos de la Patente ${obj.Patente}. La custodia fue liquidada el día ${this.dateOutputFormat(infoCustodia.FechaLiquidacion)}.`)
-                        continue
-                    }
-                    //
-                    // if(this.valByEstado(objetivoCustodia.EstadoCodigo) && !obj.ImporteVehiculo)
-                    //     errores.push(`El campo Importe de la Patente ${obj.Patente} NO pueden estar vacio.`)
-                    if (!obj.PersonalId)
-                        errores.push(`El campo Dueño de la Patente ${obj.Patente} NO pueden estar vacio.`)
-
-                    await this.addRegistroVehiculoCustodiaQuery(queryRunner, CustodiaCodigo, obj, usuario, ip)
+            for (const [index, obj] of objetivoCustodia.vehiculos.entries()) {
+                if (!obj.Patente) continue
+                errorCantVehiculo = false
+                if (obj.Patente.length < 6) {
+                    errorCampo(`vehiculos[${index}].Patente`, `La patente no puede tener menos de 6 caracteres.`)
+                    continue
                 }
+                if (infoCustodia.FechaLiquidacion && !this.compareVehiculo(obj, listVehiculo)) {
+                    errorCampo(`vehiculos[${index}].Patente`, `NO se pueden modificar los campos de la Patente ${obj.Patente}. La custodia fue liquidada el día ${fechaLiquidada}.`)
+                    continue
+                }
+                if (cierraSinLiquidar && !obj.ImporteVehiculo) {
+                    errorCampo(`vehiculos[${index}].ImporteVehiculo`, `El Importe de la Patente ${obj.Patente} NO puede estar vacío.`)
+                    continue
+                }
+                if (!obj.PersonalId) {
+                    errorCampo(`vehiculos[${index}].PersonalId`, `El campo Dueño de la Patente ${obj.Patente} NO puede estar vacío.`)
+                    continue
+                }
+
+                await this.addRegistroVehiculoCustodiaQuery(queryRunner, CustodiaCodigo, obj, usuario, ip)
             }
 
             if (errorCantVehiculo)
-                errores.push(`Debe de haber por lo menos un vehículo (Patente y Dueño) por custodia.`)
+                errorCampo(`vehiculos[0].Patente`, `Debe haber por lo menos un vehículo (Patente y Dueño) por custodia.`)
 
             if (errorCantPersonal)
-                errores.push(`Debe de haber por lo menos una persona por custodia.`)
-            if (errores.length)
-                throw new ClientException(errores)
+                errorCampo(`personal[0].PersonalId`, `Debe haber por lo menos una persona por custodia.`)
+
+            if (fieldErrors.length)
+                throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
 
             objetivoCustodia.FechaLiquidacion = infoCustodia.FechaLiquidacion
             objetivoCustodia.CustodiaCodigo = CustodiaCodigo
@@ -1347,22 +1336,31 @@ export class CustodiaController extends BaseController {
         return this.jsonRes(estados, res)
     }
 
+    // Devuelve los errores por campo; fieldTree es la ruta del campo en el form del front
     valCustodiaForm(custodiaForm: any, queryRunner: any) {
-        let errores: any[] = []
-        if (!Number.isInteger(custodiaForm.EstadoCodigo)) {
-            errores.push(`El campo Estado NO pueden estar vacio`)
-        }
-        if (!custodiaForm.ClienteId || !custodiaForm.FechaInicio || !custodiaForm.Origen) {
-            errores.push(`Los campos de Cliente, Fecha Inicial y Origen NO pueden estar vacios.`)
-        }
-        if ((!custodiaForm.CantidadModulos && custodiaForm.ImporteModulo) || (custodiaForm.CantidadModulos && !custodiaForm.ImporteModulo)) {
-            errores.push(`Los campos pares Cant. e Importe de Modulos deben de llenarse al mismo tiempo.`)
-        }
-        if ((!custodiaForm.CantidadHorasExcedente && custodiaForm.ImporteHorasExcedente) || (custodiaForm.CantidadHorasExcedente && !custodiaForm.ImporteHorasExcedente)) {
-            errores.push(`Los campos pares Cant. e Importe de Horas Excedentes deben de llenarse al mismo tiempo.`)
-        }
-        if ((!custodiaForm.CantidadKmExcedente && custodiaForm.ImporteKmExcedente) || (custodiaForm.CantidadKmExcedente && !custodiaForm.ImporteKmExcedente)) {
-            errores.push(`Los campos pares Cant. e Importe de Km Excedentes deben de llenarse al mismo tiempo.`)
+        let errores: { fieldTree: string, kind: string, message: string }[] = []
+        const errorCampo = (fieldTree: string, message: string) => errores.push({ fieldTree, kind: 'server', message })
+
+        if (!Number.isInteger(custodiaForm.EstadoCodigo))
+            errorCampo('EstadoCodigo', `El campo Estado NO puede estar vacío`)
+        if (!custodiaForm.ClienteId)
+            errorCampo('ClienteId', `El campo Cliente NO puede estar vacío`)
+        if (!custodiaForm.FechaInicio)
+            errorCampo('FechaInicio', `El campo Fecha Inicial NO puede estar vacío`)
+        if (!custodiaForm.Origen)
+            errorCampo('Origen', `El campo Origen NO puede estar vacío`)
+
+        // Pares Cantidad/Importe: se marca el que falta
+        const pares = [
+            ['CantidadModulos', 'ImporteModulo', 'Modulos'],
+            ['CantidadHorasExcedente', 'ImporteHorasExcedente', 'Horas Excedentes'],
+            ['CantidadKmExcedente', 'ImporteKmExcedente', 'Km Excedentes'],
+        ]
+        for (const [cantidad, importe, nombre] of pares) {
+            if (!custodiaForm[cantidad] && custodiaForm[importe])
+                errorCampo(cantidad, `Los campos pares Cant. e Importe de ${nombre} deben llenarse al mismo tiempo.`)
+            if (custodiaForm[cantidad] && !custodiaForm[importe])
+                errorCampo(importe, `Los campos pares Cant. e Importe de ${nombre} deben llenarse al mismo tiempo.`)
         }
         //En caso de FINALIZAR custodia verificar los campos
         /*
@@ -1378,17 +1376,19 @@ export class CustodiaController extends BaseController {
                 }
         */
         if (this.valByEstado(custodiaForm.EstadoCodigo)) {
-            if ((!custodiaForm.ImporteFactura && custodiaForm.EstadoCodigo != 5) || !custodiaForm.FechaFin || !custodiaForm.Destino) {
-                errores.push(`Los campos de Destino, Fecha Final y Importe a Facturar NO pueden estar vacios.`)
-            }
-            if (custodiaForm.EstadoCodigo == 4 && !custodiaForm.NumeroFactura) {
-                errores.push(`El campo Num de Factura NO puede estar vacio.`)
-            }
+            // El Importe a Facturar es calculado: no tiene campo propio en el form
+            if (!custodiaForm.ImporteFactura && custodiaForm.EstadoCodigo != 5)
+                errorCampo('', `El Importe a Facturar NO puede estar vacío para el estado seleccionado.`)
+            if (!custodiaForm.FechaFin)
+                errorCampo('FechaFin', `El campo Fecha Final NO puede estar vacío para el estado seleccionado.`)
+            if (!custodiaForm.Destino)
+                errorCampo('Destino', `El campo Destino NO puede estar vacío para el estado seleccionado.`)
+            if (custodiaForm.EstadoCodigo == 4 && !custodiaForm.NumeroFactura)
+                errorCampo('NumeroFactura', `El campo Num de Factura NO puede estar vacío.`)
         }
 
-        if (custodiaForm.FechaFin && custodiaForm.FechaFin <= custodiaForm.FechaInicio) {
-            errores.push(`La Fecha Final no puede ser menor o igual a la Fecha Inicial.`)
-        }
+        if (custodiaForm.FechaFin && custodiaForm.FechaFin <= custodiaForm.FechaInicio)
+            errorCampo('FechaFin', `La Fecha Final no puede ser menor o igual a la Fecha Inicial.`)
 
         // if (custodiaForm.Origen) {
         //     const res = await domicilioController.valObjDomicilio(queryRunner, custodiaForm.Origen)
@@ -1400,9 +1400,7 @@ export class CustodiaController extends BaseController {
         //     if (res instanceof ClientException) errores.push(`Destino: ${res.messageArr}`)
         // }
 
-        if (errores.length) {
-            return new ClientException(errores)
-        }
+        return errores
     }
 
     async searhPatente(req: any, res: Response, next: NextFunction) {
@@ -1564,9 +1562,9 @@ export class CustodiaController extends BaseController {
                     infoCustodia.EstadoCodigo = EstadoCodigo
                     if (EstadoCodigo == 4)
                         infoCustodia.NumeroFactura = NumeroFactura
-                    const valCustodiaForm = this.valCustodiaForm(infoCustodia, queryRunner)
-                    if (valCustodiaForm instanceof ClientException) {
-                        errores.push(`Codigo ${id}: ${valCustodiaForm.messageArr}`)
+                    const erroresForm = this.valCustodiaForm(infoCustodia, queryRunner)
+                    if (erroresForm.length) {
+                        errores.push(`Codigo ${id}: ${erroresForm.map(e => e.message).join(', ')}`)
                         continue
                     }
 

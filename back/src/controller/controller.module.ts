@@ -76,6 +76,7 @@ import { DepositosController } from "../despositos/despositos.controller.ts";
 import { ParametroGeneralController } from "../parametro-general/parametro-general.controller.ts";
 import { RegistroAsistenciaController } from "../registro-asistencia/registro-asistencia.controller.ts";
 import { TipoAsociadoController } from "../tipo-asociado/tipo-asociado.controller.ts";
+import { CategoriaPersonalController } from "../categoria-personal/categoria-personal.controller.ts";
 
 export const infoController = new InfoController();
 export const authController = new AuthController();
@@ -156,3 +157,5 @@ export const proveedoresController = new ProveedoresController()
 export const depositosController = new DepositosController()
 export const parametroGeneralController = new ParametroGeneralController()
 export const registroAsistenciaController = new RegistroAsistenciaController()
+export const categoriaPersonalController = new CategoriaPersonalController()
+

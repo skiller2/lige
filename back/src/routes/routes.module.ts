@@ -67,6 +67,7 @@ import { depositosRouter } from "../despositos/despositos.routes.ts";
 import { parametroGeneralRouter } from "../parametro-general/parametro-general.routes.ts";
 import { registroAsistenciaRouter } from "../registro-asistencia/registro-asistencia.routes.ts";
 import { tipoAsociadoRouter } from "../tipo-asociado/tipo-asociado.routes.ts";
+import { categoriaPersonalRouter } from "../categoria-personal/categoria-personal.routes.ts";
 
 export function makeRoutes(server: WebServer) {
   server.setRoute("/api/info", infoRouter);
@@ -137,4 +138,5 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/parametro-general", parametroGeneralRouter);
   server.setRoute("/api/registro-asistencia", registroAsistenciaRouter);
   server.setRoute("/api/tipo-asociado", tipoAsociadoRouter);
+  server.setRoute("/api/categoria-personal", categoriaPersonalRouter);
 }

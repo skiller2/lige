@@ -2654,7 +2654,6 @@ export class ApiService {
 
   //Tipo Asociado
   onchangecellTP(params: any) {
-
     return this.http.post<ResponseJSON<any>>('/api/tipo-asociado/onchangecell', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     )
@@ -2663,6 +2662,19 @@ export class ApiService {
   deleteTP(TipoAsociadoId: any) {
     const parameter = { TipoAsociadoId: TipoAsociadoId }
     return this.http.delete<ResponseJSON<any>>(`/api/tipo-asociado/delete/${TipoAsociadoId}`).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
+  //Categoria Personal
+  onchangecellCP(params: any) {
+    return this.http.post<ResponseJSON<any>>('/api/categoria-personal/onchangecell', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
+  deleteCP(CategoriaPersonalId: any, TipoAsociadoId:any) {
+    return this.http.delete<ResponseJSON<any>>(`/api/categoria-personal/delete/${TipoAsociadoId}/${CategoriaPersonalId}`).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     )
   }

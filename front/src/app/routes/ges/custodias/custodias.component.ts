@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Injector, ViewEncapsulation, inject, viewChild, effect, ChangeDetectionStrategy, signal, model, computed, resource } from '@angular/core';
+import { Component, Injector, ViewEncapsulation, inject, effect, ChangeDetectionStrategy, signal, model, computed, resource } from '@angular/core';
 import { AngularGridInstance, AngularUtilService, Column, GridOption } from 'angular-slickgrid';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { ApiService } from '../../../services/api.service';
@@ -39,7 +39,9 @@ export class CustodiaComponent {
     detailViewRowCount = 1;
     editCustodiaId = model(0);
     estado = signal(true);
-    edit = signal(false);
+    // Custodia que muestran Detalle/Editar: se fija al abrirla, no sigue a la selección de la grilla
+    custodiaAbierta = signal(0);
+    custodiaEditable = signal(false);
     visible = signal(false);
     isLoading = signal(false);
     cantReg = signal(0)
@@ -64,9 +66,7 @@ export class CustodiaComponent {
     private settingsService = inject(SettingsService)
     private injector = inject(Injector)
 
-    childAlta = viewChild.required<CustodiaFormComponent>('custodiaFormAlta')
-    childDetalle = viewChild.required<CustodiaFormComponent>('custodiaFormDetalle')
-    childEditar = viewChild.required<CustodiaFormComponent>('custodiaFormEditar')
+    tab = toSignal(this.route.paramMap.pipe(map(p => p.get('tab') ?? '')), { initialValue: '' })
 
     columns = toSignal(this.apiService.getCols('/api/custodia/cols'), { initialValue: [] as Column[] })
     optionsEstadoCust = toSignal(this.searchService.getEstadoCustodia())
@@ -206,8 +206,9 @@ export class CustodiaComponent {
         }
     }
 
-    setEdit(value: boolean): void {
-        this.edit.set(value)
+    abrirCustodia(): void {
+        this.custodiaAbierta.set(this.editCustodiaId())
+        this.custodiaEditable.set(this.estado())
     }
 
 
@@ -262,23 +263,6 @@ export class CustodiaComponent {
 
     setVisible(value: boolean): void {
         this.visible.set(value)
-    }
-
-    onTabsetChange(_event: any) {
-        switch (_event.index) {
-            case 2: //EDIT
-                this.childDetalle().load()
-                break;
-            case 3: //ALTA
-                this.childAlta().reset()
-                break;
-            case 4: //Editar
-                this.childEditar().load()
-                break;
-            default:
-                break;
-        }
-
     }
 
     ngAfterViewInit(): void {
