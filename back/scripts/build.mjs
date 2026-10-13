@@ -5,7 +5,7 @@ import {
   join, extname, resolve, dirname, basename, relative
 } from "path";
 import {
-  statSync, existsSync, mkdirSync, copyFileSync,
+  statSync, existsSync, mkdirSync, copyFileSync, cpSync,
   readdirSync, readFileSync, realpathSync, lstatSync, rmSync
 } from "fs";
 import crypto from "crypto";
@@ -264,7 +264,7 @@ const buildOptions = {
   outdir: "dist",
   format: "esm",
 
-  external: ["expo-sqlite"],
+  external: ["expo-sqlite", "onnxruntime-node"],
 
   //outbase: "src", // ✅ IMPORTANT
 
@@ -305,6 +305,21 @@ const buildOptions = {
 };
 
 await build(buildOptions);
+
+// Conserva los paquetes de ONNX y sus binarios nativos fuera del bundle.
+for (const pkgName of ["onnxruntime-node", "onnxruntime-common"]) {
+  const pkgDir = resolve("node_modules", pkgName);
+  const dest = resolve(buildOptions.outdir, "node_modules", pkgName);
+  copyIfChanged(join(pkgDir, "package.json"), join(dest, "package.json"));
+  cpSync(join(pkgDir, "dist"), join(dest, "dist"), { recursive: true });
+  if (pkgName === "onnxruntime-node") {
+    cpSync(join(pkgDir, "bin"), join(dest, "bin"), { recursive: true });
+  }
+}
+
+// Los modelos se buscan junto al archivo index.mjs en produccion.
+cpSync(resolve("src", "registro-asistencia", "modelos"),
+  resolve(buildOptions.outdir, "modelos"), { recursive: true });
 
 /* Opcional: limpia hashes/cache entre ejecuciones completas (no en watch)
 rmSync(join(buildOptions.outdir, 'native'), { recursive: true, force: true });
