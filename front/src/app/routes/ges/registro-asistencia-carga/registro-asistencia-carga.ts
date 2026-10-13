@@ -19,7 +19,7 @@ type EstadoMarcado = 'iniciando' | 'sinPermiso' | 'error' | 'listo' | 'marcando'
 export interface ConfirmacionForm {
   TipoLugar: string          // 'OBJ' | 'CUS'
   ObjetivoId: number | null
-  CustodiaCodigo: string
+  CustodiaCodigo: number | null
 }
 
 // MediaPipe se sirve desde la app: angular.json copia el wasm y el modelo está en src/assets
@@ -86,7 +86,7 @@ export class RegistroAsistenciaCargaComponent {
   private readonly similitudEncontrada = signal<number | null>(null)
 
   // Confirmación: una vez reconocido, se elige el objetivo o la custodia donde se registra
-  private readonly defaultConfirmacion: ConfirmacionForm = { TipoLugar: '', ObjetivoId: null, CustodiaCodigo: '' }
+  private readonly defaultConfirmacion: ConfirmacionForm = { TipoLugar: '', ObjetivoId: null, CustodiaCodigo: null }
   readonly confirmacion = signal<ConfirmacionForm>(structuredClone(this.defaultConfirmacion))
   readonly formConfirmacion = form(this.confirmacion, (p) => {
     required(p.TipoLugar, { message: 'Elija dónde registra la asistencia' })
