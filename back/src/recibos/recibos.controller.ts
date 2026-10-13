@@ -75,7 +75,7 @@ export class RecibosController extends BaseController {
 
   }
 
-  async getReciboHtmlContentGeneral(queryRunner:any, titulo: string, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
+  async getReciboHtmlContentGeneral(queryRunner: any, titulo: string, anio: number, mes: number, header: string = "", body: string = "", footer: string = "", raw: boolean = false, prev: boolean = false) {
 
     const imgPath = `./assets/logo-lince-full.svg`
     const imgBuffer = await fsPromises.readFile(imgPath);
@@ -88,7 +88,7 @@ export class RecibosController extends BaseController {
     const imgBufferinaes = await fsPromises.readFile(imgPathinaes);
     const imgBase64inaes = imgBufferinaes.toString('base64');
 
-    const ParametroGeneral =  await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = 'REC'`)
+    const ParametroGeneral = await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = 'REC'`)
     if (ParametroGeneral.length) {
       const Parametros = JSON.parse(ParametroGeneral[0].Parametros)
       if (!header) header = Parametros.Cabecera
@@ -541,7 +541,7 @@ export class RecibosController extends BaseController {
       createSelect += ` AND per.PersonalId = @3 `
 
     createSelect += `) `
-    
+
     if (checkReciboExists)
       createSelect += `and
       per.PersonalId not in (
@@ -668,7 +668,7 @@ Descripciones AS
                 WHEN mu.indicador_recibo = 'I'
                 THEN mu.detalle
             END,
-            '| '
+            '| ' 
         ) AS DescRetribucion,
 
         STRING_AGG(
@@ -680,7 +680,7 @@ Descripciones AS
         ) AS DescRetiros,
 
         (
-            SELECT STRING_AGG(c.CBU, '; ')
+            SELECT STRING_AGG(c.CBU, '| ')
             FROM
             (
                 SELECT DISTINCT
@@ -1177,22 +1177,22 @@ GROUP BY
       const ParametroGeneralCodigo = 'REC'
       const usuario = this.getUser(res)
       const ip = this.getRemoteAddress(req)
-      const fecha:Date = new Date()
-      const Parametros = {Cabecera: header, Cuerpo:body, Pie:footer, OtrosParametros: null}
+      const fecha: Date = new Date()
+      const Parametros = { Cabecera: header, Cuerpo: body, Pie: footer, OtrosParametros: null }
 
       const ParametroGeneral = await queryRunner.query(`SELECT ParametroGeneralCodigo FROM ParametroGeneral WHERE ParametroGeneralCodigo = 'REC'`, [ParametroGeneralCodigo])
       if (ParametroGeneral.length) {
         await queryRunner.query(
           `UPDATE ParametroGeneral 
           SET Parametros = @1, AudFechaMod= @2, AudUsuarioMod= @3, AudIpMod= @4
-          WHERE ParametroGeneralCodigo = @0`, 
+          WHERE ParametroGeneralCodigo = @0`,
           [ParametroGeneralCodigo, JSON.stringify(Parametros), fecha, usuario, ip]
         )
       } else {
         await queryRunner.query(
           `INSERT INTO ParametroGeneral (
           ParametroGeneralCodigo,Parametros,AudFechaIng,AudFechaMod,AudUsuarioIng,AudUsuarioMod,AudIpIng,AudIpMod
-          ) VALUES (@0,@1,@2,@2,@3,@3,@4,@4)`, 
+          ) VALUES (@0,@1,@2,@2,@3,@3,@4,@4)`,
           [ParametroGeneralCodigo, JSON.stringify(Parametros), fecha, usuario, ip]
         )
       }
