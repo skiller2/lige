@@ -313,7 +313,9 @@ for (const pkgName of ["onnxruntime-node", "onnxruntime-common"]) {
   copyIfChanged(join(pkgDir, "package.json"), join(dest, "package.json"));
   cpSync(join(pkgDir, "dist"), join(dest, "dist"), { recursive: true });
   if (pkgName === "onnxruntime-node") {
-    cpSync(join(pkgDir, "bin"), join(dest, "bin"), { recursive: true });
+    // Produccion usa Windows x64; conserva la ruta que utiliza ONNX.
+    const binDir = join("bin", "napi-v6", "win32", "x64");
+    cpSync(join(pkgDir, binDir), join(dest, binDir), { recursive: true });
   }
 }
 
