@@ -14,10 +14,6 @@ import { applyEach, disabled, form, FormField, required, submit } from '@angular
 // Estado Facturado: es el único que pide número de factura
 const ESTADO_FACTURADO = 4
 
-// Los inputs de texto (con máscara) trabajan con string: se convierte al cargar y al guardar
-const aTexto = (valor: any): string => (valor == null) ? '' : String(valor)
-const aNumero = (valor: string): string | null => (valor === '') ? null : valor
-
 export interface PersonalCustodia {
     PersonalId: number
     HorasTrabajadas: string
@@ -203,16 +199,9 @@ export class CustodiaFormComponent {
             DescripcionFacturacion: info.DescripcionFacturacion ?? '',
             FechaInicio: info.FechaInicio ? new Date(info.FechaInicio) : null,
             FechaFin: info.FechaFin ? new Date(info.FechaFin) : null,
-            ImporteModulo: aTexto(info.ImporteModulo),
-            ImporteHorasExcedente: aTexto(info.ImporteHorasExcedente),
-            ImporteKmExcedente: aTexto(info.ImporteKmExcedente),
-            ImportePeaje: aTexto(info.ImportePeaje),
-            personal: info.personal?.length
-                ? info.personal.map((p: any) => ({ PersonalId: p.PersonalId, HorasTrabajadas: aTexto(p.HorasTrabajadas), ImporteSumaFija: aTexto(p.ImporteSumaFija), Importe: p.Importe }))
-                : [structuredClone(this.defaultPersonal)],
-            vehiculos: info.vehiculos?.length
-                ? info.vehiculos.map((v: any) => ({ Patente: v.Patente ?? '', PersonalId: v.PersonalId, ImporteVehiculo: aTexto(v.ImporteVehiculo), PeajeVehiculo: aTexto(v.PeajeVehiculo) }))
-                : [structuredClone(this.defaultVehiculo)],
+            // Horas e importes quedan como vienen del back (número o null): la máscara los muestra con coma decimal
+            personal: info.personal?.length ? info.personal : [structuredClone(this.defaultPersonal)],
+            vehiculos: info.vehiculos?.length ? info.vehiculos : [structuredClone(this.defaultVehiculo)],
         })
 
         this.auditHistory.set([
@@ -275,17 +264,9 @@ export class CustodiaFormComponent {
             try {
                 const valor = form().value()
                 const importes = this.calculoPersonal()
-                // Vacío viaja como null: el back compara contra la base al editar una custodia liquidada
                 const datos = {
                     ...valor,
-                    ImporteModulo: aNumero(valor.ImporteModulo),
-                    ImporteHorasExcedente: aNumero(valor.ImporteHorasExcedente),
-                    ImporteKmExcedente: aNumero(valor.ImporteKmExcedente),
-                    ImportePeaje: aNumero(valor.ImportePeaje),
-                    personal: valor.personal.map((p, i) => ({
-                        ...p, HorasTrabajadas: aNumero(p.HorasTrabajadas), ImporteSumaFija: aNumero(p.ImporteSumaFija), Importe: importes[i]?.Importe ?? 0
-                    })),
-                    vehiculos: valor.vehiculos.map(v => ({ ...v, ImporteVehiculo: aNumero(v.ImporteVehiculo), PeajeVehiculo: aNumero(v.PeajeVehiculo) })),
+                    personal: valor.personal.map((p, i) => ({ ...p, Importe: importes[i]?.Importe ?? 0 })),
                     ImporteFactura: this.facturacion(),
                     anio: this.anio(),
                     mes: this.mes()
