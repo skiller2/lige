@@ -107,7 +107,8 @@ export class CustodiasEstadoMasivoDrawerComponent {
 
     await submit(this.formEstadoMasivo, async (form) => {
       try {
-        await firstValueFrom(this.apiService.setEstado(form().value().clientes))
+        // El período de la grilla define en qué período se liquidan las custodias que se cierran
+        await firstValueFrom(this.apiService.setEstado({ anio: this.anio(), mes: this.mes(), clientes: form().value().clientes }))
         this.estadoMasivoGuardado.emit()
         this.visible.set(false)
       } catch (e: any) {

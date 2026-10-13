@@ -4,7 +4,7 @@
   <ng-container *nzDrawerContent>
 
     <form (ngSubmit)="save()">
-      <p class="marginElement"><strong>Periodo Tomado: {{ periodo() | date:'MM/yyyy' }}</strong></p>
+      <p class="marginElement"><strong>Periodo Tomado de la grilla: {{ periodo() | date:'MM/yyyy' }}</strong></p>
 
       <!-- Un grupo por cliente: el estado se aplica a todas sus custodias -->
       @for (cliente of formEstadoMasivo.clientes; let i = $index; track i) {
@@ -35,7 +35,7 @@
           <!-- Datos de consulta: no se editan -->
           <p>CUIT: {{ estadoMasivo().clientes[i].CUIT }}</p>
           <p>Razón social: {{ estadoMasivo().clientes[i].RazonSocial }}</p>
-          <p>Domicilio: {{ estadoMasivo().clientes[i].Domicilio }}</p>
+          <!-- <p>Domicilio: {{ estadoMasivo().clientes[i].Domicilio }}</p> -->
           <p>Custodias seleccionadas: {{ estadoMasivo().clientes[i].Cantidad }}</p>
           <p>Importe Total: {{ estadoMasivo().clientes[i].ImporteTotal | I18NCurrency }}</p>
         </nz-card>

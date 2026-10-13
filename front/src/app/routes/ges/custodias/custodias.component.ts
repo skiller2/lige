@@ -6,7 +6,7 @@ import { ApiService } from '../../../services/api.service';
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { debounceTime, finalize, firstValueFrom, map, switchMap, tap } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
 import { CustodiaFormComponent } from "../custodias-form/custodias-form.component";
 import { SettingsService } from '@delon/theme';
@@ -14,7 +14,7 @@ import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-
 import { CustodiasEstadoMasivoDrawerComponent } from '../custodias-estado-masivo-drawer/custodias-estado-masivo-drawer';
 import { CustodiasPersonalDetalleComponent } from "../../../shared/custodias-personal-detalle/custodias-personal-detalle.component";
 import { Selections } from '../../../shared/schemas/filtro';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-custodias',
