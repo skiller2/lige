@@ -106,6 +106,7 @@ export class CustodiaFormComponent {
         required(p.ClienteId, { message: 'Cliente es requerido' })
         required(p.FechaInicio, { message: 'Fecha Inicial es requerida' })
         required(p.Origen, { message: 'Origen es requerido' })
+        required(p.EstadoCodigo, { message: 'Estado es requerido' })
         required(p.NumeroFactura, { message: 'Número de Factura es requerido', when: (ctx) => ctx.valueOf(p.EstadoCodigo) == ESTADO_FACTURADO })
         applyEach(p.vehiculos, (vehiculo) => {
             required(vehiculo.PersonalId, { message: 'Dueño es requerido', when: (ctx) => !!ctx.valueOf(vehiculo.Patente) })
