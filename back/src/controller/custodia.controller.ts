@@ -1189,6 +1189,12 @@ export class CustodiaController extends BaseController {
             if (!infoCustodia)
                 throw new ClientException(`No se encontró la custodia ${CustodiaCodigo}.`)
 
+            const errorEstadoPagada = await this.valEstadoCustodiaPagada(queryRunner, infoCustodia, objetivoCustodia.EstadoCodigo)
+            if (errorEstadoPagada.valEstado) {
+                errorCampo('EstadoCodigo', errorEstadoPagada.message)
+            }
+
+            // Período sin recibos generados: volver a Pendiente deja la custodia sin liquidar
             if (objetivoCustodia.EstadoCodigo == 0) {
                 infoCustodia.FechaLiquidacion = null
             }
@@ -1500,8 +1506,14 @@ export class CustodiaController extends BaseController {
             // const ResponsableId = 699
             const ResponsableId = res.locals.PersonalId
             await queryRunner.startTransaction()
+            // Período de la grilla: define en qué período se liquidan las custodias que se cierran
+            const anio = Number(req.body.anio)
+            const mes = Number(req.body.mes)
+            if (!anio || !mes)
+                throw new ClientException(`Debe indicar el período.`)
+
             // Un elemento por cliente: el front lo arma como "clientes", de ahí el fieldTree de los errores
-            const forms: any[] = req.body
+            const forms: any[] = Array.isArray(req.body.clientes) ? req.body.clientes : []
             const fieldErrors: { fieldTree: string, kind: string, message: string }[] = []
             const errorCampo = (fieldTree: string, message: string) => fieldErrors.push({ fieldTree, kind: 'server', message })
 
@@ -1519,6 +1531,9 @@ export class CustodiaController extends BaseController {
                     errorCampo(`clientes[${index}].NumeroFactura`, `El Número de Factura es inválido.`)
                     continue
                 }
+
+                // Custodias del cliente ya pagadas, agrupadas por período de liquidación (MM/AAAA)
+                const pagadasPorPeriodo: Record<string, number[]> = {}
 
                 for (const id of ids) {
                     let infoCustodia = await this.getObjetivoCustodiaQuery(queryRunner, id)
@@ -1538,6 +1553,13 @@ export class CustodiaController extends BaseController {
                         errorCampo(campoEstado, `Codigo ${id}: Solo el grupo 'Liquidaciones' puede grabar estado Facturado.`)
                         continue
                     }
+                    // Se juntan por período para dar un solo mensaje con todos los códigos
+                    const errorEstadoPagada = await this.valEstadoCustodiaPagada(queryRunner, infoCustodia, EstadoCodigo)
+                    if (errorEstadoPagada.valEstado) {
+                        pagadasPorPeriodo[errorEstadoPagada.periodo] = [...(pagadasPorPeriodo[errorEstadoPagada.periodo] ?? []), id]
+                        continue
+                    }
+
                     //Validaciones
                     if (infoCustodia.EstadoCodigo == 4 && EstadoCodigo != infoCustodia.EstadoCodigo) {
                         if (!fullEdit) {
@@ -1578,8 +1600,21 @@ export class CustodiaController extends BaseController {
                         continue
                     }
 
-                    await this.updateObjetivoCustodiaQuery(queryRunner, infoCustodia, usuario, ip)
+                    // Igual que el form individual: con el período se calcula FechaLiquidacion y se controla que no esté cerrado
+                    infoCustodia.anio = anio
+                    infoCustodia.mes = mes
+                    infoCustodia.fechaActual = new Date()
+                    try {
+                        await this.updateObjetivoCustodiaQuery(queryRunner, infoCustodia, usuario, ip)
+                    } catch (error) {
+                        // El rechazo por período cerrado se marca en el cliente; el resto de los errores corta
+                        if (!(error instanceof ClientException)) throw error
+                        errorCampo(campoEstado, `Codigo ${id}: ${error.message}`)
+                    }
                 }
+
+                for (const [periodo, codigos] of Object.entries(pagadasPorPeriodo))
+                    errorCampo(campoEstado, `Las siguientes custodias fueron liquidadas en el período ${periodo}, que ya tiene los recibos generados, por lo que no pueden pasar a Pendiente ni Cancelado: ${codigos.join(', ')}.`)
 
             }
 
@@ -1766,8 +1801,33 @@ export class CustodiaController extends BaseController {
         }
     }
 
-    //Devuelve TRUE si el estado es 
+    // Liquidada en un período con recibos generados = ya pagada: solo puede pasar a Finalizado (1), A facturar (3), Facturado (4) o No facturable (5)
+    async valEstadoCustodiaPagada(queryRunner: any, infoCustodia: any, EstadoCodigo: number): Promise<{ valEstado: boolean, message: string, periodo: string }> {
+        if (!infoCustodia.FechaLiquidacion || EstadoCodigo == infoCustodia.EstadoCodigo || [1, 3, 4, 5].includes(Number(EstadoCodigo)))
+            return { valEstado: false, message: '', periodo: '' }
+
+        // Período de la FechaLiquidacion (con DATEPART, igual que la grilla): sin registro o con ind_recibos_generados = 0, los recibos no se generaron
+        const periodo = await queryRunner.query(`
+            SELECT per.anio, per.mes, per.ind_recibos_generados
+            FROM Custodia cus
+            JOIN lige.dbo.liqmaperiodo per ON per.anio = DATEPART(YEAR, cus.FechaLiquidacion) AND per.mes = DATEPART(MONTH, cus.FechaLiquidacion)
+            WHERE cus.CustodiaCodigo = @0
+        `, [infoCustodia.CustodiaCodigo])
+        if (periodo[0]?.ind_recibos_generados != 1)
+            return { valEstado: false, message: '', periodo: '' }
+
+        // periodo (MM/AAAA) le permite a la edición masiva agrupar las custodias en un solo mensaje
+        const periodoTexto = `${String(periodo[0].mes).padStart(2, '0')}/${periodo[0].anio}`
+        return {
+            valEstado: true,
+            message: `La custodia fue liquidada en el período ${periodoTexto}, que ya tiene los recibos generados, por lo que no puede pasar a Pendiente ni Cancelado.`,
+            periodo: periodoTexto
+        }
+    }
+
+    //Devuelve TRUE si el estado es
     //[{ value: 1, label: 'Finalizado' },{ value: 3, label: 'A facturar' },{ value: 4, label: 'Facturado' },]
+
     valByEstado(estado: any): boolean {
         switch (typeof estado) {
             case 'string':
