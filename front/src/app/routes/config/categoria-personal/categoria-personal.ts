@@ -9,7 +9,8 @@ import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-
 import { ExcelExportService } from '@slickgrid-universal/excel-export';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { FiltroBuilderComponent } from "../../../shared/filtro-builder/filtro-builder.component";
-import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/custom-float-grid-editor.component';
+import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-grid-editor.component';
+import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { Selections } from '../../../shared/schemas/filtro';
 import { LoadingService } from '@delon/abc/loading';
 
@@ -52,6 +53,8 @@ export class CategoriaPersonalComponent {
     loader: async () => {
       await new Promise(resolve => setTimeout(resolve, 500));
       const response = await firstValueFrom(this.apiService.getCols('/api/categoria-personal/cols'));
+      const inactivo = await firstValueFrom(this.apiService.getInactivoOptionsCP());
+      const tipoAsociado = await firstValueFrom(this.apiService.getTipoAsociado());
       const list = (response || []).map((col: Column) => {
         switch (col.id) {
           case 'id':
@@ -61,7 +64,16 @@ export class CategoriaPersonalComponent {
             
         	case 'TipoAsociadoId':
             col.editor = {
-              model: Editors['integer']
+              model: CustomInputEditor,
+              collection: [],
+              params: {
+                component: SelectSearchComponent,
+              },
+              alwaysSaveOnEnterKey: true,
+              required: true
+            }
+            col.params = {
+              collection: tipoAsociado,
             }
             break;
           case 'CategoriaPersonalDescripcion':
@@ -71,7 +83,16 @@ export class CategoriaPersonalComponent {
             break;
           case 'CategoriaPersonalInactivo':
             col.editor = {
-              model: Editors['integer']
+              model: CustomInputEditor,
+              collection: [],
+              params: {
+                component: SelectSearchComponent,
+              },
+              alwaysSaveOnEnterKey: true,
+              required: true
+            }
+            col.params = {
+              collection: inactivo,
             }
             break;
         }
@@ -85,6 +106,7 @@ export class CategoriaPersonalComponent {
 
   // Campos obligatorios para poder persistir una fila
   private readonly camposRequeridos = [
+    'TipoAsociadoId',
     'CategoriaPersonalDescripcion',
 		'CategoriaPersonalInactivo'
   ]
@@ -153,7 +175,7 @@ export class CategoriaPersonalComponent {
 
   async addNewItem(insertPosition?: 'bottom') {
     const allItems = this.angularGrid.dataView.getItems();
-    const hasEmptyRow = allItems.some((item: any) => !item.TipoAsociadoId && item.isfull !== 1);
+    const hasEmptyRow = allItems.some((item: any) => !item.TipoAsociadoId && !item.CategoriaPersonalId && item.isfull !== 1);
     if (hasEmptyRow) return;
 
     const newItem1 = this.createNewItem(1)
@@ -194,7 +216,7 @@ export class CategoriaPersonalComponent {
       row.hasError = false
 
       // Si el registro está vacío, eliminarlo
-      if (!row.TipoAsociadoDescripcion) {
+      if (!row.TipoAsociadoId && !row.TipoAsociadoDescripcion && !row.CategoriaPersonalDescripcion && !row.CategoriaPersonalInactivo) {
         this.angularGrid.gridService.deleteItem(row)
       } else {
         this.angularGrid.gridService.updateItem(row)
@@ -205,6 +227,12 @@ export class CategoriaPersonalComponent {
     }
 
 
+  }
+
+  ngAfterViewInit() {
+    this.startFilters.set([
+      { index: 'CategoriaPersonalInactivo', condition: 'AND', operator: '=', value: '0', closeable: true }
+    ])
   }
 
   async onCellChanged(e: any) {
@@ -224,7 +252,6 @@ export class CategoriaPersonalComponent {
             list = (response.list || []).map((item: any) => {
               // Los registros existentes tienen ID y están completos
               if (item.id) {
-                item.TipoAsociadoId = item.id;
                 item.isfull = 1;
                 item.codigoOld = item.id;
                 item.isDirty = false;
@@ -249,23 +276,26 @@ export class CategoriaPersonalComponent {
 
   createNewItem(incrementIdByHowMany = 1) {
     const dataset = this.angularGrid.dataView.getItems();
-    let highestId = 0;
+    let highestTPId = 0;
+    let highestCPId = 0;
     dataset.forEach((item: any) => {
-      if (item.id > highestId) {
-        highestId = item.id;
+      // if (item.TipoAsociadoId > highestTPId) {
+      //   highestTPId = item.TipoAsociadoId;
+      // }
+      if (item.CategoriaPersonalId > highestCPId) {
+        highestCPId = item.CategoriaPersonalId;
       }
     });
-    const newId = highestId + incrementIdByHowMany;
+    const newId:string = `${highestTPId}-${highestCPId + incrementIdByHowMany}`;
 
     return {
       id: newId,
       isfull: 0,
       isDirty: false,
       TipoAsociadoId: null,
-      TipoAsociadoDescripcion: null,
-      TipoAsociadoAsigna: 'R',
-      TipoAsociadoTieneAsistencia: 'S',
-      Categorias: ''
+      CategoriaPersonalId: null,
+      CategoriaPersonalDescripcion: null,
+      CategoriaPersonalInactivo: '0'
     };
   }
 
@@ -307,6 +337,7 @@ export class CategoriaPersonalComponent {
 
     // El guardado se dispara recién cuando el usuario sale de la fila
     this.angularGrid.slickGrid.onActiveCellChanged.subscribe(async (e: any, args: any) => {
+      console.log('onActiveCellChanged', args)
       const filaActual = args?.row != null ? this.angularGrid.dataView.getItem(args.row) : null
       const idActual = filaActual?.id ?? null
 

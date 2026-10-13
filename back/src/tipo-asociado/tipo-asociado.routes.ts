@@ -9,6 +9,10 @@ tipoAsociadoRouter.get("/cols", [authMiddleware.verifyToken], (req, res) => {
   tipoAsociadoController.getGridCols(req, res);
 });
 
+tipoAsociadoRouter.get("/options", [authMiddleware.verifyToken], (req, res, next) => {
+  tipoAsociadoController.getTipoAsociado(req, res, next);
+});
+
 tipoAsociadoRouter.post('/list', [authMiddleware.verifyToken], (req, res, next) => {
   tipoAsociadoController.list(req, res, next)
 })
