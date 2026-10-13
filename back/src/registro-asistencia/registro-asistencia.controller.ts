@@ -29,6 +29,18 @@ const PARAMETRO_UBICACION = 'UBICA'
 const CAMPOS_ROSTRO = ['intervaloDeteccionMs', 'tiempoEstableMs', 'tamanioMinimoRostro', 'desvioMaximoCentro', 'confianzaMinimaDeteccion', 'ladoFoto']
 const CAMPOS_UBICACION = ['precisionMaximaMetros', 'esperaUbicacionMs', 'distanciaMaximaMetros']
 
+// Origen del registro en RegistroAsistenciaOrigen: AB = acceso biométrico
+const ORIGEN_REGISTRO = 'AB'
+
+// Numerador de GenNumerador del que sale RegistroAsistenciaCodigo
+const NUMERADOR_REGISTRO = 'RegistroAsistencia'
+
+// Tipo del registro: por ahora, el tipo de dispositivo desde el que se marcó. Se decide por el
+// User-Agent del navegador, con el mismo criterio que apiService.isMobile() del front.
+const DISPOSITIVO_MOVIL = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+const TIPO_CELULAR = 'CEL'
+const TIPO_COMPUTADORA = 'PC'
+
 // Dónde registra la asistencia la persona reconocida
 const TIPOS_LUGAR = [
   { value: 'OBJ', label: 'Objetivo' },
@@ -41,15 +53,25 @@ export class RegistroAsistenciaController extends BaseController {
     this.jsonRes(TIPOS_LUGAR, res)
   }
 
-  // Prueba de la confirmación: valida lo elegido e informa en consola. Todavía no graba nada.
+  // Graba la asistencia de la persona reconocida en el objetivo o la custodia elegidos
   async confirmar(req: Request, res: Response, next: NextFunction) {
     const PersonalId = Number(req.body?.PersonalId) || 0
+    const ApellidoNombre = String(req.body?.ApellidoNombre ?? '')
+    const similitud = req.body?.similitud ?? null
     const TipoLugar = String(req.body?.TipoLugar ?? '').trim()
     const ObjetivoId = Number(req.body?.ObjetivoId) || 0
-    const CustodiaCodigo = String(req.body?.CustodiaCodigo ?? '').trim()
+    const CustodiaTexto = String(req.body?.CustodiaCodigo ?? '').trim()
     const ubicacion = req.body?.ubicacion ?? null
+    const queryRunner = await getConnection(res.locals.userName);
 
     try {
+      const usuario = res.locals.userName
+      const ip = this.getRemoteAddress(req)
+      // La fecha del registro es la del servidor, no la del dispositivo
+      const ahora = new Date()
+      const userAgent = String(req.headers['user-agent'] ?? '')
+      const Tipo = DISPOSITIVO_MOVIL.test(userAgent) ? TIPO_CELULAR : TIPO_COMPUTADORA
+
       if (!PersonalId)
         throw new ClientException('Falta la persona reconocida')
 
@@ -58,24 +80,84 @@ export class RegistroAsistenciaController extends BaseController {
         fieldErrors.push({ fieldTree: 'TipoLugar', kind: 'server', message: 'Elija dónde registra la asistencia' })
       if (TipoLugar === 'OBJ' && !ObjetivoId)
         fieldErrors.push({ fieldTree: 'ObjetivoId', kind: 'server', message: 'Elija el objetivo' })
-      if (TipoLugar === 'CUS' && !CustodiaCodigo)
+      if (TipoLugar === 'CUS' && !CustodiaTexto)
         fieldErrors.push({ fieldTree: 'CustodiaCodigo', kind: 'server', message: 'Ingrese la custodia' })
+      else if (TipoLugar === 'CUS' && !/^\d+$/.test(CustodiaTexto))
+        fieldErrors.push({ fieldTree: 'CustodiaCodigo', kind: 'server', message: 'El código de custodia tiene que ser numérico' })
 
       if (fieldErrors.length)
         throw new ClientException('Debe completar los campos requeridos.', { fieldErrors })
 
-      console.log('[registro-asistencia] Confirmación', {
-        usuario: res.locals.userName,
-        PersonalId,
-        TipoLugar,
-        ObjetivoId: TipoLugar === 'OBJ' ? ObjetivoId : null,
-        CustodiaCodigo: TipoLugar === 'CUS' ? CustodiaCodigo : null,
-        ubicacion,
+      // El objetivo se graba por su cliente y elemento dependiente
+      let ClienteId: number | null = null
+      let ClienteElementoDependienteId: number | null = null
+      if (TipoLugar === 'OBJ') {
+        const [objetivo] = await queryRunner.query(
+          `SELECT ClienteId, ClienteElementoDependienteId FROM Objetivo WHERE ObjetivoId = @0`, [ObjetivoId])
+        if (!objetivo)
+          throw new ClientException('El objetivo no existe', {
+            fieldErrors: [{ fieldTree: 'ObjetivoId', kind: 'server', message: `No se encontró el objetivo ${ObjetivoId}` }]
+          })
+        ClienteId = objetivo.ClienteId
+        ClienteElementoDependienteId = objetivo.ClienteElementoDependienteId
+      }
+
+      // La custodia tiene que existir (clave foránea)
+      let CustodiaCodigo: number | null = null
+      if (TipoLugar === 'CUS') {
+        CustodiaCodigo = Number(CustodiaTexto)
+        const [custodia] = await queryRunner.query(
+          `SELECT CustodiaCodigo FROM Custodia WHERE CustodiaCodigo = @0`, [CustodiaCodigo])
+        if (!custodia)
+          throw new ClientException('La custodia no existe', {
+            fieldErrors: [{ fieldTree: 'CustodiaCodigo', kind: 'server', message: `No se encontró la custodia ${CustodiaCodigo}` }]
+          })
+      }
+
+      // Por ahora solo "latitud,longitud"; sin ubicación queda vacío (la columna no admite nulos)
+      const GeoReferenciacion = ubicacion?.latitud != null && ubicacion?.longitud != null
+        ? `${ubicacion.latitud},${ubicacion.longitud}`
+        : ''
+
+      // Todo lo recibido y lo resuelto, para auditoría (sin la foto)
+      const ObjetoCompleto = JSON.stringify({
+        PersonalId, ApellidoNombre, similitud,
+        TipoLugar, ObjetivoId: TipoLugar === 'OBJ' ? ObjetivoId : null,
+        ClienteId, ClienteElementoDependienteId, CustodiaCodigo,
+        ubicacion, usuario, ip, fechaHora: ahora,
+        Tipo, userAgent,
       })
 
-      this.jsonRes({ PersonalId, TipoLugar }, res)
+      await queryRunner.startTransaction()
+
+      // El código sale del numerador 'RegistroAsistencia' de GenNumerador, como el resto del sistema
+      const RegistroAsistenciaCodigo = await BaseController.getProxNumero(queryRunner, NUMERADOR_REGISTRO, usuario, ip)
+
+      await queryRunner.query(`
+        INSERT INTO RegistroAsistencia (
+          RegistroAsistenciaCodigo, FechaHora, PersonalId, ClienteId, ClienteElementoDependienteId,
+          CustodiaCodigo, Tipo, RegistroAsistenciaOrigenCodigo, GeoReferenciacion, ObjetoCompleto,
+          AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod
+        ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @1, @1, @10, @10, @11, @11)
+      `, [
+        RegistroAsistenciaCodigo, ahora, PersonalId, ClienteId, ClienteElementoDependienteId,
+        CustodiaCodigo, Tipo, ORIGEN_REGISTRO, GeoReferenciacion, ObjetoCompleto,
+        ip, usuario
+      ])
+
+      await queryRunner.commitTransaction()
+
+      console.log('[registro-asistencia] Confirmación grabada', {
+        RegistroAsistenciaCodigo, PersonalId, Tipo, TipoLugar, ClienteId, ClienteElementoDependienteId, CustodiaCodigo, GeoReferenciacion,
+      })
+
+      this.jsonRes({ RegistroAsistenciaCodigo, PersonalId, TipoLugar }, res,
+        `Asistencia registrada (código ${RegistroAsistenciaCodigo})`)
     } catch (error) {
+      await this.rollbackTransaction(queryRunner)
       return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

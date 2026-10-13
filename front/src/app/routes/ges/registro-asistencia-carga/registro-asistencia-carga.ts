@@ -83,6 +83,7 @@ export class RegistroAsistenciaCargaComponent {
   // Persona que reconoció el back
   readonly personaEncontrada = signal('')
   private readonly personalIdEncontrado = signal<number | null>(null)
+  private readonly similitudEncontrada = signal<number | null>(null)
 
   // Confirmación: una vez reconocido, se elige el objetivo o la custodia donde se registra
   private readonly defaultConfirmacion: ConfirmacionForm = { TipoLugar: '', ObjetivoId: null, CustodiaCodigo: '' }
@@ -279,6 +280,7 @@ export class RegistroAsistenciaCargaComponent {
       this.horaMarcada.set(new Date())
       this.personaEncontrada.set(respuesta?.ApellidoNombre || `PersonalId ${respuesta?.PersonalId}`)
       this.personalIdEncontrado.set(respuesta?.PersonalId ?? null)
+      this.similitudEncontrada.set(respuesta?.similitud ?? null)
       this.estado.set(respuesta?.encontrado ? 'marcado' : 'noEncontrado')
     } catch (e: any) {
       this.detalleError.set(`No se pudo registrar la asistencia: ${e?.error?.msg ?? e?.message ?? e}`)
@@ -295,6 +297,8 @@ export class RegistroAsistenciaCargaComponent {
         await firstValueFrom(this.apiService.confirmarRegistroAsistencia({
           ...form().value(),
           PersonalId: this.personalIdEncontrado(),
+          ApellidoNombre: this.personaEncontrada(),
+          similitud: this.similitudEncontrada(),
           ubicacion: this.ubicacion(),
         }))
         this.estado.set('confirmado')
@@ -309,6 +313,7 @@ export class RegistroAsistenciaCargaComponent {
     this.horaMarcada.set(null)
     this.personaEncontrada.set('')
     this.personalIdEncontrado.set(null)
+    this.similitudEncontrada.set(null)
     this.confirmacion.set(structuredClone(this.defaultConfirmacion))
     this.formConfirmacion().reset()
     this.reiniciarProgreso(GUIA_INICIAL)
