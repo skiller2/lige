@@ -9,6 +9,10 @@ categoriaPersonalRouter.get("/cols", [authMiddleware.verifyToken], (req, res) =>
   categoriaPersonalController.getGridCols(req, res);
 });
 
+categoriaPersonalRouter.get('/inactivo/options', [authMiddleware.verifyToken, authMiddleware.hasGroup(['gPersonal', 'gOperaciones', 'gPersonalCon', 'gOperacionesCon'])], (req, res, next) => {
+    categoriaPersonalController.getOptions(req, res)
+});
+
 categoriaPersonalRouter.post('/list', [authMiddleware.verifyToken], (req, res, next) => {
   categoriaPersonalController.list(req, res, next)
 })

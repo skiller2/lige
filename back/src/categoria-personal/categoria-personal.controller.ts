@@ -4,6 +4,11 @@ import type { NextFunction, Request, Response } from "express";
 import { filtrosToSql, getOptionsFromRequest, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 
+const getOptions: any[] = [
+    { label: 'No', value: '1' },
+    { label: 'Si', value: '0' },
+]
+
 const listaColumnas: any[] = [
   {
     id: 'id',
@@ -17,26 +22,26 @@ const listaColumnas: any[] = [
   },
   {
     id: 'TipoAsociadoId',
-    name: 'Tipo Asociado Id',
-    field: 'TipoAsociadoId',
-    type: 'number',
-    fieldName: 'ta.TipoAsociadoId',
-    searchType: 'number',
-    sortable: true,
-    hidden: true,
-    searchHidden: true
-  },
-  {
-    id: 'TipoAsociadoDescripcion',
     name: 'Tipo Asociado',
     field: 'TipoAsociadoDescripcion',
     type: 'string',
-    fieldName: 'ta.TipoAsociadoDescripcion',
-    searchType: 'string',
+    fieldName: 'ta.TipoAsociadoId',
+    searchType: 'number',
     sortable: true,
     hidden: false,
-    searchHidden: false,
+    searchHidden: false
   },
+  // {
+  //   id: 'TipoAsociadoDescripcion',
+  //   name: 'Tipo Asociado',
+  //   field: 'TipoAsociadoDescripcion',
+  //   type: 'string',
+  //   fieldName: 'ta.TipoAsociadoDescripcion',
+  //   searchType: 'string',
+  //   sortable: true,
+  //   hidden: false,
+  //   searchHidden: false,
+  // },
   {
     id: 'CategoriaPersonalDescripcion',
     name: 'Descripcion',
@@ -50,11 +55,14 @@ const listaColumnas: any[] = [
   },
   {
     id: 'CategoriaPersonalInactivo',
-    name: 'Inactivo',
+    name: 'Activo',
     field: 'CategoriaPersonalInactivo',
-    type: 'boolean',
-    fieldName: 'cp.CategoriaPersonalInactivo',
-    searchType: 'boolean',
+    type: 'string',
+    fieldName: 'ISNULL(cp.CategoriaPersonalInactivo, 0)',
+    formatter: 'collectionFormatter',
+    params: { collection: getOptions },
+    searchComponent: "inputForInactivo",
+    searchType: "number",
     sortable: true,
     hidden: false,
     searchHidden: false,
@@ -67,6 +75,10 @@ export class CategoriaPersonalController extends BaseController {
     this.jsonRes(listaColumnas, res);
   }
 
+  async getOptions(req, res) {
+    this.jsonRes(getOptions, res);
+  }
+
   async list(req: any, res: Response, next: NextFunction) {
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
     const orderBy = orderToSQL(req.body.options.sort)
@@ -74,8 +86,10 @@ export class CategoriaPersonalController extends BaseController {
 
     try {
       const tipoAsociados = await queryRunner.query(
-          `SELECT CONCAT(ta.TipoAsociadoId,'-',cp.CategoriaPersonalId) AS id, TRIM(ta.TipoAsociadoDescripcion) AS TipoAsociadoDescripcion,
-          cp.CategoriaPersonalId, TRIM(cp.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion, cp.CategoriaPersonalInactivo
+          `SELECT CONCAT(ta.TipoAsociadoId,'-',cp.CategoriaPersonalId) AS id, 
+          TRIM(ta.TipoAsociadoDescripcion) AS TipoAsociadoDescripcion,
+          cp.CategoriaPersonalId, TRIM(cp.CategoriaPersonalDescripcion) AS CategoriaPersonalDescripcion, ta.TipoAsociadoId,
+          CONVERT(VARCHAR(1), ISNULL(cp.CategoriaPersonalInactivo, 0)) AS CategoriaPersonalInactivo
           FROM CategoriaPersonal cp
           LEFT JOIN TipoAsociado ta ON ta.TipoAsociadoId = cp.TipoAsociadoId
           WHERE ${filterSql}
@@ -102,39 +116,31 @@ export class CategoriaPersonalController extends BaseController {
   async validateForm(form: any, action: string, queryRunner: any) {
       let error: string[] = [];
 
-      if (this.esVacio(form.TipoAsociadoDescripcion)) {
+      if (this.esVacio(form.TipoAsociadoId)) {
+        error.push('- Tipo Asociado');
+      }
+      if (this.esVacio(form.CategoriaPersonalDescripcion)) {
         error.push('- Descripcion');
       }
-      // if (this.esVacio(form.TipoAsociadoAsigna)) {
-      //   error.push('- Asigna');
-      // }
-      // if (this.esVacio(form.TipoAsociadoTieneAsistencia)) {
-      //   error.push('- Tiene Asistencia');
-      // }
+      if (this.esVacio(form.CategoriaPersonalInactivo)) {
+        error.push('- Activo');
+      }
   
       if (error.length) {
         error.unshift('Deben completar los siguientes campos:');
         throw new ClientWarning(error);
       }
   
-      // Validar la cantidad de caracteres
-      // if (form.TipoAsociadoAsigna.length !== 1) {
-      //   throw new ClientException('El Asigna debe tener un caracter');
-      // }
-      // if (form.TipoAsociadoTieneAsistencia.length !== 1) {
-      //   throw new ClientException('El Tiene Asistencia debe tener un caracter');
-      // }
-  
       // Validar que no haya duplicados
       if (action == 'I') {
         const existing = await queryRunner.query(`
-          SELECT TipoAsociadoId AS id 
-          FROM TipoAsociado 
-          WHERE TipoAsociadoDescripcion = @0
-        `, [form.TipoAsociadoDescripcion]);
+          SELECT CategoriaPersonalId AS id 
+          FROM CategoriaPersonal 
+          WHERE CategoriaPersonalDescripcion = @0
+        `, [form.CategoriaPersonalDescripcion]);
   
         if (existing.length) {
-          throw new ClientException('Ya existe un tipo asociado con esa descripción');
+          throw new ClientException('Ya existe una categoría personal con esa descripción');
         }
         
       }
@@ -142,13 +148,13 @@ export class CategoriaPersonalController extends BaseController {
       if (action == 'U') {
         // Validar que no haya duplicados
         const existing = await queryRunner.query(`
-          SELECT TipoAsociadoId AS id 
-          FROM TipoAsociado 
-          WHERE TipoAsociadoId = @0 AND TipoAsociadoDescripcion = @1
-        `, [form.TipoAsociadoId, form.TipoAsociadoDescripcion]);
+          SELECT CategoriaPersonalId AS id 
+          FROM CategoriaPersonal 
+          WHERE TipoAsociadoId = @0 AND CategoriaPersonalId != @1 AND CategoriaPersonalDescripcion = @2
+        `, [form.TipoAsociadoId, form.CategoriaPersonalId, form.CategoriaPersonalDescripcion]);
   
         if (existing.length) {
-          throw new ClientException('Ya existe un tipo asociado con esa descripción');
+          throw new ClientException('Ya existe una categoría personal con esa descripción');
         }
   
       }

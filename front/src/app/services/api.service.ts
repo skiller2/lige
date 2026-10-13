@@ -2653,6 +2653,16 @@ export class ApiService {
   // }
 
   //Tipo Asociado
+  getTipoAsociado(){
+    return this.http.get<ResponseJSON<any>>('/api/tipo-asociado/options').pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+
+        return of([]);
+      })
+    )
+  }
+  
   onchangecellTP(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/tipo-asociado/onchangecell', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
@@ -2667,6 +2677,16 @@ export class ApiService {
   }
 
   //Categoria Personal
+  getInactivoOptionsCP() {
+    return this.http.get<ResponseJSON<any>>('/api/categoria-personal/inactivo/options').pipe(
+      map((res: any) => res.data),
+      catchError((err, caught) => {
+
+        return of([]);
+      })
+    )
+  }
+  
   onchangecellCP(params: any) {
     return this.http.post<ResponseJSON<any>>('/api/categoria-personal/onchangecell', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))

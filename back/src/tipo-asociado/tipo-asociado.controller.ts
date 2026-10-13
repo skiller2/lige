@@ -46,6 +46,22 @@ export class TipoAsociadoController extends BaseController {
     this.jsonRes(listaColumnas, res);
   }
 
+  async getTipoAsociado(req, res, next) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const tipoAsociados = await queryRunner.query(
+        `SELECT TipoAsociadoId AS value, TRIM(TipoAsociadoDescripcion) AS label
+         FROM TipoAsociado
+         ORDER BY TipoAsociadoDescripcion`
+      );
+      this.jsonRes(tipoAsociados, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
   async list(req: any, res: Response, next: NextFunction) {
     const filterSql = filtrosToSql(req.body.options.filtros, listaColumnas);
     // const orderBy = orderToSQL(req.body.options.sort)
