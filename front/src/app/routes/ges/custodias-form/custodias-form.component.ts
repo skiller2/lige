@@ -94,11 +94,38 @@ export class CustodiaFormComponent {
 
     readonly custodia = signal<CustodiaForm>(structuredClone(this.defaultCustodia))
 
+    // Estado con el que se cargó la custodia: si es Facturado solo se edita el estado (el back valida gSistemas)
+    private estadoOriginal = signal<number | null>(null)
+    soloEstado = computed(() => !this.soloLectura() && this.estadoOriginal() == ESTADO_FACTURADO)
+    // Personal, vehículos e importes no se editan: se muestran los valores grabados
+    sinEdicionDetalle = computed(() => this.soloLectura() || this.soloEstado())
+
     // El resto de las reglas (pares Cant/Importe, cierre por estado) las valida el back y vuelven como fieldErrors
     readonly formCustodia = form(this.custodia, (p) => {
         disabled(p, () => this.soloLectura())
         disabled(p.CustodiaCodigo, () => true)
         disabled(p.Responsable, () => true)
+        // Custodia Facturada: todo deshabilitado menos el Estado
+        const soloEstado = () => this.soloEstado()
+        disabled(p.ClienteId, soloEstado)
+        disabled(p.DescripcionRequirente, soloEstado)
+        disabled(p.Descripcion, soloEstado)
+        disabled(p.FechaInicio, soloEstado)
+        disabled(p.Origen, soloEstado)
+        disabled(p.FechaFin, soloEstado)
+        disabled(p.Destino, soloEstado)
+        disabled(p.personal, soloEstado)
+        disabled(p.vehiculos, soloEstado)
+        disabled(p.CantidadModulos, soloEstado)
+        disabled(p.ImporteModulo, soloEstado)
+        disabled(p.CantidadHorasExcedente, soloEstado)
+        disabled(p.ImporteHorasExcedente, soloEstado)
+        disabled(p.CantidadKmExcedente, soloEstado)
+        disabled(p.ImporteKmExcedente, soloEstado)
+        disabled(p.ImportePeaje, soloEstado)
+        disabled(p.NumeroFactura, soloEstado)
+        disabled(p.DescripcionFacturacion, soloEstado)
+        
         required(p.ClienteId, { message: 'Cliente es requerido' })
         required(p.FechaInicio, { message: 'Fecha Inicial es requerida' })
         required(p.Origen, { message: 'Origen es requerido' })
@@ -130,11 +157,11 @@ export class CustodiaFormComponent {
         defaultValue: {}
     })
 
-    // 3. Retiro de cada persona: en solo lectura el grabado; editando, Horas * Valor hora + Suma fija
+    // 3. Retiro de cada persona: sin edición del detalle el grabado; editando, Horas * Valor hora + Suma fija
     calculoPersonal = computed(() => {
         const valores = this.valoresHora.value()
         return this.custodia().personal.map(p => {
-            if (this.soloLectura())
+            if (this.sinEdicionDetalle())
                 return { Importe: Number(p.Importe) || 0, detalle: '', detalleRetiro: '' }
 
             const valorHora = valores[p.PersonalId] ?? 0
@@ -204,6 +231,8 @@ export class CustodiaFormComponent {
             vehiculos: info.vehiculos?.length ? info.vehiculos : [structuredClone(this.defaultVehiculo)],
         })
 
+        this.estadoOriginal.set(info.EstadoCodigo)
+
         this.auditHistory.set([
             { usuario: info.AudUsuarioIng, fecha: this.formatDate(info.AudFechaIng), accion: 'Creación' },
             { usuario: info.AudUsuarioMod, fecha: this.formatDate(info.AudFechaMod), accion: 'Modificación' }
@@ -214,6 +243,7 @@ export class CustodiaFormComponent {
 
     clearForm(): void {
         this.custodia.set(structuredClone(this.defaultCustodia))
+        this.estadoOriginal.set(null)
         this.auditHistory.set([])
         this.formCustodia().reset()
     }

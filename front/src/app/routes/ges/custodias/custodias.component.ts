@@ -37,10 +37,8 @@ export class CustodiaComponent {
     rows: number[] = [];
     detailViewRowCount = 1;
     editCustodiaId = model(0);
-    estado = signal(true);
     // Custodia que muestran Detalle/Editar: se fija al abrirla, no sigue a la selección de la grilla
     custodiaAbierta = signal(0);
-    custodiaEditable = signal(false);
     visible = signal(false);
     isLoading = signal(false);
     cantReg = signal(0)
@@ -146,15 +144,9 @@ export class CustodiaComponent {
         this.rows = e.detail.args.rows
         if (e.detail.args.rows.length == 1) {
             const selrow = dataView.getItemByIdx(e.detail.args.rows[0])
-
             this.editCustodiaId.set(selrow.id)
-            if (selrow.Estado.value === 4)
-                this.estado.set(false)
-            else
-                this.estado.set(true)
         } else {
             this.editCustodiaId.set(0)
-            this.estado.set(true)
         }
 
         this.custodiasSeleccionadas.set(dataView.getAllSelectedItems().filter((reg: any) => reg))
@@ -162,7 +154,6 @@ export class CustodiaComponent {
 
     abrirCustodia(): void {
         this.custodiaAbierta.set(this.editCustodiaId())
-        this.custodiaEditable.set(this.estado())
     }
 
 

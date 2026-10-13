@@ -79,7 +79,7 @@
         <a nz-tab-link routerLink="/ges/cust/editar">Editar</a>
         <ng-template nz-tab>
           @if (tab() == 'editar' && custodiaAbierta()) {
-            <app-custodias-form [CustodiaCodigo]="custodiaAbierta()" [soloLectura]="!custodiaEditable()" [anio]="anio()" [mes]="mes()" (custodiaGuardada)="refreshGridNow()" />
+            <app-custodias-form [CustodiaCodigo]="custodiaAbierta()" [soloLectura]="false" [anio]="anio()" [mes]="mes()" (custodiaGuardada)="refreshGridNow()" />
           }
         </ng-template>
       </nz-tab>

@@ -102,13 +102,13 @@
           <p nz-input class="ant-input text-right">{{ calculoPersonal()[i]?.Importe | I18NCurrency }} </p>
         </nz-input-group>
         <ng-template #controlPersonalButton>
-          @if ($last && !soloLectura()) {
+          @if ($last && !sinEdicionDetalle()) {
             <button nz-button nzType="primary" class="add-button" (click)="addPersonal($event)" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus"></span>
             </button>
           }
-          @if (!soloLectura()) {
+          @if (!sinEdicionDetalle()) {
             <button nz-button nzType="default" (click)="removePersonal(i, $event)" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.delete' | i18n }}">
               <span nz-icon nzType="delete" nzTheme="outline"></span>
@@ -143,13 +143,13 @@
             type="text" class="text-right" />
         </nz-input-group>
         <ng-template #controlVehiculoButton>
-          @if ($last && !soloLectura()) {
+          @if ($last && !sinEdicionDetalle()) {
             <button nz-button nzType="primary" class="add-button" (click)="addVehiculo($event)" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.add' | i18n }}">
               <span nz-icon nzType="plus"></span>
             </button>
           }
-          @if (!soloLectura()) {
+          @if (!sinEdicionDetalle()) {
             <button nz-button nzType="default" (click)="removeVehiculo(i, $event)" nz-tooltip
               nzTooltipTitle="{{ 'app.icon.borrar' | i18n }}">
               <span nz-icon nzType="delete" nzTheme="outline"></span>

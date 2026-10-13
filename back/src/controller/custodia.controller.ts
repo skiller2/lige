@@ -1203,9 +1203,8 @@ export class CustodiaController extends BaseController {
                 throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.Responsable} o pertenecer al grupo 'Liquidaciones' o 'mCustodias'.`)
             }
 
-            if (infoCustodia.EstadoCodigo == 4) {
-                throw new ClientException(`No se puede modificar los registros con estado Facturado.`)
-            }
+            if (infoCustodia.EstadoCodigo == 4 && !(await this.hasGroup(req, 'gSistemas')))
+                throw new ClientException(`No se puede modificar una custodia facturada. Solo el grupo 'gSistemas' puede hacerlo.`)
 
             fieldErrors.push(...this.valCustodiaForm(objetivoCustodia, queryRunner))
             if (fieldErrors.length)
