@@ -9,8 +9,12 @@
   <!-- Visor circular: el anillo cambia según el estado (halo azul listo, verde marcado, rojo error) -->
   <div [class]="'visor visor-' + estado()" [style.--progreso]="progreso()">
     <div class="circulo">
-      <!-- Con la cámara apagada (procesando o con el resultado) el video no se muestra -->
+      <!-- Con la cámara apagada (procesando o con el resultado) el video no se muestra y queda la
+           foto que se tomó -->
       <video #video autoplay muted playsinline [class.oculto]="!camaraEncendida()"></video>
+      @if (fotoCapturada()) {
+      <img class="foto-capturada" [src]="fotoCapturada()" alt="Foto tomada" />
+      }
 
       @if (estado() === 'iniciando' || estado() === 'marcando') {
       <div class="velo" [class.velo-procesando]="estado() === 'marcando'">
@@ -32,17 +36,24 @@
     </div>
   </div>
 
-  <!-- Persona reconocida: el nombre destacado con el check, y debajo el estado y la hora; el resto
-       de los estados, el mensaje -->
-  @if (estado() === 'marcado' || estado() === 'confirmado') {
+  <!-- Persona reconocida: el nombre destacado con el check. Al confirmar: "Asistencia confirmada
+       para" + nombre + dónde quedó registrada + hora. El resto de los estados, el mensaje -->
+  @if (estado() === 'marcado') {
   <div class="persona">
     <div class="persona-nombre">
       <span class="persona-check" nz-icon nzType="check-circle" nzTheme="outline"></span>
       {{ personaEncontrada() }}
     </div>
-    <div class="persona-detalle">
-      {{ estado() === 'marcado' ? 'Rostro encontrado' : 'Asistencia confirmada' }} · {{ horaMarcadaTexto() }}
+  </div>
+  } @else if (estado() === 'confirmado') {
+  <div class="persona">
+    <div class="persona-detalle">Asistencia confirmada para</div>
+    <div class="persona-nombre">
+      <span class="persona-check" nz-icon nzType="check-circle" nzTheme="outline"></span>
+      {{ personaEncontrada() }}
     </div>
+    <div class="persona-lugar">{{ lugarConfirmado() }}</div>
+    <div class="persona-detalle">{{ horaMarcadaTexto() }}</div>
   </div>
   } @else {
   <div [class]="'mensaje mensaje-' + tipoAlerta()">{{ mensaje() }}</div>
@@ -55,12 +66,11 @@
     <nz-form-item>
       <nz-form-label nzRequired>Registrar en</nz-form-label>
       <nz-form-control sfErrorTip>
-        <nz-select nzPlaceHolder="Objetivo o custodia" nzAllowClear [formField]="formConfirmacion.TipoLugar"
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%;">
+        <nz-radio-group [formField]="formConfirmacion.TipoLugar">
           @for (option of optionsTipoLugar(); track option.value) {
-          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+          <label nz-radio [nzValue]="option.value">{{ option.label }}</label>
           }
-        </nz-select>
+        </nz-radio-group>
       </nz-form-control>
     </nz-form-item>
 
@@ -82,11 +92,21 @@
     </nz-form-item>
     }
 
-    <button nz-button nzType="primary" nzShape="round" nzSize="large" nzBlock type="submit"
-      [nzLoading]="formConfirmacion().submitting()"
-      [disabled]="formConfirmacion().submitting() || !formConfirmacion().valid()">
-      Confirmar asistencia
-    </button>
+    <!-- Botón con los estilos por defecto de ng-zorro, como el Guardar de los forms del sistema -->
+    <nz-form-item class="confirmar">
+      <nz-form-control style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+        <button style="margin-right: 10px;" nz-button nzType="primary" type="submit"
+          [nzLoading]="formConfirmacion().submitting()"
+          [disabled]="formConfirmacion().submitting() || !formConfirmacion().valid()">
+          Confirmar asistencia
+        </button>
+        <!-- La reconocieron mal: descarta y vuelve a la cámara -->
+        <button nz-button nzType="default" type="button" (click)="noSoyYo()"
+          [disabled]="formConfirmacion().submitting()">
+          No soy yo
+        </button>
+      </nz-form-control>
+    </nz-form-item>
   </form>
   }
 
@@ -127,8 +147,16 @@
       nzTooltipTitle="Nuevo registro"><span nz-icon nzType="reload" nzTheme="outline"></span></button>
     }
     @case ('confirmado') {
-    <button nz-button nzType="default" nzShape="circle" nzSize="large" (click)="nuevoRegistro()" nz-tooltip
-      nzTooltipTitle="Nuevo registro"><span nz-icon nzType="reload" nzTheme="outline"></span></button>
+    <!-- Anular borra el registro recién grabado; la confirmación la pide el popconfirm, no el click -->
+    <div style="display: flex; justify-content: center; align-items: center;">
+      <button style="margin-right: 10px;" nz-button nzType="default" nzDanger type="button"
+        nz-popconfirm nzPopconfirmTitle="¿Está seguro que quiere anular esta asistencia?"
+        (nzOnConfirm)="anularAsistencia()" [nzLoading]="anulando()">
+        Anular asistencia
+      </button>
+      <button nz-button nzType="default" nzShape="circle" nzSize="large" (click)="nuevoRegistro()" nz-tooltip
+        nzTooltipTitle="Nuevo registro" [disabled]="anulando()"><span nz-icon nzType="reload" nzTheme="outline"></span></button>
+    </div>
     }
     @case ('noEncontrado') {
     <button nz-button nzType="default" nzShape="round" nzSize="large" nzBlock (click)="nuevoRegistro()">Intentar de nuevo</button>

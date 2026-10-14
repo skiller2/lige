@@ -32,8 +32,9 @@ const PUNTOS_REFERENCIA: Punto[] = [
   [70.7299, 92.2041],
 ]
 
-// Umbral de similitud coseno de SFace según la documentación de OpenCV: por encima, misma persona
-export const UMBRAL_SIMILITUD = 0.363
+// El umbral de similitud coseno (por encima, misma persona) no está acá: viene de ParametroGeneral
+// ROSTR (umbralSimilitud) y lo recibe reconocerRostro. Como referencia, la documentación de OpenCV
+// usa 0.363 para SFace, que para asistencia resulta permisivo.
 
 type Punto = [number, number]
 
@@ -72,6 +73,9 @@ export interface ResultadoReconocimiento {
   encontrado: boolean
   mejor: Coincidencia | null
   candidatos: Coincidencia[]
+  // Cuánto tardó cada parte, en ms: poner al día la galería (procesar fotos nuevas) y analizar la
+  // foto del marcado (leerla, detectar el rostro, calcular el embedding y comparar)
+  tiempos: { galeriaMs: number, analisisMs: number }
 }
 
 let sesiones: Promise<{ yunet: ort.InferenceSession, sface: ort.InferenceSession }> | null = null
@@ -86,17 +90,35 @@ function getSesiones() {
   return sesiones ??= (async () => ({
     yunet: await ort.InferenceSession.create(join(MODELOS, "face_detection_yunet_2023mar.onnx")),
     sface: await ort.InferenceSession.create(join(MODELOS, "face_recognition_sface_2021dec.onnx")),
-  }))()
+  }))().catch(error => {
+    sesiones = null   // Si no se pudieron cargar los modelos, el próximo marcado lo vuelve a intentar
+    throw error
+  })
+}
+
+// ONNX Runtime es código nativo: un fallo ahí no es un error de JavaScript que se pueda atrapar y
+// tira el proceso. Para no exponerlo a ejecuciones simultáneas (dos marcados juntos, o un marcado
+// mientras se procesan fotos nuevas), cada ejecución de un modelo espera a que termine la anterior.
+let cola: Promise<unknown> = Promise.resolve()
+function enCola<T>(tarea: () => Promise<T>): Promise<T> {
+  const resultado = cola.then(tarea, tarea)
+  cola = resultado.catch(() => undefined)
+  return resultado
 }
 
 /** Compara la foto con las fotos del personal y devuelve la mejor coincidencia. */
-export async function reconocerRostro(foto: Buffer, fotosPersonal: FotoPersonal[]): Promise<ResultadoReconocimiento> {
+export async function reconocerRostro(foto: Buffer, fotosPersonal: FotoPersonal[], umbralSimilitud: number): Promise<ResultadoReconocimiento> {
+  const inicioGaleria = Date.now()
   const fotos = await actualizarGaleria(fotosPersonal)
+
+  const inicioAnalisis = Date.now()
+  const tiempos = () => ({ galeriaMs: inicioAnalisis - inicioGaleria, analisisMs: Date.now() - inicioAnalisis })
+
   const imagen = await leerImagen(foto)
   const rostros = await detectarRostros(imagen)
 
   if (!rostros.length)
-    return { rostrosDetectados: 0, encontrado: false, mejor: null, candidatos: [] }
+    return { rostrosDetectados: 0, encontrado: false, mejor: null, candidatos: [], tiempos: tiempos() }
 
   const embedding = await calcularEmbedding(imagen, rostros[0])
 
@@ -114,9 +136,10 @@ export async function reconocerRostro(foto: Buffer, fotosPersonal: FotoPersonal[
 
   return {
     rostrosDetectados: rostros.length,
-    encontrado: !!mejor && mejor.similitud >= UMBRAL_SIMILITUD,
+    encontrado: !!mejor && mejor.similitud >= umbralSimilitud,
     mejor,
     candidatos,
+    tiempos: tiempos(),
   }
 }
 
@@ -185,8 +208,17 @@ async function procesarFotoGaleria(foto: FotoPersonal,
 }
 
 async function leerImagen(origen: Buffer | string): Promise<Imagen> {
-  const imagen = await Jimp.read(origen)
-  return { data: imagen.bitmap.data, width: imagen.bitmap.width, height: imagen.bitmap.height }
+  let imagen: Awaited<ReturnType<typeof Jimp.read>>
+  try {
+    imagen = await Jimp.read(origen)
+  } catch (error) {
+    throw new Error(`No se pudo leer la imagen: ${error instanceof Error ? error.message : error}`)
+  }
+  const { data, width, height } = imagen.bitmap
+  // Una imagen vacía haría una escala infinita al pasarla a 640x640
+  if (!width || !height || !data?.length)
+    throw new Error('La imagen está vacía')
+  return { data, width, height }
 }
 
 /** Rostros de la imagen, de mayor a menor puntaje. */
@@ -196,7 +228,7 @@ async function detectarRostros(imagen: Imagen): Promise<Rostro[]> {
   // La imagen se reduce para entrar en 640x640 y el resto queda en negro
   const escala = YUNET_TAMANIO / Math.max(imagen.width, imagen.height)
   const entrada = muestrear(imagen, YUNET_TAMANIO, YUNET_TAMANIO, (u, v) => [u / escala, v / escala], "bgr")
-  const salidas = await yunet.run({ input: new ort.Tensor("float32", entrada, [1, 3, YUNET_TAMANIO, YUNET_TAMANIO]) })
+  const salidas = await enCola(() => yunet.run({ input: new ort.Tensor("float32", entrada, [1, 3, YUNET_TAMANIO, YUNET_TAMANIO]) }))
 
   const candidatos: Rostro[] = []
   for (const paso of YUNET_PASOS) {
@@ -244,12 +276,16 @@ async function calcularEmbedding(imagen: Imagen, rostro: Rostro): Promise<Float3
   // de referencia; para armar la cara alineada se recorre al revés: de cada píxel de salida a la foto
   const { a, b, tx, ty } = transformacionSemejanza(rostro.puntos, PUNTOS_REFERENCIA)
   const det = a * a + b * b
+  // Con los 5 puntos encimados (o valores inválidos) la cara no se puede alinear: dividir por det
+  // daría infinitos y una entrada basura al modelo
+  if (!Number.isFinite(det) || det < 1e-9 || ![a, b, tx, ty].every(Number.isFinite))
+    throw new Error('No se pudo alinear el rostro')
   const entrada = muestrear(imagen, SFACE_TAMANIO, SFACE_TAMANIO, (u, v) => {
     const du = u - tx, dv = v - ty
     return [(a * du + b * dv) / det, (-b * du + a * dv) / det]
   }, "rgb")
 
-  const salidas = await sface.run({ data: new ort.Tensor("float32", entrada, [1, 3, SFACE_TAMANIO, SFACE_TAMANIO]) })
+  const salidas = await enCola(() => sface.run({ data: new ort.Tensor("float32", entrada, [1, 3, SFACE_TAMANIO, SFACE_TAMANIO]) }))
   return normalizar(salidas["fc1"].data as Float32Array)
 }
 
