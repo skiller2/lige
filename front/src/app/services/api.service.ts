@@ -2092,6 +2092,11 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/confirmar', confirmacion);
   }
 
+  // Anula (borra) una asistencia recién confirmada
+  anularRegistroAsistencia(RegistroAsistenciaCodigo: number) {
+    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/anular', { RegistroAsistenciaCodigo });
+  }
+
   // Marcado de asistencia por reconocimiento facial: foto (data URL JPEG) y ubicación del dispositivo
   marcarRegistroAsistencia(marcado: { foto: string, ubicacion: any }) {
     return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/marcar', marcado).pipe(

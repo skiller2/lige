@@ -3,6 +3,8 @@ import { SHARED_IMPORTS } from '@shared';
 import type { Detection, FaceDetector } from '@mediapipe/tasks-vision';
 import { firstValueFrom } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 import { form, FormField, required, submit } from '@angular/forms/signals';
 import { ApiService } from '../../../services/api.service';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -42,6 +44,8 @@ export interface ConfiguracionRegistroAsistencia {
     confianzaMinimaDeteccion: number
     // Lado de la foto que se manda al back: chica para no pasar el límite de 100 KB del back
     ladoFoto: number
+    // Similitud mínima para reconocer a la persona: la usa el back, el front solo la recibe
+    umbralSimilitud: number
   }
   ubicacion: {
     // Se acepta una lectura con precisión de hasta precisionMaximaMetros, y se espera hasta
@@ -80,14 +84,21 @@ export class RegistroAsistenciaCargaComponent {
   readonly estado = signal<EstadoMarcado>('iniciando')
   readonly detalleError = signal('')
   readonly horaMarcada = signal<Date | null>(null)
-  // Con la cámara apagada (procesando o con el resultado) el video se oculta y el círculo muestra
-  // un fondo con el ícono del resultado
+  // Con la cámara apagada (procesando o con el resultado) el video se oculta y en el círculo queda
+  // la foto que se tomó, con el resultado encima
   readonly camaraEncendida = signal(false)
+  readonly fotoCapturada = signal<string | null>(null)
 
   // Persona que reconoció el back
   readonly personaEncontrada = signal('')
   private readonly personalIdEncontrado = signal<number | null>(null)
   private readonly similitudEncontrada = signal<number | null>(null)
+  // Dónde quedó registrada la asistencia, como la devolvió el back: "Objetivo: 123/1 ..." o
+  // "Custodia: 456 ..."
+  readonly lugarConfirmado = signal('')
+  // Código del registro grabado al confirmar: es el que borra "Anular asistencia"
+  private readonly registroConfirmado = signal<number | null>(null)
+  readonly anulando = signal(false)
 
   // Confirmación: una vez reconocido, se elige el objetivo o la custodia donde se registra
   private readonly defaultConfirmacion: ConfirmacionForm = { TipoLugar: '', ObjetivoId: null, CustodiaCodigo: null }
@@ -99,6 +110,7 @@ export class RegistroAsistenciaCargaComponent {
   })
 
   private apiService = inject(ApiService)
+  private notification = inject(NzNotificationService)
   readonly optionsTipoLugar = toSignal(this.apiService.getTiposLugarRegistroAsistencia(), { initialValue: [] })
   // Se lee al abrir la pantalla; sin ella no arranca ni la cámara ni la ubicación
   private config: ConfiguracionRegistroAsistencia | null = null
@@ -144,8 +156,9 @@ export class RegistroAsistenciaCargaComponent {
 
   readonly tipoAlerta = computed(() => {
     switch (this.estado()) {
+      // Se resuelven reintentando: advertencia (naranja), no error
       case 'sinPermiso':
-      case 'error':
+      case 'error': return 'warning'
       case 'noEncontrado': return 'error'
       case 'marcado':
       case 'confirmado': return 'success'
@@ -176,8 +189,7 @@ export class RegistroAsistenciaCargaComponent {
       try {
         this.config = await firstValueFrom(this.apiService.getConfiguracionRegistroAsistencia())
       } catch (e: any) {
-        this.detalleError.set(`No se pudo leer la configuración del registro de asistencia: ${e?.error?.msg ?? e?.message ?? e}`)
-        this.estado.set('error')
+        this.mostrarError('No pudimos preparar el registro de asistencia.', 'Error al leer la configuración (ParametroGeneral ROSTR/UBICA)', e)
         return
       }
     }
@@ -209,12 +221,8 @@ export class RegistroAsistenciaCargaComponent {
         }
         this.ubicacion.set(ubicacion)
         this.estadoUbicacion.set(ubicacion.precision <= precisionMaximaMetros ? 'lista' : 'imprecisa')
-        // La línea de ubicación de la pantalla está comentada: por ahora se informa por consola
-        console.log('[registro-asistencia] Ubicación', {
-          ...ubicacion,
-          estado: this.estadoUbicacion(),
-          mapa: this.linkMapa(),
-        })
+        // No se informa acá: watchPosition manda una lectura cada vez que la posición se afina, y
+        // se repetiría. Se informa una vez, la que se usa, al marcar.
       },
       (error) => {
         if (error.code === error.PERMISSION_DENIED) {
@@ -241,13 +249,13 @@ export class RegistroAsistenciaCargaComponent {
 
   async iniciarCamara() {
     this.estado.set('iniciando')
+    this.fotoCapturada.set(null)
     this.detenerDeteccion()
     this.detenerCamara()
 
     // Sin HTTPS (salvo localhost) el navegador no expone la cámara
     if (!navigator.mediaDevices?.getUserMedia) {
-      this.detalleError.set('El navegador no permite usar la cámara. Debe accederse por HTTPS.')
-      this.estado.set('error')
+      this.mostrarError('La cámara no está disponible en este navegador.', 'navigator.mediaDevices.getUserMedia no existe: la página debe abrirse por HTTPS')
       return
     }
 
@@ -262,12 +270,13 @@ export class RegistroAsistenciaCargaComponent {
     } catch (e: any) {
       if (e?.name === 'NotAllowedError') {
         this.estado.set('sinPermiso')
+        this.notification.warning('Advertencia', 'No hay permiso para usar la cámara. Habilítelo en el navegador y presione Reintentar.')
         return
       }
-      this.detalleError.set(e?.name === 'NotFoundError'
-        ? 'No se encontró una cámara en el dispositivo.'
-        : `No se pudo iniciar la cámara: ${e?.message ?? e}`)
-      this.estado.set('error')
+      this.mostrarError(e?.name === 'NotFoundError'
+        ? 'No encontramos una cámara en el dispositivo.'
+        : 'No pudimos encender la cámara. Verifique que no la esté usando otra aplicación.',
+        'Error al iniciar la cámara', e)
     }
   }
 
@@ -279,21 +288,38 @@ export class RegistroAsistenciaCargaComponent {
     const foto = this.capturarFoto()
     const ubicacion = this.ubicacion()
 
+    // La línea de ubicación de la pantalla está comentada: por ahora se informa por consola, una
+    // vez por marcado (la que se manda al back)
+    console.log('[registro-asistencia] Ubicación del marcado', ubicacion
+      ? { ...ubicacion, estado: this.estadoUbicacion(), mapa: this.linkMapa() }
+      : { estado: this.estadoUbicacion(), detalle: this.detalleUbicacion() })
+
     // Con la foto tomada se apaga la cámara: queda apagada mientras se busca la coincidencia y
-    // también si se reconoce a la persona. Solo la vuelven a encender los botones de reintento.
+    // también si se reconoce a la persona; en el círculo queda la foto. Solo la vuelven a encender
+    // los botones de reintento.
+    this.fotoCapturada.set(foto)
     this.detenerCamara()
 
     // El back compara el rostro con las fotos del personal. Por ahora solo informa: no graba nada.
     try {
+      const inicioAnalisis = performance.now()
       const respuesta = await firstValueFrom(this.apiService.marcarRegistroAsistencia({ foto, ubicacion }))
+
+      // Tiempo de análisis de la foto: el total visto desde el front (incluye la red) y el detalle
+      // del back (poner al día la galería y analizar la foto del marcado)
+      const tiempoAnalisis = {
+        totalMs: Math.round(performance.now() - inicioAnalisis),
+        ...respuesta?.tiempos,
+      }
+      console.log('[registro-asistencia] Tiempo de análisis de la foto', tiempoAnalisis)
+
       this.horaMarcada.set(new Date())
       this.personaEncontrada.set(respuesta?.ApellidoNombre || `PersonalId ${respuesta?.PersonalId}`)
       this.personalIdEncontrado.set(respuesta?.PersonalId ?? null)
       this.similitudEncontrada.set(respuesta?.similitud ?? null)
       this.estado.set(respuesta?.encontrado ? 'marcado' : 'noEncontrado')
     } catch (e: any) {
-      this.detalleError.set(`No se pudo registrar la asistencia: ${e?.error?.msg ?? e?.message ?? e}`)
-      this.estado.set('error')
+      this.mostrarError('No pudimos verificar su rostro.', 'Error al reconocer el rostro (/marcar)', e)
     }
   }
 
@@ -303,13 +329,16 @@ export class RegistroAsistenciaCargaComponent {
 
     await submit(this.formConfirmacion, async (form) => {
       try {
-        await firstValueFrom(this.apiService.confirmarRegistroAsistencia({
+        const respuesta = await firstValueFrom(this.apiService.confirmarRegistroAsistencia({
           ...form().value(),
           PersonalId: this.personalIdEncontrado(),
           ApellidoNombre: this.personaEncontrada(),
           similitud: this.similitudEncontrada(),
           ubicacion: this.ubicacion(),
         }))
+        const tipo = this.optionsTipoLugar().find((option: any) => option.value === form().value().TipoLugar)?.label ?? ''
+        this.lugarConfirmado.set(`${tipo}: ${respuesta?.data?.LugarDescripcion ?? ''}`)
+        this.registroConfirmado.set(respuesta?.data?.RegistroAsistenciaCodigo ?? null)
         this.estado.set('confirmado')
       } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors)
@@ -318,12 +347,55 @@ export class RegistroAsistenciaCargaComponent {
     })
   }
 
+  // Borra el registro recién confirmado y vuelve a la cámara. Si el back rechaza, el interceptor
+  // muestra el error arriba y la pantalla queda como estaba.
+  async anularAsistencia() {
+    const RegistroAsistenciaCodigo = this.registroConfirmado()
+    if (this.estado() !== 'confirmado' || !RegistroAsistenciaCodigo || this.anulando()) return
+
+    this.anulando.set(true)
+    try {
+      await firstValueFrom(this.apiService.anularRegistroAsistencia(RegistroAsistenciaCodigo))
+      this.notification.success('Respuesta', 'Asistencia anulada')
+      this.nuevoRegistro()
+    } catch (e) {
+      console.error('[registro-asistencia] Error al anular la asistencia', e)
+    } finally {
+      this.anulando.set(false)
+    }
+  }
+
+  // La persona indica que la reconocieron mal: se descarta el reconocimiento y se vuelve a la
+  // cámara. Queda en consola para revisar el umbral de similitud con casos reales.
+  noSoyYo() {
+    console.warn('[registro-asistencia] Reconocimiento rechazado por la persona ("No soy yo")', {
+      PersonalId: this.personalIdEncontrado(),
+      ApellidoNombre: this.personaEncontrada(),
+      similitud: this.similitudEncontrada(),
+    })
+    this.nuevoRegistro()
+  }
+
+  // Error para el usuario: en pantalla un mensaje simple que invita a reintentar; el detalle técnico
+  // (lo que respondió el back, el error del navegador, etc.) va a la consola
+  // Además se muestra arriba con la notificación del sistema, salvo los errores del back: esos ya los
+  // muestra el interceptor HTTP (core/net) y saldrían dos veces.
+  private mostrarError(mensaje: string, contexto: string, detalle?: unknown) {
+    console.error(`[registro-asistencia] ${contexto}`, detalle ?? '')
+    this.detalleError.set(`${mensaje} Presione Reintentar.`)
+    this.estado.set('error')
+    if (!(detalle instanceof HttpErrorResponse))
+      this.notification.error('Error', mensaje)
+  }
+
   // Limpia el marcado anterior y vuelve a encender la cámara (que se apagó al tomar la foto)
   nuevoRegistro() {
     this.horaMarcada.set(null)
     this.personaEncontrada.set('')
     this.personalIdEncontrado.set(null)
     this.similitudEncontrada.set(null)
+    this.lugarConfirmado.set('')
+    this.registroConfirmado.set(null)
     this.confirmacion.set(structuredClone(this.defaultConfirmacion))
     this.formConfirmacion().reset()
     this.iniciarCamara()
@@ -336,9 +408,7 @@ export class RegistroAsistenciaCargaComponent {
     try {
       this.detector ??= await this.crearDetector()
     } catch (e: any) {
-      console.error('No se pudo iniciar la detección de rostros', e)
-      this.detalleError.set(`No se pudo iniciar la detección de rostros: ${e?.message ?? e}`)
-      this.estado.set('error')
+      this.mostrarError('No pudimos preparar la detección de rostros.', 'Error al iniciar MediaPipe', e)
       return
     }
     this.reiniciarProgreso(GUIA_INICIAL)

@@ -36,6 +36,7 @@ export const routes: Routes = [
       { path: 'lpv', loadChildren: () => import('./lpv/lpv.routes').then(r => r.LpvRoutes) },
       { path: 'config', loadChildren: () => import('./config/config.routes').then(c => c.ConfigRoutes) },
       { path: 'dto', loadChildren: () => import('./dto/dto.routes').then(c => c.DtoRoutes) },
+      { path: 'asis', loadChildren: () => import('./asis/asis.routes').then(c => c.AsisRoutes) },
       // { path: 'ges', loadChildren: () => import('./ges/ges.module').then(m => m.GesModule) },
     ],
   },

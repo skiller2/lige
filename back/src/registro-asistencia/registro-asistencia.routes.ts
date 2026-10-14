@@ -16,6 +16,10 @@ registroAsistenciaRouter.post("/confirmar", [authMiddleware.verifyToken, authMid
   registroAsistenciaController.confirmar(req, res, next);
 });
 
+registroAsistenciaRouter.post("/anular", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  registroAsistenciaController.anular(req, res, next);
+});
+
 registroAsistenciaRouter.post("/marcar", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
   registroAsistenciaController.marcar(req, res, next);
 });
