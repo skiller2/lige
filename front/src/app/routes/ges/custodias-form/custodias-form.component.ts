@@ -14,10 +14,6 @@ import { applyEach, disabled, form, FormField, required, submit } from '@angular
 // Estado Facturado: es el único que pide número de factura
 const ESTADO_FACTURADO = 4
 
-// Los inputs de texto (con máscara) trabajan con string: se convierte al cargar y al guardar
-const aTexto = (valor: any): string => (valor == null) ? '' : String(valor)
-const aNumero = (valor: string): string | null => (valor === '') ? null : valor
-
 export interface PersonalCustodia {
     PersonalId: number
     HorasTrabajadas: string
@@ -98,11 +94,38 @@ export class CustodiaFormComponent {
 
     readonly custodia = signal<CustodiaForm>(structuredClone(this.defaultCustodia))
 
+    // Estado con el que se cargó la custodia: si es Facturado solo se edita el estado (el back valida gSistemas)
+    private estadoOriginal = signal<number | null>(null)
+    soloEstado = computed(() => !this.soloLectura() && this.estadoOriginal() == ESTADO_FACTURADO)
+    // Personal, vehículos e importes no se editan: se muestran los valores grabados
+    sinEdicionDetalle = computed(() => this.soloLectura() || this.soloEstado())
+
     // El resto de las reglas (pares Cant/Importe, cierre por estado) las valida el back y vuelven como fieldErrors
     readonly formCustodia = form(this.custodia, (p) => {
         disabled(p, () => this.soloLectura())
         disabled(p.CustodiaCodigo, () => true)
         disabled(p.Responsable, () => true)
+        // Custodia Facturada: todo deshabilitado menos el Estado
+        const soloEstado = () => this.soloEstado()
+        disabled(p.ClienteId, soloEstado)
+        disabled(p.DescripcionRequirente, soloEstado)
+        disabled(p.Descripcion, soloEstado)
+        disabled(p.FechaInicio, soloEstado)
+        disabled(p.Origen, soloEstado)
+        disabled(p.FechaFin, soloEstado)
+        disabled(p.Destino, soloEstado)
+        disabled(p.personal, soloEstado)
+        disabled(p.vehiculos, soloEstado)
+        disabled(p.CantidadModulos, soloEstado)
+        disabled(p.ImporteModulo, soloEstado)
+        disabled(p.CantidadHorasExcedente, soloEstado)
+        disabled(p.ImporteHorasExcedente, soloEstado)
+        disabled(p.CantidadKmExcedente, soloEstado)
+        disabled(p.ImporteKmExcedente, soloEstado)
+        disabled(p.ImportePeaje, soloEstado)
+        disabled(p.NumeroFactura, soloEstado)
+        disabled(p.DescripcionFacturacion, soloEstado)
+        
         required(p.ClienteId, { message: 'Cliente es requerido' })
         required(p.FechaInicio, { message: 'Fecha Inicial es requerida' })
         required(p.Origen, { message: 'Origen es requerido' })
@@ -134,11 +157,11 @@ export class CustodiaFormComponent {
         defaultValue: {}
     })
 
-    // 3. Retiro de cada persona: en solo lectura el grabado; editando, Horas * Valor hora + Suma fija
+    // 3. Retiro de cada persona: sin edición del detalle el grabado; editando, Horas * Valor hora + Suma fija
     calculoPersonal = computed(() => {
         const valores = this.valoresHora.value()
         return this.custodia().personal.map(p => {
-            if (this.soloLectura())
+            if (this.sinEdicionDetalle())
                 return { Importe: Number(p.Importe) || 0, detalle: '', detalleRetiro: '' }
 
             const valorHora = valores[p.PersonalId] ?? 0
@@ -203,17 +226,12 @@ export class CustodiaFormComponent {
             DescripcionFacturacion: info.DescripcionFacturacion ?? '',
             FechaInicio: info.FechaInicio ? new Date(info.FechaInicio) : null,
             FechaFin: info.FechaFin ? new Date(info.FechaFin) : null,
-            ImporteModulo: aTexto(info.ImporteModulo),
-            ImporteHorasExcedente: aTexto(info.ImporteHorasExcedente),
-            ImporteKmExcedente: aTexto(info.ImporteKmExcedente),
-            ImportePeaje: aTexto(info.ImportePeaje),
-            personal: info.personal?.length
-                ? info.personal.map((p: any) => ({ PersonalId: p.PersonalId, HorasTrabajadas: aTexto(p.HorasTrabajadas), ImporteSumaFija: aTexto(p.ImporteSumaFija), Importe: p.Importe }))
-                : [structuredClone(this.defaultPersonal)],
-            vehiculos: info.vehiculos?.length
-                ? info.vehiculos.map((v: any) => ({ Patente: v.Patente ?? '', PersonalId: v.PersonalId, ImporteVehiculo: aTexto(v.ImporteVehiculo), PeajeVehiculo: aTexto(v.PeajeVehiculo) }))
-                : [structuredClone(this.defaultVehiculo)],
+            // Horas e importes quedan como vienen del back (número o null): la máscara los muestra con coma decimal
+            personal: info.personal?.length ? info.personal : [structuredClone(this.defaultPersonal)],
+            vehiculos: info.vehiculos?.length ? info.vehiculos : [structuredClone(this.defaultVehiculo)],
         })
+
+        this.estadoOriginal.set(info.EstadoCodigo)
 
         this.auditHistory.set([
             { usuario: info.AudUsuarioIng, fecha: this.formatDate(info.AudFechaIng), accion: 'Creación' },
@@ -225,6 +243,7 @@ export class CustodiaFormComponent {
 
     clearForm(): void {
         this.custodia.set(structuredClone(this.defaultCustodia))
+        this.estadoOriginal.set(null)
         this.auditHistory.set([])
         this.formCustodia().reset()
     }
@@ -275,17 +294,9 @@ export class CustodiaFormComponent {
             try {
                 const valor = form().value()
                 const importes = this.calculoPersonal()
-                // Vacío viaja como null: el back compara contra la base al editar una custodia liquidada
                 const datos = {
                     ...valor,
-                    ImporteModulo: aNumero(valor.ImporteModulo),
-                    ImporteHorasExcedente: aNumero(valor.ImporteHorasExcedente),
-                    ImporteKmExcedente: aNumero(valor.ImporteKmExcedente),
-                    ImportePeaje: aNumero(valor.ImportePeaje),
-                    personal: valor.personal.map((p, i) => ({
-                        ...p, HorasTrabajadas: aNumero(p.HorasTrabajadas), ImporteSumaFija: aNumero(p.ImporteSumaFija), Importe: importes[i]?.Importe ?? 0
-                    })),
-                    vehiculos: valor.vehiculos.map(v => ({ ...v, ImporteVehiculo: aNumero(v.ImporteVehiculo), PeajeVehiculo: aNumero(v.PeajeVehiculo) })),
+                    personal: valor.personal.map((p, i) => ({ ...p, Importe: importes[i]?.Importe ?? 0 })),
                     ImporteFactura: this.facturacion(),
                     anio: this.anio(),
                     mes: this.mes()

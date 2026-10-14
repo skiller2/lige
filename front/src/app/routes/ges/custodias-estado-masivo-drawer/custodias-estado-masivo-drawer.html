@@ -37,6 +37,7 @@
           <p>Razón social: {{ estadoMasivo().clientes[i].RazonSocial }}</p>
           <!-- <p>Domicilio: {{ estadoMasivo().clientes[i].Domicilio }}</p> -->
           <p>Custodias seleccionadas: {{ estadoMasivo().clientes[i].Cantidad }}</p>
+          <p>Códigos: {{ estadoMasivo().clientes[i].custodiasIds.join(', ') }}</p>
           <p>Importe Total: {{ estadoMasivo().clientes[i].ImporteTotal | I18NCurrency }}</p>
         </nz-card>
       }

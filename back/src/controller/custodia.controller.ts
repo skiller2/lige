@@ -994,6 +994,10 @@ export class CustodiaController extends BaseController {
 
             const responsable = responsableQuery[0].ApellidoNombre
 
+            // Igual que la edición masiva: solo Liquidaciones puede grabar una custodia en Facturado
+            if (req.body.EstadoCodigo == 4 && !(await this.hasGroup(req, 'Liquidaciones')))
+                errorCampo('EstadoCodigo', `Solo el grupo 'Liquidaciones' puede grabar estado Facturado.`)
+
             // Sin los datos básicos no se puede insertar la cabecera: se corta acá
             fieldErrors.push(...this.valCustodiaForm(req.body, queryRunner))
             if (fieldErrors.length)
@@ -1203,9 +1207,12 @@ export class CustodiaController extends BaseController {
                 throw new ClientException(`Únicamente puede modificar el registro ${infoCustodia.Responsable} o pertenecer al grupo 'Liquidaciones' o 'mCustodias'.`)
             }
 
-            if (infoCustodia.EstadoCodigo == 4) {
-                throw new ClientException(`No se puede modificar los registros con estado Facturado.`)
-            }
+            if (infoCustodia.EstadoCodigo == 4 && !(await this.hasGroup(req, 'gSistemas')))
+                throw new ClientException(`No se puede modificar una custodia facturada. Solo el grupo 'gSistemas' puede hacerlo.`)
+
+            // Igual que la edición masiva: solo Liquidaciones puede pasar una custodia a Facturado
+            if (objetivoCustodia.EstadoCodigo == 4 && infoCustodia.EstadoCodigo != 4 && !(await this.hasGroup(req, 'Liquidaciones')))
+                errorCampo('EstadoCodigo', `Solo el grupo 'Liquidaciones' puede grabar estado Facturado.`)
 
             fieldErrors.push(...this.valCustodiaForm(objetivoCustodia, queryRunner))
             if (fieldErrors.length)
@@ -1563,7 +1570,7 @@ export class CustodiaController extends BaseController {
                     //Validaciones
                     if (infoCustodia.EstadoCodigo == 4 && EstadoCodigo != infoCustodia.EstadoCodigo) {
                         if (!fullEdit) {
-                            errorCampo(campoEstado, `Codigo ${id}: No se puede modificar el estado.`)
+                            errorCampo(campoEstado, `Codigo ${id}: No se puede modificar una custodia en estado "Facturado". Solo el grupo 'gSistemas' puede hacerlo.`)
                             continue
                         }
                     }
