@@ -9,10 +9,11 @@
   <!-- Visor circular: el anillo cambia según el estado (halo azul listo, verde marcado, rojo error) -->
   <div [class]="'visor visor-' + estado()" [style.--progreso]="progreso()">
     <div class="circulo">
-      <video #video autoplay muted playsinline></video>
+      <!-- Con la cámara apagada (procesando o con el resultado) el video no se muestra -->
+      <video #video autoplay muted playsinline [class.oculto]="!camaraEncendida()"></video>
 
       @if (estado() === 'iniciando' || estado() === 'marcando') {
-      <div class="velo">
+      <div class="velo" [class.velo-procesando]="estado() === 'marcando'">
         <nz-spin nzSimple nzSize="large"></nz-spin>
       </div>
       }
@@ -20,6 +21,12 @@
       @if (estado() === 'marcado' || estado() === 'confirmado') {
       <div class="velo velo-ok">
         <span nz-icon nzType="check-circle" nzTheme="outline"></span>
+      </div>
+      }
+
+      @if (estado() === 'noEncontrado') {
+      <div class="velo velo-error">
+        <span nz-icon nzType="close-circle" nzTheme="outline"></span>
       </div>
       }
     </div>

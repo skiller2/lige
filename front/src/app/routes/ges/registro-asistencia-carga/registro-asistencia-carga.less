@@ -52,7 +52,7 @@
     height: 100%;
     overflow: hidden;
     border-radius: 50%;
-    background: #1f1f1f;
+    background: #f0f0f0;
     // Fuerza el recorte circular del video (Safari lo dibuja por encima del border-radius)
     isolation: isolate;
     -webkit-mask-image: -webkit-radial-gradient(white, black);
@@ -64,6 +64,11 @@
       object-fit: cover;
       // Vista espejada, como un espejo; la foto capturada no se espeja
       transform: scaleX(-1);
+
+      // Cámara apagada: no se muestra el video (quedaría negro o con el último cuadro)
+      &.oculto {
+        visibility: hidden;
+      }
     }
   }
 
@@ -94,7 +99,8 @@
   50% { box-shadow: 0 0 0 4px @anillo-azul, 0 0 0 16px rgba(24, 144, 255, 0); }
 }
 
-// Capa sobre el video para el spinner y el check
+// Capa del círculo para el spinner y el resultado. Con la cámara apagada es lo único que se ve:
+// un fondo de color con el ícono del resultado.
 .velo {
   position: absolute;
   inset: 0;
@@ -103,11 +109,20 @@
   justify-content: center;
   background: rgba(255, 255, 255, 0.35);
 
+  &.velo-procesando {
+    background: #f0f5ff;
+  }
+
   &.velo-ok {
-    background: rgba(82, 196, 26, 0.25);
-    color: #fff;
-    font-size: 80px;
-    filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.35));
+    background: #f6ffed;
+    color: #52c41a;
+    font-size: 96px;
+  }
+
+  &.velo-error {
+    background: #fff1f0;
+    color: #ff4d4f;
+    font-size: 96px;
   }
 }
 

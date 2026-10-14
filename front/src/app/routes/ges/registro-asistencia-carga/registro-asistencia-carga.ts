@@ -9,7 +9,7 @@ import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetiv
 
 // icons
 import { provideNzIconsPatch } from 'ng-zorro-antd/icon';
-import { CheckCircleOutline } from '@ant-design/icons-angular/icons';
+import { CheckCircleOutline, CloseCircleOutline } from '@ant-design/icons-angular/icons';
 
 // Estados de la pantalla de marcado: definen el mensaje y qué botón se muestra (el marcado lo
 // dispara la detección de rostro, no un botón)
@@ -67,7 +67,7 @@ export interface Ubicacion {
   selector: 'app-registro-asistencia-carga',
   standalone: true,
   imports: [SHARED_IMPORTS, FormField, ObjetivoSearchComponent],
-  providers: [provideNzIconsPatch([CheckCircleOutline])],
+  providers: [provideNzIconsPatch([CheckCircleOutline, CloseCircleOutline])],
   templateUrl: './registro-asistencia-carga.html',
   styleUrl: './registro-asistencia-carga.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -80,6 +80,10 @@ export class RegistroAsistenciaCargaComponent {
   readonly estado = signal<EstadoMarcado>('iniciando')
   readonly detalleError = signal('')
   readonly horaMarcada = signal<Date | null>(null)
+  // Con la cámara apagada (procesando o con el resultado) el video se oculta y el círculo muestra
+  // un fondo con el ícono del resultado
+  readonly camaraEncendida = signal(false)
+
   // Persona que reconoció el back
   readonly personaEncontrada = signal('')
   private readonly personalIdEncontrado = signal<number | null>(null)
@@ -252,6 +256,7 @@ export class RegistroAsistenciaCargaComponent {
       const video = this.video().nativeElement
       video.srcObject = this.stream
       await video.play()
+      this.camaraEncendida.set(true)
       this.estado.set('listo')
       this.iniciarDeteccion()
     } catch (e: any) {
@@ -273,6 +278,10 @@ export class RegistroAsistenciaCargaComponent {
 
     const foto = this.capturarFoto()
     const ubicacion = this.ubicacion()
+
+    // Con la foto tomada se apaga la cámara: queda apagada mientras se busca la coincidencia y
+    // también si se reconoce a la persona. Solo la vuelven a encender los botones de reintento.
+    this.detenerCamara()
 
     // El back compara el rostro con las fotos del personal. Por ahora solo informa: no graba nada.
     try {
@@ -309,6 +318,7 @@ export class RegistroAsistenciaCargaComponent {
     })
   }
 
+  // Limpia el marcado anterior y vuelve a encender la cámara (que se apagó al tomar la foto)
   nuevoRegistro() {
     this.horaMarcada.set(null)
     this.personaEncontrada.set('')
@@ -316,9 +326,7 @@ export class RegistroAsistenciaCargaComponent {
     this.similitudEncontrada.set(null)
     this.confirmacion.set(structuredClone(this.defaultConfirmacion))
     this.formConfirmacion().reset()
-    this.reiniciarProgreso(GUIA_INICIAL)
-    this.estado.set('listo')
-    this.programarDeteccion()
+    this.iniciarCamara()
   }
 
   // Carga MediaPipe la primera vez (import dinámico: no pesa en el resto de la app) y arranca
@@ -435,5 +443,6 @@ export class RegistroAsistenciaCargaComponent {
   private detenerCamara() {
     this.stream?.getTracks().forEach(track => track.stop())
     this.stream = null
+    this.camaraEncendida.set(false)
   }
 }
