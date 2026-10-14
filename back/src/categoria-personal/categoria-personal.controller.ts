@@ -17,14 +17,15 @@ const listaColumnas: any[] = [
     type: 'number',
     searchType: 'number',
     sortable: true,
-    hidden: true,
+    hidden: false,
     searchHidden: true
   },
   {
     id: 'TipoAsociadoId',
     name: 'Tipo Asociado',
-    field: 'TipoAsociadoDescripcion',
+    field: 'TipoAsociadoId',
     type: 'string',
+    formatter: 'collectionFormatter',
     fieldName: 'ta.TipoAsociadoId',
     searchType: 'number',
     sortable: true,
@@ -136,11 +137,11 @@ export class CategoriaPersonalController extends BaseController {
         const existing = await queryRunner.query(`
           SELECT CategoriaPersonalId AS id 
           FROM CategoriaPersonal 
-          WHERE CategoriaPersonalDescripcion = @0
-        `, [form.CategoriaPersonalDescripcion]);
+          WHERE TipoAsociadoId = @0 AND CategoriaPersonalDescripcion = @1
+        `, [form.TipoAsociadoId, form.CategoriaPersonalDescripcion]);
   
         if (existing.length) {
-          throw new ClientException('Ya existe una categoría personal con esa descripción');
+          throw new ClientException('Ya existe una categoría personal con esa descripción para el tipo de asociado seleccionado');
         }
         
       }
@@ -166,44 +167,45 @@ export class CategoriaPersonalController extends BaseController {
       await queryRunner.startTransaction();
 
       const row = req.body;
-      const TipoAsociadoId:number = row.TipoAsociadoId;
+      const [TipoAsociadoId, CategoriaPersonalId] = row.id.split('-').map(Number)
+      // 
       const CategoriaPersonalDescripcion:string = row.CategoriaPersonalDescripcion;
       const CategoriaPersonalInactivo:string = row.CategoriaPersonalInactivo;
 
       // Si no tiene ID, es un nuevo registro
-      if (!TipoAsociadoId && !row.CategoriaPersonalId) {
+      if (!TipoAsociadoId && !CategoriaPersonalId) {
         // Validar antes de insertar
-        // await this.validateForm(row, 'I', queryRunner);
+        await this.validateForm(row, 'I', queryRunner);
 
-        const inserted = await queryRunner.query(
+        const update = await queryRunner.query(
+          `UPDATE TipoAsociado
+          SET CategoriaPersonalUltNro = ISNULL(CategoriaPersonalUltNro, 0) + 1
+          OUTPUT INSERTED.CategoriaPersonalUltNro
+          WHERE TipoAsociadoId = @0`, 
+          [ row.TipoAsociadoId ]
+        );
+        const newId = update[0]?.CategoriaPersonalUltNro ?? null;
+        
+        await queryRunner.query(
           `INSERT INTO CategoriaPersonal (
             TipoAsociadoId,
+            CategoriaPersonalId,
             CategoriaPersonalDescripcion,
             CategoriaPersonalConPreocupacional,
             CategoriaPersonalInactivo
-          )
-          OUTPUT INSERTED.CategoriaPersonalId
-          VALUES (@0, @1, @2, @3, @4, @5)`, 
-          [ TipoAsociadoId,
+          ) VALUES (@0, @1, @2, @3, @4)`, 
+          [ row.TipoAsociadoId,
+            newId, //CategoriaPersonalId
             CategoriaPersonalDescripcion,
             'N', // CategoriaPersonalConPreocupacional
             CategoriaPersonalInactivo ]
         );
 
-        const newId: number = inserted[0]?.CategoriaPersonalId ?? null;
-
-        await queryRunner.query(
-          `UPDATE TipoAsociado SET
-            CategoriaPersonalUltNro = @1
-          WHERE TipoAsociadoId = @0`, 
-          [ TipoAsociadoId, newId ]
-        );
-
         await queryRunner.commitTransaction();
-        this.jsonRes({ TipoAsociadoId: newId }, res);
+        this.jsonRes({ CategoriaPersonalId: newId }, res);
       } else {
         // Es una actualización
-        // await this.validateForm(row, 'U', queryRunner);
+        await this.validateForm(row, 'U', queryRunner);
 
         await queryRunner.query(`
           UPDATE CategoriaPersonal SET
@@ -211,7 +213,7 @@ export class CategoriaPersonalController extends BaseController {
             CategoriaPersonalInactivo = @3
           WHERE CategoriaPersonalId = @0 AND TipoAsociadoId = @1
         `, [
-          row.CategoriaPersonalId,
+          CategoriaPersonalId,
           TipoAsociadoId,
           CategoriaPersonalDescripcion,
           CategoriaPersonalInactivo
@@ -230,8 +232,8 @@ export class CategoriaPersonalController extends BaseController {
 
   async delete(req: any, res: Response, next: NextFunction) {
 
-    const TipoAsociadoId = req.params.TipoAsociadoId;
-    const CategoriaPersonalId = req.params.CategoriaPersonalId;
+    const TipoAsociadoId = Number(req.params.TipoAsociadoId);
+    const CategoriaPersonalId = Number(req.params.CategoriaPersonalId);
 
     if (!TipoAsociadoId && !CategoriaPersonalId) {
       throw new ClientException('El ID del registro es requerido');
