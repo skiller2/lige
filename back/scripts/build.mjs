@@ -191,13 +191,13 @@ const nativeNodeModulesPlugin = {
     });
 
     // Log útil al terminar (qué .node copiamos)
-    pluginBuild.onEnd((result) => {
-      const copied = Array.from(cache.copiedHashes.keys());
-      if (copied.length) {
-        console.log(`[native-node-modules] Binarios nativos copiados (${copied.length}):`);
-        for (const p of copied) console.log("  •", p);
-      }
-    });
+//    pluginBuild.onEnd((result) => {
+//      const copied = Array.from(cache.copiedHashes.keys());
+//      if (copied.length) {
+//        console.log(`[native-node-modules] Binarios nativos copiados (${copied.length}):`);
+//        for (const p of copied) console.log("  •", p);
+//      }
+//    });
   },
 };
 
