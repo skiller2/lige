@@ -520,7 +520,8 @@ export class ImpuestosAfipController extends BaseController {
         url: envio.url,
         status: envio.status,
         request: envio.request,
-        respuesta: envio.respuesta
+        respuesta: envio.respuesta,
+        headers: envio.headers
       }
 
       if (envio.status != 201)

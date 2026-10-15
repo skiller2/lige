@@ -11,6 +11,7 @@ export interface EstadoBeneficiarioResponse {
   status: number;
   ok: boolean;
   /** Body tal cual se envió, para poder revisarlo desde la pantalla. */
+  headers: any;
   request: any;
   respuesta: any;
 }
@@ -41,21 +42,22 @@ const consultarEstadoBeneficiario = async (
 
   const method = "POST";
   const url = `${config.host}/batch/record/status`;
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  }
   let response: Response;
   try {
     response = await fetch(url, {
       method,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers,
       body: JSON.stringify(request),
     });
   } catch (error: any) {
     // El banco no respondió (caída, DNS, timeout): se informa como status 0
     return {
-      documentNumber: request.documentNumber, method, url, status: 0, ok: false, request,
+      documentNumber: request.documentNumber, method, url, status: 0, ok: false, request, headers,
       respuesta: { error: error?.message, causa: error?.cause?.message },
     };
   }
@@ -77,6 +79,7 @@ const consultarEstadoBeneficiario = async (
     status: response.status,
     ok: response.ok,
     request,
+    headers,
     respuesta,
   };
 };
