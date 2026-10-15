@@ -14,7 +14,8 @@
          leería el [formField] nuevo antes de que tenga valor (NG0950). -->
     @if (esJson()) {
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19" sfErrorTip>
-      <nz-code-editor [formField]="formParametroGeneral.Parametros" style="height: 300px; border: 1px solid #d9d9d9;"
+      <nz-code-editor [formField]="formParametroGeneral.Parametros"
+        style="display: block; height: 300px; min-height: 150px; resize: vertical; overflow: hidden; border: 1px solid #d9d9d9;"
         [nzEditorOption]="{ language: 'json', readOnly: soloLectura(), minimap: { enabled: false }, automaticLayout: true }"
         (nzEditorInitialized)="editorListo()" />
     </nz-form-control>

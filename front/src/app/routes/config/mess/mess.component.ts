@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, inject, model, signal, viewChild } from '@angular/core';
-import { applyEach, disabled, form, FormField, minLength, required, submit } from '@angular/forms/signals';
+import { applyEach, disabled, form, FormField, minLength, required, submit, validate } from '@angular/forms/signals';
 
 import { SHARED_IMPORTS } from '@shared';
 import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
+import { NzCodeEditorModule } from 'ng-zorro-antd/code-editor';
 import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../../../app/services/api.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
@@ -40,7 +41,8 @@ type ChatModel = 'agents' | 'main-prompt' | 'lige-prompt'
     PersonalSearchComponent,
     MarkdownModule,
     FormsModule,
-    FormField
+    FormField,
+    NzCodeEditorModule
   ],
   templateUrl: './mess.component.html',
   styleUrl: './mess.component.scss'
@@ -75,6 +77,18 @@ export class MessComponent {
       required(agent.Tipo, { message: 'El tipo es obligatorio' })
       required(agent.Prompt, { message: 'El prompt es obligatorio' })
       required(agent.IaTools, { message: 'IA Tools es obligatorio' })
+      // Igual que valida mess: tiene que ser un arreglo JSON
+      validate(agent.IaTools, ctx => {
+        const valor = String(ctx.value() ?? '').trim()
+        if (!valor) return undefined
+        try {
+          if (!Array.isArray(JSON.parse(valor)))
+            return { kind: 'json', message: 'IA Tools debe ser un arreglo JSON' }
+          return undefined
+        } catch (e) {
+          return { kind: 'json', message: `JSON inválido: ${e instanceof Error ? e.message : String(e)}` }
+        }
+      })
     })
   })
 
@@ -227,7 +241,7 @@ export class MessComponent {
       Descripcion: agent.Descripcion ?? '',
       Tipo: agent.Tipo ?? '',
       Prompt: agent.Prompt ?? '',
-      IaTools: agent.IaTools ?? '',
+      IaTools: this.toJsonString(agent.IaTools ?? '', true),
       BasePrompt: !!agent.BasePrompt,
       Activo: !!agent.Activo,
       EsNuevo: false
@@ -302,7 +316,8 @@ export class MessComponent {
   async setAgents(event: Event) {
     event.preventDefault()
     await submit(this.agentsForm, async form => {
-      const agents = form().value().agents
+      // Se graba compacto: mess compara el texto exacto para decidir si reinicia los chats
+      const agents = form().value().agents.map(agent => ({ ...agent, IaTools: JSON.stringify(JSON.parse(agent.IaTools)) }))
       const currentCodes = new Set(agents.map(agent => agent.ChatBotPromptCodigo))
       const deletedCodes = this.deletedAgentCodes().filter(code => !currentCodes.has(code))
       const data = await firstValueFrom(this.apiService.setChatBotAgents(agents, deletedCodes, this.iaPromptHash(), this.iaToolsHash()))
