@@ -18,6 +18,11 @@
       }
     </div>
     <nz-card nzSize="small">
+      @if (llamada.headers !== undefined) {
+        <div class="etiqueta">Cabecera</div>
+        <pre class="json json-compacto mb-sm">{{ llamada.headers | json }}</pre>
+      }
+
       @if (llamada.request !== undefined) {
         <div class="etiqueta">Request enviado</div>
         <pre class="json json-compacto mb-sm">{{ llamada.request | json }}</pre>
