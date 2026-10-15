@@ -201,6 +201,35 @@ const nativeNodeModulesPlugin = {
   },
 };
 
+// onnxruntime-node carga su .node con un require dinámico: con loader "file" devolvería la ruta como string
+const onnxRuntimePlugin = {
+  name: "onnxruntime-node",
+  setup(pluginBuild) {
+    const outdir = resolve(pluginBuild.initialOptions.outdir || "dist");
+    const destDir = join(outdir, "native", "onnxruntime-node");
+
+    pluginBuild.onLoad({ filter: /onnxruntime-node[\\/]dist[\\/]binding\.js$/ }, (args) => {
+      // Copia el binding y sus DLL de esta plataforma a dist/native/onnxruntime-node
+      const binDir = join(dirname(args.path), "..", "bin", "napi-v6", process.platform, process.arch);
+      for (const entry of readdirSync(binDir)) {
+        copyIfChanged(join(binDir, entry), join(destDir, entry));
+      }
+
+      const original = readFileSync(args.path, "utf8");
+      const requireDinamico = /require\(`\.\.\/bin\/napi-v6\/\$\{process\.platform\}\/\$\{process\.arch\}\/onnxruntime_binding\.node`\)/;
+      if (!requireDinamico.test(original)) {
+        throw new Error("[onnxruntime-node] No se encontró el require del binding: revisar si cambió la versión del paquete");
+      }
+
+      // __filename lo define el banner: apunta al bundle final
+      const contents =
+        `const __ortRequire = require("node:module").createRequire(__filename);\n` +
+        original.replace(requireDinamico, `__ortRequire("./native/onnxruntime-node/onnxruntime_binding.node")`);
+      return { contents, loader: "js" };
+    });
+  },
+};
+
 const workersPlugin = {
   name: "workers-handler",
   setup(build) {
@@ -265,7 +294,7 @@ const buildOptions = {
   outdir: "dist",
   format: "esm",
 
-  external: ["expo-sqlite", "onnxruntime-node"],
+  external: ["expo-sqlite"],
 
   //outbase: "src", // ✅ IMPORTANT
 
@@ -284,7 +313,7 @@ const buildOptions = {
     //".worker.js": "file",           // 👈 clave
     //"node_modules/pdfjs-dist/build/pdf.worker.min.mjs":"file"
   },
-  plugins: [nativeNodeModulesPlugin],
+  plugins: [nativeNodeModulesPlugin, onnxRuntimePlugin],
   banner: {
     js: `
       import { createRequire as topLevelCreateRequire } from 'node:module';
@@ -307,22 +336,8 @@ const buildOptions = {
 
 await build(buildOptions);
 
-// Conserva los paquetes de ONNX y sus binarios nativos fuera del bundle.
-for (const pkgName of ["onnxruntime-node", "onnxruntime-common"]) {
-  const pkgDir = resolve("node_modules", pkgName);
-  const dest = resolve(buildOptions.outdir, "node_modules", pkgName);
-  copyIfChanged(join(pkgDir, "package.json"), join(dest, "package.json"));
-  cpSync(join(pkgDir, "dist"), join(dest, "dist"), { recursive: true });
-  if (pkgName === "onnxruntime-node") {
-    // Produccion usa Windows x64; conserva la ruta que utiliza ONNX.
-    const binDir = join("bin", "napi-v6", "win32", "x64");
-    cpSync(join(pkgDir, binDir), join(dest, binDir), { recursive: true });
-  }
-}
-
-// Los modelos se buscan junto al archivo index.mjs en produccion.
-cpSync(resolve("src", "registro-asistencia", "modelos"),
-  resolve(buildOptions.outdir, "modelos"), { recursive: true });
+// Modelos del reconocimiento facial: en el bundle import.meta.dirname es dist/
+cpSync(resolve("src/registro-asistencia/modelos"), join(resolve(buildOptions.outdir), "modelos"), { recursive: true });
 
 /* Opcional: limpia hashes/cache entre ejecuciones completas (no en watch)
 rmSync(join(buildOptions.outdir, 'native'), { recursive: true, force: true });
