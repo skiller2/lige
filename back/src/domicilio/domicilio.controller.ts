@@ -206,8 +206,6 @@ export class DomicilioController extends BaseController {
                 -- AND nex.NexoDomicilioActual = 1
             `)
 
-
-
       for (const direccion of direcciones) {
         registrosProcesados++
         const domNormalizar = direccion.domNormalizar
