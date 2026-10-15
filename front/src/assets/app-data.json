@@ -54,13 +54,13 @@
               "text": "Objetivos Pendientes Asistencia",
               "link": "/ges/objetivos_pendasis",
               "icon": "anticon-profile"
+            },
+            {
+              "text": "Registro Asistencia #",
+              "link": "/asis/registro-asistencia",
+              "icon": "anticon-profile"
             }
           ]
-        },
-        {
-          "text": "Registro Asistencia",
-          "link": "/asis/registro-asistencia",
-          "icon": "anticon-profile"
         },
         {
           "text": "Clientes",
@@ -83,13 +83,13 @@
           "icon": "anticon-profile"
         },
         {
-          "text": "Facturación #",
-          "link": "/ges/facturacion",
-          "icon": "anticon-profile"
+          "text": "Evento Log",
+          "icon": "anticon-profile",
+          "link": "/ges/evento-log"
         },
         {
-          "text": "Parámetros Generales",
-          "link": "/config/parametros-generales",
+          "text": "Facturación #",
+          "link": "/ges/facturacion",
           "icon": "anticon-profile"
         },
         {
@@ -148,6 +148,11 @@
           "icon": "anticon-profile",
           "children": [
             {
+              "text": "Depositos #",
+              "link": "/ges/depositos",
+              "icon": "anticon-profile"
+            },
+            {
               "text": "Efectos",
               "link": "/ges/efecto",
               "icon": "anticon-profile"
@@ -160,11 +165,6 @@
             {
               "text": "Proveedores #",
               "link": "/ges/proveedores",
-              "icon": "anticon-profile"
-            },
-            {
-              "text": "Depositos #",
-              "link": "/ges/depositos",
               "icon": "anticon-profile"
             },
             {
@@ -286,11 +286,6 @@
           ]
         },
         {
-          "text": "Evento Log",
-          "icon": "anticon-profile",
-          "link": "/ges/evento-log"
-        },
-        {
           "text": "Configuración",
           "icon": "anticon-profile",
           "children": [
@@ -312,6 +307,11 @@
             {
               "text": "Novedad",
               "link": "/config/novedad",
+              "icon": "anticon-profile"
+            },
+            {
+              "text": "Parámetros Generales",
+              "link": "/config/parametros-generales",
               "icon": "anticon-profile"
             },
             {

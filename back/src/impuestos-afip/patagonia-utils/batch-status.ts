@@ -13,6 +13,7 @@ export interface EstadoLoteResponse {
   /** Body tal cual se envió, para poder revisarlo desde la pantalla. */
   request: any;
   respuesta: any;
+  headers: any;
 }
 
 /**
@@ -40,21 +41,23 @@ const consultarEstadoLote = async (
 
   const method = "POST";
   const url = `${config.host}/batch/status`;
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  }
+
   let response: Response;
   try {
     response = await fetch(url, {
       method,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers,
       body: JSON.stringify(request),
     });
   } catch (error: any) {
     // El banco no respondió (caída, DNS, timeout): se informa como status 0
     return {
-      ReferenciaPago, method, url, status: 0, ok: false, request,
+      ReferenciaPago, method, url, status: 0, ok: false, request, headers,
       respuesta: { error: error?.message, causa: error?.cause?.message },
     };
   }
@@ -76,6 +79,7 @@ const consultarEstadoLote = async (
     status: response.status,
     ok: response.ok,
     request,
+    headers,
     respuesta,
   };
 };

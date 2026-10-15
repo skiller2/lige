@@ -19,6 +19,7 @@ export interface MsgApi {
   request?: unknown;
   /** Respuesta cruda de la API. */
   respuesta?: unknown;
+  headers?: unknown;
 }
 
 export interface MsgApiModalData {

@@ -18,6 +18,7 @@ export interface EnvioLoteResponse {
   ok: boolean;
   /** Body tal cual se envió, para poder revisarlo desde la pantalla. */
   request: any;
+  headers: any;
   respuesta: any;
 }
 
@@ -75,21 +76,23 @@ const enviarLote = async (
 
   const method = "POST";
   const url = `${config.host}/batch/submit`;
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  }
+
   let response: Response;
   try {
     response = await fetch(url, {
       method,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers,
       body: JSON.stringify(request),
     });
   } catch (error: any) {
     // El banco no respondió (caída, DNS, timeout): se informa como status 0
     return {
-      method, url, status: 0, ok: false, request,
+      method, url, status: 0, ok: false, request, headers,
       respuesta: { error: error?.message, causa: error?.cause?.message },
     };
   }
@@ -104,7 +107,7 @@ const enviarLote = async (
     respuesta = texto;
   }
 
-  return { method, url, status: response.status, ok: response.ok, request, respuesta };
+  return { method, url, status: response.status, ok: response.ok, request, headers, respuesta };
 };
 
 export { enviarLote, armarExternalReferenceId, armarItem };

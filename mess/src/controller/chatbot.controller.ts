@@ -705,10 +705,10 @@ export class ChatBotController extends BaseController {
 
     if (!botServer.iaHistorial[chatId]?.msgs?.length) {
       const agent = await this.getChatBotAgent(queryRunner, 'AUTH')
-      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '' }
-      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '' });
+      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '', debug:true }
+      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug:true });
     }
-    botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent })
+    botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: false })
 
     try {
       do {
@@ -725,7 +725,7 @@ export class ChatBotController extends BaseController {
           stream: false,
           tools: botServer.iaHistorial[chatId].tools,
         });
-        botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, ...responseIA.message, agent: botServer.iaHistorial[chatId].agent });
+        botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, ...responseIA.message, agent: botServer.iaHistorial[chatId].agent, debug: !!responseIA.message.tool_calls?.length });
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
 
@@ -842,10 +842,8 @@ export class ChatBotController extends BaseController {
                 botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
                 botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
 
-                botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent });
-                // Consulta resumida por la IA; si no la envía, se usa el último mensaje
-                const consulta = String(tool.function.arguments.consulta ?? '').trim() || message
-                botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: consulta, derivacion: true, agent: botServer.iaHistorial[chatId].agent })
+                botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent, debug:true });
+                botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, debug: true, agent: botServer.iaHistorial[chatId].agent })
 
                 break;
 
@@ -858,7 +856,7 @@ export class ChatBotController extends BaseController {
             const outputJson = JSON.stringify(output)
 
             botServer.iaHistorial[chatId].msgs.push({
-              id: botServer.iaHistorial[chatId].msgs.length, role: "tool", content: outputJson, tool_name: tool.function.name, agent: botServer.iaHistorial[chatId].agent
+              id: botServer.iaHistorial[chatId].msgs.length, role: "tool", content: outputJson, tool_name: tool.function.name, agent: botServer.iaHistorial[chatId].agent, debug:true
             });
           }
           recall = true

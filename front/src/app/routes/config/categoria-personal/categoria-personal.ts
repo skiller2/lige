@@ -13,6 +13,7 @@ import { CustomInputEditor } from '../../../shared/custom-grid-editor/custom-gri
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
 import { Selections } from '../../../shared/schemas/filtro';
 import { LoadingService } from '@delon/abc/loading';
+import { NzNotificationService } from 'ng-zorro-antd/notification';
 
 @Component({
   selector: 'app-categoria-personal',
@@ -30,6 +31,7 @@ export class CategoriaPersonalComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   private angularUtilService = inject(AngularUtilService)
+  private notification = inject(NzNotificationService)
   private readonly loadingSrv = inject(LoadingService)
 
   refreshGrid = signal(0)
@@ -73,6 +75,7 @@ export class CategoriaPersonalComponent {
               required: true
             }
             col.params = {
+              complexFieldLabel: 'TipoAsociadoId.label',
               collection: tipoAsociado,
             }
             break;
@@ -131,12 +134,15 @@ export class CategoriaPersonalComponent {
       return false
     }
 
-    const esNuevo = !row.TipoAsociadoId
+    const [tipoAsociadoId, categoriaPersonalId] = row.id.split('-').map(Number)
+    const esNuevo = (!tipoAsociadoId || !categoriaPersonalId)
     try {
       const response = await firstValueFrom(this.apiService.onchangecellCP(row))
-      const id = response?.data?.TipoAsociadoId
-      if (id) {
-        row.TipoAsociadoId = id
+      const cpId = response?.data?.CategoriaPersonalId
+      if (cpId) {
+        const id = `${row.TipoAsociadoId}-${cpId}`
+        row.CategoriaPersonalId = cpId
+        row.id = id
         row.codigoOld = id
       }
       row.isDirty = false
@@ -178,7 +184,7 @@ export class CategoriaPersonalComponent {
     const hasEmptyRow = allItems.some((item: any) => !item.TipoAsociadoId && !item.CategoriaPersonalId && item.isfull !== 1);
     if (hasEmptyRow) return;
 
-    const newItem1 = this.createNewItem(1)
+    const newItem1 = this.createNewItem()
     this.angularGrid.gridService.addItem(newItem1, { position: insertPosition, highlightRow: false, scrollRowIntoView: false, triggerEvent: false });
   }
 
@@ -210,13 +216,20 @@ export class CategoriaPersonalComponent {
     this.gridOptions.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
       editCommand.execute()
 
+      const oldTipoAsociadoId:number = Number(row.id.split('-')[0])
+      if (oldTipoAsociadoId && oldTipoAsociadoId != row.TipoAsociadoId) {
+        editCommand.undo()
+        this.notification.warning(`Advertencia`, ` El Tipo Asociado no puede ser modificado de registro existente. Se debera eliminar y crear uno nuevo con el Tipo Asociado correcto.`);
+        return
+      }
+
       // Marcar si el registro está completo
       row.isfull = this.isRowComplete(row) ? 1 : 2
       row.isDirty = true
       row.hasError = false
 
       // Si el registro está vacío, eliminarlo
-      if (!row.TipoAsociadoId && !row.TipoAsociadoDescripcion && !row.CategoriaPersonalDescripcion && !row.CategoriaPersonalInactivo) {
+      if (!row.TipoAsociadoId && !row.CategoriaPersonalDescripcion && !row.CategoriaPersonalInactivo) {
         this.angularGrid.gridService.deleteItem(row)
       } else {
         this.angularGrid.gridService.updateItem(row)
@@ -274,19 +287,19 @@ export class CategoriaPersonalComponent {
     // Limpiar variables si es necesario
   }
 
-  createNewItem(incrementIdByHowMany = 1) {
-    const dataset = this.angularGrid.dataView.getItems();
+  createNewItem() {
+    // const dataset = this.angularGrid.dataView.getItems();
     let highestTPId = 0;
     let highestCPId = 0;
-    dataset.forEach((item: any) => {
+    // dataset.forEach((item: any) => {
       // if (item.TipoAsociadoId > highestTPId) {
       //   highestTPId = item.TipoAsociadoId;
       // }
-      if (item.CategoriaPersonalId > highestCPId) {
-        highestCPId = item.CategoriaPersonalId;
-      }
-    });
-    const newId:string = `${highestTPId}-${highestCPId + incrementIdByHowMany}`;
+    //   if (item.CategoriaPersonalId > highestCPId) {
+    //     highestCPId = item.CategoriaPersonalId;
+    //   }
+    // });
+    const newId:string = `${highestTPId}-${highestCPId}`;
 
     return {
       id: newId,
@@ -337,7 +350,7 @@ export class CategoriaPersonalComponent {
 
     // El guardado se dispara recién cuando el usuario sale de la fila
     this.angularGrid.slickGrid.onActiveCellChanged.subscribe(async (e: any, args: any) => {
-      console.log('onActiveCellChanged', args)
+      
       const filaActual = args?.row != null ? this.angularGrid.dataView.getItem(args.row) : null
       const idActual = filaActual?.id ?? null
 
@@ -356,7 +369,7 @@ export class CategoriaPersonalComponent {
     const selrow = e.detail.args.rows[0]
     const row = this.angularGrid.slickGrid.getDataItem(selrow)
     if (row?.id) {
-			const [tipoAsociadoId, categoriaPersonalId] = row.id.split('-')
+			const [tipoAsociadoId, categoriaPersonalId] = row.id.split('-').map(Number)
       this.editCategoriaPersonalId.set(categoriaPersonalId)
       this.editTipoAsociadoId.set(tipoAsociadoId)
     }

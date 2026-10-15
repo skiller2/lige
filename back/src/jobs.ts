@@ -71,10 +71,10 @@ async function main() {
       socket: { remoteAddress: '127.0.0.1' }
     }
     
-    //await domicilioController.jobUpdateDirecciones(mockReq, null, (ret: any) => ret)
+    await domicilioController.jobUpdateDirecciones(mockReq, null, (ret: any) => ret)
     //await liquidacionesBancoController.jobLimiteImporteBanco(mockReq, null, (ret: any) => ret)
     //await personalController.jobMsgCumpleanios(mockReq, null, (e)=>{console.log('Devuelto:',e)})
-    await novedadesController.jobNormalizarNovedades(mockReq, null, (e)=>{console.log('Devuelto:',e)})
+    //await novedadesController.jobNormalizarNovedades(mockReq, null, (e)=>{console.log('Devuelto:',e)})
 
 }
 

@@ -143,31 +143,29 @@
           [nzBodyStyle]="{ height: 'clamp(360px, 52vh, 680px)', minHeight: '320px', maxHeight: '680px', overflowY: 'auto', overscrollBehavior: 'contain', resize: 'vertical', padding: '8px' }">
           <div #chatMessages class="chat-messages">
             <div *ngFor="let msg of msgs(); trackBy: trackByMsgId" class="chat-line"
-              [ngClass]="msg.derivacion ? 'derivacion' : (msg.tool_calls ? 'tool-call' : msg.role)">
+              [ngClass]="msg.debug && msg.role === 'user' ? 'derivacion' : (msg.tool_calls ? 'tool-call' : msg.role)">
 
-              @if (showTools() || (msg.role !== 'tool' && !msg.tool_calls && msg.role !== 'system' && !msg.derivacion)) {
+              @if (showTools() || !msg.debug) {
 
               <nz-card nzSize="small" [nzBodyStyle]="{ fontSize: '13px' }">
+
+                @if (showTools()) {
+                <div class="system-title">Agente: {{ msg.agent ? msg.agent : '' }} - Rol: {{ msg.role ? msg.role : '' }}
+                </div>
+                }
+
                 @if (showTools() && msg.thinking){
                 <div class="thinking">Pensando: {{ msg.thinking }}</div>
-                }
-
-                @if (msg.role === 'system') {
-                <div class="system-title">Prompt de sistema{{ msg.agent ? ' · ' + msg.agent : '' }}</div>
-                }
-
-                @if (msg.derivacion) {
-                <div class="derivacion-title">Consulta derivada{{ msg.agent ? ' · ' + msg.agent : '' }}</div>
                 }
 
                 @if (msg.content && msg.role !== 'tool') {
                 <markdown [data]="msg.content"></markdown>
                 } @else {
-                  @if (msg.tool_name) {
-                    <span>{{msg.tool_name}} response:</span>
-                  }                  
+                @if (msg.tool_name) {
+                <span>{{msg.tool_name}} response:</span>
+                }
                 <markdown>
-                  
+
                   {{toJsonString(msg.content||msg.tool_calls,true) | language:'json'}}
                 </markdown>
                 }
@@ -279,7 +277,9 @@
               <nz-form-item>
                 <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">IA Tools</nz-form-label>
                 <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
-                  <textarea nz-input [formField]="agent.IaTools" rows="14"></textarea>
+                  <nz-code-editor [formField]="agent.IaTools"
+                    style="display: block; height: 300px; min-height: 150px; resize: vertical; overflow: hidden; border: 1px solid #d9d9d9;"
+                    [nzEditorOption]="{ language: 'json', minimap: { enabled: false }, automaticLayout: true }" />
                 </nz-form-control>
               </nz-form-item>
 
