@@ -63,7 +63,7 @@ async function main() {
 
   // Init App
   const dbServer = new DBServer(5, 2000)
-  const webServer = new WebServer(Number(process.env.SERVER_API_PORT))
+  const webServer = new WebServer(Number(process.env.SERVER_API_PORT||3000))
   const categoriasController = new CategoriasController()
   const grupoActividadController = new GrupoActividadController()
   const cargaLicenciaController = new CargaLicenciaController()
