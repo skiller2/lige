@@ -62,6 +62,54 @@ export class DomicilioController extends BaseController {
   }
 
 
+  async getDireccionAPIFY(direccion: string) {
+    const direccionLimpia = direccion.trim();
+    if (!direccionLimpia) return [];
+    const manual: any = {
+      place_id: 0,
+      display_name: direccionLimpia,
+      address: { road: '', house_number: '', state_district: '', state: '', postcode: '' },
+      manual: true
+    };
+
+    const params = new URLSearchParams({
+      text: direccion,
+      apiKey: 'f5cdd3892a38432fbcd0edc786268446',
+      limit: '5',
+      lang: 'es',
+      filter: 'countrycode:ar',
+      format: 'json',
+      type: 'amenity'
+
+    });
+
+    const response = await fetch('https://api.geoapify.com/v1/geocode/autocomplete?' + params.toString())
+    let result: any = []
+    if (!response.ok) {
+      // throw new Error(`Error HTTP ${response.status}`);
+      console.warn(`APIFY respondió HTTP ${response.status}`);
+    } else {
+      result = await response.json()
+
+      result = result.results
+
+
+      result = result
+        //.filter((item: any) => item.address?.housenumber)
+        .map((item: any) => {
+          const { street, road, housenumber, town, state, suburb, state_district, postcode } = item;
+
+          item.display_name = `${street || road} ${housenumber} ${suburb || state || state_district || town} ${postcode}`
+          item.address = { state: item.state, house_number: item.housenumber, state_district: item.state_district, city: item.city, suburb:item.suburb, town:item.suburb }
+
+          return item
+        })
+    }
+
+    return result
+  }
+
+
   async getDireccionNominatim(direccion: string) {
     const url = new URL("https://nominatim.openstreetmap.org/search");
 
@@ -164,27 +212,32 @@ export class DomicilioController extends BaseController {
         registrosProcesados++
         const domNormalizar = direccion.domNormalizar
         const DomicilioId = direccion.DomicilioId
-        let nominatimResult: any = []
+        let dirResultado: any = []
         await DomicilioController.waitT(1000)
         try {
-          nominatimResult = await this.getDireccionNominatim(domNormalizar)
+          //dirResultado = await this.getDireccionNominatim(domNormalizar)
+          dirResultado = await this.getDireccionAPIFY(domNormalizar)
         } catch (error) {
           continue
         }
-        if (nominatimResult.length != 1) {
+        if (dirResultado.length != 1) {
           await queryRunner.query(`
-                                    UPDATE Domicilio SET DomicilioJson = @1
+                                    UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud=NULL, DomicilioLongitud=NULL
                                     WHERE DomicilioId =@0
-                                `, [DomicilioId, `ERROR Coincidencias ${nominatimResult.length}, ${domNormalizar}`])
+                                `, [DomicilioId, `ERROR Coincidencias ${dirResultado.length}, ${domNormalizar}`])
           continue
         }
 
-        const DomicilioJson = nominatimResult[0]
+        const DomicilioJson = dirResultado[0]
         const DomicilioCodigoPostal = DomicilioJson.address.postcode
         const DomicilioCompleto = DomicilioJson.display_name
         const DomicilioDomCalle = DomicilioJson.address.road
         const DomicilioDomNro = DomicilioJson.address.house_number
         const DomicilioPaisId = 1 // Argentina
+        const DomicilioLatitud = DomicilioJson.lat
+        const DomicilioLongitud = DomicilioJson.lon
+
+
 
         let DomicilioProvinciaId = null
         let DomicilioLocalidadId = null
@@ -192,9 +245,9 @@ export class DomicilioController extends BaseController {
           DomicilioProvinciaId = await this.getProvinciaId(queryRunner,  DomicilioPaisId, DomicilioJson.address.state) // Buscarlo en provincias
         } catch (error) {
           await queryRunner.query(`
-                                    UPDATE Domicilio SET DomicilioJson = @1
+                                    UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud = NULL, DomicilioLongitud = NULL
                                     WHERE DomicilioId =@0
-                                `, [DomicilioId, `ERROR Provincia "${DomicilioJson.address.state}" no encontrada`])
+                                `, [DomicilioId, `ERROR Provincia "${DomicilioJson.address.state}" no encontrada`, DomicilioLatitud, DomicilioLongitud])
           continue
         }
         try {
@@ -202,7 +255,7 @@ export class DomicilioController extends BaseController {
         } catch (error) {
           console.log(JSON.stringify(DomicilioJson))
           await queryRunner.query(`
-                                    UPDATE Domicilio SET DomicilioJson = @1
+                                    UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud = NULL, DomicilioLongitud = NULL
                                     WHERE DomicilioId =@0
                                 `, [DomicilioId, `ERROR ${error.message}`])
           continue
@@ -211,9 +264,9 @@ export class DomicilioController extends BaseController {
         const DomicilioBarrioId = await this.getBarrioId(queryRunner, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioJson.address.suburb)
         try {
         await queryRunner.query(`
-                                    UPDATE Domicilio SET DomicilioJson = @1,  DomicilioCompleto = @2, DomicilioCodigoPostal = @3, DomicilioDomCalle = @4, DomicilioDomNro = @5, DomicilioProvinciaId = @6, DomicilioLocalidadId = @7, DomicilioBarrioId = @8, DomicilioPaisId =@9
+                                    UPDATE Domicilio SET DomicilioJson = @1,  DomicilioCompleto = @2, DomicilioCodigoPostal = @3, DomicilioDomCalle = @4, DomicilioDomNro = @5, DomicilioProvinciaId = @6, DomicilioLocalidadId = @7, DomicilioBarrioId = @8, DomicilioPaisId =@9, DomicilioLatitud = @10, DomicilioLongitud = @11
                                     WHERE DomicilioId =@0
-                                `, [DomicilioId, JSON.stringify(DomicilioJson), DomicilioCompleto, DomicilioCodigoPostal, DomicilioDomCalle, DomicilioDomNro, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId, DomicilioPaisId])
+                                `, [DomicilioId, JSON.stringify(DomicilioJson), DomicilioCompleto, DomicilioCodigoPostal, DomicilioDomCalle, DomicilioDomNro, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId, DomicilioPaisId, DomicilioLatitud, DomicilioLongitud])
         } catch (error) {continue}
         registrosActualizados++
       }

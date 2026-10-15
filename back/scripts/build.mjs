@@ -256,7 +256,8 @@ const workersPlugin = {
 
 const buildOptions = {
   entryPoints: {
-    "index": "src/index.ts",
+    index: "src/index.ts",
+    jobs: "src/jobs.ts",
     "logger.worker": "src/logger/worker/logger.worker.ts", // ✅ ADD THIS
     "pdf.worker": "node_modules/pdfjs-dist/build/pdf.worker.min.mjs"
   },
