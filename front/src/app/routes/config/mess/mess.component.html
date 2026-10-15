@@ -279,7 +279,9 @@
               <nz-form-item>
                 <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">IA Tools</nz-form-label>
                 <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="20" nzHasFeedback sfErrorTip>
-                  <textarea nz-input [formField]="agent.IaTools" rows="14"></textarea>
+                  <nz-code-editor [formField]="agent.IaTools"
+                    style="display: block; height: 300px; min-height: 150px; resize: vertical; overflow: hidden; border: 1px solid #d9d9d9;"
+                    [nzEditorOption]="{ language: 'json', minimap: { enabled: false }, automaticLayout: true }" />
                 </nz-form-control>
               </nz-form-item>
 
