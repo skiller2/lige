@@ -419,6 +419,9 @@ export class EstudioController extends BaseController {
           PersonalEstudioOtorgado,
           PersonalEstudioHasta]);
 
+        await queryRunner.query(`
+          UPDATE Personal SET PersonalEstudioUltNro = @1 WHERE PersonalId = @0`, [PersonalId, PersonalEstudioId])
+
       }
 
 
