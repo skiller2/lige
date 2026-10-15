@@ -4,7 +4,9 @@ import { objetivoController } from "../controller/controller.module.ts";
 
 export const objetivoRouter = Router();
 
-objetivoRouter.post("/search", authMiddleware.verifyToken,(req, res, next) => {
+// /search y /name sin verifyToken por el momento: los usa app-objetivo-search en Registro
+// Asistencia, que funciona sin login
+objetivoRouter.post("/search", /* authMiddleware.verifyToken, */ (req, res, next) => {
   objetivoController.search(req, res, next)
 });
 
@@ -53,7 +55,7 @@ objetivoRouter.get(
 
 objetivoRouter.get(
   "/name/:objetivoId",
-  authMiddleware.verifyToken,
+  // authMiddleware.verifyToken,
   (req, res, next) => {
     objetivoController.ObjetivoInfoFromId(req.params.objetivoId, res, next);
   }

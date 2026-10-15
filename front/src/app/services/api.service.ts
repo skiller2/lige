@@ -2068,16 +2068,18 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/orden-venta/anular', { NroOrdenVentas });
   }
 
+  // Registro Asistencia funciona sin login: sus llamadas van con ALLOW_ANONYMOUS, como las de init/ident
+
   // Configuración del registro de asistencia (ParametroGeneral ROSTR y UBICA)
   getConfiguracionRegistroAsistencia() {
-    return this.http.get<ResponseJSON<any>>('/api/registro-asistencia/configuracion').pipe(
+    return this.http.get<ResponseJSON<any>>('/api/registro-asistencia/configuracion', {}, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
       map((res: { data: any; }) => res.data)
     );
   }
 
   // Dónde se registra la asistencia (Objetivo / Custodia)
   getTiposLugarRegistroAsistencia() {
-    return this.http.get<ResponseJSON<any>>('/api/registro-asistencia/tipos-lugar').pipe(
+    return this.http.get<ResponseJSON<any>>('/api/registro-asistencia/tipos-lugar', {}, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
       map((res: { data: any; }) => res.data),
       // Sin opciones el combo queda vacío: el error se deja en la consola para poder diagnosticarlo
       catchError((error) => {
@@ -2089,17 +2091,17 @@ export class ApiService {
 
   // Confirmación de la asistencia de la persona reconocida, con el objetivo o la custodia elegidos
   confirmarRegistroAsistencia(confirmacion: any) {
-    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/confirmar', confirmacion);
+    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/confirmar', confirmacion, {}, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) });
   }
 
   // Anula (borra) una asistencia recién confirmada
   anularRegistroAsistencia(RegistroAsistenciaCodigo: number) {
-    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/anular', { RegistroAsistenciaCodigo });
+    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/anular', { RegistroAsistenciaCodigo }, {}, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) });
   }
 
   // Marcado de asistencia por reconocimiento facial: foto (data URL JPEG) y ubicación del dispositivo
   marcarRegistroAsistencia(marcado: { foto: string, ubicacion: any }) {
-    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/marcar', marcado).pipe(
+    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/marcar', marcado, {}, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
       map((res: { data: any; }) => res.data)
     );
   }

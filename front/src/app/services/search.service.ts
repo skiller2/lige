@@ -1,4 +1,6 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpContext } from '@angular/common/http';
+import { ALLOW_ANONYMOUS } from '@delon/auth';
 import { _HttpClient } from '@delon/theme';
 import {
   BehaviorSubject,
@@ -97,7 +99,8 @@ export class SearchService {
 
   ObjetivoInfoFromId(objetivoId: string): Observable<ObjetivoInfo> {
     return this.http
-      .get<ResponseJSON<ObjetivoInfo>>(`api/objetivos/name/${objetivoId}`)
+      // Sin login por el momento: lo usa app-objetivo-search en Registro Asistencia
+      .get<ResponseJSON<ObjetivoInfo>>(`api/objetivos/name/${objetivoId}`, {}, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) })
       .pipe(
         map(res => { res.data.fullName = `${res.data.clienteId}/${Number(res.data.ClienteElementoDependienteId)} ${res.data.descripcion}`; return res.data }),
         catchError(() =>
@@ -117,11 +120,12 @@ export class SearchService {
       return of([]);
     }
     return this.http
+      // Sin login por el momento: lo usa app-objetivo-search en Registro Asistencia
       .post<ResponseJSON<{ objetivos: Objetivo[] }>>('api/objetivos/search', {
         sucursalId: sucursalId,
         fieldName: fieldName,
         value: value,
-      })
+      }, {}, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) })
       .pipe(
         map(res => res.data.objetivos),
         catchError((err, caught) => {

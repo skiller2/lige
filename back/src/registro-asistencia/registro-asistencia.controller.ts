@@ -43,6 +43,10 @@ const DISPOSITIVO_MOVIL = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Op
 const TIPO_CELULAR = 'CEL'
 const TIPO_COMPUTADORA = 'PC'
 
+// Usuario de auditoría de los marcados sin login (las rutas son públicas). Distinto de 'server'
+// (getUser de BaseController), que es el usuario de los procesos automáticos.
+const USUARIO_SIN_LOGIN = 'asistencia-web'
+
 // Dónde registra la asistencia la persona reconocida
 const TIPOS_LUGAR = [
   { value: 'OBJ', label: 'Objetivo' },
@@ -50,6 +54,11 @@ const TIPOS_LUGAR = [
 ]
 
 export class RegistroAsistenciaController extends BaseController {
+
+  // Las rutas no pasan por verifyToken: res.locals.userName llega vacío y se usa el usuario fijo
+  private getUsuario(res: Response): string {
+    return res.locals.userName || USUARIO_SIN_LOGIN
+  }
 
   async getTiposLugar(req: Request, res: Response) {
     this.jsonRes(TIPOS_LUGAR, res)
@@ -68,8 +77,8 @@ export class RegistroAsistenciaController extends BaseController {
     let queryRunner: QueryRunner | null = null
 
     try {
-      queryRunner = await getConnection(res.locals.userName);
-      const usuario = res.locals.userName
+      queryRunner = await getConnection(this.getUsuario(res));
+      const usuario = this.getUsuario(res)
       const ip = this.getRemoteAddress(req)
       // La fecha del registro es la del servidor, no la del dispositivo
       const ahora = new Date()
@@ -187,8 +196,8 @@ export class RegistroAsistenciaController extends BaseController {
     let queryRunner: QueryRunner | null = null
 
     try {
-      queryRunner = await getConnection(res.locals.userName);
-      const usuario = res.locals.userName
+      queryRunner = await getConnection(this.getUsuario(res));
+      const usuario = this.getUsuario(res)
 
       if (!RegistroAsistenciaCodigo)
         throw new ClientException('Falta el registro de asistencia a anular')
@@ -228,7 +237,7 @@ export class RegistroAsistenciaController extends BaseController {
     let queryRunner: QueryRunner | null = null
 
     try {
-      queryRunner = await getConnection(res.locals.userName);
+      queryRunner = await getConnection(this.getUsuario(res));
       const parametros = await queryRunner.query(
         `SELECT ParametroGeneralCodigo, Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo IN (@0, @1)`,
         [PARAMETRO_ROSTRO, PARAMETRO_UBICACION])
@@ -304,7 +313,7 @@ export class RegistroAsistenciaController extends BaseController {
     let queryRunner: QueryRunner | null = null
 
     try {
-      queryRunner = await getConnection(res.locals.userName);
+      queryRunner = await getConnection(this.getUsuario(res));
       if (!foto)
         throw new ClientException('Falta la foto del marcado')
 
@@ -323,7 +332,7 @@ export class RegistroAsistenciaController extends BaseController {
       const tiempos = { totalBackMs: Date.now() - inicio, ...resultado.tiempos }
 
       console.log('[registro-asistencia] Marcado', {
-        usuario: res.locals.userName,
+        usuario: this.getUsuario(res),
         ubicacion,
         fotosPersonalActivo: fotosPersonal.length,
         rostrosDetectados: resultado.rostrosDetectados,
