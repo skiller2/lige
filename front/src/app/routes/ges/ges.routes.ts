@@ -10,6 +10,10 @@ export const GesRoutes: Routes = [
     redirectTo: 'detalle_asistencia/objetivo'
   },
   {
+    path: 'consulta_asistencia',
+    loadComponent: () => import('./consulta-asistencia/consulta-asistencia').then(c => c.ConsultaAsistenciaComponent),
+  },
+  {
     path: 'detalle_asistencia/:tab',
     loadComponent: () => import('./detalle-asistencia/detalle-asistencia.component').then(c => c.DetalleAsistenciaComponent),
   },

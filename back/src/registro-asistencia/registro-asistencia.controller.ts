@@ -2,7 +2,9 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { QueryRunner } from "typeorm";
-import { reconocerRostro, type FotoPersonal } from "./reconocimiento-facial.ts";
+import { bufferAVector, calcularVectorFacial, reconocerRostro, vectorABuffer, VERSION_VECTOR_FACIAL, type VectorPersonal } from "./reconocimiento-facial.ts";
+import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import type { Options } from "../schemas/filtro.ts";
 
 // Configuración de la pantalla de marcado, en ParametroGeneral (JSON). Se editan desde
 // Configuración > Parámetros Generales. Todos los campos son obligatorios y numéricos.
@@ -53,7 +55,162 @@ const TIPOS_LUGAR = [
   { value: 'CUS', label: 'Custodia' },
 ]
 
+// Tipo del registro (dispositivo desde el que se marcó), para mostrarlo en la consulta
+const TIPOS_REGISTRO = [
+  { value: TIPO_CELULAR, label: 'Celular' },
+  { value: TIPO_COMPUTADORA, label: 'Computadora' },
+]
+
+// Columnas de la consulta de registros de asistencia (grilla con filtro-builder)
+const consultaColumns: any[] = [
+  {
+    id: "id",
+    name: "id",
+    field: "id",
+    fieldName: "reg.RegistroAsistenciaCodigo",
+    type: "number",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
+    id: "RegistroAsistenciaCodigo",
+    name: "Código",
+    field: "RegistroAsistenciaCodigo",
+    fieldName: "reg.RegistroAsistenciaCodigo",
+    type: "number",
+    searchComponent: "inputForNumberAdvancedSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 90
+  },
+  {
+    id: "FechaHora",
+    name: "Fecha Hora",
+    field: "FechaHora",
+    fieldName: "reg.FechaHora",
+    type: "dateTime",
+    searchComponent: "inputForFechaSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+  },
+  {
+    id: "PersonalId",
+    name: "Persona",
+    field: "PersonalId",
+    fieldName: "reg.PersonalId",
+    type: "number",
+    searchComponent: "inputForPersonalSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "ApellidoNombre",
+    name: "Persona",
+    field: "ApellidoNombre",
+    // orderToSQL solo acepta alias.Campo: se ordena por apellido
+    fieldName: "per.PersonalApellido",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "ClienteId",
+    name: "Cliente",
+    field: "ClienteId",
+    fieldName: "reg.ClienteId",
+    type: "number",
+    searchComponent: "inputForClientSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+  },
+  {
+    id: "Cliente",
+    name: "Cliente",
+    field: "Cliente",
+    fieldName: "cli.ClienteDenominacion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+  {
+    id: "CustodiaCodigo",
+    name: "Custodia Código",
+    field: "CustodiaCodigo",
+    fieldName: "reg.CustodiaCodigo",
+    type: "number",
+    searchComponent: "inputForNumberAdvancedSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 120
+  },
+  {
+    id: "Tipo",
+    name: "Tipo",
+    field: "Tipo",
+    fieldName: "reg.Tipo",
+    type: "string",
+    formatter: 'collectionFormatter',
+    params: { collection: TIPOS_REGISTRO },
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    maxWidth: 120
+  },
+  {
+    id: "GeoReferenciacion",
+    name: "Georeferenciación",
+    field: "GeoReferenciacion",
+    fieldName: "reg.GeoReferenciacion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
+]
+
 export class RegistroAsistenciaController extends BaseController {
+
+  async getGridCols(req: Request, res: Response) {
+    this.jsonRes(consultaColumns, res)
+  }
+
+  // Registros de asistencia para la consulta. El cliente se muestra como en el resto del sistema:
+  // ClienteId/ClienteElementoDependienteId Cliente Elemento dependiente
+  async listRegistros(req: Request, res: Response, next: NextFunction) {
+    const options: Options = isOptions(req.body.options) ? req.body.options : { filtros: [], sort: null }
+    const filterSql = filtrosToSql(options.filtros, consultaColumns)
+    const orderBy = orderToSQL(options.sort)
+    const queryRunner = await getConnection(res.locals.userName)
+
+    try {
+      const registros = await queryRunner.query(`
+        SELECT reg.RegistroAsistenciaCodigo id, reg.RegistroAsistenciaCodigo, reg.FechaHora,
+          reg.PersonalId, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) ApellidoNombre,
+          reg.ClienteId,
+          IIF(reg.ClienteId IS NULL, NULL, CONCAT(reg.ClienteId, '/', reg.ClienteElementoDependienteId, ' ', TRIM(cli.ClienteDenominacion), ' ', TRIM(eledep.ClienteElementoDependienteDescripcion))) Cliente,
+          reg.CustodiaCodigo, TRIM(reg.Tipo) Tipo, reg.GeoReferenciacion
+        FROM RegistroAsistencia reg
+        JOIN Personal per ON per.PersonalId = reg.PersonalId
+        LEFT JOIN Cliente cli ON cli.ClienteId = reg.ClienteId
+        LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = reg.ClienteId AND eledep.ClienteElementoDependienteId = reg.ClienteElementoDependienteId
+        WHERE ${filterSql}
+        ${orderBy ? orderBy : 'ORDER BY reg.FechaHora DESC'}`)
+
+      this.jsonRes(registros, res)
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
 
   // Las rutas no pasan por verifyToken: res.locals.userName llega vacío y se usa el usuario fijo
   private getUsuario(res: Response): string {
@@ -279,33 +436,40 @@ export class RegistroAsistenciaController extends BaseController {
     return Object.fromEntries(campos.map(campo => [campo, Number(valores[campo])]))
   }
 
-  // Fotos contra las que se compara: la foto vigente (Personal.PersonalFotoId) del personal
-  // activo a la fecha (situación de revista 2, 10 o 12, como en el resto del sistema). El archivo
-  // está en PATH_ARCHIVOS + la ruta del parámetro de la foto, igual que en file-upload.
-  private async getFotosPersonalActivo(queryRunner: QueryRunner, fecha: Date): Promise<FotoPersonal[]> {
-    const fotos = await queryRunner.query(`
-      SELECT DISTINCT per.PersonalId,
+  // Vectores contra los que se compara: DocumentoImagenFoto.VectorFacial de la foto vigente
+  // (Personal.PersonalFotoId) del personal activo a la fecha (situación de revista 2, 10 o 12, como
+  // en el resto del sistema), calculados con el modelo actual (VectorFacialVersion). Los graba
+  // iniciarCalculoVectoresFaciales: las fotos todavía sin vector no participan. La situación de
+  // revista va en EXISTS para no repetir filas (y no usar DISTINCT sobre el VARBINARY).
+  private async getVectoresPersonalActivo(queryRunner: QueryRunner, fecha: Date): Promise<VectorPersonal[]> {
+    const filas = await queryRunner.query(`
+      SELECT per.PersonalId,
         CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
-        CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(foto.DocumentoImagenFotoBlobNombreArchivo)) AS RutaRelativa
+        foto.VectorFacial
       FROM Personal per
-      JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId
-        AND sitrev.PersonalSituacionRevistaDesde <= @0
-        AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') >= @0
       JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.DocumentoImagenFotoId = per.PersonalFotoId
-      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-      WHERE sitrev.PersonalSituacionRevistaSituacionId IN (2, 10, 12)
-    `, [fecha])
+      WHERE foto.VectorFacial IS NOT NULL
+        AND foto.VectorFacialVersion = @1
+        AND EXISTS (
+          SELECT 1 FROM PersonalSituacionRevista sitrev
+          WHERE sitrev.PersonalId = per.PersonalId
+            AND sitrev.PersonalSituacionRevistaSituacionId IN (2, 10, 12)
+            AND sitrev.PersonalSituacionRevistaDesde <= @0
+            AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') >= @0)
+    `, [fecha, VERSION_VECTOR_FACIAL])
 
-    const pathArchivos = process.env.PATH_ARCHIVOS ? process.env.PATH_ARCHIVOS : '.'
-    return fotos.map((foto: any) => ({
-      PersonalId: Number(foto.PersonalId),
-      ApellidoNombre: foto.ApellidoNombre,
-      ruta: `${pathArchivos}/${foto.RutaRelativa}`,
-    }))
+    // Un vector con otro largo (columna truncada, dato corrupto) no se compara
+    return filas
+      .map((fila: any) => ({
+        PersonalId: Number(fila.PersonalId),
+        ApellidoNombre: fila.ApellidoNombre,
+        vector: bufferAVector(fila.VectorFacial),
+      }))
+      .filter((fila: any): fila is VectorPersonal => !!fila.vector)
   }
 
-  // Prueba del marcado: reconoce el rostro contra las fotos del personal activo e informa en
-  // consola. Todavía no graba nada.
+  // Prueba del marcado: reconoce el rostro contra los vectores guardados del personal activo e
+  // informa en consola. Todavía no graba nada.
   async marcar(req: Request, res: Response, next: NextFunction) {
     const foto = String(req.body?.foto ?? '').replace(/^data:image\/\w+;base64,/, '')
     const ubicacion = req.body?.ubicacion ?? null
@@ -325,16 +489,18 @@ export class RegistroAsistenciaController extends BaseController {
         [PARAMETRO_ROSTRO])
       const { umbralSimilitud } = this.leerParametro(parametros, PARAMETRO_ROSTRO, CAMPOS_ROSTRO)
 
-      const fotosPersonal = await this.getFotosPersonalActivo(queryRunner, new Date())
-      const resultado = await reconocerRostro(Buffer.from(foto, 'base64'), fotosPersonal, umbralSimilitud)
+      const inicioVectores = Date.now()
+      const vectoresPersonal = await this.getVectoresPersonalActivo(queryRunner, new Date())
+      const vectoresMs = Date.now() - inicioVectores
+      const resultado = await reconocerRostro(Buffer.from(foto, 'base64'), vectoresPersonal, umbralSimilitud)
 
-      // Tiempos del back, en ms: total del marcado, poner al día la galería y analizar la foto
-      const tiempos = { totalBackMs: Date.now() - inicio, ...resultado.tiempos }
+      // Tiempos del back, en ms: total del marcado, leer los vectores de la base y analizar la foto
+      const tiempos = { totalBackMs: Date.now() - inicio, vectoresMs, ...resultado.tiempos }
 
       console.log('[registro-asistencia] Marcado', {
         usuario: this.getUsuario(res),
         ubicacion,
-        fotosPersonalActivo: fotosPersonal.length,
+        vectoresPersonalActivo: vectoresPersonal.length,
         rostrosDetectados: resultado.rostrosDetectados,
         umbral: umbralSimilitud,
         candidatos: resultado.candidatos.map(c => `${c.PersonalId} ${c.ApellidoNombre}: ${c.similitud.toFixed(3)}`),
@@ -357,5 +523,108 @@ export class RegistroAsistenciaController extends BaseController {
     } finally {
       await queryRunner?.release()
     }
+  }
+
+  // Calcula el vector facial de la foto vigente del personal activo y lo graba en
+  // DocumentoImagenFoto.VectorFacial y VectorFacialFecha. Solo las fotos con VectorFacial en NULL:
+  // las que ya tienen vector se saltean. Queda registrado en EventoLog.
+  async iniciarCalculoVectoresFaciales(req: Request, res: Response, next: NextFunction) {
+    const usuario = this.getUser(res)
+    const ip = this.getRemoteAddress(req)
+    const queryRunner = await getConnection(usuario);
+    const fechaActual = new Date()
+    fechaActual.setHours(0, 0, 0, 0)
+    let EventoLogCodigo = 0
+
+
+    try {
+
+      ({ EventoLogCodigo } = await this.eventoLogInicio(
+        queryRunner,
+        `Cálculo Vectores Faciales`,
+        { usuario, ip },
+        usuario,
+        ip,
+        "JOB"
+      ));
+
+      const resumen = await this.calcularVectoresFacialesPendientes(queryRunner)
+      const resp = `Vectores faciales: ${resumen.guardadas} guardados, ${resumen.sinRostro} fotos sin rostro, ${resumen.conError} con error (de ${resumen.pendientes} pendientes)`
+
+      await this.eventoLogFin(
+        queryRunner,
+        EventoLogCodigo,
+        'COM',
+        {
+          res: resp,
+          resumen
+        },
+        usuario,
+        ip
+      );
+
+      if (res)
+        this.jsonRes({ list: [] }, res, resp);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      await this.eventoLogFin(queryRunner,
+        EventoLogCodigo,
+        'ERR',
+        { res: error },
+        usuario,
+        ip
+      );
+      return next(error)
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  // Busca las fotos pendientes (foto vigente del personal activo, mismo criterio que
+  // getVectoresPersonalActivo, con VectorFacial en NULL), calcula el vector de cada una y lo graba. Cada foto se graba sola (sin transacción): si
+  // el proceso se corta, lo grabado queda. Una foto que falla no corta el resto: se cuenta y los
+  // errores se devuelven agrupados por causa, con algunas rutas de ejemplo.
+  private async calcularVectoresFacialesPendientes(queryRunner: QueryRunner) {
+    const fotos = await queryRunner.query(`
+      SELECT DISTINCT foto.DocumentoImagenFotoId, foto.PersonalId,
+        CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(foto.DocumentoImagenFotoBlobNombreArchivo)) AS RutaRelativa
+      FROM Personal per
+      JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId
+        AND sitrev.PersonalSituacionRevistaDesde <= @0
+        AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') >= @0
+      JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.DocumentoImagenFotoId = per.PersonalFotoId
+      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+      WHERE sitrev.PersonalSituacionRevistaSituacionId IN (2, 10, 12)
+        AND foto.VectorFacial IS NULL
+    `, [new Date()])
+
+    const pathArchivos = process.env.PATH_ARCHIVOS ? process.env.PATH_ARCHIVOS : '.'
+    let guardadas = 0, sinRostro = 0, conError = 0
+    const errores: Record<string, { cantidad: number, ejemplos: string[] }> = {}
+
+    for (const foto of fotos) {
+      const ruta = `${pathArchivos}/${foto.RutaRelativa}`
+      try {
+        const vector = await calcularVectorFacial(ruta)
+        if (!vector) {
+          sinRostro++
+          continue
+        }
+        await queryRunner.query(`
+          UPDATE DocumentoImagenFoto SET VectorFacial = @0, VectorFacialFecha = @1, VectorFacialVersion = @4
+          WHERE DocumentoImagenFotoId = @2 AND PersonalId = @3 AND VectorFacial IS NULL
+        `, [vectorABuffer(vector), new Date(), foto.DocumentoImagenFotoId, foto.PersonalId, VERSION_VECTOR_FACIAL])
+        guardadas++
+      } catch (error) {
+        conError++
+        // La causa sin la ruta (el mensaje de Jimp/fs la incluye), para poder agrupar
+        const causa = (error instanceof Error ? error.message : String(error)).split(ruta).join('<ruta>')
+        errores[causa] ??= { cantidad: 0, ejemplos: [] }
+        errores[causa].cantidad++
+        if (errores[causa].ejemplos.length < 3) errores[causa].ejemplos.push(`${ruta} (PersonalId ${foto.PersonalId})`)
+      }
+    }
+
+    return { pendientes: fotos.length, guardadas, sinRostro, conError, pathArchivos, errores }
   }
 }

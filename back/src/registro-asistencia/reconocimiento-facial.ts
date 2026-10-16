@@ -8,9 +8,10 @@ import { join } from "node:path";
  * - SFace (Apache 2.0): convierte el rostro alineado en un embedding de 128 números.
  * Dos rostros son de la misma persona si la similitud coseno de sus embeddings supera el umbral.
  *
- * La galería es la lista de fotos que recibe reconocerRostro (la arma el controller: foto vigente
- * del personal activo). Por ahora sus embeddings quedan en memoria (sin tablas): en cada marcado se
- * calculan solo las fotos nuevas de la lista y se sacan las que ya no están.
+ * Los vectores de las fotos del personal no se calculan en el marcado: los calcula
+ * iniciarCalculoVectoresFaciales (registro-asistencia.controller.ts) y quedan en
+ * DocumentoImagenFoto.VectorFacial. En el marcado solo se calcula el vector de la foto tomada y se
+ * compara con los que recibe reconocerRostro.
  */
 
 const MODELOS = join(import.meta.dirname, "modelos")
@@ -53,18 +54,19 @@ export interface Rostro {
   puntos: Punto[]
 }
 
-// Una foto de la galería: de quién es y dónde está el archivo
-export interface FotoPersonal {
+// Cantidad de valores del vector de SFace: VectorFacial guarda 128 float32 (512 bytes)
+const LARGO_VECTOR = 128
+
+// Vector facial guardado de una persona (DocumentoImagenFoto.VectorFacial de su foto vigente)
+export interface VectorPersonal {
   PersonalId: number
   ApellidoNombre: string
-  ruta: string
+  vector: Float32Array
 }
 
-interface FotoGaleria extends FotoPersonal {
-  embedding: Float32Array
-}
-
-export interface Coincidencia extends FotoPersonal {
+export interface Coincidencia {
+  PersonalId: number
+  ApellidoNombre: string
   similitud: number
 }
 
@@ -73,18 +75,12 @@ export interface ResultadoReconocimiento {
   encontrado: boolean
   mejor: Coincidencia | null
   candidatos: Coincidencia[]
-  // Cuánto tardó cada parte, en ms: poner al día la galería (procesar fotos nuevas) y analizar la
-  // foto del marcado (leerla, detectar el rostro, calcular el embedding y comparar)
-  tiempos: { galeriaMs: number, analisisMs: number }
+  // Cuánto tardó analizar la foto del marcado, en ms (leerla, detectar el rostro, calcular el
+  // vector y comparar)
+  tiempos: { analisisMs: number }
 }
 
 let sesiones: Promise<{ yunet: ort.InferenceSession, sface: ort.InferenceSession }> | null = null
-
-// Embeddings calculados, por ruta del archivo. Las fotos sin rostro o con error también se
-// recuerdan (null), para no reprocesarlas en cada marcado.
-const galeria = new Map<string, FotoGaleria | null>()
-// Actualización en curso: si llegan dos marcados juntos, el segundo espera la misma
-let actualizando: Promise<FotoGaleria[]> | null = null
 
 function getSesiones() {
   return sesiones ??= (async () => ({
@@ -98,7 +94,7 @@ function getSesiones() {
 
 // ONNX Runtime es código nativo: un fallo ahí no es un error de JavaScript que se pueda atrapar y
 // tira el proceso. Para no exponerlo a ejecuciones simultáneas (dos marcados juntos, o un marcado
-// mientras se procesan fotos nuevas), cada ejecución de un modelo espera a que termine la anterior.
+// mientras se calculan los vectores del personal), cada ejecución de un modelo espera a que termine la anterior.
 let cola: Promise<unknown> = Promise.resolve()
 function enCola<T>(tarea: () => Promise<T>): Promise<T> {
   const resultado = cola.then(tarea, tarea)
@@ -106,13 +102,10 @@ function enCola<T>(tarea: () => Promise<T>): Promise<T> {
   return resultado
 }
 
-/** Compara la foto con las fotos del personal y devuelve la mejor coincidencia. */
-export async function reconocerRostro(foto: Buffer, fotosPersonal: FotoPersonal[], umbralSimilitud: number): Promise<ResultadoReconocimiento> {
-  const inicioGaleria = Date.now()
-  const fotos = await actualizarGaleria(fotosPersonal)
-
+/** Compara la foto con los vectores guardados del personal y devuelve la mejor coincidencia. */
+export async function reconocerRostro(foto: Buffer, vectoresPersonal: VectorPersonal[], umbralSimilitud: number): Promise<ResultadoReconocimiento> {
   const inicioAnalisis = Date.now()
-  const tiempos = () => ({ galeriaMs: inicioAnalisis - inicioGaleria, analisisMs: Date.now() - inicioAnalisis })
+  const tiempos = () => ({ analisisMs: Date.now() - inicioAnalisis })
 
   const imagen = await leerImagen(foto)
   const rostros = await detectarRostros(imagen)
@@ -122,13 +115,13 @@ export async function reconocerRostro(foto: Buffer, fotosPersonal: FotoPersonal[
 
   const embedding = await calcularEmbedding(imagen, rostros[0])
 
-  // La mejor similitud de cada persona (puede tener más de una foto)
+  // La mejor similitud de cada persona (por si llega más de un vector de la misma)
   const porPersona = new Map<number, Coincidencia>()
-  for (const foto of fotos) {
-    const similitud = similitudCoseno(embedding, foto.embedding)
-    const actual = porPersona.get(foto.PersonalId)
+  for (const personal of vectoresPersonal) {
+    const similitud = similitudCoseno(embedding, personal.vector)
+    const actual = porPersona.get(personal.PersonalId)
     if (!actual || similitud > actual.similitud)
-      porPersona.set(foto.PersonalId, { PersonalId: foto.PersonalId, ApellidoNombre: foto.ApellidoNombre, ruta: foto.ruta, similitud })
+      porPersona.set(personal.PersonalId, { PersonalId: personal.PersonalId, ApellidoNombre: personal.ApellidoNombre, similitud })
   }
 
   const candidatos = [...porPersona.values()].sort((a, b) => b.similitud - a.similitud).slice(0, 5)
@@ -143,68 +136,31 @@ export async function reconocerRostro(foto: Buffer, fotosPersonal: FotoPersonal[
   }
 }
 
-// Pone la galería al día con la lista de fotos y devuelve las que tienen rostro
-function actualizarGaleria(fotosPersonal: FotoPersonal[]) {
-  return actualizando ??= sincronizarGaleria(fotosPersonal).finally(() => { actualizando = null })
+/**
+ * Vector facial (embedding de SFace, 128 float32) de una foto, o null si no tiene rostro.
+ * Si la imagen no se puede leer o el rostro no se puede alinear, lanza el error.
+ */
+export async function calcularVectorFacial(origen: Buffer | string): Promise<Float32Array | null> {
+  const imagen = await leerImagen(origen)
+  const rostros = await detectarRostros(imagen)
+  if (!rostros.length) return null
+  return calcularEmbedding(imagen, rostros[0])
 }
 
-async function sincronizarGaleria(fotosPersonal: FotoPersonal[]): Promise<FotoGaleria[]> {
-  const enLista = new Set(fotosPersonal.map(foto => foto.ruta))
+// Modelo que genera el vector, para DocumentoImagenFoto.VectorFacialVersion: vectores de modelos
+// distintos no se pueden comparar entre sí. Si se cambia el modelo SFace, cambiar también esto.
+export const VERSION_VECTOR_FACIAL = 'sface_2021dec'
 
-  // Las que ya no están en la lista (baja, cambio de foto) salen de la galería
-  let quitadas = 0
-  for (const ruta of galeria.keys())
-    if (!enLista.has(ruta)) {
-      galeria.delete(ruta)
-      quitadas++
-    }
-
-  const nuevas = fotosPersonal.filter(foto => !galeria.has(foto.ruta))
-  if (nuevas.length) {
-    const inicio = Date.now()
-    console.log(`[reconocimiento] Galería: ${nuevas.length} fotos nuevas para procesar`)
-
-    let sinRostro = 0, conError = 0, agregadas = 0
-    for (const [indice, foto] of nuevas.entries()) {
-      const procesada = await procesarFotoGaleria(foto, { sinRostro: () => sinRostro++, conError: () => conError++ })
-      galeria.set(foto.ruta, procesada)
-      if (procesada) agregadas++
-
-      if ((indice + 1) % 100 === 0)
-        console.log(`[reconocimiento] Galería: ${indice + 1}/${nuevas.length} fotos nuevas procesadas`)
-    }
-
-    console.log(`[reconocimiento] Galería actualizada en ${((Date.now() - inicio) / 1000).toFixed(1)} s: ` +
-      `${agregadas} rostros agregados, ${sinRostro} fotos sin rostro, ${conError} con error`)
-  }
-  if (quitadas)
-    console.log(`[reconocimiento] Galería: ${quitadas} fotos quitadas (ya no están en la lista)`)
-
-  // Los datos de la persona se toman de la lista actual (el nombre pudo cambiar)
-  return fotosPersonal
-    .map(foto => {
-      const procesada = galeria.get(foto.ruta)
-      return procesada ? { ...foto, embedding: procesada.embedding } : null
-    })
-    .filter((foto): foto is FotoGaleria => !!foto)
+/** Vector para DocumentoImagenFoto.VectorFacial (VARBINARY): los 128 float32 tal cual, 512 bytes. */
+export function vectorABuffer(vector: Float32Array): Buffer {
+  return Buffer.from(vector.buffer, vector.byteOffset, vector.byteLength)
 }
 
-// Embedding de una foto de la galería, o null si no sirve (no se encuentra, sin rostro o con error)
-async function procesarFotoGaleria(foto: FotoPersonal,
-  contar: { sinRostro: () => void, conError: () => void }): Promise<FotoGaleria | null> {
-  try {
-    const imagen = await leerImagen(foto.ruta)
-    const rostros = await detectarRostros(imagen)
-    if (!rostros.length) {
-      contar.sinRostro()
-      return null
-    }
-    return { ...foto, embedding: await calcularEmbedding(imagen, rostros[0]) }
-  } catch (error) {
-    contar.conError()
-    console.warn(`[reconocimiento] No se pudo procesar ${foto.ruta} (PersonalId ${foto.PersonalId}):`, error instanceof Error ? error.message : error)
-    return null
-  }
+/** Vector guardado en VectorFacial, o null si no tiene el largo esperado (vacío o truncado). */
+export function bufferAVector(buffer: Buffer | null): Float32Array | null {
+  if (!buffer || buffer.length !== LARGO_VECTOR * 4) return null
+  // Se copia a un ArrayBuffer propio: el del Buffer puede no estar alineado a 4 bytes
+  return new Float32Array(Uint8Array.from(buffer).buffer)
 }
 
 async function leerImagen(origen: Buffer | string): Promise<Imagen> {

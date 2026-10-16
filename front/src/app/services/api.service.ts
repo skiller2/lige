@@ -2106,6 +2106,19 @@ export class ApiService {
     );
   }
 
+  // Consulta de registros de asistencia (con login, a diferencia del marcado)
+  getListRegistrosAsistencia(parameters: any) {
+    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/list', parameters).pipe(
+      map(res => res.data),
+      catchError(() => of([]))
+    );
+  }
+
+  // Inicia el cálculo de los vectores faciales de las fotos del personal (Registro Asistencia)
+  iniciarCalculoVectoresFaciales() {
+    return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/vectores-faciales/calcular', {});
+  }
+
   getListParametrosGenerales(options: any) {
 
     return this.http.post<ResponseJSON<any>>('/api/parametro-general/list', { options }).pipe(

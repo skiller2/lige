@@ -1,0 +1,23 @@
+<nz-card class="small-margin">
+  <div style="align-items: end; display: flex; justify-content: space-between;">
+    <span></span>
+    <nz-button-group nz-button nzButtonGroup>
+      <button nz-button nzType="default" (click)="gridData.reload()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}">
+        <span nz-icon nzType="reload" nzTheme="outline"></span>
+      </button>
+      <button nz-button nzType="default" (click)="iniciarCalculoVectoresFaciales()" [disabled]="calculandoVectores()"
+        nz-tooltip nzTooltipTitle="Calcular vectores faciales">
+        <span nz-icon [nzType]="calculandoVectores() ? 'loading' : 'setting'" nzTheme="outline"></span>
+      </button>
+    </nz-button-group>
+  </div>
+
+  @if (columns().length) {
+  <shared-filtro-builder [fieldsToSelect]="columns()" [startFilters]="startFilters()" [(options)]="listOptions" />
+  <div class="gridContainer container-fluid">
+    <angular-slickgrid gridId="gridConsultaAsistencia" [columns]="columns()" [options]="gridOptions"
+      [dataset]="gridData.value()" (onAngularGridCreated)="angularGridReady($event)">
+    </angular-slickgrid>
+  </div>
+  }
+</nz-card>

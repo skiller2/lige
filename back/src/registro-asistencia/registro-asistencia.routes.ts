@@ -27,3 +27,21 @@ registroAsistenciaRouter.post("/anular", /* [authMiddleware.verifyToken, authMid
 registroAsistenciaRouter.post("/marcar", /* [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], */ (req, res, next) => {
   registroAsistenciaController.marcar(req, res, next);
 });
+
+// ------------------------------------------------------------------------
+// Consulta de registros de asistencia: a diferencia del marcado, con login
+// ------------------------------------------------------------------------
+
+registroAsistenciaRouter.get("/cols", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res) => {
+  registroAsistenciaController.getGridCols(req, res);
+});
+
+registroAsistenciaRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  registroAsistenciaController.listRegistros(req, res, next);
+});
+
+// Calcula los vectores faciales de las fotos del personal (botón de la tuerca de la consulta)
+registroAsistenciaRouter.post("/vectores-faciales/calcular", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  registroAsistenciaController.iniciarCalculoVectoresFaciales(req, res, next);
+});
+

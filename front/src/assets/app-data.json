@@ -59,6 +59,11 @@
               "text": "Registro Asistencia #",
               "link": "/asis/registro-asistencia",
               "icon": "anticon-profile"
+            },
+            {
+              "text": "Consulta Asistencia #",
+              "link": "/ges/consulta_asistencia",
+              "icon": "anticon-profile"
             }
           ]
         },
