@@ -23,14 +23,19 @@ export class NovedadController extends BaseController {
     const mes = Fecha.getMonth() + 1
     const responsables = await ObjetivoController.getObjetivoResponsables(anio, mes, ClienteId, ClienteElementoDependienteId)
     const supervisor = responsables.find(r => r.ord == 3)
-    const queryRunner = await dbServer.connection(usuario);
     const msg = `Se a registrado una novedad en el objetivo ${(novedad.ClienteId && novedad.ClienteElementoDependienteId) ? (novedad.ClienteId + '/' + novedad.ClienteElementoDependienteId) : 's/d'} ${novedad.DesObjetivo ?? ''}`
 
-    if (supervisor.GrupoActividadId) {
+    // Sin supervisor asignado no hay a quién avisar
+    if (!supervisor?.GrupoActividadId) return
+
+    const queryRunner = await dbServer.connection(usuario);
+    try {
       const PersonalId = supervisor.GrupoActividadId
       const result = await queryRunner.query(`SELECT tel.Telefono FROM BotRegTelefonoPersonal tel WHERE tel.PersonalId = @0 `, [PersonalId])
       if (result.length > 0)
         ChatBotController.enqueBotMsg(PersonalId, msg, `NOVEDAD${novedad.novedadId}`, usuario, '127.0.0.1')
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -85,6 +90,7 @@ export class NovedadController extends BaseController {
 
 
   async addNovedad(novedad: any, Telefono: string, PersonalId: number, queryRunner: QueryRunner) {
+    console.info('novedad', novedad)
     const usuario = BaseController.getUser(null)
     const ClienteId = novedad.ClienteId
     const ClienteElementoDependienteId = novedad.ClienteElementoDependienteId
@@ -93,7 +99,7 @@ export class NovedadController extends BaseController {
 
     const Descripcion = novedad.Descripcion
     const Accion = novedad.Accion
-    const NovedadTipoCod = novedad.Tipo.NovedadTipoCod || novedad.TipoNovedadId
+    const NovedadTipoCod = novedad.Tipo?.NovedadTipoCod ?? novedad.NovedadTipoCod ?? novedad.TipoNovedadId
     const now: Date = new Date()
     const jsonNovedad = JSON.stringify(novedad)
     const NovedadCodigo = await BaseController.getProxNumero(queryRunner, `Novedad`, usuario, '::1')
@@ -107,6 +113,20 @@ export class NovedadController extends BaseController {
     await this.saveNovedad(PersonalId, {}, queryRunner)
 
     return NovedadCodigo
+  }
+
+  // Valida la novedad armada por la IA antes del alta; devuelve los datos faltantes
+  async validarNovedad(novedad: any): Promise<string[]> {
+    if (!novedad.Tipo && novedad.NovedadTipoCod)
+      novedad.Tipo = { NovedadTipoCod: novedad.NovedadTipoCod }
+    const tipos = await this.getNovedadTipo()
+    const faltantes: string[] = []
+    if (!novedad.ClienteId || !novedad.ClienteElementoDependienteId) faltantes.push('Objetivo')
+    if (!novedad.Fecha || isNaN(new Date(novedad.Fecha).getTime())) faltantes.push('Fecha')
+    if (!String(novedad.Descripcion ?? '').trim()) faltantes.push('Descripcion')
+    if (!String(novedad.Accion ?? '').trim()) faltantes.push('Accion')
+    if (!tipos.some((t: any) => String(t.NovedadTipoCod).trim() === String(novedad.Tipo?.NovedadTipoCod ?? '').trim())) faltantes.push('Tipo')
+    return faltantes
   }
 
   async getNovedadTipo() {
