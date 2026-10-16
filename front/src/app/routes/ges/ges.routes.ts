@@ -150,10 +150,10 @@ export const GesRoutes: Routes = [
     loadComponent: () => import('./actas/actas.component').then(c => c.ActasComponent),
   },
 
-  { path: 'administradores-listado', redirectTo: 'administradores-listado/listado' },
+  { path: 'administradores', redirectTo: 'administradores/listado' },
   {
-    path: 'administradores-listado/:tab',
-    loadComponent: () => import('./administradores-listado/administradores-listado').then(c => c.AdministradoresListadoComponent),
+    path: 'administradores/:tab',
+    loadComponent: () => import('./administradores/administradores').then(c => c.AdministradoresComponent),
   },
   { path: 'importe-venta-vigilancia', redirectTo: 'importe-venta-vigilancia/listado' },
   {

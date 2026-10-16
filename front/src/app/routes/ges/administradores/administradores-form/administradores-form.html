@@ -1,0 +1,52 @@
+<form (ngSubmit)="save()">
+  <br>
+  <fieldset [disabled]=this.formAdministrador().disabled()>
+
+    <nz-form-item class="marginElement">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Denominacion</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="7">
+        <input nz-input placeholder="" [formField]="formAdministrador.AdministradorDenominacion" type="text" />
+      </nz-form-control>
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Nombre Fantasia</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="7">
+        <input nz-input placeholder="" [formField]="formAdministrador.AdministradorNombreFantasia" type="text" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="marginElement">
+
+      <!-- <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Nro de Asociado</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="7" [nzLg]="5">
+        <input nz-input placeholder="" [formField]="formAdministrador.NroLegajo" type="number" />
+      </nz-form-control> -->
+
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="3">Sucursal</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">
+        <nz-select [formField]="formAdministrador.AdministradorSucursalId" nzPlaceHolder="" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+          @for (option of optionsSucursal(); track option.SucursalId) {
+          <nz-option [nzValue]="option.SucursalId" [nzLabel]="option.SucursalDescripcion"></nz-option>
+          }
+        </nz-select>
+      </nz-form-control>
+
+      <!-- <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Clientes</nz-form-label> -->
+      <!-- <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17"> -->
+        <!-- <app-cliente-search [formField]="formAdministrador.ClientesId" /> -->
+      <!-- </nz-form-control> -->
+
+    </nz-form-item>
+
+  </fieldset>
+
+  <nz-form-item>
+    <nz-form-control style="display: flex; justify-content: center; align-items: center;">
+      <button nzType="primary" nz-button *ngIf="!this.formAdministrador().disabled()" type="submit"
+        [nzLoading]="isLoading()"
+        [disabled]="formAdministrador().submitting() || formAdministrador().dirty()==false || formAdministrador().valid()==false">
+        {{ 'app.btn.save' | i18n }}
+      </button>
+    </nz-form-control>
+  </nz-form-item>
+</form>

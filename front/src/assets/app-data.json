@@ -28,7 +28,7 @@
         {
           "text": "Administradores #",
           "icon": "anticon-profile",
-          "link": "/ges/administradores-listado"
+          "link": "/ges/administradores"
         },
         {
           "text": "Asistencia",

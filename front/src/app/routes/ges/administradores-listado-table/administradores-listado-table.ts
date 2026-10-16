@@ -1,4 +1,4 @@
-import { Component, inject, signal, resource } from '@angular/core';
+import { Component, inject, signal, resource, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { firstValueFrom } from 'rxjs';
@@ -28,20 +28,21 @@ import { LoadingService } from '@delon/abc/loading';
 })
 export class AdministradoresListadoTableComponent {
 
-  private angularGridEdit!: AngularGridInstance;
+  private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
   gridOptions!: GridOption;
   private excelExportService = new ExcelExportService();
   private readonly loadingSrv = inject(LoadingService)
+  private angularUtilService = inject(AngularUtilService)
+  private searchService = inject(SearchService)
+  private apiService = inject(ApiService)
+
   listOptions = signal<listOptionsT>({
     filtros: [],
     sort: null,
   });
-
-  private angularUtilService = inject(AngularUtilService)
-  private searchService = inject(SearchService)
-  private apiService = inject(ApiService)
+  administradorId = model<number>(0)
 
   columns = toSignal(this.apiService.getCols('/api/administradores/cols'), { initialValue: [] as Column[] })
 
@@ -80,15 +81,26 @@ export class AdministradoresListadoTableComponent {
   }
 
   angularGridReady(angularGrid: any): void {
-    this.angularGridEdit = angularGrid.detail;
+    this.angularGrid = angularGrid.detail;
     this.gridObj = angularGrid.detail.slickGrid;
 
-    this.angularGridEdit.dataView.onRowsChanged.subscribe(() => {
-      totalRecords(this.angularGridEdit);
+    this.angularGrid.dataView.onRowsChanged.subscribe(() => {
+      totalRecords(this.angularGrid);
     });
 
-    this.angularGridEdit.slickGrid.onClick.subscribe((_e: any, args: { row: number }) => {
+    this.angularGrid.slickGrid.onClick.subscribe((_e: any, args: { row: number }) => {
     });
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+    if (e.detail.args.changedSelectedRows.length == 1) {
+      const rowNum = e.detail.args.changedSelectedRows[0]
+      const AdministradorId = this.angularGrid.dataView.getItemByIdx(rowNum)?.id || 0
+      this.administradorId.set(AdministradorId)
+
+    } else {
+      this.administradorId.set(0)
+    }
   }
 
   exportGrid(): void {

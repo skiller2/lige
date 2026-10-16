@@ -43,7 +43,7 @@ import { cursoRouter } from "../routes/curso.routes.ts";
 import { centroCapacitacionRouter } from "../routes/centro-capacitacion.routes.ts";
 import { actasRouter } from "../actas/actas.routes.ts";
 import { institucionesRouter } from "./instituciones.routes.ts";
-import { AdministradoresRouter } from "../administradores/administradores.routes.ts";
+import { administradoresRouter } from "../administradores/administradores.routes.ts";
 import { importeVentaVigilanciaRouter } from "../importe-venta-vigilancia/importe-venta-vigilancia.routes.ts";
 import { facturacionRouter } from "../facturacion/facturacion.routes.ts";
 import { novedadesRouter } from "../novedades/novedades.routes.ts";
@@ -114,7 +114,7 @@ export function makeRoutes(server: WebServer) {
   server.setRoute("/api/centro-capacitacion", centroCapacitacionRouter)
   server.setRoute("/api/instituciones", institucionesRouter)
   server.setRoute("/api/actas", actasRouter)
-  server.setRoute("/api/administradores", AdministradoresRouter)
+  server.setRoute("/api/administradores", administradoresRouter)
   server.setRoute("/api/importe-venta-vigilancia", importeVentaVigilanciaRouter)
   server.setRoute("/api/facturacion", facturacionRouter)
   server.setRoute("/api/novedades", novedadesRouter)

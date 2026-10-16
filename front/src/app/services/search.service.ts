@@ -3039,4 +3039,15 @@ export class SearchService {
     );
   }
 
+  // Administradores
+  getAdministradorInfoById(id: number): Observable<any> {
+    return this.http.get<ResponseJSON<any>>(`api/administradores/info/${id}`).pipe(
+      map(res => res.data),
+      catchError((err, caught) => {
+
+        return of([]);
+      })
+    );
+  }
+
 }
