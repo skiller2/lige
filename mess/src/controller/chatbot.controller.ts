@@ -630,6 +630,8 @@ export class ChatBotController extends BaseController {
 
     } catch (error) {
       return false
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -680,6 +682,9 @@ export class ChatBotController extends BaseController {
         console.info('Combined IaTools:', rows[0].IaTools)
       }
     }
+    // Fecha y hora actual para que la IA calcule fechas relativas y períodos
+    const fechaActual = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', dateStyle: 'short', timeStyle: 'short' })
+    rows[0].Prompt = `${rows[0].Prompt}\n\n[FECHA Y HORA ACTUAL]\n${fechaActual} (hora de Argentina)`
     return { ChatBotPromptCodigo: rows[0].ChatBotPromptCodigo, Prompt: rows[0].Prompt, IaTools: rows[0].IaTools }
   }
 
@@ -810,9 +815,20 @@ export class ChatBotController extends BaseController {
               case 'getNovedadTipo':
                 output = await novedadController.getNovedadTipo()
                 break;
-              case 'addNovedad':
-                output = await novedadController.addNovedad(tool.function.arguments.novedad, chatId, pId, queryRunner)
+              case 'addNovedad': {
+                // Se envía el borrador guardado con saveNovedad
+                const novedad = await novedadController.getBackupNovedad(pId)
+                const faltantes = await novedadController.validarNovedad(novedad)
+                if (faltantes.length) {
+                  output = { Error: 'DATOS_INCOMPLETOS', faltantes, accion: 'Si el usuario ya informó estos datos, guardalos con saveNovedad y volvé a llamar addNovedad. Si no, pedíselos.' }
+                  break;
+                }
+                const NovedadCodigo = await novedadController.addNovedad(novedad, chatId, pId, queryRunner)
+                // Aviso al supervisor
+                // await novedadController.sendMsgResponsable({ ...novedad, novedadId: NovedadCodigo }).catch(e => console.error(`[IA][${chatId}] sendMsgResponsable falló: ${e?.message}`))
+                output = { NovedadCodigo }
                 break;
+              }
               case 'getNovedadesPendientesByResponsable':
                 output = await novedadController.getNovedadesPendientesByResponsable(pId)
                 break;
