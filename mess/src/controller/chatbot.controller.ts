@@ -483,7 +483,7 @@ export class ChatBotController extends BaseController {
 
           for (const tool of responseIA.message.tool_calls) {
             let output = {}
-            const pId = autoPersonalId || tool.function.arguments.personalId;
+            const pId = autoPersonalId
 
             switch (tool.function.name) {
               case 'genTelCode':
@@ -515,6 +515,27 @@ export class ChatBotController extends BaseController {
               case 'getDocsPendDescarga':
                 output = await personalController.getDocsPendDescarga(pId)
                 break;
+              case 'getDocumentoPorPeriodo': {
+                // Busca por período solo entre los documentos de la persona
+                const { tipo, anio, mes } = tool.function.arguments
+                if (!['REC', 'MONOT'].includes(tipo)) {
+                  output = { Error: 'TIPO_INVALIDO' }
+                  break;
+                }
+                const docs = await this.getRutaFile(queryRunner, pId, anio, mes, tipo)
+                if (!docs.length) {
+                  output = { Error: 'SIN_DOCUMENTO', mensaje: 'No hay documento para ese período.' }
+                  break;
+                }
+                try {
+                  output = await this.getURLDocumentoNew(docs[0].DocumentoId, queryRunner)
+                  await this.addToDocLog(docs[0].DocumentoId, chatId, pId)
+                } catch (e) {
+                  console.error(`[IA][${chatId}] getDocumentoPorPeriodo falló DocumentoId=${docs[0].DocumentoId}: ${e?.message}`)
+                  output = { Error: 'ARCHIVO_NO_DISPONIBLE', mensaje: 'El archivo no se encuentra disponible.' }
+                }
+                break;
+              }
               case 'getAdelantoLimits': {
                 // El período es siempre el actual
                 const { maxImporte, minImporte, fechaLimite, maxCantAdelantos } = PersonalController.getAdelantoLimits(now)
