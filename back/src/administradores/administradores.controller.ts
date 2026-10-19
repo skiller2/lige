@@ -375,16 +375,14 @@ export class AdministradoresController extends BaseController {
     try {
       await queryRunner.startTransaction();
 
-      throw new ClientException('DEBUG');
-
       // await this.validateForm(administrador, 'D', queryRunner);
 
       const clienteIds = await queryRunner.query(
-        `SELECT ClienteId FROM ClienteAdministrador WHERE ClienteAdministradorId = @0 AND ClienteAdministradorHasta IS NULL`,
+        `SELECT ClienteId FROM ClienteAdministrador WHERE ClienteAdministradorId = @0`,
         [ administradorId ]
       );
       if (clienteIds.length > 0) {
-        throw new ClientException('No se puede eliminar el administrador porque tiene clientes asociados');
+        throw new ClientException('No se puede eliminar el administrador porque tiene historial de clientes asociados');
       }
 
       await queryRunner.query(

@@ -12,6 +12,19 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { AngularUtilService } from 'angular-slickgrid';
 
+export interface Contacto {
+  ContactoId: number;
+  ContactoNombre: string;
+  ContactoApellido: string;
+  ContactoArea: string;
+  ContactoJurImpositiva: string;
+  ContactoTipoCod: string;
+  
+  TipoTelefonoId: number;
+  ContactoTelefonoNro: string;
+
+  ContactoEmailEmail: string;
+}
 export interface Administrador {
   AdministradorId: number;
   // AdministradorApellido: string;
@@ -21,6 +34,7 @@ export interface Administrador {
   // AdministradorSexo: string; 
   AdministradorInactivo: boolean;
   AdministradorSucursalId: number;
+  contactos: Contacto[];
 }
 
 @Component({
@@ -42,6 +56,18 @@ export class AdministradoresFormComponent {
   isLoading = signal(false);
   administradorId = model<number>(0);
   crud = input<string>('');
+
+  private readonly defaultContacto:Contacto = {
+    ContactoId: 0,
+    ContactoNombre: "",
+    ContactoApellido: "",
+    ContactoArea: "",
+    TipoTelefonoId: 0,
+    ContactoTelefonoNro: "",
+    ContactoEmailEmail: "",
+    ContactoTipoCod:"",
+    ContactoJurImpositiva:""
+  }
   
   private readonly defaultAdministrador: Administrador= {
     AdministradorId: 0,
@@ -51,7 +77,8 @@ export class AdministradoresFormComponent {
     AdministradorNombreFantasia: '', 
     // AdministradorSexo: '', 
     AdministradorInactivo: false, 
-    AdministradorSucursalId: 0
+    AdministradorSucursalId: 0,
+    contactos: [structuredClone(this.defaultContacto)],
   }
 
   readonly Administrador = signal<Administrador>(this.defaultAdministrador);
@@ -61,6 +88,9 @@ export class AdministradoresFormComponent {
   })
 
   optionsSucursal = toSignal(this.searchService.getSucursales(), { initialValue: [] });
+  optionsTipoContacto = toSignal(this.searchService.getTipoContacto(), { initialValue: [] as any[] })
+  optionsJurImpositiva = toSignal(this.searchService.getJurImpositiva(), { initialValue: [] as any[] })
+  optionsTipoTelefono = toSignal(this.searchService.getTipoTelefono(), { initialValue: [] as any[] })
 
   async ngOnInit() {}
 
@@ -83,6 +113,8 @@ export class AdministradoresFormComponent {
       const values: any = form().value()
       try {
         const administradorId = values.AdministradorId
+        //Filtra los array de los objeto no usados
+        values.contactos = values.contactos.filter((c: Contacto) => { return !this.isEqualObject(c, this.defaultContacto) })
         if (administradorId) {
           await firstValueFrom(this.apiService.updateAdministrador(values))
         } else {
@@ -96,6 +128,46 @@ export class AdministradoresFormComponent {
       }
       this.isLoading.set(false)
     })
+  }
+
+  isEqualObject(a: any, b: any): boolean {
+    return Object.keys(b).every(key => {
+      const valA = a[key];
+      const valB = b[key];
+
+      if (Array.isArray(valB)) {
+        return Array.isArray(valA) && valA.length === valB.length;
+      }
+
+      if (Number.isNaN(valB)) {
+        return Number.isNaN(valA);
+      }
+
+      return valA === valB;
+    });
+  }
+
+  addContacto(e?: MouseEvent): void {
+    e?.preventDefault();
+
+    const newFamiliar = structuredClone(this.defaultContacto)
+
+    this.Administrador.update(m => ({
+      ...m,
+      contactos: [...m.contactos, newFamiliar],
+    }));
+  }
+
+  removeContacto(index: number, e: MouseEvent): void {
+    e.preventDefault();
+    this.Administrador.update(m => ({
+      ...m,
+      contactos: m.contactos.filter((_, i) => i !== index),
+    }));
+
+    if (this.Administrador().contactos.length == 0) {
+      this.addContacto(undefined)
+    }
   }
 
 }
