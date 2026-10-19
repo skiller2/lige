@@ -508,15 +508,8 @@ export class ApiService {
     )
   }
 
-  sendChatMessage(message: string, chatId: string, model: string | null, personalId: number | null): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/chat`, { message, chatId, model, personalId }).pipe(
-      //tap((res: ResponseJSON<any>) => this.response(res)),
-      map((res: any) => res.data)
-    )
-  }
-
-  sendChatMessageAgent(message: string, chatId: string, model: string | null, personalId: number | null): Observable<unknown> {
-    return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/chatagent`, { message, chatId, model, personalId }).pipe(
+  sendChatMessageAgent(message: string, chatId: string): Observable<unknown> {
+    return this.http.post<ResponseJSON<any>>(`mess/api/chatbot/chatagent`, { message, chatId }).pipe(
       //tap((res: ResponseJSON<any>) => this.response(res)),
       map((res: any) => res.data)
     )

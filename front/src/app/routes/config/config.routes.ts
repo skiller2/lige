@@ -3,7 +3,7 @@ import { Routes } from '@angular/router';
 export const ConfigRoutes: Routes = [
   {
     path: 'mess',
-    redirectTo: 'mess/conversacion',
+    redirectTo: 'mess/chat',
     pathMatch: 'full',
   },
   {

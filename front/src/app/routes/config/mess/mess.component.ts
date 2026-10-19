@@ -29,8 +29,6 @@ interface AgentsFormModel {
   agents: ChatBotPromptForm[];
 }
 
-type ChatModel = 'agents' | 'main-prompt' | 'lige-prompt'
-
 @Component({
   selector: 'app-mess',
   imports: [NzModalModule,
@@ -61,7 +59,6 @@ export class MessComponent {
   showTools = signal<boolean>(false);
   chatId = signal('');
   personalId = signal<number | null>(null)
-  chatModel = signal<ChatModel | null>('main-prompt')
   msgs = signal<any[]>([])
   agentsLoading = signal(false)
   panelAbierto = signal<number | null>(null)
@@ -140,9 +137,7 @@ export class MessComponent {
       try {
         const resp: any = await firstValueFrom(this.apiService.sendChatMessageAgent(
           this.chatform.usermsg().value(),
-          this.chatId(),
-          this.chatModel(),
-          this.personalId()
+          this.chatId()
         ))
 
 
@@ -165,39 +160,6 @@ export class MessComponent {
 
   }
 
-
-  async enviaChat(event: any) {
-    event.preventDefault();
-    await submit(this.chatform, async () => {
-      localStorage.setItem('chatId', this.chatId())
-
-      try {
-        const resp: any = await firstValueFrom(this.apiService.sendChatMessage(
-          this.chatform.usermsg().value(),
-          this.chatId(),
-          this.chatModel(),
-          this.personalId()
-        ))
-
-
-
-        this.msgs.update(list => [...list, ...resp.response]);
-        this.scrollChatToBottom()
-//        form.usermsg().setControlValue('')
-        this.chatform().reset({ usermsg: '' })
-        
-      } catch (e: any) {
-        // Ante un error, mess devuelve los logs en data.logs
-        const logs = e?.error?.data?.logs
-        if (Array.isArray(logs)) {
-          this.msgs.update(list => [...list, ...logs])
-          this.scrollChatToBottom()
-        }
-      }
-      return undefined; // success
-    })
-
-  }
 
   private scrollChatToBottom() {
     requestAnimationFrame(() => {
@@ -210,11 +172,6 @@ export class MessComponent {
   async reiniciaChat() {
     await firstValueFrom(this.apiService.reiniciaChat(this.chatId()))
     this.msgs.set([])
-  }
-
-  async changeChatModel(model: ChatModel | null) {
-    this.chatModel.set(model)
-    await this.reiniciaChat()
   }
 
 
