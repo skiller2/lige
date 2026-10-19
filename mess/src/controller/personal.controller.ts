@@ -24,60 +24,65 @@ export class PersonalController extends BaseController {
 
 
     const queryRunner = await dbServer.connection(usuario);
-    await queryRunner.query(
-      `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
-      , [personalId, FormaPrestamoId, anio, mes]
-    );
+    try {
+      await queryRunner.query(
+        `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
+        , [personalId, FormaPrestamoId, anio, mes]
+      );
 
-    const prestamoId =
-      Number((
-        await queryRunner.query(
-          `SELECT per.PersonalPrestamoUltNro as max FROM Personal per WHERE per.PersonalId = @0`,
-          [personalId]
-        )
-      )[0].max) + 1;
+      const prestamoId =
+        Number((
+          await queryRunner.query(
+            `SELECT per.PersonalPrestamoUltNro as max FROM Personal per WHERE per.PersonalId = @0`,
+            [personalId]
+          )
+        )[0].max) + 1;
 
-    await queryRunner.query(
-      `INSERT INTO PersonalPrestamo(
-      PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId, 
-      PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl, 
-      PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado, 
-      PersonalPrestamoAudFechaIng, PersonalPrestamoAudUsuarioIng, PersonalPrestamoAudIpIng, PersonalPrestamoAudFechaMod, PersonalPrestamoAudUsuarioMod, PersonalPrestamoAudIpMod)
-      VALUES(
-      @0, @1, @2, @3,
-      @4, @5, @6, @7,
-      @8, @9, @10, @11,
-      @12, @13, @14, @12, @13, @14)`,
-      [
-        prestamoId, //PersonalPrestamoId
-        personalId, //PersonalId
-        monto, //PersonalPrestamoMonto
-        FormaPrestamoId, //FormaPrestamoId = 7 Adelanto
+      await queryRunner.query(
+        `INSERT INTO PersonalPrestamo(
+        PersonalPrestamoId, PersonalId, PersonalPrestamoMonto, FormaPrestamoId,
+        PersonalPrestamoAprobado, PersonalPrestamoFechaAprobacion, PersonalPrestamoCantidadCuotas, PersonalPrestamoAplicaEl,
+        PersonalPrestamoLiquidoFinanzas, PersonalPrestamoUltimaLiquidacion, PersonalPrestamoCuotaUltNro, PersonalPrestamoMontoAutorizado,
+        PersonalPrestamoAudFechaIng, PersonalPrestamoAudUsuarioIng, PersonalPrestamoAudIpIng, PersonalPrestamoAudFechaMod, PersonalPrestamoAudUsuarioMod, PersonalPrestamoAudIpMod)
+        VALUES(
+        @0, @1, @2, @3,
+        @4, @5, @6, @7,
+        @8, @9, @10, @11,
+        @12, @13, @14, @12, @13, @14)`,
+        [
+          prestamoId, //PersonalPrestamoId
+          personalId, //PersonalId
+          monto, //PersonalPrestamoMonto
+          FormaPrestamoId, //FormaPrestamoId = 7 Adelanto
 
-        null, //PersonalPrestamoAprobado
-        null, //PersonalPrestamoFechaAprobacion
-        1,  //PersonalPrestamoCantidadCuotas
-        `${mes.toString().padStart(2, '0')}/${anio}`, //PersonalPrestamoAplicaEl
+          null, //PersonalPrestamoAprobado
+          null, //PersonalPrestamoFechaAprobacion
+          1,  //PersonalPrestamoCantidadCuotas
+          `${mes.toString().padStart(2, '0')}/${anio}`, //PersonalPrestamoAplicaEl
 
-        null, //PersonalPrestamoLiquidoFinanzas
-        "", //PersonalPrestamoUltimaLiquidacion
-        null, //PersonalPrestamoCuotaUltNro
-        0, //PersonalPrestamoMontoAutorizado
+          null, //PersonalPrestamoLiquidoFinanzas
+          "", //PersonalPrestamoUltimaLiquidacion
+          null, //PersonalPrestamoCuotaUltNro
+          0, //PersonalPrestamoMontoAutorizado
 
-        now, usuario, ip //Aud data
-      ]
-    );
+          now, usuario, ip //Aud data
+        ]
+      );
 
-    await queryRunner.query(
-      `UPDATE Personal SET PersonalPrestamoUltNro=@1 WHERE PersonalId=@0 `,
-      [
-        personalId,
-        prestamoId,
-      ]
-    );
+      await queryRunner.query(
+        `UPDATE Personal SET PersonalPrestamoUltNro=@1 WHERE PersonalId=@0 `,
+        [
+          personalId,
+          prestamoId,
+        ]
+      );
+    } finally {
+      await queryRunner.release()
+    }
   }
 
-  async deletePersonalAdelanto(personalId: any, anio: any, mes: any) {
+  // Devuelve true si eliminó un adelanto pendiente
+  async deletePersonalAdelanto(personalId: any, anio: any, mes: any): Promise<boolean> {
     const FormaPrestamoId = 7 //Adelanto
     const now = new Date()
     const { maxImporte, minImporte, fechaLimite } = PersonalController.getAdelantoLimits(now)
@@ -86,18 +91,24 @@ export class PersonalController extends BaseController {
       throw new ClientException("Fuera de vigencia para eliminar un adelanto")
     const usuario = BaseController.getUser(null)
     const queryRunner = await dbServer.connection(usuario)
-    const adelanto: any = await queryRunner.query(`
-      SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl FROM PersonalPrestamo ade
-      WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1) 
-      AND ade.PersonalId = @0
-      `, [personalId, anio, mes]
-    )
+    try {
+      const adelanto: any = await queryRunner.query(`
+        SELECT ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAprobado, ade.PersonalPrestamoAplicaEl FROM PersonalPrestamo ade
+        WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1)
+        AND ade.PersonalId = @0
+        `, [personalId, anio, mes]
+      )
 
-    if (adelanto.length && !adelanto[0].PersonalPrestamoFechaAprobacion) {
+      const pendiente = adelanto.some((a: any) => a.PersonalPrestamoAprobado == null && !a.PersonalPrestamoFechaAprobacion)
+      if (!pendiente) return false
+
       await queryRunner.query(
         `DELETE FROM PersonalPrestamo WHERE PersonalPrestamoAprobado IS NULL AND FormaPrestamoId = @1 AND PersonalId = @0 AND PersonalPrestamoAplicaEl = CONCAT(FORMAT(@3,'00'),'/',@2)`
         , [personalId, FormaPrestamoId, anio, mes]
       );
+      return true
+    } finally {
+      await queryRunner.release()
     }
   }
 
@@ -453,16 +464,26 @@ export class PersonalController extends BaseController {
   }
 
   static async getPersonalAdelanto(personalId: number, anio: number, mes: number) {
-        const usuario = BaseController.getUser(null)
+    const usuario = BaseController.getUser(null)
     const queryRunner = await dbServer.connection(usuario);
-    return await queryRunner.query(`
-      SELECT ade.PersonalPrestamoId, ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl, ade.PersonalPrestamoAprobado, ade.PersonalPrestamoAudFechaIng 
-      FROM PersonalPrestamo ade
-      WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1) 
-      AND ade.PersonalId = @0
-      `, [personalId, anio, mes]
-    )
-
+    try {
+      return await queryRunner.query(`
+        SELECT ade.PersonalPrestamoId, ade.PersonalId, ade.PersonalPrestamoMonto, ade.PersonalPrestamoFechaAprobacion, ade.PersonalPrestamoAplicaEl, ade.PersonalPrestamoAprobado, ade.PersonalPrestamoAudFechaIng,
+          CASE ade.PersonalPrestamoAprobado
+            WHEN 'S' THEN 'Confirmado'
+            WHEN 'N' THEN 'Rechazado'
+            WHEN 'A' THEN 'Anulado'
+            ELSE 'Pendiente'
+          END AS Estado,
+          FORMAT(ade.PersonalPrestamoAudFechaIng, 'dd/MM/yyyy') AS FechaSolicitud
+        FROM PersonalPrestamo ade
+        WHERE ade.FormaPrestamoId = 7 AND ade.PersonalPrestamoAplicaEl = CONCAT(FORMAT(@2,'00'),'/',@1)
+        AND ade.PersonalId = @0
+        `, [personalId, anio, mes]
+      )
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   static async getTelefono(personalId: number) {

@@ -710,10 +710,12 @@ export class ChatBotController extends BaseController {
 
     if (!botServer.iaHistorial[chatId]?.msgs?.length) {
       const agent = await this.getChatBotAgent(queryRunner, 'AUTH')
-      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '', debug:true }
-      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug:true });
+      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '', debug: true }
+      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug: true });
     }
     botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: false })
+
+    const now = new Date()
 
     try {
       do {
@@ -772,27 +774,41 @@ export class ChatBotController extends BaseController {
               case 'getDocsPendDescarga':
                 output = await personalController.getDocsPendDescarga(pId)
                 break;
-              case 'getAdelantoLimits':
-                tool.function.arguments.fecha = new Date()
-                output = await PersonalController.getAdelantoLimits(tool.function.arguments.fecha)
+              case 'getAdelantoLimits': {
+                // El período es siempre el actual
+                const { maxImporte, minImporte, fechaLimite, maxCantAdelantos } = PersonalController.getAdelantoLimits(now)
+                output = {
+                  periodo: `${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`,
+                  plazoVigente: now <= fechaLimite,
+                  fechaLimite: fechaLimite.toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }),
+                  minImporte, maxImporte, maxCantAdelantos
+                }
                 break;
-              case 'getPersonalAdelanto':
-                const anioA = tool.function.arguments.anio || new Date().getFullYear();
-                const mesA = tool.function.arguments.mes || new Date().getMonth() + 1;
-                output = await PersonalController.getPersonalAdelanto(pId, anioA, mesA)
+              }
+              case 'getPersonalAdelanto': {
+                output = await PersonalController.getPersonalAdelanto(pId, now.getFullYear(), now.getMonth() + 1)
                 break;
-              case 'deletePersonalAdelanto':
-                const anioD = tool.function.arguments.anio || new Date().getFullYear();
-                const mesD = tool.function.arguments.mes || new Date().getMonth() + 1;
-                await personalController.deletePersonalAdelanto(pId, anioD, mesD)
-                output = { response: 'OK' }
+              }
+              case 'deletePersonalAdelanto': {
+                try {
+                  const eliminado = await personalController.deletePersonalAdelanto(pId, now.getFullYear(), now.getMonth() + 1)
+                  output = eliminado ? { response: 'OK' } : { Error: 'No hay un adelanto pendiente para anular en el período actual.' }
+                } catch (e) {
+                  console.error(`[IA][${chatId}] deletePersonalAdelanto falló: ${e?.message}`)
+                  output = { Error: e instanceof ClientException ? e.message : 'No se pudo anular el adelanto.' }
+                }
                 break;
-              case 'setPersonalAdelanto':
-                const anioS = tool.function.arguments.anio || new Date().getFullYear();
-                const mesS = tool.function.arguments.mes || new Date().getMonth() + 1;
-                await personalController.setPersonalAdelanto(pId, anioS, mesS, tool.function.arguments.importe)
-                output = { response: 'OK' }
+              }
+              case 'setPersonalAdelanto': {
+                try {
+                  await personalController.setPersonalAdelanto(pId, now.getFullYear(), now.getMonth() + 1, Number(tool.function.arguments.importe))
+                  output = { response: 'OK' }
+                } catch (e) {
+                  console.error(`[IA][${chatId}] setPersonalAdelanto falló: ${e?.message}`)
+                  output = { Error: e instanceof ClientException ? e.message : 'No se pudo registrar el adelanto.' }
+                }
                 break;
+              }
               case 'getURLDocumentoNew':
                 try {
                   output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId, queryRunner)
@@ -858,7 +874,7 @@ export class ChatBotController extends BaseController {
                 botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
                 botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
 
-                botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent, debug:true });
+                botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent, debug: true });
                 botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, debug: true, agent: botServer.iaHistorial[chatId].agent })
 
                 break;
@@ -872,7 +888,7 @@ export class ChatBotController extends BaseController {
             const outputJson = JSON.stringify(output)
 
             botServer.iaHistorial[chatId].msgs.push({
-              id: botServer.iaHistorial[chatId].msgs.length, role: "tool", content: outputJson, tool_name: tool.function.name, agent: botServer.iaHistorial[chatId].agent, debug:true
+              id: botServer.iaHistorial[chatId].msgs.length, role: "tool", content: outputJson, tool_name: tool.function.name, agent: botServer.iaHistorial[chatId].agent, debug: true
             });
           }
           recall = true
