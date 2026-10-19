@@ -18,6 +18,14 @@ administradoresRouter.post("/list", [authMiddleware.verifyToken, authMiddleware.
   administradoresController.listAdministradores(req, res, next);
 });
 
+administradoresRouter.post("/add", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  administradoresController.addAdminitrador(req, res, next);
+});
+
+administradoresRouter.post("/update", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  administradoresController.updateAdministrador(req, res, next);
+});
+
 administradoresRouter.get("/cols-clientes", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gComercial', 'gComercialCon'])], (req, res) => {
   administradoresController.getAdministradoresColsClientes(req, res);
 });
@@ -26,3 +34,6 @@ administradoresRouter.post("/list-clientes", [authMiddleware.verifyToken, authMi
   administradoresController.listAdministradoresClientes(req, res, next);
 });
 
+administradoresRouter.delete("/delete/:id", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], (req, res, next) => {
+  administradoresController.deleteAdministrador(req, res, next);
+});

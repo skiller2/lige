@@ -60,7 +60,7 @@ export const CUSTOM_INPUT_CONTROL_VALUE_ACCESSOR: any = {
   imports: [...SHARED_IMPORTS, CommonModule, FechaSearchComponent, TipoMovimientoSearchComponent,
     ObjetivoSearchComponent, ClienteSearchComponent, PersonalSearchComponent, GrupoActividadSearchComponent, EfectoSearchComponent,
     TipoAsociadoCategoriaSearchComponent, TipoAsociadoSearchComponent, RequirenteSearchComponent, NumberAdvancedSearchComponent, ColumnComparisonSearchComponent, PeriodoSearchComponent,
-    TipoPersonalActaSearchComponent, AsyncPipe, NzUploadModule
+    TipoPersonalActaSearchComponent, AdministradorSearchComponent, AsyncPipe, NzUploadModule
   ],
   templateUrl: './filtro-builder.component.html',
   styles: [],

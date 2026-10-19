@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-import { BaseController, ClientException } from "../controller/base.controller.ts";
+import { BaseController, ClientException, ClientWarning } from "../controller/base.controller.ts";
 import { getConnection } from "../data-source.ts";
 import { QueryFailedError } from "typeorm";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
@@ -18,12 +18,13 @@ export class AdministradoresController extends BaseController {
     
     {
       id: "id",
-      name: "ID Administrador",
+      name: "id",
       field: "id",
       fieldName: "adm.AdministradorId",
       type: "number",
+      hidden: true,
       sortable: true,
-      searchHidden: false
+      searchHidden: true
     },
     {
       name: "Denominación",
@@ -41,7 +42,8 @@ export class AdministradoresController extends BaseController {
       id: "AdministradorId",
       field: "AdministradorId",
       fieldName: "adm.AdministradorId",
-      searchComponent:"inputForTipoSeguroSearch",
+      searchComponent:"inputForAdministradorSearch",
+      searchType: "number",
       sortable: true,
       searchHidden: false,
       hidden: true,
@@ -91,7 +93,8 @@ export class AdministradoresController extends BaseController {
       id: "AdministradorId",
       field: "AdministradorId",
       fieldName: "adm.AdministradorId",
-      searchComponent:"inputForTipoSeguroSearch",
+      searchComponent:"inputForAdministradorSearch",
+      searchType: "number",
       sortable: true,
       searchHidden: false,
       hidden: false,
@@ -242,6 +245,160 @@ export class AdministradoresController extends BaseController {
       WHERE adm.AdministradorId = @0`, [administradorId])
 
       return this.jsonRes(administradorInfo, res)
+    } catch (error) {
+      return next(error)
+    }finally {
+      await queryRunner.release()
+    }
+  }
+
+  // Un 0 es un valor válido, por eso no se evalúa por truthy
+  esVacio(valor: any):boolean { return (valor === null || valor === undefined || valor === '') }
+
+  async validateForm(form: any, action: string, queryRunner: any) {
+    let error: string[] = [];
+
+    if (this.esVacio(form.AdministradorDenominacion)) {
+      error.push('- Denominación');
+    }
+    if (this.esVacio(form.AdministradorNombreFantasia)) {
+      error.push('- Nombre de Fantasia');
+    }
+    if (this.esVacio(form.AdministradorSucursalId)) {
+      error.push('- Sucursal');
+    }
+
+    if (error.length) {
+      error.unshift('Deben completar los siguientes campos:');
+      throw new ClientWarning(error);
+    }
+    
+    if (action == 'I') {
+      // Validar que no haya duplicados
+      const existing = await queryRunner.query(`
+        SELECT adm.AdministradorId AS id 
+        FROM Administrador adm
+        WHERE adm.AdministradorDenominacion = @0
+      `, [form.AdministradorDenominacion]);
+
+      if (existing.length) {
+        throw new ClientException('Ya existe un administrador con esa denominación');
+      }
+      
+    }
+  
+    if (action == 'U') {
+      // Validar que no haya duplicados
+      const existing = await queryRunner.query(`
+        SELECT adm.AdministradorId AS id 
+        FROM Administrador adm
+        WHERE adm.AdministradorId != @0 AND adm.AdministradorDenominacion = @1
+      `, [form.AdministradorId, form.AdministradorDenominacion]);
+
+      if (existing.length) {
+        throw new ClientException('Ya existe un administrador con esa denominación');
+      }
+
+    }
+  }
+
+  async addAdminitrador(req: any, res: Response, next: NextFunction) {
+    const administrador = req.body;
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      await queryRunner.startTransaction();
+
+      await this.validateForm(administrador, 'I', queryRunner);
+
+      const inserted = await queryRunner.query(
+        `INSERT INTO Administrador (
+          AdministradorDenominacion,
+          AdministradorApellidoNombre,
+          AdministradorNombreFantasia,
+          AdministradorInactivo,
+          AdministradorSucursalId
+        )
+        OUTPUT INSERTED.AdministradorId
+        VALUES (@0, @0, @1, @2, @3)`, 
+        [ administrador.AdministradorDenominacion,
+          administrador.AdministradorNombreFantasia,
+          administrador.AdministradorInactivo,
+          administrador.AdministradorSucursalId ]
+      );
+
+        const newId: number = inserted[0]?.AdministradorId ?? null;
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({ AdministradorId: newId }, res, 'Carga Exitosa');
+    } catch (error) {
+      return next(error)
+    }finally {
+      await queryRunner.release()
+    }
+  }
+
+  async updateAdministrador(req: any, res: Response, next: NextFunction) {
+    const administrador = req.body;
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      await queryRunner.startTransaction();
+
+      await this.validateForm(administrador, 'U', queryRunner);
+
+      await queryRunner.query(
+        `UPDATE Administrador SET
+          AdministradorDenominacion = @0,
+          AdministradorApellidoNombre = @0,
+          AdministradorNombreFantasia = @1,
+          AdministradorInactivo = @2,
+          AdministradorSucursalId = @3
+        WHERE AdministradorId = @4`,
+        [ administrador.AdministradorDenominacion,
+          administrador.AdministradorNombreFantasia,
+          administrador.AdministradorInactivo,
+          administrador.AdministradorSucursalId,
+          administrador.AdministradorId ]
+      );
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({ }, res, 'Actualización Exitosa');
+    } catch (error) {
+      return next(error)
+    }finally {
+      await queryRunner.release()
+    }
+  }
+
+  async deleteAdministrador(req: any, res: Response, next: NextFunction) {
+    const administradorId = req.params.id;
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      await queryRunner.startTransaction();
+
+      throw new ClientException('DEBUG');
+
+      // await this.validateForm(administrador, 'D', queryRunner);
+
+      const clienteIds = await queryRunner.query(
+        `SELECT ClienteId FROM ClienteAdministrador WHERE ClienteAdministradorId = @0 AND ClienteAdministradorHasta IS NULL`,
+        [ administradorId ]
+      );
+      if (clienteIds.length > 0) {
+        throw new ClientException('No se puede eliminar el administrador porque tiene clientes asociados');
+      }
+
+      await queryRunner.query(
+        `DELETE FROM ClienteAdministrador WHERE ClienteAdministradorId = @0`,
+        [ administradorId ]
+      );
+
+      await queryRunner.query(
+        `DELETE FROM Administrador WHERE AdministradorId = @0`,
+        [ administradorId ]
+      );
+
+      await queryRunner.commitTransaction();
+      this.jsonRes({ }, res, 'Eliminación Exitosa');
     } catch (error) {
       return next(error)
     }finally {

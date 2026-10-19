@@ -2152,7 +2152,7 @@ export class ApiService {
     );
   }
 
-
+  // Administradores
   setListAdministradores(filters: any) {
     const parameter = filters
     return this.http.post<ResponseJSON<any>>('/api/administradores/list', parameter).pipe(
@@ -2160,7 +2160,6 @@ export class ApiService {
       catchError(() => of([]))
     );
   }
-
 
   setListAdministradoresClientes(filters: any) {
     const parameter = filters
@@ -2170,6 +2169,23 @@ export class ApiService {
     );
   }
 
+  addAdministrador(administrador: any) {
+    return this.http.post<ResponseJSON<any>>('/api/administradores/add', administrador).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  updateAdministrador(administrador: any) {
+    return this.http.post<ResponseJSON<any>>('/api/administradores/update', administrador).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+  }
+
+  deleteAdministrador(administradorId: number) {
+    return this.http.delete<ResponseJSON<any>>(`/api/administradores/delete/${administradorId}`).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
+  }
 
   unsubscribeCBUs(PersonalId: number) {
     return this.http.post<ResponseJSON<any>>(`/api/personal/unsubscribe/cbu`, { PersonalId }).pipe(

@@ -1,7 +1,8 @@
 
-import { Component, signal, viewChild } from '@angular/core';
+import { Component, inject, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
-
+import { firstValueFrom } from 'rxjs';
+import { ApiService } from '../../../services/api.service';
 import { AdministradoresListadoTableComponent } from '../administradores-listado-table/administradores-listado-table';
 import { AdministradoresClientesTableComponent } from '../administradores-clientes-table/administradores-clientes-table';
 import { AdministradoresFormComponent } from './administradores-form/administradores-form';
@@ -17,6 +18,9 @@ export class AdministradoresComponent {
   tabIndex = signal<number>(0)
   administradorId = signal(0)
   childIsPristine = signal(true)
+  loadingD = signal(false)
+
+  private apiService = inject(ApiService)
 
   childAdminsTable = viewChild.required<AdministradoresListadoTableComponent>('adminsTable')
   childClisTable = viewChild.required<AdministradoresClientesTableComponent>('clisTable')
@@ -48,6 +52,20 @@ export class AdministradoresComponent {
         break;
       default:
         break;
+    }
+  }
+
+  async deleteItem() {
+    this.loadingD.set(true)
+    try {
+      
+      await firstValueFrom(this.apiService.deleteAdministrador(this.administradorId()));
+      this.administradorId.set(0);
+      this.refreshGrid();
+      
+    } catch (error) {}
+    finally {
+      this.loadingD.set(false)
     }
   }
 }

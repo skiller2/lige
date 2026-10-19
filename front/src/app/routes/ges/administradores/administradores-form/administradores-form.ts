@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { AngularUtilService } from 'angular-slickgrid';
 
 export interface Administrador {
-  // AdministradorId: number;
+  AdministradorId: number;
   // AdministradorApellido: string;
   // AdministradorNombre: string;
   AdministradorDenominacion: string;
@@ -44,6 +44,7 @@ export class AdministradoresFormComponent {
   crud = input<string>('');
   
   private readonly defaultAdministrador: Administrador= {
+    AdministradorId: 0,
     // AdministradorApellido: '', 
     // AdministradorNombre: '', 
     AdministradorDenominacion: '', 
@@ -64,31 +65,35 @@ export class AdministradoresFormComponent {
   async ngOnInit() {}
 
   async load() {
-    let infoAdministrador = await firstValueFrom(this.searchService.getAdministradorInfoById(this.administradorId()))
-    // console.log('infoAdministrador: ', infoAdministrador)
-    this.Administrador.update(m => ({
-      ...m,
-      ...infoAdministrador[0],
-    }))
+    if (this.administradorId() > 0) {
+      let infoAdministrador = await firstValueFrom(this.searchService.getAdministradorInfoById(this.administradorId()))
+      // console.log('infoAdministrador: ', infoAdministrador)
+      this.Administrador.update(m => ({
+        ...m,
+        ...infoAdministrador[0],
+      }))
+    }else{
+      this.Administrador.set(this.defaultAdministrador)
+    }
   }
 
   async save() {
     await submit(this.formAdministrador, async (form) => {
       this.isLoading.set(true)
-      // const values: any = form().value()
-      // try {
+      const values: any = form().value()
+      try {
+        const administradorId = values.AdministradorId
+        if (administradorId) {
+          await firstValueFrom(this.apiService.updateAdministrador(values))
+        } else {
+          const res = await firstValueFrom(this.apiService.addAdministrador(values))
+          // this.administradorId.set(res.data.AdministradorId)
+        }
 
-      //   if (this.administradorId()) {
-      //     await firstValueFrom(this.apiService.updateAdministrador(this.administradorId(), values))
-      //   } else {
-      //     const res = await firstValueFrom(this.apiService.addAdministrador(values))
-      //     this.administradorId.set(res.data.AdministradorId)
-      //   }
+        // this.load()
+      } catch (e) {
 
-      //   this.load()
-      // } catch (e) {
-
-      // }
+      }
       this.isLoading.set(false)
     })
   }
