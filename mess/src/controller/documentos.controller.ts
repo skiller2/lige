@@ -4,6 +4,8 @@ import { dbServer } from "../index.ts";
 import type { QueryRunner } from "typeorm";
 
 export class DocumentosController extends BaseController {
+  // Cantidad de períodos a informar de recibos y monotributo
+  static maxCantPeriodos = 3
 
   // async linkDownloadComprobanteRecibo(
   //   personalId: number
@@ -16,45 +18,24 @@ export class DocumentosController extends BaseController {
   // }
 
   async getLastPeriodoOfComprobantes(personalId: number, cant: number, queryRunner: QueryRunner) {
-    try {
-      // await queryRunner.startTransaction()
-      const respuesta = queryRunner.query(`
-        SELECT TOP ${cant} per.anio, per.mes, doc.DocumentoId, doc.DocumentoTipoCodigo, doc.DocumentoNombreArchivo
-        FROM lige.dbo.liqmaperiodo per
-        JOIN documento doc ON per.anio = doc.Documentoanio AND per.mes = doc.Documentomes
-        WHERE doc.personalid = @0 AND doc.DocumentoTipoCodigo = 'REC'      
-        ORDER BY per.anio DESC,per.mes DESC`,
-        [personalId])
-      // await queryRunner.commitTransaction()
-      return respuesta
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      return error
-    } finally {
-      await queryRunner.release();
-    }
+    return queryRunner.query(`
+      SELECT TOP ${cant} per.anio, per.mes, doc.DocumentoId, doc.DocumentoTipoCodigo, doc.DocumentoNombreArchivo
+      FROM lige.dbo.liqmaperiodo per
+      JOIN documento doc ON per.anio = doc.Documentoanio AND per.mes = doc.Documentomes
+      WHERE doc.personalid = @0 AND doc.DocumentoTipoCodigo = 'REC'
+      ORDER BY per.anio DESC,per.mes DESC`,
+      [personalId])
   }
 
   async getLastPeriodosOfComprobantesAFIP(personalId: number, cant: number, queryRunner: QueryRunner) {
-    try {
-      // await queryRunner.startTransaction()
-      const respuesta = await queryRunner.query(`
-        SELECT TOP ${cant} des.PersonalId, des.PersonalComprobantePagoAFIPId, des.PersonalComprobantePagoAFIPMes mes, des.PersonalComprobantePagoAFIPAno anio, doc.DocumentoId, doc.DocumentoTipoCodigo, doc.DocumentoNombreArchivo
-        FROM PersonalComprobantePagoAFIP  des 
-        JOIN Documento doc ON doc.PersonalId = des.PersonalId AND doc.DocumentoMes = des.PersonalComprobantePagoAFIPMes AND doc.DocumentoAnio = des.PersonalComprobantePagoAFIPAno AND doc.DocumentoTipoCodigo = 'MONOT'
-        WHERE des.PersonalId = @0
-        ORDER BY des.PersonalComprobantePagoAFIPAno DESC, des.PersonalComprobantePagoAFIPMes DESC
-        `,
-        [personalId])
-      // await queryRunner.commitTransaction()
-
-      return respuesta
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      return error
-    } finally {
-      await queryRunner.release();
-    }
+    return queryRunner.query(`
+      SELECT TOP ${cant} des.PersonalId, des.PersonalComprobantePagoAFIPId, des.PersonalComprobantePagoAFIPMes mes, des.PersonalComprobantePagoAFIPAno anio, doc.DocumentoId, doc.DocumentoTipoCodigo, doc.DocumentoNombreArchivo
+      FROM PersonalComprobantePagoAFIP  des
+      JOIN Documento doc ON doc.PersonalId = des.PersonalId AND doc.DocumentoMes = des.PersonalComprobantePagoAFIPMes AND doc.DocumentoAnio = des.PersonalComprobantePagoAFIPAno AND doc.DocumentoTipoCodigo = 'MONOT'
+      WHERE des.PersonalId = @0
+      ORDER BY des.PersonalComprobantePagoAFIPAno DESC, des.PersonalComprobantePagoAFIPMes DESC
+      `,
+      [personalId])
   }
 
 }

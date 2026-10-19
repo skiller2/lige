@@ -27,7 +27,12 @@ const flowMonotributo = addKeyword(EVENTS.ACTION)
         const usuario = ChatBotController.getUser(null)
         const queryRunner = await dbServer.connection(usuario);
         const personalId = myState.personalId
-        const periodosArray: any[] = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, 3, queryRunner).then(array => { return array })
+        let periodosArray: any[]
+        try {
+            periodosArray = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, 3, queryRunner)
+        } finally {
+            await queryRunner.release()
+        }
 
         let resPeriodos = ''
         if (periodosArray && periodosArray?.length) {

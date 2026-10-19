@@ -17,7 +17,12 @@ const flowRecibo = addKeyword(EVENTS.ACTION)
         const queryRunner = await dbServer.connection(usuario);
 
         const personalId = myState.personalId
-        const periodosArray: any[] = await documentosController.getLastPeriodoOfComprobantes(personalId, 3, queryRunner).then(array => { return array })
+        let periodosArray: any[]
+        try {
+            periodosArray = await documentosController.getLastPeriodoOfComprobantes(personalId, 3, queryRunner)
+        } finally {
+            await queryRunner.release()
+        }
         let resPeriodos = ''
         if (periodosArray && periodosArray?.length) {
             periodosArray.forEach((obj: any, index: number) => {

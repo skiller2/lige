@@ -507,10 +507,10 @@ export class ChatBotController extends BaseController {
                 output = await personalController.getInfoEmpresa()
                 break;
               case 'getLastPeriodosOfComprobantesAFIP':
-                output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, tool.function.arguments.cant, queryRunner).then(array => { return array })
+                output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, DocumentosController.maxCantPeriodos, queryRunner)
                 break;
               case 'getLastPeriodoOfComprobantes':
-                output = await documentosController.getLastPeriodoOfComprobantes(pId, tool.function.arguments.cant, queryRunner).then(array => { return array })
+                output = await documentosController.getLastPeriodoOfComprobantes(pId, DocumentosController.maxCantPeriodos, queryRunner)
                 break;
               case 'getDocsPendDescarga':
                 output = await personalController.getDocsPendDescarga(pId)
@@ -551,6 +551,15 @@ export class ChatBotController extends BaseController {
                 break;
               }
               case 'getURLDocumentoNew':
+                // Solo documentos de la persona o generales
+                const docPropio = await queryRunner.query(
+                  `SELECT DocumentoId FROM Documento WHERE DocumentoId = @0 AND (PersonalId = @1 OR PersonalId = 0 OR PersonalId IS NULL)`,
+                  [tool.function.arguments.DocumentoId, pId]
+                )
+                if (!docPropio.length) {
+                  output = { Error: 'DOCUMENTO_NO_AUTORIZADO', mensaje: 'El documento solicitado no corresponde a la persona.' }
+                  break;
+                }
                 try {
                   output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId, queryRunner)
                   // Registra la entrega igual que flowDescargaDocs
