@@ -102,7 +102,7 @@ export class AdministradoresFormComponent {
         ...m,
         ...infoAdministrador[0],
       }))
-    }else{
+    } else {
       this.Administrador.set(this.defaultAdministrador)
     }
   }

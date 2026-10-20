@@ -24,6 +24,7 @@ export class AdministradoresComponent {
 
   childAdminsTable = viewChild.required<AdministradoresListadoTableComponent>('adminsTable')
   childClisTable = viewChild.required<AdministradoresClientesTableComponent>('clisTable')
+  childAdmAdd = viewChild.required<AdministradoresFormComponent>('admAdd')
   childAdmEdit = viewChild.required<AdministradoresFormComponent>('admEdit')
   childAdmDetail = viewChild.required<AdministradoresFormComponent>('admDetail')
 
@@ -43,6 +44,10 @@ export class AdministradoresComponent {
 
   onTabsetChange(_event: any) {
     switch (_event.index) {
+      case 3: //ADD
+        this.childAdmAdd().load()
+        break;
+
       case 4: //EDIT
         this.childAdmEdit().load()
         break;

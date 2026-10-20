@@ -154,8 +154,6 @@ export class AdministradoresController extends BaseController {
     }
   ];
 
-
-
   async getAdministradoresCols(req: Request, res: Response) {
     this.jsonRes(this.listaColumnas, res);
   }
@@ -234,6 +232,28 @@ export class AdministradoresController extends BaseController {
 
   }
 
+  private async getContactosByAdministradorId(queryRunner: any, AdministradorId: number) {
+    const contactos = await queryRunner.query(
+      `SELECT 
+        con.ContactoId,
+        TRIM(con.ContactoNombre) ContactoNombre,
+        TRIM(con.ContactoApellido) ContactoApellido,
+        con.ContactoArea,
+        con.ContactoJurImpositiva,
+        con.ContactoTipoCod,
+        tele.TipoTelefonoId,
+        TRIM(tele.ContactoTelefonoNro) ContactoTelefonoNro,
+        email.ContactoEmailEmail
+      FROM Contacto AS con
+      LEFT JOIN ContactoEmail AS email ON email.ContactoId = con.ContactoId
+      LEFT JOIN ContactoTelefono AS tele ON tele.ContactoId = con.ContactoId
+      
+      WHERE con.AdministradorId IN (@0)`,
+      [AdministradorId]
+    )
+    return contactos
+  }
+
   async getAdminitradorInfoById(req: any, res: Response, next: NextFunction) {
     const administradorId = req.params.id;
     const queryRunner = await getConnection(res.locals.userName);
@@ -243,6 +263,11 @@ export class AdministradoresController extends BaseController {
         adm.AdministradorInactivo, adm.AdministradorSucursalId
       FROM Administrador adm
       WHERE adm.AdministradorId = @0`, [administradorId])
+
+      if (administradorInfo.length) {
+        const contactos = await this.getContactosByAdministradorId(queryRunner, administradorId)
+        administradorInfo[0].contactos = contactos
+      }
 
       return this.jsonRes(administradorInfo, res)
     } catch (error) {
@@ -302,6 +327,77 @@ export class AdministradoresController extends BaseController {
     }
   }
 
+  async administradorContactoUpdate(queryRunner: any, contactos: any[], AdministradorId: number) {
+    contactos = contactos || []
+
+    //Validar que los campos no esten vacios
+    let campos_vacios: string[] = []
+    const contactosVal: any[] = []
+    for (const [idx, contacto] of contactos.entries()) {
+      const contactoVacio = !contacto.ContactoApellido && !contacto.ContactoNombre && !contacto.ContactoArea &&
+        !contacto.ContactoEmailEmail && !contacto.ContactoTelefonoNro && !contacto.ContactoTipoCod && !contacto.ContactoJurImpositiva
+
+      if (contactoVacio) continue //Fila de contacto vacía, se omite (Administrador sin contacto)
+
+      if (!contacto.ContactoTipoCod) campos_vacios.push(`- Tipo del contacto ${idx + 1}`)
+      // if (!contacto.ContactoJurImpositiva) campos_vacios.push(`- Jurisdicción Impositiva del contacto ${idx + 1}`)
+      if (!contacto.ContactoApellido) campos_vacios.push(`- Apellido del contacto ${idx + 1}`)
+      if (!contacto.ContactoNombre) campos_vacios.push(`- Nombre del contacto ${idx + 1}`)
+      if (!contacto.ContactoArea) campos_vacios.push(`- Área del contacto ${idx + 1}`)
+      if (!contacto.ContactoEmailEmail) campos_vacios.push(`- Email del contacto ${idx + 1}`)
+      if (!contacto.ContactoTelefonoNro) campos_vacios.push(`- Teléfono del contacto ${idx + 1}`)
+      contactosVal.push(contacto)
+    }
+
+    if (campos_vacios.length) {
+      campos_vacios.unshift('Debe completar los siguientes campos: ')
+      throw new ClientException(campos_vacios)
+    }
+
+    //Elimino los contactos antiguos no declarados del Administrador
+    const ContactoIds = contactosVal.map((row: { ContactoId: any; }) => Number(row.ContactoId)).filter((id: number) => id > 0);
+    const ContactoIdsSql = ContactoIds.length ? ContactoIds.join(',') : '0' //Sin ids declarados se borran todos los contactos del Administrador
+   
+    await queryRunner.query(`DELETE e FROM ContactoEmail e
+      JOIN Contacto c ON c.ContactoId = e.ContactoId
+      WHERE c.AdministradorId = @0 AND e.ContactoId NOT IN (${ContactoIdsSql}) `, [AdministradorId])
+    await queryRunner.query(`DELETE t FROM ContactoTelefono t
+      JOIN Contacto c ON c.ContactoId = t.ContactoId
+      WHERE c.AdministradorId = @0 AND t.ContactoId NOT IN (${ContactoIdsSql}) `, [AdministradorId])
+    await queryRunner.query(`DELETE FROM Contacto WHERE AdministradorId = @0  AND ContactoId NOT IN (${ContactoIdsSql})`, [AdministradorId]);
+
+    //Crea uno por uno los contactos
+    for (const contacto of contactosVal) {
+      const ContactoApellidoNombre = (contacto.ContactoApellido ? contacto.ContactoApellido : '') + (contacto.ContactoApellido && contacto.ContactoNombre ? ',' : '') + (contacto.ContactoNombre ? contacto.ContactoNombre : '') || null;
+      let ContactoTelefonoUltNro = 0
+      let ContactoEmailUltNro = 0
+      let ContactoId = contacto.ContactoId
+
+      if (contacto.ContactoId) {  //Actualizo contacto
+        await queryRunner.query(`DELETE FROM ContactoEmail WHERE ContactoId = @0`, [contacto.ContactoId]);
+        await queryRunner.query(`DELETE FROM ContactoTelefono WHERE ContactoId = @0`, [contacto.ContactoId]);
+        await queryRunner.query(`UPDATE Contacto SET ContactoArea=@1,ContactoApellido=@2,ContactoNombre=@3,ContactoApellidoNombre=@4,ContactoTipoCod=@5,ContactoJurImpositiva=@6 WHERE ContactoId=@0 `,
+          [contacto.ContactoId, contacto.ContactoArea, contacto.ContactoApellido, contacto.ContactoNombre, ContactoApellidoNombre, contacto.ContactoTipoCod, contacto.ContactoJurImpositiva])
+      } else { //Nuevo contacto
+        await queryRunner.query(`INSERT INTO Contacto (AdministradorId,ContactoArea,ContactoApellido,ContactoNombre,ContactoTelefonoUltNro,ContactoEmailUltNro,ContactoApellidoNombre,ContactoTipoCod,ContactoJurImpositiva )
+              VALUES ( @0,@1,@2,@3,@4,@5,@6,@7,@8)`, [
+          AdministradorId, contacto.ContactoArea, contacto.ContactoApellido, contacto.ContactoNombre, ContactoTelefonoUltNro, ContactoEmailUltNro, ContactoApellidoNombre, contacto.ContactoTipoCod, contacto.ContactoJurImpositiva])
+        const resContacto = await queryRunner.query(`SELECT IDENT_CURRENT('Contacto')`)
+        ContactoId = resContacto[0][''];
+      }
+
+      if (contacto.ContactoEmailEmail)
+        await queryRunner.query(`INSERT INTO ContactoEmail (ContactoEmailId,ContactoId,ContactoEmailEmail,ContactoEmailInactivo) VALUES (
+        @0,@1,@2,@3)`, [++ContactoEmailUltNro, ContactoId, contacto.ContactoEmailEmail, false])
+
+      if (contacto.ContactoTelefonoNro)
+        await queryRunner.query(`INSERT INTO ContactoTelefono (ContactoTelefonoId,ContactoId,TipoTelefonoId,ContactoTelefonoNro)
+          VALUES (@0,@1,@2,@3)`, [++ContactoTelefonoUltNro, ContactoId, contacto.TipoTelefonoId, contacto.ContactoTelefonoNro])
+      await queryRunner.query(`UPDATE Contacto SET ContactoTelefonoUltNro=@1,ContactoEmailUltNro=@2  WHERE ContactoId=@0 `,
+        [ContactoId, ContactoTelefonoUltNro, ContactoEmailUltNro])
+    }
+  }
+
   async addAdminitrador(req: any, res: Response, next: NextFunction) {
     const administrador = req.body;
     const queryRunner = await getConnection(res.locals.userName);
@@ -326,7 +422,9 @@ export class AdministradoresController extends BaseController {
           administrador.AdministradorSucursalId ]
       );
 
-        const newId: number = inserted[0]?.AdministradorId ?? null;
+      const newId: number = inserted[0]?.AdministradorId ?? null;
+
+      await this.administradorContactoUpdate(queryRunner, administrador.contactos, newId)
 
       await queryRunner.commitTransaction();
       this.jsonRes({ AdministradorId: newId }, res, 'Carga Exitosa');
@@ -360,6 +458,8 @@ export class AdministradoresController extends BaseController {
           administrador.AdministradorId ]
       );
 
+      await this.administradorContactoUpdate(queryRunner, administrador.contactos, administrador.AdministradorId)
+
       await queryRunner.commitTransaction();
       this.jsonRes({ }, res, 'Actualización Exitosa');
     } catch (error) {
@@ -389,6 +489,8 @@ export class AdministradoresController extends BaseController {
         `DELETE FROM ClienteAdministrador WHERE ClienteAdministradorId = @0`,
         [ administradorId ]
       );
+
+      await this.administradorContactoUpdate(queryRunner, [], administradorId)
 
       await queryRunner.query(
         `DELETE FROM Administrador WHERE AdministradorId = @0`,
