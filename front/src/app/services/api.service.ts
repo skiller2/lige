@@ -2137,9 +2137,9 @@ export class ApiService {
     return this.http.post<ResponseJSON<any>>('/api/parametro-general/baja', { ParametroGeneralCodigo });
   }
 
-  getPrecioProductoOrdenVenta(ObjetivoId: number, anio: number, mes: number, ProductoCodigo: string) {
+  getPrecioProductoOrdenVenta(ClienteId: number, ClienteElementoDependienteId: number, anio: number, mes: number, ProductoCodigo: string) {
 
-    return this.http.get<ResponseJSON<any>>(`/api/orden-venta/precio/${ObjetivoId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
+    return this.http.get<ResponseJSON<any>>(`/api/orden-venta/precio/${ClienteId}/${ClienteElementoDependienteId}/${anio}/${mes}/${ProductoCodigo}`).pipe(
       map((res: { data: any; }) => res.data),
       catchError(() => of({ ImporteUnitario: null }))
     );

@@ -601,9 +601,25 @@ export class OrdenVentaController extends BaseController {
     if (comprobantes.length == 0 && EstadoOrdenVentaCodigo == 'FAC')
       throw new ClientException(`No se puede tener Estado Facturado sin ningún comprobante cargado`)
 
-    const ImporteTotalAFacturar = items.reduce(
-      (total, item) => total + (Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)), 0);
-
+    // TODO: VER DE MEJORAR LOGICA
+    let ImporteTotalAFacturar = 0
+    // Horas 'A'/'B' desde ObjetivoImporteVenta antes del total; el precio de lista del resto lo completa el front
+    const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, PeriodoAnio, PeriodoMes, queryRunner)
+    for (const item of items) {
+      switch (item.ProductoCodigo) {
+        case 'SSF':
+          item.ImporteUnitario = ImporteUnitarioA
+          break;
+        case 'SSFB':
+          item.ImporteUnitario = ImporteUnitarioB
+          break;
+        default:
+          const precio = await ParametrosVentaController.getPrecioListaPreciosQuery(ClienteId, PeriodoAnio, PeriodoMes, item.ProductoCodigo, queryRunner)
+          if (precio.Importe != null) item.ImporteUnitario = precio.Importe
+          break;
+      }
+      ImporteTotalAFacturar += Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)
+    }
 
     if (NroOrdenVenta) {
       const ov = await this.getOrdenVentaQuery(queryRunner, NroOrdenVenta)
@@ -635,12 +651,9 @@ export class OrdenVentaController extends BaseController {
     }
 
     await queryRunner.query(`DELETE FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
-    const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, PeriodoAnio, PeriodoMes, queryRunner)
 
     for (const [indice, item] of items.entries()) {
-      let ImporteUnitario = Number(item.ImporteUnitario)
-      if (item.ProductoCodigo == 'SSF') ImporteUnitario = ImporteUnitarioA
-      if (item.ProductoCodigo == 'SSFB') ImporteUnitario = ImporteUnitarioB
+      const ImporteUnitario = Number(item.ImporteUnitario)
 
       await queryRunner.query(`
           INSERT INTO ItemOrdenVenta (
@@ -772,61 +785,29 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
-  // Precio del producto para el cliente del objetivo: el último vigente al cierre del período.
-  // Los productos de horas 'A' y 'B' se resuelven aparte, contra ObjetivoImporteVenta.
+  // Precio del producto con el mismo criterio que setOrdenVentaQuery: horas 'A'/'B' desde ObjetivoImporteVenta, el resto de la lista del cliente
   async getPrecioProducto(req: Request, res: Response, next: NextFunction) {
-    const ObjetivoId = Number(req.params.ObjetivoId);
+    const ClienteId = Number(req.params.ClienteId);
+    const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
     const anio = Number(req.params.anio);
     const mes = Number(req.params.mes);
     const ProductoCodigo = String(req.params.ProductoCodigo ?? '');
     const queryRunner = await getConnection(res.locals.userName);
 
     try {
-      const codigoHoras = ProductoCodigo.trim().toUpperCase();
+      const codigo = ProductoCodigo.trim().toUpperCase();
+      let ImporteUnitario = null
 
-      if (codigoHoras === PRODUCTO_HORAS_A || codigoHoras === PRODUCTO_HORAS_B) {
-        // La columna sale de una constante, no de la request
-        const columnaImporte = codigoHoras === PRODUCTO_HORAS_A ? 'ImporteHoraA' : 'ImporteHoraB';
-
-        const horas = await queryRunner.query(`
-          SELECT TOP 1
-            oiv.${columnaImporte} AS ImporteUnitario,
-            oiv.Observaciones AS TextoFactura
-          FROM Objetivo obj
-          JOIN ObjetivoImporteVenta oiv ON oiv.ClienteId = obj.ClienteId
-            AND oiv.ClienteElementoDependienteId = ISNULL(obj.ClienteElementoDependienteId,0)
-          WHERE obj.ObjetivoId = @0
-            AND (oiv.Anio < @1 OR (oiv.Anio = @1 AND oiv.Mes <= @2))
-          ORDER BY oiv.Anio DESC, oiv.Mes DESC
-        `, [ObjetivoId, anio, mes]);
-
-        return this.jsonRes({
-          ProductoCodigo,
-          ImporteUnitario: horas[0]?.ImporteUnitario ?? null,
-          TextoFactura: horas[0]?.TextoFactura ?? null,
-          PrecioDeLista: horas[0]?.ImporteUnitario == null ? 0 : 1
-        }, res);
+      if (codigo == PRODUCTO_HORAS_A || codigo == PRODUCTO_HORAS_B) {
+        const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
+        ImporteUnitario = codigo == PRODUCTO_HORAS_A ? ImporteUnitarioA : ImporteUnitarioB
+      } else {
+        const precio = await ParametrosVentaController.getPrecioListaPreciosQuery(ClienteId, anio, mes, ProductoCodigo, queryRunner)
+        ImporteUnitario = precio.Importe
       }
 
-      const precio = await queryRunner.query(`
-        SELECT TOP 1
-          pre.ProductoCodigo,
-          pre.PeriodoDesdeAplica,
-          pre.Importe AS ImporteUnitario
-        FROM Objetivo obj
-        JOIN ProductoPrecio pre ON pre.ClienteId = obj.ClienteId
-        WHERE obj.ObjetivoId = @0
-          AND pre.ProductoCodigo = @3
-          AND pre.PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(@1,@2,1))
-        ORDER BY pre.PeriodoDesdeAplica DESC
-      `, [ObjetivoId, anio, mes, ProductoCodigo]);
-
       // PrecioDeLista: el importe unitario sale de la lista del cliente y no se edita
-      this.jsonRes(
-        precio[0]
-          ? { ...precio[0], PrecioDeLista: 1 }
-          : { ProductoCodigo, ImporteUnitario: null, PrecioDeLista: 0 },
-        res);
+      this.jsonRes({ ProductoCodigo, ImporteUnitario, PrecioDeLista: ImporteUnitario == null ? 0 : 1 }, res);
 
     } catch (error) {
       return next(error);
@@ -1311,7 +1292,7 @@ export class OrdenVentaController extends BaseController {
           { Evento: 'Última modificación', Usuario: row.AudUsuarioMod, Fecha: row.AudFechaMod, Ip: row.AudIpMod }
         ]
         this.jsonRes(resp, res);
-      } else 
+      } else
         this.jsonRes([], res);
     } catch (error) {
       return next(error);
