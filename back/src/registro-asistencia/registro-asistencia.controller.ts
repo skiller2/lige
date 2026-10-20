@@ -176,6 +176,16 @@ const consultaColumns: any[] = [
   },
 ]
 
+// Distancia en metros entre dos coordenadas (fórmula de haversine)
+function distanciaEnMetros(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const RADIO_TIERRA = 6371000
+  const rad = (grados: number) => grados * Math.PI / 180
+  const dLat = rad(lat2 - lat1)
+  const dLon = rad(lon2 - lon1)
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2
+  return 2 * RADIO_TIERRA * Math.asin(Math.sqrt(a))
+}
+
 export class RegistroAsistenciaController extends BaseController {
 
   async getGridCols(req: Request, res: Response) {
@@ -468,6 +478,73 @@ export class RegistroAsistenciaController extends BaseController {
       .filter((fila: any): fila is VectorPersonal => !!fila.vector)
   }
 
+  private async analizarUbicacion(queryRunner: QueryRunner, ubicacion: any, config: Record<string, number>): Promise<any[]> {
+    try {
+      const { precisionMaximaMetros, distanciaMaximaMetros } = config
+      const latitud = Number(ubicacion?.latitud)
+      const longitud = Number(ubicacion?.longitud)
+      const precision = Number(ubicacion?.precision)
+
+      if (ubicacion?.latitud == null || ubicacion?.longitud == null || !Number.isFinite(latitud) || !Number.isFinite(longitud)) {
+        console.log('[registro-asistencia] Ubicación del marcado: el dispositivo no mandó ubicación', { ubicacion })
+        return []
+      }
+
+      const objetivos = await queryRunner.query(`
+        SELECT obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,
+          CONCAT(obj.ClienteId, '/', obj.ClienteElementoDependienteId, ' ', TRIM(cli.ClienteDenominacion), ' ', TRIM(eledep.ClienteElementoDependienteDescripcion)) AS Descripcion,
+          dom.DomicilioId,
+          COALESCE(NULLIF(TRIM(dom.DomicilioLatitudCorregida), ''), NULLIF(TRIM(dom.DomicilioLatitud), '')) AS Latitud,
+          COALESCE(NULLIF(TRIM(dom.DomicilioLongitudCorregida), ''), NULLIF(TRIM(dom.DomicilioLongitud), '')) AS Longitud
+        FROM Objetivo obj
+        JOIN Cliente cli ON cli.ClienteId = obj.ClienteId
+        JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = obj.ClienteId AND eledep.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+        JOIN NexoDomicilio nexdom ON nexdom.ClienteId = obj.ClienteId AND nexdom.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND nexdom.NexoDomicilioActual = 1
+        JOIN Domicilio dom ON dom.DomicilioId = nexdom.DomicilioId
+        WHERE EXISTS (
+          SELECT 1 FROM ClienteElementoDependienteContrato eledepcon
+          WHERE eledepcon.ClienteId = obj.ClienteId AND eledepcon.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+            AND eledepcon.ClienteElementoDependienteContratoFechaDesde <= @0
+            AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaHasta, '9999-12-31') >= @0
+            AND ISNULL(eledepcon.ClienteElementoDependienteContratoFechaFinalizacion, '9999-12-31') >= @0)
+      `, [new Date()])
+
+      const conCoordenadas = objetivos
+        .map((obj: any) => ({ ...obj, Latitud: Number(obj.Latitud), Longitud: Number(obj.Longitud) }))
+        .filter((obj: any) => Number.isFinite(obj.Latitud) && Number.isFinite(obj.Longitud) && !(obj.Latitud === 0 && obj.Longitud === 0))
+
+      const cercanos = conCoordenadas
+        .map((obj: any) => ({
+          ObjetivoId: obj.ObjetivoId,
+          Descripcion: String(obj.Descripcion ?? '').trim(),
+          DomicilioId: obj.DomicilioId,
+          coordenadas: `${obj.Latitud},${obj.Longitud}`,
+          distanciaMetros: Math.round(distanciaEnMetros(latitud, longitud, obj.Latitud, obj.Longitud)),
+        }))
+        .sort((a: any, b: any) => a.distanciaMetros - b.distanciaMetros)
+
+      const dentroDelRango = cercanos.filter((obj: any) => obj.distanciaMetros <= distanciaMaximaMetros)
+
+      // console.log('[registro-asistencia] Ubicación del marcado', {
+      //   dispositivo: `${latitud},${longitud}`,
+      //   precisionMetros: Number.isFinite(precision) ? precision : null,
+      //   precisionMaximaMetros,
+      //   precisionAceptable: Number.isFinite(precision) && precision <= precisionMaximaMetros,
+      //   distanciaMaximaMetros,
+      //   objetivosVigentes: objetivos.length,
+      //   objetivosConCoordenadas: conCoordenadas.length,
+      //   // Solo los objetivos a distanciaMaximaMetros o menos, del más cercano al más lejano
+      //   objetivosDentroDelRango: dentroDelRango.length,
+      //   dentroDelRango: dentroDelRango.map((obj: any) => `${obj.ObjetivoId} ${obj.Descripcion}: ${obj.distanciaMetros} m`),
+      // })
+
+      return dentroDelRango
+    } catch (error) {
+      console.error('[registro-asistencia] Error al analizar la ubicación del marcado', error)
+      return []
+    }
+  }
+
   // Prueba del marcado: reconoce el rostro contra los vectores guardados del personal activo e
   // informa en consola. Todavía no graba nada.
   async marcar(req: Request, res: Response, next: NextFunction) {
@@ -483,11 +560,17 @@ export class RegistroAsistenciaController extends BaseController {
 
       const inicio = Date.now()
 
-      // El umbral de similitud se lee en cada marcado: un cambio en ROSTR se aplica sin reiniciar
+      // El umbral de similitud y la configuración de ubicación se leen en cada marcado: un cambio en
+      // ROSTR o UBICA se aplica sin reiniciar
       const parametros = await queryRunner.query(
-        `SELECT ParametroGeneralCodigo, Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`,
-        [PARAMETRO_ROSTRO])
+        `SELECT ParametroGeneralCodigo, Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo IN (@0, @1)`,
+        [PARAMETRO_ROSTRO, PARAMETRO_UBICACION])
       const { umbralSimilitud } = this.leerParametro(parametros, PARAMETRO_ROSTRO, CAMPOS_ROSTRO)
+      const configUbicacion = this.leerParametro(parametros, PARAMETRO_UBICACION, CAMPOS_UBICACION)
+
+      // Con un solo objetivo en el radio, el front lo deja elegido en la confirmación; con ninguno o
+      const objetivosEnRango = await this.analizarUbicacion(queryRunner, ubicacion, configUbicacion)
+      const ObjetivoIdSugerido = objetivosEnRango.length === 1 ? objetivosEnRango[0].ObjetivoId : null
 
       const inicioVectores = Date.now()
       const vectoresPersonal = await this.getVectoresPersonalActivo(queryRunner, new Date())
@@ -515,6 +598,7 @@ export class RegistroAsistenciaController extends BaseController {
         PersonalId: resultado.encontrado ? resultado.mejor.PersonalId : null,
         ApellidoNombre: resultado.encontrado ? resultado.mejor.ApellidoNombre : '',
         similitud: resultado.mejor?.similitud ?? null,
+        ObjetivoIdSugerido,
         tiempos,
       }, res)
 

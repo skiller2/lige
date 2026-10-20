@@ -317,6 +317,9 @@ export class RegistroAsistenciaCargaComponent {
       this.personaEncontrada.set(respuesta?.ApellidoNombre || `PersonalId ${respuesta?.PersonalId}`)
       this.personalIdEncontrado.set(respuesta?.PersonalId ?? null)
       this.similitudEncontrada.set(respuesta?.similitud ?? null)
+      // Con un solo objetivo en el radio de la ubicación, queda elegido; si no, se elige a mano
+      if (respuesta?.encontrado && respuesta?.ObjetivoIdSugerido)
+        this.confirmacion.set({ TipoLugar: 'OBJ', ObjetivoId: respuesta.ObjetivoIdSugerido, CustodiaCodigo: null })
       this.estado.set(respuesta?.encontrado ? 'marcado' : 'noEncontrado')
     } catch (e: any) {
       this.mostrarError('No pudimos verificar su rostro.', 'Error al reconocer el rostro (/marcar)', e)
