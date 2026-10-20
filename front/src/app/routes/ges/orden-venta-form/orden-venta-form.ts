@@ -223,6 +223,39 @@ export class OrdenVentaFormComponent {
 
   }
 
+  // Clave del precio de cada ítem: si cambia el producto, el objetivo o el período, hay que volver a buscarlo
+  private clavesPrecio() {
+    const { ClienteId, ClienteElementoDependienteId, Periodo, items } = this.ordenVenta()
+    const fecha = Periodo ? new Date(Periodo) : null
+    return items.map(item => `${ClienteId}|${ClienteElementoDependienteId}|${fecha?.getFullYear()}|${fecha?.getMonth()}|${item.ProductoCodigo}`)
+  }
+
+  // Claves con precio ya resuelto (o cargadas de la base): no se vuelven a buscar
+  private clavesPrevias: string[] = []
+
+  private cambioProducto = effect(() => {
+    const claves = this.clavesPrecio()
+    this.ordenVenta().items.forEach((item, i) => {
+      if (item.ProductoCodigo && claves[i] !== this.clavesPrevias[i])
+        this.aplicarPrecio(i, item.ProductoCodigo, claves[i])
+    })
+    this.clavesPrevias = claves
+  })
+
+  private async aplicarPrecio(indice: number, ProductoCodigo: string, clave: string) {
+    const { ClienteId, ClienteElementoDependienteId, Periodo } = this.ordenVenta()
+    if (!ClienteId || !Periodo) return
+    const fecha = new Date(Periodo)
+
+    const precio = await firstValueFrom(this.apiService.getPrecioProductoOrdenVenta(Number(ClienteId), Number(ClienteElementoDependienteId), fecha.getFullYear(), fecha.getMonth() + 1, ProductoCodigo))
+    // Si mientras tanto cambió el producto, el objetivo o el período, el precio ya no corresponde
+    if (this.clavesPrecio()[indice] !== clave) return
+    this.ordenVenta.update(m => ({
+      ...m,
+      items: m.items.map((item, i) => i === indice ? { ...item, ImporteUnitario: precio?.ImporteUnitario?.toString() ?? '' } : item)
+    }))
+  }
+
   async load(NroOrdenVenta: number) {
     const ordenVenta = await firstValueFrom(this.apiService.getOrdenVenta(NroOrdenVenta))
     this.ordenVenta.update(m => ({ ...m, ...ordenVenta }))
@@ -230,6 +263,7 @@ export class OrdenVentaFormComponent {
       this.addItem()
     if (this.ordenVenta().comprobantes.length == 0)
       this.addComprobante()
+    this.clavesPrevias = this.clavesPrecio()
 
     setTimeout(() => { this.formOrdenVenta().reset() }, 200);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
   }
@@ -241,6 +275,7 @@ export class OrdenVentaFormComponent {
       this.addItem()
     if (this.ordenVenta().comprobantes.length == 0)
       this.addComprobante()
+    this.clavesPrevias = this.clavesPrecio()
 
     //    setTimeout(() => { this.formOrdenVenta().reset() }, 0);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
   }
@@ -274,6 +309,7 @@ export class OrdenVentaFormComponent {
     newOrdenVenta.NroOrdenVenta = 0
     newOrdenVenta.EstadoOrdenVentaCodigo = 'PEN'
     this.ordenVenta.set(newOrdenVenta)
+    this.clavesPrevias = this.clavesPrecio()
     this.formOrdenVenta().reset();
   }
 

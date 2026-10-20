@@ -306,16 +306,39 @@ export class AsistenciaController extends BaseController {
 
       const ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
       const ClienteId = objetivo[0].ClienteId
+
+      Observaciones = await this.setOrdenVentaHorasQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip, ahora)
+
+      await this.setHorasFacturacionQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip);
+
+      await queryRunner.commitTransaction();
+      this.jsonRes([], res, `Horas Actualizadas`);
+    } catch (error) {
+      await this.rollbackTransaction(queryRunner)
+      return next(error)
+    } finally {
+      // you need to release query runner which is manually created:
+      await queryRunner.release();
+    }
+
+  }
+
+  // Sincroniza los ítems de horas A/B de la primera orden de venta del período (la crea si no existe); devuelve las observaciones aplicadas
+  async setOrdenVentaHorasQuery(anio: number, mes: number, ClienteId: number, ClienteElementoDependienteId: number, TotalHoraA: number, TotalHoraB: number, Observaciones: string, queryRunner: QueryRunner, usuario: string, ip: string, ahora: Date) {
       const ordenVenta = await queryRunner.query(
-        `SELECT TOP 1 ord.EstadoOrdenVentaCodigo, ord.NroOrdenVenta
-         FROM  OrdenVenta ord 
-         JOIN ItemOrdenVenta item ON ord.NroOrdenVenta=item.NroOrdenVenta 
+        `SELECT TOP 1 ord.EstadoOrdenVentaCodigo, ord.NroOrdenVenta, est.Descripcion
+         FROM  OrdenVenta ord
+         LEFT JOIN EstadoOrdenVenta est on est.EstadoOrdenVentaCod=ord.EstadoOrdenVentaCodigo
          WHERE ord.PeriodoAnio=@1 AND ord.PeriodoMes=@2 AND ord.ClienteId=@3 AND ord.ClienteElementoDependienteId=@4
          ORDER BY ord.NroOrdenVenta
        `, [null, anio, mes, ClienteId, ClienteElementoDependienteId])
 
       if (ordenVenta[0] && (ordenVenta[0].EstadoOrdenVentaCodigo != 'PEN' && ordenVenta[0].EstadoOrdenVentaCodigo != 'FIN'))
-        throw new ClientException(`No se puede modificar los valores de HorasA y HorasB porque la orden de venta ${ordenVenta[0].NroOrdenVenta} no está pendiente (${ordenVenta[0].EstadoOrdenVentaCodigo})`)
+        throw new ClientException(`No se pueden modificar las horas a facturar ni las observaciones porque la orden de venta ${ordenVenta[0].NroOrdenVenta} está en estado ${ordenVenta[0].Descripcion ?? ordenVenta[0].EstadoOrdenVentaCodigo}. La orden debe estar en estado pendiente o finalizada.`)
+
+      // Las horas pueden llegar como texto desde el front ("0" es truthy)
+      TotalHoraA = Number(TotalHoraA) || 0
+      TotalHoraB = Number(TotalHoraB) || 0
 
       const ProductoCodigoA = 'SSF'
       const ProductoCodigoB = 'SSFB'
@@ -330,6 +353,9 @@ export class AsistenciaController extends BaseController {
           `UPDATE OrdenVenta SET Observaciones=@1, AudFechaMod=@2, AudIpMod=@3, AudUsuarioMod=@4 
          WHERE NroOrdenVenta=@0 
        `, [NroOrdenVenta, Observaciones, ahora, ip, usuario])
+
+        // Se eliminan los ítems de horas en null o 0 (con 0 horas todos quedarían en 0)
+        await queryRunner.query(`DELETE ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1 AND (ISNULL(Cantidad,0)=0 OR @2=0)`, [NroOrdenVenta, ProductoCodigoA, TotalHoraA])
 
         await queryRunner.query(
           `UPDATE ItemOrdenVenta SET Cantidad=@2, ImporteUnitario=@3, AudFechaMod=@4, AudIpMod=@5, AudUsuarioMod=@6 
@@ -360,8 +386,10 @@ export class AsistenciaController extends BaseController {
           ]);
         }
 
+        await queryRunner.query(`DELETE ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1 AND (ISNULL(Cantidad,0)=0 OR @2=0)`, [NroOrdenVenta, ProductoCodigoB, TotalHoraB])
+
         await queryRunner.query(
-          `UPDATE ItemOrdenVenta SET Cantidad=@2, ImporteUnitario=@3, AudFechaMod=@4, AudIpMod=@5, AudUsuarioMod=@6 
+          `UPDATE ItemOrdenVenta SET Cantidad=@2, ImporteUnitario=@3, AudFechaMod=@4, AudIpMod=@5, AudUsuarioMod=@6
          WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1
        `, [NroOrdenVenta, ProductoCodigoB, TotalHoraB, ImporteUnitarioB, ahora, ip, usuario])
         const updatecountB = await queryRunner.query(`SELECT @@ROWCOUNT AS updatecount`);
@@ -388,6 +416,12 @@ export class AsistenciaController extends BaseController {
             ahora, usuario, ip
           ]);
         }
+
+        // Recalcula el total de la cabecera con la misma cuenta que setOrdenVentaQuery
+        const ordenDs = await ordenVentaController.getOrdenVentaQuery(queryRunner, NroOrdenVenta)
+        const ImporteTotalAFacturar = ordenDs.items.reduce(
+          (total: number, item: any) => total + (Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)), 0)
+        await queryRunner.query(`UPDATE OrdenVenta SET ImporteTotalAFacturar=@1 WHERE NroOrdenVenta=@0`, [NroOrdenVenta, ImporteTotalAFacturar])
       } else {  // Tengo que crear la Orden de Venta desde 0
         let items = []
 
@@ -411,19 +445,7 @@ export class AsistenciaController extends BaseController {
           await ordenVentaController.setOrdenVentaQuery(anio, mes, ClienteId, ClienteElementoDependienteId, 0, items, [], Observaciones, 'PEN', queryRunner, usuario, ip, ahora)
         }
       }
-
-      await this.setHorasFacturacionQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip);
-
-      await queryRunner.commitTransaction();
-      this.jsonRes([], res, `Horas Actualizadas`);
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      return next(error)
-    } finally {
-      // you need to release query runner which is manually created:
-      await queryRunner.release();
-    }
-
+      return Observaciones
   }
 
   async addAsistenciaPeriodoResJson(req: any, res: Response, next: NextFunction) {

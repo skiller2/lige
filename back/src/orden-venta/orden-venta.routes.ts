@@ -32,7 +32,7 @@ ordenVentaRouter.post("/save", [authMiddleware.verifyToken,  authMiddleware.veri
   ordenVentaController.setOrdenVenta(req, res, next);
 });
 
-ordenVentaRouter.get("/precio/:ObjetivoId/:anio/:mes/:ProductoCodigo", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
+ordenVentaRouter.get("/precio/:ClienteId/:ClienteElementoDependienteId/:anio/:mes/:ProductoCodigo", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
   ordenVentaController.getPrecioProducto(req, res, next);
 });
 

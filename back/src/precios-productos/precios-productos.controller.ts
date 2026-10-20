@@ -446,7 +446,6 @@ LEFT JOIN ClienteFacturacion fac
 
         const list = req.body.list
         const queryRunner = await getConnection(res.locals.userName)
-        let messageError: string[] = []
         try {
 
 
@@ -454,24 +453,15 @@ LEFT JOIN ClienteFacturacion fac
 
             for (const producto of list) {
 
-                const id = producto.id
                 // const CUIT = producto.ClienteFacturacionCUIT
                 const ClienteId = producto.Cliente?.id
                 const ProductoCodigo = producto.ProductoCodigo
                 const PeriodoDesdeAplica = new Date(producto.PeriodoDesdeAplica)
-                const anio = PeriodoDesdeAplica.getFullYear()
-                const mes = PeriodoDesdeAplica.getMonth() + 1
-
-                const checkComprobante = await queryRunner.query(`
-                    SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
-                `, [ProductoCodigo, ClienteId, anio, mes])
-                if (checkComprobante[0]?.ComprobanteNro?.length) messageError.push(`FILA ${id}: El precio del producto ya fue facturados`)
 
                 await this.deleteProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica)
 
             }
             // throw new ClientException(`DEBUG`)
-            if (messageError.length) throw new ClientException(messageError)
             await queryRunner.commitTransaction()
             return this.jsonRes("", res, "Borrado Exitoso")
         } catch (error) {
@@ -682,18 +672,9 @@ LEFT JOIN ClienteFacturacion fac
                     SELECT PeriodoDesdeAplica, Importe FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
                 `, [productoCodigoRequest, ClienteId, PeriodoDesdeAplica])
 
-                if (checkNewCodigo.length) { //En caso de que exista
-                    //Compruebo si fue facturado
-                    const checkComprobante = await queryRunner.query(`
-                        SELECT ComprobanteNro FROM Facturacion WHERE ProductoCodigo = @0 AND ClienteId = @1 AND Anio = @2 AND Mes = @3
-                    `, [productoCodigoRequest, ClienteId, anioRequest, mesRequest])
-
-                    if (checkComprobante[0]?.ComprobanteNro?.length && checkNewCodigo[0].Importe != Importe) {//Fue facturado y el Importe es diferente al de la base de datos
-                        dataset.push({ id: idError++, CUIT: row[columnsXLS['CUIT']], Detalle: `El precio del producto del periodo ${anioRequest}/${mesRequest} existe y fue facturado. No se puede modificar`, RazonSocial })
-                        continue
-                    } else if (!checkComprobante[0] && checkNewCodigo[0].Importe != Importe) {//No fue facturado y el Importe es diferente al de la base de datos
-                        await this.deleteProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica)
-                    }
+                //Si ya existe lo reemplazo
+                if (checkNewCodigo.length) {
+                    await this.deleteProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica)
                 }
                 CUITs.push(CUIT)
 

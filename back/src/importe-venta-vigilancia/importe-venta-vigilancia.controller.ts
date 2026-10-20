@@ -995,6 +995,10 @@ LEFT JOIN (
             fechaActual, usuario, ip, Observaciones])
       }
 
+      // Si cambian las horas a facturar A o B o las observaciones se sincroniza la orden de venta, igual que en carga de asistencia
+      if (Number(objetivo[0].TotalHoraA) != Number(TotalHoraA) || Number(objetivo[0].TotalHoraB) != Number(TotalHoraB)
+        || (objetivo[0].Observaciones ?? '') != (Observaciones ?? ''))
+        await new AsistenciaController().setOrdenVentaHorasQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip, fechaActual)
 
       const rec = await queryRunner.query(
         `SELECT ven.ClienteId,ven.Anio,ven.Mes,ven.ClienteElementoDependienteId,ven.TotalHoraA,ven.TotalHoraB,ven.ImporteHoraA,ven.ImporteHoraB, ven.Observaciones,
