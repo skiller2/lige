@@ -108,7 +108,9 @@ import { HeaderTitleComponent } from './widgets/title.component';
       </ng-template>
     </layout-default>
     @if (showSettingDrawer) {
-      <setting-drawer />
+     @defer (on idle) {
+        <setting-drawer />
+      }
     }
     <theme-btn />
   `,

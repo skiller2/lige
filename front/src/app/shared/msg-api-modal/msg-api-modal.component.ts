@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { JsonPipe } from '@angular/common';
 import { NZ_MODAL_DATA } from 'ng-zorro-antd/modal';
 import { SHARED_IMPORTS } from '../shared-imports';
@@ -20,6 +20,11 @@ export interface MsgApi {
   /** Respuesta cruda de la API. */
   respuesta?: unknown;
   headers?: unknown;
+  /**
+   * Descripción corta del error, para la columna y el filtro de la tabla. Si no viene se arma con
+   * el status. Hace falta cuando el error fue antes de llamar (por ejemplo, sin CUIT).
+   */
+  error?: string;
 }
 
 export interface MsgApiModalData {
@@ -28,6 +33,14 @@ export interface MsgApiModalData {
   tipo: 'success' | 'warning' | 'error';
   llamadas: MsgApi[];
 }
+
+/** Hasta esta cantidad de llamadas se muestra una card por llamada; con más, una tabla. */
+const MAXIMO_TARJETAS = 3;
+
+export function esOkMsgApi(llamada: MsgApi): boolean {
+  return !!llamada.status && llamada.status >= 200 && llamada.status < 300;
+}
+
 
 @Component({
   selector: 'app-msg-api-modal',
@@ -44,7 +57,39 @@ export class MsgApiModalComponent {
     !!this.data.mensaje &&
     !this.data.llamadas.some(l => l.url && `${l.method ?? ''} ${l.url}`.trim() === this.data.mensaje.trim());
 
+  readonly modoTabla = this.data.llamadas.length > MAXIMO_TARJETAS;
+
+  /** Filas de la tabla: cada llamada con su índice (para expandir) y la descripción del error. */
+  readonly filas = this.data.llamadas.map((llamada, indice) => ({ ...llamada, indice, error: this.descripcionError(llamada) }));
+
+  /** Una opción de filtro por cada error distinto, con la cantidad de llamadas que lo tienen. */
+  readonly filtrosError = [...new Set(this.filas.map(f => f.error))].map(error => ({
+    text: `${error} (${this.filas.filter(f => f.error === error).length})`,
+    value: error,
+  }));
+
+  /** Índices de las filas abiertas. */
+  readonly expandidos = signal<Set<number>>(new Set());
+
+  readonly filtrarPorError = (errores: string[], fila: MsgApi) => errores.includes(fila.error ?? '');
+  readonly ordenarPorTitulo = (a: MsgApi, b: MsgApi) => (a.titulo ?? '').localeCompare(b.titulo ?? '');
+
   esOk(llamada: MsgApi) {
-    return !!llamada.status && llamada.status >= 200 && llamada.status < 300;
+    return esOkMsgApi(llamada);
+  }
+
+  alternar(indice: number, abierto: boolean) {
+    this.expandidos.update(actual => {
+      const nuevo = new Set(actual);
+      if (abierto) nuevo.add(indice);
+      else nuevo.delete(indice);
+      return nuevo;
+    });
+  }
+
+  private descripcionError(llamada: MsgApi): string {
+    if (llamada.error) return llamada.error;
+    if (esOkMsgApi(llamada)) return 'Sin error';
+    return llamada.status ? `HTTP ${llamada.status}` : 'Sin respuesta';
   }
 }

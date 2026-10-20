@@ -3,6 +3,13 @@ import { NzModalService } from 'ng-zorro-antd/modal';
 import { take } from 'rxjs';
 import { MsgApi, MsgApiModalComponent, MsgApiModalData } from './msg-api-modal.component';
 
+export interface OpcionesMsgApiModal {
+  /** Título del modal; por defecto, según el tipo. */
+  titulo?: string;
+  /** Ancho del modal (CSS). */
+  ancho?: string;
+}
+
 /**
  * Muestra el detalle de las llamadas a APIs externas que el back informa en `data.msgapi`.
  * Lo abre el interceptor para cualquier respuesta que lo traiga, así que ningún módulo
@@ -25,7 +32,8 @@ export class MsgApiModalService {
     return !!llamadas?.some(l => !(l.status && l.status >= 200 && l.status < 300));
   }
 
-  mostrar(mensaje: unknown, tipo: MsgApiModalData['tipo'], llamadas: MsgApi[]) {
+
+  mostrar(mensaje: unknown, tipo: MsgApiModalData['tipo'], llamadas: MsgApi[], opciones: OpcionesMsgApiModal = {}) {
     // Una respuesta exitosa que informa llamadas fallidas (un proceso por lotes) se muestra como advertencia
     const data: MsgApiModalData = {
       mensaje: Array.isArray(mensaje) ? mensaje.join(' ') : String(mensaje ?? ''),
@@ -37,19 +45,19 @@ export class MsgApiModalService {
     // recién cuando se cerró: superpuestos, el de arriba queda bloqueado por el overlay del
     // de abajo y no se puede cerrar. El setTimeout espera a que el overlay se libere.
     if (this.modal.openModals.length) {
-      this.modal.afterAllClose.pipe(take(1)).subscribe(() => setTimeout(() => this.abrir(data)));
+      this.modal.afterAllClose.pipe(take(1)).subscribe(() => setTimeout(() => this.abrir(data, opciones)));
       return;
     }
-    this.abrir(data);
+    this.abrir(data, opciones);
   }
 
-  private abrir(data: MsgApiModalData) {
+  private abrir(data: MsgApiModalData, opciones: OpcionesMsgApiModal) {
     const ref = this.modal.create<MsgApiModalComponent, MsgApiModalData>({
-      nzTitle: data.tipo === 'error' ? 'Error en la llamada a la API' : 'Respuesta de la API',
+      nzTitle: opciones.titulo ?? (data.tipo === 'error' ? 'Error en la llamada a la API' : 'Respuesta de la API'),
       nzContent: MsgApiModalComponent,
       nzData: data,
       nzCentered: true,
-      nzWidth: 'min(900px, calc(100vw - 32px))',
+      nzWidth: opciones.ancho ?? 'min(900px, calc(100vw - 32px))',
       nzBodyStyle: { maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' },
       nzFooter: [{ label: 'Cerrar', type: 'primary', onClick: () => ref.close() }],
     });

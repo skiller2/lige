@@ -10,6 +10,17 @@
   font-weight: 600;
 }
 
+// En la fila expandida de la tabla el endpoint va solo en su renglón
+nz-table .endpoint {
+  display: block;
+}
+
+// Descripción corta del error de la llamada (la que se filtra en la tabla)
+.error {
+  font-size: 12px;
+  color: #cf1322;
+}
+
 // Las rutas de los endpoints no tienen espacios donde cortar
 .texto-cortable {
   min-width: 0;

@@ -144,5 +144,9 @@
     </nz-tab>
   </nz-tabs>
 </nz-card>
-<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="PersonalId()" [visible]="visibleDetalle()"
+
+@if (visibleDetalle()) {
+<app-detalle-persona [anio]="anio()" [mes]="mes()" [PersonalId]="PersonalId()" [visible]="true"
 (onClose)="closeDrawerforConsultDetalle()"></app-detalle-persona>
+}
+

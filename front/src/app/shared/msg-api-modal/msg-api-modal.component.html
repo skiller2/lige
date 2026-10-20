@@ -1,36 +1,83 @@
 @if (mostrarMensaje) {
   <nz-alert [nzType]="data.tipo" [nzMessage]="data.mensaje" class="mb-md texto-cortable"></nz-alert>
 }
-@for (llamada of data.llamadas; track $index) {
-  <div class="llamada mb-md">
-    <!-- Qué se llamó y qué devolvió, arriba del detalle -->
-    <div class="encabezado mb-sm">
-      <div class="texto-cortable">
-        @if (llamada.titulo) {
-          <div><strong>{{ llamada.titulo }}</strong></div>
-        }
-        @if (llamada.url) {
-          <code class="endpoint">{{ llamada.method }} {{ llamada.url }}</code>
+
+<!-- Detalle de una llamada: lo comparten la card y la fila expandida de la tabla -->
+<ng-template #detalle let-llamada>
+  @if (llamada.headers !== undefined) {
+    <div class="etiqueta">Cabecera</div>
+    <pre class="json json-compacto mb-sm">{{ llamada.headers | json }}</pre>
+  }
+  @if (llamada.request !== undefined) {
+    <div class="etiqueta">Request enviado</div>
+    <pre class="json json-compacto mb-sm">{{ llamada.request | json }}</pre>
+  }
+  @if (llamada.respuesta !== undefined) {
+    <div class="etiqueta">Respuesta</div>
+    <pre class="json">{{ llamada.respuesta | json }}</pre>
+  }
+</ng-template>
+
+@if (modoTabla) {
+  <!-- Muchas llamadas: una fila por llamada, el detalle al expandir -->
+  <nz-table #tabla [nzData]="filas" nzSize="small" [nzPageSize]="10" nzShowSizeChanger>
+    <thead>
+      <tr>
+        <th nzWidth="40px"></th>
+        <th [nzSortFn]="ordenarPorTitulo">Título</th>
+        <th nzWidth="80px">HTTP</th>
+        <th [nzFilters]="filtrosError" [nzFilterFn]="filtrarPorError" [nzFilterMultiple]="true">Error</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (fila of tabla.data; track fila.indice) {
+        <tr>
+          <td [nzExpand]="expandidos().has(fila.indice)" (nzExpandChange)="alternar(fila.indice, $event)"></td>
+          <td>{{ fila.titulo || '—' }}</td>
+          <td>
+            @if (fila.status) {
+              <nz-tag [nzColor]="esOk(fila) ? 'green' : 'red'">{{ fila.status }}</nz-tag>
+            } @else {
+              —
+            }
+          </td>
+          <td>{{ fila.error }}</td>
+        </tr>
+        <!-- Solo se arma cuando se abre la fila -->
+        <tr [nzExpand]="expandidos().has(fila.indice)">
+          @if (expandidos().has(fila.indice)) {
+            @if (fila.url) {
+              <code class="endpoint texto-cortable mb-sm">{{ fila.method }} {{ fila.url }}</code>
+            }
+            <ng-container *ngTemplateOutlet="detalle; context: { $implicit: fila }" />
+          }
+        </tr>
+      }
+    </tbody>
+  </nz-table>
+} @else {
+  @for (llamada of data.llamadas; track $index) {
+    <div class="llamada mb-md">
+      <!-- Qué se llamó y qué devolvió, arriba del detalle -->
+      <div class="encabezado mb-sm">
+        <div class="texto-cortable">
+          @if (llamada.titulo) {
+            <div><strong>{{ llamada.titulo }}</strong></div>
+          }
+          @if (llamada.url) {
+            <code class="endpoint">{{ llamada.method }} {{ llamada.url }}</code>
+          }
+          @if (llamada.error) {
+            <div class="error">{{ llamada.error }}</div>
+          }
+        </div>
+        @if (llamada.status) {
+          <nz-tag [nzColor]="esOk(llamada) ? 'green' : 'red'">HTTP {{ llamada.status }}</nz-tag>
         }
       </div>
-      @if (llamada.status) {
-        <nz-tag [nzColor]="esOk(llamada) ? 'green' : 'red'">HTTP {{ llamada.status }}</nz-tag>
-      }
+      <nz-card nzSize="small">
+        <ng-container *ngTemplateOutlet="detalle; context: { $implicit: llamada }" />
+      </nz-card>
     </div>
-    <nz-card nzSize="small">
-      @if (llamada.headers !== undefined) {
-        <div class="etiqueta">Cabecera</div>
-        <pre class="json json-compacto mb-sm">{{ llamada.headers | json }}</pre>
-      }
-
-      @if (llamada.request !== undefined) {
-        <div class="etiqueta">Request enviado</div>
-        <pre class="json json-compacto mb-sm">{{ llamada.request | json }}</pre>
-      }
-      @if (llamada.respuesta !== undefined) {
-        <div class="etiqueta">Respuesta</div>
-        <pre class="json">{{ llamada.respuesta | json }}</pre>
-      }
-    </nz-card>
-  </div>
+  }
 }

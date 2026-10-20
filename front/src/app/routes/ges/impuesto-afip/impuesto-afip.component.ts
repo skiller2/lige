@@ -36,11 +36,19 @@ import { DetallePersonaComponent } from '../detalle-persona/detalle-persona.comp
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { DownloadService } from '../../../services/download.service';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
-import {
-  ComprobantesPendientesErroresComponent,
-  ComprobantesPendientesErroresData,
-  FallidoPendiente,
-} from './comprobantes-pendientes-errores/comprobantes-pendientes-errores.component';
+import { MsgApi } from '../../../shared/msg-api-modal/msg-api-modal.component';
+import { MsgApiModalService } from '../../../shared/msg-api-modal/msg-api-modal.service';
+
+/**
+ * Un pendiente que no se pudo obtener, tal como lo devuelve el back en `fallidos`. Hereda de MsgApi
+ * el detalle de la llamada al banco, que falta cuando el error fue antes de llamar (sin CUIT).
+ */
+interface FallidoPendiente extends MsgApi {
+  PersonalId: number;
+  persona: string;
+  CUIT: string;
+  error: string;
+}
 
 @Component({
   imports: [
@@ -333,8 +341,8 @@ export class ImpuestoAfipComponent {
   //   que el back no los vuelva a tomar y el ciclo termine.
   // - Mientras corre se muestra el avance con un botón para cancelar. Lo ya procesado queda
   //   grabado: volver a apretar el botón sigue con lo que falte.
-  // - Al terminar se avisa una sola vez: notificación si todo salió bien, o la tabla de errores
-  //   (ComprobantesPendientesErroresComponent) si alguno falló.
+  // - Al terminar se avisa una sola vez: notificación si todo salió bien, o el modal de APIs
+  //   externas (MsgApiModalService, que con muchas llamadas las muestra en tabla) si alguno falló.
   // ---------------------------------------------------------------------------------------------
 
   /** Personas por llamada al back. */
@@ -428,15 +436,13 @@ export class ImpuestoAfipComponent {
       return
     }
 
-    this.modal.create<ComprobantesPendientesErroresComponent, ComprobantesPendientesErroresData>({
-      nzTitle: 'Comprobantes pendientes con error',
-      nzContent: ComprobantesPendientesErroresComponent,
-      nzData: { mensaje, fallidos },
-      nzCentered: true,
-      nzWidth: 'min(1000px, calc(100vw - 32px))',
-      nzFooter: null,
-    })
+    // La persona y el CUIT van en el título de cada llamada
+    this.msgApiModal.mostrar(mensaje, 'warning',
+      fallidos.map(fallido => ({ ...fallido, titulo: `${fallido.persona} (${fallido.CUIT || 'sin CUIT'})` })),
+      { titulo: 'Comprobantes pendientes con error', ancho: 'min(1000px, calc(100vw - 32px))' })
   }
+
+  private readonly msgApiModal = inject(MsgApiModalService)
 
   private async ejecutarAccion(accion: string, fn: () => Promise<unknown>) {
     if (!this.anio() || !this.mes()) return
