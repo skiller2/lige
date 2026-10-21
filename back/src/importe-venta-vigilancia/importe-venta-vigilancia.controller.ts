@@ -240,7 +240,7 @@ const columnasGrilla: any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
-    editable: true
+    editable: false
   },
   {
     name: "Horas a facturar B",
@@ -251,7 +251,7 @@ const columnasGrilla: any[] = [
     searchType: "float",
     sortable: true,
     hidden: false,
-    editable: true
+    editable: false
   },
   {
     name: "Horas Normales-VentaAB",
@@ -328,7 +328,7 @@ const columnasGrilla: any[] = [
     searchType: "string",
     sortable: true,
     hidden: false,
-    editable: true
+    editable: false
   },
 
   {
@@ -939,11 +939,8 @@ LEFT JOIN (
       anio,
       mes,
       ObjetivoId,
-      TotalHoraA,
-      TotalHoraB,
       ImporteHoraA,
       ImporteHoraB,
-      Observaciones,
       ComprobanteNumero
     } = req.body
 
@@ -980,25 +977,21 @@ LEFT JOIN (
       const ClienteId = objetivo[0].ClienteId
       const asistencia = await AsistenciaController.getObjetivoAsistencia(anio, mes, [`obj.ObjetivoId = ${ObjetivoId}`], queryRunner)
 
+      // Horas a facturar y observaciones se graban solo desde carga de asistencia y orden de venta
       if (objetivo[0].ClienteIdImporteVenta) {
         await queryRunner.query(
-          `UPDATE ObjetivoImporteVenta SET  TotalHoraA=@5, TotalHoraB=@6, ImporteHoraA=@7,ImporteHoraB=@8, Observaciones=@4, ComprobanteNumero=@9,
-           AudFechaMod=@10, AudUsuarioMod=@11, AudIpMod=@12
+          `UPDATE ObjetivoImporteVenta SET ImporteHoraA=@4, ImporteHoraB=@5, ComprobanteNumero=@6,
+           AudFechaMod=@7, AudUsuarioMod=@8, AudIpMod=@9
            WHERE ClienteId=@0 AND Anio=@1 AND Mes=@2 AND ClienteElementoDependienteId=@3`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, Observaciones, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB, ComprobanteNumero, fechaActual, usuario, ip])
+          [ClienteId, anio, mes, ClienteElementoDependienteId, ImporteHoraA, ImporteHoraB, ComprobanteNumero, fechaActual, usuario, ip])
       } else {
         await queryRunner.query(
           `INSERT INTO ObjetivoImporteVenta (ClienteId,Anio,Mes,ClienteElementoDependienteId,TotalHoraA,TotalHoraB,ImporteHoraA,ImporteHoraB,
-         AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod, Observaciones)
-         VALUES (@0,@1,@2,@3,@4,@5,@6,@7, @8,@9,@10,@8,@9,@10, @11)`,
-          [ClienteId, anio, mes, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, ImporteHoraA, ImporteHoraB,
-            fechaActual, usuario, ip, Observaciones])
+         AudFechaIng,AudUsuarioIng,AudIpIng,AudFechaMod,AudIpMod,AudUsuarioMod)
+         VALUES (@0,@1,@2,@3,@4,@5,@6,@7, @8,@9,@10,@8,@9,@10)`,
+          [ClienteId, anio, mes, ClienteElementoDependienteId, null, null, ImporteHoraA, ImporteHoraB,
+            fechaActual, usuario, ip])
       }
-
-      // Si cambian las horas a facturar A o B o las observaciones se sincroniza la orden de venta, igual que en carga de asistencia
-      if (Number(objetivo[0].TotalHoraA) != Number(TotalHoraA) || Number(objetivo[0].TotalHoraB) != Number(TotalHoraB)
-        || (objetivo[0].Observaciones ?? '') != (Observaciones ?? ''))
-        await new AsistenciaController().setOrdenVentaHorasQuery(anio, mes, ClienteId, ClienteElementoDependienteId, TotalHoraA, TotalHoraB, Observaciones, queryRunner, usuario, ip, fechaActual)
 
       const rec = await queryRunner.query(
         `SELECT ven.ClienteId,ven.Anio,ven.Mes,ven.ClienteElementoDependienteId,ven.TotalHoraA,ven.TotalHoraB,ven.ImporteHoraA,ven.ImporteHoraB, ven.Observaciones,
