@@ -354,22 +354,27 @@ export class AsistenciaController extends BaseController {
          WHERE NroOrdenVenta=@0 
        `, [NroOrdenVenta, Observaciones, ahora, ip, usuario])
 
-        // Se eliminan los ítems de horas en null o 0 (con 0 horas todos quedarían en 0)
-        await queryRunner.query(`DELETE ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1 AND (ISNULL(Cantidad,0)=0 OR @2=0)`, [NroOrdenVenta, ProductoCodigoA, TotalHoraA])
+        // Se eliminan los ítems de horas en null o 0
+        await queryRunner.query(`DELETE ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1 AND ISNULL(Cantidad,0)=0`, [NroOrdenVenta, ProductoCodigoA])
+
+        // Carga de asistencia maneja solo el primer ítem de cada producto de horas; los demás se cargan desde la orden de venta
+        if (!TotalHoraA)
+          await queryRunner.query(`DELETE ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ItemOrdenVentaCodigo=(SELECT MIN(ItemOrdenVentaCodigo) FROM ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1)`, [NroOrdenVenta, ProductoCodigoA])
+        else {
 
         await queryRunner.query(
           `UPDATE ItemOrdenVenta SET Cantidad=@2, ImporteUnitario=@3, AudFechaMod=@4, AudIpMod=@5, AudUsuarioMod=@6 
-         WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1
+         WHERE NroOrdenVenta=@0 AND ItemOrdenVentaCodigo=(SELECT MIN(ItemOrdenVentaCodigo) FROM ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1)
        `, [NroOrdenVenta, ProductoCodigoA, TotalHoraA, ImporteUnitarioA, ahora, ip, usuario])
         const updatecountA = await queryRunner.query(`SELECT @@ROWCOUNT AS updatecount`)
-        if (!updatecountA[0].updatecount && TotalHoraA) {
+        if (!updatecountA[0].updatecount) {
           await queryRunner.query(`
           INSERT INTO ItemOrdenVenta (
             NroOrdenVenta, ItemOrdenVentaCodigo, ProductoCodigo, TextoFactura,
             TipoCantidad, Cantidad, TipoImporte, ImporteUnitario,
             CantidadEstandar, Bonificacion, CantidadEnFactura,
             AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod)
-          VALUES (@0, (SELECT MAX(ItemOrdenVentaCodigo)+1 FROM ItemOrdenVenta WHERE NroOrdenVenta=@0) , @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @11, @12, @12, @13, @13)
+          VALUES (@0, (SELECT ISNULL(MAX(ItemOrdenVentaCodigo),0)+1 FROM ItemOrdenVenta WHERE NroOrdenVenta=@0) , @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @11, @12, @12, @13, @13)
         `, [
             NroOrdenVenta,
             null,
@@ -385,22 +390,27 @@ export class AsistenciaController extends BaseController {
             ahora, usuario, ip
           ]);
         }
+        }
 
-        await queryRunner.query(`DELETE ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1 AND (ISNULL(Cantidad,0)=0 OR @2=0)`, [NroOrdenVenta, ProductoCodigoB, TotalHoraB])
+        await queryRunner.query(`DELETE ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1 AND ISNULL(Cantidad,0)=0`, [NroOrdenVenta, ProductoCodigoB])
+
+        if (!TotalHoraB)
+          await queryRunner.query(`DELETE ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ItemOrdenVentaCodigo=(SELECT MIN(ItemOrdenVentaCodigo) FROM ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1)`, [NroOrdenVenta, ProductoCodigoB])
+        else {
 
         await queryRunner.query(
           `UPDATE ItemOrdenVenta SET Cantidad=@2, ImporteUnitario=@3, AudFechaMod=@4, AudIpMod=@5, AudUsuarioMod=@6
-         WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1
+         WHERE NroOrdenVenta=@0 AND ItemOrdenVentaCodigo=(SELECT MIN(ItemOrdenVentaCodigo) FROM ItemOrdenVenta WHERE NroOrdenVenta=@0 AND ProductoCodigo=@1)
        `, [NroOrdenVenta, ProductoCodigoB, TotalHoraB, ImporteUnitarioB, ahora, ip, usuario])
         const updatecountB = await queryRunner.query(`SELECT @@ROWCOUNT AS updatecount`);
-        if (!updatecountB[0].updatecount && TotalHoraB) {
+        if (!updatecountB[0].updatecount) {
           await queryRunner.query(`
           INSERT INTO ItemOrdenVenta (
             NroOrdenVenta, ItemOrdenVentaCodigo, ProductoCodigo, TextoFactura,
             TipoCantidad, Cantidad, TipoImporte, ImporteUnitario,
             CantidadEstandar, Bonificacion, CantidadEnFactura,
             AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod ) 
-          VALUES (@0, (SELECT MAX(ItemOrdenVentaCodigo)+1 FROM ItemOrdenVenta WHERE NroOrdenVenta=@0), @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @11, @12, @12, @13, @13)
+          VALUES (@0, (SELECT ISNULL(MAX(ItemOrdenVentaCodigo),0)+1 FROM ItemOrdenVenta WHERE NroOrdenVenta=@0), @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @11, @12, @12, @13, @13)
         `, [
             NroOrdenVenta,
             null,
@@ -415,6 +425,7 @@ export class AsistenciaController extends BaseController {
             null,
             ahora, usuario, ip
           ]);
+        }
         }
 
         // Recalcula el total de la cabecera con la misma cuenta que setOrdenVentaQuery

@@ -358,6 +358,7 @@ export class OrdenVentaController extends BaseController {
     const itemsTmp = await queryRunner.query(`SELECT item.NroOrdenVenta, item.ItemOrdenVentaCodigo, item.ProductoCodigo, item.TextoFactura, item.TipoCantidad, item.Cantidad, item.TipoImporte, item.ImporteUnitario, item.CantidadEnFactura
           FROM ItemOrdenVenta item
           WHERE item.NroOrdenVenta =@0
+          ORDER BY item.ItemOrdenVentaCodigo
         `, [NroOrdenVenta])
 
     const items = itemsTmp.map(item => ({
@@ -410,8 +411,8 @@ export class OrdenVentaController extends BaseController {
       ordenDs.PeriodoMes = mes
       ordenDs.Periodo = new Date(anio, mes - 1, 1)
 
-      const { ImporteUnitarioA, ImporteUnitarioB, TotalHoraA, TotalHoraB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
-
+      // Los ítems se copian tal cual de la plantilla; solo se actualizan los importes al período
+      const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, anio, mes, queryRunner)
 
       for (const item of ordenDs.items) {
         const ProductoCodigo = String(item.ProductoCodigo ?? '').trim()
@@ -420,11 +421,9 @@ export class OrdenVentaController extends BaseController {
 
         switch (ProductoCodigo) {
           case 'SSF':
-            item.Cantidad = TotalHoraA
             item.ImporteUnitario = ImporteUnitarioA
             break;
           case 'SSFB':
-            item.Cantidad = TotalHoraB
             item.ImporteUnitario = ImporteUnitarioB
             break;
           default:
@@ -750,27 +749,12 @@ export class OrdenVentaController extends BaseController {
 
 
       if (primerOrdenVenta[0] && primerOrdenVenta[0].NroOrdenVenta == NroOrdenVenta) {
-        const HorasFacturar = items.reduce(
-          (acc, item) => {
-            const codigo = String(item.ProductoCodigo ?? '').trim().toUpperCase();
-            const cantidad = Number(item.Cantidad ?? 0);
-
-            if (codigo === 'SSF')
-              acc.HorasFacturarA += cantidad;
-
-            if (codigo === 'SSFB')
-              acc.HorasFacturarB += cantidad;
-
-            return acc;
-          },
-          {
-            HorasFacturarA: 0,
-            HorasFacturarB: 0
-          }
-        );
+        // Carga de asistencia muestra solo el primer ítem de cada producto de horas
+        const primerSSF = items.find(item => String(item.ProductoCodigo ?? '').trim().toUpperCase() === 'SSF')
+        const primerSSFB = items.find(item => String(item.ProductoCodigo ?? '').trim().toUpperCase() === 'SSFB')
 
         const asistenciaController = new AsistenciaController()
-        await asistenciaController.setHorasFacturacionQuery(PeriodoAnio, PeriodoMes, ClienteId, ClienteElementoDependienteId, HorasFacturar.HorasFacturarA, HorasFacturar.HorasFacturarB, Observaciones, queryRunner, usuario, ip);
+        await asistenciaController.setHorasFacturacionQuery(PeriodoAnio, PeriodoMes, ClienteId, ClienteElementoDependienteId, Number(primerSSF?.Cantidad ?? 0), Number(primerSSFB?.Cantidad ?? 0), Observaciones, queryRunner, usuario, ip);
       }
       await queryRunner.commitTransaction();
 
