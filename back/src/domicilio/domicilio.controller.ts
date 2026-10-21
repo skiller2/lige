@@ -228,9 +228,6 @@ export class DomicilioController extends BaseController {
 
         const DomicilioJson = dirResultado[0]
 
-console.log('completo',DomicilioJson)
-        await DomicilioController.waitT(50000)
-
         const DomicilioCodigoPostal = DomicilioJson.postcode || DomicilioJson.address.postcode
         const DomicilioCompleto = DomicilioJson.display_name
         const DomicilioDomCalle = DomicilioJson.street || DomicilioJson.address.road
@@ -254,7 +251,7 @@ console.log('completo',DomicilioJson)
         try {
           DomicilioLocalidadId = (DomicilioProvinciaId == 25) ? 1 : await this.getLocalidadId(queryRunner, DomicilioPaisId, DomicilioProvinciaId, DomicilioJson.address.city || '', DomicilioJson.address.state_district || '', DomicilioJson.address.town || '') //Busco  LocalidadId en base a la provincia y el nombre de la localidad
         } catch (error) {
-          console.log(JSON.stringify(DomicilioJson))
+//          console.log(JSON.stringify(DomicilioJson))
           await queryRunner.query(`
                                     UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud = NULL, DomicilioLongitud = NULL
                                     WHERE DomicilioId =@0
@@ -308,7 +305,7 @@ console.log('completo',DomicilioJson)
       this.jsonRes({ registrosActualizados }, res, `Direcciones normalizadas ${registrosActualizados}`);
 
     } catch (error) {
-      console.log("Error en jobUpdateDirecciones:", error)
+//      console.log("Error en jobUpdateDirecciones:", error)
       await this.rollbackTransaction(queryRunner)
       await this.eventoLogFin(queryRunner,
         EventoLogCodigo,
