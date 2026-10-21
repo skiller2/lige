@@ -100,7 +100,7 @@ export class DomicilioController extends BaseController {
           const { street, road, housenumber, town, state, suburb, state_district, postcode } = item;
 
           item.display_name = `${street || road} ${housenumber} ${suburb || state || state_district || town} ${postcode}`
-          item.address = { state: item.state, house_number: item.housenumber, state_district: item.state_district, city: item.city, suburb:item.suburb, town:item.suburb }
+          item.address = { state: item.state, road: item.street || item.road, house_number: item.housenumber, state_district: item.state_district, city: item.city, suburb:item.suburb, town:item.suburb, postcode: item.postcode }
 
           return item
         })
@@ -227,15 +227,17 @@ export class DomicilioController extends BaseController {
         }
 
         const DomicilioJson = dirResultado[0]
-        const DomicilioCodigoPostal = DomicilioJson.address.postcode
+
+console.log('completo',DomicilioJson)
+        await DomicilioController.waitT(50000)
+
+        const DomicilioCodigoPostal = DomicilioJson.postcode || DomicilioJson.address.postcode
         const DomicilioCompleto = DomicilioJson.display_name
-        const DomicilioDomCalle = DomicilioJson.address.road
-        const DomicilioDomNro = DomicilioJson.address.house_number
+        const DomicilioDomCalle = DomicilioJson.street || DomicilioJson.address.road
+        const DomicilioDomNro = DomicilioJson.housenumber || DomicilioJson.address.house_number
         const DomicilioPaisId = 1 // Argentina
         const DomicilioLatitud = DomicilioJson.lat
         const DomicilioLongitud = DomicilioJson.lon
-
-
 
         let DomicilioProvinciaId = null
         let DomicilioLocalidadId = null
@@ -248,6 +250,7 @@ export class DomicilioController extends BaseController {
                                 `, [DomicilioId, `ERROR Provincia "${DomicilioJson.address.state}" no encontrada`, DomicilioLatitud, DomicilioLongitud])
           continue
         }
+
         try {
           DomicilioLocalidadId = (DomicilioProvinciaId == 25) ? 1 : await this.getLocalidadId(queryRunner, DomicilioPaisId, DomicilioProvinciaId, DomicilioJson.address.city || '', DomicilioJson.address.state_district || '', DomicilioJson.address.town || '') //Busco  LocalidadId en base a la provincia y el nombre de la localidad
         } catch (error) {
@@ -259,7 +262,26 @@ export class DomicilioController extends BaseController {
           continue
         }
 
+        if (!DomicilioDomCalle){
+          await queryRunner.query(`
+              UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud = NULL, DomicilioLongitud = NULL
+              WHERE DomicilioId =@0
+          `, [DomicilioId, `ERROR Calle vacia`])
+          continue
+        }
+
+        if (!DomicilioDomNro){
+          await queryRunner.query(`
+              UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud = NULL, DomicilioLongitud = NULL
+              WHERE DomicilioId =@0
+          `, [DomicilioId, `ERROR Número de domicilio vacio`])
+          continue
+        }
+
         const DomicilioBarrioId = await this.getBarrioId(queryRunner, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioJson.address.suburb)
+
+
+
         try {
         await queryRunner.query(`
                                     UPDATE Domicilio SET DomicilioJson = @1,  DomicilioCompleto = @2, DomicilioCodigoPostal = @3, DomicilioDomCalle = @4, DomicilioDomNro = @5, DomicilioProvinciaId = @6, DomicilioLocalidadId = @7, DomicilioBarrioId = @8, DomicilioPaisId =@9, DomicilioLatitud = @10, DomicilioLongitud = @11
