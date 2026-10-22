@@ -10,7 +10,7 @@ export class DomicilioController extends BaseController {
   }
 
   async getProvinciaId(queryRunner: QueryRunner, PaisId: number, state: string) {
-    const provincias = await queryRunner.query(`SELECT ProvinciaId,ProvinciaDescripcion FROM Provincia WHERE PaisId  = @0 AND ProvinciaDescripcion COLLATE Latin1_General_CI_AI = @1`, [PaisId, state])
+    const provincias = await queryRunner.query(`SELECT ProvinciaId,ProvinciaDescripcion FROM Provincia WHERE PaisId  = @0 AND (ProvinciaDescripcion COLLATE Latin1_General_CI_AI = @1 OR iso3166_2 = @1)`, [PaisId, state])
     if (provincias.length !== 1)
       throw new Error(`Provincia "${state}" no encontrada.`);
     return provincias[0].ProvinciaId;
@@ -100,10 +100,11 @@ export class DomicilioController extends BaseController {
           const { street, road, housenumber, town, state, suburb, state_district, postcode } = item;
 
           item.display_name = `${street || road} ${housenumber} ${suburb || state || state_district || town} ${postcode}`
-          item.address = { state: item.state, road: item.street || item.road, house_number: item.housenumber, state_district: item.state_district, city: item.city, suburb:item.suburb, town:item.suburb, postcode: item.postcode }
+          item.address = { state: item.state, road: item.street || item.road, house_number: item.housenumber, state_district: item.state_district, city: item.city, suburb: item.suburb, town: item.suburb, postcode: item.postcode }
 
           return item
         })
+
     }
 
     return result
@@ -190,8 +191,10 @@ export class DomicilioController extends BaseController {
                 TRIM(bar.BarrioDescripcion) barrio,
                 CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')), TRIM(dom.DomicilioCodigoPostal),
                 NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domNormalizar,
-                dom.DomicilioJson
+                CONCAT_WS(', ',dom.DomicilioCompleto,prov.ProvinciaDescripcion) AS domNormalizar2,
 
+                dom.DomicilioJson,
+                dom.DomicilioProvinciaId
                 FROM Domicilio dom
                 JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId
 
@@ -201,8 +204,10 @@ export class DomicilioController extends BaseController {
                 LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
 
                 WHERE 
-                dom.DomicilioJson IS NULL 
-                -- dom.DomicilioJson LIKE 'ERROR L%'
+                -- dom.DomicilioJson IS NULL
+                dom.DomicilioCompleto IS NOT NULL AND 
+                 dom.DomicilioJson LIKE 'ERROR%'
+
                 -- AND nex.NexoDomicilioActual = 1
             `)
 
@@ -210,8 +215,9 @@ export class DomicilioController extends BaseController {
         registrosProcesados++
         const domNormalizar = direccion.domNormalizar
         const DomicilioId = direccion.DomicilioId
+        const DomicilioProvinciaIdOrig = direccion.DomicilioProvinciaId
         let dirResultado: any = []
-        await DomicilioController.waitT(1000)
+        await DomicilioController.waitT(500)
         try {
           //dirResultado = await this.getDireccionNominatim(domNormalizar)
           dirResultado = await this.getDireccionAPIFY(domNormalizar)
@@ -219,11 +225,19 @@ export class DomicilioController extends BaseController {
           continue
         }
         if (dirResultado.length != 1) {
-          await queryRunner.query(`
-                                    UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud=NULL, DomicilioLongitud=NULL
-                                    WHERE DomicilioId =@0
-                                `, [DomicilioId, `ERROR Coincidencias ${dirResultado.length}, ${domNormalizar}`])
-          continue
+          if (dirResultado.length > 1) {
+            dirResultado = dirResultado.filter((item: any) => item?.result_type !== 'amenity')
+          }
+
+          if (dirResultado.length != 1) {
+
+            console.log(`ERROR Coincidencias`, dirResultado)
+            //          await queryRunner.query(`
+            //                                    UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud=NULL, DomicilioLongitud=NULL
+            //                                    WHERE DomicilioId =@0
+            //                                `, [DomicilioId, `ERROR Coincidencias ${dirResultado.length}, ${domNormalizar}`])
+            continue
+          }
         }
 
         const DomicilioJson = dirResultado[0]
@@ -239,7 +253,7 @@ export class DomicilioController extends BaseController {
         let DomicilioProvinciaId = null
         let DomicilioLocalidadId = null
         try {
-          DomicilioProvinciaId = await this.getProvinciaId(queryRunner,  DomicilioPaisId, DomicilioJson.address.state) // Buscarlo en provincias
+          DomicilioProvinciaId = await this.getProvinciaId(queryRunner, DomicilioPaisId, DomicilioJson.iso3166_2) // Buscarlo en provincias
         } catch (error) {
           await queryRunner.query(`
                                     UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud = NULL, DomicilioLongitud = NULL
@@ -247,11 +261,15 @@ export class DomicilioController extends BaseController {
                                 `, [DomicilioId, `ERROR Provincia "${DomicilioJson.address.state}" no encontrada`, DomicilioLatitud, DomicilioLongitud])
           continue
         }
+        if (DomicilioProvinciaIdOrig != DomicilioProvinciaId) {
+          console.log(`ERROR ProvinciaId cambiado de ${DomicilioProvinciaIdOrig} a ${DomicilioProvinciaId} para DomicilioId ${DomicilioId}`)
+          continue
+        }
 
         try {
           DomicilioLocalidadId = (DomicilioProvinciaId == 25) ? 1 : await this.getLocalidadId(queryRunner, DomicilioPaisId, DomicilioProvinciaId, DomicilioJson.address.city || '', DomicilioJson.address.state_district || '', DomicilioJson.address.town || '') //Busco  LocalidadId en base a la provincia y el nombre de la localidad
         } catch (error) {
-//          console.log(JSON.stringify(DomicilioJson))
+          //          console.log(JSON.stringify(DomicilioJson))
           await queryRunner.query(`
                                     UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud = NULL, DomicilioLongitud = NULL
                                     WHERE DomicilioId =@0
@@ -259,7 +277,7 @@ export class DomicilioController extends BaseController {
           continue
         }
 
-        if (!DomicilioDomCalle){
+        if (!DomicilioDomCalle) {
           await queryRunner.query(`
               UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud = NULL, DomicilioLongitud = NULL
               WHERE DomicilioId =@0
@@ -267,7 +285,7 @@ export class DomicilioController extends BaseController {
           continue
         }
 
-        if (!DomicilioDomNro){
+        if (!DomicilioDomNro) {
           await queryRunner.query(`
               UPDATE Domicilio SET DomicilioJson = @1, DomicilioLatitud = NULL, DomicilioLongitud = NULL
               WHERE DomicilioId =@0
@@ -280,11 +298,11 @@ export class DomicilioController extends BaseController {
 
 
         try {
-        await queryRunner.query(`
+          await queryRunner.query(`
                                     UPDATE Domicilio SET DomicilioJson = @1,  DomicilioCompleto = @2, DomicilioCodigoPostal = @3, DomicilioDomCalle = @4, DomicilioDomNro = @5, DomicilioProvinciaId = @6, DomicilioLocalidadId = @7, DomicilioBarrioId = @8, DomicilioPaisId =@9, DomicilioLatitud = @10, DomicilioLongitud = @11
                                     WHERE DomicilioId =@0
                                 `, [DomicilioId, JSON.stringify(DomicilioJson), DomicilioCompleto, DomicilioCodigoPostal, DomicilioDomCalle, DomicilioDomNro, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId, DomicilioPaisId, DomicilioLatitud, DomicilioLongitud])
-        } catch (error) {continue}
+        } catch (error) { continue }
         registrosActualizados++
       }
 
@@ -305,7 +323,7 @@ export class DomicilioController extends BaseController {
       this.jsonRes({ registrosActualizados }, res, `Direcciones normalizadas ${registrosActualizados}`);
 
     } catch (error) {
-//      console.log("Error en jobUpdateDirecciones:", error)
+      //      console.log("Error en jobUpdateDirecciones:", error)
       await this.rollbackTransaction(queryRunner)
       await this.eventoLogFin(queryRunner,
         EventoLogCodigo,
@@ -629,7 +647,7 @@ export class DomicilioController extends BaseController {
     if (!domicilio) {
       return new ClientException(`Ingrese un domicilio`)
     }
-    
+
     if (!domicilio.manual) {
       if (!domicilio.address || Object.keys(domicilio.address).length === 0) {
         return new ClientException(`Domicilio invalido`)
@@ -647,7 +665,7 @@ export class DomicilioController extends BaseController {
   }
 
   // Agrega un nuevo registro a la tabla Domicilio, devuelve el id del nuevo registro
-  async addDomicilio(queryRunner: any, domicilio: any, DomicilioDomLugar: string|null, DomicilioDomDpto: string|null, DomicilioDomPiso: string|null) {
+  async addDomicilio(queryRunner: any, domicilio: any, DomicilioDomLugar: string | null, DomicilioDomDpto: string | null, DomicilioDomPiso: string | null) {
     const address: any = domicilio.address
     let { PaisId, ProvinciaId, LocalidadId, BarrioId } = domicilio.verAddress
 
@@ -724,7 +742,7 @@ export class DomicilioController extends BaseController {
     return resDomicilio[0][''] // New DomicilioId
   }
 
-  async updateDomicilio(queryRunner: any, domicilioId:number, domicilio: any, DomicilioDomLugar: string|null, DomicilioDomDpto: string|null, DomicilioDomPiso: string|null) {
+  async updateDomicilio(queryRunner: any, domicilioId: number, domicilio: any, DomicilioDomLugar: string | null, DomicilioDomDpto: string | null, DomicilioDomPiso: string | null) {
 
     const address: any = domicilio.address
     let { PaisId, ProvinciaId, LocalidadId, BarrioId } = domicilio.verAddress
@@ -793,7 +811,7 @@ export class DomicilioController extends BaseController {
           DomicilioPaisId=@5, DomicilioProvinciaId=@6, DomicilioLocalidadId=@7, DomicilioBarrioId=@8,
           DomicilioCompleto=@9, DomicilioJson=@10, DomicilioDomPiso=@11, DomicilioDomDpto=@12
       WHERE DomicilioId IN (@0)`,
-      [ domicilioId, DomicilioDomLugar, address.road, address.house_number,
+      [domicilioId, DomicilioDomLugar, address.road, address.house_number,
         address.postcode, PaisId, ProvinciaId, LocalidadId,
         BarrioId, domicilio.display_name, JSON.stringify(domicilio),
         DomicilioDomPiso, DomicilioDomDpto
