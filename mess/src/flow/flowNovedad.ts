@@ -291,14 +291,14 @@ export const flowNovedadHora = addKeyword(EVENTS.ACTION)
                 const NovedadFecha = new Date(novedad.Fecha)
                 NovedadFecha.setHours(HoraActual.getHours(), HoraActual.getMinutes(), 0, 0);
                 novedad.Fecha = NovedadFecha
-                novedad.Hora = HoraActual.getHours() + ':' + HoraActual.getMinutes()
+                novedad.Hora = HoraActual.getHours() + ':' + String(HoraActual.getMinutes()).padStart(2, '0')
                 await novedadController.saveNovedad(personalId, novedad, queryRunner)
                 await state.update({ reintento: 0 })
 
                 return gotoFlow(flowNovedadRouter)
             }
 
-            const Hora = ctx.body
+            const Hora = String(ctx.body).trim()
             const novedad = await novedadController.getBackupNovedad(personalId)
 
             const res = esHoraValida(Hora, novedad.Fecha)
@@ -510,11 +510,12 @@ export const flowNovedadRecibirDocs = addKeyword(EVENTS.MEDIA)
         })
 
 function esHoraValida(hora: string, fecha: Date): { valida: boolean, futura?: boolean } {
+    // Solo hh:mm, sin texto extra (ej: "21:10hs")
+    if (!/^\d{1,2}:\d{2}$/.test(hora)) return { valida: false }
     const partes = hora.split(':')
-    if (partes.length != 2) return { valida: false }
     const hh = parseInt(partes[0])
     const mm = parseInt(partes[1])
-    if (isNaN(hh) || hh < 0 || hh > 24) return { valida: false }
+    if (isNaN(hh) || hh < 0 || hh > 23) return { valida: false }
     if (isNaN(mm) || mm < 0 || mm > 59) return { valida: false }
 
     if (fecha) {
