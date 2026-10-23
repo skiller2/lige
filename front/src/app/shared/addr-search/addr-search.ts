@@ -83,11 +83,23 @@ export class AddrSearchComponent
   private propagateTouched: () => void = () => { };
   private propagateChange: (_: any) => void = () => { };
 
-  private async buscarProvincia(nombre: string, paisId: number): Promise<number|null> {
+  private async buscarProvincia(nombre: string, fieldName:string,paisId: number): Promise<number|null> {
     try {
-      const res = await firstValueFrom(
-        this.searchService.getProvinciaFromName('Descripcion', nombre, paisId)
-      );
+      let res:any = []
+      switch (fieldName) {
+        case 'Descripcion':
+          res = await firstValueFrom(
+            this.searchService.getProvinciaFromName('Descripcion', nombre, paisId)
+          );
+          break;
+        case 'iso3166_2':
+          res = await firstValueFrom(
+            this.searchService.getProvinciaFromName('iso3166_2', nombre, paisId)
+          );
+          break;
+        default:
+          break;
+      }
 
       return res.length ? res[0].ProvinciaId : null;
 
@@ -142,7 +154,7 @@ export class AddrSearchComponent
       tap(() => this.loading.set(true)),
 
       switchMap(term =>
-        //this.searchService.getDireccionNominatim(term)
+        // this.searchService.getDireccionNominatim(term)
         this.searchService.getDireccionAPIFY(term)
       ),
 
@@ -267,13 +279,18 @@ export class AddrSearchComponent
       const address = value.address
       
       // Provincia
-      if (address.state) {
-        ProvinciaId = await this.buscarProvincia(address.state, PaisId);
+      if (address.iso3166_2) {
+        ProvinciaId = await this.buscarProvincia(address.iso3166_2, 'iso3166_2', PaisId);
+      }
+      else if (address.state) {
+        ProvinciaId = await this.buscarProvincia(address.state, 'Descripcion', PaisId);
       }
 
       // Localidad
       const localidadNombre = address.state_district ?? address.city;
-      if (ProvinciaId && localidadNombre) {
+      if (ProvinciaId == 25 && !localidadNombre) {// Casos especial para C.A.B.A
+        LocalidadId = 1 // C.A.B.A
+      } else if (ProvinciaId && localidadNombre) {
         LocalidadId = await this.buscarLocalidad(localidadNombre, ProvinciaId, PaisId);
       }
 

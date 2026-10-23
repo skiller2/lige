@@ -32,6 +32,7 @@ import {
   ResponseNameFromId,
 } from '../shared/schemas/ResponseJSON';
 import { NzNotificationService } from 'ng-zorro-antd/notification';
+import { Direccion } from '../shared/schemas/direccion.schemas';
 
 export interface EfectoUbicacion {
   StockId: number;
@@ -502,13 +503,13 @@ export class SearchService {
       );
   }
 
-  async getDireccionNominatim(direccion: string) {
+  async getDireccionNominatim(direccion: string): Promise<Direccion[]> {
     const direccionLimpia = direccion.trim();
     if (!direccionLimpia) return [];
     const manual: any = {
       place_id: 0,
       display_name: direccionLimpia,
-      address: { road: '', house_number: '', state_district: '', state: '', postcode: '' },
+      address: { street: '', house_number: '', state_district: '', state: '', postcode: '' },
       manual: true
     };
 
@@ -571,7 +572,7 @@ export class SearchService {
       result.push({
         ...manual,
         address: {
-          road: calle,
+          street: calle,
           house_number: numero,
           state_district: state_district ?? '',
           state: state ?? '',
@@ -585,15 +586,15 @@ export class SearchService {
   }
 
 
-  async getDireccionAPIFY(direccion: string) {
+  async getDireccionAPIFY(direccion: string): Promise<Direccion[]> {
     const direccionLimpia = direccion.trim();
     if (!direccionLimpia) return [];
-    const manual: any = {
-      place_id: 0,
-      display_name: direccionLimpia,
-      address: { road: '', house_number: '', state_district: '', state: '', postcode: '' },
-      manual: true
-    };
+    // const manual: any = {
+    //   place_id: 0,
+    //   display_name: direccionLimpia,
+    //   address: { street: '', house_number: '', state_district: '', state: '', postcode: '' },
+    //   manual: true
+    // };
 
     const params = new URLSearchParams({
       text: direccion,
@@ -620,10 +621,31 @@ export class SearchService {
       result = result
         //.filter((item: any) => item.address?.housenumber)
         .map((item: any) => {
-          const { street, road, housenumber, town, state, suburb, state_district, postcode } = item;
+          let { street, road, housenumber, state, iso3166_2, suburb, city, county, postcode } = item;
+          
+          //Caso especial C.A.B.A
+          if (iso3166_2 == 'AR-C') {
+            state = 'Ciudad Autonoma de Buenos Aires'
+          }
 
-          item.display_name = `${street || road} ${housenumber} ${suburb || state || state_district || town} ${postcode}`
-          item.address = { state: item.state, house_number: item.housenumber, state_district: item.state_district, city: item.city, suburb:item.suburb, town:item.suburb }
+          item.display_name = [
+              [street || road, housenumber].filter(Boolean).join(" "),
+              suburb || city,
+              county,
+              state,
+              postcode
+            ]
+            .filter(Boolean)
+            .join(", ");
+
+          item.address = { 
+            iso3166_2: iso3166_2, 
+            state: state, 
+            house_number: housenumber, 
+            state_district: county, 
+            town: suburb || city, 
+            street: street || road 
+          }
 
           return item
         })

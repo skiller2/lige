@@ -65,12 +65,12 @@ export class DomicilioController extends BaseController {
   async getDireccionAPIFY(direccion: string) {
     const direccionLimpia = direccion.trim();
     if (!direccionLimpia) return [];
-    const manual: any = {
-      place_id: 0,
-      display_name: direccionLimpia,
-      address: { road: '', house_number: '', state_district: '', state: '', postcode: '' },
-      manual: true
-    };
+    // const manual: any = {
+    //   place_id: 0,
+    //   display_name: direccionLimpia,
+    //   address: { street: '', house_number: '', state_district: '', state: '', postcode: '' },
+    //   manual: true
+    // };
 
     const params = new URLSearchParams({
       text: direccion,
@@ -100,7 +100,7 @@ export class DomicilioController extends BaseController {
           const { street, road, housenumber, town, state, suburb, state_district, postcode } = item;
 
           item.display_name = `${street || road} ${housenumber} ${suburb || state || state_district || town} ${postcode}`
-          item.address = { state: item.state, road: item.street || item.road, house_number: item.housenumber, state_district: item.state_district, city: item.city, suburb: item.suburb, town: item.suburb, postcode: item.postcode }
+          item.address = { state: item.state, street: item.street || item.road, house_number: item.housenumber, state_district: item.state_district, city: item.city, suburb: item.suburb, town: item.suburb, postcode: item.postcode }
 
           return item
         })
@@ -520,6 +520,12 @@ export class DomicilioController extends BaseController {
           buscar = true;
         }
         break;
+      case "iso3166_2":
+        const iso3166_2 = value.length > 4? value.splie(0,4): value
+        query += ` (pro.iso3166_2 = @${params.length}) AND `;
+        params.push(iso3166_2);
+        buscar = true;
+        break;
       default:
         break;
     }
@@ -648,18 +654,22 @@ export class DomicilioController extends BaseController {
       return new ClientException(`Ingrese un domicilio`)
     }
 
-    if (!domicilio.manual) {
-      if (!domicilio.address || Object.keys(domicilio.address).length === 0) {
-        return new ClientException(`Domicilio invalido`)
-      }
+    // if (!domicilio.manual) {
+    //   if (!domicilio.address || Object.keys(domicilio.address).length === 0) {
+    //     return new ClientException(`Domicilio invalido`)
+    //   }
 
-      if (!domicilio.place_id || isNaN(domicilio.place_id)) {
-        return new ClientException(`Domicilio invalido`)
-      }
+    //   if (!domicilio.place_id || isNaN(domicilio.place_id)) {
+    //     return new ClientException(`Domicilio invalido`)
+    //   }
+    // }
+
+    if (!domicilio.place_id || (!domicilio.address || Object.keys(domicilio.address).length === 0)) {
+      return new ClientException(`Domicilio invalido. No se pudo identificar la dirección`)
     }
 
     if (!domicilio.display_name || domicilio.display_name.length === 0) {
-      return new ClientException(`Domicilio invalido`)
+      return new ClientException(`Domicilio invalido. No se pudo identificar el domicilio completo`)
     }
 
   }
@@ -671,7 +681,8 @@ export class DomicilioController extends BaseController {
 
     if (domicilio.place_id) {
       //Crea la Provincia en caso de no estar registrada
-      if (!ProvinciaId && address.state) {
+      if (!ProvinciaId && (address.state || address.iso3166_2)) {
+        const iso3166_2: string = address.iso3166_2
         const ProvinciaDescripcion: string = address.state
 
         const Pais = await queryRunner.query(`
@@ -690,9 +701,10 @@ export class DomicilioController extends BaseController {
             ProvinciaId,
             PaisId,
             ProvinciaDescripcion,
-            ProvinciaLocalidadUltNro ) 
-          VALUES (@0, @1, @2, 0)
-        `, [newProvinciaId, PaisId, ProvinciaDescripcion])
+            ProvinciaLocalidadUltNro,
+            iso3166_2 ) 
+          VALUES (@0, @1, @2, 0, @3)
+        `, [newProvinciaId, PaisId, ProvinciaDescripcion, iso3166_2])
 
         ProvinciaId = newProvinciaId
       }
@@ -731,11 +743,11 @@ export class DomicilioController extends BaseController {
           DomicilioDomLugar, DomicilioDomPiso, DomicilioDomDpto,
           DomicilioDomCalle, DomicilioDomNro, DomicilioCodigoPostal, 
           DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId,
-          DomicilioCompleto, DomicilioJson) 
-      VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11)`,
-      [DomicilioDomLugar, DomicilioDomPiso, DomicilioDomDpto, address.road, address.house_number,
-        address.postcode, PaisId, ProvinciaId, LocalidadId,
-        BarrioId, domicilio.display_name, JSON.stringify(domicilio)]
+          DomicilioLatitud, DomicilioLongitud, DomicilioCompleto, DomicilioJson) 
+      VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)`,
+      [DomicilioDomLugar, DomicilioDomPiso, DomicilioDomDpto, address.street, address.house_number,
+        address.postcode, PaisId, ProvinciaId, LocalidadId, BarrioId, 
+        domicilio.lat, domicilio.lon, domicilio.display_name, JSON.stringify(domicilio)]
     )
     const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
 
@@ -809,11 +821,12 @@ export class DomicilioController extends BaseController {
       `UPDATE Domicilio
       SET DomicilioDomLugar=@1, DomicilioDomCalle=@2, DomicilioDomNro=@3, DomicilioCodigoPostal=@4, 
           DomicilioPaisId=@5, DomicilioProvinciaId=@6, DomicilioLocalidadId=@7, DomicilioBarrioId=@8,
-          DomicilioCompleto=@9, DomicilioJson=@10, DomicilioDomPiso=@11, DomicilioDomDpto=@12
+          DomicilioLatitud=@9, DomicilioLongitud=@10, DomicilioCompleto=@11, DomicilioJson=@12, 
+          DomicilioDomPiso=@13, DomicilioDomDpto=@14
       WHERE DomicilioId IN (@0)`,
-      [domicilioId, DomicilioDomLugar, address.road, address.house_number,
-        address.postcode, PaisId, ProvinciaId, LocalidadId,
-        BarrioId, domicilio.display_name, JSON.stringify(domicilio),
+      [domicilioId, DomicilioDomLugar, address.street, address.house_number,
+        address.postcode, PaisId, ProvinciaId, LocalidadId, BarrioId, 
+        domicilio.lat, domicilio.lon, domicilio.display_name, JSON.stringify(domicilio),
         DomicilioDomPiso, DomicilioDomDpto
       ]
     )
