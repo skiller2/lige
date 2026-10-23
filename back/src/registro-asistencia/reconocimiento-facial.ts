@@ -1,6 +1,7 @@
 import ort from "onnxruntime-node";
 import { Jimp } from "jimp";
 import { join } from "node:path";
+import type { QueryRunner } from "typeorm";
 
 /*
  * Reconocimiento facial con modelos ONNX del OpenCV Model Zoo, todo en Node:
@@ -164,6 +165,30 @@ export function columnasVectorFacial(vector: Float32Array | null) {
   return vector
     ? { VectorFacial: vectorABuffer(vector), VectorFacialFecha: new Date(), VectorFacialVersion: VERSION_VECTOR_FACIAL }
     : { VectorFacial: null, VectorFacialFecha: null, VectorFacialVersion: null }
+}
+
+/**
+ * Graba una foto nueva de la persona en DocumentoImagenFoto como principal (IndFotoPrincipal = 1),
+ * con su vector facial y el DocumentoId del documento tipo FOTO.
+ */
+export async function insertDocumentoImagenFoto(queryRunner: QueryRunner, PersonalId: number, TipoArchivo: string, vector: Float32Array | null, DocumentoId: number) {
+  // El CONVERT es por el NULL: como parámetro va como nvarchar y no se convierte solo a VARBINARY
+  const { VectorFacial, VectorFacialFecha, VectorFacialVersion } = columnasVectorFacial(vector)
+  await queryRunner.query(`
+    INSERT INTO DocumentoImagenFoto (
+      PersonalId,
+      DocumentoImagenFotoBlobTipoArchivo,
+      DocumentoImagenParametroId,
+      DocumentoImagenParametroDirectorioId,
+      IndFotoPrincipal,
+      VectorFacial,
+      VectorFacialFecha,
+      VectorFacialVersion,
+      DocumentoId
+    )
+    VALUES(@0,@1,@2,@3,1,CONVERT(VARBINARY(MAX), @4),@5,@6,@7)`,
+    [PersonalId, TipoArchivo, 7, 1, VectorFacial, VectorFacialFecha, VectorFacialVersion, DocumentoId]
+  )
 }
 
 /** Vector guardado en VectorFacial, o null si no tiene el largo esperado (vacío o truncado). */

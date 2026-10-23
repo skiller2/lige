@@ -10,7 +10,7 @@ import { habilitacionesController, domicilioController } from "../controller/con
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
-import { calcularVectorFacial, columnasVectorFacial } from "../registro-asistencia/reconocimiento-facial.ts";
+import { calcularVectorFacial, insertDocumentoImagenFoto } from "../registro-asistencia/reconocimiento-facial.ts";
 
 
 const PersonalSexoOptions: any[] = [
@@ -662,8 +662,8 @@ export class PersonalController extends BaseController {
 
   static async infoPersonalQuery(PersonalId: any, anio: number, mes: number, queryRunner: QueryRunner) {
     return queryRunner.query(`
-      SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 
+      SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, ISNULL(foto.DocumentoImagenFotoBlobNombreArchivo, fotoant.DocumentoImagenFotoBlobNombreArchivo) DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
+        TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ISNULL(foto.DocumentoImagenFotoId, fotoant.DocumentoImagenFotoId) PersonalFotoId, ing.PersonalFechaBaja, 
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
@@ -679,7 +679,8 @@ export class PersonalController extends BaseController {
       FROM Personal per
       LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId=per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-      LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND  foto.DocumentoImagenFotoId = per.PersonalFotoId
+      LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.IndFotoPrincipal = 1
+      LEFT JOIN DocumentoImagenFoto fotoant ON fotoant.PersonalId = per.PersonalId AND fotoant.DocumentoImagenFotoId = per.PersonalFotoId
       LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
       LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
       LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
@@ -711,8 +712,8 @@ export class PersonalController extends BaseController {
       ORDER BY tip.TipoEstudioId DESC `, [PersonalId])
     queryRunner
       .query(
-        `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo,per.PersonalFotoId, ing.PersonalFechaBaja, 
+        `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, ISNULL(foto.DocumentoImagenFotoBlobNombreArchivo, fotoant.DocumentoImagenFotoBlobNombreArchivo) DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
+        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ISNULL(foto.DocumentoImagenFotoId, fotoant.DocumentoImagenFotoId) PersonalFotoId, ing.PersonalFechaBaja, 
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
@@ -728,7 +729,9 @@ export class PersonalController extends BaseController {
         FROM Personal per
         LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId=per.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND  foto.DocumentoImagenFotoId = per.PersonalFotoId
+        -- La foto principal (IndFotoPrincipal = 1); si la persona todavía no tiene ninguna marcada, la de PersonalFotoId
+        LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.IndFotoPrincipal = 1
+        LEFT JOIN DocumentoImagenFoto fotoant ON fotoant.PersonalId = per.PersonalId AND fotoant.DocumentoImagenFotoId = per.PersonalFotoId
         LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
         LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
         LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
@@ -1811,7 +1814,7 @@ LEFT JOIN(
       //Habilitacion necesaria
       await habilitacionesController.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuario, ip)
 
-      if (foto && foto.length) await this.setFoto(queryRunner, PersonalId, foto[0])
+      if (foto && foto.length) await this.setFoto(queryRunner, PersonalId, foto[0], usuario, ip)
 
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
 
@@ -1962,7 +1965,7 @@ LEFT JOIN(
 
   }
 
-  async setFoto(queryRunner: any, personalId: any, file: any) {
+  async setFoto(queryRunner: any, personalId: any, file: any, usuario: any, ip: any) {
 
     if (file?.tempfilename) {
       const type = file.mimetype.split('/')[1] ? file.mimetype.split('/')[1] : file.TipoArchivo
@@ -1992,22 +1995,21 @@ LEFT JOIN(
       // La foto nueva es la principal: las demás de la persona dejan de serlo
       await queryRunner.query(`UPDATE DocumentoImagenFoto SET IndFotoPrincipal = 0 WHERE PersonalId = @0`, [personalId])
 
-      // El CONVERT es por el NULL: como parámetro va como nvarchar y no se convierte solo a VARBINARY
-      const { VectorFacial, VectorFacialFecha, VectorFacialVersion } = columnasVectorFacial(vector)
-      await queryRunner.query(`
-        INSERT INTO DocumentoImagenFoto (
-          PersonalId,
-          DocumentoImagenFotoBlobTipoArchivo,
-          DocumentoImagenParametroId,
-          DocumentoImagenParametroDirectorioId,
-          IndFotoPrincipal,
-          VectorFacial,
-          VectorFacialFecha,
-          VectorFacialVersion
-        )
-        VALUES(@0,@1,@2,@3,1,CONVERT(VARBINARY(MAX), @4),@5,@6)`,
-        [personalId, type, 7, 1, VectorFacial, VectorFacialFecha, VectorFacialVersion]
-      )
+      // La foto también va a Documento (tipo FOTO), con la misma función que el resto de los
+      // documentos. El archivo temporal se copia: después se mueve a la carpeta de las fotos
+      const cuit = await queryRunner.query(`
+        SELECT TOP 1 PersonalCUITCUILCUIT FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`,
+        [personalId])
+      const DocumentoFecha = new Date()
+      const den_documento = cuit[0]?.PersonalCUITCUILCUIT ?? personalId
+      const IdsRelacionados = { PersonalId: personalId }
+      file.doctipo_id = 'FOTO'
+      file.tableForSearch = 'Documento'
+
+      const resDoc = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, null, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+      const DocumentoId = resDoc.doc_id
+
+      await insertDocumentoImagenFoto(queryRunner, personalId, type, vector, DocumentoId)
       let foto = await queryRunner.query(`
         SELECT TOP 1 foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
         FROM DocumentoImagenFoto foto
@@ -2653,7 +2655,7 @@ LEFT JOIN(
       await habilitacionesController.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuario, ip)
 
 
-      if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto[0])
+      if (Foto && Foto.length) await this.setFoto(queryRunner, PersonalId, Foto[0], usuario, ip)
 
       if (docFrente && docFrente.length) await this.setDocumento(queryRunner, PersonalId, docFrente[0], 12)
 
@@ -2677,7 +2679,7 @@ LEFT JOIN(
       TRIM(nac.NacionalidadDescripcion), per.PersonalSexo Sexo, per.EstadoCivilId, LugarNacimiento,
       email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
-      per.PersonalFotoId FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
+      ISNULL(foto.DocumentoImagenFotoId, per.PersonalFotoId) FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
       per.PersonalLeyNro LeyNro,
       per.TipoVehiculoId, per.VehiculoMarcaId, per.VehiculoMarcaModeloId, TRIM(per.PersonalVehiculoPatente) AS PersonalVehiculoPatente, TRIM(per.Cilindrada) AS Cilindrada,
       ubleg.LugarFisicoLegajoId, ubleg.PersonalUbicacionLegajoDesde LugarFisicoLegajoDesde,
@@ -2685,6 +2687,7 @@ LEFT JOIN(
       FROM Personal per
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
+      LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.IndFotoPrincipal = 1
       LEFT JOIN Nacionalidad nac ON nac.NacionalidadId = per.PersonalNacionalidadId
       LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
       LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
