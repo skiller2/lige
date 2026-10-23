@@ -2,7 +2,7 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { QueryRunner } from "typeorm";
-import { bufferAVector, calcularVectorFacial, reconocerRostro, vectorABuffer, VERSION_VECTOR_FACIAL, type VectorPersonal } from "./reconocimiento-facial.ts";
+import { bufferAVector, calcularVectorFacial, columnasVectorFacial, reconocerRostro, VERSION_VECTOR_FACIAL, type VectorPersonal } from "./reconocimiento-facial.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 
@@ -694,10 +694,11 @@ export class RegistroAsistenciaController extends BaseController {
           sinRostro++
           continue
         }
+        const { VectorFacial, VectorFacialFecha, VectorFacialVersion } = columnasVectorFacial(vector)
         await queryRunner.query(`
           UPDATE DocumentoImagenFoto SET VectorFacial = @0, VectorFacialFecha = @1, VectorFacialVersion = @4
           WHERE DocumentoImagenFotoId = @2 AND PersonalId = @3 AND VectorFacial IS NULL
-        `, [vectorABuffer(vector), new Date(), foto.DocumentoImagenFotoId, foto.PersonalId, VERSION_VECTOR_FACIAL])
+        `, [VectorFacial, VectorFacialFecha, foto.DocumentoImagenFotoId, foto.PersonalId, VectorFacialVersion])
         guardadas++
       } catch (error) {
         conError++

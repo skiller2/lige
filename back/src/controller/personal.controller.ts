@@ -10,7 +10,7 @@ import { habilitacionesController, domicilioController } from "../controller/con
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
-import { calcularVectorFacial, vectorABuffer, VERSION_VECTOR_FACIAL } from "../registro-asistencia/reconocimiento-facial.ts";
+import { calcularVectorFacial, columnasVectorFacial } from "../registro-asistencia/reconocimiento-facial.ts";
 
 
 const PersonalSexoOptions: any[] = [
@@ -1977,15 +1977,36 @@ LEFT JOIN(
       //   WHERE foto.PersonalId =@0
       // `, [personalId])
       // if (!foto.length) {
+      const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
+      const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}`;
+
+      // Vector facial para el registro de asistencia, con la misma función que el cálculo de
+      // vectores faciales. Si falla o la foto no tiene rostro queda en NULL y lo toma ese cálculo
+      let vector: Float32Array | null = null
+      try {
+        vector = await calcularVectorFacial(dirFile)
+      } catch (error) {
+        console.error(`[personal] No se pudo calcular el vector facial de la foto nueva (PersonalId ${personalId})`, error)
+      }
+
+      // La foto nueva es la principal: las demás de la persona dejan de serlo
+      await queryRunner.query(`UPDATE DocumentoImagenFoto SET IndFotoPrincipal = 0 WHERE PersonalId = @0`, [personalId])
+
+      // El CONVERT es por el NULL: como parámetro va como nvarchar y no se convierte solo a VARBINARY
+      const { VectorFacial, VectorFacialFecha, VectorFacialVersion } = columnasVectorFacial(vector)
       await queryRunner.query(`
         INSERT INTO DocumentoImagenFoto (
           PersonalId,
           DocumentoImagenFotoBlobTipoArchivo,
           DocumentoImagenParametroId,
-          DocumentoImagenParametroDirectorioId
+          DocumentoImagenParametroDirectorioId,
+          IndFotoPrincipal,
+          VectorFacial,
+          VectorFacialFecha,
+          VectorFacialVersion
         )
-        VALUES(@0,@1,@2,@3)`,
-        [personalId, type, 7, 1]
+        VALUES(@0,@1,@2,@3,1,CONVERT(VARBINARY(MAX), @4),@5,@6)`,
+        [personalId, type, 7, 1, VectorFacial, VectorFacialFecha, VectorFacialVersion]
       )
       let foto = await queryRunner.query(`
         SELECT TOP 1 foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
@@ -1998,41 +2019,16 @@ LEFT JOIN(
       // }
 
       const fotoId = foto[0].fotoId
-      const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
-      const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}`;
       const newFieldname = `${personalId}-${fotoId}-FOTO.${type}`
       const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}`;
       this.moveFile(dirFile, newFilePath, newFieldname);
-
-      // Vector facial para el registro de asistencia, con la misma función que el cálculo de
-      // vectores faciales. Si falla o la foto no tiene rostro queda en NULL y lo toma ese cálculo
-      let vector: Float32Array | null = null
-      try {
-        vector = await calcularVectorFacial(`${newFilePath}${newFieldname}`)
-      } catch (error) {
-        console.error(`[personal] No se pudo calcular el vector facial de la foto ${fotoId} (PersonalId ${personalId})`, error)
-      }
-
-      // La nueva foto queda como principal: las anteriores de la persona dejan de serlo
-      await queryRunner.query(`
-      UPDATE DocumentoImagenFoto SET IndFotoPrincipal = 0
-      WHERE PersonalId = @0 AND DocumentoImagenFotoId <> @1`,
-        [personalId, fotoId]
-      )
+      // El nombre del archivo lleva el id de la foto, que se conoce recién después del INSERT
       await queryRunner.query(`
       UPDATE DocumentoImagenFoto SET
-      DocumentoImagenFotoBlobNombreArchivo = @2,
-      IndFotoPrincipal = 1
+      DocumentoImagenFotoBlobNombreArchivo = @2
       WHERE PersonalId = @0 AND DocumentoImagenFotoId = @1`,
         [personalId, fotoId, newFieldname]
       )
-      
-      if (vector)
-        await queryRunner.query(`
-        UPDATE DocumentoImagenFoto SET VectorFacial = @2, VectorFacialFecha = @3, VectorFacialVersion = @4
-        WHERE PersonalId = @0 AND DocumentoImagenFotoId = @1`,
-          [personalId, fotoId, vectorABuffer(vector), new Date(), VERSION_VECTOR_FACIAL]
-        )
       await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`,
         [fotoId, personalId]
       )

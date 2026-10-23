@@ -156,6 +156,16 @@ export function vectorABuffer(vector: Float32Array): Buffer {
   return Buffer.from(vector.buffer, vector.byteOffset, vector.byteLength)
 }
 
+/**
+ * Valores para las columnas VectorFacial, VectorFacialFecha y VectorFacialVersion de
+ * DocumentoImagenFoto. La fecha y la versión describen al vector: sin vector van las tres en null.
+ */
+export function columnasVectorFacial(vector: Float32Array | null) {
+  return vector
+    ? { VectorFacial: vectorABuffer(vector), VectorFacialFecha: new Date(), VectorFacialVersion: VERSION_VECTOR_FACIAL }
+    : { VectorFacial: null, VectorFacialFecha: null, VectorFacialVersion: null }
+}
+
 /** Vector guardado en VectorFacial, o null si no tiene el largo esperado (vacío o truncado). */
 export function bufferAVector(buffer: Buffer | null): Float32Array | null {
   if (!buffer || buffer.length !== LARGO_VECTOR * 4) return null
