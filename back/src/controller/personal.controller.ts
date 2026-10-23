@@ -10,6 +10,7 @@ import { habilitacionesController, domicilioController } from "../controller/con
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
+import { calcularVectorFacial, vectorABuffer, VERSION_VECTOR_FACIAL } from "../registro-asistencia/reconocimiento-facial.ts";
 
 
 const PersonalSexoOptions: any[] = [
@@ -2002,12 +2003,36 @@ LEFT JOIN(
       const newFieldname = `${personalId}-${fotoId}-FOTO.${type}`
       const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}`;
       this.moveFile(dirFile, newFilePath, newFieldname);
+
+      // Vector facial para el registro de asistencia, con la misma función que el cálculo de
+      // vectores faciales. Si falla o la foto no tiene rostro queda en NULL y lo toma ese cálculo
+      let vector: Float32Array | null = null
+      try {
+        vector = await calcularVectorFacial(`${newFilePath}${newFieldname}`)
+      } catch (error) {
+        console.error(`[personal] No se pudo calcular el vector facial de la foto ${fotoId} (PersonalId ${personalId})`, error)
+      }
+
+      // La nueva foto queda como principal: las anteriores de la persona dejan de serlo
+      await queryRunner.query(`
+      UPDATE DocumentoImagenFoto SET IndFotoPrincipal = 0
+      WHERE PersonalId = @0 AND DocumentoImagenFotoId <> @1`,
+        [personalId, fotoId]
+      )
       await queryRunner.query(`
       UPDATE DocumentoImagenFoto SET
-      DocumentoImagenFotoBlobNombreArchivo = @2
+      DocumentoImagenFotoBlobNombreArchivo = @2,
+      IndFotoPrincipal = 1
       WHERE PersonalId = @0 AND DocumentoImagenFotoId = @1`,
         [personalId, fotoId, newFieldname]
       )
+      
+      if (vector)
+        await queryRunner.query(`
+        UPDATE DocumentoImagenFoto SET VectorFacial = @2, VectorFacialFecha = @3, VectorFacialVersion = @4
+        WHERE PersonalId = @0 AND DocumentoImagenFotoId = @1`,
+          [personalId, fotoId, vectorABuffer(vector), new Date(), VERSION_VECTOR_FACIAL]
+        )
       await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`,
         [fotoId, personalId]
       )
