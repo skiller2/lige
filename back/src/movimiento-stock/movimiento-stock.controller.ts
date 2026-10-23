@@ -157,6 +157,16 @@ const listaColumnasMovimientos: any[] = [
     maxWidth: 110,
     cssClass: 'text-center'
   },
+  {
+    id: "Efectos",
+    name: "Efectos",
+    field: "Efectos",
+    fieldName: "m.Efectos",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: true,
+  },
   // Columnas solo de filtro (ocultas en la grilla). Apuntan al destino efectivo del derivado `m`:
   // si hay pendiente toma el destino real de MovimientoStockPendiente, si no el de MovimientoStock.
   {
@@ -373,7 +383,8 @@ export class MovimientoStockController extends BaseController {
             IIF(m.IntermediarioProveedorId IS NULL, NULL, TRIM(proi.ProveedorRazonSocial))
           ) AS Intermediario,
           m.TienePendiente,
-          m.CantidadEfectos
+          m.CantidadEfectos,
+          m.Efectos
       FROM (
         SELECT mov.MovimientoStockCodigo, mov.Fecha,
             IIF(pend.MovimientoStockCodigo IS NOT NULL, pend.PersonalIdDestino, mov.PersonalIdDestino) AS PersonalIdDest,
@@ -384,9 +395,17 @@ export class MovimientoStockController extends BaseController {
             IIF(pend.MovimientoStockCodigo IS NOT NULL, mov.PersonalIdDestino, NULL) AS IntermediarioPersonalId,
             IIF(pend.MovimientoStockCodigo IS NOT NULL, mov.ProveedorIdDestino, NULL) AS IntermediarioProveedorId,
             IIF(pend.MovimientoStockCodigo IS NOT NULL, '1', '0') AS TienePendiente,
-            ISNULL((SELECT SUM(det.Cantidad) FROM MovimientoStockDetalle det WHERE det.MovimientoStockCodigo = mov.MovimientoStockCodigo), 0) AS CantidadEfectos
+            ISNULL((SELECT SUM(det.Cantidad) FROM MovimientoStockDetalle det WHERE det.MovimientoStockCodigo = mov.MovimientoStockCodigo), 0) AS CantidadEfectos,
+            efes.Efectos
         FROM MovimientoStock mov
         LEFT JOIN MovimientoStockPendiente pend ON pend.MovimientoStockCodigo = mov.MovimientoStockCodigo
+        -- Efectos del movimiento concatenados con su cantidad
+        OUTER APPLY (SELECT
+          STRING_AGG(CAST(CONCAT(TRIM(efe.EfectoDescripcion), ' - ', TRIM(efeind.EfectoEfectoIndividualDescripcion), ' (', efe.EfectoAtrDescripcion, ', ', efeind.EfectoIndividualAtrDescripcion, ' )', ' (', det.Cantidad, ')') AS NVARCHAR(MAX)), '; ') AS Efectos
+          FROM MovimientoStockDetalle det
+          LEFT JOIN EfectoDescripcion efe ON efe.EfectoId = det.EfectoId
+          LEFT JOIN EfectoIndividualDescripcion efeind ON efeind.EfectoId = det.EfectoId AND efeind.EfectoEfectoIndividualId = det.EfectoIndividualId
+          WHERE det.MovimientoStockCodigo = mov.MovimientoStockCodigo) efes
       ) m
       LEFT JOIN Deposito depd ON depd.DepositoId = m.DepositoIdDest
       LEFT JOIN Sucursal sucdep ON sucdep.SucursalId = depd.DepositoSucursalId
