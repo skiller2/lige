@@ -180,36 +180,37 @@ export class DomicilioController extends BaseController {
         "HAB"
       ));
 
-      const direcciones = await queryRunner.query(`SELECT dom.DomicilioId 
+      const direcciones = await queryRunner.query(
+        `SELECT dom.DomicilioId 
 
-                ,TRIM(dom.DomicilioDomCalle) Calle,
-                TRIM(dom.DomicilioDomNro) DomicilioDomNro,
-                TRIM(dom.DomicilioCodigoPostal) DomicilioCodigoPostal,
-                TRIM(pais.PaisDescripcion) pais, 
-                TRIM(prov.ProvinciaDescripcion) provincia,
-                TRIM(loc.LocalidadDescripcion) localidad ,
-                TRIM(bar.BarrioDescripcion) barrio,
-                CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')), TRIM(dom.DomicilioCodigoPostal),
-                NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domNormalizar,
-                CONCAT_WS(', ',dom.DomicilioCompleto,prov.ProvinciaDescripcion) AS domNormalizar2,
+        ,TRIM(dom.DomicilioDomCalle) Calle,
+        TRIM(dom.DomicilioDomNro) DomicilioDomNro,
+        TRIM(dom.DomicilioCodigoPostal) DomicilioCodigoPostal,
+        TRIM(pais.PaisDescripcion) pais, 
+        TRIM(prov.ProvinciaDescripcion) provincia,
+        TRIM(loc.LocalidadDescripcion) localidad ,
+        TRIM(bar.BarrioDescripcion) barrio,
+        CONCAT_WS(', ', CONCAT_WS(' ',NULLIF(TRIM(dom.DomicilioDomCalle), ''),NULLIF(TRIM(dom.DomicilioDomNro), '')), TRIM(dom.DomicilioCodigoPostal),
+        NULLIF(TRIM(bar.BarrioDescripcion), ''),NULLIF(TRIM(loc.LocalidadDescripcion), ''),NULLIF(TRIM(prov.ProvinciaDescripcion), ''),NULLIF(TRIM(pais.PaisDescripcion), '')) AS domNormalizar,
+        CONCAT_WS(', ',dom.DomicilioCompleto,prov.ProvinciaDescripcion) AS domNormalizar2,
 
-                dom.DomicilioJson,
-                dom.DomicilioProvinciaId
-                FROM Domicilio dom
-                JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId
+        dom.DomicilioJson,
+        dom.DomicilioProvinciaId
+        FROM Domicilio dom
+        JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId
 
-                LEFT JOIN Pais pais on pais.PaisId=dom.DomicilioPaisId
-                LEFT JOIN Provincia prov on prov.PaisId=pais.PaisId and prov.ProvinciaId=dom.DomicilioProvinciaId
-                LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
-                LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
+        LEFT JOIN Pais pais on pais.PaisId=dom.DomicilioPaisId
+        LEFT JOIN Provincia prov on prov.PaisId=pais.PaisId and prov.ProvinciaId=dom.DomicilioProvinciaId
+        LEFT JOIN Localidad loc on loc.PaisId=pais.PaisId and loc.ProvinciaId=prov.ProvinciaId  and loc.LocalidadId=dom.DomicilioLocalidadId 
+        LEFT JOIN Barrio bar on bar.PaisId=pais.PaisId and prov.ProvinciaId=bar.ProvinciaId and loc.LocalidadId=bar.LocalidadId and dom.DomicilioBarrioId=bar.BarrioId
 
-                WHERE 
-                -- dom.DomicilioJson IS NULL
-                dom.DomicilioCompleto IS NOT NULL AND 
-                 dom.DomicilioJson LIKE 'ERROR%'
+        WHERE 
+        -- dom.DomicilioJson IS NULL
+        dom.DomicilioCompleto IS NOT NULL AND 
+          dom.DomicilioJson LIKE 'ERROR%'
 
-                -- AND nex.NexoDomicilioActual = 1
-            `)
+        -- AND nex.NexoDomicilioActual = 1
+      `)
 
       for (const direccion of direcciones) {
         registrosProcesados++
@@ -830,6 +831,30 @@ export class DomicilioController extends BaseController {
         DomicilioDomPiso, DomicilioDomDpto
       ]
     )
+  }
+
+  async getDomicilio(queryRunner:any, DomicilioId:number){
+    const domicilio = await queryRunner.query(`
+      SELECT 
+        DomicilioId,
+        DomicilioDomLugar,
+        DomicilioDomPiso,
+        DomicilioDomDpto,
+        DomicilioJson
+      FROM Domicilio
+      WHERE DomicilioId IN (@0)
+    `, [DomicilioId]);
+
+    if (domicilio.length && domicilio[0].DomicilioJson) {
+      const parse = JSON.parse(domicilio[0].DomicilioJson)
+      if (typeof parse === "object") {
+        domicilio[0].Domicilio = parse;
+      } else {
+        domicilio[0].Domicilio = {};
+      }
+    }
+
+    return domicilio[0] || null;
   }
 }
 

@@ -1394,6 +1394,7 @@ outer APPLY (SELECT
                         , Obj.DomicilioLocalidadId
                         , Obj.DomicilioBarrioId
                     )
+                    // await this.newAddElementoDependienteDomicilio(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Domicilio, Obj.DomicilioDomLugar)
 
                 }
 
@@ -1730,6 +1731,8 @@ outer APPLY (SELECT
             throw new ClientException(msgError)
         }
 
+        //domicilioController.valObjDomicilio(null, form.Domicilio)
+
         // Coordinador de cuenta
 
         const coordinadores = form.infoCoordinadorCuenta || []
@@ -2020,8 +2023,11 @@ outer APPLY (SELECT
 
             await this.insertClienteElementoDependienteSql(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro, Obj.Descripcion, Obj.SucursalId, Obj.CoberturaServicio)
             await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
+
+            //Domicilio
             await this.addElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
                 Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
+            // await this.newAddElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.Domicilio, Obj.DomicilioDomLugar)
 
             //await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
             await this.insertObjetivoSql(queryRunner, Number(Obj.ClienteId), Obj.Descripcion, ClienteElementoDependienteUltNro, Obj.SucursalId)
@@ -2126,7 +2132,7 @@ outer APPLY (SELECT
         )
     }
     //Esta funcion esta preparada para cuando se habilite search-addr
-    async newAddElementoDependienteDomicilio(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, DomicilioDomLugar: string, Domicilio:any) {
+    async newAddElementoDependienteDomicilio(queryRunner: any, ClienteId: number, ClienteElementoDependienteId: number, Domicilio:any, DomicilioDomLugar: string) {
 
         await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual = 0 WHERE ClienteElementoDependienteId = @0 AND ClienteId = @1 `, [ClienteElementoDependienteId, ClienteId])
         

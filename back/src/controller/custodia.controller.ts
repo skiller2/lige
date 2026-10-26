@@ -541,10 +541,12 @@ export class CustodiaController extends BaseController {
         const Descripcion = objetivoCustodia.Descripcion ? objetivoCustodia.Descripcion : null
         const FechaInicio = new Date(objetivoCustodia.FechaInicio)
         const Origen = objetivoCustodia.Origen
-        // const Origen = JSON.stringify(objetivoCustodia.Origen)
+        // const Origen = objetivoCustodia.Origen.display_name
+        // const OrigenJson = JSON.stringify(objetivoCustodia.Origen)
         const FechaFin = objetivoCustodia.FechaFin ? new Date(objetivoCustodia.FechaFin) : null
         const Destino = objetivoCustodia.Destino ? objetivoCustodia.Destino : null
-        // const Destino = JSON.stringify(objetivoCustodia.Destino)
+        // const Destino = objetivoCustodia.Destino ? objetivoCustodia.Destino.display_name : null
+        // const DestinoJson = JSON.stringify(objetivoCustodia.Destino)
         const CantidadModulos = objetivoCustodia.CantidadModulos ? objetivoCustodia.CantidadModulos : null
         const ImporteModulo = objetivoCustodia.ImporteModulo ? objetivoCustodia.ImporteModulo : null
         const CantidadHorasExcedente = objetivoCustodia.CantidadHorasExcedente ? objetivoCustodia.CantidadHorasExcedente : null
@@ -575,12 +577,16 @@ export class CustodiaController extends BaseController {
             INSERT Custodia(CustodiaCodigo, ResponsableId, ClienteId, DescripcionRequirente,
                 Descripcion, FechaInicio, Origen, FechaFin, Destino, CantidadModulos, ImporteModulo, CantidadHorasExcedente,
                 ImporteHorasExcedente, CantidadKmExcedente, ImporteKmExcedente, ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo,
-                FechaLiquidacion, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudIpMod, AudFechaMod)
+                FechaLiquidacion, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudIpMod, AudFechaMod
+                -- , OrigenJson, DestinoJson
+                )
             VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @21, @22, @23)`,
             [CustodiaCodigo, ResponsableId, ClienteId, DescripcionRequirente, Descripcion, FechaInicio, Origen,
                 FechaFin, Destino, CantidadModulos, ImporteModulo, CantidadHorasExcedente, ImporteHorasExcedente,
                 CantidadKmExcedente, ImporteKmExcedente, ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo,
-                FechaLiquidacion, usuario, ip, fechaActual]
+                FechaLiquidacion, usuario, ip, fechaActual
+                // ,OrigenJson, DestinoJson
+            ]
         )
     }
 
@@ -716,10 +722,12 @@ export class CustodiaController extends BaseController {
         const Descripcion = objetivoCustodia.Descripcion ? objetivoCustodia.Descripcion : null
         const FechaInicio = new Date(objetivoCustodia.FechaInicio)
         const Origen = objetivoCustodia.Origen
-        // const Origen = JSON.stringify(objetivoCustodia.Origen)
+        // const Origen = objetivoCustodia.Origen.display_name
+        // const OrigenJson = JSON.stringify(objetivoCustodia.Origen)
         const FechaFin = objetivoCustodia.FechaFin ? new Date(objetivoCustodia.FechaFin) : null
         const Destino = objetivoCustodia.Destino
-        // const Destino = JSON.stringify(objetivoCustodia.Destino)
+        // const Destino = objetivoCustodia.Destino?.display_name
+        // const DestinoJson = JSON.stringify(objetivoCustodia.Destino)
         const CantidadModulos = Number(objetivoCustodia.CantidadModulos) ? Number(objetivoCustodia.CantidadModulos) : null
         const ImporteModulo = Number(objetivoCustodia.ImporteModulo) ? Number(objetivoCustodia.ImporteModulo) : null
         const CantidadHorasExcedente = Number(objetivoCustodia.CantidadHorasExcedente) ? Number(objetivoCustodia.CantidadHorasExcedente) : null
@@ -772,10 +780,13 @@ export class CustodiaController extends BaseController {
                 AudUsuarioMod = @20,
                 AudIpMod = @21,
                 AudFechaMod = @22
+                -- , OrigenJson = @23, DestinoJson = @24
             WHERE CustodiaCodigo = @0`,
             [CustodiaCodigo, ClienteId, DescripcionRequirente, Descripcion, FechaInicio, Origen, FechaFin, Destino,
                 CantidadModulos, ImporteModulo, CantidadHorasExcedente, ImporteHorasExcedente, CantidadKmExcedente, ImporteKmExcedente,
-                ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo, FechaLiquidacion, usuario, ip, fechaActual]
+                ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo, FechaLiquidacion, usuario, ip, fechaActual
+                // , OrigenJson, DestinoJson
+            ]
         )
     }
 
@@ -830,7 +841,7 @@ export class CustodiaController extends BaseController {
 
     async getObjetivoCustodiaQuery(queryRunner: any, CustodiaCodigo: any) {
         //NEW TABLE
-        return await queryRunner.query(`
+        const result = await queryRunner.query(`
         SELECT 
             obj.CustodiaCodigo ,
             obj.ResponsableId ,
@@ -860,6 +871,7 @@ export class CustodiaController extends BaseController {
             obj.AudUsuarioMod ,
             obj.AudIpMod ,
             obj.AudFechaMod 
+            --, obj.OrigenJson, obj.DestinoJson
         FROM Custodia obj
         INNER JOIN Cliente cli 
             ON cli.ClienteId = obj.ClienteId
@@ -867,6 +879,25 @@ export class CustodiaController extends BaseController {
             ON per.PersonalId = obj.ResponsableId
         WHERE obj.CustodiaCodigo = @0`,
             [CustodiaCodigo])
+
+        // if (result.length && result[0].OrigenJson) {
+        //     const parse = JSON.parse(result[0].OrigenJson)
+        //     if (typeof parse === "object") {
+        //         result[0].Origen = parse;
+        //     } else {
+        //         result[0].Origen = {};
+        //     }
+        // }
+        // if (result.length && result[0].DestinoJson) {
+        //     const parse = JSON.parse(result[0].DestinoJson)
+        //     if (typeof parse === "object") {
+        //         result[0].Destino = parse;
+        //     } else {
+        //         result[0].Destino = {};
+        //     }
+        // }
+
+        return result
     }
 
     async getRegPersonalObjCustodiaQuery(queryRunner: any, CustodiaCodigo: any) {
@@ -1403,6 +1434,7 @@ export class CustodiaController extends BaseController {
         if (custodiaForm.FechaFin && custodiaForm.FechaFin <= custodiaForm.FechaInicio)
             errorCampo('FechaFin', `La Fecha Final no puede ser menor o igual a la Fecha Inicial.`)
 
+        //Direcciones
         // if (custodiaForm.Origen) {
         //     const res = await domicilioController.valObjDomicilio(queryRunner, custodiaForm.Origen)
         //     if (res instanceof ClientException) errores.push(`Origen: ${res.messageArr}`)

@@ -1751,6 +1751,7 @@ LEFT JOIN(
       await this.addPersonalDocumentoQuery(queryRunner, PersonalId, DNI)
 
       await this.updatePerDomicilio(queryRunner, PersonalId, domicilio)
+      // await this.newUpdatePerDomicilio(queryRunner, PersonalId, domicilio)
 
       await this.updatePersonalEmail(queryRunner, PersonalId, Email)
 
@@ -2630,6 +2631,7 @@ LEFT JOIN(
         await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
       }
       await this.updatePerDomicilio(queryRunner, PersonalId, domicilio)
+      // await this.newUpdatePerDomicilio(queryRunner, PersonalId, domicilio)
 
       await this.updatePersonalEmail(queryRunner, PersonalId, req.body.Email)
       // await this.updatePersonalSitRevista(queryRunner, PersonalId, req.body)
@@ -2744,6 +2746,30 @@ LEFT JOIN(
       `, [personalId]
     )
     return PerDomicilio[0]
+
+    // const domicilio = await queryRunner.query(`
+    //   SELECT 
+    //     dom.DomicilioId,
+    //     dom.DomicilioDomLugar,
+    //     dom.DomicilioDomPiso,
+    //     dom.DomicilioDomDpto,
+    //     dom.DomicilioJson
+    //   FROM Domicilio dom
+    //   JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
+    //   WHERE nex.PersonalId IN (@0) AND nex.NexoDomicilioActual = 1
+    //   ORDER BY dom.DomicilioId DESC
+    //   `, [personalId]);
+
+    // if (domicilio.length && domicilio[0].DomicilioJson) {
+    //   const parse = JSON.parse(domicilio[0].DomicilioJson)
+    //   if (typeof parse === "object") {
+    //     domicilio[0].Domicilio = parse;
+    //   } else {
+    //     domicilio[0].Domicilio = {};
+    //   }
+    // }
+
+    // return domicilio[0] || null;
   }
 
   private async getFormTelefonosByPersonalIdQuery(queryRunner: any, personalId: any) {
@@ -3146,6 +3172,7 @@ LEFT JOIN(
 
     this.validarCUIT(personalForm.CUIT)
 
+    // Direcciones
     // if (personalForm.domicilio.Domicilio) {
     //   const res = await domicilioController.valObjDomicilio(queryRunner, personalForm.domicilio.Domicilio)
     //   if (res instanceof ClientException) return res

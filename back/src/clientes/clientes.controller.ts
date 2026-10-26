@@ -421,6 +421,30 @@ ${orderBy}`, [fechaActual])
             WHERE nex.ClienteId = @0 AND nex.ClienteElementoDependienteId IS NULL
                 AND nex.NexoDomicilioActual = 1
             ORDER BY dom.DomicilioId DESC `, [clienteId])
+        
+        // const domicilio = await queryRunner.query(
+        //     `SELECT 
+        //         dom.DomicilioId,
+        //         dom.DomicilioDomLugar,
+        //         dom.DomicilioJson
+        //     FROM Domicilio dom
+        //     JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
+        //     WHERE nex.ClienteId = @0 AND nex.ClienteElementoDependienteId IS NULL
+        //         AND nex.NexoDomicilioActual = 1
+        //     ORDER BY dom.DomicilioId DESC`, 
+        //     [clienteId]
+        // );
+
+        // if (domicilio.length && domicilio[0].DomicilioJson) {
+        // const parse = JSON.parse(domicilio[0].DomicilioJson)
+        // if (typeof parse === "object") {
+        //     domicilio[0].Domicilio = parse;
+        // } else {
+        //     domicilio[0].Domicilio = {};
+        // }
+        // }
+
+        // return domicilio;
     }
 
     async getClienteContactoQuery(queryRunner: any, clienteId: any) {
@@ -584,15 +608,15 @@ ${orderBy}`, [fechaActual])
     async infoClienteQuerys(queryRunner: any, clienteId: any) {
         let infoCliente = await this.getObjetivoClienteQuery(queryRunner, clienteId)
         let infoClienteContacto = await this.getClienteContactoQuery(queryRunner, clienteId)
-        let domiclio = await this.getClienteDomicilioQuery(queryRunner, clienteId)
+        let domicilio = await this.getClienteDomicilioQuery(queryRunner, clienteId)
 
-        if (domiclio) {
-            infoCliente = { ...infoCliente[0], ...domiclio[0] }
+        if (domicilio) {
+            infoCliente = { ...infoCliente[0], ...domicilio[0] }
         } else {
             infoCliente = infoCliente[0]
         }
-        infoCliente.infoDomicilio = domiclio
-        infoCliente.infoDomicilioOriginal = domiclio
+        infoCliente.infoDomicilio = domicilio
+        infoCliente.infoDomicilioOriginal = domicilio
         infoCliente.infoClienteContacto = infoClienteContacto
         infoCliente.infoClienteContactoOriginal = infoClienteContacto
 
@@ -639,6 +663,7 @@ ${orderBy}`, [fechaActual])
 
 
             ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
+            // ObjClienteNew.infoDomicilio = await this.newClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
 
             ObjClienteNew.infoClienteContacto = await this.ClienteContactoUpdate(queryRunner, ObjCliente.infoClienteContacto, ClienteId)
 
@@ -1011,6 +1036,7 @@ ${orderBy}`, [fechaActual])
             await this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId)
 
             ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
+            // ObjClienteNew.infoDomicilio = await this.newClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId) 
 
             ObjClienteNew.infoClienteContacto = await this.ClienteContactoUpdate(queryRunner, ObjCliente.infoClienteContacto, ClienteId)
             if (ClienteAdministradorId != null) {
