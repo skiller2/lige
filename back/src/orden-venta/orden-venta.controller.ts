@@ -109,7 +109,7 @@ const columnasGrillaOrdenes: any[] = [
   },
   {
     id: "ClienteId",
-    name: "Cliente",
+    name: "ClienteId",
     field: "ClienteId",
     fieldName: "ord.ClienteId",
     type: "number",
@@ -130,7 +130,7 @@ const columnasGrillaOrdenes: any[] = [
   },
   {
     id: "ObjetivoId",
-    name: "Objetivo",
+    name: "ObjetivoId",
     field: "ObjetivoId",
     fieldName: "obj.ObjetivoId",
     type: "number",
@@ -138,16 +138,6 @@ const columnasGrillaOrdenes: any[] = [
     sortable: true,
     hidden: true,
     searchHidden: false
-  },
-  {
-    id: "GrupoActividadNumero",
-    name: "Grupo Actividad",
-    field: "GrupoActividadNumero",
-    fieldName: "ga.GrupoActividadNumero",
-    type: "string",
-    sortable: false,
-    hidden: true,
-    searchHidden: true
   },
   {
     id: "Objetivo",
@@ -160,8 +150,18 @@ const columnasGrillaOrdenes: any[] = [
     searchHidden: true
   },
   {
+    id: "GrupoActividadNumero",
+    name: "Grupo Actividad",
+    field: "GrupoActividadNumero",
+    fieldName: "ga.GrupoActividadNumero",
+    type: "string",
+    sortable: false,
+    hidden: true,
+    searchHidden: true
+  },
+  {
     id: "EstadoOrdenVentaCodigo",
-    name: "Estado",
+    name: "EstadoCodigo",
     field: "EstadoOrdenVentaCodigo",
     fieldName: "ord.EstadoOrdenVentaCodigo",
     type: "string",
@@ -267,9 +267,16 @@ export class OrdenVentaController extends BaseController {
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = ord.ClienteId AND isnull(eledep.ClienteElementoDependienteId,0) = isnull(ord.ClienteElementoDependienteId,0)
         LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
         LEFT JOIN Objetivo obj ON obj.ClienteId = eledep.ClienteId and obj.ClienteElementoDependienteId = isnull(eledep.ClienteElementoDependienteId,0)
-        LEFT JOIN GrupoActividadObjetivo gaobj ON gaobj.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
-            AND gaobj.GrupoActividadObjetivoDesde <= EOMONTH(DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1))
-            AND ISNULL(gaobj.GrupoActividadObjetivoHasta, '9999-12-31') >= DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1)
+        -- Último grupo de actividad vigente del objetivo.
+        OUTER APPLY (
+          SELECT TOP 1 gap.GrupoActividadId
+          FROM GrupoActividadObjetivo gap
+          WHERE gap.GrupoActividadObjetivoObjetivoId = obj.ObjetivoId
+            AND gap.GrupoActividadObjetivoDesde <= EOMONTH(DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1))
+            AND ISNULL(gap.GrupoActividadObjetivoHasta, '9999-12-31') >= DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1)
+          ORDER BY gap.GrupoActividadObjetivoDesde DESC,
+            ISNULL(gap.GrupoActividadObjetivoHasta, '9999-12-31') DESC, gap.GrupoActividadId DESC
+        ) gaobj
         LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gaobj.GrupoActividadId
         LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = ord.PeriodoAnio
         LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = ord.PeriodoMes
