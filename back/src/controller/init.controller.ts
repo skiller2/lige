@@ -10,6 +10,7 @@ import { filtrosToSql, orderToSQL } from "../impuestos-afip/filtros-utils/filtro
 import type { Filtro } from "../schemas/filtro.ts";
 import { logger } from "../logger/logger.ts";
 import { SucursalController } from "./sucursal.controller.ts";
+import { HabilitacionesController } from "../habilitaciones/habilitaciones.controller.ts";
 
 export class InitController extends BaseController {
   async getCategoriasPendientes(req: Request, res: Response, next: NextFunction) {
@@ -519,6 +520,60 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       this.jsonRes({
         clientesActivos: clientesActivos.length,
         clientesActivosPorSucursal: clientesActivosPorSucursalJson,
+      }, res);
+    } catch (error) {
+      return next(error);
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async getPersonasHabilitadas(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName)
+    try {
+      const habilitacionesController = new HabilitacionesController()
+      // Reutiliza la query central de habilitaciones; Habilitado = '1' implica estado HABORG (aprobada) y vigente a hoy.
+      const filterSql = `IIF(dias.Habilitado IS NULL, '0', dias.Habilitado) = '1'`
+      const orderBy = orderToSQL(null)
+      const habilitaciones = await habilitacionesController.habilitacionesListQuery(queryRunner, new Date(), filterSql, orderBy)
+
+      const personasPorHabilitacion: {
+        x: string;
+        y: number;
+        lugarHabilitacionId: number;
+        personalIds: Set<number>;
+      }[] = []
+      const personalIdsTotal = new Set<number>()
+
+      habilitaciones.forEach((hab: any) => {
+        const lugarHabilitacionId = Number(hab.LugarHabilitacionId)
+        let habilitacion = personasPorHabilitacion.find(row => row.lugarHabilitacionId === lugarHabilitacionId)
+
+        // Si la habilitacion todavia no existe en el array, se crea su fila inicial para empezar a acumular personas.
+        if (!habilitacion) {
+          habilitacion = {
+            x: hab.LugarHabilitacionDescripcion ? String(hab.LugarHabilitacionDescripcion).trim() : String(lugarHabilitacionId),
+            y: 0,
+            lugarHabilitacionId,
+            personalIds: new Set<number>(),
+          }
+          personasPorHabilitacion.push(habilitacion)
+        }
+
+        // El Set evita contar dos veces a la misma persona (varios registros/grupos para la misma habilitacion).
+        habilitacion.personalIds.add(Number(hab.PersonalId))
+        habilitacion.y = habilitacion.personalIds.size
+        personalIdsTotal.add(Number(hab.PersonalId))
+      })
+
+      // Ordena y formatea el resultado para el grafico, eliminando campos auxiliares.
+      const personasHabilitadasJson = personasPorHabilitacion
+        .sort((a, b) => b.y - a.y)
+        .map(({ personalIds, lugarHabilitacionId, ...row }) => row)
+
+      this.jsonRes({
+        personasHabilitadas: personasHabilitadasJson,
+        personasHabilitadasTotal: personalIdsTotal.size,
       }, res);
     } catch (error) {
       return next(error);

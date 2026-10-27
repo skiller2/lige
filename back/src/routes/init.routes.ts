@@ -78,6 +78,10 @@ initRouter.get(`${base}/stats/personasactivassinhabilitacion`, authMiddleware.ve
 })
 
 
+initRouter.get(`${base}/stats/personashabilitadas`, authMiddleware.verifyToken, (req, res, next) => {
+	initController.getPersonasHabilitadas(req, res, next)
+})
+
 initRouter.get(`${base}/stats/objetivosactivossinhabilitacion`, authMiddleware.verifyToken, (req, res, next) => {
 	initController.getObjetivosActivosSinHabilitaciones(req, res, next)
 })

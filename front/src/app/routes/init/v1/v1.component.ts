@@ -281,6 +281,13 @@ export class InitV1Component implements OnInit {
     }
   });
 
+  public personasHabilitadas = resource({
+    params: () => null,
+    loader: async () => {
+      return <any> await this.apiService.fastFetch('api/init/stats/personashabilitadas')
+    }
+  });
+
   public horasTrabajadasCustodias = resource({
     params: () => null,
     loader: async () => {
