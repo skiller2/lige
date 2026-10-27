@@ -533,7 +533,8 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
     try {
       const habilitacionesController = new HabilitacionesController()
       // Reutiliza la query central de habilitaciones; Habilitado = '1' implica estado HABORG (aprobada) y vigente a hoy.
-      const filterSql = `IIF(dias.Habilitado IS NULL, '0', dias.Habilitado) = '1'`
+      // Solo se cuentan personas con situación de revista activa (2, 10, 12).
+      const filterSql = `IIF(dias.Habilitado IS NULL, '0', dias.Habilitado) = '1' AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)`
       const orderBy = orderToSQL(null)
       const habilitaciones = await habilitacionesController.habilitacionesListQuery(queryRunner, new Date(), filterSql, orderBy)
 
