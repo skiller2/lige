@@ -51,6 +51,7 @@ export class PreciosProductosController extends BaseController {
             field: "ProductoCodigo",
             fieldName: "pp.ProductoCodigo",
             type: "string",
+            searchComponent: "inputForProductoCodigoSearch",
             formatter: 'collectionFormatter',
             sortable: true,
             searchHidden: false,

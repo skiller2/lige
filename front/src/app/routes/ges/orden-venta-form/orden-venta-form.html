@@ -145,6 +145,12 @@
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
           <input nz-input placeholder="" [formField]="item.ImporteUnitario" type="text" appDotToComma
             mask="separator.2" />
+          <!-- Producto elegido sin precio vigente en el período de la orden -->
+          @if (ordenVenta().items[i].ProductoCodigo && (!ordenVenta().items[i].ImporteUnitario || ordenVenta().items[i].ImporteUnitario == '0')) {
+          <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
+            No hay importe para este producto en el período {{ ordenVenta().Periodo | date: 'MM/yyyy' }}
+          </div>
+          }
         </nz-form-control>
 
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Importe Total</nz-form-label>
