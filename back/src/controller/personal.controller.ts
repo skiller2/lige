@@ -4,13 +4,13 @@ import { getConnection } from "../data-source.ts";
 import type { Response } from "express";
 import type { NextFunction } from "express";
 import { mkdirSync, renameSync, existsSync } from "node:fs";
+import { join } from "node:path";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { habilitacionesController, domicilioController } from "../controller/controller.module.ts"
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
-import { DOCUMENTO_TIPO_FOTO, registrarFotoDocumento, rutaDocumento, validarRostroFoto } from "./personal-foto.ts";
 
 
 const PersonalSexoOptions: any[] = [
@@ -1974,26 +1974,26 @@ LEFT JOIN(
   // documento y se recalcula el vector; si no, se crea un documento nuevo como foto principal.
   async setFoto(queryRunner: any, personalId: any, file: any, usuario: any, ip: any) {
     if (!file?.tempfilename) return
-    await validarRostroFoto([file])
+    await FileUploadController.validarRostroFoto([file])
 
     const cuit = await queryRunner.query(`
       SELECT TOP 1 PersonalCUITCUILCUIT FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`,
       [personalId])
     const den_documento = cuit[0]?.PersonalCUITCUILCUIT ?? personalId
     const IdsRelacionados = { PersonalId: personalId }
-    file.doctipo_id = DOCUMENTO_TIPO_FOTO
+    file.doctipo_id = FileUploadController.DOCUMENTO_TIPO_FOTO
     file.tableForSearch = 'Documento'
 
     let DocumentoId: number | null = null
     if (file.id && file.update) {
       const anterior = await queryRunner.query(`
         SELECT DocumentoId FROM Documento WHERE DocumentoId = @0 AND PersonalId = @1 AND DocumentoTipoCodigo = @2`,
-        [file.id, personalId, DOCUMENTO_TIPO_FOTO])
+        [file.id, personalId, FileUploadController.DOCUMENTO_TIPO_FOTO])
       DocumentoId = anterior[0]?.DocumentoId ?? null
     }
 
     const resDoc = await FileUploadController.handleDOCUploadV2(DocumentoId, new Date(), null, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-    await registrarFotoDocumento(queryRunner, personalId, resDoc.doc_id)
+    await FileUploadController.registrarFotoDocumento(queryRunner, personalId, resDoc.doc_id)
   }
 
   async setDocumento(queryRunner: any, personalId: any, file: any, parametro: number) {
@@ -2847,7 +2847,7 @@ LEFT JOIN(
         for (const foto of fotos) {
           // deleteFile también borra los metadatos de DocumentoImagenFoto
           await FileUploadController.deleteFile(foto.DocumentoId, 'Documento', queryRunner)
-          try { await unlink(rutaDocumento(foto.DocumentoPath)) } catch (error) { }
+          try { await unlink(join(FileUploadController.pathDocuments, foto.DocumentoPath)) } catch (error) { }
         }
         await queryRunner.commitTransaction();
         return this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);

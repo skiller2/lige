@@ -2,9 +2,10 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { QueryRunner } from "typeorm";
+import { join } from "node:path";
 import { bufferAVector, calcularVectorFacial, columnasVectorFacial, reconocerRostro, VERSION_VECTOR_FACIAL, type VectorPersonal } from "./reconocimiento-facial.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
-import { rutaDocumento } from "../controller/personal-foto.ts";
+import { FileUploadController } from "../controller/file-upload.controller.ts";
 import type { Options } from "../schemas/filtro.ts";
 
 // Configuración de la pantalla de marcado, en ParametroGeneral (JSON). Se editan desde
@@ -686,7 +687,7 @@ export class RegistroAsistenciaController extends BaseController {
     const errores: Record<string, { cantidad: number, ejemplos: string[] }> = {}
 
     for (const foto of fotos) {
-      const ruta = rutaDocumento(foto.DocumentoPath)
+      const ruta = join(FileUploadController.pathDocuments, foto.DocumentoPath)
       try {
         const vector = await calcularVectorFacial(ruta)
         if (!vector) {
@@ -709,6 +710,6 @@ export class RegistroAsistenciaController extends BaseController {
       }
     }
 
-    return { pendientes: fotos.length, guardadas, sinRostro, conError, pathDocuments: rutaDocumento(''), errores }
+    return { pendientes: fotos.length, guardadas, sinRostro, conError, pathDocuments: FileUploadController.pathDocuments, errores }
   }
 }
