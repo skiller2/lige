@@ -5,7 +5,9 @@
       <button nz-button nzType="default" (click)="gridData.reload()" nz-tooltip nzTooltipTitle="{{ 'app.icon.reload' | i18n }}">
         <span nz-icon nzType="reload" nzTheme="outline"></span>
       </button>
-      <button nz-button nzType="default" (click)="iniciarCalculoVectoresFaciales()" [disabled]="calculandoVectores()"
+      <button nz-button nzType="default" [disabled]="calculandoVectores()"
+        nz-popconfirm nzPopconfirmTitle="¿Calcular los vectores faciales? Puede tardar varios minutos."
+        nzPopconfirmPlacement="bottomRight" (nzOnConfirm)="iniciarCalculoVectoresFaciales()"
         nz-tooltip nzTooltipTitle="Calcular vectores faciales">
         <span nz-icon [nzType]="calculandoVectores() ? 'loading' : 'setting'" nzTheme="outline"></span>
       </button>

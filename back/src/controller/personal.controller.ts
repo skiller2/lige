@@ -10,7 +10,7 @@ import { habilitacionesController, domicilioController } from "../controller/con
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
-import { DOCUMENTO_TIPO_FOTO, registrarFotoDocumento, rutaDocumento } from "./personal-foto.ts";
+import { DOCUMENTO_TIPO_FOTO, registrarFotoDocumento, rutaDocumento, validarRostroFoto } from "./personal-foto.ts";
 
 
 const PersonalSexoOptions: any[] = [
@@ -1974,6 +1974,7 @@ LEFT JOIN(
   // documento y se recalcula el vector; si no, se crea un documento nuevo como foto principal.
   async setFoto(queryRunner: any, personalId: any, file: any, usuario: any, ip: any) {
     if (!file?.tempfilename) return
+    await validarRostroFoto([file])
 
     const cuit = await queryRunner.query(`
       SELECT TOP 1 PersonalCUITCUILCUIT FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`,
@@ -2844,7 +2845,7 @@ LEFT JOIN(
           WHERE foto.PersonalId = @0
         `, [personalId])
         for (const foto of fotos) {
-          // deleteFile también borra los metadatos de DocumentoImagenFoto y reasigna la foto principal
+          // deleteFile también borra los metadatos de DocumentoImagenFoto
           await FileUploadController.deleteFile(foto.DocumentoId, 'Documento', queryRunner)
           try { await unlink(rutaDocumento(foto.DocumentoPath)) } catch (error) { }
         }
@@ -3156,7 +3157,7 @@ SELECT foto.DocumentoImagenFotoId docId, foto.DocumentoImagenFotoBlobNombreArchi
         DocumentoImagenFotoBlobTipoArchivo TipoArchivo, 'DocumentoImagenFoto' tableName
         FROM DocumentoImagenFoto foto
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-        -- Las fotos con documento ya aparecen como Documento tipo FOTO (abajo): solo las históricas sin migrar
+        -- Las fotos con documento ya aparecen como Documento tipo FOTO (abajo): solo las históricas sin documento
         WHERE foto.PersonalId IN (@0) AND foto.DocumentoId IS NULL
 
 UNION ALL

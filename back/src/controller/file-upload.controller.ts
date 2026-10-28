@@ -14,7 +14,7 @@ import type { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
 import { unlink } from "fs/promises";
 import { logger } from "../logger/logger.ts";
-import { eliminarFotoDocumento, reasignarFotoPrincipal } from "./personal-foto.ts";
+import { reasignarFotoPrincipal } from "./personal-foto.ts";
 
 
 
@@ -1135,12 +1135,12 @@ export class FileUploadController extends BaseController {
                   `, [deleteId])
           if (document.length === 0) throw new ClientException(`No se ha encontrado el archivo para eliminar.`)
 
-          // Si es una foto del personal, sus metadatos (vector, foto principal)
-          await eliminarFotoDocumento(queryRunner, deleteId)
-
           await queryRunner.query(`DELETE FROM DocumentoRelaciones WHERE DocumentoId = @0`, [deleteId])
+          // Una foto del personal se borra de DocumentoImagenFoto y Documento juntas
+          await queryRunner.query(`DELETE FROM DocumentoImagenFoto WHERE DocumentoId = @0`, [deleteId])
           await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [deleteId])
 
+          // await reasignarFotoPrincipal(queryRunner, DocumentoId)
           // El archivo se borra después de los registros, para no perderlo si falla el DELETE.
           // DocumentoPath es relativo a PATH_DOCUMENTS
           finalurl = path.join(FileUploadController.pathDocuments, document[0]["path"])
@@ -1237,6 +1237,15 @@ export class FileUploadController extends BaseController {
 
   static async deleteFile(deleteId: number, tableForSearch: string, queryRunner: QueryRunner) {
     try {
+      // Una foto con documento se borra por su Documento: así se borran juntas las dos tablas
+      if (tableForSearch == 'DocumentoImagenFoto') {
+        const foto = await queryRunner.query(`SELECT DocumentoId FROM DocumentoImagenFoto WHERE DocumentoImagenFotoId = @0`, [deleteId])
+        if (foto[0]?.DocumentoId) {
+          deleteId = foto[0].DocumentoId
+          tableForSearch = 'Documento'
+        }
+      }
+
       // Verificar si el documento tiene descargas asociadas
       const telefonos = await queryRunner.query(`
           SELECT Telefono
@@ -1249,8 +1258,11 @@ export class FileUploadController extends BaseController {
       switch (tableForSearch) {
         case 'documento':
         case 'Documento':
-          await eliminarFotoDocumento(queryRunner, deleteId)
-          await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [deleteId])
+          // Una foto del personal se borra de DocumentoImagenFoto y Documento juntas
+           await queryRunner.query(`DELETE FROM DocumentoImagenFoto WHERE DocumentoId = @0`, [deleteId])
+           await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [deleteId])
+
+          // await reasignarFotoPrincipal(queryRunner, DocumentoId)
           break;
         default:
           const document = await queryRunner.query(`
