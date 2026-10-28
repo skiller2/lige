@@ -498,7 +498,8 @@ export class OrdenVentaController extends BaseController {
             item.TextoFactura,
             item.CantidadEnFactura,
             ISNULL(IIF(@1 = 1 AND item.ProductoCodigo IN (@6, @7), NULL, item.Cantidad),0)
-              * ISNULL(COALESCE(hs.ImporteHora, pre.Importe, item.ImporteUnitario),0) AS ImporteTotal
+              * ISNULL(COALESCE(hs.ImporteHora, pre.Importe, item.ImporteUnitario),0)
+              * (1 - ISNULL(item.Bonificacion,0) / 100.0) AS ImporteTotal
           FROM ItemOrdenVenta item
           LEFT JOIN Producto prod ON prod.ProductoCodigo = item.ProductoCodigo
           OUTER APPLY (
@@ -625,7 +626,8 @@ export class OrdenVentaController extends BaseController {
           if (precio.Importe != null) item.ImporteUnitario = precio.Importe
           break;
       }
-      ImporteTotalAFacturar += Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)
+      // La bonificación es un porcentaje que se descuenta del importe del ítem
+      ImporteTotalAFacturar += Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0) * (1 - (Number(item.Bonificacion) || 0) / 100)
     }
 
     if (NroOrdenVenta) {
@@ -679,8 +681,8 @@ export class OrdenVentaController extends BaseController {
         String(item.TipoImporte).trim(),
         ImporteUnitario,
         item.CantidadEstandar != null ? Number(item.CantidadEstandar) : null,
-        item.Bonificacion != null ? Number(item.Bonificacion) : null,
-        item.CantidadEnFactura != null ? Number(item.CantidadEnFactura) : null,
+        Number(item.Bonificacion) || 0, // Sin bonificación se guarda 0, no null
+        Number(item.CantidadEnFactura) || null, // Vacía o en 0 se guarda null
         ahora, usuario, ip
       ]);
     }
