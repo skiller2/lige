@@ -385,7 +385,7 @@ export class AsistenciaController extends BaseController {
             'LP',
             ImporteUnitarioA,
             null,
-            null,
+            0,
             null,
             ahora, usuario, ip
           ]);
@@ -421,7 +421,7 @@ export class AsistenciaController extends BaseController {
             'LP',
             ImporteUnitarioB,
             null,
-            null,
+            0,
             null,
             ahora, usuario, ip
           ]);
@@ -431,7 +431,7 @@ export class AsistenciaController extends BaseController {
         // Recalcula el total de la cabecera con la misma cuenta que setOrdenVentaQuery
         const ordenDs = await ordenVentaController.getOrdenVentaQuery(queryRunner, NroOrdenVenta)
         const ImporteTotalAFacturar = ordenDs.items.reduce(
-          (total: number, item: any) => total + (Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0)), 0)
+          (total: number, item: any) => total + (Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0) * (1 - (Number(item.Bonificacion) || 0) / 100)), 0)
         await queryRunner.query(`UPDATE OrdenVenta SET ImporteTotalAFacturar=@1 WHERE NroOrdenVenta=@0`, [NroOrdenVenta, ImporteTotalAFacturar])
       } else {  // Tengo que crear la Orden de Venta desde 0
         let items = []

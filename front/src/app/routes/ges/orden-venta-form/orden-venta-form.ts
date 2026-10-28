@@ -142,6 +142,9 @@ export class OrdenVentaFormComponent {
       required(productoPath.Cantidad, { message: 'Cantidad es requerido', when: (ctx) => ctx.valueOf(productoPath.ProductoCodigo) != "", });
 
       disabled(productoPath.ImporteUnitario)
+      // Fuera de la pantalla de órdenes de venta los datos de factura son solo lectura
+      disabled(productoPath.CantidadEnFactura, () => !this.origenCrud())
+      disabled(productoPath.Bonificacion, () => !this.origenCrud())
     });
     // Con "Facturado" los tres datos del comprobante son obligatorios; si no, van los tres juntos
     // o ninguno
@@ -164,7 +167,7 @@ export class OrdenVentaFormComponent {
     })
   )
 
-  importes = computed(() => this.ordenVenta().items.map(item => Number(item.Cantidad) * Number(item.ImporteUnitario)))
+  importes = computed(() => this.ordenVenta().items.map(item => Number(item.Cantidad) * Number(item.ImporteUnitario) * (1 - (Number(item.Bonificacion) || 0) / 100)))
   totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => sum + valor, 0));
 
   addItem(e?: MouseEvent): void {
