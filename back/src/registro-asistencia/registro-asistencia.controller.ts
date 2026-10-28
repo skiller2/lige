@@ -4,6 +4,7 @@ import type { NextFunction, Request, Response } from "express";
 import type { QueryRunner } from "typeorm";
 import { bufferAVector, calcularVectorFacial, columnasVectorFacial, reconocerRostro, VERSION_VECTOR_FACIAL, type VectorPersonal } from "./reconocimiento-facial.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { migrarFotosHistoricas, rutaDocumento } from "../controller/personal-foto.ts";
 import type { Options } from "../schemas/filtro.ts";
 
 // Configuración de la pantalla de marcado, en ParametroGeneral (JSON). Se editan desde
@@ -611,7 +612,8 @@ export class RegistroAsistenciaController extends BaseController {
 
   // Calcula el vector facial de la foto vigente del personal activo y lo graba en
   // DocumentoImagenFoto.VectorFacial y VectorFacialFecha. Solo las fotos con VectorFacial en NULL:
-  // las que ya tienen vector se saltean. Queda registrado en EventoLog.
+  // las que ya tienen vector se saltean. Antes migra las fotos históricas a Documento
+  // (migrarFotosHistoricas). Queda registrado en EventoLog.
   async iniciarCalculoVectoresFaciales(req: Request, res: Response, next: NextFunction) {
     const usuario = this.getUser(res)
     const ip = this.getRemoteAddress(req)
@@ -632,8 +634,10 @@ export class RegistroAsistenciaController extends BaseController {
         "JOB"
       ));
 
-      const resumen = await this.calcularVectoresFacialesPendientes(queryRunner)
-      const resp = `Vectores faciales: ${resumen.guardadas} guardados, ${resumen.sinRostro} fotos sin rostro, ${resumen.conError} con error (de ${resumen.pendientes} pendientes)`
+      const resumen = await this.calcularVectoresFacialesPendientes(queryRunner, usuario, ip)
+      const { migracion } = resumen
+      const resp = `Fotos históricas: ${migracion.creados} documentos creados, ${migracion.reutilizados} reutilizados, ${migracion.sinArchivo} sin archivo, ${migracion.conError} con error (de ${migracion.pendientes}). `
+        + `Vectores faciales: ${resumen.guardadas} guardados, ${resumen.sinRostro} fotos sin rostro, ${resumen.conError} con error (de ${resumen.pendientes} pendientes)`
 
       await this.eventoLogFin(
         queryRunner,
@@ -668,26 +672,27 @@ export class RegistroAsistenciaController extends BaseController {
   // getVectoresPersonalActivo, con VectorFacial en NULL), calcula el vector de cada una y lo graba. Cada foto se graba sola (sin transacción): si
   // el proceso se corta, lo grabado queda. Una foto que falla no corta el resto: se cuenta y los
   // errores se devuelven agrupados por causa, con algunas rutas de ejemplo.
-  private async calcularVectoresFacialesPendientes(queryRunner: QueryRunner) {
+  private async calcularVectoresFacialesPendientes(queryRunner: QueryRunner, usuario: string, ip: string) {
+    // Las fotos históricas primero pasan a Documento: el vector se calcula con el archivo de Documento
+    const migracion = await migrarFotosHistoricas(queryRunner, usuario, ip)
+
     const fotos = await queryRunner.query(`
-      SELECT DISTINCT foto.DocumentoImagenFotoId, foto.PersonalId,
-        CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(foto.DocumentoImagenFotoBlobNombreArchivo)) AS RutaRelativa
+      SELECT DISTINCT foto.DocumentoImagenFotoId, foto.PersonalId, doc.DocumentoPath
       FROM Personal per
       JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId
         AND sitrev.PersonalSituacionRevistaDesde <= @0
         AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') >= @0
       JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.DocumentoImagenFotoId = per.PersonalFotoId
-      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+      JOIN Documento doc ON doc.DocumentoId = foto.DocumentoId
       WHERE sitrev.PersonalSituacionRevistaSituacionId IN (2, 10, 12)
         AND foto.VectorFacial IS NULL
     `, [new Date()])
 
-    const pathArchivos = process.env.PATH_ARCHIVOS ? process.env.PATH_ARCHIVOS : '.'
     let guardadas = 0, sinRostro = 0, conError = 0
     const errores: Record<string, { cantidad: number, ejemplos: string[] }> = {}
 
     for (const foto of fotos) {
-      const ruta = `${pathArchivos}/${foto.RutaRelativa}`
+      const ruta = rutaDocumento(foto.DocumentoPath)
       try {
         const vector = await calcularVectorFacial(ruta)
         if (!vector) {
@@ -710,6 +715,6 @@ export class RegistroAsistenciaController extends BaseController {
       }
     }
 
-    return { pendientes: fotos.length, guardadas, sinRostro, conError, pathArchivos, errores }
+    return { pendientes: fotos.length, guardadas, sinRostro, conError, pathDocuments: rutaDocumento(''), errores, migracion }
   }
 }

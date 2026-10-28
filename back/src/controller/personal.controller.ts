@@ -10,7 +10,7 @@ import { habilitacionesController, domicilioController } from "../controller/con
 import { FileUploadController } from "../controller/file-upload.controller.ts";
 import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
-import { calcularVectorFacial, insertDocumentoImagenFoto } from "../registro-asistencia/reconocimiento-facial.ts";
+import { DOCUMENTO_TIPO_FOTO, registrarFotoDocumento, rutaDocumento } from "./personal-foto.ts";
 
 
 const PersonalSexoOptions: any[] = [
@@ -663,7 +663,8 @@ export class PersonalController extends BaseController {
   static async infoPersonalQuery(PersonalId: any, anio: number, mes: number, queryRunner: QueryRunner) {
     return queryRunner.query(`
       SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, ISNULL(foto.DocumentoImagenFotoBlobNombreArchivo, fotoant.DocumentoImagenFotoBlobNombreArchivo) DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ISNULL(foto.DocumentoImagenFotoId, fotoant.DocumentoImagenFotoId) PersonalFotoId, ing.PersonalFechaBaja, 
+        TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ISNULL(foto.DocumentoImagenFotoId, fotoant.DocumentoImagenFotoId) PersonalFotoId, ing.PersonalFechaBaja,
+        IIF(foto.DocumentoImagenFotoId IS NOT NULL, foto.DocumentoId, fotoant.DocumentoId) PersonalFotoDocumentoId,
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
@@ -713,7 +714,8 @@ export class PersonalController extends BaseController {
     queryRunner
       .query(
         `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, ISNULL(foto.DocumentoImagenFotoBlobNombreArchivo, fotoant.DocumentoImagenFotoBlobNombreArchivo) DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ISNULL(foto.DocumentoImagenFotoId, fotoant.DocumentoImagenFotoId) PersonalFotoId, ing.PersonalFechaBaja, 
+        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ISNULL(foto.DocumentoImagenFotoId, fotoant.DocumentoImagenFotoId) PersonalFotoId, ing.PersonalFechaBaja,
+        IIF(foto.DocumentoImagenFotoId IS NOT NULL, foto.DocumentoId, fotoant.DocumentoId) PersonalFotoDocumentoId,
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
@@ -1966,76 +1968,31 @@ LEFT JOIN(
 
   }
 
+  // La foto se guarda solo como Documento tipo FOTO (archivo bajo PATH_DOCUMENTS); sus metadatos
+  // (vector facial, foto principal) van en DocumentoImagenFoto, vinculados por DocumentoId.
+  // Si el archivo reemplaza a una foto existente (file.id es su DocumentoId) se actualiza ese
+  // documento y se recalcula el vector; si no, se crea un documento nuevo como foto principal.
   async setFoto(queryRunner: any, personalId: any, file: any, usuario: any, ip: any) {
+    if (!file?.tempfilename) return
 
-    if (file?.tempfilename) {
-      const type = file.mimetype.split('/')[1] ? file.mimetype.split('/')[1] : file.TipoArchivo
-      // const type = file.TipoArchivo
-      //const fieldname = file.fieldname
-      const fieldname = file.tempfilename
-      // let foto = await queryRunner.query(`
-      //   SELECT foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
-      //   FROM DocumentoImagenFoto foto 
-      //   JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-      //   JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-      //   WHERE foto.PersonalId =@0
-      // `, [personalId])
-      // if (!foto.length) {
-      const pathArchivos = (process.env.PATH_ARCHIVOS) ? process.env.PATH_ARCHIVOS : '.'
-      const dirFile = `${process.env.PATH_DOCUMENTS}/temp/${fieldname}`;
+    const cuit = await queryRunner.query(`
+      SELECT TOP 1 PersonalCUITCUILCUIT FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`,
+      [personalId])
+    const den_documento = cuit[0]?.PersonalCUITCUILCUIT ?? personalId
+    const IdsRelacionados = { PersonalId: personalId }
+    file.doctipo_id = DOCUMENTO_TIPO_FOTO
+    file.tableForSearch = 'Documento'
 
-      // Vector facial para el registro de asistencia, con la misma función que el cálculo de
-      // vectores faciales. Si falla o la foto no tiene rostro queda en NULL y lo toma ese cálculo
-      let vector: Float32Array | null = null
-      try {
-        vector = await calcularVectorFacial(dirFile)
-      } catch (error) {
-        console.error(`[personal] No se pudo calcular el vector facial de la foto nueva (PersonalId ${personalId})`, error)
-      }
-
-      // La foto nueva es la principal: las demás de la persona dejan de serlo
-      await queryRunner.query(`UPDATE DocumentoImagenFoto SET IndFotoPrincipal = 0 WHERE PersonalId = @0`, [personalId])
-
-      // La foto también va a Documento (tipo FOTO), con la misma función que el resto de los
-      // documentos. El archivo temporal se copia: después se mueve a la carpeta de las fotos
-      const cuit = await queryRunner.query(`
-        SELECT TOP 1 PersonalCUITCUILCUIT FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`,
-        [personalId])
-      const DocumentoFecha = new Date()
-      const den_documento = cuit[0]?.PersonalCUITCUILCUIT ?? personalId
-      const IdsRelacionados = { PersonalId: personalId }
-      file.doctipo_id = 'FOTO'
-      file.tableForSearch = 'Documento'
-
-      const resDoc = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, null, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-      const DocumentoId = resDoc.doc_id
-
-      await insertDocumentoImagenFoto(queryRunner, personalId, type, vector, DocumentoId)
-      let foto = await queryRunner.query(`
-        SELECT TOP 1 foto.DocumentoImagenFotoId fotoId, dir.DocumentoImagenParametroDirectorioPath
-        FROM DocumentoImagenFoto foto
-        JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroDirectorioId = foto.DocumentoImagenParametroDirectorioId AND dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-        JOIN DocumentoImagenParametro par ON par.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-        WHERE foto.PersonalId IN (@0)
-        ORDER BY foto.DocumentoImagenFotoId DESC
-      `, [personalId])
-      // }
-
-      const fotoId = foto[0].fotoId
-      const newFieldname = `${personalId}-${fotoId}-FOTO.${type}`
-      const newFilePath = `${pathArchivos}/${foto[0].DocumentoImagenParametroDirectorioPath.replaceAll('\\', '/')}`;
-      this.moveFile(dirFile, newFilePath, newFieldname);
-      // El nombre del archivo lleva el id de la foto, que se conoce recién después del INSERT
-      await queryRunner.query(`
-      UPDATE DocumentoImagenFoto SET
-      DocumentoImagenFotoBlobNombreArchivo = @2
-      WHERE PersonalId = @0 AND DocumentoImagenFotoId = @1`,
-        [personalId, fotoId, newFieldname]
-      )
-      await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`,
-        [fotoId, personalId]
-      )
+    let DocumentoId: number | null = null
+    if (file.id && file.update) {
+      const anterior = await queryRunner.query(`
+        SELECT DocumentoId FROM Documento WHERE DocumentoId = @0 AND PersonalId = @1 AND DocumentoTipoCodigo = @2`,
+        [file.id, personalId, DOCUMENTO_TIPO_FOTO])
+      DocumentoId = anterior[0]?.DocumentoId ?? null
     }
+
+    const resDoc = await FileUploadController.handleDOCUploadV2(DocumentoId, new Date(), null, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+    await registrarFotoDocumento(queryRunner, personalId, resDoc.doc_id)
   }
 
   async setDocumento(queryRunner: any, personalId: any, file: any, parametro: number) {
@@ -2681,7 +2638,8 @@ LEFT JOIN(
       TRIM(nac.NacionalidadDescripcion), per.PersonalSexo Sexo, per.EstadoCivilId, LugarNacimiento,
       email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
-      ISNULL(foto.DocumentoImagenFotoId, per.PersonalFotoId) FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
+      -- FotoId es el DocumentoId (tipo FOTO) de la foto principal, o si no hay ninguna marcada, la de PersonalFotoId
+      ISNULL(IIF(foto.DocumentoImagenFotoId IS NOT NULL, foto.DocumentoId, fotoant.DocumentoId), 0) FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
       per.PersonalLeyNro LeyNro,
       per.TipoVehiculoId, per.VehiculoMarcaId, per.VehiculoMarcaModeloId, TRIM(per.PersonalVehiculoPatente) AS PersonalVehiculoPatente, TRIM(per.Cilindrada) AS Cilindrada,
       ubleg.LugarFisicoLegajoId, ubleg.PersonalUbicacionLegajoDesde LugarFisicoLegajoDesde,
@@ -2690,6 +2648,7 @@ LEFT JOIN(
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
       LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.IndFotoPrincipal = 1
+      LEFT JOIN DocumentoImagenFoto fotoant ON fotoant.PersonalId = per.PersonalId AND fotoant.DocumentoImagenFotoId = per.PersonalFotoId
       LEFT JOIN Nacionalidad nac ON nac.NacionalidadId = per.PersonalNacionalidadId
       LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
       LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
@@ -2875,15 +2834,25 @@ LEFT JOIN(
 
       await queryRunner.startTransaction();
 
+      // Fotos: el archivo está en Documento (tipo FOTO); se borran el documento, sus metadatos de
+      // DocumentoImagenFoto y el archivo, y Personal.PersonalFotoId queda en NULL
+      if (tipo == 7) {
+        const fotos = await queryRunner.query(`
+          SELECT foto.DocumentoId, doc.DocumentoPath
+          FROM DocumentoImagenFoto foto
+          JOIN Documento doc ON doc.DocumentoId = foto.DocumentoId
+          WHERE foto.PersonalId = @0
+        `, [personalId])
+        for (const foto of fotos) {
+          // deleteFile también borra los metadatos de DocumentoImagenFoto y reasigna la foto principal
+          await FileUploadController.deleteFile(foto.DocumentoId, 'Documento', queryRunner)
+          try { await unlink(rutaDocumento(foto.DocumentoPath)) } catch (error) { }
+        }
+        await queryRunner.commitTransaction();
+        return this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
+      }
+
       switch (tipo) {
-        case 7:
-          document = await queryRunner.query(`
-            SELECT foto.PersonalId, CONCAT(dir.DocumentoImagenParametroDirectorioPath, foto.DocumentoImagenFotoBlobNombreArchivo) path, foto.DocumentoImagenFotoBlobNombreArchivo archivo
-            FROM DocumentoImagenFoto foto
-            JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-            WHERE foto.PersonalId = @0 AND foto.DocumentoImagenParametroId = @1
-          `, [personalId, tipo]);
-          break;
         case 13:
         case 14:
           document = await queryRunner.query(`
@@ -2908,12 +2877,6 @@ LEFT JOIN(
 
 
         switch (tipo) {
-          case 7:
-            document = await queryRunner.query(`
-              DELETE FROM DocumentoImagenFoto
-              WHERE doc_id = @0 WHERE foto.PersonalId = @0 AND foto.DocumentoImagenParametroId = @1
-            `, [personalId, tipo]);
-            break;
           case 13:
           case 14:
             document = await queryRunner.query(`
@@ -3193,7 +3156,8 @@ SELECT foto.DocumentoImagenFotoId docId, foto.DocumentoImagenFotoBlobNombreArchi
         DocumentoImagenFotoBlobTipoArchivo TipoArchivo, 'DocumentoImagenFoto' tableName
         FROM DocumentoImagenFoto foto
         LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-        WHERE foto.PersonalId IN (@0)
+        -- Las fotos con documento ya aparecen como Documento tipo FOTO (abajo): solo las históricas sin migrar
+        WHERE foto.PersonalId IN (@0) AND foto.DocumentoId IS NULL
 
 UNION ALL
         SELECT doc.DocumentoImagenDocumentoId docId, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
