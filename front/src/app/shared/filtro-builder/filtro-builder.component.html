@@ -376,6 +376,15 @@
       }
     </nz-select>
     }
+    @if (selections.field.searchComponent=='inputForProductoCodigoSearch') {
+    <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Producto" nzShowSearch
+      (ngModelChange)="selectedValue($event)" [nzDropdownMatchSelectWidth]="false"
+      (keydown.enter)="handleInputConfirm()">
+      @for (option of $optionsProductoCodigo | async; track option.value) {
+      <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+      }
+    </nz-select>
+    }
     @if (selections.field.searchComponent=='inputForCursoSearch') {
     <nz-select ngModel nzAllowClear style="width:100%" nzPlaceHolder="Curso" nzShowSearch
       (ngModelChange)="selectedValueCurso($event)" [nzDropdownMatchSelectWidth]="false"
