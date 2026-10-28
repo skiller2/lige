@@ -37,11 +37,11 @@ export interface Producto {
   PrecioDeLista: number,
   TextoFactura: string,
   CantidadEnFactura: string,
+  Bonificacion: string,
   // Ocultos en la pantalla: van con valor fijo
   TipoCantidad: string,
   TipoImporte: string,
-  CantidadEstandar: number,
-  Bonificacion: number
+  CantidadEstandar: number
 }
 
 export interface Comprobante {
@@ -110,7 +110,7 @@ export class OrdenVentaFormComponent {
     ImporteUnitario: '',
     TextoFactura: '',
     CantidadEnFactura: '',
-    Bonificacion: 0
+    Bonificacion: ''
   };
 
   private readonly defaultComprobante: Comprobante = {

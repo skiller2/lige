@@ -362,7 +362,7 @@ export class OrdenVentaController extends BaseController {
 
 
 
-    const itemsTmp = await queryRunner.query(`SELECT item.NroOrdenVenta, item.ItemOrdenVentaCodigo, item.ProductoCodigo, item.TextoFactura, item.TipoCantidad, item.Cantidad, item.TipoImporte, item.ImporteUnitario, item.CantidadEnFactura
+    const itemsTmp = await queryRunner.query(`SELECT item.NroOrdenVenta, item.ItemOrdenVentaCodigo, item.ProductoCodigo, item.TextoFactura, item.TipoCantidad, item.Cantidad, item.TipoImporte, item.ImporteUnitario, item.CantidadEnFactura, item.Bonificacion
           FROM ItemOrdenVenta item
           WHERE item.NroOrdenVenta =@0
           ORDER BY item.ItemOrdenVentaCodigo
@@ -373,6 +373,7 @@ export class OrdenVentaController extends BaseController {
       Cantidad: item.Cantidad?.toString() ?? '',
       ImporteUnitario: item.ImporteUnitario?.toString() ?? '',
       CantidadEnFactura: item.CantidadEnFactura?.toString() ?? '',
+      Bonificacion: item.Bonificacion?.toString() ?? '',
     }));
 
     const comprobantes = await queryRunner.query(`SELECT com.NroOrdenVenta, com.ComprobanteNro, com.ComprobanteTipoCodigo, com.ImporteTotal
