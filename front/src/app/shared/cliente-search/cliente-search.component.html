@@ -3,7 +3,7 @@
   nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [disabled]="controlDisabled()">
   @for (option of $optionsArray | async; track option.ClienteId) {
     @if (($isOptionsLoading | async) == false) {
-      <nz-option [nzValue]="option.ClienteId" [nzLabel]="option.ClienteDenominacion" />
+      <nz-option [nzValue]="option.ClienteId" [nzLabel]="option.ClienteDenominacion + ' ' + '(' + option.ClienteId + ')'" />
     }
   }
   @if (extendedOption.ClienteId >0 ) {
