@@ -77,7 +77,15 @@
                 (nzOnConfirm)="eliminaMovimientosBanco($event,10)"
 
                 >
-                <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Macro
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Francés
+              </li>
+              <li nz-menu-item  nz-popconfirm
+                nzPopconfirmTitle="Elimina movimientos pendientes banco Francés?"
+                [nzBeforeConfirm]=""
+                [nzPopconfirmShowArrow]="false"
+                (nzOnConfirm)="eliminaMovimientosBanco($event,9)"
+                >
+                <span nz-icon nzType="plus" nzTheme="outline"></span>Elimina archivo pendiente banco Francés
               </li>
 
               <li nz-menu-item nz-popconfirm [nzPopconfirmTitle]="confirmImporteCBU" [nzBeforeConfirm]=""
