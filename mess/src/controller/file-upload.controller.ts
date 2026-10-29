@@ -791,12 +791,6 @@ export class FileUploadController extends BaseController {
             )
 
             switch (tableForSearch) {
-              case 'DocumentoImagenFoto':
-                await queryRunner.query(`
-                  UPDATE Personal SET
-                  PersonalFotoId = NULL
-                  WHERE PersonalId = @0`, [PersonalId])
-                break;
               case 'DocumentoImagenDocumento':
                 if (DocumentoImagenParametroId == 12) {
                   await queryRunner.query(`
@@ -875,12 +869,6 @@ export class FileUploadController extends BaseController {
             )
 
             switch (tableForSearch) {
-              case 'DocumentoImagenFoto':
-                await queryRunner.query(`
-                  UPDATE Personal SET
-                  PersonalFotoId = NULL
-                  WHERE PersonalId = @0`, [PersonalId])
-                break;
               case 'DocumentoImagenDocumento':
                 if (DocumentoImagenParametroId == 12) {
                   await queryRunner.query(`
