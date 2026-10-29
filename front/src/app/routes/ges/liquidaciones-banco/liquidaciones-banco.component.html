@@ -40,6 +40,12 @@
                 httpUrl="api/liquidaciones/download/banco/">
                 <span nz-icon nzType="download"></span> Generar Banco Macro
               </li>
+              <li nz-menu-item app-down-file [httpMethod]="'POST'"
+                [httpBody]="{anio: anio(), mes: mes(), options: (tabIndex() === 0 ? listOptions() : listOptionsAyuda()), BancoId:9,tabIndex: tabIndex()}"
+                httpUrl="api/liquidaciones/download/banco/">
+                <span nz-icon nzType="download"></span> Generar Banco Francés
+              </li>
+
               <li nz-menu-item nz-popconfirm
                 nzPopconfirmTitle="Confirma depósitos pendientes?"
                 [nzBeforeConfirm]=""
