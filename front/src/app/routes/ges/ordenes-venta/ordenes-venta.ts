@@ -37,6 +37,8 @@ export class OrdenesVentaComponent {
   soloLectura = computed(() => this.currentUrl()==='/ges/ordenes-venta/detalle')
   masivaVisible = signal(false)
   refreshTick = signal(0)
+  // Orden abierta en Editar/Detalle, no depende de la selección de la grilla
+  ordenAbierta = signal(0)
 
   async bajaOrdenVenta() {
     if (this.ordenesSeleccionadas() && this.ordenesSeleccionadas().length != 1) return
