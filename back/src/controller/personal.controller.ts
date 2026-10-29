@@ -662,7 +662,7 @@ export class PersonalController extends BaseController {
     return queryRunner.query(`
       SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ing.PersonalFechaBaja,
-        foto.DocumentoId PersonalFotoDocumentoId,
+        ISNULL(foto.DocumentoId, 0) PersonalFotoDocumentoId,
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
@@ -712,7 +712,7 @@ export class PersonalController extends BaseController {
       .query(
         `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ing.PersonalFechaBaja,
-        foto.DocumentoId PersonalFotoDocumentoId,
+        ISNULL(foto.DocumentoId, 0) PersonalFotoDocumentoId,
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
