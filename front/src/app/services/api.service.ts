@@ -1713,12 +1713,6 @@ export class ApiService {
     )
   }
 
-  deleteArchivoPersonal(personalId: any, tipo: number) {
-    return this.http.delete<ResponseJSON<any>>('/api/personal/deleteArchivo', { personalId, tipo }).pipe(
-      tap((res: ResponseJSON<any>) => this.response(res))
-    )
-  }
-
   addPersonal(parameter: any) {
     return this.http.post<ResponseJSON<any>>('/api/personal/add', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
