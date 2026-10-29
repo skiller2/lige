@@ -1163,7 +1163,9 @@ LEFT JOIN banco banc
         file.end()
 
         await once(file, 'finish')
-      } else if (BancoId == 9) { //Banco Frances 
+      } else if (BancoId == 9) { //Banco Frances
+        const fechaActual = new Date()
+        
         const file = createWriteStream(tmpfilename, {
           flags: 'a'
         })
@@ -1179,14 +1181,16 @@ LEFT JOIN banco banc
           if (!row.PersonalBancoCBU)
             throw new ClientException('Sin CBU para el personal ' + PersonalApellidoNombre)
 
-          file.write(format("%s%s%s%s%s%s\r\n",
-            row.PersonalNroLegajo.toString().padStart(19, '0'),
-            PersonalApellidoNombre.toString().substring(0, 36).padEnd(36, ' '),
-            row.PersonalBancoCBU.toString().substring(0, 22).padStart(22, '0'),
-            row.importe.toFixed(2).substring(0, 22).padStart(22, '0'),
-            row.PersonalCUITCUILCUIT.toString().substring(0, 11),
+          file.write(format("%s%s%s%s%s%s%s%s%s\r\n",
+            row.PersonalNroLegajo.toString().padStart(18, '0'),
+            PersonalApellidoNombre.toString().slice(0, 36).padEnd(36, ' '),
+            row.PersonalBancoCBU.toString().slice(0, 22).padStart(22, '0'),
+            row.importe.toFixed(2).slice(0, 16).padStart(16, '0').replace('.', ','),
+            fechaActual.getFullYear().toString().slice(0, 4),
+            (fechaActual.getMonth() + 1).toString().padStart(2, '0'),
+            fechaActual.getDate().toString().padStart(2, '0'),
+            row.PersonalCUITCUILCUIT.toString().slice(0, 11),
             "Retiros", // Detalle
-
           ))
 
           total += Math.trunc(row.importe * 100)
@@ -1206,7 +1210,7 @@ LEFT JOIN banco banc
         let total = 0
         for (const row of banco) {
           //const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
-          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64).trim();
+          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").trim();
           if (!row.PersonalCUITCUILCUIT)
             throw new ClientException('Sin cuit para el personal ' + PersonalApellidoNombre)
           if (!row.PersonalBancoCBU)
