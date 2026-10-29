@@ -1295,10 +1295,7 @@ export class FileUploadController extends BaseController {
     // La foto nueva es la principal: las demás de la persona dejan de serlo
     await queryRunner.query(`UPDATE DocumentoImagenFoto SET IndFotoPrincipal = 0 WHERE PersonalId = @0`, [PersonalId])
     await insertDocumentoImagenFoto(queryRunner, PersonalId, TipoArchivo, vector, DocumentoId)
-    const nueva = await queryRunner.query(`
-      SELECT TOP 1 DocumentoImagenFotoId FROM DocumentoImagenFoto WHERE DocumentoId = @0 ORDER BY DocumentoImagenFotoId DESC`,
-      [DocumentoId])
-    await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @0 WHERE PersonalId = @1`, [nueva[0].DocumentoImagenFotoId, PersonalId])
+
   }
 
 
@@ -1314,7 +1311,6 @@ export class FileUploadController extends BaseController {
       await queryRunner.query(`
         UPDATE DocumentoImagenFoto SET IndFotoPrincipal = IIF(DocumentoImagenFotoId = @1, 1, 0) WHERE PersonalId = @0`,
         [PersonalId, FotoId])
-    await queryRunner.query(`UPDATE Personal SET PersonalFotoId = @1 WHERE PersonalId = @0`, [PersonalId, FotoId])
   }
 
   static async deleteFile(deleteId: number, tableForSearch: string, queryRunner: QueryRunner) {

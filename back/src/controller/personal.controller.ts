@@ -4,12 +4,10 @@ import { getConnection } from "../data-source.ts";
 import type { Response } from "express";
 import type { NextFunction } from "express";
 import { mkdirSync, renameSync, existsSync } from "node:fs";
-import { join } from "node:path";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import type { Options } from "../schemas/filtro.ts";
 import { habilitacionesController, domicilioController } from "../controller/controller.module.ts"
 import { FileUploadController } from "../controller/file-upload.controller.ts";
-import { unlink } from "fs/promises";
 import type { QueryRunner } from "typeorm";
 
 
@@ -662,9 +660,9 @@ export class PersonalController extends BaseController {
 
   static async infoPersonalQuery(PersonalId: any, anio: number, mes: number, queryRunner: QueryRunner) {
     return queryRunner.query(`
-      SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, ISNULL(foto.DocumentoImagenFotoBlobNombreArchivo, fotoant.DocumentoImagenFotoBlobNombreArchivo) DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ISNULL(foto.DocumentoImagenFotoId, fotoant.DocumentoImagenFotoId) PersonalFotoId, ing.PersonalFechaBaja,
-        IIF(foto.DocumentoImagenFotoId IS NOT NULL, foto.DocumentoId, fotoant.DocumentoId) PersonalFotoDocumentoId,
+      SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
+        TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ing.PersonalFechaBaja,
+        foto.DocumentoId PersonalFotoDocumentoId,
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
@@ -681,7 +679,6 @@ export class PersonalController extends BaseController {
       LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId=per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.IndFotoPrincipal = 1
-      LEFT JOIN DocumentoImagenFoto fotoant ON fotoant.PersonalId = per.PersonalId AND fotoant.DocumentoImagenFotoId = per.PersonalFotoId
       LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
       LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
       LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
@@ -713,9 +710,9 @@ export class PersonalController extends BaseController {
       ORDER BY tip.TipoEstudioId DESC `, [PersonalId])
     queryRunner
       .query(
-        `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, ISNULL(foto.DocumentoImagenFotoBlobNombreArchivo, fotoant.DocumentoImagenFotoBlobNombreArchivo) DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
-        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ISNULL(foto.DocumentoImagenFotoId, fotoant.DocumentoImagenFotoId) PersonalFotoId, ing.PersonalFechaBaja,
-        IIF(foto.DocumentoImagenFotoId IS NOT NULL, foto.DocumentoId, fotoant.DocumentoId) PersonalFotoDocumentoId,
+        `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
+        per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ing.PersonalFechaBaja,
+        foto.DocumentoId PersonalFotoDocumentoId,
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
@@ -731,9 +728,7 @@ export class PersonalController extends BaseController {
         FROM Personal per
         LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId=per.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
-        -- La foto principal (IndFotoPrincipal = 1); si la persona todavía no tiene ninguna marcada, la de PersonalFotoId
         LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.IndFotoPrincipal = 1
-        LEFT JOIN DocumentoImagenFoto fotoant ON fotoant.PersonalId = per.PersonalId AND fotoant.DocumentoImagenFotoId = per.PersonalFotoId
         LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
         LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
         LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
@@ -2639,8 +2634,7 @@ LEFT JOIN(
       TRIM(nac.NacionalidadDescripcion), per.PersonalSexo Sexo, per.EstadoCivilId, LugarNacimiento,
       email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
-      -- FotoId es el DocumentoId (tipo FOTO) de la foto principal, o si no hay ninguna marcada, la de PersonalFotoId
-      ISNULL(IIF(foto.DocumentoImagenFotoId IS NOT NULL, foto.DocumentoId, fotoant.DocumentoId), 0) FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
+      ISNULL(foto.DocumentoId, 0) FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
       per.PersonalLeyNro LeyNro,
       per.TipoVehiculoId, per.VehiculoMarcaId, per.VehiculoMarcaModeloId, TRIM(per.PersonalVehiculoPatente) AS PersonalVehiculoPatente, TRIM(per.Cilindrada) AS Cilindrada,
       ubleg.LugarFisicoLegajoId, ubleg.PersonalUbicacionLegajoDesde LugarFisicoLegajoDesde,
@@ -2649,7 +2643,6 @@ LEFT JOIN(
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
       LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.IndFotoPrincipal = 1
-      LEFT JOIN DocumentoImagenFoto fotoant ON fotoant.PersonalId = per.PersonalId AND fotoant.DocumentoImagenFotoId = per.PersonalFotoId
       LEFT JOIN Nacionalidad nac ON nac.NacionalidadId = per.PersonalNacionalidadId
       LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
       LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
@@ -2824,83 +2817,6 @@ LEFT JOIN(
     } finally {
       await queryRunner.release()
     }
-  }
-
-  async deleteArchivo(req: any, res: Response, next: NextFunction) {
-    const personalId = req.body.id
-    const tipo = req.body.tipo
-    let document: any
-    const queryRunner = await getConnection(res.locals.userName);
-    try {
-
-      await queryRunner.startTransaction();
-
-      // Fotos: el archivo está en Documento (tipo FOTO); se borran el documento, sus metadatos de
-      // DocumentoImagenFoto y el archivo, y Personal.PersonalFotoId queda en NULL
-      if (tipo == 7) {
-        const fotos = await queryRunner.query(`
-          SELECT foto.DocumentoId, doc.DocumentoPath
-          FROM DocumentoImagenFoto foto
-          JOIN Documento doc ON doc.DocumentoId = foto.DocumentoId
-          WHERE foto.PersonalId = @0
-        `, [personalId])
-        for (const foto of fotos) {
-          // deleteFile también borra los metadatos de DocumentoImagenFoto
-          await FileUploadController.deleteFile(foto.DocumentoId, 'Documento', queryRunner)
-          try { await unlink(join(FileUploadController.pathDocuments, foto.DocumentoPath)) } catch (error) { }
-        }
-        await queryRunner.commitTransaction();
-        return this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
-      }
-
-      switch (tipo) {
-        case 13:
-        case 14:
-          document = await queryRunner.query(`
-            SELECT doc.PersonalId, CONCAT(dir.DocumentoImagenParametroDirectorioPath, doc.DocumentoImagenDocumentoBlobNombreArchivo) path, doc.DocumentoImagenDocumentoBlobNombreArchivo archivo
-            FROM DocumentoImagenDocumento doc
-            JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = doc.DocumentoImagenParametroId
-            WHERE doc.PersonalId = @0 AND doc.DocumentoImagenParametroId = @1
-          `, [personalId, tipo]);
-
-        default:
-          throw new ClientException(`No se encontro el tipo de Archivo.`);
-      }
-
-      const url = `${process.env.LINCE_PATH}/${document[0]["path"]}`
-
-      if (document.length > 0) {
-        if (!existsSync(url)) {
-        } else {
-          await unlink(url);
-        }
-
-
-
-        switch (tipo) {
-          case 13:
-          case 14:
-            document = await queryRunner.query(`
-              DELETE FROM DocumentoImagenDocumento
-              WHERE doc.PersonalId = @0 AND doc.DocumentoImagenParametroId = @1
-            `, [personalId, tipo]);
-
-          default:
-            throw new ClientException(`No se encontro el tipo de Archivo.`);
-        }
-
-        await queryRunner.commitTransaction();
-      }
-
-      this.jsonRes({ list: [] }, res, `Archivo borrado con exito`);
-
-    } catch (error) {
-      await this.rollbackTransaction(queryRunner)
-      return next(error)
-    } finally {
-      await queryRunner.release()
-    }
-
   }
 
   async getDomicilioByPersonalId(req: any, res: Response, next: NextFunction) {
