@@ -16,11 +16,13 @@
           <span nz-icon nzType="delete" nzTheme="outline"></span></button>
         <!-- btn modificar: abre una orden, así que no vale con varias tildadas -->
         <button nz-button nzType="default" [disabled]="!ordenesSeleccionadas() || ordenesSeleccionadas().length !=1"
-          nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" [routerLink]="['/', 'ges', 'ordenes-venta', 'editar']">
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.edit' | i18n }}" [routerLink]="['/', 'ges', 'ordenes-venta', 'editar']"
+          (click)="ordenAbierta.set(ordenesSeleccionadas()[0])">
           <span nz-icon nzType="edit" nzTheme="outline"></span></button>
         <!-- btn consulta -->
         <button nz-button nzType="default" [disabled]="!ordenesSeleccionadas() || ordenesSeleccionadas().length !=1"
-          nz-tooltip nzTooltipTitle="{{ 'app.icon.consult' | i18n }}" [routerLink]="['/', 'ges', 'ordenes-venta', 'detalle']">
+          nz-tooltip nzTooltipTitle="{{ 'app.icon.consult' | i18n }}" [routerLink]="['/', 'ges', 'ordenes-venta', 'detalle']"
+          (click)="ordenAbierta.set(ordenesSeleccionadas()[0])">
           <span nz-icon nzType="info-circle" nzTheme="outline"></span></button>
         <!-- btn edición masiva: trabaja sobre todas las órdenes seleccionadas -->
         <button nz-button nzType="default" [disabled]="!ordenesSeleccionadas() || ordenesSeleccionadas().length ==0"
@@ -38,7 +40,7 @@
       <a *nzTabLink nz-tab-link [routerLink]="['/', 'ges', 'ordenes-venta', 'detalle']" >Detalle</a>
       @if (router.isActive('/ges/ordenes-venta/detalle',{})){
       <app-orden-venta-form [soloLectura]="true" [origenCrud]="true"
-        [NroOrdenVenta]="this.ordenesSeleccionadas()[0] ?? 0" />
+        [NroOrdenVenta]="ordenAbierta()" />
       }
     </nz-tab>
 
@@ -51,7 +53,7 @@
       @if (router.isActive('/ges/ordenes-venta/editar',{})){
 
       <app-orden-venta-form [soloLectura]="false" [origenCrud]="true"
-        [NroOrdenVenta]="this.ordenesSeleccionadas()[0] ?? 0" (ordenVentaGuardada)="ordenVentaGuardada()" />
+        [NroOrdenVenta]="ordenAbierta()" (ordenVentaGuardada)="ordenVentaGuardada()" />
       }
     </nz-tab>
 

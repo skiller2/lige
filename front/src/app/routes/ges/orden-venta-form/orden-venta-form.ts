@@ -18,9 +18,8 @@ const PRODUCTO_HORAS_B = 'SSFB'
 const PRODUCTOS_HORAS = [PRODUCTO_HORAS_A, PRODUCTO_HORAS_B]
 
 
-// Estados (por descripción) en los que la orden ya no se modifica: el detalle se abre sólo para
-// consulta, igual que valida el back al guardar
-const ESTADOS_NO_MODIFICABLES = ['A FACTURAR', 'FACTURADO']
+// En AFA/FAC solo se editan estado y comprobantes
+const ESTADOS_NO_MODIFICABLES = ['AFA', 'FAC']
 
 // Cantidades guardadas de los productos de horas, o null si la orden no los incluye
 export interface HorasAFacturar {
@@ -137,6 +136,11 @@ export class OrdenVentaFormComponent {
   readonly formOrdenVenta = form(this.ordenVenta, (p) => {
     disabled(p, () => { return (this.soloLectura()) })
     //disabled(p, () => {return (this.soloLectura() || (String(p.EstadoOrdenVentaCodigo)=='FAC'))})
+    disabled(p.Periodo, ({ valueOf }) => ESTADOS_NO_MODIFICABLES.includes(String(valueOf(p.EstadoOrdenVentaCodigo) ?? '').trim()))
+    disabled(p.ObjetivoId, ({ valueOf }) => ESTADOS_NO_MODIFICABLES.includes(String(valueOf(p.EstadoOrdenVentaCodigo) ?? '').trim()))
+    disabled(p.Observaciones, ({ valueOf }) => ESTADOS_NO_MODIFICABLES.includes(String(valueOf(p.EstadoOrdenVentaCodigo) ?? '').trim()))
+    disabled(p.items, ({ valueOf }) => ESTADOS_NO_MODIFICABLES.includes(String(valueOf(p.EstadoOrdenVentaCodigo) ?? '').trim()))
+    required(p.EstadoOrdenVentaCodigo, { message: 'Estado es requerido' })
     applyEach(p.items, (productoPath) => {
       required(productoPath.ProductoCodigo, { message: 'Código de producto es requerido', when: (ctx) => Number(ctx.valueOf(productoPath.Cantidad)) > 0, });
       required(productoPath.Cantidad, { message: 'Cantidad es requerido', when: (ctx) => ctx.valueOf(productoPath.ProductoCodigo) != "", });

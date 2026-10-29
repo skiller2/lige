@@ -16,6 +16,9 @@ const ESTADO_ORDEN_VENTA_FACTURADA = 'FAC';
 // Estado con el que quedan las órdenes anuladas desde la grilla
 const ESTADO_ORDEN_VENTA_CANCELADA = 'CAN';
 
+// A Facturar
+const ESTADO_ORDEN_VENTA_A_FACTURAR = 'AFA';
+
 const TIPO_IMPORTE_LISTA_PRECIO = 'LP';
 
 // Comprobante se relaciona con la orden por NroOrdenVenta, y una orden puede tener más de uno.
@@ -34,9 +37,7 @@ const cargado = (valor: any) => valor != null && String(valor).trim() !== '';
 const ESTADOS_ORDEN_VENTA_NO_MODIFICABLES = ['A FACTURAR', 'FACTURADO'];
 
 
-// Productos que facturan las horas 'A' y 'B'. Su importe no sale de la lista de precios sino de
-// ObjetivoImporteVenta.ImporteHoraA / ImporteHoraB, del último Anio/Mes <= al período del
-// cliente/elemento.
+// Horas 'A'/'B': importe de ObjetivoImporteVenta del mismo Anio/Mes
 const PRODUCTO_HORAS_A = 'SSF';
 const PRODUCTO_HORAS_B = 'SSFB';
 
@@ -415,6 +416,9 @@ export class OrdenVentaController extends BaseController {
         throw new ClientException('No existe plantilla')
       const ordenDs = await this.getOrdenVentaQuery(queryRunner, NroOrdenVentaBase)
       ordenDs.NroOrdenVenta = 0
+      // No hereda estado ni comprobantes
+      ordenDs.EstadoOrdenVentaCodigo = ESTADO_ORDEN_VENTA_INICIAL
+      ordenDs.comprobantes = []
       ordenDs.PeriodoAnio = anio
       ordenDs.PeriodoMes = mes
       ordenDs.Periodo = new Date(anio, mes - 1, 1)
@@ -517,8 +521,7 @@ export class OrdenVentaController extends BaseController {
             WHERE item.ProductoCodigo IN (@6, @7)
               AND oiv.ClienteId = @2
               AND oiv.ClienteElementoDependienteId = @5
-              AND (oiv.Anio < @3 OR (oiv.Anio = @3 AND oiv.Mes <= @4))
-            ORDER BY oiv.Anio DESC, oiv.Mes DESC
+              AND oiv.Anio = @3 AND oiv.Mes = @4
           ) hs
           WHERE item.NroOrdenVenta = @0
           ORDER BY item.ItemOrdenVentaCodigo
@@ -572,6 +575,46 @@ export class OrdenVentaController extends BaseController {
       };
   }
 
+  // Compara los ítems con el importe vigente del período
+  private async validarImportesVigentes(queryRunner: QueryRunner, NroOrdenVenta: number, validarCoincidencia: boolean) {
+    const items = await queryRunner.query(`
+      SELECT item.ItemOrdenVentaCodigo, TRIM(item.ProductoCodigo) AS ProductoCodigo, item.ImporteUnitario,
+        IIF(item.ProductoCodigo IN (@1, @2), hs.ImporteHora, pre.Importe) AS ImporteVigente
+      FROM ItemOrdenVenta item
+      JOIN OrdenVenta ord ON ord.NroOrdenVenta = item.NroOrdenVenta
+      OUTER APPLY (
+        SELECT TOP 1 pp.Importe
+        FROM ProductoPrecio pp
+        WHERE pp.ProductoCodigo = item.ProductoCodigo
+          AND pp.ClienteId = ord.ClienteId
+          AND pp.PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1))
+        ORDER BY pp.PeriodoDesdeAplica DESC
+      ) pre
+      OUTER APPLY (
+        SELECT TOP 1 IIF(item.ProductoCodigo = @1, oiv.ImporteHoraA, oiv.ImporteHoraB) AS ImporteHora
+        FROM ObjetivoImporteVenta oiv
+        WHERE oiv.ClienteId = ord.ClienteId
+          AND oiv.ClienteElementoDependienteId = ord.ClienteElementoDependienteId
+          AND oiv.Anio = ord.PeriodoAnio AND oiv.Mes = ord.PeriodoMes
+      ) hs
+      WHERE item.NroOrdenVenta = @0
+      ORDER BY item.ItemOrdenVentaCodigo
+    `, [NroOrdenVenta, PRODUCTO_HORAS_A, PRODUCTO_HORAS_B]);
+
+    const errores: string[] = [];
+    for (const item of items) {
+      // 0 cuenta como sin valor
+      const vigente = Number(item.ImporteVigente) || 0;
+      if (!vigente)
+        errores.push(`Orden ${NroOrdenVenta}, ítem ${item.ItemOrdenVentaCodigo} (${item.ProductoCodigo}): no tiene importe vigente para el período`);
+      if (validarCoincidencia && Math.round(Number(item.ImporteUnitario ?? 0) * 100) !== Math.round(vigente * 100))
+        errores.push(`Orden ${NroOrdenVenta}, ítem ${item.ItemOrdenVentaCodigo} (${item.ProductoCodigo}): importe unitario ${item.ImporteUnitario ?? 'vacío'} distinto al vigente ${vigente}`);
+    }
+
+    if (errores.length)
+      throw new ClientException(errores);
+  }
+
 
   async getCabecera(req: Request, res: Response, next: NextFunction) {
     const ClienteElementoDependienteId = Number(req.params.ClienteElementoDependienteId);
@@ -601,91 +644,112 @@ export class OrdenVentaController extends BaseController {
 
   async setOrdenVentaQuery(PeriodoAnio: number, PeriodoMes: number, ClienteId: number, ClienteElementoDependienteId: number, NroOrdenVenta: number, items: any[], comprobantes: any[], Observaciones: string, EstadoOrdenVentaCodigo: string, queryRunner: QueryRunner, usuario: string, ip: string, ahora: Date) {
     if (!EstadoOrdenVentaCodigo)
-      EstadoOrdenVentaCodigo = 'PEN'
+      EstadoOrdenVentaCodigo = ESTADO_ORDEN_VENTA_INICIAL
 
-    if (comprobantes.some((c: any) => String(c.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === 'FAC'))
-      EstadoOrdenVentaCodigo = 'FAC'
-
-    if (comprobantes.length == 0 && EstadoOrdenVentaCodigo == 'FAC')
-      throw new ClientException(`No se puede tener Estado Facturado sin ningún comprobante cargado`)
-
-    // TODO: VER DE MEJORAR LOGICA
-    let ImporteTotalAFacturar = 0
-    // Horas 'A'/'B' desde ObjetivoImporteVenta antes del total; el precio de lista del resto lo completa el front
-    const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, PeriodoAnio, PeriodoMes, queryRunner)
-    for (const item of items) {
-      switch (item.ProductoCodigo) {
-        case 'SSF':
-          item.ImporteUnitario = ImporteUnitarioA
-          break;
-        case 'SSFB':
-          item.ImporteUnitario = ImporteUnitarioB
-          break;
-        default:
-          const precio = await ParametrosVentaController.getPrecioListaPreciosQuery(ClienteId, PeriodoAnio, PeriodoMes, item.ProductoCodigo, queryRunner)
-          if (precio.Importe != null) item.ImporteUnitario = precio.Importe
-          break;
-      }
-      // La bonificación es un porcentaje que se descuenta del importe del ítem
-      ImporteTotalAFacturar += Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0) * (1 - (Number(item.Bonificacion) || 0) / 100)
-    }
-
+    let estadoActual = ''
     if (NroOrdenVenta) {
       const ov = await this.getOrdenVentaQuery(queryRunner, NroOrdenVenta)
-      if (ov.EstadoOrdenVentaCodigo == 'FAC')
-        throw new ClientException(`No se puede modificar orden de venta en estado ${ov.Descripcion}`)
+      estadoActual = String(ov.EstadoOrdenVentaCodigo ?? '').trim()
+    }
 
+    // Con factura queda FAC; si ya estaba en FAC no se cambia el estado sin quitarla
+    const conFactura = comprobantes.some((c: any) => String(c.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === TIPO_COMPROBANTE_FACTURA)
+    if (conFactura) {
+      if (estadoActual == ESTADO_ORDEN_VENTA_FACTURADA && EstadoOrdenVentaCodigo != ESTADO_ORDEN_VENTA_FACTURADA)
+        throw new ClientException(`La orden tiene una factura cargada, no puede cambiar el estado a "${EstadoOrdenVentaCodigo}"`)
+      EstadoOrdenVentaCodigo = ESTADO_ORDEN_VENTA_FACTURADA
+    }
+
+    if (!conFactura && EstadoOrdenVentaCodigo == ESTADO_ORDEN_VENTA_FACTURADA)
+      throw new ClientException(`No puede estar el Estado en "Facturado" sin un comprobante de tipo "factura" cargado`)
+
+    // En AFA/FAC solo se graban estado y comprobantes
+    const soloEstado = estadoActual == ESTADO_ORDEN_VENTA_A_FACTURAR || estadoActual == ESTADO_ORDEN_VENTA_FACTURADA
+
+    if (soloEstado) {
       await queryRunner.query(`
-          UPDATE OrdenVenta SET ImporteTotalAFacturar=@1, EstadoOrdenVentaCodigo=@2, Observaciones=@3,
-          AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6 
+          UPDATE OrdenVenta SET EstadoOrdenVentaCodigo=@1, AudFechaMod = @2, AudUsuarioMod = @3, AudIpMod = @4
           WHERE NroOrdenVenta = @0
-        `, [NroOrdenVenta, ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip]);
-
+        `, [NroOrdenVenta, EstadoOrdenVentaCodigo, ahora, usuario, ip]);
     } else {
-      const proximo = await queryRunner.query(
-        `SELECT ISNULL(MAX(NroOrdenVenta),0) + 1 AS NroOrdenVenta FROM OrdenVenta WITH (UPDLOCK, HOLDLOCK)`);
-      NroOrdenVenta = Number(proximo[0].NroOrdenVenta);
+      // TODO: VER DE MEJORAR LOGICA
+      let ImporteTotalAFacturar = 0
+      // Horas 'A'/'B' desde ObjetivoImporteVenta antes del total; el precio de lista del resto lo completa el front
+      const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, PeriodoAnio, PeriodoMes, queryRunner)
+      for (const item of items) {
+        switch (item.ProductoCodigo) {
+          case 'SSF':
+            item.ImporteUnitario = ImporteUnitarioA
+            break;
+          case 'SSFB':
+            item.ImporteUnitario = ImporteUnitarioB
+            break;
+          default:
+            const precio = await ParametrosVentaController.getPrecioListaPreciosQuery(ClienteId, PeriodoAnio, PeriodoMes, item.ProductoCodigo, queryRunner)
+            if (precio.Importe != null) item.ImporteUnitario = precio.Importe
+            break;
+        }
+        // La bonificación es un porcentaje que se descuenta del importe del ítem
+        ImporteTotalAFacturar += Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0) * (1 - (Number(item.Bonificacion) || 0) / 100)
+      }
 
-      await queryRunner.query(`
-          INSERT INTO OrdenVenta (
-            NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
-            ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones,
-            UnificacionFactura, GeneracionFacturaReqCliente,
-            AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-          ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, 0, 0, @8, @8, @9, @9, @10, @10)
-        `, [
-        NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
-        ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip
-      ]);
+      if (NroOrdenVenta) {
+        await queryRunner.query(`
+            UPDATE OrdenVenta SET ImporteTotalAFacturar=@1, EstadoOrdenVentaCodigo=@2, Observaciones=@3,
+            AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
+            WHERE NroOrdenVenta = @0
+          `, [NroOrdenVenta, ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip]);
+
+      } else {
+        const proximo = await queryRunner.query(
+          `SELECT ISNULL(MAX(NroOrdenVenta),0) + 1 AS NroOrdenVenta FROM OrdenVenta WITH (UPDLOCK, HOLDLOCK)`);
+        NroOrdenVenta = Number(proximo[0].NroOrdenVenta);
+
+        await queryRunner.query(`
+            INSERT INTO OrdenVenta (
+              NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
+              ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones,
+              UnificacionFactura, GeneracionFacturaReqCliente,
+              AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+            ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, 0, 0, @8, @8, @9, @9, @10, @10)
+          `, [
+          NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
+          ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip
+        ]);
+      }
+
+      await queryRunner.query(`DELETE FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
+
+      for (const [indice, item] of items.entries()) {
+        const ImporteUnitario = Number(item.ImporteUnitario)
+
+        await queryRunner.query(`
+            INSERT INTO ItemOrdenVenta (
+              NroOrdenVenta, ItemOrdenVentaCodigo, ProductoCodigo, TextoFactura,
+              TipoCantidad, Cantidad, TipoImporte, ImporteUnitario,
+              CantidadEstandar, Bonificacion, CantidadEnFactura,
+              AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
+            ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @11, @12, @12, @13, @13)
+          `, [
+          NroOrdenVenta,
+          indice + 1,
+          item.ProductoCodigo,
+          item.TextoFactura ?? null,
+          String(item.TipoCantidad).trim(),
+          item.Cantidad != null ? Number(item.Cantidad) : null,
+          String(item.TipoImporte).trim(),
+          ImporteUnitario,
+          item.CantidadEstandar != null ? Number(item.CantidadEstandar) : null,
+          Number(item.Bonificacion) || 0, // Sin bonificación se guarda 0, no null
+          Number(item.CantidadEnFactura) || null, // Vacía o en 0 se guarda null
+          ahora, usuario, ip
+        ]);
+      }
     }
 
-    await queryRunner.query(`DELETE FROM ItemOrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
-
-    for (const [indice, item] of items.entries()) {
-      const ImporteUnitario = Number(item.ImporteUnitario)
-
-      await queryRunner.query(`
-          INSERT INTO ItemOrdenVenta (
-            NroOrdenVenta, ItemOrdenVentaCodigo, ProductoCodigo, TextoFactura,
-            TipoCantidad, Cantidad, TipoImporte, ImporteUnitario,
-            CantidadEstandar, Bonificacion, CantidadEnFactura,
-            AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-          ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @11, @12, @12, @13, @13)
-        `, [
-        NroOrdenVenta,
-        indice + 1,
-        item.ProductoCodigo,
-        item.TextoFactura ?? null,
-        String(item.TipoCantidad).trim(),
-        item.Cantidad != null ? Number(item.Cantidad) : null,
-        String(item.TipoImporte).trim(),
-        ImporteUnitario,
-        item.CantidadEstandar != null ? Number(item.CantidadEstandar) : null,
-        Number(item.Bonificacion) || 0, // Sin bonificación se guarda 0, no null
-        Number(item.CantidadEnFactura) || null, // Vacía o en 0 se guarda null
-        ahora, usuario, ip
-      ]);
-    }
+    // AFA/FAC exigen importe vigente; pasar a AFA, que coincida
+    if (EstadoOrdenVentaCodigo == ESTADO_ORDEN_VENTA_A_FACTURAR || EstadoOrdenVentaCodigo == ESTADO_ORDEN_VENTA_FACTURADA)
+      await this.validarImportesVigentes(queryRunner, NroOrdenVenta, EstadoOrdenVentaCodigo == ESTADO_ORDEN_VENTA_A_FACTURAR && estadoActual != ESTADO_ORDEN_VENTA_A_FACTURAR)
 
     await queryRunner.query(`DELETE FROM Comprobante WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
 
@@ -703,7 +767,7 @@ export class OrdenVentaController extends BaseController {
         ahora, usuario, ip
       ]);
     }
-    return { NroOrdenVenta, EstadoOrdenVentaCodigo }
+    return { NroOrdenVenta, EstadoOrdenVentaCodigo, soloEstado }
   }
 
 
@@ -735,6 +799,9 @@ export class OrdenVentaController extends BaseController {
       if (!ClienteId || !ClienteElementoDependienteId)
         fieldErrors.push({ fieldTree: ``, kind: 'server', message: 'El cliente es obligatorio' })
 
+      if (!EstadoOrdenVentaCodigo)
+        fieldErrors.push({ fieldTree: ``, kind: 'server', message: 'El estado es obligatorio' })
+
       const items = itemsTmp.filter(item => String(item?.ProductoCodigo ?? '').trim());
       const comprobantes = comprobantesTmp.filter(com => String(com.ComprobanteNro ?? '').trim());
       if (!items.length)
@@ -758,7 +825,8 @@ export class OrdenVentaController extends BaseController {
         `, [null, PeriodoAnio, PeriodoMes, ClienteId, ClienteElementoDependienteId])
 
 
-      if (primerOrdenVenta[0] && primerOrdenVenta[0].NroOrdenVenta == NroOrdenVenta) {
+      // En AFA/FAC no se tocan las horas
+      if (!ov.soloEstado && primerOrdenVenta[0] && primerOrdenVenta[0].NroOrdenVenta == NroOrdenVenta) {
         // Carga de asistencia muestra solo el primer ítem de cada producto de horas
         const primerSSF = items.find(item => String(item.ProductoCodigo ?? '').trim().toUpperCase() === 'SSF')
         const primerSSFB = items.find(item => String(item.ProductoCodigo ?? '').trim().toUpperCase() === 'SSFB')
@@ -950,7 +1018,7 @@ export class OrdenVentaController extends BaseController {
 
         for (const NroOrdenVenta of ordenes) {
           const cabecera = await queryRunner.query(`
-            SELECT ClienteId, FechaGeneracionFactura FROM OrdenVenta WHERE NroOrdenVenta = @0
+            SELECT ClienteId, TRIM(EstadoOrdenVentaCodigo) AS EstadoOrdenVentaCodigo FROM OrdenVenta WHERE NroOrdenVenta = @0
           `, [NroOrdenVenta]);
 
           if (!cabecera[0])
@@ -960,10 +1028,6 @@ export class OrdenVentaController extends BaseController {
           if (Number(cabecera[0].ClienteId) !== ClienteId)
             throw new ClientException(
               `La orden ${NroOrdenVenta} no pertenece al cliente ${ClienteId}`);
-
-          if (cabecera[0].FechaGeneracionFactura)
-            throw new ClientException(
-              `La orden ${NroOrdenVenta} ya tiene factura generada, no se puede modificar`);
 
           // Los comprobantes de la orden: el nuevo se suma a los que ya tenga
           const comprobantesActuales = await queryRunner.query(`
@@ -989,15 +1053,21 @@ export class OrdenVentaController extends BaseController {
             comprobantesActuales.push({ ComprobanteNro: numero, ComprobanteTipoCodigo: tipo });
           }
 
-          // Sin estado elegido vale la misma regla que el detalle: con factura queda facturada
+          // Con factura queda FAC, igual que el detalle; sin estado elegido, el actual
           const facturada = comprobantesActuales.some((comprobante: any) =>
             String(comprobante.ComprobanteTipoCodigo ?? '').trim().toUpperCase() === TIPO_COMPROBANTE_FACTURA);
 
-          const estadoOrden = estadoElegido
-            || (facturada ? ESTADO_ORDEN_VENTA_FACTURADA : ESTADO_ORDEN_VENTA_INICIAL);
+          const estadoActual = cabecera[0].EstadoOrdenVentaCodigo || ESTADO_ORDEN_VENTA_INICIAL;
+          if (facturada && estadoActual === ESTADO_ORDEN_VENTA_FACTURADA && estadoElegido && estadoElegido !== ESTADO_ORDEN_VENTA_FACTURADA)
+            throw new ClientException(`La orden ${NroOrdenVenta} tiene una factura cargada, no puede cambiar el estado a "${estadoElegido}"`);
 
-          // Una orden que pasa a facturada no puede tener ítems sin cantidad o sin importe unitario
-          if (estadoOrden === ESTADO_ORDEN_VENTA_FACTURADA) {
+          const estadoOrden = facturada ? ESTADO_ORDEN_VENTA_FACTURADA : (estadoElegido || estadoActual);
+
+          if (estadoOrden === ESTADO_ORDEN_VENTA_FACTURADA && !facturada)
+            throw new ClientException(`La orden ${NroOrdenVenta} no tiene una factura cargada, no puede quedar en estado Facturado`);
+
+          // AFA/FAC: sin ítems incompletos
+          if (estadoOrden === ESTADO_ORDEN_VENTA_FACTURADA || estadoOrden === ESTADO_ORDEN_VENTA_A_FACTURAR) {
             const [detalle] = await queryRunner.query(`
               SELECT COUNT(*) AS Incompletos FROM ItemOrdenVenta
               WHERE NroOrdenVenta = @0 AND (Cantidad IS NULL OR ImporteUnitario IS NULL)
@@ -1005,6 +1075,10 @@ export class OrdenVentaController extends BaseController {
 
             if (detalle.Incompletos)
               throw new ClientException(`No se puede facturar la orden ${NroOrdenVenta}: hay ítems sin cantidad o sin importe unitario`);
+
+            // Coincidencia solo al pasar a AFA
+            await this.validarImportesVigentes(queryRunner, NroOrdenVenta,
+              estadoOrden === ESTADO_ORDEN_VENTA_A_FACTURAR && estadoActual !== ESTADO_ORDEN_VENTA_A_FACTURAR);
           }
 
           await queryRunner.query(`
@@ -1036,6 +1110,26 @@ export class OrdenVentaController extends BaseController {
         `, [tipoOriginal, numeroOriginal, tipo, numero, importe, ahora, usuario, ip]);
 
         comprobantes++;
+      }
+
+      // Una orden en FAC no puede quedar sin factura por editar sus comprobantes
+      if (comprobantesEditados.length) {
+        const editados = comprobantesEditados.flatMap(comprobante =>
+          [String(comprobante.ComprobanteTipoCodigo).trim(), String(comprobante.ComprobanteNro).trim()]);
+        const condicion = comprobantesEditados
+          .map((_, indice) => `(com.ComprobanteTipoCodigo = @${indice * 2 + 2} AND TRIM(com.ComprobanteNro) = @${indice * 2 + 3})`)
+          .join(' OR ');
+
+        const sinFactura = await queryRunner.query(`
+          SELECT ord.NroOrdenVenta FROM OrdenVenta ord
+          WHERE TRIM(ord.EstadoOrdenVentaCodigo) = @0
+            AND EXISTS (SELECT 1 FROM Comprobante com WHERE com.NroOrdenVenta = ord.NroOrdenVenta AND (${condicion}))
+            AND NOT EXISTS (SELECT 1 FROM Comprobante fac WHERE fac.NroOrdenVenta = ord.NroOrdenVenta AND fac.ComprobanteTipoCodigo = @1)
+        `, [ESTADO_ORDEN_VENTA_FACTURADA, TIPO_COMPROBANTE_FACTURA, ...editados]);
+
+        if (sinFactura.length)
+          throw new ClientException(sinFactura.map((orden: any) =>
+            `No se puede pasar a Facturado la orden ${orden.NroOrdenVenta}, no tiene un comprobante de tipo factura`));
       }
 
       await queryRunner.commitTransaction();
@@ -1086,14 +1180,14 @@ export class OrdenVentaController extends BaseController {
 
       for (const NroOrdenVenta of NroOrdenVentas) {
         const cabecera = await queryRunner.query(
-          `SELECT FechaGeneracionFactura FROM OrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
+          `SELECT EstadoOrdenVentaCodigo FROM OrdenVenta WHERE NroOrdenVenta = @0`, [NroOrdenVenta]);
 
         if (!cabecera[0])
           throw new ClientException(`No se encontró la orden de venta ${NroOrdenVenta}`);
 
-        // Una vez emitida la factura la orden ya no se toca, igual que en el detalle
-        if (cabecera[0].FechaGeneracionFactura)
-          throw new ClientException(`La orden ${NroOrdenVenta} ya tiene factura generada, no se puede anular`);
+        // Una orden facturada no se anula
+        if (cabecera[0].EstadoOrdenVentaCodigo === ESTADO_ORDEN_VENTA_FACTURADA)
+          throw new ClientException(`La orden ${NroOrdenVenta} está facturada, no se puede anular`);
 
         await queryRunner.query(`
           UPDATE OrdenVenta
