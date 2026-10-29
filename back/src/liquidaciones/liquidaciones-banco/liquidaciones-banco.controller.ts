@@ -419,6 +419,7 @@ ValorHora AS (
 SELECT 
 	CONCAT(per.PersonalId, movpos.tipocuenta_id) AS id,
 	per.PersonalId,
+  per.PersonalNroLegajo,
 	CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS PersonalApellidoNombre,
 	cuit.PersonalCUITCUILCUIT,
 	perban.PersonalBancoCBU,
@@ -1162,7 +1163,7 @@ LEFT JOIN banco banc
         file.end()
 
         await once(file, 'finish')
-      } else if (BancoId == 9) { //Banco Macro 
+      } else if (BancoId == 9) { //Banco Frances 
         const file = createWriteStream(tmpfilename, {
           flags: 'a'
         })
@@ -1179,7 +1180,7 @@ LEFT JOIN banco banc
             throw new ClientException('Sin CBU para el personal ' + PersonalApellidoNombre)
 
           file.write(format("%s%s%s%s%s%s\r\n",
-            row.PersonalLegajo.toString().padStart(19, '0'),
+            row.PersonalNroLegajo.toString().padStart(19, '0'),
             PersonalApellidoNombre.toString().substring(0, 36).padEnd(36, ' '),
             row.PersonalBancoCBU.toString().substring(0, 22).padStart(22, '0'),
             row.importe.toFixed(2).substring(0, 22).padStart(22, '0'),
