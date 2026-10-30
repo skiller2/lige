@@ -100,7 +100,7 @@ export class DomicilioController extends BaseController {
           const { street, road, housenumber, town, state, suburb, state_district, postcode } = item;
 
           item.display_name = `${street || road} ${housenumber} ${suburb || state || state_district || town} ${postcode}`
-          item.address = { state: item.state, street: item.street || item.road, house_number: item.housenumber, state_district: item.state_district, city: item.city, suburb: item.suburb, town: item.suburb, postcode: item.postcode }
+          item.address = { state: item.state, street: item.street || item.road, house_number: item.housenumber, state_district: item.county, city: item.city, suburb: item.suburb, town: item.suburb, postcode: item.postcode }
 
           return item
         })
@@ -572,7 +572,7 @@ export class DomicilioController extends BaseController {
       case "Descripcion":
         if (value.trim().length > 1) {
           query += ` (loc.LocalidadDescripcion LIKE @${params.length}) AND `;
-          params.push(`%${value.trim()}`);
+          params.push(`%${value.trim()}%`);
           buscar = true;
         }
         break;
@@ -624,7 +624,7 @@ export class DomicilioController extends BaseController {
       case "Descripcion":
         if (value.trim().length > 1) {
           query += ` (bar.BarrioDescripcion LIKE @${params.length}) AND `;
-          params.push(`%${value.trim()}`);
+          params.push(`%${value.trim()}%`);
           buscar = true;
         }
         break;
@@ -650,9 +650,9 @@ export class DomicilioController extends BaseController {
   }
 
   // Valida el objeto que devuelve AddrSearchComponent
-  async valObjDomicilio(queryRunner: any, domicilio: any) {
+  valObjDomicilio(domicilio: any) {
     if (!domicilio) {
-      return new ClientException(`Ingrese un domicilio`)
+      return new ClientException(`Ingrese la Dirección`)
     }
 
     // if (!domicilio.manual) {
@@ -665,79 +665,79 @@ export class DomicilioController extends BaseController {
     //   }
     // }
 
-    if (!domicilio.place_id || (!domicilio.address || Object.keys(domicilio.address).length === 0)) {
-      return new ClientException(`Domicilio invalido. No se pudo identificar la dirección`)
+    if ( !domicilio.place_id ) {
+      return new ClientException(`No se pudo identificar la Dirección`)
     }
 
     if (!domicilio.display_name || domicilio.display_name.length === 0) {
-      return new ClientException(`Domicilio invalido. No se pudo identificar el domicilio completo`)
+      return new ClientException(`No se pudo identificar el Dirección completo`)
     }
 
   }
 
   // Agrega un nuevo registro a la tabla Domicilio, devuelve el id del nuevo registro
   async addDomicilio(queryRunner: any, domicilio: any, DomicilioDomLugar: string | null, DomicilioDomDpto: string | null, DomicilioDomPiso: string | null) {
-    const address: any = domicilio.address
-    let { PaisId, ProvinciaId, LocalidadId, BarrioId } = domicilio.verAddress
+    
+    let { PaisId, ProvinciaId, LocalidadId, BarrioId, Calle, Nro, CodigoPostal } = domicilio.address
 
-    if (domicilio.place_id) {
+    // if (domicilio.place_id) {
       //Crea la Provincia en caso de no estar registrada
-      if (!ProvinciaId && (address.state || address.iso3166_2)) {
-        const iso3166_2: string = address.iso3166_2
-        const ProvinciaDescripcion: string = address.state
+      // if (!ProvinciaId && (address.state || address.iso3166_2)) {
+      //   const iso3166_2: string = address.iso3166_2
+      //   const ProvinciaDescripcion: string = address.state
 
-        const Pais = await queryRunner.query(`
-          SELECT ISNULL(PaisProvinciaUltNro, 0) AS PaisProvinciaUltNro, PaisId
-          FROM Pais
-          WHERE PaisId IN (@0)
-        `, [PaisId])
-        const newProvinciaId: number = Pais[0].PaisProvinciaUltNro + 1
+      //   const Pais = await queryRunner.query(`
+      //     SELECT ISNULL(PaisProvinciaUltNro, 0) AS PaisProvinciaUltNro, PaisId
+      //     FROM Pais
+      //     WHERE PaisId IN (@0)
+      //   `, [PaisId])
+      //   const newProvinciaId: number = Pais[0].PaisProvinciaUltNro + 1
 
-        await queryRunner.query(`
-          UPDATE Pais
-          SET PaisProvinciaUltNro = @0
-          WHERE PaisId IN (@1)
+      //   await queryRunner.query(`
+      //     UPDATE Pais
+      //     SET PaisProvinciaUltNro = @0
+      //     WHERE PaisId IN (@1)
 
-          INSERT INTO Provincia (
-            ProvinciaId,
-            PaisId,
-            ProvinciaDescripcion,
-            ProvinciaLocalidadUltNro,
-            iso3166_2 ) 
-          VALUES (@0, @1, @2, 0, @3)
-        `, [newProvinciaId, PaisId, ProvinciaDescripcion, iso3166_2])
+      //     INSERT INTO Provincia (
+      //       ProvinciaId,
+      //       PaisId,
+      //       ProvinciaDescripcion,
+      //       ProvinciaLocalidadUltNro,
+      //       iso3166_2 ) 
+      //     VALUES (@0, @1, @2, 0, @3)
+      //   `, [newProvinciaId, PaisId, ProvinciaDescripcion, iso3166_2])
 
-        ProvinciaId = newProvinciaId
-      }
+      //   ProvinciaId = newProvinciaId
+      // }
 
-      //Crea la localidad en caso de no estar registrada
-      if (ProvinciaId && !LocalidadId && (address.state_district || address.city)) {
-        const LocalidadDescripcion: string = address.state_district ? address.state_district : address.city
+      // //Crea la localidad en caso de no estar registrada
+      // if (ProvinciaId && !LocalidadId && (address.state_district || address.city)) {
+      //   const LocalidadDescripcion: string = address.state_district ? address.state_district : address.city
 
-        const Provincia = await queryRunner.query(`
-          SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
-          FROM Provincia
-          WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
-        `, [PaisId, ProvinciaId])
-        const newLocalidadId: number = Provincia[0].ProvinciaLocalidadUltNro + 1
+      //   const Provincia = await queryRunner.query(`
+      //     SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
+      //     FROM Provincia
+      //     WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
+      //   `, [PaisId, ProvinciaId])
+      //   const newLocalidadId: number = Provincia[0].ProvinciaLocalidadUltNro + 1
 
-        await queryRunner.query(`
-          UPDATE Provincia
-          SET ProvinciaLocalidadUltNro = @0
-          WHERE PaisId IN (@1) AND ProvinciaId IN (@2)
+      //   await queryRunner.query(`
+      //     UPDATE Provincia
+      //     SET ProvinciaLocalidadUltNro = @0
+      //     WHERE PaisId IN (@1) AND ProvinciaId IN (@2)
 
-          INSERT INTO Localidad (
-            LocalidadId,
-            PaisId,
-            ProvinciaId,
-            LocalidadDescripcion,
-            LocalidadBarrioUltNro ) 
-          VALUES (@0, @1, @2, @3, 0)
-        `, [newLocalidadId, PaisId, ProvinciaId, LocalidadDescripcion])
+      //     INSERT INTO Localidad (
+      //       LocalidadId,
+      //       PaisId,
+      //       ProvinciaId,
+      //       LocalidadDescripcion,
+      //       LocalidadBarrioUltNro ) 
+      //     VALUES (@0, @1, @2, @3, 0)
+      //   `, [newLocalidadId, PaisId, ProvinciaId, LocalidadDescripcion])
 
-        LocalidadId = newLocalidadId
-      }
-    }
+      //   LocalidadId = newLocalidadId
+      // }
+    // }
 
     await queryRunner.query(
       `INSERT INTO Domicilio (
@@ -746,8 +746,8 @@ export class DomicilioController extends BaseController {
           DomicilioPaisId, DomicilioProvinciaId, DomicilioLocalidadId, DomicilioBarrioId,
           DomicilioLatitud, DomicilioLongitud, DomicilioCompleto, DomicilioJson) 
       VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13)`,
-      [DomicilioDomLugar, DomicilioDomPiso, DomicilioDomDpto, address.street, address.house_number,
-        address.postcode, PaisId, ProvinciaId, LocalidadId, BarrioId, 
+      [DomicilioDomLugar, DomicilioDomPiso, DomicilioDomDpto, Calle, Nro,
+        CodigoPostal, PaisId, ProvinciaId, LocalidadId, BarrioId, 
         domicilio.lat, domicilio.lon, domicilio.display_name, JSON.stringify(domicilio)]
     )
     const resDomicilio = await queryRunner.query(`SELECT IDENT_CURRENT('Domicilio')`)
@@ -757,66 +757,65 @@ export class DomicilioController extends BaseController {
 
   async updateDomicilio(queryRunner: any, domicilioId: number, domicilio: any, DomicilioDomLugar: string | null, DomicilioDomDpto: string | null, DomicilioDomPiso: string | null) {
 
-    const address: any = domicilio.address
-    let { PaisId, ProvinciaId, LocalidadId, BarrioId } = domicilio.verAddress
+    const { PaisId, ProvinciaId, LocalidadId, BarrioId, Calle, Nro, CodigoPostal } = domicilio.address
 
-    if (domicilio.place_id) {
+    // if (domicilio.place_id) {
       //Crea la Provincia en caso de no estar registrada
-      if (!ProvinciaId && address.state) {
-        const ProvinciaDescripcion: string = address.state
+      // if (!ProvinciaId && address.state) {
+      //   const ProvinciaDescripcion: string = address.state
 
-        const Pais = await queryRunner.query(`
-          SELECT ISNULL(PaisProvinciaUltNro, 0) AS PaisProvinciaUltNro, PaisId
-          FROM Pais
-          WHERE PaisId IN (@0)
-        `, [PaisId])
-        const newProvinciaId: number = Pais[0].PaisProvinciaUltNro + 1
+      //   const Pais = await queryRunner.query(`
+      //     SELECT ISNULL(PaisProvinciaUltNro, 0) AS PaisProvinciaUltNro, PaisId
+      //     FROM Pais
+      //     WHERE PaisId IN (@0)
+      //   `, [PaisId])
+      //   const newProvinciaId: number = Pais[0].PaisProvinciaUltNro + 1
 
-        await queryRunner.query(`
-          UPDATE Pais
-          SET PaisProvinciaUltNro = @0
-          WHERE PaisId IN (@1)
+      //   await queryRunner.query(`
+      //     UPDATE Pais
+      //     SET PaisProvinciaUltNro = @0
+      //     WHERE PaisId IN (@1)
 
-          INSERT INTO Provincia (
-            ProvinciaId,
-            PaisId,
-            ProvinciaId,
-            ProvinciaDescripcion,
-            ProvinciaLocalidadUltNro ) 
-          VALUES (@0, @1, @2, @3, 0)
-        `, [newProvinciaId, PaisId, ProvinciaId, ProvinciaDescripcion])
+      //     INSERT INTO Provincia (
+      //       ProvinciaId,
+      //       PaisId,
+      //       ProvinciaId,
+      //       ProvinciaDescripcion,
+      //       ProvinciaLocalidadUltNro ) 
+      //     VALUES (@0, @1, @2, @3, 0)
+      //   `, [newProvinciaId, PaisId, ProvinciaId, ProvinciaDescripcion])
 
-        ProvinciaId = newProvinciaId
-      }
+      //   ProvinciaId = newProvinciaId
+      // }
 
       //Crea la localidad en caso de no estar registrada
-      if (ProvinciaId && !LocalidadId && (address.state_district || address.city)) {
-        const LocalidadDescripcion: string = address.state_district ? address.state_district : address.city
+      // if (ProvinciaId && !LocalidadId && (address.state_district || address.city)) {
+      //   const LocalidadDescripcion: string = address.state_district ? address.state_district : address.city
 
-        const Provincia = await queryRunner.query(`
-          SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
-          FROM Provincia
-          WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
-        `, [PaisId, ProvinciaId])
-        const newLocalidadId: number = Provincia[0].ProvinciaLocalidadUltNro + 1
+      //   const Provincia = await queryRunner.query(`
+      //     SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
+      //     FROM Provincia
+      //     WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
+      //   `, [PaisId, ProvinciaId])
+      //   const newLocalidadId: number = Provincia[0].ProvinciaLocalidadUltNro + 1
 
-        await queryRunner.query(`
-          UPDATE Provincia
-          SET ProvinciaLocalidadUltNro = @0
-          WHERE PaisId IN (@1) AND ProvinciaId IN (@2)
+      //   await queryRunner.query(`
+      //     UPDATE Provincia
+      //     SET ProvinciaLocalidadUltNro = @0
+      //     WHERE PaisId IN (@1) AND ProvinciaId IN (@2)
 
-          INSERT INTO Localidad (
-            LocalidadId,
-            PaisId,
-            ProvinciaId,
-            LocalidadDescripcion,
-            LocalidadBarrioUltNro ) 
-          VALUES (@0, @1, @2, @3, 0)
-        `, [newLocalidadId, PaisId, ProvinciaId, LocalidadDescripcion])
+      //     INSERT INTO Localidad (
+      //       LocalidadId,
+      //       PaisId,
+      //       ProvinciaId,
+      //       LocalidadDescripcion,
+      //       LocalidadBarrioUltNro ) 
+      //     VALUES (@0, @1, @2, @3, 0)
+      //   `, [newLocalidadId, PaisId, ProvinciaId, LocalidadDescripcion])
 
-        LocalidadId = newLocalidadId
-      }
-    }
+      //   LocalidadId = newLocalidadId
+      // }
+    // }
 
     await queryRunner.query(
       `UPDATE Domicilio
@@ -825,36 +824,71 @@ export class DomicilioController extends BaseController {
           DomicilioLatitud=@9, DomicilioLongitud=@10, DomicilioCompleto=@11, DomicilioJson=@12, 
           DomicilioDomPiso=@13, DomicilioDomDpto=@14
       WHERE DomicilioId IN (@0)`,
-      [domicilioId, DomicilioDomLugar, address.street, address.house_number,
-        address.postcode, PaisId, ProvinciaId, LocalidadId, BarrioId, 
+      [domicilioId, DomicilioDomLugar, Calle, Nro,
+        CodigoPostal, PaisId, ProvinciaId, LocalidadId, BarrioId, 
         domicilio.lat, domicilio.lon, domicilio.display_name, JSON.stringify(domicilio),
         DomicilioDomPiso, DomicilioDomDpto
       ]
     )
   }
 
-  async getDomicilio(queryRunner:any, DomicilioId:number){
-    const domicilio = await queryRunner.query(`
-      SELECT 
-        DomicilioId,
-        DomicilioDomLugar,
-        DomicilioDomPiso,
-        DomicilioDomDpto,
-        DomicilioJson
-      FROM Domicilio
-      WHERE DomicilioId IN (@0)
-    `, [DomicilioId]);
+  async normalizeAddress(queryRunner:any, Address:any){
+    let { 
+      street, road, //Calle
+      housenumber, //Nro
+      state, iso3166_2, //Provincia
+      county, //Localidad
+      suburb, city, //Barrio
+      postcode //Cod.Postal
+    } = Address;
+    const PaisId = 1;
+    let ProvinciaId: number | null = null;
+    let LocalidadId: number | null = null;
+    let BarrioId: number | null = null;
 
-    if (domicilio.length && domicilio[0].DomicilioJson) {
-      const parse = JSON.parse(domicilio[0].DomicilioJson)
-      if (typeof parse === "object") {
-        domicilio[0].Domicilio = parse;
-      } else {
-        domicilio[0].Domicilio = {};
+    iso3166_2 = iso3166_2?.length > 4? iso3166_2.splie(0,4) : iso3166_2
+    //Caso especial C.A.B.A
+    if (iso3166_2 == 'AR-C') {
+      state = 'Ciudad Autonoma de Buenos Aires'
+      county = 'Ciudad Autonoma de Buenos Aires'
+    }
+    const Provincia = await queryRunner.query(`
+      SELECT pro.ProvinciaId
+      FROM Provincia pro
+      WHERE pro.PaisId IN (@0) AND pro.iso3166_2 = @1
+    `, [PaisId, iso3166_2]);
+    if (Provincia.length && county) {
+      ProvinciaId = Provincia[0].ProvinciaId
+      const Localidad = await queryRunner.query(`
+        SELECT loc.LocalidadId
+        FROM Localidad loc
+        WHERE loc.PaisId IN (@0) AND loc.ProvinciaId IN (@1) AND loc.LocalidadDescripcion LIKE @2
+      `, [PaisId, ProvinciaId, `%${county.replace(/^partido de\s+/i, '')}%`]);
+      if (Localidad.length && (suburb || city)) {
+        LocalidadId = Localidad[0].LocalidadId
+        const Barrio = await queryRunner.query(`
+          SELECT bar.BarrioId
+          FROM Barrio bar
+          WHERE bar.PaisId IN (@0) AND bar.ProvinciaId IN (@1) AND bar.LocalidadId IN (@2) AND bar.BarrioDescripcion LIKE @3
+        `, [PaisId, ProvinciaId, LocalidadId, `%${suburb||city}%`]);
+        BarrioId = Barrio.length? Barrio[0].BarrioId : null
       }
     }
 
-    return domicilio[0] || null;
+    Address.address = { 
+      CodigoPostal: postcode,
+      iso3166_2: iso3166_2,
+      Provincia: state, 
+      Localidad: county, 
+      Barrio: suburb || city,
+      Calle: street || road,
+      Nro: housenumber, 
+      PaisId,
+      ProvinciaId,
+      LocalidadId,
+      BarrioId,
+    }
+    return Address
   }
 }
 

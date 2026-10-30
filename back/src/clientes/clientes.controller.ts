@@ -405,46 +405,51 @@ ${orderBy}`, [fechaActual])
 
     async getClienteDomicilioQuery(queryRunner: any, clienteId: any) {
 
-        return await queryRunner.query(`
-                        SELECT 
-                 dom.DomicilioId
-                ,TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle
-                ,TRIM(dom.DomicilioDomNro) AS DomicilioDomNro
-                ,TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal
-                ,dom.DomicilioPaisId AS domiciliopais
-                ,dom.DomicilioProvinciaId
-                ,dom.DomicilioLocalidadId
-                ,dom.DomicilioBarrioId
-                ,TRIM(dom.DomicilioDomLugar) AS DomicilioDomLugar
-            FROM Domicilio AS dom
-            JOIN NexoDomicilio nex ON nex.DomicilioId =dom.DomicilioId
-            WHERE nex.ClienteId = @0 AND nex.ClienteElementoDependienteId IS NULL
-                AND nex.NexoDomicilioActual = 1
-            ORDER BY dom.DomicilioId DESC `, [clienteId])
-        
-        // const domicilio = await queryRunner.query(
-        //     `SELECT 
-        //         dom.DomicilioId,
-        //         dom.DomicilioDomLugar,
-        //         dom.DomicilioJson
-        //     FROM Domicilio dom
-        //     JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
+        // return await queryRunner.query(`
+        //                 SELECT 
+        //          dom.DomicilioId
+        //         ,TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle
+        //         ,TRIM(dom.DomicilioDomNro) AS DomicilioDomNro
+        //         ,TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal
+        //         ,dom.DomicilioPaisId AS domiciliopais
+        //         ,dom.DomicilioProvinciaId
+        //         ,dom.DomicilioLocalidadId
+        //         ,dom.DomicilioBarrioId
+        //         ,TRIM(dom.DomicilioDomLugar) AS DomicilioDomLugar
+        //     FROM Domicilio AS dom
+        //     JOIN NexoDomicilio nex ON nex.DomicilioId =dom.DomicilioId
         //     WHERE nex.ClienteId = @0 AND nex.ClienteElementoDependienteId IS NULL
         //         AND nex.NexoDomicilioActual = 1
-        //     ORDER BY dom.DomicilioId DESC`, 
-        //     [clienteId]
-        // );
+        //     ORDER BY dom.DomicilioId DESC `, [clienteId])
+        
+        let domicilios = await queryRunner.query(
+            `SELECT 
+                dom.DomicilioId,
+                dom.DomicilioDomLugar,
+                dom.DomicilioJson
+            FROM Domicilio dom
+            JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
+            WHERE nex.ClienteId = @0 AND nex.ClienteElementoDependienteId IS NULL
+                AND nex.NexoDomicilioActual = 1
+            ORDER BY dom.DomicilioId DESC`, 
+            [clienteId]
+        );
 
-        // if (domicilio.length && domicilio[0].DomicilioJson) {
-        // const parse = JSON.parse(domicilio[0].DomicilioJson)
-        // if (typeof parse === "object") {
-        //     domicilio[0].Domicilio = parse;
-        // } else {
-        //     domicilio[0].Domicilio = {};
-        // }
-        // }
+        for (const dom of domicilios) {
+            dom.Domicilio = null
+            if (dom.DomicilioJson) {
+                try {
+                    const parse = JSON.parse(dom.DomicilioJson);
+                    if (parse !== null && typeof parse === 'object' && !Array.isArray(parse)) {
+                        dom.Domicilio = parse;
+                    }
+                } catch (error) {
+                    // logger.warn(`DomicilioJson no contiene un JSON válido: ${dom.DomicilioJson}`);
+                }
+            }
+        }
 
-        // return domicilio;
+        return domicilios;
     }
 
     async getClienteContactoQuery(queryRunner: any, clienteId: any) {
@@ -662,8 +667,8 @@ ${orderBy}`, [fechaActual])
             ObjCliente.ClienteFacturacionId = ClienteFacturacionId
 
 
-            ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
-            // ObjClienteNew.infoDomicilio = await this.newClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
+            // ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
+            ObjClienteNew.infoDomicilio = await this.newClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
 
             ObjClienteNew.infoClienteContacto = await this.ClienteContactoUpdate(queryRunner, ObjCliente.infoClienteContacto, ClienteId)
 
@@ -739,7 +744,7 @@ ${orderBy}`, [fechaActual])
         }
 
         for (const [idx, obj] of domicilios.entries()) {
-            
+            obj.Domicilio = await domicilioController.normalizeAddress(queryRunner, obj.Domicilio)
             if (obj.DomicilioId) {
 
                 await domicilioController.updateDomicilio(queryRunner, obj.DomicilioId, obj.Domicilio, obj.DomicilioDomLugar,null,null)
@@ -1035,8 +1040,8 @@ ${orderBy}`, [fechaActual])
 
             await this.insertClienteFacturacion(queryRunner, ClienteId, ClienteFacturacionId, ObjCliente.ClienteFacturacionCUIT, ObjCliente.CondicionAnteIVAId)
 
-            ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
-            // ObjClienteNew.infoDomicilio = await this.newClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId) 
+            // ObjClienteNew.infoDomicilio = await this.ClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId)
+            ObjClienteNew.infoDomicilio = await this.newClienteDomicilioUpdate(queryRunner, ObjCliente.infoDomicilio, ClienteId) 
 
             ObjClienteNew.infoClienteContacto = await this.ClienteContactoUpdate(queryRunner, ObjCliente.infoClienteContacto, ClienteId)
             if (ClienteAdministradorId != null) {
@@ -1199,47 +1204,47 @@ ${orderBy}`, [fechaActual])
 
 
 
-        for (const obj of form.infoDomicilio) {
+        // for (const obj of form.infoDomicilio) {
 
-            //Domicilio
+        //     //Domicilio
 
-            if (!obj.DomicilioDomCalle) {
-                throw new ClientException(`Debe completar el campo Dirección Calle.`)
-            }
-
-            if (!obj.DomicilioDomNro) {
-                throw new ClientException(`Debe completar el campo Domicilio Nro.`)
-            }
-
-            if (obj.DomicilioDomNro.length > 5) {
-                throw new ClientException(`Debe completar el campo Domicilio Nro.`)
-            }
-
-            if (!obj.DomicilioCodigoPostal) {
-                throw new ClientException(`Debe completar el campo Cod Postal.`)
-            }
-
-            if (obj.DomicilioCodigoPostal.length > 8) {
-                throw new ClientException(`El campo Cod Postal NO puede ser mayor a 8 digitos.`)
-            }
-
-            if (!obj.DomicilioProvinciaId) {
-                throw new ClientException(`Debe completar el campo Provincia.`)
-            }
-
-            if (!obj.DomicilioLocalidadId) {
-                throw new ClientException(`Debe completar el campo Localidad.`)
-            }
-
-
-        }
-        // DOMICILIO
-        // for (const [idx, obj] of form.infoDomicilio.entries()) {
-        //     const res = await domicilioController.valObjDomicilio(queryRunner, obj.Domicilio)
-        //     if (res instanceof ClientException) {
-        //         throw new ClientException(`Dirección ${idx+1}: ${res.messageArr}`)
+        //     if (!obj.DomicilioDomCalle) {
+        //         throw new ClientException(`Debe completar el campo Dirección Calle.`)
         //     }
+
+        //     if (!obj.DomicilioDomNro) {
+        //         throw new ClientException(`Debe completar el campo Domicilio Nro.`)
+        //     }
+
+        //     if (obj.DomicilioDomNro.length > 5) {
+        //         throw new ClientException(`Debe completar el campo Domicilio Nro.`)
+        //     }
+
+        //     if (!obj.DomicilioCodigoPostal) {
+        //         throw new ClientException(`Debe completar el campo Cod Postal.`)
+        //     }
+
+        //     if (obj.DomicilioCodigoPostal.length > 8) {
+        //         throw new ClientException(`El campo Cod Postal NO puede ser mayor a 8 digitos.`)
+        //     }
+
+        //     if (!obj.DomicilioProvinciaId) {
+        //         throw new ClientException(`Debe completar el campo Provincia.`)
+        //     }
+
+        //     if (!obj.DomicilioLocalidadId) {
+        //         throw new ClientException(`Debe completar el campo Localidad.`)
+        //     }
+
+
         // }
+        // DOMICILIO
+        for (const [idx, obj] of form.infoDomicilio.entries()) {
+            const res = await domicilioController.valObjDomicilio(obj.Domicilio)
+            if (res instanceof ClientException) {
+                throw new ClientException(`Dirección ${idx+1}: ${res.messageArr}`)
+            }
+        }
 
         // CLIENTE CONTACTO
 
