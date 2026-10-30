@@ -1988,7 +1988,7 @@ LEFT JOIN(
     }
 
     const resDoc = await FileUploadController.handleDOCUploadV2(DocumentoId, new Date(), null, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
-    await FileUploadController.registrarFotoDocumento(queryRunner, personalId, resDoc.doc_id)
+    await FileUploadController.registrarFotoDocumento(queryRunner, personalId, resDoc.doc_id, true)
   }
 
   async setDocumento(queryRunner: any, personalId: any, file: any, parametro: number) {
