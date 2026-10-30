@@ -1278,6 +1278,8 @@ SELECT doc.DocumentoId id,
                         PersonalHabilitacionLugarHabilitacionId: LugarHabilitacionId
                     }
                     const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+                    if (file.doctipo_id == FileUploadController.DOCUMENTO_TIPO_FOTO)
+                        await FileUploadController.registrarFotoDocumento(queryRunner, PersonalId, uploadResult.doc_id)
 
                 }
             }
@@ -1386,6 +1388,8 @@ SELECT doc.DocumentoId id,
                         PersonalHabilitacionLugarHabilitacionId: LugarHabilitacionId
                     }
                     const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+                    if (file.doctipo_id == FileUploadController.DOCUMENTO_TIPO_FOTO)
+                        await FileUploadController.registrarFotoDocumento(queryRunner, PersonalId, uploadResult.doc_id)
 
 
                 }
@@ -1577,6 +1581,8 @@ SELECT doc.DocumentoId id,
                     }
 
                     const uploadResult = await FileUploadController.handleDOCUploadV2(null, DocumentoFecha, DocumentoFechaDocumentoVencimiento, den_documento, null, null, file, usuario, ip, queryRunner, IdsRelacionados)
+                    if (file.doctipo_id == FileUploadController.DOCUMENTO_TIPO_FOTO)
+                        await FileUploadController.registrarFotoDocumento(queryRunner, PersonalId, uploadResult.doc_id)
 
                 }
             }
