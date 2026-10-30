@@ -1859,7 +1859,7 @@ outer APPLY (SELECT
 
             if (documentosAsociados.length > 0) errores.push(`- Documentos relacionados: ${documentosAsociados.length} (${ids})`)
 
-            const efectosRelacionados = await queryRunner.query(`Select EfectoId, EfectoIndividualId from StockReal WHERE ObjetivoId = @0`, [Number(ObjetivoId)])
+            const efectosRelacionados = await queryRunner.query(`Select EfectoId, EfectoEfectoIndividualId from StockReal WHERE ObjetivoId = @0`, [Number(ObjetivoId)])
             if (efectosRelacionados.length > 0) errores.push(`- Efectos relacionados: ${efectosRelacionados.length}`)
 
             if (errores.length > 0) {
