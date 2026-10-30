@@ -12,7 +12,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component"
 import { Router } from '@angular/router';
 import { TableClienteDocumentoComponent } from '../../../routes/ges/table-cliente-documentos/table-cliente-documentos';
-// import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
+import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
 
 interface Provincia {
   ProvinciaId: number;
@@ -46,7 +46,7 @@ interface Barrio {
         NzSelectModule,
         FileUploadComponent,
         TableClienteDocumentoComponent,
-        // AddrSearchComponent,
+        AddrSearchComponent,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -84,16 +84,16 @@ export class ClientesFormComponent {
 
   objDomiclio = {
     DomicilioId: 0,
-    // Domicilio: {},
+    Domicilio: null,
     DomicilioDomLugar: null,
-    DomicilioDomCalle: "",
-    DomicilioDomNro: "",
-    referencia: "",
-    DomicilioCodigoPostal: "",
-    domiciliopais: "",
-    DomicilioProvinciaId: null,
-    DomicilioLocalidadId: null,
-    DomicilioBarrioId: null
+    // DomicilioDomCalle: "",
+    // DomicilioDomNro: "",
+    // referencia: "",
+    // DomicilioCodigoPostal: "",
+    // domiciliopais: "",
+    // DomicilioProvinciaId: null,
+    // DomicilioLocalidadId: null,
+    // DomicilioBarrioId: null
   }
 
   fb = inject(FormBuilder)
@@ -240,12 +240,14 @@ export class ClientesFormComponent {
   async save() {
     this.isLoading.set(true)
     const isNewCliente = !this.idForm()
-    let form = this.formCli.value
-    console.log('form: ', form);
+    let values = this.formCli.value
+    
     
     try {
+      values.infoDomicilio = values.infoDomicilio?.filter((domicilio:any) => { return !this.isEqualObject(domicilio, this.objDomiclio) })
+      console.log('values: ', values);
       if (this.idForm()) {
-        let result = await firstValueFrom(this.apiService.updateCliente(form, this.idForm()))
+        let result = await firstValueFrom(this.apiService.updateCliente(values, this.idForm()))
         this.formCli.patchValue({
           infoClienteContacto: result.data.infoClienteContacto,
           infoDomicilio: result.data.infoDomicilio,
@@ -253,7 +255,7 @@ export class ClientesFormComponent {
 
       } else {
         //este es para cuando es un nuevo registro
-        let result = await firstValueFrom(this.apiService.addCliente(form))
+        let result = await firstValueFrom(this.apiService.addCliente(values))
         this.formCli.patchValue(result.data);
 
         this.mostrarDocs.set(true)
@@ -336,6 +338,23 @@ export class ClientesFormComponent {
     } finally {
       this.isLoading.set(false)
     }
+  }
+
+  isEqualObject(a: any, b: any): boolean {
+    return Object.keys(b).every(key => {
+      const valA = a[key];
+      const valB = b[key];
+
+      if (Array.isArray(valB)) {
+        return Array.isArray(valA) && valA.length === valB.length;
+      }
+
+      if (Number.isNaN(valB)) {
+        return Number.isNaN(valA);
+      }
+
+      return valA === valB;
+    });
   }
 
 }

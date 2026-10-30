@@ -11,7 +11,7 @@ import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkb
 import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-// import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
+import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
 
 export interface Telefono {
   PersonalTelefonoId: number;
@@ -48,16 +48,10 @@ export interface Beneficiario {
 }
 
 export interface Domicilio {
-  Calle: string;
-  Nro: string;
+  DomicilioId: number;
+  Domicilio: any;
   Piso: string;
   Dpto: string;
-  CodigoPostal: string;
-  PaisId: number;
-  ProvinciaId: number;
-  LocalidadId: number;
-  BarrioId: number;
-  DomicilioId: number;
 }
 
 export interface ParametroPersonalForm {
@@ -91,7 +85,7 @@ export interface ParametroPersonalForm {
   styleUrl: './personal-form.component.less',
   imports: [...SHARED_IMPORTS, CommonModule, NzUploadModule, FileUploadComponent, NzCheckboxModule,
     FormField, FormsModule,
-    // AddrSearchComponent
+    AddrSearchComponent
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -124,7 +118,7 @@ export class PersonalFormComponent {
   private readonly objEstudio: Estudio = { PersonalEstudioId: 0, TipoEstudioId: 0, EstadoEstudioId: 0, EstudioTitulo: '', PersonalEstudioOtorgado: '', PersonalEstudioVencimiento: '', DocTitulo: [], docId: 0 }
   private readonly objFamiliar: Familiar = { PersonalFamiliaId: 0, Apellido: '', Nombre: '', TipoParentescoId: 0 }
   private readonly objBeneficiario: Beneficiario = { Apellido: '', Nombre: '', TipoDocumentoId: 0, DocumentoNro: NaN, TipoParentescoId: 0, Observacion: '', Desde: '' }
-  private readonly objDomicilio: Domicilio = { Calle: '', Nro: '', Piso: '', Dpto: '', CodigoPostal: '', PaisId: 0, ProvinciaId: 0, LocalidadId: 0, BarrioId: 0, DomicilioId: 0, }
+  private readonly objDomicilio: Domicilio = { DomicilioId: 0, Domicilio: null, Piso: '', Dpto: '' }
 
   private readonly defaultPersonalForm: ParametroPersonalForm = {
     Nombre: '', Apellido: '', CUIT: NaN, NroLegajo: NaN, SucursalId: 0,
@@ -148,31 +142,11 @@ export class PersonalFormComponent {
     HorasPactadasDesde: '',
   }
 
-  // formPer = this.fb.group({ ...this.defaultPersonalForm })
   readonly parametroPersonal = signal<ParametroPersonalForm>(this.defaultPersonalForm);
 
   readonly formParametroPersonal = form(this.parametroPersonal, (p) => {
     disabled(p, () => this.readonly())
-    // applyEach(p.telefonos, (telefono) => {
-    //   disabled(telefono.TipoTelefonoId, () => this.readonly())
-    //   disabled(telefono.TelefonoNro, () => this.readonly())
-    // });
-    // applyEach(p.estudios, (estudio) => {
-    //   disabled(estudio.EstudioTitulo, () => this.readonly())
-    // });
-    // applyEach(p.familiares, (familiar) => {
-    //   disabled(familiar.Apellido, () => this.readonly())
-    //   disabled(familiar.Nombre, () => this.readonly())
-    // });
-    // applyEach(p.beneficiarios, (beneficiario) => {
-    //   disabled(beneficiario.Apellido, () => this.readonly())
-    //   disabled(beneficiario.Nombre, () => this.readonly())
-    //   disabled(beneficiario.DocumentoNro, () => this.readonly())
-    //   disabled(beneficiario.Observacion, () => this.readonly())
-    // });
   })
-
-  domicilio = computed(() => this.parametroPersonal().domicilio);
 
   optionsSucursal = toSignal(this.searchService.getSucursales(), { initialValue: [] });
   optionsNacionalidad = toSignal(this.searchService.getNacionalidadOptions(), { initialValue: [] });
@@ -182,57 +156,6 @@ export class PersonalFormComponent {
   optionsSexo = signal<any[]>([{ value: 'M', label: 'MASCULINO' }, { value: 'F', label: 'FEMENINO' }])
   optionsTipoVehiculo = toSignal(this.searchService.getTiposVehiculoOptions(), { initialValue: [] });
   optionsUbicacionLegajo = toSignal(this.searchService.getUbicacionLegajoOptions(), { initialValue: [] });
-
-  optionsPais = toSignal(this.searchService.getPaises(), { initialValue: [] });
-
-  optionsDomicilioProvincia = resource({
-    params: () => this.domicilio().PaisId,
-
-    loader: async ({ params: PaisId }) => {
-
-      if (!PaisId) {
-
-        return [];
-      }
-      return await firstValueFrom(this.searchService.getProvinciasByPais(PaisId))
-
-    }
-  });
-
-  optionsDomicilioLocalidad = resource({
-    params: () => ({
-      PaisId: this.domicilio().PaisId,
-      ProvinciaId: this.domicilio().ProvinciaId,
-    }),
-
-    loader: async ({ params }) => {
-
-      if (!params.PaisId || !params.ProvinciaId) {
-        return [];
-      }
-      return await firstValueFrom(this.searchService.getLocalidadesByProvincia(params.PaisId, params.ProvinciaId))
-
-    }
-  });
-
-  optionsDomicilioBarrio = resource({
-    params: () => ({
-      PaisId: this.domicilio().PaisId,
-      ProvinciaId: this.domicilio().ProvinciaId,
-      LocalidadId: this.domicilio().LocalidadId
-    }),
-
-    loader: async ({ params }) => {
-
-      if (!params.PaisId || !params.ProvinciaId || !params.LocalidadId) {
-        return [];
-      }
-      return await firstValueFrom(this.searchService.getBarriosByLocalidad(params.PaisId, params.ProvinciaId, params.LocalidadId));
-
-    }
-  });
-
-
 
   optionsMarcaVehiculo = resource({
     params: () => ({
@@ -265,33 +188,10 @@ export class PersonalFormComponent {
   });
 
   effect = effect(() => {
-    let objDomicilio: any = {}
     const currentLugarFisicoLegajoId = this.parametroPersonal().LugarFisicoLegajoId || null
     const previousLugarFisicoLegajoId = this.lastLugarFisicoLegajoId
     this.lastLugarFisicoLegajoId = currentLugarFisicoLegajoId
-    const domPaisId = this.parametroPersonal().domicilio.PaisId
-    const domProvinciaId = this.parametroPersonal().domicilio.ProvinciaId
-    const domLocalidadId = this.parametroPersonal().domicilio.LocalidadId
-    const domBarrioId = this.parametroPersonal().domicilio.BarrioId
     if (this.enableSelectReset()) {
-
-      if (!domLocalidadId && domBarrioId) {
-        objDomicilio.BarrioId = 0
-      } else if (!domProvinciaId && (domLocalidadId || domBarrioId)) {
-        objDomicilio.LocalidadId = 0
-        objDomicilio.BarrioId = 0
-      } else if (!domPaisId && (domProvinciaId || domLocalidadId || domBarrioId)) {
-        objDomicilio.ProvinciaId = 0
-        objDomicilio.LocalidadId = 0
-        objDomicilio.BarrioId = 0
-      }
-
-      if (Object.keys(objDomicilio).length) {
-        this.parametroPersonal.update(m => ({
-          ...m,
-          domicilio: { ...m.domicilio, ...objDomicilio }
-        }));
-      }
 
       if (
         previousLugarFisicoLegajoId !== undefined &&
@@ -320,11 +220,6 @@ export class PersonalFormComponent {
 
     }
 
-    // if (this.readonly()) {
-    //   this.formParametroPersonal().disable({ emitEvent: false });   // disables all controls
-    // } else {
-    //   this.formParametroPersonal.enable({ emitEvent: false });
-    // }
   });
 
   async ngOnInit() {
@@ -348,7 +243,8 @@ export class PersonalFormComponent {
     this.enableSelectReset.set(false)
     if (this.personalId()) {
       let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
-
+      // console.log('infoPersonal: ', infoPersonal);
+      
       if (!infoPersonal.telefonos.length) infoPersonal.telefonos = [structuredClone(this.objTelefono)]
       if (!infoPersonal.estudios.length) infoPersonal.estudios = [structuredClone(this.objEstudio)]
       if (!infoPersonal.familiares.length) infoPersonal.familiares = [structuredClone(this.objFamiliar)]

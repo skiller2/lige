@@ -121,19 +121,14 @@
       </nz-form-control>
     </nz-form-item>
 
-    <!-- <nz-divider nzText="Domicilio" nzOrientation="left"></nz-divider> -->
     <div class="input-container1">
       <div class="input-label">Domicilio</div>
     </div>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Calle</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="11">
-        <input nz-input placeholder="" [formField]="formParametroPersonal.domicilio.Calle" type="text" />
-      </nz-form-control>
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2">Nro</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="4">
-        <input nz-input placeholder="" [formField]="formParametroPersonal.domicilio.Nro" type="text" />
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Dirección</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+        <app-addr-search [formField]="formParametroPersonal.domicilio.Domicilio"></app-addr-search>
       </nz-form-control>
     </nz-form-item>
 
@@ -145,54 +140,6 @@
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="2" [nzLg]="2">Piso</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="3">
         <input nz-input placeholder="" [formField]="formParametroPersonal.domicilio.Piso" type="text" />
-      </nz-form-control>
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Cod.Postal</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-        <input nz-input placeholder="" [formField]="formParametroPersonal.domicilio.CodigoPostal" type="text" />
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Pais</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
-        <nz-select [formField]="formParametroPersonal.domicilio.PaisId" nzPlaceHolder="" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
-          @for (option of optionsPais(); track option.value) {
-          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Provincia</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
-        <nz-select [formField]="formParametroPersonal.domicilio.ProvinciaId" nzPlaceHolder="" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
-          @for (option of optionsDomicilioProvincia.value(); track option.value) {
-          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-    </nz-form-item>
-
-    <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Localidad</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
-        <nz-select [formField]="formParametroPersonal.domicilio.LocalidadId" nzPlaceHolder="" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
-          @for (option of optionsDomicilioLocalidad.value(); track option.value) {
-          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
-      </nz-form-control>
-
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Barrio</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="6">
-        <nz-select [formField]="formParametroPersonal.domicilio.BarrioId" nzPlaceHolder="" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
-          @for (option of optionsDomicilioBarrio.value(); track option.value) {
-          <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
-          }
-        </nz-select>
       </nz-form-control>
     </nz-form-item>
 

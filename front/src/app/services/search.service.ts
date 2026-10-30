@@ -638,14 +638,14 @@ export class SearchService {
             .filter(Boolean)
             .join(", ");
 
-          item.address = { 
-            iso3166_2: iso3166_2, 
-            state: state, 
-            house_number: housenumber, 
-            state_district: county, 
-            town: suburb || city, 
-            street: street || road 
-          }
+          // item.address = { 
+          //   iso3166_2: iso3166_2, 
+          //   state: state, 
+          //   house_number: housenumber, 
+          //   state_district: county, 
+          //   town: suburb || city, 
+          //   street: street || road 
+          // }
 
           return item
         })
