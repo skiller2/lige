@@ -128,7 +128,8 @@
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Dirección</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
-        <app-addr-search [formField]="formParametroPersonal.domicilio.Domicilio"></app-addr-search>
+        <app-addr-search [formField]="formParametroPersonal.domicilio.Domicilio"
+          [domicilioCompleto]="parametroPersonal().domicilio.DomicilioCompleto || ''"></app-addr-search>
       </nz-form-control>
     </nz-form-item>
 

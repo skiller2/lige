@@ -2711,6 +2711,7 @@ LEFT JOIN(
         TRIM(dom.DomicilioDomLugar) DomicilioDomLugar,
         TRIM(dom.DomicilioDomPiso) Piso,
         TRIM(dom.DomicilioDomDpto) Dpto,
+        TRIM(dom.DomicilioCompleto) DomicilioCompleto,
         dom.DomicilioJson
       FROM Domicilio dom
       JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
@@ -2718,8 +2719,9 @@ LEFT JOIN(
       ORDER BY dom.DomicilioId DESC
       `, [personalId]);
 
+    if (domicilio.length) domicilio[0].Domicilio = null
+
     if (domicilio.length && domicilio[0].DomicilioJson) {
-      domicilio[0].Domicilio = null
       try {
         const parse = JSON.parse(domicilio[0].DomicilioJson);
         if (parse !== null && typeof parse === 'object' && !Array.isArray(parse)) {
@@ -3061,6 +3063,10 @@ LEFT JOIN(
     this.validarCUIT(personalForm.CUIT)
 
     // Direcciones
+    if (!personalForm.domicilio?.Domicilio && personalForm.domicilio?.DomicilioCompleto) {
+      return new ClientException(`No se pudo identificar la ubicación geográfica del domicilio registrado. Busque nuevamente la dirección y seleccione una de las opciones.`)
+    }
+
     // if (personalForm.domicilio.Domicilio) {
       const res = domicilioController.valObjDomicilio(personalForm.domicilio.Domicilio)
       if (res instanceof ClientException) return res
