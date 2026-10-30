@@ -2292,12 +2292,12 @@ LEFT JOIN(
       
       if (cambio) {
         domicilio.Domicilio = await domicilioController.normalizeAddress(queryRunner, domicilio.Domicilio)
-        await domicilioController.updateDomicilio(queryRunner, DomicilioId, domicilio.Domicilio, null, domicilio.Dpto, domicilio.Piso)
+        await domicilioController.updateDomicilio(queryRunner, DomicilioId, domicilio.Domicilio, domicilio.DomicilioDomLugar, domicilio.Dpto, domicilio.Piso)
       }
 
     } else { // ADD
       domicilio.Domicilio = await domicilioController.normalizeAddress(queryRunner, domicilio.Domicilio)
-      DomicilioId = await domicilioController.addDomicilio(queryRunner, domicilio.Domicilio, null, domicilio.Dpto, domicilio.Piso)
+      DomicilioId = await domicilioController.addDomicilio(queryRunner, domicilio.Domicilio, domicilio.DomicilioDomLugar, domicilio.Dpto, domicilio.Piso)
       await queryRunner.query(
         `INSERT INTO NexoDomicilio (DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, PersonalId) 
         VALUES ( @0,@1,@2,@3,@4,@5,@6)`,
@@ -2707,6 +2707,7 @@ LEFT JOIN(
     const domicilio = await queryRunner.query(`
       SELECT 
         dom.DomicilioId,
+        TRIM(dom.DomicilioDomLugar) DomicilioDomLugar,
         TRIM(dom.DomicilioDomPiso) Piso,
         TRIM(dom.DomicilioDomDpto) Dpto,
         dom.DomicilioJson

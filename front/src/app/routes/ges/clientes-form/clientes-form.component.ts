@@ -86,14 +86,6 @@ export class ClientesFormComponent {
     DomicilioId: 0,
     Domicilio: null,
     DomicilioDomLugar: null,
-    // DomicilioDomCalle: "",
-    // DomicilioDomNro: "",
-    // referencia: "",
-    // DomicilioCodigoPostal: "",
-    // domiciliopais: "",
-    // DomicilioProvinciaId: null,
-    // DomicilioLocalidadId: null,
-    // DomicilioBarrioId: null
   }
 
   fb = inject(FormBuilder)
@@ -245,7 +237,7 @@ export class ClientesFormComponent {
     
     try {
       values.infoDomicilio = values.infoDomicilio?.filter((domicilio:any) => { return !this.isEqualObject(domicilio, this.objDomiclio) })
-      console.log('values: ', values);
+      // console.log('values: ', values);
       if (this.idForm()) {
         let result = await firstValueFrom(this.apiService.updateCliente(values, this.idForm()))
         this.formCli.patchValue({

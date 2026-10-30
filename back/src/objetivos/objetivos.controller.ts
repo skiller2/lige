@@ -844,18 +844,11 @@ outer APPLY (SELECT
     }
 
     async getDomicilio(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId: any) {
-
+        let domicilio:any = null
         if (!ObjetivoId && (ClienteId && ClienteElementoDependienteId)) {
-
-            return await queryRunner.query(`SELECT TOP 1 
+            domicilio = await queryRunner.query(`SELECT TOP 1 
                     dom.DomicilioId AS DomicilioId,
-                    TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle,
-                    TRIM(dom.DomicilioDomNro) AS DomicilioDomNro,
-                    TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal,
-                    dom.DomicilioPaisId AS DomicilioPaisId,
-                    dom.DomicilioProvinciaId AS DomicilioProvinciaId,
-                    dom.DomicilioLocalidadId AS DomicilioLocalidadId,
-                    dom.DomicilioBarrioId AS DomicilioBarrioId,
+                    dom.DomicilioJson,
                     dom.DomicilioDomLugar AS DomicilioDomLugar,
                     CONCAT_WS(', ',
                         NULLIF(
@@ -897,17 +890,10 @@ outer APPLY (SELECT
                 ORDER BY dom.DomicilioId DESC;`,
                 [ClienteId, ClienteElementoDependienteId])
 
-        }
-
-        return await queryRunner.query(`SELECT TOP 1 
+        } else {
+            domicilio = await queryRunner.query(`SELECT TOP 1 
                     dom.DomicilioId AS DomicilioId,
-                    TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle,
-                    TRIM(dom.DomicilioDomNro) AS DomicilioDomNro,
-                    TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal,
-                    dom.DomicilioPaisId AS DomicilioPaisId,
-                    dom.DomicilioProvinciaId AS DomicilioProvinciaId,
-                    dom.DomicilioLocalidadId AS DomicilioLocalidadId,
-                    dom.DomicilioBarrioId AS DomicilioBarrioId,
+                    dom.DomicilioJson,
                     dom.DomicilioDomLugar AS DomicilioDomLugar,
                     CONCAT_WS(', ',
                         NULLIF(
@@ -948,7 +934,21 @@ outer APPLY (SELECT
                     AND nexdom.NexoDomicilioActual = 1
                 ORDER BY dom.DomicilioId DESC;`,
             [ObjetivoId])
+        }
 
+        if (domicilio.length && domicilio[0].DomicilioJson) {
+            domicilio[0].Domicilio = null
+            try {
+                const parse = JSON.parse(domicilio[0].DomicilioJson);
+                if (parse !== null && typeof parse === 'object' && !Array.isArray(parse)) {
+                    domicilio[0].Domicilio = parse;
+                }
+            } catch (error) {
+                // logger.warn(`DomicilioJson no contiene un JSON válido: ${domicilio[0].DomicilioJson}`);
+            }
+        }
+        
+        return domicilio
     }
 
     async getCoordinadorCuentaQuery(queryRunner: any, ObjetivoId: any) {
@@ -1382,19 +1382,19 @@ outer APPLY (SELECT
                 //SI EL ELEMENTO DEPENDIENTE ES DIFERENTE NULL SOLO ACTUALIZA TABLAS DE ELEMENTO DEPENDIENTE
                 if (Obj.DireccionModificada) {
 
-                    await this.addElementoDependienteDomicilio(
-                        queryRunner
-                        , Obj.ClienteId
-                        , Obj.ClienteElementoDependienteId
-                        , Obj.DomicilioDomLugar
-                        , Obj.DomicilioDomCalle
-                        , Obj.DomicilioDomNro
-                        , Obj.DomicilioCodigoPostal
-                        , Obj.DomicilioProvinciaId
-                        , Obj.DomicilioLocalidadId
-                        , Obj.DomicilioBarrioId
-                    )
-                    // await this.newAddElementoDependienteDomicilio(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Domicilio, Obj.DomicilioDomLugar)
+                    // await this.addElementoDependienteDomicilio(
+                    //     queryRunner
+                    //     , Obj.ClienteId
+                    //     , Obj.ClienteElementoDependienteId
+                    //     , Obj.DomicilioDomLugar
+                    //     , Obj.DomicilioDomCalle
+                    //     , Obj.DomicilioDomNro
+                    //     , Obj.DomicilioCodigoPostal
+                    //     , Obj.DomicilioProvinciaId
+                    //     , Obj.DomicilioLocalidadId
+                    //     , Obj.DomicilioBarrioId
+                    // )
+                    await this.newAddElementoDependienteDomicilio(queryRunner, Obj.ClienteId, Obj.ClienteElementoDependienteId, Obj.Domicilio, Obj.DomicilioDomLugar)
 
                 }
 
@@ -1692,46 +1692,14 @@ outer APPLY (SELECT
         //     throw new ClientException(`El campo Contrato Hasta NO pueden estar vacio.`)
         //  }
 
-        //Domicilio
-        // const res = await domicilioController.valObjDomicilio(queryRunner, form.Domicilio)
-        // if (res instanceof ClientException) throw res
-
-        if (!form.DomicilioDomCalle) {
-            msgError.push('- Dirección Calle.')
-        }
-
-        // if (!form.DomicilioDomNro) {
-        //     throw new ClientException(`- Nro.`)
-        // }
-
-        const domicilioDomNro = String(form.DomicilioDomNro ?? '').trim()
-        if (domicilioDomNro.length > 5) {
-            throw new ClientException(`El campo Domicilio Nro NO puede ser mayor a 5 digitos.`)
-        }
-
-        const domicilioCodigoPostal = String(form.DomicilioCodigoPostal ?? '').trim()
-        if (!domicilioCodigoPostal) {
-            msgError.push(`- Cod Postal.`)
-        }
-
-        if (domicilioCodigoPostal.length > 8) {
-            throw new ClientException(`El campo Cod Postal NO puede ser mayor a 8 digitos.`)
-        }
-
-        if (!form.DomicilioProvinciaId) {
-            msgError.push(`- Provincia.`)
-        }
-
-        if (!form.DomicilioLocalidadId) {
-            msgError.push(`- Localidad.`)
-        }
-
         if (msgError.length) {
             msgError.unshift('Debe completar los siguientes campos: ')
             throw new ClientException(msgError)
         }
 
-        //domicilioController.valObjDomicilio(null, form.Domicilio)
+        //Domicilio
+        const res = await domicilioController.valObjDomicilio(form.Domicilio)
+        if (res instanceof ClientException) throw res
 
         // Coordinador de cuenta
 
@@ -2025,9 +1993,9 @@ outer APPLY (SELECT
             await this.updateCliente(queryRunner, Number(Obj.ClienteId), ClienteElementoDependienteUltNro)
 
             //Domicilio
-            await this.addElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
-                Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
-            // await this.newAddElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.Domicilio, Obj.DomicilioDomLugar)
+            // await this.addElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.DomicilioDomLugar, Obj.DomicilioDomCalle, Obj.DomicilioDomNro,
+            //     Obj.DomicilioCodigoPostal, Obj.DomicilioProvinciaId, Obj.DomicilioLocalidadId, Obj.DomicilioBarrioId)
+            await this.newAddElementoDependienteDomicilio(queryRunner, Obj.ClienteId, ClienteElementoDependienteUltNro, Obj.Domicilio, Obj.DomicilioDomLugar)
 
             //await this.ClienteElementoDependienteContrato(queryRunner,Number(Obj.ClienteId),ClienteElementoDependienteUltNro,Obj.ContratoFechaDesde,Obj.ContratoFechaHasta)
             await this.insertObjetivoSql(queryRunner, Number(Obj.ClienteId), Obj.Descripcion, ClienteElementoDependienteUltNro, Obj.SucursalId)
@@ -2136,6 +2104,7 @@ outer APPLY (SELECT
 
         await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual = 0 WHERE ClienteElementoDependienteId = @0 AND ClienteId = @1 `, [ClienteElementoDependienteId, ClienteId])
         
+        Domicilio = await domicilioController.normalizeAddress(queryRunner, Domicilio)
         const DomicilioId = await domicilioController.addDomicilio(queryRunner, Domicilio, DomicilioDomLugar, null, null)
 
         await queryRunner.query(
