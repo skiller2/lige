@@ -2272,7 +2272,7 @@ LEFT JOIN(
 
     if (DomicilioId) { // UPDATE
       const Domicilio = await queryRunner.query(
-        `SELECT dom.DomicilioJson, DomicilioDomPiso, DomicilioDomDpto FROM Domicilio AS dom WHERE dom.DomicilioId = @0`,
+        `SELECT dom.DomicilioJson, TRIM(DomicilioDomPiso) DomicilioDomPiso, TRIM(DomicilioDomDpto) DomicilioDomDpto, TRIM(DomicilioDomLugar) DomicilioDomLugar FROM Domicilio AS dom WHERE dom.DomicilioId = @0`,
         [DomicilioId]
       )
       let cambio: boolean = false
@@ -2284,6 +2284,7 @@ LEFT JOIN(
       }
 
       if(
+        domicilio.DomicilioDomLugar != Domicilio[0].DomicilioDomLugar ||
         domicilio.Dpto != Domicilio[0].DomicilioDomDpto || 
         domicilio.Piso != Domicilio[0].DomicilioDomPiso || 
         (parse && parse.place_id != domicilio.place_id) ||
