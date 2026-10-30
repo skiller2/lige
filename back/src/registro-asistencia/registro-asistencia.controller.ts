@@ -2,8 +2,10 @@ import { BaseController, ClientException } from "../controller/base.controller.t
 import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { QueryRunner } from "typeorm";
+import { join } from "node:path";
 import { bufferAVector, calcularVectorFacial, columnasVectorFacial, reconocerRostro, VERSION_VECTOR_FACIAL, type VectorPersonal } from "./reconocimiento-facial.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
+import { FileUploadController } from "../controller/file-upload.controller.ts";
 import type { Options } from "../schemas/filtro.ts";
 
 // Configuración de la pantalla de marcado, en ParametroGeneral (JSON). Se editan desde
@@ -670,24 +672,22 @@ export class RegistroAsistenciaController extends BaseController {
   // errores se devuelven agrupados por causa, con algunas rutas de ejemplo.
   private async calcularVectoresFacialesPendientes(queryRunner: QueryRunner) {
     const fotos = await queryRunner.query(`
-      SELECT DISTINCT foto.DocumentoImagenFotoId, foto.PersonalId,
-        CONCAT(TRIM(dir.DocumentoImagenParametroDirectorioPathWeb), TRIM(foto.DocumentoImagenFotoBlobNombreArchivo)) AS RutaRelativa
+      SELECT DISTINCT foto.DocumentoImagenFotoId, foto.PersonalId, doc.DocumentoPath
       FROM Personal per
       JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId
         AND sitrev.PersonalSituacionRevistaDesde <= @0
         AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') >= @0
       JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.DocumentoImagenFotoId = per.PersonalFotoId
-      JOIN DocumentoImagenParametroDirectorio dir ON dir.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
+      JOIN Documento doc ON doc.DocumentoId = foto.DocumentoId
       WHERE sitrev.PersonalSituacionRevistaSituacionId IN (2, 10, 12)
         AND foto.VectorFacial IS NULL
     `, [new Date()])
 
-    const pathArchivos = process.env.PATH_ARCHIVOS ? process.env.PATH_ARCHIVOS : '.'
     let guardadas = 0, sinRostro = 0, conError = 0
     const errores: Record<string, { cantidad: number, ejemplos: string[] }> = {}
 
     for (const foto of fotos) {
-      const ruta = `${pathArchivos}/${foto.RutaRelativa}`
+      const ruta = join(FileUploadController.pathDocuments, foto.DocumentoPath)
       try {
         const vector = await calcularVectorFacial(ruta)
         if (!vector) {
@@ -710,6 +710,6 @@ export class RegistroAsistenciaController extends BaseController {
       }
     }
 
-    return { pendientes: fotos.length, guardadas, sinRostro, conError, pathArchivos, errores }
+    return { pendientes: fotos.length, guardadas, sinRostro, conError, pathDocuments: FileUploadController.pathDocuments, errores }
   }
 }

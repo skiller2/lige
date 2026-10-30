@@ -81,7 +81,7 @@
                 <td class="periodoStyle">{{ data.FechaDesde | date:'dd/MM/yyyy' }}</td>
                 <td class="periodoStyle">{{ data.FechaHasta | date:'dd/MM/yyyy' }}</td>
                 <td>
-                  @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg') {
+                  @if (data.TipoArchivo == 'png' || data.TipoArchivo == 'jpg' || data.TipoArchivo == 'jpeg') {
                     <a nz-icon nzType="search"
                     nzTheme="outline" (click)="LoadImage(data.url, data.NombreArchivo)"></a>
                   } @else if (data.TipoArchivo == 'pdf') {

@@ -14,6 +14,7 @@ import type { QueryRunner } from "typeorm";
 import * as CryptoJS from 'crypto-js';
 import { unlink } from "fs/promises";
 import { logger } from "../logger/logger.ts";
+import { calcularVectorFacial, columnasVectorFacial, insertDocumentoImagenFoto } from "../registro-asistencia/reconocimiento-facial.ts";
 
 
 
@@ -71,9 +72,10 @@ export class FileUploadController extends BaseController {
 
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
 
-    const documentId = req.params.id;
+    let documentId = req.params.id;
     const filename = req.params.filename;
-    const tableForSearch = req.params.tableForSearch;
+    let tableForSearch = req.params.tableForSearch;
+    const esFoto = tableForSearch == 'DocumentoImagenFoto'
     let finalurl = '', docname = ''
     let document: any = ''
     let deleteFile = false
@@ -86,6 +88,16 @@ export class FileUploadController extends BaseController {
 
       if (needsNumericId && (!Number.isInteger(validatedId) || validatedId <= 0))
         throw new ClientException(`Archivo no localizado`)
+
+      // Referencias anteriores a una foto (por DocumentoImagenFotoId): si ya tiene documento, el
+      // archivo se toma de Documento
+      if (esFoto) {
+        const foto = await queryRunner.query(`SELECT DocumentoId FROM DocumentoImagenFoto WHERE DocumentoImagenFotoId = @0`, [validatedId])
+        if (foto[0]?.DocumentoId) {
+          tableForSearch = 'Documento'
+          documentId = foto[0].DocumentoId
+        }
+      }
 
       switch (tableForSearch) {
         case 'DocumentoImagenFoto':
@@ -135,7 +147,7 @@ export class FileUploadController extends BaseController {
           document = await queryRunner.query(`SELECT doc.DocumentoId AS id , doc.DocumentoTipoCodigo AS doctipo_id, doc.PersonalId AS persona_id, doc.DocumentoPath AS path, doc.DocumentoNombreArchivo AS name
                 FROM Documento doc
                 LEFT JOIN DocumentoTipo doctip ON doctip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
-                WHERE doc.DocumentoId = @0`, [validatedId]);
+                WHERE doc.DocumentoId = @0`, [Number(documentId)]);
           if (!document?.length)
             throw new ClientException(`Archivo no localizado`)
 
@@ -158,7 +170,7 @@ export class FileUploadController extends BaseController {
 
       if (!existsSync(finalurl))
         throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
-      if (tableForSearch == 'DocumentoImagenFoto' && finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'image') {
+      if (esFoto && finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'image') {
 
         finalurl = await this.pdf2img(finalurl)
         deleteFile = true
@@ -1079,8 +1091,8 @@ export class FileUploadController extends BaseController {
   }
 
   async deleteDocumento(req, res, next) {
-    const deleteId = Number(req.query[0])
-    const tableForSearch = req.query[1];
+    let deleteId = Number(req.query[0])
+    let tableForSearch = req.query[1];
     const queryRunner = await getConnection(res.locals.userName);
 
 
@@ -1091,8 +1103,17 @@ export class FileUploadController extends BaseController {
 
     try {
 
-      
+
       await queryRunner.startTransaction();
+
+      // Una foto con documento se borra por su Documento: archivo y metadatos juntos
+      if (tableForSearch == 'DocumentoImagenFoto') {
+        const foto = await queryRunner.query(`SELECT DocumentoId FROM DocumentoImagenFoto WHERE DocumentoImagenFotoId = @0`, [deleteId])
+        if (foto[0]?.DocumentoId) {
+          deleteId = foto[0].DocumentoId
+          tableForSearch = 'Documento'
+        }
+      }
 
       // Verificar si el documento tiene descargas asociadas
       const telefonos = await queryRunner.query(`
@@ -1112,19 +1133,20 @@ export class FileUploadController extends BaseController {
                   FROM Documento
                   WHERE DocumentoId = @0
                   `, [deleteId])
-          finalurl = `${document[0]["path"]}`
+          if (document.length === 0) throw new ClientException(`No se ha encontrado el archivo para eliminar.`)
 
-          if (document.length === 0 && !finalurl) throw new ClientException(`No se ha encontrado el archivo para eliminar.`)
+          await queryRunner.query(`DELETE FROM DocumentoRelaciones WHERE DocumentoId = @0`, [deleteId])
+          // Una foto del personal se borra de DocumentoImagenFoto y Documento juntas
+          await queryRunner.query(`DELETE FROM DocumentoImagenFoto WHERE DocumentoId = @0`, [deleteId])
+          await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [deleteId])
 
+          // await FileUploadController.reasignarFotoPrincipal(queryRunner, DocumentoId)
+          // El archivo se borra después de los registros, para no perderlo si falla el DELETE.
+          // DocumentoPath es relativo a PATH_DOCUMENTS
+          finalurl = path.join(FileUploadController.pathDocuments, document[0]["path"])
           try { await unlink(finalurl) } catch (error) {
             logger.error(`Archivo ${document[0]["name"]} no localizado`, { path: finalurl })
           }
-
-
-
-
-          await queryRunner.query(`DELETE FROM DocumentoRelaciones WHERE DocumentoId = @0`, [deleteId])
-          await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [deleteId])
 
           break;
         case 'docgeneral':
@@ -1170,10 +1192,8 @@ export class FileUploadController extends BaseController {
 
             switch (tableForSearch) {
               case 'DocumentoImagenFoto':
-                await queryRunner.query(`
-                  UPDATE Personal SET
-                  PersonalFotoId = NULL
-                  WHERE PersonalId = @0`, [PersonalId])
+                // Foto histórica sin documento: pasa a principal otra foto de la persona, si le queda
+                // await FileUploadController.reasignarFotoPrincipal(queryRunner, PersonalId)
                 break;
               case 'DocumentoImagenDocumento':
                 if (DocumentoImagenParametroId == 12) {
@@ -1215,8 +1235,95 @@ export class FileUploadController extends BaseController {
     }
   }
 
+  static DOCUMENTO_TIPO_FOTO = 'FOTO'
+
+  static async validarRostroFoto(archivos: any[]) {
+    for (const file of archivos ?? []) {
+      if (!file?.tempfilename) continue
+      let vector: Float32Array | null
+      try {
+        vector = await calcularVectorFacial(path.join(FileUploadController.tempFolderPath, file.tempfilename))
+      } catch (error) {
+        console.error(`[personal] No se pudo validar el rostro de la foto ${file.tempfilename}`, error)
+        continue
+      }
+      if (!vector)
+        throw new ClientException(`No se detectó un rostro en la foto. Cargue una foto donde se vea la cara de frente.`)
+    }
+  }
+
+  static extensionArchivo(nombreArchivo: string) {
+    const punto = nombreArchivo?.lastIndexOf('.') ?? -1
+    return punto >= 0 ? nombreArchivo.slice(punto + 1).toLowerCase() : ''
+  }
+
+  
+  static async registrarFotoDocumento(queryRunner: QueryRunner, PersonalId: number, DocumentoId: number) {
+    const doc = await queryRunner.query(`SELECT DocumentoPath, DocumentoNombreArchivo FROM Documento WHERE DocumentoId = @0`, [DocumentoId])
+    if (!doc.length)
+      throw new ClientException(`No se encontró el documento de la foto (${DocumentoId})`)
+
+    // Si falla el cálculo, el vector queda en NULL y lo toma el cálculo de vectores faciales.
+    // Si la foto no tiene rostro se rechaza y se deshace la transacción
+    let vector: Float32Array | null = null
+    let sinRostro = false
+    try {
+      vector = await calcularVectorFacial(path.join(FileUploadController.pathDocuments, doc[0].DocumentoPath))
+      sinRostro = !vector
+    } catch (error) {
+      console.error(`[personal] No se pudo calcular el vector facial de la foto (DocumentoId ${DocumentoId}, PersonalId ${PersonalId})`, error)
+    }
+    if (sinRostro)
+      throw new ClientException(`No se detectó un rostro en la foto. Cargue una foto donde se vea la cara de frente.`)
+    const TipoArchivo = FileUploadController.extensionArchivo(doc[0].DocumentoNombreArchivo)
+
+    const foto = await queryRunner.query(`SELECT DocumentoImagenFotoId FROM DocumentoImagenFoto WHERE DocumentoId = @0`, [DocumentoId])
+    if (foto.length) {
+      // El CONVERT es por el NULL: como parámetro va como nvarchar y no se convierte solo a VARBINARY
+      const { VectorFacial, VectorFacialFecha, VectorFacialVersion } = columnasVectorFacial(vector)
+      await queryRunner.query(`
+        UPDATE DocumentoImagenFoto SET
+          DocumentoImagenFotoBlobTipoArchivo = @1,
+          VectorFacial = CONVERT(VARBINARY(MAX), @2),
+          VectorFacialFecha = @3,
+          VectorFacialVersion = @4
+        WHERE DocumentoId = @0`,
+        [DocumentoId, TipoArchivo, VectorFacial, VectorFacialFecha, VectorFacialVersion])
+      return
+    }
+
+    // La foto nueva es la principal: las demás de la persona dejan de serlo
+    await queryRunner.query(`UPDATE DocumentoImagenFoto SET IndFotoPrincipal = 0 WHERE PersonalId = @0`, [PersonalId])
+    await insertDocumentoImagenFoto(queryRunner, PersonalId, TipoArchivo, vector, DocumentoId)
+
+  }
+
+
+  static async reasignarFotoPrincipal(queryRunner: QueryRunner, PersonalId: number) {
+    const foto = await queryRunner.query(`
+      SELECT TOP 1 DocumentoImagenFotoId FROM DocumentoImagenFoto
+      WHERE PersonalId = @0
+      ORDER BY ISNULL(IndFotoPrincipal, 0) DESC, DocumentoImagenFotoId DESC`,
+      [PersonalId])
+    const FotoId = foto[0]?.DocumentoImagenFotoId ?? null
+
+    if (FotoId)
+      await queryRunner.query(`
+        UPDATE DocumentoImagenFoto SET IndFotoPrincipal = IIF(DocumentoImagenFotoId = @1, 1, 0) WHERE PersonalId = @0`,
+        [PersonalId, FotoId])
+  }
+
   static async deleteFile(deleteId: number, tableForSearch: string, queryRunner: QueryRunner) {
     try {
+      // Una foto con documento se borra por su Documento: así se borran juntas las dos tablas
+      if (tableForSearch == 'DocumentoImagenFoto') {
+        const foto = await queryRunner.query(`SELECT DocumentoId FROM DocumentoImagenFoto WHERE DocumentoImagenFotoId = @0`, [deleteId])
+        if (foto[0]?.DocumentoId) {
+          deleteId = foto[0].DocumentoId
+          tableForSearch = 'Documento'
+        }
+      }
+
       // Verificar si el documento tiene descargas asociadas
       const telefonos = await queryRunner.query(`
           SELECT Telefono
@@ -1229,7 +1336,11 @@ export class FileUploadController extends BaseController {
       switch (tableForSearch) {
         case 'documento':
         case 'Documento':
-          await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [deleteId])
+          // Una foto del personal se borra de DocumentoImagenFoto y Documento juntas
+           await queryRunner.query(`DELETE FROM DocumentoImagenFoto WHERE DocumentoId = @0`, [deleteId])
+           await queryRunner.query(`DELETE FROM Documento WHERE DocumentoId = @0`, [deleteId])
+
+          // await FileUploadController.reasignarFotoPrincipal(queryRunner, DocumentoId)
           break;
         default:
           const document = await queryRunner.query(`
@@ -1255,10 +1366,8 @@ export class FileUploadController extends BaseController {
 
             switch (tableForSearch) {
               case 'DocumentoImagenFoto':
-                await queryRunner.query(`
-                  UPDATE Personal SET
-                  PersonalFotoId = NULL
-                  WHERE PersonalId = @0`, [PersonalId])
+                // Foto histórica sin documento: pasa a principal otra foto de la persona, si le queda
+                // await FileUploadController.reasignarFotoPrincipal(queryRunner, PersonalId)
                 break;
               case 'DocumentoImagenDocumento':
                 if (DocumentoImagenParametroId == 12) {

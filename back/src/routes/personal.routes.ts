@@ -17,10 +17,6 @@ personalRouter.post(`${base}/inconsistencias-list`, [authMiddleware.verifyToken,
   personalController.getInconsistenciasGridList(req, res, next)
 });
 
-personalRouter.post(`${base}/deleteArchivo`, [authMiddleware.verifyToken, authMiddleware.hasGroup([`gPersonal`])], (req, res, next) => {
-  personalController.deleteArchivo(req, res, next)
-});
-
 personalRouter.post(`${base}/search`, authMiddleware.verifyToken, (req, res, next) => {
   personalController.search(req, res, next);
 });

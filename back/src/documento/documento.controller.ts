@@ -429,9 +429,15 @@ export class DocumentoController extends BaseController {
       if (valsTipoDocumento instanceof ClientException)
         throw valsTipoDocumento
 
+      const esFoto = req.body.DocumentoTipoCodigo == FileUploadController.DOCUMENTO_TIPO_FOTO
+      if (esFoto) await this.valFoto(persona_id, archivos)
+
       archivos[0].ind_descarga_bot = ind_descarga_bot
       const uploadResult = await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, null, fecha, fec_doc_ven, den_documento, null, null, archivos[0], usuario, ip, queryRunner)
       const doc_id = uploadResult && typeof uploadResult === 'object' ? uploadResult.doc_id : undefined;
+
+      // Foto del personal: metadatos en DocumentoImagenFoto y vector facial del archivo guardado
+      if (esFoto) await FileUploadController.registrarFotoDocumento(queryRunner, persona_id, doc_id)
 
       await queryRunner.commitTransaction()
       this.jsonRes({ DocumentoId: doc_id }, res, 'Carga Exitosa');
@@ -628,12 +634,26 @@ export class DocumentoController extends BaseController {
         req.body.archivo = archivosActualizados;
       }
 
+      const eraFoto = doc[0]?.DocumentoTipoCodigo == FileUploadController.DOCUMENTO_TIPO_FOTO
+      const esFoto = doctipo_id == FileUploadController.DOCUMENTO_TIPO_FOTO
+      const cambioPersona = doc[0]?.PersonalId != persona_id
+      const archivosNuevos = (req.body.archivo ?? []).filter((file: any) => file?.tempfilename)
+      // Una foto no cambia de tipo ni de persona: dejaría el Documento sin su DocumentoImagenFoto
+      if (eraFoto && (!esFoto || cambioPersona))
+        throw new ClientException(`Una foto no se puede cambiar de tipo ni de persona. Elimínela y cárguela nuevamente.`)
+      if (esFoto) await this.valFoto(persona_id, archivosNuevos)
+
       if (req.body.archivo) {
         for (const file of req.body.archivo) {
           file.ind_descarga_bot = ind_descarga_bot
           await FileUploadController.handleDOCUpload(persona_id, objetivo_id, cliente_id, doc_id, fecha, fec_doc_ven, den_documento, null, null, file, usuario, ip, queryRunner)
         }
       }
+
+      // Foto del personal: si es foto nueva o se reemplazó el archivo, se registran sus metadatos y
+      // se recalcula el vector facial
+      if (esFoto && (!eraFoto || archivosNuevos.length))
+        await FileUploadController.registrarFotoDocumento(queryRunner, persona_id, doc_id)
 
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
@@ -643,6 +663,15 @@ export class DocumentoController extends BaseController {
     } finally {
       await queryRunner.release()
     }
+  }
+
+  // Una foto es de una persona, tiene que ser una imagen y tener un rostro (se le calcula el vector facial)
+  private async valFoto(persona_id: number, archivos: any[]) {
+    if (!persona_id)
+      throw new ClientException(`La foto debe estar asociada a una persona.`)
+    if ((archivos ?? []).some((file: any) => file?.mimetype && !String(file.mimetype).startsWith('image/')))
+      throw new ClientException(`La foto debe ser un archivo de imagen (jpg o png).`)
+    await FileUploadController.validarRostroFoto(archivos)
   }
 
   private async valsTipoDocumento(tipoDocumento: any, queryRunner: any) {

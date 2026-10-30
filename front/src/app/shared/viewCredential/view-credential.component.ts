@@ -47,7 +47,7 @@ export class ViewCredentialComponent implements ControlValueAccessor {
             this.personal.set(value);
 
             for (const val of value)
-                val.Faltantes = (val.PersonalCUITCUILCUIT || val.PersonalFotoId)?false:true 
+                val.Faltantes = (val.PersonalCUITCUILCUIT || val.PersonalFotoDocumentoId)?false:true
         } else { this.personal.set([]) }
         
     }

@@ -419,6 +419,7 @@ ValorHora AS (
 SELECT 
 	CONCAT(per.PersonalId, movpos.tipocuenta_id) AS id,
 	per.PersonalId,
+  per.PersonalNroLegajo,
 	CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS PersonalApellidoNombre,
 	cuit.PersonalCUITCUILCUIT,
 	perban.PersonalBancoCBU,
@@ -1162,7 +1163,43 @@ LEFT JOIN banco banc
         file.end()
 
         await once(file, 'finish')
-      } else if (BancoId == 10) { //Banco Macro 
+      } else if (BancoId == 9) { //Banco Frances
+        const fechaActual = new Date()
+        
+        const file = createWriteStream(tmpfilename, {
+          flags: 'a'
+        })
+
+        fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}${fileTest}.txt`
+
+        let total = 0
+        for (const row of banco) {
+          //const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
+          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64).trim();
+          if (!row.PersonalCUITCUILCUIT)
+            throw new ClientException('Sin cuit para el personal ' + PersonalApellidoNombre)
+          if (!row.PersonalBancoCBU)
+            throw new ClientException('Sin CBU para el personal ' + PersonalApellidoNombre)
+
+          file.write(format("%s%s%s%s%s%s%s%s%s\r\n",
+            row.PersonalNroLegajo.toString().padStart(18, '0'),
+            PersonalApellidoNombre.toString().slice(0, 36).padEnd(36, ' '),
+            row.PersonalBancoCBU.toString().slice(0, 22).padStart(22, '0'),
+            row.importe.toFixed(2).slice(0, 16).padStart(16, '0').replace('.', ','),
+            fechaActual.getFullYear().toString().slice(0, 4),
+            (fechaActual.getMonth() + 1).toString().padStart(2, '0'),
+            fechaActual.getDate().toString().padStart(2, '0'),
+            row.PersonalCUITCUILCUIT.toString().slice(0, 11),
+            "Retiros", // Detalle
+          ))
+
+          total += Math.trunc(row.importe * 100)
+        } 
+        //throw new ClientException('Termino bien')
+        file.end()
+        await once(file, 'finish')
+
+      }  else if (BancoId == 10) { //Banco Macro 
         const file = createWriteStream(tmpfilename, {
           flags: 'a'
         })
@@ -1173,7 +1210,7 @@ LEFT JOIN banco banc
         let total = 0
         for (const row of banco) {
           //const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
-          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64).trim();
+          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").trim();
           if (!row.PersonalCUITCUILCUIT)
             throw new ClientException('Sin cuit para el personal ' + PersonalApellidoNombre)
           if (!row.PersonalBancoCBU)
@@ -1192,7 +1229,7 @@ LEFT JOIN banco banc
           ))
 
           total += Math.trunc(row.importe * 100)
-        }
+        } 
         //throw new ClientException('Termino bien')
         file.end()
         await once(file, 'finish')

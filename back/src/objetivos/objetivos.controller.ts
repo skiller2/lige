@@ -1889,7 +1889,7 @@ outer APPLY (SELECT
             const documentosAsociados = await queryRunner.query(`SELECT DocumentoId FROM Documento WHERE ObjetivoId = @0`, [Number(ObjetivoId)])
             const ids = documentosAsociados.map(documento => documento.DocumentoId).join(', ')
 
-            if (documentosAsociados[0].totalDocumentos > 0) errores.push(`- Documentos relacionados: ${documentosAsociados[0].totalDocumentos} (${ids})`)
+            if (documentosAsociados.length > 0) errores.push(`- Documentos relacionados: ${documentosAsociados.length} (${ids})`)
 
             const efectosRelacionados = await queryRunner.query(`Select EfectoId, EfectoIndividualId from StockReal WHERE ObjetivoId = @0`, [Number(ObjetivoId)])
             if (efectosRelacionados.length > 0) errores.push(`- Efectos relacionados: ${efectosRelacionados.length}`)
