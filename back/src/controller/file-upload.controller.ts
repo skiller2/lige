@@ -1258,7 +1258,8 @@ export class FileUploadController extends BaseController {
   }
 
   
-  static async registrarFotoDocumento(queryRunner: QueryRunner, PersonalId: number, DocumentoId: number) {
+  // esPrincipal: solo la foto que se sube desde Personal pasa a ser la principal de la persona
+  static async registrarFotoDocumento(queryRunner: QueryRunner, PersonalId: number, DocumentoId: number, esPrincipal = false) {
     const doc = await queryRunner.query(`SELECT DocumentoPath, DocumentoNombreArchivo FROM Documento WHERE DocumentoId = @0`, [DocumentoId])
     if (!doc.length)
       throw new ClientException(`No se encontró el documento de la foto (${DocumentoId})`)
@@ -1292,9 +1293,10 @@ export class FileUploadController extends BaseController {
       return
     }
 
-    // La foto nueva es la principal: las demás de la persona dejan de serlo
-    await queryRunner.query(`UPDATE DocumentoImagenFoto SET IndFotoPrincipal = 0 WHERE PersonalId = @0`, [PersonalId])
-    await insertDocumentoImagenFoto(queryRunner, PersonalId, TipoArchivo, vector, DocumentoId)
+    // Si la foto nueva es la principal, las demás de la persona dejan de serlo
+    if (esPrincipal)
+      await queryRunner.query(`UPDATE DocumentoImagenFoto SET IndFotoPrincipal = 0 WHERE PersonalId = @0`, [PersonalId])
+    await insertDocumentoImagenFoto(queryRunner, PersonalId, TipoArchivo, vector, DocumentoId, esPrincipal)
 
   }
 

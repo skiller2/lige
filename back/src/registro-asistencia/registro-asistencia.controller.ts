@@ -448,18 +448,24 @@ export class RegistroAsistenciaController extends BaseController {
     return Object.fromEntries(campos.map(campo => [campo, Number(valores[campo])]))
   }
 
-  // Vectores contra los que se compara: DocumentoImagenFoto.VectorFacial de la foto vigente
-  // (Personal.PersonalFotoId) del personal activo a la fecha (situación de revista 2, 10 o 12, como
+  // Vectores contra los que se compara: DocumentoImagenFoto.VectorFacial de la foto más reciente
+  // (mayor DocumentoImagenFotoId, vinculada a Documento por DocumentoId; no necesariamente la principal)
+  // del personal activo a la fecha (situación de revista 2, 10 o 12, como
   // en el resto del sistema), calculados con el modelo actual (VectorFacialVersion). Los graba
-  // iniciarCalculoVectoresFaciales: las fotos todavía sin vector no participan. La situación de
-  // revista va en EXISTS para no repetir filas (y no usar DISTINCT sobre el VARBINARY).
+  // iniciarCalculoVectoresFaciales: si la foto más reciente todavía no tiene vector, la persona no
+  // participa. La situación de revista va en EXISTS para no repetir filas (y no usar DISTINCT sobre el VARBINARY).
   private async getVectoresPersonalActivo(queryRunner: QueryRunner, fecha: Date): Promise<VectorPersonal[]> {
     const filas = await queryRunner.query(`
       SELECT per.PersonalId,
         CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
         foto.VectorFacial
       FROM Personal per
-      JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.DocumentoImagenFotoId = per.PersonalFotoId
+      JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId
+        AND foto.DocumentoImagenFotoId = (
+          SELECT MAX(f.DocumentoImagenFotoId)
+          FROM DocumentoImagenFoto f
+          JOIN Documento doc ON doc.DocumentoId = f.DocumentoId
+          WHERE f.PersonalId = per.PersonalId)
       WHERE foto.VectorFacial IS NOT NULL
         AND foto.VectorFacialVersion = @1
         AND EXISTS (
@@ -666,8 +672,8 @@ export class RegistroAsistenciaController extends BaseController {
     }
   }
 
-  // Busca las fotos pendientes (foto vigente del personal activo, mismo criterio que
-  // getVectoresPersonalActivo, con VectorFacial en NULL), calcula el vector de cada una y lo graba. Cada foto se graba sola (sin transacción): si
+  // Busca las fotos pendientes (todas las fotos del personal activo, no solo la principal,
+  // con VectorFacial en NULL), calcula el vector de cada una y lo graba. Cada foto se graba sola (sin transacción): si
   // el proceso se corta, lo grabado queda. Una foto que falla no corta el resto: se cuenta y los
   // errores se devuelven agrupados por causa, con algunas rutas de ejemplo.
   private async calcularVectoresFacialesPendientes(queryRunner: QueryRunner) {
@@ -677,7 +683,7 @@ export class RegistroAsistenciaController extends BaseController {
       JOIN PersonalSituacionRevista sitrev ON sitrev.PersonalId = per.PersonalId
         AND sitrev.PersonalSituacionRevistaDesde <= @0
         AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') >= @0
-      JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.DocumentoImagenFotoId = per.PersonalFotoId
+      JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId
       JOIN Documento doc ON doc.DocumentoId = foto.DocumentoId
       WHERE sitrev.PersonalSituacionRevistaSituacionId IN (2, 10, 12)
         AND foto.VectorFacial IS NULL

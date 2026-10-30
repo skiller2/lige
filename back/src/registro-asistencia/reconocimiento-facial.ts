@@ -168,10 +168,10 @@ export function columnasVectorFacial(vector: Float32Array | null) {
 }
 
 /**
- * Graba una foto nueva de la persona en DocumentoImagenFoto como principal (IndFotoPrincipal = 1),
- * con su vector facial y el DocumentoId del documento tipo FOTO.
+ * Graba una foto nueva de la persona en DocumentoImagenFoto, con su vector facial y el DocumentoId
+ * del documento tipo FOTO. Es principal (IndFotoPrincipal = 1) solo si se indica en esPrincipal.
  */
-export async function insertDocumentoImagenFoto(queryRunner: QueryRunner, PersonalId: number, TipoArchivo: string, vector: Float32Array | null, DocumentoId: number) {
+export async function insertDocumentoImagenFoto(queryRunner: QueryRunner, PersonalId: number, TipoArchivo: string, vector: Float32Array | null, DocumentoId: number, esPrincipal: boolean) {
   // El CONVERT es por el NULL: como parámetro va como nvarchar y no se convierte solo a VARBINARY
   const { VectorFacial, VectorFacialFecha, VectorFacialVersion } = columnasVectorFacial(vector)
   await queryRunner.query(`
@@ -186,8 +186,8 @@ export async function insertDocumentoImagenFoto(queryRunner: QueryRunner, Person
       VectorFacialVersion,
       DocumentoId
     )
-    VALUES(@0,@1,@2,@3,1,CONVERT(VARBINARY(MAX), @4),@5,@6,@7)`,
-    [PersonalId, TipoArchivo, 7, 1, VectorFacial, VectorFacialFecha, VectorFacialVersion, DocumentoId]
+    VALUES(@0,@1,@2,@3,@8,CONVERT(VARBINARY(MAX), @4),@5,@6,@7)`,
+    [PersonalId, TipoArchivo, 7, 1, VectorFacial, VectorFacialFecha, VectorFacialVersion, DocumentoId, esPrincipal ? 1 : 0]
   )
 }
 
