@@ -32,7 +32,10 @@ export interface Producto {
   ProductoCodigo: string,
   Producto: string,
   Cantidad: string,
-  ImporteUnitario: string,
+  ImporteUnitario: number | null,
+  ImporteVigente: number | null,
+  // Pide al back que grabe el importe vigente; si no, conserva el guardado
+  sincronizarImporteUnitario: boolean,
   PrecioDeLista: number,
   TextoFactura: string,
   CantidadEnFactura: string,
@@ -106,7 +109,9 @@ export class OrdenVentaFormComponent {
     Producto: '',
     TipoImporte: '',
     TipoCantidad: '',
-    ImporteUnitario: '',
+    ImporteUnitario: null,
+    ImporteVigente: null,
+    sincronizarImporteUnitario: false,
     TextoFactura: '',
     CantidadEnFactura: '',
     Bonificacion: ''
@@ -173,6 +178,21 @@ export class OrdenVentaFormComponent {
 
   importes = computed(() => this.ordenVenta().items.map(item => Number(item.Cantidad) * Number(item.ImporteUnitario) * (1 - (Number(item.Bonificacion) || 0) / 100)))
   totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => sum + valor, 0));
+
+  // Ítems cuyo importe unitario no coincide con el vigente
+  desactualizados = computed(() => this.ordenVenta().items.map(item =>
+    !!item.ProductoCodigo && Number(item.ImporteVigente) > 0 &&
+    Math.round(Number(item.ImporteUnitario || 0) * 100) !== Math.round(Number(item.ImporteVigente) * 100)))
+
+  sincronizarImporte(indice: number, e: MouseEvent): void {
+    e.preventDefault();
+    this.ordenVenta.update(m => ({
+      ...m,
+      items: m.items.map((item, i) => i === indice ? { ...item, ImporteUnitario: item.ImporteVigente, sincronizarImporteUnitario: true } : item)
+    }));
+    // Cambio por código: sin esto el formulario no queda modificado y no se puede guardar
+    this.formOrdenVenta().markAsDirty()
+  }
 
   addItem(e?: MouseEvent): void {
     e?.preventDefault();
@@ -259,7 +279,7 @@ export class OrdenVentaFormComponent {
     if (this.clavesPrecio()[indice] !== clave) return
     this.ordenVenta.update(m => ({
       ...m,
-      items: m.items.map((item, i) => i === indice ? { ...item, ImporteUnitario: precio?.ImporteUnitario?.toString() ?? '' } : item)
+      items: m.items.map((item, i) => i === indice ? { ...item, ImporteUnitario: precio?.ImporteUnitario ?? null, ImporteVigente: precio?.ImporteUnitario ?? null } : item)
     }))
   }
 
