@@ -363,18 +363,36 @@ export class OrdenVentaController extends BaseController {
 
 
 
-    const itemsTmp = await queryRunner.query(`SELECT item.NroOrdenVenta, item.ItemOrdenVentaCodigo, item.ProductoCodigo, item.TextoFactura, item.TipoCantidad, item.Cantidad, item.TipoImporte, item.ImporteUnitario, item.CantidadEnFactura, item.Bonificacion
+    // ImporteVigente: horas 'A'/'B' del Anio/Mes exacto, el resto el último precio de lista del período
+    const itemsTmp = await queryRunner.query(`SELECT item.NroOrdenVenta, item.ItemOrdenVentaCodigo, item.ProductoCodigo, item.TextoFactura, item.TipoCantidad, item.Cantidad, item.TipoImporte, item.ImporteUnitario, item.CantidadEnFactura, item.Bonificacion,
+          IIF(item.ProductoCodigo IN (@1, @2), hs.ImporteHora, pre.Importe) AS ImporteVigente
           FROM ItemOrdenVenta item
+          JOIN OrdenVenta ord ON ord.NroOrdenVenta = item.NroOrdenVenta
+          OUTER APPLY (
+            SELECT TOP 1 pp.Importe
+            FROM ProductoPrecio pp
+            WHERE pp.ProductoCodigo = item.ProductoCodigo
+              AND pp.ClienteId = ord.ClienteId
+              AND pp.PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1))
+            ORDER BY pp.PeriodoDesdeAplica DESC
+          ) pre
+          OUTER APPLY (
+            SELECT TOP 1 IIF(item.ProductoCodigo = @1, oiv.ImporteHoraA, oiv.ImporteHoraB) AS ImporteHora
+            FROM ObjetivoImporteVenta oiv
+            WHERE oiv.ClienteId = ord.ClienteId
+              AND oiv.ClienteElementoDependienteId = ord.ClienteElementoDependienteId
+              AND oiv.Anio = ord.PeriodoAnio AND oiv.Mes = ord.PeriodoMes
+          ) hs
           WHERE item.NroOrdenVenta =@0
           ORDER BY item.ItemOrdenVentaCodigo
-        `, [NroOrdenVenta])
+        `, [NroOrdenVenta, PRODUCTO_HORAS_A, PRODUCTO_HORAS_B])
 
+    // Valores numéricos como número, igual que parametro-venta: como texto la máscara del front toma el punto decimal como separador de miles
     const items = itemsTmp.map(item => ({
       ...item,
-      Cantidad: item.Cantidad?.toString() ?? '',
-      ImporteUnitario: item.ImporteUnitario?.toString() ?? '',
-      CantidadEnFactura: item.CantidadEnFactura?.toString() ?? '',
-      Bonificacion: item.Bonificacion?.toString() ?? '',
+      Cantidad: item.Cantidad ?? '',
+      CantidadEnFactura: item.CantidadEnFactura ?? '',
+      Bonificacion: item.Bonificacion ?? '',
     }));
 
     const comprobantes = await queryRunner.query(`SELECT com.NroOrdenVenta, com.ComprobanteNro, com.ComprobanteTipoCodigo, com.ImporteTotal
@@ -434,14 +452,17 @@ export class OrdenVentaController extends BaseController {
         switch (ProductoCodigo) {
           case 'SSF':
             item.ImporteUnitario = ImporteUnitarioA
+            item.ImporteVigente = ImporteUnitarioA
             break;
           case 'SSFB':
             item.ImporteUnitario = ImporteUnitarioB
+            item.ImporteVigente = ImporteUnitarioB
             break;
           default:
             const precio = await ParametrosVentaController.getPrecioListaPreciosQuery(ClienteId, anio, mes, ProductoCodigo, queryRunner);
             if (precio.Importe)
               item.ImporteUnitario = precio.Importe
+            item.ImporteVigente = precio.Importe
             break;
         }
       }
@@ -575,44 +596,24 @@ export class OrdenVentaController extends BaseController {
       };
   }
 
-  // Compara los ítems con el importe vigente del período
+  // Compara el importe grabado de cada ítem con el vigente; el error marca el input del ítem
   private async validarImportesVigentes(queryRunner: QueryRunner, NroOrdenVenta: number, validarCoincidencia: boolean) {
-    const items = await queryRunner.query(`
-      SELECT item.ItemOrdenVentaCodigo, TRIM(item.ProductoCodigo) AS ProductoCodigo, item.ImporteUnitario,
-        IIF(item.ProductoCodigo IN (@1, @2), hs.ImporteHora, pre.Importe) AS ImporteVigente
-      FROM ItemOrdenVenta item
-      JOIN OrdenVenta ord ON ord.NroOrdenVenta = item.NroOrdenVenta
-      OUTER APPLY (
-        SELECT TOP 1 pp.Importe
-        FROM ProductoPrecio pp
-        WHERE pp.ProductoCodigo = item.ProductoCodigo
-          AND pp.ClienteId = ord.ClienteId
-          AND pp.PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1))
-        ORDER BY pp.PeriodoDesdeAplica DESC
-      ) pre
-      OUTER APPLY (
-        SELECT TOP 1 IIF(item.ProductoCodigo = @1, oiv.ImporteHoraA, oiv.ImporteHoraB) AS ImporteHora
-        FROM ObjetivoImporteVenta oiv
-        WHERE oiv.ClienteId = ord.ClienteId
-          AND oiv.ClienteElementoDependienteId = ord.ClienteElementoDependienteId
-          AND oiv.Anio = ord.PeriodoAnio AND oiv.Mes = ord.PeriodoMes
-      ) hs
-      WHERE item.NroOrdenVenta = @0
-      ORDER BY item.ItemOrdenVentaCodigo
-    `, [NroOrdenVenta, PRODUCTO_HORAS_A, PRODUCTO_HORAS_B]);
+    const { items } = await this.getOrdenVentaQuery(queryRunner, NroOrdenVenta);
 
-    const errores: string[] = [];
+    const fieldErrors: { fieldTree: string, kind: string, message: string }[] = [];
     for (const item of items) {
+      const fieldTree = `items[${Number(item.ItemOrdenVentaCodigo) - 1}].ImporteUnitario`;
+      const producto = String(item.ProductoCodigo ?? '').trim();
       // 0 cuenta como sin valor
       const vigente = Number(item.ImporteVigente) || 0;
       if (!vigente)
-        errores.push(`Orden ${NroOrdenVenta}, ítem ${item.ItemOrdenVentaCodigo} (${item.ProductoCodigo}): no tiene importe vigente para el período`);
-      if (validarCoincidencia && Math.round(Number(item.ImporteUnitario ?? 0) * 100) !== Math.round(vigente * 100))
-        errores.push(`Orden ${NroOrdenVenta}, ítem ${item.ItemOrdenVentaCodigo} (${item.ProductoCodigo}): importe unitario ${item.ImporteUnitario ?? 'vacío'} distinto al vigente ${vigente}`);
+        fieldErrors.push({ fieldTree, kind: 'server', message: `Orden ${NroOrdenVenta}, ítem ${item.ItemOrdenVentaCodigo} (${producto}): no tiene importe vigente para el período` });
+      if (validarCoincidencia && Math.round(Number(item.ImporteUnitario || 0) * 100) !== Math.round(vigente * 100))
+        fieldErrors.push({ fieldTree, kind: 'server', message: `Orden ${NroOrdenVenta}, ítem ${item.ItemOrdenVentaCodigo} (${producto}): importe unitario ${item.ImporteUnitario || 'vacío'} desactualizado, el vigente es ${vigente}` });
     }
 
-    if (errores.length)
-      throw new ClientException(errores);
+    if (fieldErrors.length)
+      throw new ClientException(fieldErrors.map(error => error.message), { fieldErrors });
   }
 
 
@@ -647,9 +648,11 @@ export class OrdenVentaController extends BaseController {
       EstadoOrdenVentaCodigo = ESTADO_ORDEN_VENTA_INICIAL
 
     let estadoActual = ''
+    let guardados: any[] = []
     if (NroOrdenVenta) {
       const ov = await this.getOrdenVentaQuery(queryRunner, NroOrdenVenta)
       estadoActual = String(ov.EstadoOrdenVentaCodigo ?? '').trim()
+      guardados = ov.items
     }
 
     // Con factura queda FAC; si ya estaba en FAC no se cambia el estado sin quitarla
@@ -673,10 +676,16 @@ export class OrdenVentaController extends BaseController {
         `, [NroOrdenVenta, EstadoOrdenVentaCodigo, ahora, usuario, ip]);
     } else {
       // TODO: VER DE MEJORAR LOGICA
-      let ImporteTotalAFacturar = 0
-      // Horas 'A'/'B' desde ObjetivoImporteVenta antes del total; el precio de lista del resto lo completa el front
+      // El importe lo resuelve el back: ítem guardado sin cambio de producto conserva el suyo; nuevo, otro producto o a sincronizar, el vigente
       const { ImporteUnitarioA, ImporteUnitarioB } = await this.getImporteHorasAB(ClienteElementoDependienteId, ClienteId, PeriodoAnio, PeriodoMes, queryRunner)
       for (const item of items) {
+        const guardado = guardados.find(g => Number(g.ItemOrdenVentaCodigo) === Number(item.ItemOrdenVentaCodigo)
+          && String(g.ProductoCodigo ?? '').trim() === String(item.ProductoCodigo ?? '').trim())
+        if (guardado && !item.sincronizarImporteUnitario) {
+          item.ImporteUnitario = guardado.ImporteUnitario
+          continue
+        }
+
         switch (item.ProductoCodigo) {
           case 'SSF':
             item.ImporteUnitario = ImporteUnitarioA
@@ -686,9 +695,13 @@ export class OrdenVentaController extends BaseController {
             break;
           default:
             const precio = await ParametrosVentaController.getPrecioListaPreciosQuery(ClienteId, PeriodoAnio, PeriodoMes, item.ProductoCodigo, queryRunner)
-            if (precio.Importe != null) item.ImporteUnitario = precio.Importe
+            item.ImporteUnitario = precio.Importe
             break;
         }
+      }
+
+      let ImporteTotalAFacturar = 0
+      for (const item of items) {
         // La bonificación es un porcentaje que se descuenta del importe del ítem
         ImporteTotalAFacturar += Number(item.Cantidad ?? 0) * Number(item.ImporteUnitario ?? 0) * (1 - (Number(item.Bonificacion) || 0) / 100)
       }
@@ -801,6 +814,12 @@ export class OrdenVentaController extends BaseController {
 
       if (!EstadoOrdenVentaCodigo)
         fieldErrors.push({ fieldTree: ``, kind: 'server', message: 'El estado es obligatorio' })
+
+      // Por ítem, con el índice de la pantalla para marcar el campo
+      for (const [indice, item] of itemsTmp.entries()) {
+        if (String(item?.ProductoCodigo ?? '').trim() && !Number(item?.Cantidad))
+          fieldErrors.push({ fieldTree: `items[${indice}].Cantidad`, kind: 'server', message: 'Debe completar el campo Cantidad' })
+      }
 
       const items = itemsTmp.filter(item => String(item?.ProductoCodigo ?? '').trim());
       const comprobantes = comprobantesTmp.filter(com => String(com.ComprobanteNro ?? '').trim());
