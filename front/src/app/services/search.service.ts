@@ -2152,13 +2152,6 @@ export class SearchService {
     );
   }
 
-  getBancosIntercambioOptions(): Observable<{ value: number, label: string }[]> {
-    return this.http.get<ResponseJSON<{ value: number, label: string }[]>>(`api/liquidaciones/banco/intercambio/bancos`).pipe(
-      map(res => res.data),
-      catchError(() => of([]))
-    );
-  }
-
   getHistorialPersonalBanco(id: number): Observable<any> {
     if (!id) return of([]);
     return this.http.get<ResponseJSON<any>>(`api/personal/historial/banco/${id}`).pipe(

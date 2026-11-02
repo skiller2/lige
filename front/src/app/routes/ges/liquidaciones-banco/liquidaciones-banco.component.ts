@@ -28,7 +28,6 @@ import { LoadingService } from '@delon/abc/loading';
 import { FileUploadComponent } from '../../../shared/file-upload/file-upload.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Selections } from '../../../shared/schemas/filtro';
-import { IntercambioBancosModalComponent } from '../intercambio-bancos-modal/intercambio-bancos-modal';
 
 @Component({
     selector: 'app-liquidaciones',
@@ -40,8 +39,7 @@ import { IntercambioBancosModalComponent } from '../intercambio-bancos-modal/int
         NzAffixModule,
         FiltroBuilderComponent,
         MovimientosPendientes,
-        FileUploadComponent,
-        IntercambioBancosModalComponent
+        FileUploadComponent
     ],
     providers: [AngularUtilService]
 })
@@ -71,7 +69,6 @@ export class LiquidacionesBancoComponent {
   fechaDesdeCBU = signal(new Date())
   filesCBU = signal([])
   tabIndex = signal(0)
-  isVisibleIntercambio = signal(false)
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   angularGridAyuda!: AngularGridInstance;
