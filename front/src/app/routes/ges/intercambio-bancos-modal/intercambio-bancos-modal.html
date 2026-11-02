@@ -1,0 +1,31 @@
+<nz-modal [nzVisible]="isVisible()" (nzOnCancel)="isVisible.set(false)" nzTitle="Intercambio Bancos" [nzWidth]="800">
+
+    <div *nzModalContent>
+        <form>
+            <nz-form-item>
+                <nz-form-label [nzSpan]="6">Selección del banco</nz-form-label>
+                <nz-form-control [nzSpan]="18">
+                    <nz-select [formField]="formIntercambioBancos.BancoId" nzAllowClear style="width:100%"
+                        nzPlaceHolder="Seleccione un banco" nzShowSearch [nzDropdownMatchSelectWidth]="false">
+                        @for (option of optionsBancos(); track option.value) {
+                        <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+                        }
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
+            <nz-form-item>
+                <nz-form-label [nzSpan]="6">Opciones</nz-form-label>
+                <nz-form-control [nzSpan]="18">
+                    <nz-select [formField]="formIntercambioBancos.Opcion" nzAllowClear style="width:100%"
+                        nzPlaceHolder="Seleccione una opción" [nzDropdownMatchSelectWidth]="false">
+                        @for (option of optionsOpciones(); track option.value) {
+                        <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
+                        }
+                    </nz-select>
+                </nz-form-control>
+            </nz-form-item>
+        </form>
+    </div>
+    <div *nzModalFooter style="text-align: right;">
+        <button nz-button nzType="default" (click)="isVisible.set(false)">Cerrar</button>    </div>
+</nz-modal>

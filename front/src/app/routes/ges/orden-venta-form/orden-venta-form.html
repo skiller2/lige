@@ -142,12 +142,26 @@
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Importe Unitario</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
-          <input nz-input placeholder="" [formField]="item.ImporteUnitario" type="text" appDotToComma
-            mask="separator.2" />
+          <div style="display: flex; gap: 8px;">
+            <!-- Solo se muestra: el importe lo resuelve el back -->
+            <input nz-input placeholder="" [value]="(ordenVenta().items[i].ImporteUnitario ?? '').toString()" type="text"
+              appDotToComma mask="separator.2" [disabled]="true" />
+            <!-- Se habilita con el importe desactualizado y los ítems editables (no en AFA/FAC/CAN) -->
+            <button nz-button type="button" (click)="sincronizarImporte(i, $event)" nz-tooltip
+              nzTooltipTitle="Actualizar al importe vigente"
+              [disabled]="!desactualizados()[i] || formOrdenVenta.items().disabled() || ordenVenta().EstadoOrdenVentaCodigo == 'CAN'">
+              <span nz-icon nzType="reload" nzTheme="outline"></span>
+            </button>
+          </div>
           <!-- Producto elegido sin precio vigente en el período de la orden -->
-          @if (ordenVenta().items[i].ProductoCodigo && (!ordenVenta().items[i].ImporteUnitario || ordenVenta().items[i].ImporteUnitario == '0')) {
+          @if (ordenVenta().items[i].ProductoCodigo && !ordenVenta().items[i].ImporteVigente) {
           <div style="padding: 4px 11px; color: rgba(0, 0, 0, 0.65); font-style: italic;">
             No hay importe para este producto en el período {{ ordenVenta().Periodo | date: 'MM/yyyy' }}
+          </div>
+          }
+          @if (desactualizados()[i]) {
+          <div style="padding: 4px 11px; color: #ff4d4f;">
+            Importe desactualizado: el vigente para {{ ordenVenta().Periodo | date: 'MM/yyyy' }} es {{ ordenVenta().items[i].ImporteVigente | currency }}
           </div>
           }
         </nz-form-control>

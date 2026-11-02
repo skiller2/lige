@@ -627,6 +627,24 @@ LEFT JOIN banco banc
     this.jsonRes(this.listaColumnasAyuda, res);
   }
 
+  async getBancosIntercambioOptions(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const options = await queryRunner.query(`
+        SELECT BancoId value, TRIM(BancoDescripcion) label
+        FROM Banco
+        WHERE BancoInactivo = 0
+        AND GenerarArchivo = 1
+        ORDER BY BancoDescripcion
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
 
 
 
