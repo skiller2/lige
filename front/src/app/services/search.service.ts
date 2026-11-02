@@ -603,7 +603,7 @@ export class SearchService {
       lang: 'es',
       filter: 'countrycode:ar',
       format: 'json',
-      type: 'amenity'
+      // type: 'amenity'
 
     });
 
@@ -630,10 +630,10 @@ export class SearchService {
 
           item.display_name = [
               [street || road, housenumber].filter(Boolean).join(" "),
+              postcode,
               suburb || city,
               county,
-              state,
-              postcode
+              state
             ]
             .filter(Boolean)
             .join(", ");

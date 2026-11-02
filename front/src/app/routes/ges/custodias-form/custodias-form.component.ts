@@ -10,6 +10,7 @@ import { NzAutocompleteModule } from 'ng-zorro-antd/auto-complete';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { applyEach, disabled, form, FormField, required, submit } from '@angular/forms/signals';
+import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
 
 // Estado Facturado: es el único que pide número de factura
 const ESTADO_FACTURADO = 4
@@ -35,8 +36,10 @@ export interface CustodiaForm {
     DescripcionRequirente: string
     Descripcion: string
     FechaInicio: Date | null
+    DireccionOrigen: any
     Origen: string
     FechaFin: Date | null
+    DireccionDestino: any
     Destino: string
     personal: PersonalCustodia[]
     vehiculos: VehiculoCustodia[]
@@ -58,7 +61,9 @@ export interface CustodiaForm {
     templateUrl: './custodias-form.component.html',
     styleUrls: ['./custodias-form.component.less'],
     encapsulation: ViewEncapsulation.None,
-    imports: [SHARED_IMPORTS, CommonModule, FormField, PersonalSearchComponent, ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule],
+    imports: [ SHARED_IMPORTS, CommonModule, FormField, PersonalSearchComponent, 
+        ClienteSearchComponent, NzAutocompleteModule, NzTypographyModule, 
+        AddrSearchComponent ],
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [CurrencyPipe]
 })
@@ -83,8 +88,9 @@ export class CustodiaFormComponent {
     private readonly defaultVehiculo: VehiculoCustodia = { Patente: '', PersonalId: 0, ImporteVehiculo: '', PeajeVehiculo: '' }
 
     private readonly defaultCustodia: CustodiaForm = {
-        CustodiaCodigo: 0, Responsable: '', ClienteId: null, DescripcionRequirente: '',
-        Descripcion: '', FechaInicio: null, Origen: '', FechaFin: null, Destino: '',
+        CustodiaCodigo: 0, Responsable: '', ClienteId: null, DescripcionRequirente: '', Descripcion: '', 
+        FechaInicio: null, Origen: '', DireccionOrigen: '', 
+        FechaFin: null, Destino: '', DireccionDestino: '',
         personal: [structuredClone(this.defaultPersonal)],
         vehiculos: [structuredClone(this.defaultVehiculo)],
         CantidadModulos: null, ImporteModulo: '', CantidadHorasExcedente: null, ImporteHorasExcedente: '',
@@ -111,9 +117,9 @@ export class CustodiaFormComponent {
         disabled(p.DescripcionRequirente, soloEstado)
         disabled(p.Descripcion, soloEstado)
         disabled(p.FechaInicio, soloEstado)
-        disabled(p.Origen, soloEstado)
+        disabled(p.DireccionOrigen, soloEstado)
         disabled(p.FechaFin, soloEstado)
-        disabled(p.Destino, soloEstado)
+        disabled(p.DireccionDestino, soloEstado)
         disabled(p.personal, soloEstado)
         disabled(p.vehiculos, soloEstado)
         disabled(p.CantidadModulos, soloEstado)
@@ -128,7 +134,7 @@ export class CustodiaFormComponent {
         
         required(p.ClienteId, { message: 'Cliente es requerido' })
         required(p.FechaInicio, { message: 'Fecha Inicial es requerida' })
-        required(p.Origen, { message: 'Origen es requerido' })
+        required(p.DireccionOrigen, { message: 'Origen es requerido' })
         required(p.EstadoCodigo, { message: 'Estado es requerido' })
         required(p.NumeroFactura, { message: 'Número de Factura es requerido', when: (ctx) => ctx.valueOf(p.EstadoCodigo) == ESTADO_FACTURADO })
         applyEach(p.vehiculos, (vehiculo) => {
@@ -222,7 +228,9 @@ export class CustodiaFormComponent {
             DescripcionRequirente: info.DescripcionRequirente ?? '',
             Descripcion: info.Descripcion ?? '',
             Origen: info.Origen ?? '',
+            DireccionOrigen: info.DireccionOrigen ?? null,
             Destino: info.Destino ?? '',
+            DireccionDestino: info.DireccionDestino ?? null,
             DescripcionFacturacion: info.DescripcionFacturacion ?? '',
             FechaInicio: info.FechaInicio ? new Date(info.FechaInicio) : null,
             FechaFin: info.FechaFin ? new Date(info.FechaFin) : null,
