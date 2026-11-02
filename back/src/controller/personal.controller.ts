@@ -2272,7 +2272,7 @@ LEFT JOIN(
 
     if (DomicilioId) { // UPDATE
       const Domicilio = await queryRunner.query(
-        `SELECT dom.DomicilioJson, DomicilioDomPiso, DomicilioDomDpto FROM Domicilio AS dom WHERE dom.DomicilioId = @0`,
+        `SELECT dom.DomicilioJson, TRIM(DomicilioDomPiso) DomicilioDomPiso, TRIM(DomicilioDomDpto) DomicilioDomDpto, TRIM(DomicilioDomLugar) DomicilioDomLugar FROM Domicilio AS dom WHERE dom.DomicilioId = @0`,
         [DomicilioId]
       )
       let cambio: boolean = false
@@ -2284,6 +2284,7 @@ LEFT JOIN(
       }
 
       if(
+        domicilio.DomicilioDomLugar != Domicilio[0].DomicilioDomLugar ||
         domicilio.Dpto != Domicilio[0].DomicilioDomDpto || 
         domicilio.Piso != Domicilio[0].DomicilioDomPiso || 
         (parse && parse.place_id != domicilio.place_id) ||
@@ -2292,12 +2293,12 @@ LEFT JOIN(
       
       if (cambio) {
         domicilio.Domicilio = await domicilioController.normalizeAddress(queryRunner, domicilio.Domicilio)
-        await domicilioController.updateDomicilio(queryRunner, DomicilioId, domicilio.Domicilio, null, domicilio.Dpto, domicilio.Piso)
+        await domicilioController.updateDomicilio(queryRunner, DomicilioId, domicilio.Domicilio, domicilio.DomicilioDomLugar, domicilio.Dpto, domicilio.Piso)
       }
 
     } else { // ADD
       domicilio.Domicilio = await domicilioController.normalizeAddress(queryRunner, domicilio.Domicilio)
-      DomicilioId = await domicilioController.addDomicilio(queryRunner, domicilio.Domicilio, null, domicilio.Dpto, domicilio.Piso)
+      DomicilioId = await domicilioController.addDomicilio(queryRunner, domicilio.Domicilio, domicilio.DomicilioDomLugar, domicilio.Dpto, domicilio.Piso)
       await queryRunner.query(
         `INSERT INTO NexoDomicilio (DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, PersonalId) 
         VALUES ( @0,@1,@2,@3,@4,@5,@6)`,
@@ -2707,8 +2708,10 @@ LEFT JOIN(
     const domicilio = await queryRunner.query(`
       SELECT 
         dom.DomicilioId,
+        TRIM(dom.DomicilioDomLugar) DomicilioDomLugar,
         TRIM(dom.DomicilioDomPiso) Piso,
         TRIM(dom.DomicilioDomDpto) Dpto,
+        TRIM(dom.DomicilioCompleto) DomicilioCompleto,
         dom.DomicilioJson
       FROM Domicilio dom
       JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
@@ -2716,8 +2719,9 @@ LEFT JOIN(
       ORDER BY dom.DomicilioId DESC
       `, [personalId]);
 
+    if (domicilio.length) domicilio[0].Domicilio = null
+
     if (domicilio.length && domicilio[0].DomicilioJson) {
-      domicilio[0].Domicilio = null
       try {
         const parse = JSON.parse(domicilio[0].DomicilioJson);
         if (parse !== null && typeof parse === 'object' && !Array.isArray(parse)) {
@@ -3059,6 +3063,10 @@ LEFT JOIN(
     this.validarCUIT(personalForm.CUIT)
 
     // Direcciones
+    if (!personalForm.domicilio?.Domicilio && personalForm.domicilio?.DomicilioCompleto) {
+      return new ClientException(`No se pudo identificar la ubicación geográfica del domicilio registrado. Busque nuevamente la dirección y seleccione una de las opciones.`)
+    }
+
     // if (personalForm.domicilio.Domicilio) {
       const res = domicilioController.valObjDomicilio(personalForm.domicilio.Domicilio)
       if (res instanceof ClientException) return res

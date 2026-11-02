@@ -18,7 +18,7 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 import { GrupoActividadSearchComponent } from '../../../shared/grupo-actividad-search/grupo-actividad-search.component';
 import { ClienteSearchComponent } from '../../../shared/cliente-search/cliente-search.component';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
-// import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
+import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
 
 export interface CoordinadorCuenta {
   ObjetivoId: number,
@@ -53,8 +53,8 @@ export interface Objetivo {
   ClienteElementoDependienteContratoUltNro: number,
   RubroUltNro: number,
   DomicilioId: number, DomicilioDomLugar: string, Domicilio: any,
-  DomicilioDomCalle: string, DomicilioDomNro: number, DomicilioCodigoPostal: number, 
-  DomicilioProvinciaId: number, DomicilioLocalidadId: number, DomicilioBarrioId: number,
+  // DomicilioDomCalle: string, DomicilioDomNro: number, DomicilioCodigoPostal: number, 
+  // DomicilioProvinciaId: number, DomicilioLocalidadId: number, DomicilioBarrioId: number,
   infoCoordinadorCuenta: CoordinadorCuenta[],
   rubrosCliente: any[],
   docsRequerido: any[],
@@ -92,7 +92,7 @@ export interface Objetivo {
     GrupoActividadSearchComponent,
     DetallePersonaComponent,
     TableObjetivoDocumentoComponent,
-    // AddrSearchComponent,
+    AddrSearchComponent,
     FormField
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -149,9 +149,9 @@ export class ObjetivosFormComponent {
     ContratoId: 0,
     ClienteElementoDependienteContratoUltNro: 0,
     RubroUltNro: 0,
-    DomicilioId: 0, DomicilioDomLugar: '', Domicilio: {},
-    DomicilioDomCalle: "", DomicilioDomNro: NaN, DomicilioCodigoPostal: NaN, 
-    DomicilioProvinciaId: 0, DomicilioLocalidadId: 0, DomicilioBarrioId: 0,
+    DomicilioId: 0, DomicilioDomLugar: '', Domicilio: null,
+    // DomicilioDomCalle: "", DomicilioDomNro: NaN, DomicilioCodigoPostal: NaN, 
+    // DomicilioProvinciaId: 0, DomicilioLocalidadId: 0, DomicilioBarrioId: 0,
     infoCoordinadorCuenta: [structuredClone(this.coordinadorCuentaDefault)],
     rubrosCliente: [],
     docsRequerido: [],
@@ -208,15 +208,15 @@ export class ObjetivosFormComponent {
   })
 
   onChangeDireccion = effect(() => {
-    const dirtyDomicilioDomCalle = this.formObjetivo.DomicilioDomCalle().dirty()
-    const dirtyDomicilioDomNro = this.formObjetivo.DomicilioDomNro().dirty()
+    // const dirtyDomicilioDomCalle = this.formObjetivo.DomicilioDomCalle().dirty()
+    // const dirtyDomicilioDomNro = this.formObjetivo.DomicilioDomNro().dirty()
     const dirtyDomicilioDomLugar = this.formObjetivo.DomicilioDomLugar().dirty()
-    const dirtyDomicilioCodigoPostal = this.formObjetivo.DomicilioCodigoPostal().dirty()
-    const dirtyDomicilioProvinciaId = this.formObjetivo.DomicilioProvinciaId().dirty()
-    const dirtyDomicilioLocalidadId = this.formObjetivo.DomicilioLocalidadId().dirty()
-    const dirtyDomicilioBarrioId = this.formObjetivo.DomicilioBarrioId().dirty()
+    // const dirtyDomicilioCodigoPostal = this.formObjetivo.DomicilioCodigoPostal().dirty()
+    // const dirtyDomicilioProvinciaId = this.formObjetivo.DomicilioProvinciaId().dirty()
+    // const dirtyDomicilioLocalidadId = this.formObjetivo.DomicilioLocalidadId().dirty()
+    // const dirtyDomicilioBarrioId = this.formObjetivo.DomicilioBarrioId().dirty()
 
-    if (dirtyDomicilioDomCalle || dirtyDomicilioDomNro || dirtyDomicilioDomLugar || dirtyDomicilioCodigoPostal || dirtyDomicilioProvinciaId || dirtyDomicilioLocalidadId || dirtyDomicilioBarrioId) {
+    if (dirtyDomicilioDomLugar) {
       this.objetivo.update(m => ({
         ...m,
         DireccionModificada: true
@@ -248,6 +248,7 @@ export class ObjetivosFormComponent {
   async load() {
 
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(), this.ClienteId(), this.ClienteElementoDependienteId()))
+console.log('infoObjetivo: ', infoObjetivo);
 
     if (!infoObjetivo.infoCoordinadorCuenta.length) {
       infoObjetivo.infoCoordinadorCuenta = [{ ...this.coordinadorCuentaDefault }]

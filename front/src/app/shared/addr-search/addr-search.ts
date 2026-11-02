@@ -6,6 +6,7 @@ import {
   DestroyRef,
   forwardRef,
   inject,
+  input,
   model,
   output,
   signal,
@@ -63,6 +64,13 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 export class AddrSearchComponent
   implements ControlValueAccessor, AfterViewInit {
 
+  // TODO: Unificar el valor del control para recibir el texto registrado y los datos de ubicacion sin un input domicilioCompleto separado.
+  // - Adaptar la carga de los formularios para que el buscador resuelva la presentacion cuando falta DomicilioJson y existe DomicilioCompleto.
+  // - Distinguir el texto registrado de una direccion seleccionada; no generar un JSON ficticio para superar la validacion.
+  // - Mantener la validacion en el backend y pedir una nueva seleccion cuando falten los datos necesarios para normalizar la direccion.
+
+  // - Habilitar el mapa solo con coordenadas validas y retirar el JSON de depuracion del drawer.
+
   private readonly searchService = inject(SearchService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly sanitizer = inject(DomSanitizer);
@@ -73,6 +81,9 @@ export class AddrSearchComponent
    * Valor seleccionado
    */
   readonly selectedItem = model<any | null>(null);
+  readonly domicilioCompleto = input<string>('');
+  // El texto registrado se muestra sin convertirlo en una direccion seleccionada.
+  readonly displayValue = computed(() => this.selectedItem() ?? (this.domicilioCompleto().trim() || null));
   
   readonly visibleDrawer = signal(false);
 
@@ -264,6 +275,8 @@ export class AddrSearchComponent
 
   async modelChange(value: any | null): Promise<void> {
     // console.log('modelChange: ',value);
+    if (typeof value === 'string') return;
+
     if (!value) {
       this.selectedItem.set(null);
       this.propagateChange(null);
@@ -332,7 +345,8 @@ export class AddrSearchComponent
     this.visibleDrawer.set(false);
   }
 
-  compareByPlaceId = (a: any, b: any) => a?.place_id === b?.place_id;
+  compareByPlaceId = (a: any, b: any) =>
+    typeof a === 'string' || typeof b === 'string' ? a === b : a?.place_id === b?.place_id;
 
   readonly mapUrl = computed<SafeResourceUrl>(() => {
 

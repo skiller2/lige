@@ -66,16 +66,6 @@
         </nz-form-control>
       </nz-form-item>
       
-      <!-- <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Dirección Calle</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
-          <input nz-input placeholder="" formControlName="DomicilioDomCalle" type="text" />
-        </nz-form-control>
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="1">Nro</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="4">
-          <input nz-input placeholder="" formControlName="DomicilioDomNro" type="text" />
-        </nz-form-control>
-      </nz-form-item> -->
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Complemento</nz-form-label>
         <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
@@ -99,37 +89,6 @@
         </nz-form-control>
         }
       </nz-form-item>
-      <!-- <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cod Postal </nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <input nz-input placeholder="" formControlName="DomicilioCodigoPostal" type="text" />
-        </nz-form-control>
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5">Provincia</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <nz-select formControlName="DomicilioProvinciaId" nzPlaceHolder="Provincia" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
-            (nzBlur)="control.patchValue({DomicilioLocalidadId:null,DomicilioBarrioId:null})">
-            @for (option of optionsProvincia; track option.ProvinciaId) {
-            <nz-option [nzValue]="option.ProvinciaId" [nzLabel]="option.ProvinciaDescripcion"></nz-option>
-            }
-          </nz-select>
-        </nz-form-control>
-      </nz-form-item>
-      <nz-form-item class="marginElement">
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Localidad </nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
-          <nz-select formControlName="DomicilioLocalidadId" nzPlaceHolder="Localidad" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch
-            (nzBlur)="control.patchValue({DomicilioBarrioId:null})">
-            @for (option of optionsLocalidad; track option.LocalidadId) {
-            @if (option.ProvinciaId == control.value.DomicilioProvinciaId ) {
-            <nz-option [nzValue]="option.LocalidadId" [nzLabel]="option.localidadDescripcion"></nz-option>
-            }
-            }
-          </nz-select>
-        </nz-form-control>
-        <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="5">Barrio</nz-form-label>
-      </nz-form-item> -->
     </div>
     }
   </div>
