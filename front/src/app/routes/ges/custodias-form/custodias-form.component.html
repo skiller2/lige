@@ -56,8 +56,7 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Origen</nz-form-label>
     <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17" sfErrorTip>
-      <!-- <input nz-input placeholder="Direccion" [formField]="formCustodia.Origen" type="text" autocomplete="on" /> -->
-      <app-addr-search [formField]="formCustodia.DireccionOrigen" [domicilioCompleto]="custodia().Origen || ''"></app-addr-search>
+      <input nz-input placeholder="Direccion" [formField]="formCustodia.Origen" type="text" autocomplete="on" />
     </nz-form-control>
   </nz-form-item>
 
@@ -72,8 +71,7 @@
   <nz-form-item class="marginElement">
     <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Destino</nz-form-label>
     <nz-form-control [nzSm]="24" [nzMd]="21" [nzLg]="17" sfErrorTip>
-      <!-- <input nz-input placeholder="Direccion" [formField]="formCustodia.Destino" type="text" autocomplete="on" /> -->
-      <app-addr-search [formField]="formCustodia.DireccionDestino" [domicilioCompleto]="custodia().Destino || ''"></app-addr-search>
+      <input nz-input placeholder="Direccion" [formField]="formCustodia.Destino" type="text" autocomplete="on" />
     </nz-form-control>
   </nz-form-item>
   <br>
