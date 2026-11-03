@@ -6,7 +6,7 @@ import { SHARED_IMPORTS } from '@shared';
 import { SettingsService } from '@delon/theme';
 import { TableEstudiosComponent } from '../table-estudios/table-estudios.component'
 import { EstudiosDrawerComponent } from '../estudios-drawer/estudios-drawer.component';
-import { BehaviorSubject, filter } from 'rxjs';
+// import { BehaviorSubject, filter } from 'rxjs';
 import { TableCursoComponent } from '../table-curso/table-curso.component'
 import { CursoHistorialDrawerComponent } from '../curso-historial-drawer/curso-historial-drawer.component'
 import { CursosDrawerComponent } from '../../../shared/cursos-drawer/cursos-drawer.component'
@@ -32,12 +32,11 @@ export class EstudiosComponent {
 
   @ViewChild('estudiosForm', { static: true }) estudiosForm: NgForm = new NgForm([], []);
   
-  PersonalId = signal<number>(0);
-  PersonalEstudioId = signal<number>(0);
-  visibleDrawer = signal<boolean>(false);
+  tabIndex = signal<number>(0)
   disabled = signal<boolean>(false);
-  ListEstudios$ = new BehaviorSubject('');
-  selectedTab = signal<string>('estudios');
+  PersonalId = model<number>(0);
+  PersonalEstudioId = model<number>(0);
+  visibleDrawer = signal<boolean>(false);
   visibleHistorial = signal<boolean>(false);
   //curso historial
   visibleDrawerCurso = signal<boolean>(false);
@@ -60,37 +59,31 @@ export class EstudiosComponent {
     this.settingsService.setLayout('collapsed', true);
   }
 
-  actualizarValorDrawer(event: any) {
-     
-    this.visibleDrawer.set(false);
-    if (event.length > 0) {
-      this.PersonalId.set(event[0].PersonalId);
-      this.PersonalEstudioId.set(event[0].PersonalEstudioId);
-    }
-  }
-
   openDrawerforConsultHistory(): void{
-
-
     this.visibleHistorial.set(true)
-    
-       
   }
 
-  actualizarValorDrawerCurso(event: any) {
+  actualizarValorDrawerCurso(row: any | null) {
     this.visibleDrawerCurso.set(false);
-    if (event.length > 0) {
-      this.CursoHabilitacionSelectedId.set(event[0].CursoHabilitacionId);
-      this.CentroCapacitacionSedeId.set(event[0].CentroCapacitacionSedeId);
-      this.CursoHabilitacionDescripcion.set(event[0].CursoHabilitacionDescripcion);
+    if (row) {
+      this.CursoHabilitacionSelectedId.set(row.CursoHabilitacionId);
+      this.CentroCapacitacionSedeId.set(row.CentroCapacitacionSedeId);
+      this.CursoHabilitacionDescripcion.set(row.CursoHabilitacionDescripcion);
+    } else {
+      this.CursoHabilitacionSelectedId.set(0);
+      this.CentroCapacitacionSedeId.set(0);
+      this.CursoHabilitacionDescripcion.set('');
     }
   }
 
-  actualizarValorDrawerInstitucion(event: any) {
+  actualizarValorDrawerInstitucion(row: any | null) {
     this.visibleDrawerInstituciones.set(false);
-    if (event.length > 0) {
-      this.CentroCapacitacionId.set(event[0].CentroCapacitacionId);
-      this.CentroCapacitacionName.set(event[0].CentroCapacitacionRazonSocial);
+    if (row) {
+      this.CentroCapacitacionId.set(row.CentroCapacitacionId);
+      this.CentroCapacitacionName.set(row.CentroCapacitacionRazonSocial);
+    } else {
+      this.CentroCapacitacionId.set(0);
+      this.CentroCapacitacionName.set('');
     }
   }
 
@@ -112,7 +105,6 @@ export class EstudiosComponent {
     this.PersonalEstudioId.set(0);
     this.visibleDrawer.set(true);
   }
-
 
   ////// Cursos
 
@@ -161,14 +153,31 @@ export class EstudiosComponent {
   }
   
   refreshGrid(){
-    switch (this.selectedTab()) {
-      case 'estudios':
+    switch (this.tabIndex()) {
+      case 1:
         this.childEstTable().gridData.reload()
         break;
-      case 'cursos':
+      case 2:
         this.childCurTable().gridData.reload()
         break;
-      case 'instituciones':
+      case 3:
+        this.childInsTable().gridData.reload()
+        break;
+    
+      default:
+        break;
+    }
+  }
+
+  onTabsetChange(_event: any){
+    switch (_event.index) {
+      case 1:
+        this.childEstTable().gridData.reload()
+        break;
+      case 2:
+        this.childCurTable().gridData.reload()
+        break;
+      case 3:
         this.childInsTable().gridData.reload()
         break;
     
