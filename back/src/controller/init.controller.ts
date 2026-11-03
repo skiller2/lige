@@ -532,30 +532,32 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
     const queryRunner = await getConnection(res.locals.userName)
     try {
       const habilitacionesController = new HabilitacionesController()
-      // Reutiliza la query central de habilitaciones; Habilitado = '1' implica estado HABORG (aprobada) y vigente a hoy.
+      // Reutiliza la query central de habilitaciones: estado HABORG (aprobada) y vigente a la fecha actual (@0).
       // Solo se cuentan personas con situación de revista activa (2, 10, 12).
-      const filterSql = `IIF(dias.Habilitado IS NULL, '0', dias.Habilitado) = '1' AND sitrev.PersonalSituacionRevistaSituacionId IN (2,10,12)`
+      const filterSql = ` (sitrev.PersonalSituacionRevistaSituacionId IN (2, 10, 12)) AND (IIF(e.GestionHabilitacionCodigo IS NULL, 'PEN', e.GestionHabilitacionEstadoCodigo) LIKE '%HABORG%')
+    AND ISNULL(b.PersonalHabilitacionDesde, '9999-12-31') <= @0 AND ISNULL(b.PersonalHabilitacionHasta, '9999-12-31') >= @0 AND d.LugarHabilitacionProvinciaId IS NOT NULL`
       const orderBy = orderToSQL(null)
       const habilitaciones = await habilitacionesController.habilitacionesListQuery(queryRunner, new Date(), filterSql, orderBy)
 
       const personasPorHabilitacion: {
         x: string;
         y: number;
-        lugarHabilitacionId: number;
+        provinciaId: number;
         personalIds: Set<number>;
       }[] = []
       const personalIdsTotal = new Set<number>()
 
       habilitaciones.forEach((hab: any) => {
-        const lugarHabilitacionId = Number(hab.LugarHabilitacionId)
-        let habilitacion = personasPorHabilitacion.find(row => row.lugarHabilitacionId === lugarHabilitacionId)
+        // Agrupa por la provincia del lugar de habilitacion
+        const provinciaId = Number(hab.LugarHabilitacionProvinciaId)
+        let habilitacion = personasPorHabilitacion.find(row => row.provinciaId === provinciaId)
 
-        // Si la habilitacion todavia no existe en el array, se crea su fila inicial para empezar a acumular personas.
+        // Si la provincia todavia no existe en el array, se crea su fila inicial para empezar a acumular personas.
         if (!habilitacion) {
           habilitacion = {
-            x: hab.LugarHabilitacionDescripcion ? String(hab.LugarHabilitacionDescripcion).trim() : String(lugarHabilitacionId),
+            x: hab.ProvinciaDescripcion ?? String(provinciaId),
             y: 0,
-            lugarHabilitacionId,
+            provinciaId,
             personalIds: new Set<number>(),
           }
           personasPorHabilitacion.push(habilitacion)
@@ -570,7 +572,7 @@ GROUP BY suc.SucursalId, suc.SucursalDescripcion
       // Ordena y formatea el resultado para el grafico, eliminando campos auxiliares.
       const personasHabilitadasJson = personasPorHabilitacion
         .sort((a, b) => b.y - a.y)
-        .map(({ personalIds, lugarHabilitacionId, ...row }) => row)
+        .map(({ personalIds, provinciaId, ...row }) => row)
 
       this.jsonRes({
         personasHabilitadas: personasHabilitadasJson,

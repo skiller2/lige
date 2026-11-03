@@ -774,7 +774,8 @@ export class HabilitacionesController extends BaseController {
         SELECT ROW_NUMBER() OVER (ORDER BY per.PersonalId) AS id,
             per.PersonalId, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),' ',TRIM(per.PersonalNombre)) ApellidoNombre, 
             sit.SituacionRevistaDescripcion, sitrev.PersonalSituacionRevistaDesde, sitrev.PersonalSituacionRevistaSituacionId,
-            d.LugarHabilitacionDescripcion, b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta, 
+            d.LugarHabilitacionDescripcion, d.LugarHabilitacionProvinciaId, TRIM(prov.ProvinciaDescripcion) ProvinciaDescripcion,
+            b.PersonalHabilitacionDesde, b.PersonalHabilitacionHasta,
             iif(e.GestionHabilitacionCodigo is null, 'PEN', e.GestionHabilitacionEstadoCodigo) GestionHabilitacionEstadoCodigo, e.Detalle,
             est.Detalle Estado, e.AudFechaIng AS FechaEstado, b.NroTramite, b.PersonalHabilitacionClase,
             b.PersonalHabilitacionId, b.PersonalHabilitacionLugarHabilitacionId, vishab.LugarHabilitacionId,
@@ -805,7 +806,8 @@ export class HabilitacionesController extends BaseController {
         and ISNULL(b.PersonalHabilitacionClase, '') != 'C'
             
 		LEFT JOIN PersonalHabilitacionNecesaria c ON c.PersonalId = per.PersonalId and c.PersonalHabilitacionNecesariaLugarHabilitacionId=vishab.LugarHabilitacionId
-		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId 
+		LEFT JOIN LugarHabilitacion d ON d.LugarHabilitacionId = vishab.LugarHabilitacionId
+		LEFT JOIN Provincia prov ON prov.PaisId = d.LugarHabilitacionPaisId AND prov.ProvinciaId = d.LugarHabilitacionProvinciaId
 
 		LEFT JOIN GestionHabilitacion e ON e.GestionHabilitacionCodigo = b.GestionHabilitacionCodigoUlt AND e.PersonalId = vishab.PersonalId AND e.PersonalHabilitacionLugarHabilitacionId = vishab.LugarHabilitacionId AND e.PersonalHabilitacionId = b.PersonalHabilitacionId
 
