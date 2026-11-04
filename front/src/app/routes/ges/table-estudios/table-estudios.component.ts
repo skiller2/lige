@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter, inject, resource, signal } from '@angular/core';
+import { Component, inject, resource, signal, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { firstValueFrom } from 'rxjs';
@@ -43,20 +43,19 @@ interface PersonalEstudio {
   standalone: true
 })
 export class TableEstudiosComponent {
-  @Output() valueGridEvent = new EventEmitter<PersonalEstudio[]>();
-
   
-  private angularGridEdit!: AngularGridInstance;
+  private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
   gridOptions!: GridOption;
-  private dataAngularGrid: PersonalEstudio[] = [];
-  private personalEstudios: PersonalEstudio[] = [];
   private excelExportService = new ExcelExportService();
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
   private readonly loadingSrv = inject(LoadingService)
+
+  PersonalId = model<number>(0);
+  PersonalEstudioId = model<number>(0);
 
   listOptions = signal<listOptionsT>({
     filtros: [],
@@ -99,17 +98,25 @@ export class TableEstudiosComponent {
   }
 
   angularGridReady(angularGrid: any): void {
-    this.angularGridEdit = angularGrid.detail;
+    this.angularGrid = angularGrid.detail;
     this.gridObj = angularGrid.detail.slickGrid;
 
-    this.angularGridEdit.dataView.onRowsChanged.subscribe(() => {
-      totalRecords(this.angularGridEdit);
+    this.angularGrid.dataView.onRowsChanged.subscribe(() => {
+      totalRecords(this.angularGrid);
     });
 
-    this.angularGridEdit.slickGrid.onClick.subscribe((_e: any, args: { row: number }) => {
-      this.personalEstudios = [this.dataAngularGrid[args.row]];
-      this.valueGridEvent.emit(this.personalEstudios);
-    });
+  }
+
+  handleSelectedRowsChanged(e: any): void {
+    const selrow = e.detail.args.rows[0]
+    const row = this.angularGrid.slickGrid.getDataItem(selrow)
+    if (row?.PersonalId && row?.PersonalEstudioId){
+      this.PersonalId.set(row.PersonalId)
+      this.PersonalEstudioId.set(row.PersonalEstudioId)
+     } else {
+      this.PersonalId.set(0)
+      this.PersonalEstudioId.set(0)
+    }
   }
 
   exportGrid(): void {

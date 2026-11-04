@@ -1,4 +1,4 @@
-import { Component, inject, model, Output, EventEmitter, signal, resource } from '@angular/core';
+import { Component, inject, model, Output, EventEmitter, signal, resource, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
 import { firstValueFrom } from 'rxjs';
@@ -43,19 +43,18 @@ interface PersonalEstudio {
   standalone: true
 })
 export class TableInstitucionesComponent {
-  @Output() valueGridEvent = new EventEmitter<PersonalEstudio[]>();
 
-  private angularGridEdit!: AngularGridInstance;
+  private angularGrid!: AngularGridInstance;
   private gridObj!: SlickGrid;
   private readonly detailViewRowCount = 9;
   gridOptions!: GridOption;
-  private dataAngularGrid: PersonalEstudio[] = [];
-  private personalEstudios: PersonalEstudio[] = [];
   private excelExportService = new ExcelExportService();
   private angularUtilService = inject(AngularUtilService)
   private searchService = inject(SearchService)
   private apiService = inject(ApiService)
   private readonly loadingSrv = inject(LoadingService)
+
+  selectRow = output<PersonalEstudio|null>();
 
   listOptions = signal<listOptionsT>({
     filtros: [],
@@ -99,17 +98,22 @@ export class TableInstitucionesComponent {
   }
 
   angularGridReady(angularGrid: any): void {
-    this.angularGridEdit = angularGrid.detail;
+    this.angularGrid = angularGrid.detail;
     this.gridObj = angularGrid.detail.slickGrid;
 
-    this.angularGridEdit.dataView.onRowsChanged.subscribe(() => {
-      totalRecords(this.angularGridEdit);
+    this.angularGrid.dataView.onRowsChanged.subscribe(() => {
+      totalRecords(this.angularGrid);
     });
+  }
 
-    this.angularGridEdit.slickGrid.onClick.subscribe((_e: any, args: { row: number }) => {
-      this.personalEstudios = [this.dataAngularGrid[args.row]];
-      this.valueGridEvent.emit(this.personalEstudios);
-    });
+  handleSelectedRowsChanged(e: any): void {
+    const selrow = e.detail.args.rows[0]
+    const row = this.angularGrid.slickGrid.getDataItem(selrow)
+    if (row) {
+      this.selectRow.emit(row);
+    } else {
+      this.selectRow.emit(null);
+    }
   }
 
   exportGrid(): void {

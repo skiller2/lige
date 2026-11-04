@@ -540,13 +540,13 @@ export class CustodiaController extends BaseController {
         const DescripcionRequirente = objetivoCustodia.DescripcionRequirente ? objetivoCustodia.DescripcionRequirente : null
         const Descripcion = objetivoCustodia.Descripcion ? objetivoCustodia.Descripcion : null
         const FechaInicio = new Date(objetivoCustodia.FechaInicio)
-        // const Origen = objetivoCustodia.Origen
-        const Origen = objetivoCustodia.DireccionOrigen.display_name
-        const OrigenJson = JSON.stringify(objetivoCustodia.DireccionOrigen)
+        const Origen = objetivoCustodia.Origen
+        // const Origen = objetivoCustodia.Origen.display_name
+        // const OrigenJson = JSON.stringify(objetivoCustodia.Origen)
         const FechaFin = objetivoCustodia.FechaFin ? new Date(objetivoCustodia.FechaFin) : null
-        // const Destino = objetivoCustodia.Destino ? objetivoCustodia.Destino : null
-        const Destino = objetivoCustodia.DireccionDestino ? objetivoCustodia.DireccionDestino.display_name : null
-        const DestinoJson = objetivoCustodia.DireccionDestino ? JSON.stringify(objetivoCustodia.DireccionDestino) : null
+        const Destino = objetivoCustodia.Destino ? objetivoCustodia.Destino : null
+        // const Destino = objetivoCustodia.Destino ? objetivoCustodia.Destino.display_name : null
+        // const DestinoJson = JSON.stringify(objetivoCustodia.Destino)
         const CantidadModulos = objetivoCustodia.CantidadModulos ? objetivoCustodia.CantidadModulos : null
         const ImporteModulo = objetivoCustodia.ImporteModulo ? objetivoCustodia.ImporteModulo : null
         const CantidadHorasExcedente = objetivoCustodia.CantidadHorasExcedente ? objetivoCustodia.CantidadHorasExcedente : null
@@ -577,13 +577,15 @@ export class CustodiaController extends BaseController {
             INSERT Custodia(CustodiaCodigo, ResponsableId, ClienteId, DescripcionRequirente,
                 Descripcion, FechaInicio, Origen, FechaFin, Destino, CantidadModulos, ImporteModulo, CantidadHorasExcedente,
                 ImporteHorasExcedente, CantidadKmExcedente, ImporteKmExcedente, ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo,
-                FechaLiquidacion, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudIpMod, AudFechaMod, OrigenJson, DestinoJson
+                FechaLiquidacion, AudUsuarioIng, AudIpIng, AudFechaIng, AudUsuarioMod, AudIpMod, AudFechaMod
+                -- , OrigenJson, DestinoJson
                 )
-            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @21, @22, @23, @24, @25)`,
+            VALUES (@0, @1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @21, @22, @23)`,
             [CustodiaCodigo, ResponsableId, ClienteId, DescripcionRequirente, Descripcion, FechaInicio, Origen,
                 FechaFin, Destino, CantidadModulos, ImporteModulo, CantidadHorasExcedente, ImporteHorasExcedente,
                 CantidadKmExcedente, ImporteKmExcedente, ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo,
-                FechaLiquidacion, usuario, ip, fechaActual, OrigenJson, DestinoJson
+                FechaLiquidacion, usuario, ip, fechaActual
+                // ,OrigenJson, DestinoJson
             ]
         )
     }
@@ -719,13 +721,13 @@ export class CustodiaController extends BaseController {
         const DescripcionRequirente = objetivoCustodia.DescripcionRequirente ? objetivoCustodia.DescripcionRequirente : null
         const Descripcion = objetivoCustodia.Descripcion ? objetivoCustodia.Descripcion : null
         const FechaInicio = new Date(objetivoCustodia.FechaInicio)
-        // const Origen = objetivoCustodia.Origen
-        const Origen = objetivoCustodia.DireccionOrigen.display_name
-        const OrigenJson = JSON.stringify(objetivoCustodia.DireccionOrigen)
+        const Origen = objetivoCustodia.Origen
+        // const Origen = objetivoCustodia.Origen.display_name
+        // const OrigenJson = JSON.stringify(objetivoCustodia.Origen)
         const FechaFin = objetivoCustodia.FechaFin ? new Date(objetivoCustodia.FechaFin) : null
-        // const Destino = objetivoCustodia.Destino
-        const Destino = objetivoCustodia.DireccionDestino ? objetivoCustodia.DireccionDestino.display_name : null
-        const DestinoJson = objetivoCustodia.DireccionDestino ? JSON.stringify(objetivoCustodia.DireccionDestino) : null
+        const Destino = objetivoCustodia.Destino
+        // const Destino = objetivoCustodia.Destino?.display_name
+        // const DestinoJson = JSON.stringify(objetivoCustodia.Destino)
         const CantidadModulos = Number(objetivoCustodia.CantidadModulos) ? Number(objetivoCustodia.CantidadModulos) : null
         const ImporteModulo = Number(objetivoCustodia.ImporteModulo) ? Number(objetivoCustodia.ImporteModulo) : null
         const CantidadHorasExcedente = Number(objetivoCustodia.CantidadHorasExcedente) ? Number(objetivoCustodia.CantidadHorasExcedente) : null
@@ -777,13 +779,13 @@ export class CustodiaController extends BaseController {
                 FechaLiquidacion = @19,
                 AudUsuarioMod = @20,
                 AudIpMod = @21,
-                AudFechaMod = @22,
-                OrigenJson = @23, DestinoJson = @24
+                AudFechaMod = @22
+                -- , OrigenJson = @23, DestinoJson = @24
             WHERE CustodiaCodigo = @0`,
             [CustodiaCodigo, ClienteId, DescripcionRequirente, Descripcion, FechaInicio, Origen, FechaFin, Destino,
                 CantidadModulos, ImporteModulo, CantidadHorasExcedente, ImporteHorasExcedente, CantidadKmExcedente, ImporteKmExcedente,
-                ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo, FechaLiquidacion, usuario, ip, fechaActual, 
-                OrigenJson, DestinoJson
+                ImportePeaje, ImporteFactura, DescripcionFacturacion, NumeroFactura, EstadoCodigo, FechaLiquidacion, usuario, ip, fechaActual
+                // , OrigenJson, DestinoJson
             ]
         )
     }
@@ -849,10 +851,8 @@ export class CustodiaController extends BaseController {
             obj.Descripcion,
             obj.FechaInicio,
             obj.Origen,
-            obj.OrigenJson,
             obj.FechaFin,
             obj.Destino,
-            obj.DestinoJson,
             obj.CantidadModulos,
             obj.ImporteModulo ,
             obj.CantidadHorasExcedente ,
@@ -880,24 +880,22 @@ export class CustodiaController extends BaseController {
         WHERE obj.CustodiaCodigo = @0`,
             [CustodiaCodigo])
 
-        if (result.length) {
-            result[0].DireccionOrigen = null;
-            result[0].DireccionDestino = null;
-            try {
-                const parse = JSON.parse(result[0].OrigenJson);
-                if (parse !== null && typeof parse === 'object' && !Array.isArray(parse))
-                    result[0].DireccionOrigen = parse;
-            } catch (error) {
-                // logger.warn(`DireccionOrigen no contiene un JSON válido: ${domicilio[0].OrigenJson}`);
-            }
-            try {
-                const parse = JSON.parse(result[0].DestinoJson);
-                if (parse !== null && typeof parse === 'object' && !Array.isArray(parse))
-                    result[0].DireccionDestino = parse;
-            } catch (error) {
-                // logger.warn(`DireccionDestino no contiene un JSON válido: ${domicilio[0].DestinoJson}`);
-            }
-        }
+        // if (result.length && result[0].OrigenJson) {
+        //     const parse = JSON.parse(result[0].OrigenJson)
+        //     if (typeof parse === "object") {
+        //         result[0].Origen = parse;
+        //     } else {
+        //         result[0].Origen = {};
+        //     }
+        // }
+        // if (result.length && result[0].DestinoJson) {
+        //     const parse = JSON.parse(result[0].DestinoJson)
+        //     if (typeof parse === "object") {
+        //         result[0].Destino = parse;
+        //     } else {
+        //         result[0].Destino = {};
+        //     }
+        // }
 
         return result
     }
@@ -1393,11 +1391,8 @@ export class CustodiaController extends BaseController {
             errorCampo('ClienteId', `El campo Cliente NO puede estar vacío`)
         if (!custodiaForm.FechaInicio)
             errorCampo('FechaInicio', `El campo Fecha Inicial NO puede estar vacío`)
-        const resDirOrigen = domicilioController.valObjDomicilio(custodiaForm.DireccionOrigen)
-        if (resDirOrigen instanceof ClientException)
-            errorCampo('DireccionOrigen', `${resDirOrigen.messageArr}`)
-        // if (!custodiaForm.Origen)
-        //     errorCampo('Origen', `El campo Origen NO puede estar vacío`)
+        if (!custodiaForm.Origen)
+            errorCampo('Origen', `El campo Origen NO puede estar vacío`)
 
         // Pares Cantidad/Importe: se marca el que falta
         const pares = [
@@ -1430,11 +1425,8 @@ export class CustodiaController extends BaseController {
                 errorCampo('', `El Importe a Facturar NO puede estar vacío para el estado seleccionado.`)
             if (!custodiaForm.FechaFin)
                 errorCampo('FechaFin', `El campo Fecha Final NO puede estar vacío para el estado seleccionado.`)
-            const resDirDestino = domicilioController.valObjDomicilio(custodiaForm.DireccionDestino)
-            if (resDirDestino instanceof ClientException)
-                errorCampo('DireccionDestino', `${resDirDestino.messageArr}`)
-            // if (!custodiaForm.Destino)
-            //     errorCampo('Destino', `El campo Destino NO puede estar vacío para el estado seleccionado.`)
+            if (!custodiaForm.Destino)
+                errorCampo('Destino', `El campo Destino NO puede estar vacío para el estado seleccionado.`)
             if (custodiaForm.EstadoCodigo == 4 && !custodiaForm.NumeroFactura)
                 errorCampo('NumeroFactura', `El campo Num de Factura NO puede estar vacío.`)
         }
