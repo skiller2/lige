@@ -1007,13 +1007,19 @@ export class ApiService {
 
   }
 
-  confirmaMovimientosBanco(selectedPeriod: any) {
+  confirmaMovimientosBanco(selectedPeriod: any, banco_id?: number) {
     this.notification.success('Respuesta', `Inicio confirmación de movimientos bancarios`);
-    const parameter = { selectedPeriod }
+    const parameter = { selectedPeriod, banco_id }
     return this.http.post<ResponseJSON<any>>('/api/liquidaciones/confirmaMovimientosBanco', parameter).pipe(
       tap((res: ResponseJSON<any>) => this.response(res)),
     )
 
+  }
+
+  getResumenArchivoBanco(parameter: { anio: number, mes: number, options: any, BancoId: number, tabIndex: number }) {
+    return this.http.post<ResponseJSON<any>>('/api/liquidaciones/banco/intercambio/resumen', parameter).pipe(
+      map((res: ResponseJSON<any>) => res.data)
+    )
   }
 
   eliminaMovimientosBanco(banco_id: number) {

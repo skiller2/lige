@@ -1,0 +1,72 @@
+<nz-modal [nzVisible]="isVisible()" (nzOnCancel)="isVisible.set(false)" [nzTitle]="titulo()" [nzWidth]="800">
+
+    <div *nzModalContent>
+        <nz-list nzSize="small" nzItemLayout="horizontal" [nzLoading]="bancos.isLoading() || movimientos.isLoading()">
+            @for (banco of bancosConPendientes(); track banco.value) {
+            <nz-list-item>
+                <nz-list-item-meta>
+                    <nz-list-item-meta-title class="banco-titulo">{{ banco.label }}</nz-list-item-meta-title>
+                    <nz-list-item-meta-description class="banco-pendientes">
+                        {{ pendientesPorBanco().get(banco.value)?.texto ?? 'Sin movimientos pendientes' }}
+                    </nz-list-item-meta-description>
+                </nz-list-item-meta>
+                <ul nz-list-item-actions>
+                    <nz-list-item-action>
+                        <button nz-button nzSize="small" nzType="primary"
+                            [disabled]="!pendientesPorBanco().has(banco.value)"
+                            nz-popconfirm [nzPopconfirmTitle]="confirmConfirmar" [nzPopconfirmShowArrow]="false"
+                            nzOkText="Confirmar" nzCancelText="Cancelar"
+                            (nzOnConfirm)="confirmar(banco.value)">Confirmar</button>
+                        <ng-template #confirmConfirmar>
+                            <div style="max-width: 360px;">
+                                {{ mensajeConfirmacion(banco) }}<br>
+                                ¿Desea continuar?
+                            </div>
+                        </ng-template>
+                    </nz-list-item-action>
+                    <nz-list-item-action>
+                        <button nz-button nzSize="small" nzDanger
+                            [disabled]="!pendientesPorBanco().has(banco.value)"
+                            nz-popconfirm [nzPopconfirmTitle]="confirmEliminar" [nzPopconfirmShowArrow]="false"
+                            nzOkText="Eliminar" nzOkType="danger" nzCancelText="Cancelar"
+                            (nzOnConfirm)="eliminar(banco.value)">Eliminar</button>
+                        <ng-template #confirmEliminar>
+                            <div style="max-width: 360px;">
+                                {{ mensajeEliminacion(banco) }}<br>
+                                Esta operación no podrá deshacerse. ¿Desea continuar?
+                            </div>
+                        </ng-template>
+                    </nz-list-item-action>
+                </ul>
+            </nz-list-item>
+            } @empty {
+            <nz-list-empty nzNoResult="Sin movimientos pendientes" />
+            }
+        </nz-list>
+
+        <nz-divider nzText="Generación de archivo" nzOrientation="left"></nz-divider>
+
+        <form class="generar-archivo">
+            <label class="generar-archivo-label">Banco</label>
+            <nz-select [formField]="formIntercambioBancos.BancoId" nzAllowClear nzShowSearch
+                [nzDropdownMatchSelectWidth]="false" nzPlaceHolder="Seleccione un banco">
+                @for (banco of bancos.value(); track banco.value) {
+                <nz-option [nzValue]="banco.value" [nzLabel]="banco.label"></nz-option>
+                }
+            </nz-select>
+            <button type="button" nz-button nzType="primary" nzBlock
+                [disabled]="!intercambioBancos().BancoId" [nzLoading]="generando()"
+                nz-popconfirm [nzPopconfirmTitle]="'¿Confirma la generación del archivo del ' + bancoSeleccionado() + ' para el período ' + mes() + '/' + anio() + '?'"
+                [nzPopconfirmShowArrow]="false" nzOkText="Generar" nzCancelText="Cancelar"
+                (nzOnConfirm)="generar()">
+                <span nz-icon nzType="download"></span>Generar archivo
+            </button>
+            <span #downFile app-down-file hidden [httpMethod]="'POST'" [httpBody]="bodyArchivoBanco()"
+                httpUrl="api/liquidaciones/download/banco/" [pre]="confirmarGeneracion" [(loading)]="generando"
+                (success)="isVisible.set(false)"></span>
+        </form>
+    </div>
+    <div *nzModalFooter style="text-align: right;">
+        <button nz-button nzType="default" (click)="isVisible.set(false)">Cerrar</button>
+    </div>
+</nz-modal>

@@ -28,6 +28,7 @@ import { LoadingService } from '@delon/abc/loading';
 import { FileUploadComponent } from '../../../shared/file-upload/file-upload.component';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Selections } from '../../../shared/schemas/filtro';
+import { IntercambioBancosModalComponent } from '../intercambio-bancos-modal/intercambio-bancos-modal';
 
 @Component({
     selector: 'app-liquidaciones',
@@ -39,8 +40,10 @@ import { Selections } from '../../../shared/schemas/filtro';
         NzAffixModule,
         FiltroBuilderComponent,
         MovimientosPendientes,
-        FileUploadComponent
+        FileUploadComponent,
+        IntercambioBancosModalComponent
     ],
+    standalone: true,
     providers: [AngularUtilService]
 })
 export class LiquidacionesBancoComponent {
@@ -69,6 +72,7 @@ export class LiquidacionesBancoComponent {
   fechaDesdeCBU = signal(new Date())
   filesCBU = signal([])
   tabIndex = signal(0)
+  isVisibleIntercambio = signal(false)
   excelExportService = new ExcelExportService()
   angularGrid!: AngularGridInstance;
   angularGridAyuda!: AngularGridInstance;
@@ -390,23 +394,6 @@ export class LiquidacionesBancoComponent {
 
     this.gridOptionsAyuda.showFooterRow = true
     this.gridOptionsAyuda.createFooterRow = true
-  }
-
-  async confirmaMovimientosBanco(e: any) {
-    try {
-      await firstValueFrom(this.apiService.confirmaMovimientosBanco(this.selectedPeriod).pipe(tap(res => this.formChange$.next(''))))
-    } catch (e) {
-
-    }
-  }
-
-  async eliminaMovimientosBanco(e: any, banco_id: number) {
-    try {
-      await firstValueFrom(this.apiService.eliminaMovimientosBanco(banco_id).pipe(tap(res => this.formChange$.next(''))))
-    } catch (e) {
-
-    }
-
   }
 
   /*

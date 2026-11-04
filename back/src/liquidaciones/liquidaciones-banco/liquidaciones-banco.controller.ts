@@ -524,8 +524,9 @@ LEFT JOIN banco banc
 
     return queryRunner.query(
       `
-      SELECT CONCAT(liq.banco_id,'-',liq.envio_nro,'-',liq.persona_id,'-',liq.tipocuenta_id) id, liq.persona_id,liq.cbu,liq.importe,liq.banco_id,liq.envio_nro,liq.fecha,liq.tipocuenta_id,banc.bancodescripcion, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre
+      SELECT CONCAT(liq.banco_id,'-',liq.envio_nro,'-',liq.persona_id,'-',liq.tipocuenta_id) id, liq.persona_id,liq.cbu,liq.importe,liq.banco_id,liq.envio_nro,liq.fecha,liq.tipocuenta_id,banc.bancodescripcion, cuit.PersonalCUITCUILCUIT, CONCAT(TRIM(per.PersonalApellido),', ', TRIM(per.PersonalNombre)) AS ApellidoNombre, liqper.anio, liqper.mes
       FROM lige.dbo.liqmvbanco liq
+      LEFT JOIN lige.dbo.liqmaperiodo liqper ON liqper.periodo_id = liq.periodo_id
       JOIn Personal per ON per.PersonalId = liq.persona_id
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       JOIN banco AS banc ON banc.BancoId = liq.banco_id WHERE ${filterSql} ${orderBy}
@@ -627,6 +628,24 @@ LEFT JOIN banco banc
     this.jsonRes(this.listaColumnasAyuda, res);
   }
 
+  async getBancosIntercambioOptions(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const options = await queryRunner.query(`
+        SELECT BancoId value, TRIM(BancoDescripcion) label
+        FROM Banco
+        WHERE BancoInactivo = 0
+        AND GenerarArchivo = 1
+        ORDER BY BancoDescripcion
+      `)
+      this.jsonRes(options, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
 
 
 
@@ -667,6 +686,7 @@ LEFT JOIN banco banc
     const usuario = res.locals.userName
     let anio = Number(req.body.selectedPeriod.year)
     let mes = Number(req.body.selectedPeriod.month)
+    const banco_id = req.body.banco_id ? Number(req.body.banco_id) : null
 
 
     await queryRunner.startTransaction();
@@ -679,7 +699,7 @@ LEFT JOIN banco banc
       if (getRecibosGenerados[0].ind_recibos_generados == 1)
         throw new ClientException(`Los recibos para este periodo ya se generaron`)
 
-      const liqmvbanco = await queryRunner.query('SELECT mv.*, ban.BancoDescripcion, per.anio, per.mes FROM lige.dbo.liqmvbanco mv JOIN Banco ban ON ban.BancoId = mv.banco_id JOIN lige.dbo.liqmaperiodo per ON per.periodo_id=mv.periodo_id', [])
+      const liqmvbanco = await queryRunner.query('SELECT mv.*, ban.BancoDescripcion, per.anio, per.mes FROM lige.dbo.liqmvbanco mv JOIN Banco ban ON ban.BancoId = mv.banco_id JOIN lige.dbo.liqmaperiodo per ON per.periodo_id=mv.periodo_id WHERE (@0 IS NULL OR mv.banco_id = @0)', [banco_id])
 
 
       if (liqmvbanco.length == 0)
@@ -762,7 +782,7 @@ LEFT JOIN banco banc
 
       }
 
-      await queryRunner.query('DELETE FROM lige.dbo.liqmvbanco', [])
+      await queryRunner.query('DELETE FROM lige.dbo.liqmvbanco WHERE (@0 IS NULL OR banco_id = @0)', [banco_id])
 
       await queryRunner.commitTransaction();
       return this.jsonRes([], res, `Se confirmaron ${liqmvbanco.length} movimientos`);
@@ -1001,6 +1021,80 @@ LEFT JOIN banco banc
   }
 
 
+  async getRegistrosArchivoBanco(anio: number, mes: number, options: any, BancoId: number, tabIndex: number, queryRunner: QueryRunner) {
+    let banco: any[] = []
+
+    options.filtros.push({ index: 'BancoId', condition: 'AND', operador: '=', valor: [BancoId] })
+
+    switch (tabIndex) {
+      case 1: //Banco
+        const recordSet = await this.getSaldoCuentas(anio, mes, options.filtros, options.sort, queryRunner)
+        banco = recordSet.filter((item: any) => item.importe > 0)
+        break;
+      case 2: //Adelanto
+        banco = await this.getBancoSaldoAyudaAsistencial(anio, mes, options.filtros, options.sort, queryRunner)
+        break;
+      default:
+        throw new ClientException('Debe posicionarse en la sopapa Listado o Adelanto/Ayuda')
+    }
+
+    const bancoDups = banco.filter(
+      (item, index, array) =>
+        array.findIndex(p => p.PersonalId === item.PersonalId) !== index
+    );
+
+    if (bancoDups.length > 0) {
+      const dupIds = bancoDups.map((p: any) => p.PersonalApellidoNombre).join(', ')
+      throw new ClientException(`Existen registros duplicados para : ${dupIds}.`)
+    }
+
+    /*  Se comentó por orden de Marcelo
+    const bancoExcede = banco.filter((p) => p.ExcedeImporte == '1');
+    if (bancoExcede.length > 0) {
+      const excedeIds = bancoExcede.map((p: any) => p.PersonalApellidoNombre).join(', ')
+      throw new ClientException(`Existen registros que exceden el importe autorizado para : ${excedeIds}.`)
+    }
+    */
+
+    if (banco.length == 0) {
+      const bancoDs = await queryRunner.query(`SELECT TRIM(BancoDescripcion) BancoDescripcion FROM Banco WHERE BancoId = @0`, [BancoId])
+      const bancoDescripcion = bancoDs[0]?.BancoDescripcion ?? BancoId
+      throw new ClientException(`No hay registros para generar archivo del banco ${bancoDescripcion} en el período ${mes}/${anio}`)
+    }
+
+    return banco
+  }
+
+  async getResumenArchivoBanco(req: Request, res: Response, next: NextFunction) {
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const periodo = getPeriodoFromRequest(req);
+      const options: any = getOptionsFromRequest(req);
+      const BancoId = Number(req.body.BancoId)
+      const tabIndex = Number(req.body.tabIndex)
+
+      const bancoDs = await queryRunner.query(`SELECT TRIM(BancoDescripcion) BancoDescripcion FROM Banco WHERE BancoId = @0`, [BancoId])
+      if (bancoDs.length == 0)
+        throw new ClientException('Banco no localizado')
+
+      const banco = await this.getRegistrosArchivoBanco(periodo.year, periodo.month, options, BancoId, tabIndex, queryRunner)
+      const importeTotal = banco.reduce((total: number, row: any) => total + Number(row.importe), 0)
+
+      this.jsonRes({
+        BancoId,
+        BancoDescripcion: bancoDs[0].BancoDescripcion,
+        anio: periodo.year,
+        mes: periodo.month,
+        importeTotal,
+        cantidadRegistros: banco.length,
+      }, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
   async downloadArchivoBanco(req: Request, res: Response, next: NextFunction) {
     const directory = process.env.PATH_LIQUIDACIONES || "tmp";
     if (!existsSync(directory)) {
@@ -1025,50 +1119,7 @@ LEFT JOIN banco banc
 
       let fechaActual = new Date()
 
-
-      options.filtros.push({ index: 'BancoId', condition: 'AND', operador: '=', valor: [BancoId] })
-
-      switch (tabIndex) {
-        case 1: //Banco
-          const recordSet = await this.getSaldoCuentas(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort, queryRunner)
-          banco = recordSet.filter((item: any) => item.importe > 0)
-          break;
-        case 2: //Adelanto
-          banco = await this.getBancoSaldoAyudaAsistencial(periodo.year, periodo.month, req.body.options.filtros, req.body.options.sort, queryRunner)
-          break;
-        default:
-          throw new ClientException('Debe posicionarse en la sopapa Listado o Adelanto/Ayuda')
-          break;
-      }
-
-
-      const bancoDups = banco.filter(
-        (item, index, array) =>
-          array.findIndex(p => p.PersonalId === item.PersonalId) !== index
-      );
-
-
-      const bancoExcede = banco.filter(
-        (p) =>
-          p.ExcedeImporte == '1'
-      );
-
-
-      if (bancoDups.length > 0) {
-        const dupIds = bancoDups.map((p: any) => p.PersonalApellidoNombre).join(', ')
-        throw new ClientException(`Existen registros duplicados para : ${dupIds}.`)
-      }
-
-
-      /*  Se comentó por orden de Marcelo
-      if (bancoExcede.length > 0) {
-        const excedeIds = bancoExcede.map((p: any) => p.PersonalApellidoNombre).join(', ')
-        throw new ClientException(`Existen registros que exceden el importe autorizado para : ${excedeIds}.`)
-      }
-      */
-
-      if (banco.length == 0)
-        throw new ClientException('No hay registros para generar archivo')
+      banco = await this.getRegistrosArchivoBanco(periodo.year, periodo.month, options, BancoId, tabIndex, queryRunner)
 
 
       await queryRunner.startTransaction();

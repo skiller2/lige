@@ -165,7 +165,15 @@ liquidacionesRouter.get("/banco/ayuda/cols", [authMiddleware.verifyToken], (req,
   liquidacionesBancoController.getLiquidacionesBancoColsAyuda(req, res);
 });
 
-liquidacionesRouter.post('/banco/list', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
+liquidacionesRouter.get('/banco/intercambio/bancos', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+  liquidacionesBancoController.getBancosIntercambioOptions(req, res, next)
+});
+
+liquidacionesRouter.post('/banco/intercambio/resumen', [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])], (req, res, next) => {
+  liquidacionesBancoController.getResumenArchivoBanco(req, res, next)
+});
+
+liquidacionesRouter.post('/banco/list',[authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consulta'])], (req, res, next) => {
   liquidacionesBancoController.getByLiquidacionesBanco(req, res, next)
 });
 
