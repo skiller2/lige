@@ -72,10 +72,10 @@ export class FileUploadController extends BaseController {
 
   async getByDownloadFile(req: any, res: Response, next: NextFunction) {
 
-    let documentId = req.params.id;
+    const documentId = req.params.id;
     const filename = req.params.filename;
-    let tableForSearch = req.params.tableForSearch;
-    const esFoto = tableForSearch == 'DocumentoImagenFoto'
+    const tableForSearch = req.params.tableForSearch;
+    const esTableDocumento = tableForSearch === 'Documento' || tableForSearch === 'documento'
     let finalurl = '', docname = ''
     let document: any = ''
     let deleteFile = false
@@ -89,18 +89,7 @@ export class FileUploadController extends BaseController {
       if (needsNumericId && (!Number.isInteger(validatedId) || validatedId <= 0))
         throw new ClientException(`Archivo no localizado`)
 
-      // Referencias anteriores a una foto (por DocumentoImagenFotoId): si ya tiene documento, el
-      // archivo se toma de Documento
-      if (esFoto) {
-        const foto = await queryRunner.query(`SELECT DocumentoId FROM DocumentoImagenFoto WHERE DocumentoImagenFotoId = @0`, [validatedId])
-        if (foto[0]?.DocumentoId) {
-          tableForSearch = 'Documento'
-          documentId = foto[0].DocumentoId
-        }
-      }
-
       switch (tableForSearch) {
-        case 'DocumentoImagenFoto':
         case 'DocumentoImagenDocumento':
         case 'DocumentoImagenEstudio':
         case 'DocumentoImagenImpuestoAFIP':
@@ -170,11 +159,11 @@ export class FileUploadController extends BaseController {
 
       if (!existsSync(finalurl))
         throw new ClientException(`Archivo ${docname} no localizado`, { path: finalurl })
-      if (esFoto && finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'image') {
+      if (esTableDocumento && filename === 'image' && finalurl.toLowerCase().endsWith('.pdf')) {
 
         finalurl = await this.pdf2img(finalurl)
         deleteFile = true
-        docname = docname.replace('.pdf', '.png')
+        docname = docname.replace(/\.pdf$/i, '.png')
       }
 
       if (finalurl.toLocaleLowerCase().endsWith('.pdf') && filename == 'thumb') {
@@ -1459,8 +1448,11 @@ export class FileUploadController extends BaseController {
       }
     }
 
-    const imgData: any = await new Promise((resolve, reject) => {
-      if (imgArgsFoto[0] && imgArgsFoto[0].startsWith("g_"))
+    if (!imgArgsFoto[0])
+      throw new ClientException('La primera página del PDF no contiene una imagen que se pueda extraer.')
+
+    const imgData: any = await new Promise((resolve) => {
+      if (imgArgsFoto[0].startsWith("g_"))
         pdfPage.commonObjs.get(imgArgsFoto[0], (imgData: any) => { resolve(imgData) })
       else
         pdfPage.objs.get(imgArgsFoto[0], (imgData: any) => { resolve(imgData) })

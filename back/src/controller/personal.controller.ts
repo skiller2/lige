@@ -661,9 +661,9 @@ export class PersonalController extends BaseController {
 
   static async infoPersonalQuery(PersonalId: any, anio: number, mes: number, queryRunner: QueryRunner) {
     return queryRunner.query(`
-      SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
+      SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, docFoto.DocumentoNombreArchivo AS DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         TRIM(per.PersonalNombre) PersonalNombre, TRIM(per.PersonalApellido) PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ing.PersonalFechaBaja,
-        ISNULL(foto.DocumentoId, 0) PersonalFotoDocumentoId,
+        ISNULL(docFoto.DocumentoId, 0) PersonalFotoDocumentoId,
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
@@ -680,6 +680,7 @@ export class PersonalController extends BaseController {
       LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId=per.PersonalId
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.IndFotoPrincipal = 1
+      LEFT JOIN Documento docFoto ON docFoto.DocumentoId = foto.DocumentoId AND docFoto.PersonalId = per.PersonalId
       LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
       LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
       LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
@@ -711,9 +712,9 @@ export class PersonalController extends BaseController {
       ORDER BY tip.TipoEstudioId DESC `, [PersonalId])
     queryRunner
       .query(
-        `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, foto.DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
+        `SELECT TOP 1 per.PersonalId, cuit.PersonalCUITCUILCUIT, docFoto.DocumentoNombreArchivo AS DocumentoImagenFotoBlobNombreArchivo, categ.CategoriaPersonalDescripcion, cat.PersonalCategoriaId,
         per.PersonalNombre, per.PersonalApellido, per.PersonalFechaNacimiento, ing.PersonalFechaIngreso, per.PersonalNroLegajo, ing.PersonalFechaBaja,
-        ISNULL(foto.DocumentoId, 0) PersonalFotoDocumentoId,
+        ISNULL(docFoto.DocumentoId, 0) PersonalFotoDocumentoId,
         TRIM(CONCAT(
           TRIM(dom.DomicilioDomCalle), ' ',
           TRIM(dom.DomicilioDomNro), ' ',
@@ -730,6 +731,7 @@ export class PersonalController extends BaseController {
         LEFT JOIN PersonalIngresoEgreso ing ON ing.PersonalId=per.PersonalId
         LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
         LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.IndFotoPrincipal = 1
+        LEFT JOIN Documento docFoto ON docFoto.DocumentoId = foto.DocumentoId AND docFoto.PersonalId = per.PersonalId
         LEFT JOIN PersonalCategoria cat ON cat.PersonalCategoriaPersonalId = per.PersonalId AND cat.PersonalCategoriaId = per.PersonalCategoriaUltNro
         LEFT JOIN CategoriaPersonal categ ON categ.TipoAsociadoId = cat.PersonalCategoriaTipoAsociadoId AND categ.CategoriaPersonalId = cat.PersonalCategoriaCategoriaPersonalId
         LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
@@ -2639,7 +2641,7 @@ LEFT JOIN(
       TRIM(nac.NacionalidadDescripcion), per.PersonalSexo Sexo, per.EstadoCivilId, LugarNacimiento,
       email.PersonalEmailEmail Email, email.PersonalEmailId,
       sit.PersonalSituacionRevistaId, TRIM(sit.PersonalSituacionRevistaMotivo) Motivo, sit.PersonalSituacionRevistaSituacionId SituacionId,
-      ISNULL(foto.DocumentoId, 0) FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
+      ISNULL(docFoto.DocumentoId, 0) FotoId, ISNULL(doc.PersonalDocumentoFrenteId,0) docFrenteId, ISNULL(doc.PersonalDocumentoDorsoId, 0) docDorsoId,
       per.PersonalLeyNro LeyNro,
       per.TipoVehiculoId, per.VehiculoMarcaId, per.VehiculoMarcaModeloId, TRIM(per.PersonalVehiculoPatente) AS PersonalVehiculoPatente, TRIM(per.Cilindrada) AS Cilindrada,
       ubleg.LugarFisicoLegajoId, ubleg.PersonalUbicacionLegajoDesde LugarFisicoLegajoDesde,
@@ -2648,6 +2650,7 @@ LEFT JOIN(
       LEFT JOIN PersonalCUITCUIL cuit ON cuit.PersonalId = per.PersonalId AND cuit.PersonalCUITCUILId = ( SELECT MAX(cuitmax.PersonalCUITCUILId) FROM PersonalCUITCUIL cuitmax WHERE cuitmax.PersonalId = per.PersonalId) 
       LEFT JOIN Sucursal suc ON suc.SucursalId = per.PersonalSuActualSucursalPrincipalId
       LEFT JOIN DocumentoImagenFoto foto ON foto.PersonalId = per.PersonalId AND foto.IndFotoPrincipal = 1
+      LEFT JOIN Documento docFoto ON docFoto.DocumentoId = foto.DocumentoId AND docFoto.PersonalId = per.PersonalId
       LEFT JOIN Nacionalidad nac ON nac.NacionalidadId = per.PersonalNacionalidadId
       LEFT JOIN NexoDomicilio AS nex ON nex.PersonalId = per.PersonalId AND nex.NexoDomicilioActual = 1
       LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
@@ -3081,16 +3084,6 @@ LEFT JOIN(
       // await queryRunner.startTransaction()
 
       const documentos = await queryRunner.query(`
-SELECT foto.DocumentoImagenFotoId docId, foto.DocumentoImagenFotoBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
-        param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
-        CONCAT('api/file-upload/downloadFile/', foto.DocumentoImagenFotoId, '/DocumentoImagenFoto/0') url,
-        DocumentoImagenFotoBlobTipoArchivo TipoArchivo, 'DocumentoImagenFoto' tableName
-        FROM DocumentoImagenFoto foto
-        LEFT JOIN DocumentoImagenParametro param ON param.DocumentoImagenParametroId = foto.DocumentoImagenParametroId
-        -- Las fotos con documento ya aparecen como Documento tipo FOTO (abajo): solo las históricas sin documento
-        WHERE foto.PersonalId IN (@0) AND foto.DocumentoId IS NULL
-
-UNION ALL
         SELECT doc.DocumentoImagenDocumentoId docId, doc.DocumentoImagenDocumentoBlobNombreArchivo NombreArchivo,null FechaDesde,null FechaHasta,
         param.DocumentoImagenParametroDe Parametro, param.DocumentoImagenParametroDescripcion Descripcion,
         CONCAT('api/file-upload/downloadFile/', doc.DocumentoImagenDocumentoId, '/DocumentoImagenDocumento/0') url,
