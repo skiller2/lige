@@ -179,6 +179,36 @@ export class OrdenVentaFormComponent {
   importes = computed(() => this.ordenVenta().items.map(item => Number(item.Cantidad) * Number(item.ImporteUnitario) * (1 - (Number(item.Bonificacion) || 0) / 100)))
   totalImporteOrdenVenta = computed(() => this.importes().reduce((sum, valor) => sum + valor, 0));
 
+  textFacturaTemplate = 'Opciones: {Producto}; {PeriodoMes}; {PeriodoAnio}; {CantidadHoras}; {ImporteUnitario}; {ImporteTotal}';
+
+  textoFacturaPreview = computed(() => {
+    const { Periodo, items } = this.ordenVenta()
+    const fecha = Periodo ? new Date(Periodo) : null
+    const periodoMes = fecha ? (fecha.getMonth() + 1).toString().padStart(2, '0') : ''
+    const periodoAnio = fecha ? fecha.getFullYear().toString() : ''
+    const importes = this.importes()
+
+    return items.map((item, i) => {
+      const productoCodigo = item.ProductoCodigo || ''
+      if (!productoCodigo) return ''
+
+      const productoNombre = this.optionsTipoProducto().find((p: { ProductoCodigo: string; }) => p.ProductoCodigo === productoCodigo)?.Nombre || productoCodigo
+      const cantidad = item.Cantidad != null && item.Cantidad !== '' ? String(item.Cantidad) : ''
+      const importeUnitario = item.ImporteUnitario != null ? String(item.ImporteUnitario) : ''
+      const importeTotal = cantidad && importeUnitario && !isNaN(importes[i]) ? importes[i].toFixed(2) : ''
+
+      const textoFactura = (item.TextoFactura || '').trim() || '{Producto} {PeriodoMes}/{PeriodoAnio}'
+
+      return textoFactura
+        .replace(/{Producto}/g, productoNombre)
+        .replace(/{PeriodoMes}/g, periodoMes)
+        .replace(/{PeriodoAnio}/g, periodoAnio)
+        .replace(/{CantidadHoras}/g, cantidad || 'N/A')
+        .replace(/{ImporteUnitario}/g, importeUnitario || 'N/A')
+        .replace(/{ImporteTotal}/g, importeTotal || 'N/A')
+    })
+  })
+
   // Ítems cuyo importe unitario no coincide con el vigente
   desactualizados = computed(() => this.ordenVenta().items.map(item =>
     !!item.ProductoCodigo && Number(item.ImporteVigente) > 0 &&

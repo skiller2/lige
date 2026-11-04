@@ -132,8 +132,11 @@
       @if (origenCrud()) {
       <nz-form-item class="marginElement">
         <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Texto de Factura</nz-form-label>
-        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19" sfErrorTip>
-          <textarea nz-input [formField]="item.TextoFactura" rows="2"></textarea>
+        <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="19" sfErrorTip nz-popover
+          [nzPopoverContent]="textFacturaTemplate">
+          <textarea nz-input [formField]="item.TextoFactura" rows="2"
+            placeholder="Ingrese el texto de la factura"></textarea>
+          <p style="color:rgba(0, 0, 0, 0.347); margin-top: 8px;">Vista previa: {{ textoFacturaPreview()[i] || '' }}</p>
         </nz-form-control>
       </nz-form-item>
 
