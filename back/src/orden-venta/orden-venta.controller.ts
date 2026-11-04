@@ -151,6 +151,30 @@ const columnasGrillaOrdenes: any[] = [
     searchHidden: true
   },
   {
+    id: "SucursalId",
+    name: "Sucursal",
+    field: "SucursalDescripcion",
+    fieldName: "suc.SucursalId",
+    type: "string",
+    searchComponent: "inputForSucursalSearch",
+    sortable: true,
+    hidden: true,
+    searchHidden: false,
+    maxWidth: 160
+  },
+
+  {
+    id: "GrupoActividadId",
+    name: "Grupo Actividad",
+    field: "GrupoActividadId",
+    fieldName: "gaobj.GrupoActividadId",
+    type: "number",
+    searchComponent: "inputForGrupoActividadSearch",
+    sortable: false,
+    hidden: true,
+    searchHidden: false
+  },
+  {
     id: "GrupoActividadNumero",
     name: "Grupo Actividad",
     field: "GrupoActividadNumero",
@@ -262,13 +286,16 @@ export class OrdenVentaController extends BaseController {
           ${sqlEstadoOrden} AS Estado,
           ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar,
           IIF((objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
-          ga.GrupoActividadNumero, gaobj.GrupoActividadId
+          ga.GrupoActividadNumero, gaobj.GrupoActividadId,
+          TRIM(CONCAT(ga.GrupoActividadNumero,' ',ga.GrupoActividadDetalle)) AS GrupoActividadDetalle,
+          suc.SucursalId,
+          TRIM(suc.SucursalDescripcion) AS SucursalDescripcion
         FROM OrdenVenta ord
         LEFT JOIN Cliente cli ON cli.ClienteId = ord.ClienteId
         LEFT JOIN ClienteElementoDependiente eledep ON eledep.ClienteId = ord.ClienteId AND isnull(eledep.ClienteElementoDependienteId,0) = isnull(ord.ClienteElementoDependienteId,0)
+        LEFT JOIN Sucursal suc ON suc.SucursalId = ISNULL(ISNULL(eledep.ClienteElementoDependienteSucursalId,cli.ClienteSucursalId),1)
         LEFT JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
         LEFT JOIN Objetivo obj ON obj.ClienteId = eledep.ClienteId and obj.ClienteElementoDependienteId = isnull(eledep.ClienteElementoDependienteId,0)
-        -- Último grupo de actividad vigente del objetivo.
         OUTER APPLY (
           SELECT TOP 1 gap.GrupoActividadId
           FROM GrupoActividadObjetivo gap

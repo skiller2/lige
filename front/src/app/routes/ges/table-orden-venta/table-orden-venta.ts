@@ -6,7 +6,7 @@ import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
-import { totalRecords } from '../../../shared/custom-search/custom-search';
+import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom } from 'rxjs';
 import { Selections } from '../../../shared/schemas/filtro';
@@ -106,6 +106,7 @@ export class TableOrdenVentaComponent implements OnInit {
 
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
+      columnTotal('ImporteTotalAFacturar', this.angularGrid);
     });
   }
 
