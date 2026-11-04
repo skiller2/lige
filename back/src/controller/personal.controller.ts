@@ -3563,7 +3563,7 @@ UNION ALL
       const options = await queryRunner.query(`
         SELECT BancoId value, BancoDescripcion label
         FROM Banco
-        WHERE BancoInactivo IS NULL
+        WHERE BancoInactivo = 0
       `)
       this.jsonRes(options, res);
     } catch (error) {
