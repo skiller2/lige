@@ -1,0 +1,79 @@
+<nz-modal
+  [(nzVisible)]="visible"
+  nzTitle="Ingresar dirección manualmente"
+  [nzWidth]="600"
+  (nzOnCancel)="close()"
+  [nzMaskClosable]="false"
+>
+  <div *nzModalContent>
+
+    <form>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Calle</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input nz-input [formField]="formDirecciones.street" placeholder="Nombre de la calle" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Número</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input nz-input [formField]="formDirecciones.housenumber" placeholder="Número de casa" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Código postal</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <input nz-input [formField]="formDirecciones.postcode" placeholder="Código postal" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Provincia</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <nz-select [formField]="formDirecciones.Provincia" nzPlaceHolder="" nzAllowClear
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
+            @for (option of optionsProvincia(); track option.value) {
+              <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+            }
+          </nz-select>
+          <!-- <input nz-input [formField]="formDirecciones.Provincia" placeholder="Provincia" /> -->
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Localidad</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <nz-select [formField]="formDirecciones.Localidad" nzPlaceHolder="" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
+          @for (option of optionsLocalidad.value(); track option.value) {
+            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+          }
+          </nz-select>
+          <!-- <input nz-input [formField]="formDirecciones.county" placeholder="Localidad" /> -->
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzSpan]="6">Barrio</nz-form-label>
+        <nz-form-control [nzSpan]="18">
+          <nz-select [formField]="formDirecciones.Barrio" nzPlaceHolder="" nzAllowClear
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
+          @for (option of optionsBarrio.value(); track option.value) {
+            <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
+          }
+          </nz-select>
+          <!-- <input nz-input [formField]="formDirecciones.suburb" placeholder="Barrio" /> -->
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+  </div>
+  <div *nzModalFooter>
+    <button nz-button type="button" (click)="close()" >Cancelar</button>
+    <button nz-button nzType="primary" type="button"  (click)="save()">Guardar dirección</button>
+  </div>
+
+</nz-modal>

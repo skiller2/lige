@@ -2695,47 +2695,36 @@ LEFT JOIN(
   // }
 
   private async getFormDomicilioByPersonalIdQuery(queryRunner: any, personalId: any) {
-    // const PerDomicilio = await queryRunner.query(`
+    // const domicilio = await queryRunner.query(`
     //   SELECT 
-    //       TRIM(dom.DomicilioDomCalle) Calle, TRIM(dom.DomicilioDomNro) Nro, TRIM(dom.DomicilioDomPiso) Piso,
-    //       TRIM(dom.DomicilioDomDpto) Dpto, TRIM(dom.DomicilioCodigoPostal) CodigoPostal, dom.DomicilioPaisId PaisId,
-    //       dom.DomicilioProvinciaId ProvinciaId, dom.DomicilioLocalidadId LocalidadId, dom.DomicilioBarrioId BarrioId, dom.DomicilioId
+    //     dom.DomicilioId,
+    //     TRIM(dom.DomicilioDomLugar) DomicilioDomLugar,
+    //     TRIM(dom.DomicilioDomPiso) Piso,
+    //     TRIM(dom.DomicilioDomDpto) Dpto,
+    //     TRIM(dom.DomicilioCompleto) DomicilioCompleto,
+    //     dom.DomicilioJson
     //   FROM Domicilio dom
     //   JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
     //   WHERE nex.PersonalId IN (@0) AND nex.NexoDomicilioActual = 1
     //   ORDER BY dom.DomicilioId DESC
-    //   `, [personalId]
-    // )
-    // return PerDomicilio[0]
+    //   `, [personalId]);
 
-    const domicilio = await queryRunner.query(`
-      SELECT 
-        dom.DomicilioId,
-        TRIM(dom.DomicilioDomLugar) DomicilioDomLugar,
-        TRIM(dom.DomicilioDomPiso) Piso,
-        TRIM(dom.DomicilioDomDpto) Dpto,
-        TRIM(dom.DomicilioCompleto) DomicilioCompleto,
-        dom.DomicilioJson
-      FROM Domicilio dom
-      JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
-      WHERE nex.PersonalId IN (@0) AND nex.NexoDomicilioActual = 1
-      ORDER BY dom.DomicilioId DESC
-      `, [personalId]);
+    // if (domicilio.length) domicilio[0].Domicilio = null
 
-    if (domicilio.length) domicilio[0].Domicilio = null
+    // if (domicilio.length && domicilio[0].DomicilioJson) {
+    //   try {
+    //     const parse = JSON.parse(domicilio[0].DomicilioJson);
+    //     if (parse !== null && typeof parse === 'object' && !Array.isArray(parse)) {
+    //       domicilio[0].Domicilio = parse;
+    //     }
+    //   } catch (error) {
+    //     // logger.warn(`DomicilioJson no contiene un JSON válido: ${domicilio[0].DomicilioJson}`);
+    //   }
+    // }
 
-    if (domicilio.length && domicilio[0].DomicilioJson) {
-      try {
-        const parse = JSON.parse(domicilio[0].DomicilioJson);
-        if (parse !== null && typeof parse === 'object' && !Array.isArray(parse)) {
-          domicilio[0].Domicilio = parse;
-        }
-      } catch (error) {
-        // logger.warn(`DomicilioJson no contiene un JSON válido: ${domicilio[0].DomicilioJson}`);
-      }
-    }
+    const domicilio = await domicilioController.getDomicilioById(queryRunner, 'PersonalId', personalId)
 
-    return domicilio[0] || null;
+    return domicilio.length ? domicilio[0] : null;
   }
 
   private async getFormTelefonosByPersonalIdQuery(queryRunner: any, personalId: any) {

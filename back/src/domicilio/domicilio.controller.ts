@@ -361,7 +361,7 @@ export class DomicilioController extends BaseController {
 
   private async getProvinciasByPaisQuery(queryRunner: any, paisId: number) {
     return await queryRunner.query(
-      `SELECT pro.ProvinciaId value, TRIM(pro.ProvinciaDescripcion) label
+      `SELECT pro.ProvinciaId value, TRIM(pro.ProvinciaDescripcion) label, TRIM(pro.iso3166_2) iso3166_2
       FROM Provincia pro
       WHERE PaisId IN (@0)`,
       [paisId]
@@ -655,10 +655,21 @@ export class DomicilioController extends BaseController {
       return new ClientException(`Ingrese la Dirección`)
     }
 
-    // if (!domicilio.manual) {
-    //   if (!domicilio.address || Object.keys(domicilio.address).length === 0) {
-    //     return new ClientException(`Domicilio invalido`)
-    //   }
+    if (domicilio.source === 'manual') {
+      let campos_vacios: any[] = []
+      if (!domicilio.street) campos_vacios.push(`- Calle`)
+      if (!domicilio.housenumber) campos_vacios.push(`- Numero`)
+      if (!domicilio.postcode) campos_vacios.push(`- Código Postal`)
+      if (!domicilio.iso3166_2 && !domicilio.state) campos_vacios.push(`- Provincia`)
+      // if (!domicilio.county) campos_vacios.push(`- Localidad`)
+      // if (!domicilio.suburb) campos_vacios.push(`- Barrio`)
+
+      if (campos_vacios.length) {
+        campos_vacios.unshift('Debe completar los siguientes campos: ')
+        return new ClientException(campos_vacios)
+      }
+      return null
+    }
 
     //   if (!domicilio.place_id || isNaN(domicilio.place_id)) {
     //     return new ClientException(`Domicilio invalido`)
@@ -832,6 +843,7 @@ export class DomicilioController extends BaseController {
     )
   }
 
+  // Soporta direcciones de Geoapify y similares
   async normalizeAddress(queryRunner:any, Address:any){
     let { 
       street, road, //Calle
@@ -889,6 +901,94 @@ export class DomicilioController extends BaseController {
       BarrioId,
     }
     return Address
+  }
+
+  async getDomicilioById(queryRunner:any, columnForSearch:any, id:number){
+
+    const domicilios = await queryRunner.query(`
+      SELECT 
+        dom.DomicilioId
+        ,TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle
+        ,TRIM(dom.DomicilioDomNro) AS DomicilioDomNro
+        ,TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal
+        ,TRIM(dom.DomicilioDomLugar) AS DomicilioDomLugar
+        ,TRIM(dom.DomicilioDomPiso) AS Piso
+        ,TRIM(dom.DomicilioDomDpto) AS Dpto
+        ,TRIM(dom.DomicilioCompleto) AS DomicilioCompleto
+        ,dom.DomicilioJson
+        ,pro.iso3166_2
+        ,TRIM(pro.ProvinciaDescripcion) AS ProvinciaDescripcion
+        ,TRIM(loc.LocalidadDescripcion) AS LocalidadDescripcion
+        ,TRIM(bar.BarrioDescripcion) AS BarrioDescripcion
+      FROM Domicilio dom
+      INNER JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
+      LEFT JOIN Provincia AS pro ON dom.DomicilioProvinciaId = pro.ProvinciaId AND 1 = pro.PaisId
+      LEFT JOIN Localidad AS loc ON dom.DomicilioLocalidadId = loc.LocalidadId AND dom.DomicilioProvinciaId = loc.ProvinciaId AND 1 = loc.PaisId
+      LEFT JOIN Barrio AS bar ON dom.DomicilioBarrioId = bar.BarrioId AND dom.DomicilioLocalidadId = bar.LocalidadId AND dom.DomicilioProvinciaId = bar.ProvinciaId AND 1 = bar.PaisId
+      WHERE nex.${columnForSearch} IN (@0) AND nex.NexoDomicilioActual = 1
+      ORDER BY dom.DomicilioId DESC
+      `, [id]);
+    
+    for (const dom of domicilios) {
+      dom.Domicilio = null
+      if (dom.DomicilioJson) {
+        try {
+          const parse = JSON.parse(dom.DomicilioJson);
+          if (parse !== null && typeof parse === 'object' && !Array.isArray(parse)) {
+              dom.Domicilio = parse;
+          }
+        } catch (error) {
+          dom.Domicilio = {
+            source: 'manual',
+            lat : '',
+            lon : '',
+            street: dom.DomicilioDomCalle,
+            housenumber: dom.DomicilioDomNro,
+            postcode: dom.DomicilioCodigoPostal,
+            iso3166_2 : dom.iso3166_2,
+            state: dom.ProvinciaDescripcion,
+            county: dom.LocalidadDescripcion || '',
+            suburb: dom.BarrioDescripcion || '',
+            display_name: dom.DomicilioCompleto,
+          }
+          
+          delete dom.iso3166_2;
+          delete dom.ProvinciaDescripcion;
+          delete dom.LocalidadDescripcion;
+          delete dom.BarrioDescripcion;
+          delete dom.DomicilioDomCalle;
+          delete dom.DomicilioDomNro;
+          delete dom.DomicilioCodigoPostal;
+          delete dom.DomicilioCompleto;
+        }
+      } else {
+        dom.Domicilio = {
+          source: 'manual',
+          lat : '',
+          lon : '',
+          street: dom.DomicilioDomCalle,
+          housenumber: dom.DomicilioDomNro,
+          postcode: dom.DomicilioCodigoPostal,
+          iso3166_2 : dom.iso3166_2,
+          state: dom.ProvinciaDescripcion,
+          county: dom.LocalidadDescripcion || '',
+          suburb: dom.BarrioDescripcion || '',
+          display_name: dom.DomicilioCompleto,
+        }
+
+        delete dom.iso3166_2;
+        delete dom.ProvinciaDescripcion;
+        delete dom.LocalidadDescripcion;
+        delete dom.BarrioDescripcion;
+        delete dom.DomicilioDomCalle;
+        delete dom.DomicilioDomNro;
+        delete dom.DomicilioCodigoPostal;
+        delete dom.DomicilioCompleto;
+      }
+    }
+
+    return domicilios;
+
   }
 }
 

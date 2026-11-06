@@ -1,18 +1,16 @@
 <nz-space-compact nzBlock>
-  <nz-select #dsc [ngModel]="displayValue()" [nzDropdownMatchSelectWidth]="false"
+  <nz-select #dsc [ngModel]="selectedItem()" [nzDropdownMatchSelectWidth]="false"
     [ngModelOptions]="{ standalone: true }" style="width: 100%" (ngModelChange)="modelChange($event)" nzAllowClear
     nzPlaceHolder="Direccion" nzShowSearch nzServerSearch (nzOnSearch)="search($event)" [nzLoading]="loading()"
     [compareWith]="compareByPlaceId">
 
-    <!-- se agrega este item para resolver los casos donde el domicilioCompleto existe pero no hay domicilioJson -->
-    @if (!selectedItem() && domicilioCompleto().trim()) {
-      <nz-option nzHide [nzValue]="domicilioCompleto().trim()" [nzLabel]="domicilioCompleto().trim()"></nz-option>
-    }
-
     @if (!loading()) {
+      <!-- Resultados de Geoapify -->
       @for (item of options(); track item.place_id) {
+        @if (item.source !== 'manual') {
         <nz-option [nzValue]="item" [nzLabel]="item.display_name">
         </nz-option>
+        }
       }
     } @else {
       <nz-option nzDisabled nzCustomContent>
@@ -21,8 +19,29 @@
       </nz-option>
     }
 
+    @if (showManualOption()) {
+      <nz-option
+        [nzValue]="MANUAL_OPTION"
+        nzLabel="Ingresar dirección manualmente"
+        nzCustomContent
+      >
+        <div class="manual-option">
+          <nz-icon nzType="edit" />
+          Ingresar dirección manualmente
+        </div>
+      </nz-option>
+    }
+
+    <!-- Dirección manual seleccionada -->
+    @if (selectedItem()?.source === 'manual') {
+      <nz-option
+        [nzValue]="selectedItem()"
+        [nzLabel]="selectedItem()?.display_name"
+      />
+    }
+
   </nz-select>
-  <button nz-button type="button" nz-tooltip nzTooltipTitle="Ver Mapa" [disabled]="!selectedItem()" (click)="openDrawer()">
+  <button nz-button type="button" nz-tooltip nzTooltipTitle="Ver Mapa" [disabled]="!selectedItem() || selectedItem()?.source === 'manual'" (click)="openDrawer()">
     <nz-icon nzType="environment" />
   </button>
 
@@ -53,3 +72,5 @@
     <p>
   </ng-container>
 </nz-drawer>
+
+<app-addr-form [(visible)]="visibleManualModal" (addressSaved)="onManualAddressSaved($event)"/>

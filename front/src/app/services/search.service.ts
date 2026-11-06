@@ -506,12 +506,6 @@ export class SearchService {
   async getDireccionNominatim(direccion: string): Promise<Direccion[]> {
     const direccionLimpia = direccion.trim();
     if (!direccionLimpia) return [];
-    const manual: any = {
-      place_id: 0,
-      display_name: direccionLimpia,
-      address: { street: '', house_number: '', state_district: '', state: '', postcode: '' },
-      manual: true
-    };
 
     const url = new URL("https://nominatim.openstreetmap.org/search");
 
@@ -552,33 +546,9 @@ export class SearchService {
           ]
             .filter(Boolean)
             .join(", ");
+          item.source = 'nominatim'
           return item
         })
-
-    }
-
-    const arrayAdress = direccionLimpia.split(',').map(x => x.trim())
-    if (arrayAdress.length >= 3) {
-      const [calleNumero, state_district, state, postcode] = arrayAdress
-      const match = calleNumero?.split(' ')
-      let numero: any = ''
-      let calle: any = ''
-      if (isNaN(Number(match[match.length - 1]))) {
-        calle = match.join(' ')
-      } else {
-        numero = match.pop()
-        calle = match.join(' ')
-      }
-      result.push({
-        ...manual,
-        address: {
-          street: calle,
-          house_number: numero,
-          state_district: state_district ?? '',
-          state: state ?? '',
-          postcode: postcode ?? ''
-        }
-      })
     }
 
     return result
@@ -589,12 +559,6 @@ export class SearchService {
   async getDireccionAPIFY(direccion: string): Promise<Direccion[]> {
     const direccionLimpia = direccion.trim();
     if (!direccionLimpia) return [];
-    // const manual: any = {
-    //   place_id: 0,
-    //   display_name: direccionLimpia,
-    //   address: { street: '', house_number: '', state_district: '', state: '', postcode: '' },
-    //   manual: true
-    // };
 
     const params = new URLSearchParams({
       text: direccion,
@@ -638,15 +602,7 @@ export class SearchService {
             .filter(Boolean)
             .join(", ");
 
-          // item.address = { 
-          //   iso3166_2: iso3166_2, 
-          //   state: state, 
-          //   house_number: housenumber, 
-          //   state_district: county, 
-          //   town: suburb || city, 
-          //   street: street || road 
-          // }
-
+          item.source = 'geoapify'
           return item
         })
     }

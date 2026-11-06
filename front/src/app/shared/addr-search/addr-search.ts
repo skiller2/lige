@@ -25,7 +25,7 @@ import {
   distinctUntilChanged,
   firstValueFrom,
   switchMap,
-  tap
+  tap, filter, catchError, finalize, of, map, pipe
 } from 'rxjs';
 
 import {
@@ -41,12 +41,13 @@ import { EnvironmentOutline } from '@ant-design/icons-angular/icons';
 import { SearchService } from '../../services/search.service';
 import { SHARED_IMPORTS } from '@shared';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { AddressFormComponent } from '../addr-form/addr-form';
 
 @Component({
   selector: 'app-addr-search',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule, AddressFormComponent,
     ...SHARED_IMPORTS
   ],
   templateUrl: './addr-search.html',
@@ -81,9 +82,6 @@ export class AddrSearchComponent
    * Valor seleccionado
    */
   readonly selectedItem = model<any | null>(null);
-  readonly domicilioCompleto = input<string>('');
-  // El texto registrado se muestra sin convertirlo en una direccion seleccionada.
-  readonly displayValue = computed(() => this.selectedItem() ?? (this.domicilioCompleto().trim() || null));
   
   readonly visibleDrawer = signal(false);
 
@@ -91,94 +89,40 @@ export class AddrSearchComponent
 
   private readonly searchTerm = signal('');
 
+  readonly searchCount = signal(0);
+  readonly showManualOption = computed(
+    () => this.searchCount() >= 5
+  );
+  readonly visibleManualModal = signal(false);
+  readonly MANUAL_OPTION = '__MANUAL_ADDRESS__';
+
   private propagateTouched: () => void = () => { };
   private propagateChange: (_: any) => void = () => { };
-
-  // private async buscarProvincia(nombre: string, fieldName:string,paisId: number): Promise<number|null> {
-  //   try {
-  //     let res:any = []
-  //     switch (fieldName) {
-  //       case 'Descripcion':
-  //         res = await firstValueFrom(
-  //           this.searchService.getProvinciaFromName('Descripcion', nombre, paisId)
-  //         );
-  //         break;
-  //       case 'iso3166_2':
-  //         res = await firstValueFrom(
-  //           this.searchService.getProvinciaFromName('iso3166_2', nombre, paisId)
-  //         );
-  //         break;
-  //       default:
-  //         break;
-  //     }
-
-  //     return res.length ? res[0].ProvinciaId : null;
-
-  //   } catch (error) {
-  //     console.error('Error buscando provincia:', error);
-  //     return null;
-  //   }
-  // }
-
-  // private async buscarLocalidad(nombre:string, provinciaId:number, paisId:number): Promise<number|null> {
-
-  //   if (!provinciaId) return null;
-
-  //   try {
-
-  //     let array:any[] = nombre.split(" ")
-  //     const res = await firstValueFrom(
-  //       this.searchService.getLocalidadFromName('Descripcion', array[array.length-1], provinciaId, paisId)
-  //     );
-      
-  //     return res.length ? res[0].LocalidadId : null;
-
-  //   } catch (error) {
-  //     console.error('Error buscando localidad:', error);
-  //     return null;
-  //   }
-  // }
-
-  // private async buscarBarrio(nombre:string, localidadId:number, provinciaId:number, paisId:number): Promise<number|null> {
-
-  //   if (!localidadId) return null;
-
-  //   try {
-  //     let array:any[] = nombre.split(" ")
-  //     const res = await firstValueFrom(
-  //       this.searchService.getBarrioFromName('Descripcion', array[array.length-1], localidadId, provinciaId, paisId)
-  //     );
-
-  //     return res.length ? res[0].BarrioId : null;
-
-  //   } catch (error) {
-  //     console.error('Error buscando barrio:', error);
-  //     return null;
-  //   }
-  // }
 
   readonly options = toSignal(
     toObservable(this.searchTerm).pipe(
       debounceTime(500),
+      map(term => term.trim()),
       distinctUntilChanged(),
-
-      tap(() => this.loading.set(true)),
-
-      switchMap(term =>
+      
+      switchMap(term => {
+        if (!term) {
+          this.loading.set(false);
+          return of([]);
+        }
+        this.searchCount.update(count => count + 1);
+        this.loading.set(true);
+      
         // this.searchService.getDireccionNominatim(term)
-        this.searchService.getDireccionAPIFY(term)
-      ),
-
+        return this.searchService.getDireccionAPIFY(term)
+      }),
       tap({
         next: () => this.loading.set(false),
         error: () => this.loading.set(false)
       }),
-
       takeUntilDestroyed(this.destroyRef)
     ),
-    {
-      initialValue: []
-    }
+    { initialValue: [] }
   );
 
   private readonly keydownHandler = (
@@ -237,7 +181,7 @@ export class AddrSearchComponent
       return;
     }
 
-    const current = this.options();
+    const current: any[] = this.options();
 
     const found = current.some(
       (x: any) => x.place_id === value.place_id
@@ -274,7 +218,13 @@ export class AddrSearchComponent
   }
 
   async modelChange(value: any | null): Promise<void> {
-    // console.log('modelChange: ',value);
+    // El usuario eligió ingresar una dirección manualmente.
+    if (value === this.MANUAL_OPTION) {
+      this.openManualModal();
+      return;
+    }
+    
+    console.log('modelChange: ',value);
     if (typeof value === 'string') return;
 
     if (!value) {
@@ -282,47 +232,6 @@ export class AddrSearchComponent
       this.propagateChange(null);
       return;
     }
-
-    // const PaisId = 1;
-    // let ProvinciaId:number|null = null;
-    // let LocalidadId:number|null = null;
-    // let BarrioId:number|null = null;
-    // // Validar el address
-    // if (value?.address) {
-    //   const address = value.address
-      
-    //   // Provincia
-    //   if (address.iso3166_2) {
-    //     ProvinciaId = await this.buscarProvincia(address.iso3166_2, 'iso3166_2', PaisId);
-    //   }
-    //   else if (address.state) {
-    //     ProvinciaId = await this.buscarProvincia(address.state, 'Descripcion', PaisId);
-    //   }
-
-    //   // Localidad
-    //   const localidadNombre = address.state_district ?? address.city;
-    //   if (ProvinciaId == 25 && !localidadNombre) {// Casos especial para C.A.B.A
-    //     LocalidadId = 1 // C.A.B.A
-    //   } else if (ProvinciaId && localidadNombre) {
-    //     LocalidadId = await this.buscarLocalidad(localidadNombre, ProvinciaId, PaisId);
-    //   }
-
-    //   // Barrio
-    //   if (ProvinciaId && LocalidadId && address.town) {
-    //     BarrioId = await this.buscarBarrio(address.town, LocalidadId, ProvinciaId, PaisId);
-    //   }
-
-    // }
-
-    // value = {
-    //   ...value,
-    //   verAddress: {
-    //     PaisId,
-    //     ProvinciaId,
-    //     LocalidadId,
-    //     BarrioId
-    //   }
-    // };
     
     this.selectedItem.set(value);
     this.propagateChange(this.selectedItem());
@@ -372,5 +281,14 @@ export class AddrSearchComponent
       `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`
     );
   });
+
+  openManualModal(): void {
+    this.visibleManualModal.set(true);
+  }
+
+  onManualAddressSaved(address: any): void {
+    this.selectedItem.set(address);
+    this.propagateChange(address);
+  }
 
 }

@@ -50,7 +50,6 @@ export interface Beneficiario {
 export interface Domicilio {
   DomicilioId: number;
   Domicilio: any;
-  DomicilioCompleto: string;
   DomicilioDomLugar: string;
   Piso: string;
   Dpto: string;
@@ -120,7 +119,7 @@ export class PersonalFormComponent {
   private readonly objEstudio: Estudio = { PersonalEstudioId: 0, TipoEstudioId: 0, EstadoEstudioId: 0, EstudioTitulo: '', PersonalEstudioOtorgado: '', PersonalEstudioVencimiento: '', DocTitulo: [], docId: 0 }
   private readonly objFamiliar: Familiar = { PersonalFamiliaId: 0, Apellido: '', Nombre: '', TipoParentescoId: 0 }
   private readonly objBeneficiario: Beneficiario = { Apellido: '', Nombre: '', TipoDocumentoId: 0, DocumentoNro: NaN, TipoParentescoId: 0, Observacion: '', Desde: '' }
-  private readonly objDomicilio: Domicilio = { DomicilioId: 0, Domicilio: null, DomicilioCompleto: '', Piso: '', Dpto: '', DomicilioDomLugar: '' }
+  private readonly objDomicilio: Domicilio = { DomicilioId: 0, Domicilio: null, Piso: '', Dpto: '', DomicilioDomLugar: '' }
 
   private readonly defaultPersonalForm: ParametroPersonalForm = {
     Nombre: '', Apellido: '', CUIT: NaN, NroLegajo: NaN, SucursalId: 0,
