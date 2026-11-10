@@ -2293,21 +2293,21 @@ LEFT JOIN(
         (parse && (parse.place_id != domicilio.Domicilio?.place_id || parse.display_name != domicilio.Domicilio?.display_name)) ||
         parse == null
       ) cambio = true
-      
-      if (cambio) {
-        domicilio.Domicilio = await domicilioController.normalizeAddress(queryRunner, domicilio.Domicilio)
-        await domicilioController.updateDomicilio(queryRunner, DomicilioId, domicilio.Domicilio, domicilio.DomicilioDomLugar, domicilio.Dpto, domicilio.Piso)
-      }
 
-    } else { // ADD
-      domicilio.Domicilio = await domicilioController.normalizeAddress(queryRunner, domicilio.Domicilio)
-      DomicilioId = await domicilioController.addDomicilio(queryRunner, domicilio.Domicilio, domicilio.DomicilioDomLugar, domicilio.Dpto, domicilio.Piso)
-      await queryRunner.query(
-        `INSERT INTO NexoDomicilio (DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, PersonalId) 
-        VALUES ( @0,@1,@2,@3,@4,@5,@6)`,
-        [DomicilioId, 1, 1, 1, 1, 1, PersonalId]
-      )
+      if (!cambio) return
+
+      // Se conserva el historial: los domicilios anteriores dejan de ser el actual
+      await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual = 0 WHERE PersonalId = @0`, [PersonalId])
     }
+
+    // Alta o cambio: se inserta un domicilio nuevo y se vincula como actual
+    domicilio.Domicilio = await domicilioController.normalizeAddress(queryRunner, domicilio.Domicilio)
+    DomicilioId = await domicilioController.addDomicilio(queryRunner, domicilio.Domicilio, domicilio.DomicilioDomLugar, domicilio.Dpto, domicilio.Piso)
+    await queryRunner.query(
+      `INSERT INTO NexoDomicilio (DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, PersonalId)
+      VALUES ( @0,@1,@2,@3,@4,@5,@6)`,
+      [DomicilioId, 1, 1, 1, 1, 1, PersonalId]
+    )
 
 
 
