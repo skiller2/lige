@@ -73,4 +73,4 @@
   </ng-container>
 </nz-drawer>
 
-<app-addr-form [(visible)]="visibleManualModal" (addressSaved)="onManualAddressSaved($event)"/>
+<app-addr-form [(visible)]="visibleManualModal" [direccionActual]="selectedItem()" (addressSaved)="onManualAddressSaved($event)"/>

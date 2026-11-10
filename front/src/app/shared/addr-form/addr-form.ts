@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, model, output, signal, inject, resource } from '@angular/core';
+import { ChangeDetectionStrategy, Component, model, output, input, linkedSignal, inject, resource, computed, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { form, FormField } from '@angular/forms/signals';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
@@ -41,8 +41,23 @@ export class AddressFormComponent {
     street: '', housenumber: '', postcode: '', display_name: '',
     Provincia: {}, Localidad: {}, Barrio: {}
   }
-  readonly direccion = signal<DireccionManual>(this.defaultAddress);
+  // Direccion seleccionada en el buscador: si es manual, se precarga para corregirla
+  readonly direccionActual = input<any>(null);
+  private readonly valorInicial = computed<DireccionManual>(() => {
+    const dir = this.direccionActual()
+    if (dir?.source !== 'manual') return this.defaultAddress
+    return {
+      ...this.defaultAddress,
+      street: dir.street || '', housenumber: dir.housenumber || '', postcode: dir.postcode || '',
+      Provincia: dir.ProvinciaId ? { value: dir.ProvinciaId, label: dir.state, iso3166_2: dir.iso3166_2 } : {},
+      Localidad: dir.LocalidadId ? { value: dir.LocalidadId, label: dir.county } : {},
+      Barrio: dir.BarrioId ? { value: dir.BarrioId, label: dir.suburb } : {},
+    }
+  })
+  readonly direccion = linkedSignal<DireccionManual>(() => this.valorInicial());
   readonly formDirecciones = form(this.direccion)
+  // Los combos comparan por ID: la opcion precargada no es el mismo objeto que el de la lista
+  readonly compareByValue = (a: any, b: any) => a?.value === b?.value
 
   optionsProvincia = toSignal(this.searchService.getProvinciasByPais(1), { initialValue: [] })
   optionsLocalidad = resource({
@@ -67,12 +82,36 @@ export class AddressFormComponent {
     defaultValue: []
   });
 
+  constructor() {
+    // Si la Localidad no pertenece a la Provincia elegida se vacian Localidad y Barrio
+    effect(() => {
+      if (this.optionsLocalidad.status() !== 'resolved') return
+      const ids = this.optionsLocalidad.value().map((o: any) => o.value)
+      untracked(() => {
+        const id = this.direccion().Localidad?.value
+        if (id && !ids.includes(id)) this.direccion.update(d => ({ ...d, Localidad: {}, Barrio: {} }))
+      })
+    })
+    // Si el Barrio no pertenece a la Localidad elegida se vacia
+    effect(() => {
+      if (this.optionsBarrio.status() !== 'resolved') return
+      const ids = this.optionsBarrio.value().map((o: any) => o.value)
+      untracked(() => {
+        const id = this.direccion().Barrio?.value
+        if (id && !ids.includes(id)) this.direccion.update(d => ({ ...d, Barrio: {} }))
+      })
+    })
+  }
+
   close(): void {
     this.visible.set(false);
+    // Al cerrar (cancelar o guardar) vuelve a la direccion guardada, o vacio si no habia manual
+    this.formDirecciones().reset(this.valorInicial());
   }
 
   save() {
-    const values: any = this.formDirecciones().value()
+    // Copia: no modificar el objeto del formulario
+    const values: any = { ...this.formDirecciones().value() }
 
     // Simular direccion de Geoapify para que sea compatible con el backend
     values.lat = ''
@@ -81,6 +120,10 @@ export class AddressFormComponent {
     values.state = values.Provincia?.label || '';
     values.county = (values.Localidad?.label) || '';
     values.suburb = (values.Barrio?.label) || '';
+    // IDs elegidos en los combos: el back los usa sin buscar por texto
+    values.ProvinciaId = values.Provincia?.value || null;
+    values.LocalidadId = values.Localidad?.value || null;
+    values.BarrioId = values.Barrio?.value || null;
     values.display_name = [
       [values.street, values.housenumber].filter(Boolean).join(" "),
       values.postcode,
@@ -93,7 +136,6 @@ export class AddressFormComponent {
     delete values.Barrio;
 
     this.addressSaved.emit(values);
-    this.visible.set(false);
-    this.formDirecciones().reset(this.defaultAddress);
+    this.close();
   }
 }

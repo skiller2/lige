@@ -90,8 +90,9 @@ export class AddrSearchComponent
   private readonly searchTerm = signal('');
 
   readonly searchCount = signal(0);
+  // Tras 5 busquedas, o si la direccion actual ya es manual (para corregirla)
   readonly showManualOption = computed(
-    () => this.searchCount() >= 5
+    () => this.searchCount() >= 5 || this.selectedItem()?.source === 'manual'
   );
   readonly visibleManualModal = signal(false);
   readonly MANUAL_OPTION = '__MANUAL_ADDRESS__';
@@ -175,6 +176,9 @@ export class AddrSearchComponent
     //     value = arrResult[0]
     // }
 
+    // reinicia el contador de busquedas
+    if (value !== this.selectedItem()) this.searchCount.set(0);
+
     this.selectedItem.set(value ?? null);
 
     if (!value) {
@@ -220,6 +224,8 @@ export class AddrSearchComponent
   async modelChange(value: any | null): Promise<void> {
     // El usuario eligió ingresar una dirección manualmente.
     if (value === this.MANUAL_OPTION) {
+      // El combo vuelve a la direccion previa para poder elegir la opcion de nuevo
+      this.dsc()?.writeValue(this.selectedItem());
       this.openManualModal();
       return;
     }

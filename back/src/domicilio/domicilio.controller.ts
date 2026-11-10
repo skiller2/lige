@@ -864,7 +864,13 @@ export class DomicilioController extends BaseController {
       state = 'Ciudad Autonoma de Buenos Aires'
       county = 'Ciudad Autonoma de Buenos Aires'
     }
-    const Provincia = await queryRunner.query(`
+    // Las manuales traen los IDs elegidos en el formulario: no se buscan por texto
+    if (Address.source === 'manual' && Address.ProvinciaId) {
+      ProvinciaId = Address.ProvinciaId
+      LocalidadId = Address.LocalidadId || null
+      BarrioId = Address.BarrioId || null
+    }
+    const Provincia = ProvinciaId ? [] : await queryRunner.query(`
       SELECT pro.ProvinciaId
       FROM Provincia pro
       WHERE pro.PaisId IN (@0) AND pro.iso3166_2 = @1
@@ -916,6 +922,9 @@ export class DomicilioController extends BaseController {
         ,TRIM(dom.DomicilioDomDpto) AS Dpto
         ,TRIM(dom.DomicilioCompleto) AS DomicilioCompleto
         ,dom.DomicilioJson
+        ,dom.DomicilioProvinciaId
+        ,dom.DomicilioLocalidadId
+        ,dom.DomicilioBarrioId
         ,pro.iso3166_2
         ,TRIM(pro.ProvinciaDescripcion) AS ProvinciaDescripcion
         ,TRIM(loc.LocalidadDescripcion) AS LocalidadDescripcion
@@ -950,8 +959,15 @@ export class DomicilioController extends BaseController {
             county: dom.LocalidadDescripcion || '',
             suburb: dom.BarrioDescripcion || '',
             display_name: dom.DomicilioCompleto,
+            // IDs ya guardados, para que no se pierdan al volver a guardar
+            ProvinciaId: dom.DomicilioProvinciaId,
+            LocalidadId: dom.DomicilioLocalidadId,
+            BarrioId: dom.DomicilioBarrioId,
           }
-          
+
+          delete dom.DomicilioProvinciaId;
+          delete dom.DomicilioLocalidadId;
+          delete dom.DomicilioBarrioId;
           delete dom.iso3166_2;
           delete dom.ProvinciaDescripcion;
           delete dom.LocalidadDescripcion;
@@ -974,8 +990,15 @@ export class DomicilioController extends BaseController {
           county: dom.LocalidadDescripcion || '',
           suburb: dom.BarrioDescripcion || '',
           display_name: dom.DomicilioCompleto,
+          // IDs ya guardados, para que no se pierdan al volver a guardar
+          ProvinciaId: dom.DomicilioProvinciaId,
+          LocalidadId: dom.DomicilioLocalidadId,
+          BarrioId: dom.DomicilioBarrioId,
         }
 
+        delete dom.DomicilioProvinciaId;
+        delete dom.DomicilioLocalidadId;
+        delete dom.DomicilioBarrioId;
         delete dom.iso3166_2;
         delete dom.ProvinciaDescripcion;
         delete dom.LocalidadDescripcion;

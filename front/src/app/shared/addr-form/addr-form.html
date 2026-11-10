@@ -34,7 +34,7 @@
         <nz-form-label [nzSpan]="6">Provincia</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-select [formField]="formDirecciones.Provincia" nzPlaceHolder="" nzAllowClear
-            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
+            [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch [compareWith]="compareByValue">
             @for (option of optionsProvincia(); track option.value) {
               <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
             }
@@ -47,7 +47,7 @@
         <nz-form-label [nzSpan]="6">Localidad</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-select [formField]="formDirecciones.Localidad" nzPlaceHolder="" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch [compareWith]="compareByValue">
           @for (option of optionsLocalidad.value(); track option.value) {
             <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
           }
@@ -60,7 +60,7 @@
         <nz-form-label [nzSpan]="6">Barrio</nz-form-label>
         <nz-form-control [nzSpan]="18">
           <nz-select [formField]="formDirecciones.Barrio" nzPlaceHolder="" nzAllowClear
-          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
+          [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch [compareWith]="compareByValue">
           @for (option of optionsBarrio.value(); track option.value) {
             <nz-option [nzValue]="option" [nzLabel]="option.label"></nz-option>
           }
