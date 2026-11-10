@@ -2289,7 +2289,8 @@ LEFT JOIN(
         domicilio.DomicilioDomLugar != Domicilio[0].DomicilioDomLugar ||
         domicilio.Dpto != Domicilio[0].DomicilioDomDpto || 
         domicilio.Piso != Domicilio[0].DomicilioDomPiso || 
-        (parse && parse.place_id != domicilio.place_id) ||
+        // place_id no alcanza para las manuales: se compara tambien display_name
+        (parse && (parse.place_id != domicilio.Domicilio?.place_id || parse.display_name != domicilio.Domicilio?.display_name)) ||
         parse == null
       ) cambio = true
       

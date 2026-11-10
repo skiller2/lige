@@ -50,7 +50,7 @@ export class AddressFormComponent {
       Provincia: this.direccion().Provincia,
     }),
     loader: async ({ params }) => {
-      if (!params.Provincia.value) return [];
+      if (!params.Provincia?.value) return [];
       return await firstValueFrom(this.searchService.getLocalidadesByProvincia(1, params.Provincia.value))
     },
     defaultValue: []
@@ -61,7 +61,7 @@ export class AddressFormComponent {
       Localidad: this.direccion().Localidad,
     }),
     loader: async ({ params }) => {
-      if (!params.Provincia.value || !params.Localidad.value) return [];
+      if (!params.Provincia?.value || !params.Localidad?.value) return [];
       return await firstValueFrom(this.searchService.getBarriosByLocalidad(1, params.Provincia.value, params.Localidad.value))
     },
     defaultValue: []
@@ -77,8 +77,8 @@ export class AddressFormComponent {
     // Simular direccion de Geoapify para que sea compatible con el backend
     values.lat = ''
     values.lon = ''
-    values.iso3166_2 = values.Provincia.iso3166_2;
-    values.state = values.Provincia.label;
+    values.iso3166_2 = values.Provincia?.iso3166_2 || '';
+    values.state = values.Provincia?.label || '';
     values.county = (values.Localidad?.label) || '';
     values.suburb = (values.Barrio?.label) || '';
     values.display_name = [
