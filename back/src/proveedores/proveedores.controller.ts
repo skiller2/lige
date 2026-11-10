@@ -194,7 +194,7 @@ export class ProveedoresController extends BaseController {
       return new ClientException(`El CUIT ingresado ya existe.`)
     }
 
-    const valDomicilio = await domicilioController.valObjDomicilio(queryRunner, form.domicilio)
+    const valDomicilio = await domicilioController.valObjDomicilio(form.domicilio)
     if (valDomicilio instanceof ClientException) {
       return valDomicilio
     }

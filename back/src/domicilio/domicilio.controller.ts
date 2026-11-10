@@ -858,7 +858,7 @@ export class DomicilioController extends BaseController {
     let LocalidadId: number | null = null;
     let BarrioId: number | null = null;
 
-    iso3166_2 = iso3166_2?.length > 4? iso3166_2.splie(0,4) : iso3166_2
+    iso3166_2 = iso3166_2?.length > 4? iso3166_2.slice(0,4) : iso3166_2
     //Caso especial C.A.B.A
     if (iso3166_2 == 'AR-C') {
       state = 'Ciudad Autonoma de Buenos Aires'

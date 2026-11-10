@@ -201,7 +201,7 @@ export class DepositosController extends BaseController {
       return new ClientException(campos_vacios)
     }
 
-    const valDomicilio = await domicilioController.valObjDomicilio(queryRunner, form.domicilio)
+    const valDomicilio = await domicilioController.valObjDomicilio(form.domicilio)
     if (valDomicilio instanceof ClientException) {
       return valDomicilio
     }
