@@ -766,81 +766,41 @@ export class DomicilioController extends BaseController {
     return resDomicilio[0][''] // New DomicilioId
   }
 
-  async updateDomicilio(queryRunner: any, domicilioId: number, domicilio: any, DomicilioDomLugar: string | null, DomicilioDomDpto: string | null, DomicilioDomPiso: string | null) {
+  async updateDomicilio(queryRunner: any, DomicilioId: number, domicilio: any, DomLugar: string | null, DomDpto: string | null, DomPiso: string | null) {
 
-    const { PaisId, ProvinciaId, LocalidadId, BarrioId, Calle, Nro, CodigoPostal } = domicilio.address
+    if (DomicilioId) { // UPDATE
+      const Domicilio = await queryRunner.query(
+        `SELECT dom.DomicilioJson, TRIM(DomicilioDomPiso) DomicilioDomPiso, TRIM(DomicilioDomDpto) DomicilioDomDpto, TRIM(DomicilioDomLugar) DomicilioDomLugar FROM Domicilio AS dom WHERE dom.DomicilioId = @0`,
+        [DomicilioId]
+      )
+      let cambio: boolean = false
+      let parse:any = null 
+      try {
+        parse = JSON.parse(Domicilio[0].DomicilioJson);
+      } catch (error) {
+        // logger.warn(`DomicilioJson no contiene un JSON válido: ${domicilio[0].DomicilioJson}`);
+      }
 
-    // if (domicilio.place_id) {
-      //Crea la Provincia en caso de no estar registrada
-      // if (!ProvinciaId && address.state) {
-      //   const ProvinciaDescripcion: string = address.state
+      if(
+        domicilio.DomicilioDomLugar != Domicilio[0].DomicilioDomLugar ||
+        domicilio.Dpto != Domicilio[0].DomicilioDomDpto || 
+        domicilio.Piso != Domicilio[0].DomicilioDomPiso || 
+        // place_id no alcanza para las manuales: se compara tambien display_name
+        (parse && (parse.place_id != domicilio.place_id || parse.display_name != domicilio.display_name)) ||
+        parse == null
+      ) cambio = true
 
-      //   const Pais = await queryRunner.query(`
-      //     SELECT ISNULL(PaisProvinciaUltNro, 0) AS PaisProvinciaUltNro, PaisId
-      //     FROM Pais
-      //     WHERE PaisId IN (@0)
-      //   `, [PaisId])
-      //   const newProvinciaId: number = Pais[0].PaisProvinciaUltNro + 1
+      if (!cambio) return 0
 
-      //   await queryRunner.query(`
-      //     UPDATE Pais
-      //     SET PaisProvinciaUltNro = @0
-      //     WHERE PaisId IN (@1)
+      // Se conserva el historial: los domicilios anteriores dejan de ser el actual
+      await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual = 0 WHERE DomicilioId = @0`, [DomicilioId])
+    }
 
-      //     INSERT INTO Provincia (
-      //       ProvinciaId,
-      //       PaisId,
-      //       ProvinciaId,
-      //       ProvinciaDescripcion,
-      //       ProvinciaLocalidadUltNro ) 
-      //     VALUES (@0, @1, @2, @3, 0)
-      //   `, [newProvinciaId, PaisId, ProvinciaId, ProvinciaDescripcion])
-
-      //   ProvinciaId = newProvinciaId
-      // }
-
-      //Crea la localidad en caso de no estar registrada
-      // if (ProvinciaId && !LocalidadId && (address.state_district || address.city)) {
-      //   const LocalidadDescripcion: string = address.state_district ? address.state_district : address.city
-
-      //   const Provincia = await queryRunner.query(`
-      //     SELECT ISNULL(ProvinciaLocalidadUltNro, 0) AS ProvinciaLocalidadUltNro, ProvinciaId, PaisId
-      //     FROM Provincia
-      //     WHERE PaisId IN (@0) AND ProvinciaId IN (@1)
-      //   `, [PaisId, ProvinciaId])
-      //   const newLocalidadId: number = Provincia[0].ProvinciaLocalidadUltNro + 1
-
-      //   await queryRunner.query(`
-      //     UPDATE Provincia
-      //     SET ProvinciaLocalidadUltNro = @0
-      //     WHERE PaisId IN (@1) AND ProvinciaId IN (@2)
-
-      //     INSERT INTO Localidad (
-      //       LocalidadId,
-      //       PaisId,
-      //       ProvinciaId,
-      //       LocalidadDescripcion,
-      //       LocalidadBarrioUltNro ) 
-      //     VALUES (@0, @1, @2, @3, 0)
-      //   `, [newLocalidadId, PaisId, ProvinciaId, LocalidadDescripcion])
-
-      //   LocalidadId = newLocalidadId
-      // }
-    // }
-
-    await queryRunner.query(
-      `UPDATE Domicilio
-      SET DomicilioDomLugar=@1, DomicilioDomCalle=@2, DomicilioDomNro=@3, DomicilioCodigoPostal=@4, 
-          DomicilioPaisId=@5, DomicilioProvinciaId=@6, DomicilioLocalidadId=@7, DomicilioBarrioId=@8,
-          DomicilioLatitud=@9, DomicilioLongitud=@10, DomicilioCompleto=@11, DomicilioJson=@12, 
-          DomicilioDomPiso=@13, DomicilioDomDpto=@14
-      WHERE DomicilioId IN (@0)`,
-      [domicilioId, DomicilioDomLugar, Calle, Nro,
-        CodigoPostal, PaisId, ProvinciaId, LocalidadId, BarrioId, 
-        domicilio.lat, domicilio.lon, domicilio.display_name, JSON.stringify(domicilio),
-        DomicilioDomPiso, DomicilioDomDpto
-      ]
-    )
+    // Alta o cambio: se inserta un domicilio nuevo y se vincula como actual
+    domicilio = await this.normalizeAddress(queryRunner, domicilio)
+    DomicilioId = await this.addDomicilio(queryRunner, domicilio, DomLugar, DomDpto, DomPiso)
+    
+    return DomicilioId
   }
 
   // Soporta direcciones de Geoapify y similares
@@ -909,7 +869,7 @@ export class DomicilioController extends BaseController {
     return Address
   }
 
-  async getDomicilioById(queryRunner:any, columnForSearch:any, id:number){
+  async getDomicilioById(queryRunner:any, columnForSearch:any, id:number, filter:string = '(1=1)') {
 
     const domicilios = await queryRunner.query(`
       SELECT 
@@ -934,7 +894,7 @@ export class DomicilioController extends BaseController {
       LEFT JOIN Provincia AS pro ON dom.DomicilioProvinciaId = pro.ProvinciaId AND 1 = pro.PaisId
       LEFT JOIN Localidad AS loc ON dom.DomicilioLocalidadId = loc.LocalidadId AND dom.DomicilioProvinciaId = loc.ProvinciaId AND 1 = loc.PaisId
       LEFT JOIN Barrio AS bar ON dom.DomicilioBarrioId = bar.BarrioId AND dom.DomicilioLocalidadId = bar.LocalidadId AND dom.DomicilioProvinciaId = bar.ProvinciaId AND 1 = bar.PaisId
-      WHERE nex.${columnForSearch} IN (@0) AND nex.NexoDomicilioActual = 1
+      WHERE nex.${columnForSearch} IN (@0) AND nex.NexoDomicilioActual = 1 AND ${filter}
       ORDER BY dom.DomicilioId DESC
       `, [id]);
     

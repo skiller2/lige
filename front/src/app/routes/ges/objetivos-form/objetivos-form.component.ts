@@ -248,7 +248,7 @@ export class ObjetivosFormComponent {
   async load() {
 
     let infoObjetivo = await firstValueFrom(this.searchService.getInfoObj(this.ObjetivoId(), this.ClienteId(), this.ClienteElementoDependienteId()))
-console.log('infoObjetivo: ', infoObjetivo);
+    // console.log('infoObjetivo: ', infoObjetivo);
 
     if (!infoObjetivo.infoCoordinadorCuenta.length) {
       infoObjetivo.infoCoordinadorCuenta = [{ ...this.coordinadorCuentaDefault }]

@@ -118,17 +118,13 @@ export class ProveedoresController extends BaseController {
 
   private async getProveedorByIdQuery(queryRunner: QueryRunner, proveedorId: number) {
     let data = await queryRunner.query(
-      `SELECT pro.ProveedorId, pro.ProveedorInactivo, TRIM(pro.ProveedorRazonSocial) ProveedorRazonSocial, pro.CUIT,
-      nex.DomicilioId, dom.DomicilioJson
+      `SELECT pro.ProveedorId, pro.ProveedorInactivo, TRIM(pro.ProveedorRazonSocial) ProveedorRazonSocial, pro.CUIT
       FROM Proveedor pro
-      LEFT JOIN NexoDomicilio AS nex ON nex.ProveedorId = pro.ProveedorId AND nex.NexoDomicilioActual = 1
-      LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
       WHERE pro.ProveedorId = @0`,
       [proveedorId]
     )
     if (!data.length) return null
     const Proveedor = data[0]
-    Proveedor.domicilio = JSON.parse(Proveedor.DomicilioJson)
 
     return Proveedor
   }
@@ -138,7 +134,13 @@ export class ProveedoresController extends BaseController {
     const ProveedorId = Number(req.params.id)
     try {
       let data = await this.getProveedorByIdQuery(queryRunner, ProveedorId)
+      const domicilio = await domicilioController.getDomicilioById(queryRunner, 'ProveedorId',ProveedorId)
       const contactos = await this.getContactosByProveedorId(queryRunner, ProveedorId)
+      if (domicilio.length) {
+        data.DomicilioId = domicilio[0].DomicilioId || 0
+        data.domicilio = domicilio[0].Domicilio || null
+        data.domicilio = domicilio[0].DomicilioDomLugar || ''
+      }
       data.contactos = contactos
 
       this.jsonRes(data, res);
@@ -231,6 +233,8 @@ export class ProveedoresController extends BaseController {
       const ip = this.getRemoteAddress(req)
 
       const ProveedorId = await this.insertProveedor(queryRunner, body, usuario, ip)
+
+      body.domicilio = await domicilioController.normalizeAddress(queryRunner, body.domicilio)
       const DomicilioId = await domicilioController.addDomicilio(queryRunner, body.domicilio, null, null, null)
       // Agregar NexoDomicilio
       await queryRunner.query(
@@ -349,7 +353,7 @@ export class ProveedoresController extends BaseController {
       // const usuario = res.locals.userName
       // const ip = this.getRemoteAddress(req)
 
-      await domicilioController.updateDomicilio(queryRunner, body.DomicilioId, body.domicilio, null, null, null)
+      await this.ProveedoresDomicilioUpdate(queryRunner, ProveedorId, body.DomicilioId, body.domicilio, body.DomicilioDomLugar)
       //Agregar Contactos de Provedor
       await this.ProveedorContactoUpdate(queryRunner, body.contactos, ProveedorId)
 
@@ -399,6 +403,20 @@ export class ProveedoresController extends BaseController {
     } finally {
       await queryRunner.release()
     }
+  }
+
+  private async ProveedoresDomicilioUpdate(queryRunner: any, ProveedorId: number, DomicilioId: number, domicilio: any, DomicilioDomLugar: string) {
+    
+    const newDomicilioId = await domicilioController.updateDomicilio(queryRunner, DomicilioId, domicilio, DomicilioDomLugar, null, null)
+    
+    if (newDomicilioId) {
+      await queryRunner.query(
+        `INSERT INTO NexoDomicilio (DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ProveedorId)
+        VALUES ( @0,@1,@2,@3,@4,@5,@6)`,
+        [newDomicilioId, 1, 1, 1, 1, 1, ProveedorId]
+      )
+    }
+    
   }
 
 }

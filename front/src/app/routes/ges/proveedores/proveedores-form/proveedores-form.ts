@@ -30,6 +30,7 @@ export interface ProveedorForm {
   CUIT: number;
   DomicilioId: number;
   domicilio: any;
+  DomicilioDomLugar: string;
   ProveedorInactivo: number;
   contactos: Contacto[];
 }
@@ -70,6 +71,7 @@ export class ProveedoresFormComponent {
     ProveedorInactivo: 0,
     DomicilioId: 0,
     domicilio: null,
+    DomicilioDomLugar: '',
     contactos: [structuredClone(this.defaultContacto)],
   }
 
