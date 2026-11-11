@@ -782,9 +782,9 @@ export class DomicilioController extends BaseController {
       }
 
       if(
-        domicilio.DomicilioDomLugar != Domicilio[0].DomicilioDomLugar ||
-        domicilio.Dpto != Domicilio[0].DomicilioDomDpto || 
-        domicilio.Piso != Domicilio[0].DomicilioDomPiso || 
+        DomLugar != Domicilio[0].DomicilioDomLugar ||
+        DomDpto != Domicilio[0].DomicilioDomDpto || 
+        DomPiso != Domicilio[0].DomicilioDomPiso || 
         // place_id no alcanza para las manuales: se compara tambien display_name
         (parse && (parse.place_id != domicilio.place_id || parse.display_name != domicilio.display_name)) ||
         parse == null
