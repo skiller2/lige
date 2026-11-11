@@ -658,7 +658,7 @@ export class DomicilioController extends BaseController {
     if (domicilio.source === 'manual') {
       let campos_vacios: any[] = []
       if (!domicilio.street) campos_vacios.push(`- Calle`)
-      // if (!domicilio.housenumber) campos_vacios.push(`- Numero`)
+      if (!domicilio.housenumber) campos_vacios.push(`- Numero`)
       if (!domicilio.postcode) campos_vacios.push(`- Código Postal`)
       if (!domicilio.iso3166_2 && !domicilio.state) campos_vacios.push(`- Provincia`)
       if (!domicilio.county) campos_vacios.push(`- Localidad`)

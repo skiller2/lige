@@ -57,6 +57,7 @@ export class AddressFormComponent {
   readonly direccion = linkedSignal<DireccionManual>(() => this.valorInicial());
   readonly formDirecciones = form(this.direccion, (p) => {
     required(p.street, { message: 'Calle es requerida' })
+    required(p.housenumber, { message: 'Número es requerido' })
     required(p.postcode, { message: 'Código postal es requerido' })
     required(p.Provincia, { message: 'Provincia es requerida' })
     required(p.Localidad, { message: 'Localidad es requerida' })
