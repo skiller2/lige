@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, model, output, input, linkedSignal, inject, resource, computed, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { form, FormField } from '@angular/forms/signals';
+import { form, FormField, required, submit, validate } from '@angular/forms/signals';
 import { NzSelectComponent } from 'ng-zorro-antd/select';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { SHARED_IMPORTS } from '@shared';
@@ -39,7 +39,7 @@ export class AddressFormComponent {
   private readonly defaultAddress: DireccionManual = {
     source: 'manual',
     street: '', housenumber: '', postcode: '', display_name: '',
-    Provincia: {}, Localidad: {}, Barrio: {}
+    Provincia: null, Localidad: null, Barrio: null
   }
   // Direccion seleccionada en el buscador: si es manual, se precarga para corregirla
   readonly direccionActual = input<any>(null);
@@ -49,13 +49,21 @@ export class AddressFormComponent {
     return {
       ...this.defaultAddress,
       street: dir.street || '', housenumber: dir.housenumber || '', postcode: dir.postcode || '',
-      Provincia: dir.ProvinciaId ? { value: dir.ProvinciaId, label: dir.state, iso3166_2: dir.iso3166_2 } : {},
-      Localidad: dir.LocalidadId ? { value: dir.LocalidadId, label: dir.county } : {},
-      Barrio: dir.BarrioId ? { value: dir.BarrioId, label: dir.suburb } : {},
+      Provincia: dir.ProvinciaId ? { value: dir.ProvinciaId, label: dir.state, iso3166_2: dir.iso3166_2 } : null,
+      Localidad: dir.LocalidadId ? { value: dir.LocalidadId, label: dir.county } : null,
+      Barrio: dir.BarrioId ? { value: dir.BarrioId, label: dir.suburb } : null,
     }
   })
   readonly direccion = linkedSignal<DireccionManual>(() => this.valorInicial());
-  readonly formDirecciones = form(this.direccion)
+  readonly formDirecciones = form(this.direccion, (p) => {
+    required(p.street, { message: 'Calle es requerida' })
+    required(p.postcode, { message: 'Código postal es requerido' })
+    required(p.Provincia, { message: 'Provincia es requerida' })
+    required(p.Localidad, { message: 'Localidad es requerida' })
+    // validate y no maxLength: maxLength pone maxlength en el input y el navegador corta sin mostrar error
+    validate(p.housenumber, ({ value }) => (value()?.length ?? 0) > 100 ? { kind: 'maxLength', message: 'Máximo 100 caracteres' } : undefined)
+    validate(p.postcode, ({ value }) => (value()?.length ?? 0) > 8 ? { kind: 'maxLength', message: 'Máximo 8 caracteres' } : undefined)
+  })
   // Los combos comparan por ID: la opcion precargada no es el mismo objeto que el de la lista
   readonly compareByValue = (a: any, b: any) => a?.value === b?.value
 
@@ -89,7 +97,7 @@ export class AddressFormComponent {
       const ids = this.optionsLocalidad.value().map((o: any) => o.value)
       untracked(() => {
         const id = this.direccion().Localidad?.value
-        if (id && !ids.includes(id)) this.direccion.update(d => ({ ...d, Localidad: {}, Barrio: {} }))
+        if (id && !ids.includes(id)) this.direccion.update(d => ({ ...d, Localidad: null, Barrio: null }))
       })
     })
     // Si el Barrio no pertenece a la Localidad elegida se vacia
@@ -98,7 +106,7 @@ export class AddressFormComponent {
       const ids = this.optionsBarrio.value().map((o: any) => o.value)
       untracked(() => {
         const id = this.direccion().Barrio?.value
-        if (id && !ids.includes(id)) this.direccion.update(d => ({ ...d, Barrio: {} }))
+        if (id && !ids.includes(id)) this.direccion.update(d => ({ ...d, Barrio: null }))
       })
     })
   }
@@ -109,33 +117,37 @@ export class AddressFormComponent {
     this.formDirecciones().reset(this.valorInicial());
   }
 
-  save() {
-    // Copia: no modificar el objeto del formulario
-    const values: any = { ...this.formDirecciones().value() }
+  async save() {
+    // submit marca los campos como tocados: si hay errores los muestra y no guarda
+    await submit(this.formDirecciones, async (form) => {
+      // Copia: no modificar el objeto del formulario
+      const values: any = { ...form().value() }
 
-    // Simular direccion de Geoapify para que sea compatible con el backend
-    values.lat = ''
-    values.lon = ''
-    values.iso3166_2 = values.Provincia?.iso3166_2 || '';
-    values.state = values.Provincia?.label || '';
-    values.county = (values.Localidad?.label) || '';
-    values.suburb = (values.Barrio?.label) || '';
-    // IDs elegidos en los combos: el back los usa sin buscar por texto
-    values.ProvinciaId = values.Provincia?.value || null;
-    values.LocalidadId = values.Localidad?.value || null;
-    values.BarrioId = values.Barrio?.value || null;
-    values.display_name = [
-      [values.street, values.housenumber].filter(Boolean).join(" "),
-      values.postcode,
-      values.suburb,
-      values.county,
-      values.state
-    ].filter(Boolean).join(", ");
-    delete values.Provincia;
-    delete values.Localidad;
-    delete values.Barrio;
+      // Simular direccion de Geoapify para que sea compatible con el backend
+      values.lat = ''
+      values.lon = ''
+      values.iso3166_2 = values.Provincia?.iso3166_2 || '';
+      values.state = values.Provincia?.label || '';
+      values.county = (values.Localidad?.label) || '';
+      values.suburb = (values.Barrio?.label) || '';
+      // IDs elegidos en los combos: el back los usa sin buscar por texto
+      values.ProvinciaId = values.Provincia?.value || null;
+      values.LocalidadId = values.Localidad?.value || null;
+      values.BarrioId = values.Barrio?.value || null;
+      values.display_name = [
+        [values.street, values.housenumber].filter(Boolean).join(" "),
+        values.postcode,
+        values.suburb,
+        values.county,
+        values.state
+      ].filter(Boolean).join(", ");
+      delete values.Provincia;
+      delete values.Localidad;
+      delete values.Barrio;
 
-    this.addressSaved.emit(values);
-    this.close();
+      this.addressSaved.emit(values);
+      this.close();
+      return undefined
+    })
   }
 }

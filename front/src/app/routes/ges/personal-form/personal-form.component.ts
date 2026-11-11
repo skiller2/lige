@@ -8,7 +8,7 @@ import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { FileUploadComponent } from "../../../shared/file-upload/file-upload.component";
 import { NzCheckboxGroupComponent, NzCheckboxModule } from 'ng-zorro-antd/checkbox';
-import { applyEach, disabled, FieldTree, form, FormField, required, submit, type ValidationError } from '@angular/forms/signals';
+import { applyEach, disabled, FieldTree, form, FormField, required, submit, validate, type ValidationError } from '@angular/forms/signals';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
@@ -147,6 +147,9 @@ export class PersonalFormComponent {
 
   readonly formParametroPersonal = form(this.parametroPersonal, (p) => {
     disabled(p, () => this.readonly())
+    // Largo maximo de la columna (CHAR(5)); validate y no maxLength para mostrar el error en vez de cortar el texto
+    validate(p.domicilio.Piso, ({ value }) => (value()?.length ?? 0) > 5 ? { kind: 'maxLength', message: 'Piso: máximo 5 caracteres' } : undefined)
+    validate(p.domicilio.Dpto, ({ value }) => (value()?.length ?? 0) > 5 ? { kind: 'maxLength', message: 'Departamento: máximo 5 caracteres' } : undefined)
   })
 
   optionsSucursal = toSignal(this.searchService.getSucursales(), { initialValue: [] });
