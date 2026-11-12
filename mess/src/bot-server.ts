@@ -29,6 +29,7 @@ import { toAsk, httpInject } from "@builderbot-plugins/openai-assistants/dist/in
 import { Ollama } from "ollama";
 import { ClientException } from "./controller/base.controller.ts";
 import { chatBotController } from "./controller/controller.module.ts";
+import { ModelArtsClient } from "./modelarts-client.ts";
 
 
 dotenv.config()
@@ -64,6 +65,7 @@ export class BotServer {
   public iaPrompt: string
   public iaPromptHash: string
   public ollama: Ollama
+  public modelArtsClient: ModelArtsClient
 
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
@@ -299,6 +301,11 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
       },
     });
 
+    this.modelArtsClient = new ModelArtsClient({
+      host: process.env.MODELARTS_HOST || "https://api-ap-southeast-1.modelarts-maas.com/openai/v1",
+      apiKey: process.env.MODELARTS_API_KEY || "",
+    });
+
   }
 
   public async sendMsgMeta24hs(telNro: string, message: string, saludo: string) {
@@ -412,14 +419,21 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
 
     //let mensajes = [{ role: "system", content: this.iaPrompt }]
 
-
+/*
     const response = await this.ollama.chat({
       model: "gpt-oss:120b",
       messages: [{ role: "user", content: "Buenos dias" }],
       stream: true,
     });
+*/
 
-    for await (const part of response) {
+    const response = await this.modelArtsClient.chat({
+      model: "deepseek-v4.1-flash-1017",
+      messages: [{ role: "user", content: "Buenos dias" }],
+      stream: true,
+    });
+
+    for await (const part of response as any) {
       process.stdout.write(part.message.content);
       await flowDynamic([{ body: part.message.content }]);
     }

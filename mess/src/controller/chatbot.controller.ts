@@ -467,12 +467,27 @@ export class ChatBotController extends BaseController {
           throw new Error('Se superó el límite de 10 llamadas a la IA en un mismo mensaje')
 
         console.log('tools', botServer.iaHistorial[chatId].tools)
+
+/*
         const responseIA = await botServer.ollama.chat({
           model: "gpt-oss:120b",
           messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
           stream: false,
           tools: botServer.iaHistorial[chatId].tools,
         });
+*/
+        const responseIA = await botServer.modelArtsClient.chat({
+          model: "deepseek-v4.1-flash-1017",
+          messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
+          stream: false,
+          tools: botServer.iaHistorial[chatId].tools,
+        });
+
+
+
+
+
+
         botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, ...responseIA.message, agent: botServer.iaHistorial[chatId].agent, debug: !!responseIA.message.tool_calls?.length });
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
