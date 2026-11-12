@@ -1007,6 +1007,17 @@ export class ApiService {
 
   }
 
+  generaRecibosEspeciales(anio: number, mes: number, fechaRecibo: Date,personalId: number[]) {
+    const parameter = { anio, mes, fechaRecibo, personalId }
+    this.notification.success('Respuesta', `Inicio generación de recibo Especiales`);
+
+    return this.http.post<ResponseJSON<any>>('/api/recibos/generarespeciales', parameter).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    )
+
+  }
+
+
   confirmaMovimientosBanco(selectedPeriod: any, banco_id?: number) {
     this.notification.success('Respuesta', `Inicio confirmación de movimientos bancarios`);
     const parameter = { selectedPeriod, banco_id }

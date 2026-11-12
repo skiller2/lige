@@ -69,6 +69,10 @@
               [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarRecibos')">
               <span nz-icon nzType="plus" nzTheme="outline"></span> Genera Recibos
             </li>
+            <li nz-menu-item nz-popconfirm [nzPopconfirmTitle]="confirmReciboTpl" [nzBeforeConfirm]=""
+              [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarRecibosEspeciales')">
+              <span nz-icon nzType="plus" nzTheme="outline"></span> Genera Recibos Especiales
+            </li>
 
             @if (PersonalIdForReceip > 0) {
             <li nz-menu-item nz-popconfirm nzPopconfirmTitle="Generar recibo de {{PersonalNameForReceip}}"
