@@ -230,7 +230,7 @@ export class AddrSearchComponent
       return;
     }
     
-    console.log('modelChange: ',value);
+    // console.log('modelChange: ',value);
     if (typeof value === 'string') return;
 
     if (!value) {
