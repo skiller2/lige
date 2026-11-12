@@ -60,6 +60,7 @@ export interface OrdenVentaForm {
   ClienteElementoDependienteId: number,
   EstadoOrdenVentaCodigo: string,
   Observaciones: string;
+  DescripcionFacturacion: string;
   items: Producto[];
   comprobantes: Comprobante[]
 }
@@ -132,6 +133,7 @@ export class OrdenVentaFormComponent {
     ClienteId: Number(this.ClienteId()),
     ClienteElementoDependienteId: Number(this.ClienteElementoDependienteId()),
     Observaciones: '',
+    DescripcionFacturacion: '',
     items: [structuredClone(this.defaultProducto)],
     comprobantes: [structuredClone(this.defaultComprobante)],
   }
@@ -144,6 +146,7 @@ export class OrdenVentaFormComponent {
     disabled(p.Periodo, ({ valueOf }) => ESTADOS_NO_MODIFICABLES.includes(String(valueOf(p.EstadoOrdenVentaCodigo) ?? '').trim()))
     disabled(p.ObjetivoId, ({ valueOf }) => ESTADOS_NO_MODIFICABLES.includes(String(valueOf(p.EstadoOrdenVentaCodigo) ?? '').trim()))
     disabled(p.Observaciones, ({ valueOf }) => ESTADOS_NO_MODIFICABLES.includes(String(valueOf(p.EstadoOrdenVentaCodigo) ?? '').trim()))
+    disabled(p.DescripcionFacturacion, ({ valueOf }) => ESTADOS_NO_MODIFICABLES.includes(String(valueOf(p.EstadoOrdenVentaCodigo) ?? '').trim()))
     disabled(p.items, ({ valueOf }) => ESTADOS_NO_MODIFICABLES.includes(String(valueOf(p.EstadoOrdenVentaCodigo) ?? '').trim()))
     required(p.EstadoOrdenVentaCodigo, { message: 'Estado es requerido' })
     applyEach(p.items, (productoPath) => {

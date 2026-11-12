@@ -441,6 +441,7 @@ export class AsistenciaController extends BaseController {
         if (TotalHoraB)
           items.push({ ProductoCodigo: 'SSFB', Cantidad: TotalHoraB, ImporteUnitario: ImporteUnitarioB, TipoCantidad: 'V', TipoImporte: 'LP' })
         if (items.length) {
+          let DescripcionFacturacion = null
           const NroOrdenVentaBase = await OrdenVentaController.getOrdenVentaBase(queryRunner, ClienteId, ClienteElementoDependienteId, anio, mes);
           if (NroOrdenVentaBase) {
             const ordenDs = await ordenVentaController.getOrdenVentaQuery(queryRunner, NroOrdenVentaBase)
@@ -450,10 +451,12 @@ export class AsistenciaController extends BaseController {
             })
             items = [...items, ...itemsPlantilla]
             if (!Observaciones) Observaciones = ordenDs.Observaciones
+            // La referencia de facturación se copia de la orden base
+            DescripcionFacturacion = ordenDs.DescripcionFacturacion
           }
 
 
-          await ordenVentaController.setOrdenVentaQuery(anio, mes, ClienteId, ClienteElementoDependienteId, 0, items, [], Observaciones, 'PEN', queryRunner, usuario, ip, ahora)
+          await ordenVentaController.setOrdenVentaQuery(anio, mes, ClienteId, ClienteElementoDependienteId, 0, items, [], Observaciones, DescripcionFacturacion, 'PEN', queryRunner, usuario, ip, ahora)
         }
       }
       return Observaciones
