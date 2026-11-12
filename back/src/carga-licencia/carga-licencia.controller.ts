@@ -564,9 +564,13 @@ export class CargaLicenciaController extends BaseController {
       Archivos,
       PersonalIdForEdit,
       PersonalLicenciaDiagnosticoMedicoDiagnostico,
-      PersonalLicenciaAplicaPeriodoHorasMensuales
+      PersonalLicenciaAplicaPeriodoHorasMensuales,
+      DescontarAPersonalId
 
     } = req.body
+
+    // null = se descuenta a Lince
+    DescontarAPersonalId = Number(DescontarAPersonalId) || null
 
     const usuario = res.locals.userName;
     const ip = this.getRemoteAddress(req);
@@ -672,11 +676,11 @@ export class CargaLicenciaController extends BaseController {
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
               PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,PersonalLicenciaDiagnosticoMedicoUltNro = @10,
               PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7,
-              AudFechaMod = @11, AudUsuarioMod = @12, AudIpMod = @13
+              AudFechaMod = @11, AudUsuarioMod = @12, AudIpMod = @13, DescontarAPersonalId = @14
           WHERE PersonalId = @8 AND PersonalLicenciaId = @9`
           , [PersonalLicenciaDesde, PersonalLicenciaHasta, TipoInasistenciaId, PersonalLicenciaSePaga, PersonalLicenciaHorasMensuales,
             PersonalLicenciaObservacion, PersonalLicenciaCategoriaPersonalId, PersonalLicenciaTipoAsociadoId, PersonalId, PersonalLicenciaId, 1,
-            new Date(), usuario, ip])
+            new Date(), usuario, ip, DescontarAPersonalId])
 
 
         if (PersonalSituacionRevistaDesdeOrig?.getTime() != PersonalLicenciaDesde?.getTime()) {
@@ -808,8 +812,8 @@ export class CargaLicenciaController extends BaseController {
            PersonalLicenciaAplicaPeriodoUltNro, 
 
           PersonalLicenciaSituacionRevistaId,
-          AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
-          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20,@21,@22,@23,@21,@22,@23)`
+          AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod, DescontarAPersonalId)
+          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20,@21,@22,@23,@21,@22,@23,@24)`
           , [PersonalId,
             PersonalLicenciaUltNro,
             null,
@@ -835,7 +839,7 @@ export class CargaLicenciaController extends BaseController {
             null,
 
             PersonalSituacionRevistaSituacionIdNot10,
-            new Date(), usuario, ip])
+            new Date(), usuario, ip, DescontarAPersonalId])
 
         await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaUltNro, PersonalLicenciaDesde, queryRunner)
         /*
@@ -1097,6 +1101,7 @@ export class CargaLicenciaController extends BaseController {
     lic.PersonalLicenciaObservacion,
     lic.PersonalLicenciaTipoAsociadoId,
     lic.PersonalLicenciaCategoriaPersonalId,
+    lic.DescontarAPersonalId,
     med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
     med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico,
 
@@ -1138,7 +1143,7 @@ export class CargaLicenciaController extends BaseController {
         lic.PersonalLicenciaHasta,cat.CategoriaPersonalDescripcion,
         lic.PersonalLicenciaObservacion,lic.PersonalLicenciaTipoAsociadoId,
         lic.PersonalLicenciaCategoriaPersonalId,med.PersonalLicenciaDiagnosticoMedicoDiagnostico,
-        med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico
+        med.PersonalLicenciaDiagnosticoMedicoFechaDiagnostico, lic.DescontarAPersonalId
     `
 
     const result = await queryRunner.query(selectquery, [null, anio, mes, PersonalId, PersonalLicenciaId])

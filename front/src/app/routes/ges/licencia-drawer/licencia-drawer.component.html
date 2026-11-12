@@ -82,6 +82,22 @@
         </nz-form-control>
       </nz-form-item>
       <nz-form-item>
+        <nz-form-label [nzSpan]="5">Descontar a</nz-form-label>
+        <nz-form-control>
+          <nz-select name="DescontarA" ngModel [nzDropdownMatchSelectWidth]="false">
+            <nz-option nzLabel="Lince" nzValue="L"></nz-option>
+            <nz-option nzLabel="Coordinador de cuenta" nzValue="C"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item [style.display]="ngForm().value?.DescontarA === 'C' ? null : 'none'">
+        <nz-form-label [nzSpan]="5">Coordinador</nz-form-label>
+        <nz-form-control>
+          <app-personal-search name="DescontarAPersonalId" ngModel [anio]="selectedPeriod().year"
+            [mes]="selectedPeriod().month"></app-personal-search>
+        </nz-form-control>
+      </nz-form-item>
+      <nz-form-item>
         <nz-form-label [nzSpan]="5">Horas Mensuales </nz-form-label>
         <nz-form-control>
           <input nz-input type="number" name="PersonalLicenciaHorasMensuales" ngModel   />
@@ -108,9 +124,20 @@
       </nz-form-control>
 
 
-      @if(this.ngForm().enabled) {
-        <nz-form-item class="btnCenter">
+      @if(this.ngForm().enabled || PersonalLicenciaId() > 0) {
+        <nz-form-item class="btnCenter" style="position: relative;">
+          @if (this.ngForm().enabled) {
           <button nz-button nzType="primary" [disabled]="!ngForm().dirty" (click)="save()" [nzLoading]="isSaving()"> {{ 'app.btn.save' | i18n }}</button>
+          }
+          <!-- Datos de auditoría de la licencia, en la misma fila que guardar -->
+          @if (PersonalLicenciaId() > 0) {
+          <span style="position: absolute; right: 0;" nz-tooltip nzTooltipTitle="Datos de Auditoría">
+            <button nz-button nzType="default" type="button" nz-popover nzPopoverTrigger="click"
+              nzPopoverPlacement="topRight" [nzPopoverContent]="auditoriaTemplate" (click)="loadAuditoria()">
+              <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
+            </button>
+          </span>
+          }
           <!-- @if (this.ngForm().value.PersonalLicenciaId>0) {
 
           <button [disabled]="ngForm().dirty"
@@ -126,18 +153,6 @@
       }
 
     </form>
-
-    <!-- Datos de auditoría de la licencia -->
-    @if (PersonalLicenciaId() > 0) {
-    <div style="display: flex; justify-content: flex-end;">
-      <span nz-tooltip nzTooltipTitle="Datos de Auditoría">
-        <button nz-button nzType="default" type="button" nz-popover nzPopoverTrigger="click"
-          nzPopoverPlacement="topRight" [nzPopoverContent]="auditoriaTemplate" (click)="loadAuditoria()">
-          <span nz-icon nzType="menu-unfold" nzTheme="outline"></span>
-        </button>
-      </span>
-    </div>
-    }
 
     <ng-template #auditoriaTemplate>
       <div style="max-width: 640px; max-height: 240px; overflow: auto;">

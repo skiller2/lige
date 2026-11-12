@@ -80,7 +80,7 @@ export class LicenciaDrawerComponent {
 
   cambios = computed(async () => {
     const visible = this.visible()
-    this.ngForm().form.reset()
+    this.ngForm().form.reset({ DescontarA: 'L' })
 
     if (visible) {
       const per = this.selectedPeriod()
@@ -91,6 +91,8 @@ export class LicenciaDrawerComponent {
         vals.PersonalLicenciaTipoAsociadoId = vals.categoria.categoriaId
         vals.PersonalLicenciaCategoriaPersonalId = vals.categoria.tipoId
         vals.PersonalLicenciaHorasMensuales = Number(vals.PersonalLicenciaHorasMensuales)
+        // Sin DescontarAPersonalId se descuenta a Lince
+        vals.DescontarA = vals.DescontarAPersonalId ? 'C' : 'L'
         this.PersonalIdForEdit = vals.PersonalId
         this.SucursalId = vals.SucursalId
 
@@ -132,6 +134,7 @@ export class LicenciaDrawerComponent {
       vals.Archivos = this.files
       vals.PersonalIdForEdit = this.PersonalIdForEdit
       vals.PersonalLicenciaAplicaPeriodoHorasMensuales = this.PersonalLicenciaAplicaPeriodoHorasMensuales()
+      if (vals.DescontarA !== 'C') vals.DescontarAPersonalId = null
 
       const res = await firstValueFrom(this.apiService.setLicencia(vals))
       
