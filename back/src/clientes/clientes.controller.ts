@@ -404,52 +404,38 @@ ${orderBy}`, [fechaActual])
 
 
     async getClienteDomicilioQuery(queryRunner: any, clienteId: any) {
-
-        // return await queryRunner.query(`
-        //                 SELECT 
-        //          dom.DomicilioId
-        //         ,TRIM(dom.DomicilioDomCalle) AS DomicilioDomCalle
-        //         ,TRIM(dom.DomicilioDomNro) AS DomicilioDomNro
-        //         ,TRIM(dom.DomicilioCodigoPostal) AS DomicilioCodigoPostal
-        //         ,dom.DomicilioPaisId AS domiciliopais
-        //         ,dom.DomicilioProvinciaId
-        //         ,dom.DomicilioLocalidadId
-        //         ,dom.DomicilioBarrioId
-        //         ,TRIM(dom.DomicilioDomLugar) AS DomicilioDomLugar
-        //     FROM Domicilio AS dom
-        //     JOIN NexoDomicilio nex ON nex.DomicilioId =dom.DomicilioId
+        
+        // let domicilios = await queryRunner.query(
+        //     `SELECT 
+        //         dom.DomicilioId,
+        //         dom.DomicilioDomLugar,
+        //         dom.DomicilioJson
+        //     FROM Domicilio dom
+        //     JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
         //     WHERE nex.ClienteId = @0 AND nex.ClienteElementoDependienteId IS NULL
         //         AND nex.NexoDomicilioActual = 1
-        //     ORDER BY dom.DomicilioId DESC `, [clienteId])
-        
-        let domicilios = await queryRunner.query(
-            `SELECT 
-                dom.DomicilioId,
-                dom.DomicilioDomLugar,
-                dom.DomicilioJson
-            FROM Domicilio dom
-            JOIN NexoDomicilio AS nex ON dom.DomicilioId = nex.DomicilioId 
-            WHERE nex.ClienteId = @0 AND nex.ClienteElementoDependienteId IS NULL
-                AND nex.NexoDomicilioActual = 1
-            ORDER BY dom.DomicilioId DESC`, 
-            [clienteId]
-        );
+        //     ORDER BY dom.DomicilioId DESC`, 
+        //     [clienteId]
+        // );
 
-        for (const dom of domicilios) {
-            dom.Domicilio = null
-            if (dom.DomicilioJson) {
-                try {
-                    const parse = JSON.parse(dom.DomicilioJson);
-                    if (parse !== null && typeof parse === 'object' && !Array.isArray(parse)) {
-                        dom.Domicilio = parse;
-                    }
-                } catch (error) {
-                    // logger.warn(`DomicilioJson no contiene un JSON válido: ${dom.DomicilioJson}`);
-                }
-            }
-        }
+        // for (const dom of domicilios) {
+        //     dom.Domicilio = null
+        //     if (dom.DomicilioJson) {
+        //         try {
+        //             const parse = JSON.parse(dom.DomicilioJson);
+        //             if (parse !== null && typeof parse === 'object' && !Array.isArray(parse)) {
+        //                 dom.Domicilio = parse;
+        //             }
+        //         } catch (error) {
+        //             // logger.warn(`DomicilioJson no contiene un JSON válido: ${dom.DomicilioJson}`);
+        //         }
+        //     }
+        // }
 
-        return domicilios;
+        // return domicilios;
+        const domicilio = await domicilioController.getDomicilioById(queryRunner, 'ClienteId', clienteId, '(nex.ClienteElementoDependienteId IS NULL)')
+
+        return domicilio;
     }
 
     async getClienteContactoQuery(queryRunner: any, clienteId: any) {
@@ -739,18 +725,24 @@ ${orderBy}`, [fechaActual])
         const DomicilioIds = domicilios.map((row: { DomicilioId: any; }) => row.DomicilioId).filter((id) => id !== null && id !== undefined);
 
         if (DomicilioIds.length > 0) {
-            await queryRunner.query(`DELETE FROM NexoDomicilio WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')}) AND ClienteElementoDependienteId IS NULL`, [ClienteId])
-            await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0 WHERE nex.ClienteElementoDependienteId IS NULL and dom.DomicilioId NOT IN(${DomicilioIds.join(',')})`, [ClienteId])
+            await queryRunner.query(`UPDATE NexoDomicilio SET NexoDomicilioActual = 0 WHERE ClienteId = @0 AND DomicilioId NOT IN (${DomicilioIds.join(',')}) AND ClienteElementoDependienteId IS NULL AND NexoDomicilioActual = 1`, [ClienteId])
+            // await queryRunner.query(`DELETE dom FROM Domicilio dom  JOIN NexoDomicilio nex ON nex.DomicilioId=dom.DomicilioId AND nex.ClienteId=@0 WHERE nex.ClienteElementoDependienteId IS NULL and dom.DomicilioId NOT IN(${DomicilioIds.join(',')})`, [ClienteId])
         }
 
         for (const [idx, obj] of domicilios.entries()) {
-            obj.Domicilio = await domicilioController.normalizeAddress(queryRunner, obj.Domicilio)
             if (obj.DomicilioId) {
-
-                await domicilioController.updateDomicilio(queryRunner, obj.DomicilioId, obj.Domicilio, obj.DomicilioDomLugar,null,null)
-            
+                const newDomicilioId = await domicilioController.updateDomicilio(queryRunner, obj.DomicilioId, obj.Domicilio, obj.DomicilioDomLugar, null, null)
+                if (newDomicilioId) {
+                    //Agregar nexo tambien
+                    await queryRunner.query(
+                        `INSERT INTO NexoDomicilio (
+                            DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, ClienteId
+                        ) VALUES ( @0,@1,@2,@3,@4,@5,@6)`, 
+                        [ newDomicilioId, 1, 1, 1, 1, 1, ClienteId ]
+                    )
+                }
             } else {
-
+                obj.Domicilio = await domicilioController.normalizeAddress(queryRunner, obj.Domicilio)
                 const newDomicilioId = await domicilioController.addDomicilio(queryRunner, obj.Domicilio, obj.DomicilioDomLugar,null,null)
                 
                 //Agregar nexo tambien

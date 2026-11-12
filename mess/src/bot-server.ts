@@ -29,6 +29,7 @@ import { toAsk, httpInject } from "@builderbot-plugins/openai-assistants/dist/in
 import { Ollama } from "ollama";
 import { ClientException } from "./controller/base.controller.ts";
 import { chatBotController } from "./controller/controller.module.ts";
+import { ModelArtsClient } from "./modelarts-client.ts";
 
 
 dotenv.config()
@@ -63,7 +64,7 @@ export class BotServer {
   private ASSISTANT_ID: string
   public iaPrompt: string
   public iaPromptHash: string
-  public ollama: Ollama
+  public servicioIA: Ollama|ModelArtsClient = null
 
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
@@ -291,12 +292,17 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
 - Informá de forma cordial que debe comunicarse con su responsable, tool getInfoPersonal tiene los datos del Responsable.
 - No intentes resolverla.
 
-`
-    this.ollama = new Ollama({
+`/*
+    this.servicioIA = new Ollama({
       host: "https://ollama.com",
       headers: {
         Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
       },
+    });
+*/
+    this.servicioIA = new ModelArtsClient({
+      host: process.env.MODELARTS_HOST || "https://api-ap-southeast-1.modelarts-maas.com/openai/v1",
+      apiKey: process.env.MODELARTS_API_KEY || "",
     });
 
   }
@@ -409,17 +415,13 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
   processUserMessage = async (ctx, { flowDynamic, state, provider }) => {
     await Utils.typing(ctx, provider);
 
-
-    //let mensajes = [{ role: "system", content: this.iaPrompt }]
-
-
-    const response = await this.ollama.chat({
-      model: "gpt-oss:120b",
+    const response = await this.servicioIA.chat({
+      model: process.env.MODEL,
       messages: [{ role: "user", content: "Buenos dias" }],
       stream: true,
     });
 
-    for await (const part of response) {
+    for await (const part of response as any) {
       process.stdout.write(part.message.content);
       await flowDynamic([{ body: part.message.content }]);
     }
@@ -536,34 +538,5 @@ Si el usuario realiza una consulta que NO corresponde a ninguna de estas accione
 
     if (this.adapterProvider)
       this.botHandle.httpServer(this.botPort)
-    //    console.log('botHandle', this.botHandle)
-    //    console.log('adapterProvider', this.adapterProvider)
-
-    /*
-    
-     
-        let mensajes = [{ role: "system", content: this.iaPrompt }]
-    
-        while (true) {
-          const res = await ask('Pregunta: ')
-          mensajes.push({ role: "user", content: res })
-    
-    
-          const response = await this.ollama.chat({
-            model: "gpt-oss:120b",
-            messages: mensajes,
-            stream: false,
-            
-          });
-    
-    
-          process.stdout.write('Respuesta: '+response.message.content)
-          process.stdout.write('\n')      
-    
-          mensajes.push(response.message)
-    
-    
-        }
-    */
   }
 }

@@ -134,17 +134,13 @@ export class DepositosController extends BaseController {
   private async getDepositoByIdQuery(queryRunner: QueryRunner, depositoId: number) {
     let data = await queryRunner.query(
       `SELECT dep.DepositoId, TRIM(dep.DepositoNombre) DepositoNombre, dep.DepositoInactivo, IndRequiereObservacion,
-      dep.DepositoSucursalId, 
-      nex.DomicilioId, dom.DomicilioJson
+      dep.DepositoSucursalId
       FROM Deposito dep
-      LEFT JOIN NexoDomicilio AS nex ON nex.DepositoId = dep.DepositoId AND nex.NexoDomicilioActual = 1
-      LEFT JOIN Domicilio AS dom ON dom.DomicilioId = nex.DomicilioId
       WHERE dep.DepositoId = @0`,
       [depositoId]
     )
     if (!data.length) return null
     const Deposito = data[0]
-    Deposito.domicilio = JSON.parse(Deposito.DomicilioJson)
 
     return Deposito
   }
@@ -154,7 +150,13 @@ export class DepositosController extends BaseController {
     const DepositoId = Number(req.params.id)
     try {
       let data = await this.getDepositoByIdQuery(queryRunner, DepositoId)
+      const domicilio = await domicilioController.getDomicilioById(queryRunner, 'DepositoId', DepositoId)
       const contactos = await this.getContactosByDepositoId(queryRunner, DepositoId)
+      if (domicilio.length) {
+        data.DomicilioId = domicilio[0].DomicilioId || 0
+        data.domicilio = domicilio[0].Domicilio || null
+        data.DomicilioDomLugar = domicilio[0].DomicilioDomLugar || ''
+      }
       data.contactos = contactos
 
       this.jsonRes(data, res);
@@ -235,7 +237,9 @@ export class DepositosController extends BaseController {
       const ip = this.getRemoteAddress(req)
 
       const DepositoId = await this.insertDeposito(queryRunner, body, usuario, ip)
-      const DomicilioId = await domicilioController.addDomicilio(queryRunner, body.domicilio, null, null, null)
+
+      body.domicilio = await domicilioController.normalizeAddress(queryRunner, body.domicilio)
+      const DomicilioId = await domicilioController.addDomicilio(queryRunner, body.domicilio, body.DomicilioDomLugar, null, null)
       // Agregar NexoDomicilio
       await queryRunner.query(
         `INSERT INTO NexoDomicilio (
@@ -353,7 +357,15 @@ export class DepositosController extends BaseController {
       // const usuario = res.locals.userName
       // const ip = this.getRemoteAddress(req)
 
-      await domicilioController.updateDomicilio(queryRunner, body.DomicilioId, body.domicilio, null, null, null)
+      const newDomicilioId = await domicilioController.updateDomicilio(queryRunner, body.DomicilioId, body.domicilio, body.DomicilioDomLugar, null, null)
+      if (newDomicilioId) {
+        await queryRunner.query(
+          `INSERT INTO NexoDomicilio (
+              DomicilioId, NexoDomicilioActual, NexoDomicilioComercial, NexoDomicilioOperativo, NexoDomicilioConstituido, NexoDomicilioLegal, DepositoId
+          ) VALUES ( @0,@1,@2,@3,@4,@5,@6)`, 
+          [ newDomicilioId, 1, 1, 1, 1, 1, DepositoId ]
+        )
+      }
       //Agregar Contactos del Deposito
       await this.depositoContactoUpdate(queryRunner, body.contactos, DepositoId)
 

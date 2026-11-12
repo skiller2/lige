@@ -10,29 +10,29 @@
     <form>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="6">Calle</nz-form-label>
-        <nz-form-control [nzSpan]="18">
+        <nz-form-label [nzSpan]="6" nzRequired>Calle</nz-form-label>
+        <nz-form-control [nzSpan]="18" sfErrorTip>
           <input nz-input [formField]="formDirecciones.street" placeholder="Nombre de la calle" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="6">Número</nz-form-label>
-        <nz-form-control [nzSpan]="18">
+        <nz-form-label [nzSpan]="6" nzRequired>Número</nz-form-label>
+        <nz-form-control [nzSpan]="18" sfErrorTip>
           <input nz-input [formField]="formDirecciones.housenumber" placeholder="Número de casa" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="6">Código postal</nz-form-label>
-        <nz-form-control [nzSpan]="18">
+        <nz-form-label [nzSpan]="6" nzRequired>Código postal</nz-form-label>
+        <nz-form-control [nzSpan]="18" sfErrorTip>
           <input nz-input [formField]="formDirecciones.postcode" placeholder="Código postal" />
         </nz-form-control>
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="6">Provincia</nz-form-label>
-        <nz-form-control [nzSpan]="18">
+        <nz-form-label [nzSpan]="6" nzRequired>Provincia</nz-form-label>
+        <nz-form-control [nzSpan]="18" sfErrorTip>
           <nz-select [formField]="formDirecciones.Provincia" nzPlaceHolder="" nzAllowClear
             [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch [compareWith]="compareByValue">
             @for (option of optionsProvincia(); track option.value) {
@@ -44,8 +44,8 @@
       </nz-form-item>
 
       <nz-form-item>
-        <nz-form-label [nzSpan]="6">Localidad</nz-form-label>
-        <nz-form-control [nzSpan]="18">
+        <nz-form-label [nzSpan]="6" nzRequired>Localidad</nz-form-label>
+        <nz-form-control [nzSpan]="18" sfErrorTip>
           <nz-select [formField]="formDirecciones.Localidad" nzPlaceHolder="" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch [compareWith]="compareByValue">
           @for (option of optionsLocalidad.value(); track option.value) {

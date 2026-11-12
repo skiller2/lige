@@ -31,6 +31,7 @@ export interface DepositoForm {
   DepositoSucursalId: number;
   DomicilioId: number;
   domicilio: any;
+  DomicilioDomLugar: string;
   DepositoInactivo: number;
   IndRequiereObservacion: number;
   contactos: Contacto[];
@@ -73,6 +74,7 @@ export class DepositosFormComponent {
     IndRequiereObservacion: 0,
     DomicilioId: 0,
     domicilio: null,
+    DomicilioDomLugar: '',
     contactos: [structuredClone(this.defaultContacto)],
   }
 

@@ -725,16 +725,16 @@ outer APPLY (SELECT
         const infoCoordinadorCuenta = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
         const rubrosCliente = await this.getRubroQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
         const docsRequerido = await this.getDocRequeridoQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
-        const domiclio = await this.getDomicilio(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
+        const domicilio = await this.getDomicilio(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
         const facturacion = await this.getFacturacion(queryRunner, ClienteId, ClienteElementoDependienteId)
         const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
         const grupoactividadjerarquico = await this.getGrupoActividadJerarquico(queryRunner, grupoactividad[0]?.GrupoActividadId)
         const habilitacion = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
 
         if (!facturacion) {
-            infObjetivo = { ...infObjetivo[0], ...domiclio[0] };
+            infObjetivo = { ...infObjetivo[0], ...domicilio[0] };
         } else {
-            infObjetivo = { ...infObjetivo[0], ...domiclio[0], ...facturacion[0] };
+            infObjetivo = { ...infObjetivo[0], ...domicilio[0], ...facturacion[0] };
         }
 
         infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
@@ -758,7 +758,7 @@ outer APPLY (SELECT
             const infoCoordinadorCuenta = await this.getCoordinadorCuentaQuery(queryRunner, ObjetivoId)
             const rubrosCliente = await this.getRubroQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
             const docsRequerido = await this.getDocRequeridoQuery(queryRunner, ClienteId, ClienteElementoDependienteId)
-            const domiclio = await this.getDomicilio(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
+            const domicilio = await this.getDomicilio(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const facturacion = await this.getFacturacion(queryRunner, ClienteId, ClienteElementoDependienteId)
             const grupoactividad = await this.getGrupoActividad(queryRunner, ObjetivoId, ClienteId, ClienteElementoDependienteId)
             const grupoactividadjerarquico = await this.getGrupoActividadJerarquico(queryRunner, grupoactividad[0]?.GrupoActividadId)
@@ -768,9 +768,9 @@ outer APPLY (SELECT
             const descuentoCliente = await this.getDescuentoAplicaQuery(queryRunner, 'CL', ClienteId, ClienteElementoDependienteId)
 
             if (!facturacion) {
-                infObjetivo = { ...infObjetivo[0], ...domiclio[0] };
+                infObjetivo = { ...infObjetivo[0], ...domicilio[0] };
             } else {
-                infObjetivo = { ...infObjetivo[0], ...domiclio[0], ...facturacion[0] };
+                infObjetivo = { ...infObjetivo[0], ...domicilio[0], ...facturacion[0] };
             }
 
             infObjetivo.infoCoordinadorCuenta = infoCoordinadorCuenta
@@ -844,108 +844,19 @@ outer APPLY (SELECT
     }
 
     async getDomicilio(queryRunner: any, ObjetivoId: any, ClienteId: any, ClienteElementoDependienteId: any) {
-        let domicilio:any = null
-        if (!ObjetivoId && (ClienteId && ClienteElementoDependienteId)) {
-            domicilio = await queryRunner.query(`SELECT TOP 1 
-                    dom.DomicilioId AS DomicilioId,
-                    dom.DomicilioJson,
-                    dom.DomicilioDomLugar AS DomicilioDomLugar,
-                    CONCAT_WS(', ',
-                        NULLIF(
-                            TRIM(
-                                CONCAT_WS(' ', 
-                                    NULLIF(TRIM(dom.DomicilioDomCalle), ''),
-                                    NULLIF(TRIM(dom.DomicilioDomNro), '')
-                                )
-                            ),
-                            ''
-                        ),
-                        -- Código postal
-                        NULLIF(CONCAT('CP ', TRIM(dom.DomicilioCodigoPostal)), 'CP '),
-                        -- Barrio
-                        NULLIF(TRIM(bar.BarrioDescripcion), ''),
-                        -- Localidad
-                        NULLIF(TRIM(loc.LocalidadDescripcion), ''),
-                        -- Provincia
-                        NULLIF(TRIM(prov.ProvinciaDescripcion), ''),
-                        -- País
-                        NULLIF(TRIM(pais.PaisDescripcion), '')
-                    ) AS domCompleto
-                FROM Domicilio AS dom
-                JOIN NexoDomicilio nexdom ON nexdom.DomicilioId = dom.DomicilioId
-                LEFT JOIN Objetivo obj ON obj.ClienteElementoDependienteId = nexdom.ClienteElementoDependienteId 
-                    AND obj.ClienteId = nexdom.ClienteId
-                LEFT JOIN Pais pais ON pais.PaisId = dom.DomicilioPaisId
-                LEFT JOIN Provincia prov ON prov.PaisId = pais.PaisId 
-                    AND prov.ProvinciaId = dom.DomicilioProvinciaId
-                LEFT JOIN Localidad loc ON loc.PaisId = pais.PaisId 
-                    AND loc.ProvinciaId = prov.ProvinciaId  
-                    AND loc.LocalidadId = dom.DomicilioLocalidadId 
-                LEFT JOIN Barrio bar ON bar.PaisId = pais.PaisId 
-                    AND bar.ProvinciaId = dom.DomicilioProvinciaId
-                    AND bar.LocalidadId = dom.DomicilioLocalidadId 
-                    AND bar.BarrioId = dom.DomicilioBarrioId
-                WHERE nexdom.ClienteElementoDependienteId =@1 AND nexdom.ClienteId = @0 AND nexdom.NexoDomicilioActual = 1
-                    AND nexdom.NexoDomicilioActual = 1
-                ORDER BY dom.DomicilioId DESC;`,
-                [ClienteId, ClienteElementoDependienteId])
-
+        let domicilio:any = []
+        if (ClienteId && ClienteElementoDependienteId) {
+            domicilio = await domicilioController.getDomicilioById(queryRunner, 'ClienteId', ClienteId, `(nex.ClienteElementoDependienteId IN (${ClienteElementoDependienteId}))`)
         } else {
-            domicilio = await queryRunner.query(`SELECT TOP 1 
-                    dom.DomicilioId AS DomicilioId,
-                    dom.DomicilioJson,
-                    dom.DomicilioDomLugar AS DomicilioDomLugar,
-                    CONCAT_WS(', ',
-                        NULLIF(
-                            TRIM(
-                                CONCAT_WS(' ', 
-                                    NULLIF(TRIM(dom.DomicilioDomCalle), ''),
-                                    NULLIF(TRIM(dom.DomicilioDomNro), '')
-                                )
-                            ),
-                            ''
-                        ),
-                        -- Código postal
-                        NULLIF(CONCAT('CP ', TRIM(dom.DomicilioCodigoPostal)), 'CP '),
-                        -- Barrio
-                        NULLIF(TRIM(bar.BarrioDescripcion), ''),
-                        -- Localidad
-                        NULLIF(TRIM(loc.LocalidadDescripcion), ''),
-                        -- Provincia
-                        NULLIF(TRIM(prov.ProvinciaDescripcion), ''),
-                        -- País
-                        NULLIF(TRIM(pais.PaisDescripcion), '')
-                    ) AS domCompleto
-                FROM Domicilio AS dom
-                JOIN NexoDomicilio nexdom ON nexdom.DomicilioId = dom.DomicilioId
-                LEFT JOIN Objetivo obj ON obj.ClienteElementoDependienteId = nexdom.ClienteElementoDependienteId 
-                    AND obj.ClienteId = nexdom.ClienteId
-                LEFT JOIN Pais pais ON pais.PaisId = dom.DomicilioPaisId
-                LEFT JOIN Provincia prov ON prov.PaisId = pais.PaisId 
-                    AND prov.ProvinciaId = dom.DomicilioProvinciaId
-                LEFT JOIN Localidad loc ON loc.PaisId = pais.PaisId 
-                    AND loc.ProvinciaId = prov.ProvinciaId  
-                    AND loc.LocalidadId = dom.DomicilioLocalidadId 
-                LEFT JOIN Barrio bar ON bar.PaisId = pais.PaisId 
-                    AND bar.ProvinciaId = dom.DomicilioProvinciaId
-                    AND bar.LocalidadId = dom.DomicilioLocalidadId 
-                    AND bar.BarrioId = dom.DomicilioBarrioId
-                WHERE obj.ObjetivoId = @0 
-                    AND nexdom.NexoDomicilioActual = 1
+            const objetivo = await queryRunner.query(
+                `SELECT obj.ClienteId, obj.ClienteElementoDependienteId
+                FROM Objetivo obj
+                WHERE obj.ObjetivoId = @0
                 ORDER BY dom.DomicilioId DESC;`,
-            [ObjetivoId])
-        }
-
-        if (domicilio.length && domicilio[0].DomicilioJson) {
-            domicilio[0].Domicilio = null
-            try {
-                const parse = JSON.parse(domicilio[0].DomicilioJson);
-                if (parse !== null && typeof parse === 'object' && !Array.isArray(parse)) {
-                    domicilio[0].Domicilio = parse;
-                }
-            } catch (error) {
-                // logger.warn(`DomicilioJson no contiene un JSON válido: ${domicilio[0].DomicilioJson}`);
-            }
+                [ObjetivoId]
+            )
+            if (objetivo.length > 0) 
+                domicilio = await domicilioController.getDomicilioById(queryRunner, 'ClienteId', objetivo[0].ClienteId, `(nex.ClienteElementoDependienteId IN (${objetivo[0].ClienteElementoDependienteId}))`)
         }
         
         return domicilio
