@@ -998,7 +998,7 @@ export class ApiService {
 
   generaReciboUnico(anio: number, mes: number, personalId: number) {
     let isUnique = true
-    const parameter = { anio, mes, personalId, isUnique }
+    const parameter = { anio, mes, personalId:[personalId], isUnique }
     this.notification.success('Respuesta', `Inicio generación de recibo Unico`);
 
     return this.http.post<ResponseJSON<any>>('/api/recibos/generarunico', parameter).pipe(

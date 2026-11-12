@@ -10,6 +10,13 @@ recibosRouter.post("/generar", [authMiddleware.verifyToken, authMiddleware.hasGr
   }
 );
 
+recibosRouter.post("/generarespeciales", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])],
+  (req, res, next) => {
+    req.body.especial = true;
+    recibosController.generaRecibos(req, res, next);
+  }
+);
+
 recibosRouter.post("/generarunico", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones'])],
   (req, res, next) => {
     recibosController.generaRecibos(req, res, next);

@@ -69,9 +69,22 @@
               [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarRecibos')">
               <span nz-icon nzType="plus" nzTheme="outline"></span> Genera Recibos
             </li>
-            <li nz-menu-item nz-popconfirm [nzPopconfirmTitle]="confirmReciboTpl" [nzBeforeConfirm]=""
+            <ng-template #confirmReciboEspecialTpl>
+              <nz-form-item>
+              <span>Generar recibos con fecha </span>
+              <nz-date-picker [(ngModel)]="fechaRecibo" [ngModelOptions]="{standalone: true}" />
+              <span>?</span>
+              </nz-form-item>
+              <nz-form-item>
+              <span>Lista (PersonalId): </span>
+              <input [(ngModel)]="recibosPersonalId" [ngModelOptions]="{standalone: true}" />
+              </nz-form-item>
+              <nz-form-item> <span>Atención no elimina recibos y no controla existencia previa</span> </nz-form-item>
+            </ng-template>
+
+            <li nz-menu-item nz-popconfirm [nzPopconfirmTitle]="confirmReciboEspecialTpl" [nzBeforeConfirm]=""
               [nzPopconfirmShowArrow]="false" (nzOnConfirm)="liquidacionesAcciones('generarRecibosEspeciales')">
-              <span nz-icon nzType="plus" nzTheme="outline"></span> Genera Recibos Especiales
+              <span nz-icon nzType="plus" nzTheme="outline"></span> Genera Recibos Forzados
             </li>
 
             @if (PersonalIdForReceip > 0) {
