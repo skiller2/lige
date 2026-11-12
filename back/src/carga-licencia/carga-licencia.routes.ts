@@ -32,6 +32,10 @@ CargaLicenciaCargaRouter.post("/listhoras", [authMiddleware.verifyToken, authMid
     cargaLicenciaController.listHoras(req, res, next);
 });
 
+CargaLicenciaCargaRouter.get("/datos-auditoria/:PersonalId/:PersonalLicenciaId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gAuditoria'])], (req, res, next) => {
+  cargaLicenciaController.getLicenciaAuditoria(req, res, next);
+});
+
 CargaLicenciaCargaRouter.get("/:anio/:mes/:PersonalId/:PersonalLicenciaId", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Licencias', 'LicenciasCon'])], (req, res, next) => {
     cargaLicenciaController.getLicencia(req, res, next);
 });

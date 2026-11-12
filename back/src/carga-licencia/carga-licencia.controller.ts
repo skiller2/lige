@@ -671,10 +671,12 @@ export class CargaLicenciaController extends BaseController {
         await queryRunner.query(`UPDATE PersonalLicencia
           SET PersonalLicenciaDesde = @0, PersonalLicenciaHasta = @1, PersonalLicenciaTermina = @1, 
               PersonalTipoInasistenciaId = @2, PersonalLicenciaSePaga = @3, PersonalLicenciaHorasMensuales = @4,PersonalLicenciaDiagnosticoMedicoUltNro = @10,
-              PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7
+              PersonalLicenciaObservacion = @5, PersonalLicenciaTipoAsociadoId = @6,PersonalLicenciaCategoriaPersonalId = @7,
+              AudFechaMod = @11, AudUsuarioMod = @12, AudIpMod = @13
           WHERE PersonalId = @8 AND PersonalLicenciaId = @9`
           , [PersonalLicenciaDesde, PersonalLicenciaHasta, TipoInasistenciaId, PersonalLicenciaSePaga, PersonalLicenciaHorasMensuales,
-            PersonalLicenciaObservacion, PersonalLicenciaCategoriaPersonalId, PersonalLicenciaTipoAsociadoId, PersonalId, PersonalLicenciaId, 1])
+            PersonalLicenciaObservacion, PersonalLicenciaCategoriaPersonalId, PersonalLicenciaTipoAsociadoId, PersonalId, PersonalLicenciaId, 1,
+            new Date(), usuario, ip])
 
 
         if (PersonalSituacionRevistaDesdeOrig?.getTime() != PersonalLicenciaDesde?.getTime()) {
@@ -805,8 +807,9 @@ export class CargaLicenciaController extends BaseController {
           PersonalLicenciaCategoriaPersonalId,
            PersonalLicenciaAplicaPeriodoUltNro, 
 
-          PersonalLicenciaSituacionRevistaId)
-          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20)`
+          PersonalLicenciaSituacionRevistaId,
+          AudFechaIng, AudUsuarioIng, AudIpIng, AudFechaMod, AudUsuarioMod, AudIpMod)
+          VALUES (@0,@1,@2,@3,@4,@5,@6,@7,@8,@9,@10,@11,@12,@13,@14,@15,@16,@17,@18,@19,@20,@21,@22,@23,@21,@22,@23)`
           , [PersonalId,
             PersonalLicenciaUltNro,
             null,
@@ -831,7 +834,8 @@ export class CargaLicenciaController extends BaseController {
             PersonalLicenciaTipoAsociadoId,
             null,
 
-            PersonalSituacionRevistaSituacionIdNot10])
+            PersonalSituacionRevistaSituacionIdNot10,
+            new Date(), usuario, ip])
 
         await this.UpdateDiagnosticoMedico(PersonalLicenciaDiagnosticoMedicoDiagnostico, PersonalId, PersonalLicenciaUltNro, PersonalLicenciaDesde, queryRunner)
         /*
@@ -1040,6 +1044,30 @@ export class CargaLicenciaController extends BaseController {
       return next(error)
     }finally {
       await queryRunner.release();
+    }
+  }
+
+  // Datos de auditoría (alta / última modificación) de la licencia, para el botón de auditoría del drawer
+  async getLicenciaAuditoria(req: Request, res: Response, next: NextFunction) {
+    const PersonalId = Number(req.params.PersonalId)
+    const PersonalLicenciaId = Number(req.params.PersonalLicenciaId)
+    if (!PersonalId || !PersonalLicenciaId) return this.jsonRes(null, res)
+
+    const queryRunner = await getConnection(res.locals.userName);
+    try {
+      const auditoria = await queryRunner.query(`
+      SELECT lic.PersonalId, lic.PersonalLicenciaId
+      , lic.AudUsuarioIng, lic.AudFechaIng, lic.AudIpIng
+      , lic.AudUsuarioMod, lic.AudFechaMod, lic.AudIpMod
+      FROM PersonalLicencia lic
+      WHERE lic.PersonalId = @0 AND lic.PersonalLicenciaId = @1
+      `, [PersonalId, PersonalLicenciaId])
+
+      return this.jsonRes(auditoria[0] ?? null, res);
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
     }
   }
 

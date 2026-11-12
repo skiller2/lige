@@ -161,6 +161,25 @@ export class LicenciaDrawerComponent {
   }
 
 
+  // Auditoría de la licencia (alta / última modificación), igual que en el drawer de descuentos de personal
+  auditoria = signal<any>(null)
+
+  auditoriaFilas = computed(() => {
+    const a = this.auditoria()
+    if (!a) return []
+    return [
+      { Evento: 'Alta', Usuario: a.AudUsuarioIng, Fecha: a.AudFechaIng, Ip: a.AudIpIng },
+      { Evento: 'Última modificación', Usuario: a.AudUsuarioMod, Fecha: a.AudFechaMod, Ip: a.AudIpMod }
+    ]
+  })
+
+  // Petición individual al hacer clic: el back valida el grupo gAuditoria
+  async loadAuditoria() {
+    this.auditoria.set(null)
+    const PersonalId = this.PersonalIdForEdit || this.PersonalId()
+    this.auditoria.set(await firstValueFrom(this.apiService.getLicenciaAuditoria(PersonalId, this.PersonalLicenciaId())))
+  }
+
   openDrawerforConsultHistory() {
     this.PersonalId.set(this.ngForm().value.PersonalId)
     this.visibleHistorial.set(true)

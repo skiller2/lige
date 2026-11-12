@@ -1390,6 +1390,14 @@ export class ApiService {
     )
   }
 
+  getLicenciaAuditoria(PersonalId: number, PersonalLicenciaId: number) {
+    if (!PersonalId || !PersonalLicenciaId) return of(null);
+    return this.http.get<ResponseJSON<any>>(`/api/carga-licencia/datos-auditoria/${PersonalId}/${PersonalLicenciaId}`).pipe(
+      map(res => res.data),
+      catchError(() => of(null))
+    );
+  }
+
   getLicencia(anio: number, mes: number, PersonalId: number, PersonalLicenciaId: number) {
 
     return this.http.get<ResponseJSON<any>>(`/api/carga-licencia/${anio}/${mes}/${PersonalId}/${PersonalLicenciaId}`).pipe(
