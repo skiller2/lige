@@ -466,16 +466,16 @@ export class ChatBotController extends BaseController {
         if (vuelta > 10)
           throw new Error('Se superó el límite de 10 llamadas a la IA en un mismo mensaje')
 
-        console.log('tools', botServer.iaHistorial[chatId].tools)
+        //console.log('tools', botServer.iaHistorial[chatId].tools)
 
-/*
-        const responseIA = await botServer.ollama.chat({
-          model: process.env.MODEL,
-          messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
-          stream: false,
-          tools: botServer.iaHistorial[chatId].tools,
-        });
-*/
+        /*
+                const responseIA = await botServer.ollama.chat({
+                  model: process.env.MODEL,
+                  messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
+                  stream: false,
+                  tools: botServer.iaHistorial[chatId].tools,
+                });
+        */
         const responseIA = await botServer.servicioIA.chat({
           model: process.env.MODEL,
           messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
@@ -497,6 +497,8 @@ export class ChatBotController extends BaseController {
           // meto control de descarga pendiente de docs para doble validacion al derivar y no alucine la ia?
 
           for (const tool of responseIA.message.tool_calls) {
+            const args = (typeof tool.function.arguments === 'string') ? JSON.parse(tool.function.arguments) : tool.function.arguments
+            console.log(`[IA][${chatId}] Tool call: ${tool.function.name}(${JSON.stringify(tool.function.arguments)})`)
             let output = {}
             const pId = autoPersonalId
 
@@ -532,7 +534,7 @@ export class ChatBotController extends BaseController {
                 break;
               case 'getDocumentoPorPeriodo': {
                 // Busca por período solo entre los documentos de la persona
-                const { tipo, anio, mes } = tool.function.arguments
+                const { tipo, anio, mes } = args
                 if (!['REC', 'MONOT'].includes(tipo)) {
                   output = { Error: 'TIPO_INVALIDO' }
                   break;
@@ -578,7 +580,7 @@ export class ChatBotController extends BaseController {
               }
               case 'setPersonalAdelanto': {
                 try {
-                  await personalController.setPersonalAdelanto(pId, now.getFullYear(), now.getMonth() + 1, Number(tool.function.arguments.importe))
+                  await personalController.setPersonalAdelanto(pId, now.getFullYear(), now.getMonth() + 1, Number(args.importe))
                   output = { response: 'OK' }
                 } catch (e) {
                   console.error(`[IA][${chatId}] setPersonalAdelanto falló: ${e?.message}`)
@@ -590,18 +592,18 @@ export class ChatBotController extends BaseController {
                 // Solo documentos de la persona o generales
                 const docPropio = await queryRunner.query(
                   `SELECT DocumentoId FROM Documento WHERE DocumentoId = @0 AND (PersonalId = @1 OR PersonalId = 0 OR PersonalId IS NULL)`,
-                  [tool.function.arguments.DocumentoId, pId]
+                  [args.DocumentoId, pId]
                 )
                 if (!docPropio.length) {
                   output = { Error: 'DOCUMENTO_NO_AUTORIZADO', mensaje: 'El documento solicitado no corresponde a la persona.' }
                   break;
                 }
                 try {
-                  output = await this.getURLDocumentoNew(tool.function.arguments.DocumentoId, queryRunner)
+                  output = await this.getURLDocumentoNew(args.DocumentoId, queryRunner)
                   // Registra la entrega igual que flowDescargaDocs
-                  await this.addToDocLog(tool.function.arguments.DocumentoId, chatId, pId)
+                  await this.addToDocLog(args.DocumentoId, chatId, pId)
                 } catch (e) {
-                  console.error(`[IA][${chatId}] getURLDocumentoNew falló DocumentoId=${tool.function.arguments.DocumentoId}: ${e?.message}`, e?.extended ?? '')
+                  console.error(`[IA][${chatId}] getURLDocumentoNew falló DocumentoId=${args.DocumentoId}: ${e?.message}`, e?.extended ?? '')
                   output = { Error: 'ARCHIVO_NO_DISPONIBLE', mensaje: 'El archivo no se encuentra disponible.' }
                 }
                 break;
@@ -609,10 +611,10 @@ export class ChatBotController extends BaseController {
                 output = await novedadController.getBackupNovedad(pId)
                 break;
               case 'saveNovedad':
-                output = await novedadController.saveNovedad(pId, tool.function.arguments.novedad, queryRunner)
+                output = await novedadController.saveNovedad(pId, args.novedad, queryRunner)
                 break;
               case 'getObjetivoByCodObjetivo':
-                output = await objetivoController.getObjetivoByCodObjetivo(tool.function.arguments.CodObjetivo)
+                output = await objetivoController.getObjetivoByCodObjetivo(args.CodObjetivo)
                 break;
               case 'getNovedadTipo':
                 output = await novedadController.getNovedadTipo()
@@ -655,7 +657,11 @@ export class ChatBotController extends BaseController {
                     break;
                   }
                 }
-                output = await this.getChatBotAgent(queryRunner, tool.function.arguments.agentId)
+
+                //console.log(botServer.iaHistorial[chatId])
+
+                console.log('aver', args)
+                output = await this.getChatBotAgent(queryRunner, args.agentId)
                 botServer.iaHistorial[chatId].tools = (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
                 botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
                 botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
@@ -669,7 +675,7 @@ export class ChatBotController extends BaseController {
                 throw new Error(`Función desconocida: ${tool.function.name}`);
             }
 
-            //            const output = await functionToCall(tool.function.arguments);
+            //            const output = await functionToCall(args);
 
             const outputJson = JSON.stringify(output)
 
