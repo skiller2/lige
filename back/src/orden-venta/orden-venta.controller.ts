@@ -108,47 +108,28 @@ const columnasGrillaOrdenes: any[] = [
     searchHidden: false,
     maxWidth: 90
   },
+  // Muestra la denominación y filtra por id, igual que Sucursal
   {
     id: "ClienteId",
-    name: "ClienteId",
-    field: "ClienteId",
-    fieldName: "ord.ClienteId",
-    type: "number",
-    searchComponent: "inputForClientSearch",
-    sortable: true,
-    hidden: true,
-    searchHidden: false
-  },
-  {
-    id: "Cliente",
     name: "Cliente",
     field: "Cliente",
-    fieldName: "cli.ClienteDenominacion",
+    fieldName: "ord.ClienteId",
     type: "string",
+    searchComponent: "inputForClientSearch",
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
   },
   {
     id: "ObjetivoId",
-    name: "ObjetivoId",
-    field: "ObjetivoId",
-    fieldName: "obj.ObjetivoId",
-    type: "number",
-    searchComponent: "inputForObjetivoSearch",
-    sortable: true,
-    hidden: true,
-    searchHidden: false
-  },
-  {
-    id: "Objetivo",
     name: "Objetivo",
     field: "Objetivo",
-    fieldName: "CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(eledep.ClienteElementoDependienteDescripcion))",
+    fieldName: "obj.ObjetivoId",
     type: "string",
+    searchComponent: "inputForObjetivoSearch",
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
   },
   {
     id: "DescripcionFacturacion",
@@ -173,20 +154,20 @@ const columnasGrillaOrdenes: any[] = [
     maxWidth: 160
   },
 
-  {
-    id: "GrupoActividadId",
-    name: "Grupo Actividad",
-    field: "GrupoActividadId",
-    fieldName: "gaobj.GrupoActividadId",
-    type: "number",
-    searchComponent: "inputForGrupoActividadSearch",
-    sortable: false,
-    hidden: true,
-    searchHidden: false
-  },
+    {
+      id: "GrupoActividadId",
+      name: "Grupo Actividad",
+      field: "GrupoActividadDetalle",
+      fieldName: "gaobj.GrupoActividadId",
+      type: "string",
+      searchComponent: "inputForGrupoActividadSearch",
+      sortable: false,
+      hidden: false,
+      searchHidden: false
+    },
   {
     id: "GrupoActividadNumero",
-    name: "Grupo Actividad",
+    name: "Grupo Actividad Número",
     field: "GrupoActividadNumero",
     fieldName: "ga.GrupoActividadNumero",
     type: "string",
@@ -194,26 +175,17 @@ const columnasGrillaOrdenes: any[] = [
     hidden: true,
     searchHidden: true
   },
+  // El id lo usa el filtro por defecto del front (index 'EstadoOrdenVentaCodigo')
   {
     id: "EstadoOrdenVentaCodigo",
-    name: "EstadoCodigo",
-    field: "EstadoOrdenVentaCodigo",
+    name: "Estado",
+    field: "Estado",
     fieldName: "ord.EstadoOrdenVentaCodigo",
     type: "string",
     searchComponent: "inputForEstadoOrdenVentaSearch",
     sortable: true,
-    hidden: true,
-    searchHidden: false
-  },
-  {
-    id: "Estado",
-    name: "Estado",
-    field: "Estado",
-    fieldName: sqlEstadoOrden,
-    type: "string",
-    sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     maxWidth: 140
   },
   {
@@ -298,7 +270,7 @@ export class OrdenVentaController extends BaseController {
           ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar,
           IIF((objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
           ga.GrupoActividadNumero, gaobj.GrupoActividadId,
-          TRIM(CONCAT(ga.GrupoActividadNumero,' ',ga.GrupoActividadDetalle)) AS GrupoActividadDetalle,
+          TRIM(ga.GrupoActividadDetalle) AS GrupoActividadDetalle,
           suc.SucursalId,
           TRIM(suc.SucursalDescripcion) AS SucursalDescripcion
         FROM OrdenVenta ord
