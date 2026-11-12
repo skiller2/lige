@@ -274,7 +274,7 @@ export class RecibosController extends BaseController {
       await this.eventoLogFin(queryRunner, EventoLogCodigo, 'COM', { res: result, 'CantRecibosGeneral': movimientosPendientes, 'CantRecibosCoordinador': movimientosPendientesC }, usuario, ip)
 
 
-      throw new ClientException(`DEBUG ${movimientosPendientes.length} recibos General y ${movimientosPendientesC.length} recibos de Coordinador correctamente para el periodo ${periodo.month}/${periodo.year}`)
+      //throw new ClientException(`DEBUG ${movimientosPendientes.length} recibos General y ${movimientosPendientesC.length} recibos de Coordinador correctamente para el periodo ${periodo.month}/${periodo.year}`)
 
       this.jsonRes([], res, result);
 
