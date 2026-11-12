@@ -122,7 +122,7 @@ export class RecibosController extends BaseController {
 
     const isUnique = req.body.isUnique
     const especial = req.body.especial
-    const personalId = req.body?.personalId
+    const personalId = req.body?.personalId.length ? req.body.personalId : []
     //estas  variables se usan solo si el recibo previamente ya existe 
     let fechaRecibo = new Date(req.body.fechaRecibo)
     let DocumentoId: number
