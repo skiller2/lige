@@ -17,7 +17,8 @@ import { promises as fsPromises } from 'fs';
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { PDFDocument } from 'pdf-lib';
 import { unlink } from "node:fs/promises"
-import { Ollama } from "ollama";
+import { ModelArtsClient, type ChatMessage } from "../modelarts-client.ts";
+import type { Ollama } from "ollama/browser";
 
 const listaColumnas: any[] = [
     {
@@ -1366,21 +1367,22 @@ export class NovedadesController extends BaseController {
         return await pdfFinal.save();
     }
 
-    private servicioIA: Ollama = null
+    private servicioIA: Ollama|ModelArtsClient = null
     private async initIA() {
+        /*
         this.servicioIA = new Ollama({
             host: "https://ollama.com",
             headers: {
                 Authorization: "Bearer " + process.env.OLLAMA_API_KEY,
             },
         });
-
+        */
+        this.servicioIA = new ModelArtsClient()
     }
 
     private async normalizarNovedad(prompt: string, Descripcion: string, Accion: string) {
-        const IAmessages = [{ role: "system", content: prompt }, { role: "user", content: `{Descripcion:${Descripcion},Accion:${Accion}` }]
-        const response = await this.servicioIA.chat({ model: "gpt-oss:120b", messages: IAmessages, stream: false });
-
+        const IAmessages: ChatMessage[] = [{ role: "system", content: prompt }, { role: "user", content: `{Descripcion:${Descripcion},Accion:${Accion}` }]
+        const response = await this.servicioIA.chat({ model: process.env.MODEL, messages: IAmessages, stream: false });
         return JSON.parse(response.message.content)
     }
 

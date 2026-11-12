@@ -470,14 +470,14 @@ export class ChatBotController extends BaseController {
 
 /*
         const responseIA = await botServer.ollama.chat({
-          model: "gpt-oss:120b",
+          model: process.env.MODEL,
           messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
           stream: false,
           tools: botServer.iaHistorial[chatId].tools,
         });
 */
-        const responseIA = await botServer.modelArtsClient.chat({
-          model: "deepseek-v4.1-flash-1017",
+        const responseIA = await botServer.servicioIA.chat({
+          model: process.env.MODEL,
           messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
           stream: false,
           tools: botServer.iaHistorial[chatId].tools,
