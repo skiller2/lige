@@ -426,32 +426,33 @@ export class ChatBotController extends BaseController {
   }
 
   async chatAgent(req: Request, res: Response, next: NextFunction) {
+    let recall = false
+    let vuelta = 0
     const message = String(req.body.message ?? '').trim()
-    if (!message)
-      return this.jsonRes({ 'response': [] }, res, 'ok');
-    //    const personalId = Number(req.body.personalId)
-    //    if (!Number.isInteger(personalId) || personalId <= 0)
-    //      return next(new ClientException('Debe seleccionar una persona'))
     const chatId = String(req.body.chatId ?? '').trim()
-    if (!chatId)
-      return next(new ClientException('El teléfono es obligatorio'))
-
     const usuario = BaseController.getUser(res)
     const queryRunner = await dbServer.connection(usuario)
 
-    let recall = false
-    let vuelta = 0
-
-    if (!botServer.iaHistorial[chatId]?.msgs?.length) {
-      const agent = await this.getChatBotAgent(queryRunner, 'AUTH')
-      botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '', debug: true }
-      botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug: true });
-    }
-    botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: false })
-
-    const now = new Date()
-
     try {
+
+      if (!message)
+        return next(new ClientException('El mensaje es obligatorio'))
+
+
+      if (!chatId)
+        return next(new ClientException('El ID de chat es obligatorio (telefono o identificador de sesión)'))
+
+
+      if (!botServer.iaHistorial[chatId]?.msgs?.length) {
+        const agent = await this.getChatBotAgent(queryRunner, 'AUTH')
+        botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '', debug: true }
+        botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug: true });
+      }
+      botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: false })
+
+      const now = new Date()
+
+
       do {
         recall = false
         vuelta++
@@ -644,7 +645,7 @@ export class ChatBotController extends BaseController {
               default:
                 throw new Error(`Función desconocida: ${tool.function.name}`);
             }
-            
+
             //            const output = await functionToCall(args);
 
             const outputJson = JSON.stringify(output)
@@ -653,13 +654,13 @@ export class ChatBotController extends BaseController {
               id: botServer.iaHistorial[chatId].msgs.length, role: "tool", content: outputJson, tool_name: tool.function.name, agent: botServer.iaHistorial[chatId].agent, debug: true
             });
 
-            if (tool.function.name == 'transferirAgente') {
-                botServer.iaHistorial[chatId].tools = (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
-                botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
-                botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
+            if (tool.function.name == 'transferirAgente' && (output as any)?.ChatBotPromptCodigo) {
+              botServer.iaHistorial[chatId].tools = (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
+              botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
+              botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
 
-                botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, agent: botServer.iaHistorial[chatId].agent, debug: true });
-                botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, debug: true, agent: botServer.iaHistorial[chatId].agent })
+              botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, agent: botServer.iaHistorial[chatId].agent, debug: true });
+              botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, debug: true, agent: botServer.iaHistorial[chatId].agent })
             }
           }
           recall = true
@@ -670,7 +671,8 @@ export class ChatBotController extends BaseController {
 
       return this.jsonRes({ 'response': nuevos }, res, 'ok');
     } catch (err) {
-      return next(new ClientException(err.message));
+        const mensaje = err instanceof Error ? err.message: String(err)
+      return next(new ClientException(mensaje));
     } finally {
       await queryRunner.release()
     }
