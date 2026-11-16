@@ -37,7 +37,7 @@ export class NovedadesComponent {
     filtros: [],
     sort: null,
   });
-  selectedIndex = signal(0)
+  tabIndex = signal(0)
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
@@ -124,45 +124,21 @@ export class NovedadesComponent {
       this.editNovedadNovedadCodigo.set(row.id)
       this.editNovedadObjetivoId.set(row.ObjetivoId)
       // Asegurar que el componente de edición se inicialice si ya está visible
-      if (this.selectedIndex() === 2) {
-        this.childEdit().viewRecord(false)
-      }
+      // if (this.selectedIndex() === 2) {
+      //   this.childEdit().viewRecord()
+      // }
     }
 
-  }
-
-  reloadListado() {
-    this.gridData.reload()
-    this.selectedIndex.set(1)
   }
 
   async handleAddOrUpdate(event: any) {
     this.gridData.reload()
     if (event === 'delete') {
       //this.editNovedadNovedadCodigo.set(0)
-      this.selectedIndex.set(1)
+      this.tabIndex.set(1)
 
     }
 
-  }
-
-  goToEdit() {
-    if (this.editNovedadNovedadCodigo() > 0) {
-      this.selectedIndex.set(2)
-      this.childEdit().viewRecord(false)
-    }
-  }
-
-  goToDetail() {
-    if (this.editNovedadNovedadCodigo() > 0) {
-      this.selectedIndex.set(3)
-      this.childDeta().viewRecord(true)
-    }
-  }
-
-  goToAdd() {
-    this.selectedIndex.set(4)
-    this.childAlta().newRecord()
   }
 
   async deleteNovedadInput() {
@@ -182,6 +158,22 @@ export class NovedadesComponent {
         ? Number(localStorage.getItem('mes'))
         : now.getMonth() + 1;
     this.periodo.set(new Date(anio, mes - 1, 1))
+  }
+
+  onTabsetChange(_event: any) {
+    switch (_event.index) {
+      case 2: //EDIT
+        this.childEdit().viewRecord()
+        break
+      case 3: //DETALLE
+        this.childDeta().viewRecord()
+        break;
+      case 4: //ALTA
+        this.childAlta().newRecord()
+        break;
+      default:
+        break;
+    }
   }
 
 }

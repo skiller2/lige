@@ -108,47 +108,38 @@ const columnasGrillaOrdenes: any[] = [
     searchHidden: false,
     maxWidth: 90
   },
+  // Muestra la denominación y filtra por id, igual que Sucursal
   {
     id: "ClienteId",
-    name: "ClienteId",
-    field: "ClienteId",
-    fieldName: "ord.ClienteId",
-    type: "number",
-    searchComponent: "inputForClientSearch",
-    sortable: true,
-    hidden: true,
-    searchHidden: false
-  },
-  {
-    id: "Cliente",
     name: "Cliente",
     field: "Cliente",
-    fieldName: "cli.ClienteDenominacion",
+    fieldName: "ord.ClienteId",
     type: "string",
+    searchComponent: "inputForClientSearch",
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
   },
   {
     id: "ObjetivoId",
-    name: "ObjetivoId",
-    field: "ObjetivoId",
+    name: "Objetivo",
+    field: "Objetivo",
     fieldName: "obj.ObjetivoId",
-    type: "number",
+    type: "string",
     searchComponent: "inputForObjetivoSearch",
     sortable: true,
-    hidden: true,
+    hidden: false,
     searchHidden: false
   },
   {
-    id: "Objetivo",
-    name: "Objetivo",
-    field: "Objetivo",
-    fieldName: "CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(eledep.ClienteElementoDependienteDescripcion))",
+    id: "DescripcionFacturacion",
+    name: "Referencia Facturación",
+    field: "DescripcionFacturacion",
+    fieldName: "ord.DescripcionFacturacion",
     type: "string",
     sortable: true,
     hidden: false,
-    searchHidden: true
+    searchHidden: false
   },
   {
     id: "SucursalId",
@@ -163,20 +154,20 @@ const columnasGrillaOrdenes: any[] = [
     maxWidth: 160
   },
 
-  {
-    id: "GrupoActividadId",
-    name: "Grupo Actividad",
-    field: "GrupoActividadId",
-    fieldName: "gaobj.GrupoActividadId",
-    type: "number",
-    searchComponent: "inputForGrupoActividadSearch",
-    sortable: false,
-    hidden: true,
-    searchHidden: false
-  },
+    {
+      id: "GrupoActividadId",
+      name: "Grupo Actividad",
+      field: "GrupoActividadDetalle",
+      fieldName: "gaobj.GrupoActividadId",
+      type: "string",
+      searchComponent: "inputForGrupoActividadSearch",
+      sortable: false,
+      hidden: false,
+      searchHidden: false
+    },
   {
     id: "GrupoActividadNumero",
-    name: "Grupo Actividad",
+    name: "Grupo Actividad Número",
     field: "GrupoActividadNumero",
     fieldName: "ga.GrupoActividadNumero",
     type: "string",
@@ -184,26 +175,17 @@ const columnasGrillaOrdenes: any[] = [
     hidden: true,
     searchHidden: true
   },
+  // El id lo usa el filtro por defecto del front (index 'EstadoOrdenVentaCodigo')
   {
     id: "EstadoOrdenVentaCodigo",
-    name: "EstadoCodigo",
-    field: "EstadoOrdenVentaCodigo",
+    name: "Estado",
+    field: "Estado",
     fieldName: "ord.EstadoOrdenVentaCodigo",
     type: "string",
     searchComponent: "inputForEstadoOrdenVentaSearch",
     sortable: true,
-    hidden: true,
-    searchHidden: false
-  },
-  {
-    id: "Estado",
-    name: "Estado",
-    field: "Estado",
-    fieldName: sqlEstadoOrden,
-    type: "string",
-    sortable: true,
     hidden: false,
-    searchHidden: true,
+    searchHidden: false,
     maxWidth: 140
   },
   {
@@ -224,7 +206,7 @@ const columnasGrillaOrdenes: any[] = [
     type: "string",
     id: "EstadoAsistencia",
     field: "EstadoAsistencia",
-    fieldName: "EstadoAsistencia",
+    fieldName: "IIF((objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado')",
     searchType: "string",
     sortable: true,
     hidden: false,
@@ -282,12 +264,13 @@ export class OrdenVentaController extends BaseController {
           TRIM(ISNULL(cli.ClienteDenominacion,'')) AS Cliente,
           obj.ObjetivoId,
           CONCAT(ord.ClienteId,'/',ord.ClienteElementoDependienteId,' ',TRIM(eledep.ClienteElementoDependienteDescripcion)) AS Objetivo,
+          ord.DescripcionFacturacion,
           ord.EstadoOrdenVentaCodigo,
           ${sqlEstadoOrden} AS Estado,
           ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar,
           IIF((objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
           ga.GrupoActividadNumero, gaobj.GrupoActividadId,
-          TRIM(CONCAT(ga.GrupoActividadNumero,' ',ga.GrupoActividadDetalle)) AS GrupoActividadDetalle,
+          TRIM(ga.GrupoActividadDetalle) AS GrupoActividadDetalle,
           suc.SucursalId,
           TRIM(suc.SucursalDescripcion) AS SucursalDescripcion
         FROM OrdenVenta ord
@@ -379,7 +362,7 @@ export class OrdenVentaController extends BaseController {
 
   async getOrdenVentaQuery(queryRunner: QueryRunner, NroOrdenVenta: number) {
     const ordenDs = await queryRunner.query(`SELECT ord.NroOrdenVenta, ord.ClienteId, ord.ClienteElementoDependienteId,
-        ord.PeriodoAnio,ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.Observaciones, est.Descripcion, obj.ObjetivoId
+        ord.PeriodoAnio,ord.PeriodoMes, ord.EstadoOrdenVentaCodigo, ord.Observaciones, ord.DescripcionFacturacion, est.Descripcion, obj.ObjetivoId
         FROM OrdenVenta ord
         JOIN Objetivo obj ON obj.ClienteId=ord.ClienteId AND obj.ClienteElementoDependienteId=ord.ClienteElementoDependienteId
         JOIN EstadoOrdenVenta est ON est.EstadoOrdenVentaCod = ord.EstadoOrdenVentaCodigo
@@ -670,7 +653,7 @@ export class OrdenVentaController extends BaseController {
     }
   }
 
-  async setOrdenVentaQuery(PeriodoAnio: number, PeriodoMes: number, ClienteId: number, ClienteElementoDependienteId: number, NroOrdenVenta: number, items: any[], comprobantes: any[], Observaciones: string, EstadoOrdenVentaCodigo: string, queryRunner: QueryRunner, usuario: string, ip: string, ahora: Date) {
+  async setOrdenVentaQuery(PeriodoAnio: number, PeriodoMes: number, ClienteId: number, ClienteElementoDependienteId: number, NroOrdenVenta: number, items: any[], comprobantes: any[], Observaciones: string, DescripcionFacturacion: string, EstadoOrdenVentaCodigo: string, queryRunner: QueryRunner, usuario: string, ip: string, ahora: Date) {
     if (!EstadoOrdenVentaCodigo)
       EstadoOrdenVentaCodigo = ESTADO_ORDEN_VENTA_INICIAL
 
@@ -736,9 +719,9 @@ export class OrdenVentaController extends BaseController {
       if (NroOrdenVenta) {
         await queryRunner.query(`
             UPDATE OrdenVenta SET ImporteTotalAFacturar=@1, EstadoOrdenVentaCodigo=@2, Observaciones=@3,
-            AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6
+            AudFechaMod = @4, AudUsuarioMod = @5, AudIpMod = @6, DescripcionFacturacion = @7
             WHERE NroOrdenVenta = @0
-          `, [NroOrdenVenta, ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip]);
+          `, [NroOrdenVenta, ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip, DescripcionFacturacion]);
 
       } else {
         const proximo = await queryRunner.query(
@@ -750,11 +733,11 @@ export class OrdenVentaController extends BaseController {
               NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
               ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones,
               UnificacionFactura, GeneracionFacturaReqCliente,
-              AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-            ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, 0, 0, @8, @8, @9, @9, @10, @10)
+              AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod, DescripcionFacturacion
+            ) VALUES (@0, @1, @2, @3, @4, @5, @6, @7, 0, 0, @8, @8, @9, @9, @10, @10, @11)
           `, [
           NroOrdenVenta, ClienteId, ClienteElementoDependienteId, PeriodoMes, PeriodoAnio,
-          ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip
+          ImporteTotalAFacturar, EstadoOrdenVentaCodigo, Observaciones, ahora, usuario, ip, DescripcionFacturacion
         ]);
       }
 
@@ -817,6 +800,7 @@ export class OrdenVentaController extends BaseController {
     const ClienteElementoDependienteId = Number(req.body.ClienteElementoDependienteId);
     const itemsTmp: any[] = Array.isArray(req.body.items) ? req.body.items : [];
     const Observaciones = req.body.Observaciones ?? null;
+    const DescripcionFacturacion = req.body.DescripcionFacturacion ?? null;
     let EstadoOrdenVentaCodigo = String(req.body.EstadoOrdenVentaCodigo ?? '').trim();
     const comprobantesTmp = Array.isArray(req.body.comprobantes) ? req.body.comprobantes : [];
     let NroOrdenVenta = req.body.NroOrdenVenta ?? null;
@@ -860,7 +844,7 @@ export class OrdenVentaController extends BaseController {
 
 
 
-      const ov = await this.setOrdenVentaQuery(PeriodoAnio, PeriodoMes, ClienteId, ClienteElementoDependienteId, NroOrdenVenta, items, comprobantes, Observaciones, EstadoOrdenVentaCodigo, queryRunner, usuario, ip, ahora)
+      const ov = await this.setOrdenVentaQuery(PeriodoAnio, PeriodoMes, ClienteId, ClienteElementoDependienteId, NroOrdenVenta, items, comprobantes, Observaciones, DescripcionFacturacion, EstadoOrdenVentaCodigo, queryRunner, usuario, ip, ahora)
       NroOrdenVenta = ov.NroOrdenVenta
       EstadoOrdenVentaCodigo = ov.EstadoOrdenVentaCodigo
 

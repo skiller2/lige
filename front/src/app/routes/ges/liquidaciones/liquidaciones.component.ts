@@ -82,7 +82,7 @@ export class LiquidacionesComponent {
   private notification = inject(NzNotificationService);
   private readonly loadingSrv = inject(LoadingService);
   private settingsService = inject(SettingsService);
-
+  public recibosPersonalId = model<string>("") 
   periodo = signal<Date>(new Date())
   startFilters = signal(<Selections[]>[])
   tabIndex = signal<number>(0)
@@ -407,6 +407,10 @@ export class LiquidacionesComponent {
       case "generarRecibos":
 
         firstValueFrom(this.apiService.generaRecibos(this.periodo().getFullYear(), this.periodo().getMonth() + 1, this.fechaRecibo()))
+        break;
+      case "generarRecibosEspeciales":
+        const PersonalIdList = this.recibosPersonalId().split(',').map((id: string) => parseInt(id.trim())).filter((id: number) => !isNaN(id)) || [];
+        firstValueFrom(this.apiService.generaRecibosEspeciales(this.periodo().getFullYear(), this.periodo().getMonth() + 1, this.fechaRecibo(), PersonalIdList))
         break;
 
       case "generarReciboUnico":

@@ -13,11 +13,31 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LoadingService } from '@delon/abc/loading';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormField, disabled, form, submit, readonly, hidden } from '@angular/forms/signals';
+
+export interface Novedad {
+  id: number;
+  ObjetivoId: number;
+  DocumentoId: number;
+  Fecha: Date | null;
+  TipoNovedadId: number;
+  Descripcion: string;
+  Accion: string;
+  DescripcionNormalizada: string;
+  AccionNormalizada: string;
+  PersonalId: number;
+  Telefono: string;
+  VisualizacionFecha: Date | null;
+  VisualizacionPersonaNombre: string;
+  VisualizacionTelefono: string;
+  files: any[];
+}
 
 @Component({
   selector: 'app-novedades-form',
   imports: [SHARED_IMPORTS, CommonModule, FileUploadComponent, ObjetivoSearchComponent,
-    NzSelectModule, NzAutocompleteModule, FormsModule, PersonalSearchComponent],
+    NzSelectModule, NzAutocompleteModule, FormsModule, PersonalSearchComponent, FormField],
   templateUrl: './novedades-form.html',
   styleUrl: './novedades-form.less',
   providers: [ApiService],
@@ -26,24 +46,22 @@ import { PersonalSearchComponent } from '../../../shared/personal-search/persona
 })
 export class NovedadesFormComponent {
 
+  private readonly loadingSrv = inject(LoadingService)
+  private apiService = inject(ApiService)
+  private searchService = inject(SearchService)
+  public router = inject(Router)
+
   periodo = signal<Date>(new Date())
   anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
   mes = computed(() => this.periodo() ? this.periodo().getMonth() + 1 : 0)
   auditHistory = signal<any[]>([])
   NovedadCodigo = model<number>(0)
-  private readonly loadingSrv = inject(LoadingService)
-  private apiService = inject(ApiService)
-  private searchService = inject(SearchService)
-  public router = inject(Router)
   onAddorUpdate = output<('save' | 'delete')>()
-  formChange$ = new BehaviorSubject('');
-  fileUploadComponent = viewChild.required(FileUploadComponent);
+  crudAccion = input<string>('');
 
-  $selectedObjetivoIdChange = new BehaviorSubject(0)
-  $optionsTipoNovedad = this.searchService.getTipoNovedad()
+  optionsTipoNovedad = toSignal(this.searchService.getTipoNovedad(), { initialValue: [] });
 
-  fb = inject(FormBuilder)
-  formCli = this.fb.group({
+  private readonly defaultNovedad:Novedad = {
     id: 0,
     ObjetivoId: 0,
     Fecha: null as Date | null,
@@ -59,93 +77,88 @@ export class NovedadesFormComponent {
     Telefono: '',
     DescripcionNormalizada: '',
     AccionNormalizada: '',
+  }
+  
+  readonly parametroNovedad = signal<Novedad>(this.defaultNovedad);
+
+  readonly formNovedad = form(this.parametroNovedad, (p) => {
+    disabled(p, () => this.crudAccion() === 'R')
+    readonly(p.id, () => true)
+    readonly(p.DescripcionNormalizada, () => true)
+    readonly(p.AccionNormalizada, () => true)
+    readonly(p.VisualizacionPersonaNombre, () => true)
+    readonly(p.VisualizacionTelefono, () => true)
+    hidden(p.Telefono, ({ value }) => !value()?.trim());
+    hidden(p.VisualizacionFecha, ({ value }) => !value());
+    hidden(p.VisualizacionPersonaNombre, ({ value }) => !value()?.trim());
+    hidden(p.VisualizacionTelefono, ({ value }) => !value()?.trim());
   })
 
-  objetivoDetalleChange(event: any) {
-    this.$selectedObjetivoIdChange.next(event)
-  }
-
-  async viewRecord(readonly: boolean) {
+  async viewRecord() {
     if (this.NovedadCodigo())
       await this.load()
-    if (readonly) {
-      this.formCli.disable()
-    } else {
-      this.formCli.enable()
-    }
-    this.formCli.get('id')?.disable()
-    this.formCli.get('VisualizacionPersonaNombre')?.disable()
-    this.formCli.get('VisualizacionTelefono')?.disable()
-    this.formCli.get('VisualizacionFecha')?.disable()
-    this.formCli.get('PersonalId')?.disable()
-    this.formCli.get('Telefono')?.disable()
-    this.formCli.markAsPristine()
-
   }
 
   async load() {
     let res = await firstValueFrom(this.searchService.getNovedad(this.NovedadCodigo()))
-    const infoObjetivo = res[0]
-    this.formCli.reset(infoObjetivo)
-    this.formCli.patchValue({
-      ObjetivoId: infoObjetivo.ObjetivoId,
-      DocumentoId: infoObjetivo.DocumentoId || infoObjetivo.id
-    })
+    // console.log('infoNovedad: ',res)
+    const infoNovedad = res[0]
+    // this.formNovedad().reset(infoNovedad)
+    this.parametroNovedad.update(m => ({
+      ...m,
+      ...infoNovedad,
+      // DocumentoId: infoNovedad.DocumentoId || infoNovedad.id
+    }))
 
     this.auditHistory.set([
-      { usuario: infoObjetivo.AudUsuarioIng, fecha: this.formatDate(infoObjetivo.AudFechaIng), accion: 'Creación' },
-      { usuario: infoObjetivo.AudUsuarioMod, fecha: this.formatDate(infoObjetivo.AudFechaMod), accion: 'Modificación' }
+      { usuario: infoNovedad.AudUsuarioIng, fecha: this.formatDate(infoNovedad.AudFechaIng), accion: 'Creación' },
+      { usuario: infoNovedad.AudUsuarioMod, fecha: this.formatDate(infoNovedad.AudFechaMod), accion: 'Modificación' }
     ])
   }
 
 
   async save() {
-    this.loadingSrv.open({ type: 'spin', text: '' })
-    let form = this.formCli.getRawValue();
-    let DocumentoId = this.formCli.getRawValue().DocumentoId
+    await submit(this.formNovedad, async (form) => {
+      this.loadingSrv.open({ type: 'spin', text: '' })
+      const values: any = form().value()
 
-    // Ajustar la fecha para evitar problemas de zona horaria
-    if (form.Fecha) {
-      const adjustedDate = this.adjustDateForTimezone(form.Fecha);
-      if (adjustedDate) {
-        (form as any).Fecha = adjustedDate;
+      // Ajustar la fecha para evitar problemas de zona horaria
+      if (values.Fecha) {
+        const adjustedDate = this.adjustDateForTimezone(values.Fecha);
+        if (adjustedDate) {
+          (values as any).Fecha = adjustedDate;
+        }
       }
-    }
 
-    try {
-      if (this.NovedadCodigo()) {
-         
-        await firstValueFrom(this.apiService.updateNovedad(form, this.NovedadCodigo()))
+      try {
+        if (this.NovedadCodigo()) {
+          
+          await firstValueFrom(this.apiService.updateNovedad(values, this.NovedadCodigo()))
 
-      } else {
-         
-        let result = await firstValueFrom(this.apiService.addNovedad(form))
-        this.NovedadCodigo.set(result.data.novedadId)
-      }
-      await this.load()
-      this.onAddorUpdate.emit('save')
-      this.formCli.markAsUntouched()
-      this.formCli.markAsPristine()
+        } else {
+          
+          let result = await firstValueFrom(this.apiService.addNovedad(values))
+          this.NovedadCodigo.set(result.data.novedadId)
+        }
+        await this.load()
+        this.onAddorUpdate.emit('save')
 
 
-    } catch (e) {
-    }
-    this.formChange$.next("save")
-    this.loadingSrv.close()
+      } catch (e) {}
+      this.loadingSrv.close()
+    })
   }
 
 
   async newRecord() {
-    this.formCli.reset()
+    this.parametroNovedad.set(this.defaultNovedad)
     this.NovedadCodigo.set(0)
-    this.formCli.get('id')?.disable()
     this.auditHistory.set([])
-    this.formCli.markAsPristine()
   }
 
 
   async deleteNovedad() {
-    await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo(), this.formCli.getRawValue().ObjetivoId))
+    await firstValueFrom(this.apiService.deleteNovedad(this.NovedadCodigo(), this.parametroNovedad().ObjetivoId))
     this.NovedadCodigo.set(0)
     this.onAddorUpdate.emit('delete')
   }

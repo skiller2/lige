@@ -452,8 +452,8 @@ export class NovedadesController extends BaseController {
 
     async getNovedadQuery(queryRunner: any, NovedadId: any) {
 
-        return await queryRunner.query(`
-       SELECT
+        return await queryRunner.query(
+            `SELECT
             nov.NovedadCodigo id,
             cli.ClienteId,
             cli.ClienteDenominacion,
@@ -468,7 +468,7 @@ export class NovedadesController extends BaseController {
             ele.ClienteElementoDependienteDescripcion DescripcionObj,
             nov.VisualizacionFecha,
             nov.VisualizacionPersonaId,
-            visper.PersonalApellidoNombre AS VisualizacionPersonaNombre, 
+            TRIM(visper.PersonalApellidoNombre) AS VisualizacionPersonaNombre, 
             nov.VisualizacionTelefono,
             nov.PersonalId, nov.Telefono,
             nov.AudFechaIng, nov.AudFechaMod, nov.AudUsuarioIng, nov.AudUsuarioMod,

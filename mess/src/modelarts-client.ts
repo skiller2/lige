@@ -63,12 +63,19 @@ export class ModelArtsClient {
   }
 
   async chat(options: ChatOptions): Promise<ChatResponse> {
+    const sanitizedMessages = options.messages.map(m => {
+      const msg: Record<string, any> = { role: m.role, content: m.content };
+      if (m.tool_calls) msg.tool_calls = m.tool_calls;
+      if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
+      return msg;
+    });
+
     const response = await fetch(`${this.baseURL}/chat/completions`, {
       method: "POST",
       headers: this.defaultHeaders,
       body: JSON.stringify({
         model: options.model,
-        messages: options.messages,
+        messages: sanitizedMessages,
         stream: false,
         temperature: options.temperature,
         max_tokens: options.max_tokens,
@@ -94,12 +101,19 @@ export class ModelArtsClient {
   }
 
   async *chatStream(options: ChatOptions): AsyncGenerator<StreamChunk> {
+    const sanitizedMessages = options.messages.map(m => {
+      const msg: Record<string, any> = { role: m.role, content: m.content };
+      if (m.tool_calls) msg.tool_calls = m.tool_calls;
+      if (m.tool_call_id) msg.tool_call_id = m.tool_call_id;
+      return msg;
+    });
+
     const response = await fetch(`${this.baseURL}/chat/completions`, {
       method: "POST",
       headers: this.defaultHeaders,
       body: JSON.stringify({
         model: options.model,
-        messages: options.messages,
+        messages: sanitizedMessages,
         stream: true,
         temperature: options.temperature,
         max_tokens: options.max_tokens,

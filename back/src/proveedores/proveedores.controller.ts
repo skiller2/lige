@@ -139,7 +139,7 @@ export class ProveedoresController extends BaseController {
       if (domicilio.length) {
         data.DomicilioId = domicilio[0].DomicilioId || 0
         data.domicilio = domicilio[0].Domicilio || null
-        data.domicilio = domicilio[0].DomicilioDomLugar || ''
+        data.DomicilioDomLugar = domicilio[0].DomicilioDomLugar || ''
       }
       data.contactos = contactos
 
@@ -179,22 +179,22 @@ export class ProveedoresController extends BaseController {
     if (!form.ProveedorRazonSocial)
       campos_vacios.push(`- Razón Social`)
 
-    if (!form.CUIT)
-      campos_vacios.push(`- CUIT`)
+    // if (!form.CUIT)
+    //   campos_vacios.push(`- CUIT`)
 
     if (campos_vacios.length) {
       campos_vacios.unshift('Debe completar los siguientes campos: ')
       return new ClientException(campos_vacios)
     }
 
-    this.validarCUIT(form.CUIT)
+    // this.validarCUIT(form.CUIT)
 
-    const valCuit = await queryRunner.query(
-      `SELECT ProveedorId FROM Proveedor WHERE CUIT = @0`, [form.CUIT]
-    )
-    if (valCuit.length > 0 && form.ProveedorId !== valCuit[0].ProveedorId) {
-      return new ClientException(`El CUIT ingresado ya existe.`)
-    }
+    // const valCuit = await queryRunner.query(
+    //   `SELECT ProveedorId FROM Proveedor WHERE CUIT = @0`, [form.CUIT]
+    // )
+    // if (valCuit.length > 0 && form.ProveedorId !== valCuit[0].ProveedorId) {
+    //   return new ClientException(`El CUIT ingresado ya existe.`)
+    // }
 
     const valDomicilio = await domicilioController.valObjDomicilio(form.domicilio)
     if (valDomicilio instanceof ClientException) {

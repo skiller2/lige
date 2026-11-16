@@ -234,10 +234,7 @@ export class ChatBotController extends BaseController {
         botServer.iaTools = mainTools
         botServer.iaToolsHash = toolsHash
       }
-      // Se conserva el campo de respuesta existente para informar el reinicio por BMA o LP.
-      bmaChanged = bmaChanged || lpChanged
-      if (bmaChanged)
-        botServer.chatmess = []
+
       return this.jsonRes({ ...data, bmaChanged }, res, 'Agentes guardados')
     } catch (err) {
       await this.rollbackTransaction(queryRunner)
@@ -264,7 +261,6 @@ export class ChatBotController extends BaseController {
 
   async reinicia(req: Request, res: Response, next: NextFunction) {
     const chatId = req.body.chatId
-    botServer.chatmess[chatId] = []
     botServer.iaHistorial[chatId] = { msgs: [], tools: [], prompt: '', agent: '' }
     const ret = {}
     return this.jsonRes(ret, res, 'Chat reiniciado correctamente');
@@ -443,9 +439,6 @@ export class ChatBotController extends BaseController {
     const usuario = BaseController.getUser(res)
     const queryRunner = await dbServer.connection(usuario)
 
-    if (!botServer.chatmess[chatId]) {
-      botServer.chatmess[chatId] = []
-    }
     let recall = false
     let vuelta = 0
 
@@ -454,7 +447,7 @@ export class ChatBotController extends BaseController {
       botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '', debug: true }
       botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug: true });
     }
-    botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: false })
+    botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: false })
 
     const now = new Date()
 
@@ -466,27 +459,12 @@ export class ChatBotController extends BaseController {
         if (vuelta > 10)
           throw new Error('Se superó el límite de 10 llamadas a la IA en un mismo mensaje')
 
-        //console.log('tools', botServer.iaHistorial[chatId].tools)
-
-        /*
-                const responseIA = await botServer.ollama.chat({
-                  model: process.env.MODEL,
-                  messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
-                  stream: false,
-                  tools: botServer.iaHistorial[chatId].tools,
-                });
-        */
         const responseIA = await botServer.servicioIA.chat({
           model: process.env.MODEL,
           messages: botServer.iaHistorial[chatId].msgs.filter(m => m.agent == botServer.iaHistorial[chatId].agent),
           stream: false,
           tools: botServer.iaHistorial[chatId].tools,
         });
-
-
-
-
-
 
         botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, ...responseIA.message, agent: botServer.iaHistorial[chatId].agent, debug: !!responseIA.message.tool_calls?.length });
 
@@ -660,21 +638,15 @@ export class ChatBotController extends BaseController {
 
                 //console.log(botServer.iaHistorial[chatId])
 
-                console.log('aver', args)
                 output = await this.getChatBotAgent(queryRunner, args.agentId)
-                botServer.iaHistorial[chatId].tools = (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
-                botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
-                botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
 
-                botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: true, agent: botServer.iaHistorial[chatId].agent, debug: true });
-                botServer.iaHistorial[chatId].msgs.push({ id: botServer.chatmess[chatId].length, role: "user", content: message, debug: true, agent: botServer.iaHistorial[chatId].agent })
 
                 break;
 
               default:
                 throw new Error(`Función desconocida: ${tool.function.name}`);
             }
-
+            
             //            const output = await functionToCall(args);
 
             const outputJson = JSON.stringify(output)
@@ -682,6 +654,15 @@ export class ChatBotController extends BaseController {
             botServer.iaHistorial[chatId].msgs.push({
               id: botServer.iaHistorial[chatId].msgs.length, role: "tool", content: outputJson, tool_name: tool.function.name, agent: botServer.iaHistorial[chatId].agent, debug: true
             });
+
+            if (tool.function.name == 'transferirAgente') {
+                botServer.iaHistorial[chatId].tools = (output as any)?.IaTools ? JSON.parse((output as any).IaTools) : []
+                botServer.iaHistorial[chatId].prompt = (output as any)?.Prompt ?? ''
+                botServer.iaHistorial[chatId].agent = (output as any)?.ChatBotPromptCodigo ?? ''
+
+                botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, agent: botServer.iaHistorial[chatId].agent, debug: true });
+                botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, debug: true, agent: botServer.iaHistorial[chatId].agent })
+            }
           }
           recall = true
         }
