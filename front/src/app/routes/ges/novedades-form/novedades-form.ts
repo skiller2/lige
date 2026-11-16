@@ -58,6 +58,7 @@ export class NovedadesFormComponent {
   NovedadCodigo = model<number>(0)
   onAddorUpdate = output<('save' | 'delete')>()
   crudAccion = input<string>('');
+  loading = signal<boolean>(false)
 
   optionsTipoNovedad = toSignal(this.searchService.getTipoNovedad(), { initialValue: [] });
 
@@ -114,12 +115,14 @@ export class NovedadesFormComponent {
       { usuario: infoNovedad.AudUsuarioIng, fecha: this.formatDate(infoNovedad.AudFechaIng), accion: 'Creación' },
       { usuario: infoNovedad.AudUsuarioMod, fecha: this.formatDate(infoNovedad.AudFechaMod), accion: 'Modificación' }
     ])
+
+    setTimeout(() => { this.formNovedad().reset() }, 200);   // Hack para resetear el estado de dirty/pristine después de cargar los datos, ya que el form no detecta que se cargaron nuevos datos y queda dirty
   }
 
 
   async save() {
     await submit(this.formNovedad, async (form) => {
-      this.loadingSrv.open({ type: 'spin', text: '' })
+      
       const values: any = form().value()
 
       // Ajustar la fecha para evitar problemas de zona horaria
@@ -144,8 +147,11 @@ export class NovedadesFormComponent {
         this.onAddorUpdate.emit('save')
 
 
-      } catch (e) {}
-      this.loadingSrv.close()
+      } catch (e: any) {
+        return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
+      }
+      
+      return undefined
     })
   }
 
@@ -194,6 +200,33 @@ export class NovedadesFormComponent {
     const year = date.getFullYear();
 
     return `${hours}:${minutes}:${seconds} ${day}-${month}-${year}`;
+  }
+
+  async nomalizarNovedad(){
+    const inputDescripcion = this.formNovedad.Descripcion()
+    const Descripcion = inputDescripcion.value().trim();
+    const inputAccion = this.formNovedad.Accion()
+    const Accion = inputAccion.value().trim();
+
+    if (!Descripcion || !Accion || !inputDescripcion.dirty() || !inputAccion.dirty()) {
+      return
+    }
+
+    this.loading.set(true)
+    try {
+      const res = await firstValueFrom(this.apiService.getDescripcionAccionNormalizada({Descripcion, Accion}));
+      
+      this.parametroNovedad.update(m => ({
+        ...m,
+        DescripcionNormalizada: '',
+        AccionNormalizada: '',
+      }))
+      
+    } catch (error) {
+      
+    }finally{
+      this.loading.set(false)
+    }
   }
 
 }

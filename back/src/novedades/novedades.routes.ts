@@ -60,3 +60,9 @@ novedadesRouter.post("/informes", [authMiddleware.verifyToken, authMiddleware.au
     novedadesController.generaInformesNovedades(req, res, next);
   }
 );
+
+novedadesRouter.post("/prompt/desc-acci", [authMiddleware.verifyToken, authMiddleware.authADGroup(['gOperaciones', 'gOperacionesCon'])],
+  (req, res, next) => {
+    novedadesController.promptNormalize(req, res, next);
+  }
+);

@@ -2747,6 +2747,12 @@ export class ApiService {
     )
   }
 
+  getDescripcionAccionNormalizada(params: any) {
+    return this.http.post<ResponseJSON<any>>('/api/novedades/prompt/desc-acci', params).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
 }
 
 export function doOnSubscribe<T>(onSubscribe: () => void): (source: Observable<T>) => Observable<T> {

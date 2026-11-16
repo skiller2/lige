@@ -12,7 +12,7 @@
     <!-- Objetivo: Buscador de ClienteElementoDependiente -->
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Objetivo</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16" nzHasFeedback sfErrorTip>
         <app-objetivo-search [formField]="formNovedad.ObjetivoId" ></app-objetivo-search>
       </nz-form-control>
     </nz-form-item>
@@ -27,7 +27,7 @@
     <!-- Fecha y Hora -->
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Fecha y Hora</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
         <nz-date-picker
           [formField]="formNovedad.Fecha"
           nzShowTime="true"
@@ -41,7 +41,7 @@
     <!-- Tipo de novedad -->
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Tipo de novedad</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" nzHasFeedback sfErrorTip>
         <nz-select [formField]="formNovedad.TipoNovedadId" nzPlaceHolder="Seleccione tipo" nzAllowClear  [nzDropdownMatchSelectWidth]="false" style="width: 100%">
           @for (option of optionsTipoNovedad(); track option.value) {
             <nz-option [nzValue]="option.value" [nzLabel]="option.label"></nz-option>
@@ -53,16 +53,16 @@
     <!-- Descripción -->
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Descripción</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-        <textarea nz-input [formField]="formNovedad.Descripcion" placeholder="Ingrese una descripción"></textarea>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16" nzHasFeedback sfErrorTip>
+        <textarea nz-input [formField]="formNovedad.Descripcion" placeholder="Ingrese una descripción" (blur)="nomalizarNovedad()"></textarea>
       </nz-form-control>
     </nz-form-item>
 
     <!-- Acción -->
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Acción</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16">
-        <textarea nz-input [formField]="formNovedad.Accion" placeholder="Ingrese la acción tomada"></textarea>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="16" nzHasFeedback sfErrorTip>
+        <textarea nz-input [formField]="formNovedad.Accion" placeholder="Ingrese la acción tomada" (blur)="nomalizarNovedad()"></textarea>
       </nz-form-control>
     </nz-form-item>
 
@@ -119,7 +119,7 @@
 
     <nz-form-item class="marginElement" >
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4">Personal</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" nzHasFeedback sfErrorTip>
         <app-personal-search [formField]="formNovedad.PersonalId" [anio]="anio()" [mes]="mes()"/>
       </nz-form-control>
     </nz-form-item>
@@ -190,7 +190,7 @@
   @if (!this.formNovedad().disabled()) {
     <nz-form-item>
       <nz-form-control style="display: flex; justify-content: center; align-items: center;">
-        <button nzType="primary" nz-button  (click)="save()" [disabled]="formNovedad().submitting() || formNovedad().dirty()==false"  >
+        <button nzType="primary" nz-button type="submit" [disabled]="formNovedad().submitting() || formNovedad().dirty()==false || loading()"  >
           {{ 'app.btn.save' | i18n }}
         </button>
         <button nzType="primary" nz-button nzDanger  nz-popconfirm  [disabled]="NovedadCodigo() === 0"
