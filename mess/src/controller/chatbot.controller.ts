@@ -471,14 +471,12 @@ export class ChatBotController extends BaseController {
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
 
           const stateRes = await personalController.getPersonaState(chatId);
-          const autoPersonalId = stateRes.stateData?.personalId;
-          // meto control de descarga pendiente de docs para doble validacion al derivar y no alucine la ia?
+          const personalId = stateRes.stateData?.personalId;
 
           for (const tool of responseIA.message.tool_calls) {
             const args = (typeof tool.function.arguments === 'string') ? JSON.parse(tool.function.arguments) : tool.function.arguments
             console.log(`[IA][${chatId}] Tool call: ${tool.function.name}(${JSON.stringify(tool.function.arguments)})`)
             let output = {}
-            const pId = autoPersonalId
 
             switch (tool.function.name) {
               case 'genTelCode':
@@ -496,19 +494,19 @@ export class ChatBotController extends BaseController {
                 output = await personalController.removeCode(chatId)
                 break;
               case 'getInfoPersonal':
-                output = await personalController.getInfoPersonal(pId, chatId)
+                output = await personalController.getInfoPersonal(personalId, chatId)
                 break;
               case 'getInfoEmpresa':
                 output = await personalController.getInfoEmpresa()
                 break;
               case 'getLastPeriodosOfComprobantesAFIP':
-                output = await documentosController.getLastPeriodosOfComprobantesAFIP(pId, DocumentosController.maxCantPeriodos, queryRunner)
+                output = await documentosController.getLastPeriodosOfComprobantesAFIP(personalId, DocumentosController.maxCantPeriodos, queryRunner)
                 break;
               case 'getLastPeriodoOfComprobantes':
-                output = await documentosController.getLastPeriodoOfComprobantes(pId, DocumentosController.maxCantPeriodos, queryRunner)
+                output = await documentosController.getLastPeriodoOfComprobantes(personalId, DocumentosController.maxCantPeriodos, queryRunner)
                 break;
               case 'getDocsPendDescarga':
-                output = await personalController.getDocsPendDescarga(pId)
+                output = await personalController.getDocsPendDescarga(personalId)
                 break;
               case 'getDocumentoPorPeriodo': {
                 // Busca por período solo entre los documentos de la persona
@@ -517,14 +515,14 @@ export class ChatBotController extends BaseController {
                   output = { Error: 'TIPO_INVALIDO' }
                   break;
                 }
-                const docs = await this.getRutaFile(queryRunner, pId, anio, mes, tipo)
+                const docs = await this.getRutaFile(queryRunner, personalId, anio, mes, tipo)
                 if (!docs.length) {
                   output = { Error: 'SIN_DOCUMENTO', mensaje: 'No hay documento para ese período.' }
                   break;
                 }
                 try {
                   output = await this.getURLDocumentoNew(docs[0].DocumentoId, queryRunner)
-                  await this.addToDocLog(docs[0].DocumentoId, chatId, pId)
+                  await this.addToDocLog(docs[0].DocumentoId, chatId, personalId)
                 } catch (e) {
                   console.error(`[IA][${chatId}] getDocumentoPorPeriodo falló DocumentoId=${docs[0].DocumentoId}: ${e?.message}`)
                   output = { Error: 'ARCHIVO_NO_DISPONIBLE', mensaje: 'El archivo no se encuentra disponible.' }
@@ -543,12 +541,12 @@ export class ChatBotController extends BaseController {
                 break;
               }
               case 'getPersonalAdelanto': {
-                output = await PersonalController.getPersonalAdelanto(pId, now.getFullYear(), now.getMonth() + 1)
+                output = await PersonalController.getPersonalAdelanto(personalId, now.getFullYear(), now.getMonth() + 1)
                 break;
               }
               case 'deletePersonalAdelanto': {
                 try {
-                  const eliminado = await personalController.deletePersonalAdelanto(pId, now.getFullYear(), now.getMonth() + 1)
+                  const eliminado = await personalController.deletePersonalAdelanto(personalId, now.getFullYear(), now.getMonth() + 1)
                   output = eliminado ? { response: 'OK' } : { Error: 'No hay un adelanto pendiente para anular en el período actual.' }
                 } catch (e) {
                   console.error(`[IA][${chatId}] deletePersonalAdelanto falló: ${e?.message}`)
@@ -558,7 +556,7 @@ export class ChatBotController extends BaseController {
               }
               case 'setPersonalAdelanto': {
                 try {
-                  await personalController.setPersonalAdelanto(pId, now.getFullYear(), now.getMonth() + 1, Number(args.importe))
+                  await personalController.setPersonalAdelanto(personalId, now.getFullYear(), now.getMonth() + 1, Number(args.importe))
                   output = { response: 'OK' }
                 } catch (e) {
                   console.error(`[IA][${chatId}] setPersonalAdelanto falló: ${e?.message}`)
@@ -570,7 +568,7 @@ export class ChatBotController extends BaseController {
                 // Solo documentos de la persona o generales
                 const docPropio = await queryRunner.query(
                   `SELECT DocumentoId FROM Documento WHERE DocumentoId = @0 AND (PersonalId = @1 OR PersonalId = 0 OR PersonalId IS NULL)`,
-                  [args.DocumentoId, pId]
+                  [args.DocumentoId, personalId]
                 )
                 if (!docPropio.length) {
                   output = { Error: 'DOCUMENTO_NO_AUTORIZADO', mensaje: 'El documento solicitado no corresponde a la persona.' }
@@ -579,17 +577,17 @@ export class ChatBotController extends BaseController {
                 try {
                   output = await this.getURLDocumentoNew(args.DocumentoId, queryRunner)
                   // Registra la entrega igual que flowDescargaDocs
-                  await this.addToDocLog(args.DocumentoId, chatId, pId)
+                  await this.addToDocLog(args.DocumentoId, chatId, personalId)
                 } catch (e) {
                   console.error(`[IA][${chatId}] getURLDocumentoNew falló DocumentoId=${args.DocumentoId}: ${e?.message}`, e?.extended ?? '')
                   output = { Error: 'ARCHIVO_NO_DISPONIBLE', mensaje: 'El archivo no se encuentra disponible.' }
                 }
                 break;
               case 'getBackupNovedad':
-                output = await novedadController.getBackupNovedad(pId)
+                output = await novedadController.getBackupNovedad(personalId)
                 break;
               case 'saveNovedad':
-                output = await novedadController.saveNovedad(pId, args.novedad, queryRunner)
+                output = await novedadController.saveNovedad(personalId, args.novedad, queryRunner)
                 break;
               case 'getObjetivoByCodObjetivo':
                 output = await objetivoController.getObjetivoByCodObjetivo(args.CodObjetivo)
@@ -599,20 +597,20 @@ export class ChatBotController extends BaseController {
                 break;
               case 'addNovedad': {
                 // Se envía el borrador guardado con saveNovedad
-                const novedad = await novedadController.getBackupNovedad(pId)
+                const novedad = await novedadController.getBackupNovedad(personalId)
                 const faltantes = await novedadController.validarNovedad(novedad)
                 if (faltantes.length) {
                   output = { Error: 'DATOS_INCOMPLETOS', faltantes, accion: 'Si el usuario ya informó estos datos, guardalos con saveNovedad y volvé a llamar addNovedad. Si no, pedíselos.' }
                   break;
                 }
-                const NovedadCodigo = await novedadController.addNovedad(novedad, chatId, pId, queryRunner)
+                const NovedadCodigo = await novedadController.addNovedad(novedad, chatId, personalId, queryRunner)
                 // Aviso al supervisor
                 // await novedadController.sendMsgResponsable({ ...novedad, novedadId: NovedadCodigo }).catch(e => console.error(`[IA][${chatId}] sendMsgResponsable falló: ${e?.message}`))
                 output = { NovedadCodigo }
                 break;
               }
               case 'getNovedadesPendientesByResponsable':
-                output = await novedadController.getNovedadesPendientesByResponsable(pId)
+                output = await novedadController.getNovedadesPendientesByResponsable(personalId)
                 break;
               case 'setNovedadVisualizacion':
                 //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
@@ -629,7 +627,7 @@ export class ChatBotController extends BaseController {
                 }
                 // Al salir de AUTH no deben quedar documentos pendientes de descarga
                 if (botServer.iaHistorial[chatId].agent === 'AUTH') {
-                  const docsPend = await personalController.getDocsPendDescarga(pId)
+                  const docsPend = await personalController.getDocsPendDescarga(personalId)
                   if (docsPend.length) {
                     output = { Error: 'No se puede derivar: la persona tiene documentos pendientes de descarga. Ofrecé descargarlos antes de derivar.' }
                     break;
