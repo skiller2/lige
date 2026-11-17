@@ -31,6 +31,9 @@ import { ClientException } from "./controller/base.controller.ts";
 import { chatBotController } from "./controller/controller.module.ts";
 import { ModelArtsClient } from "./modelarts-client.ts";
 
+const IA_HISTORIAL_TIMEOUT_MS = (Number(process.env.IA_HISTORIAL_TIMEOUT_SECS) || 30 * 60) * 1000;
+const IA_HISTORIAL_CLEANUP_INTERVAL_MS = (Number(process.env.IA_HISTORIAL_CLEANUP_INTERVAL_SECS) || 1 * 60) * 1000;
+
 
 dotenv.config()
 export const tmpName = (dir: string) => {
@@ -69,7 +72,9 @@ export class BotServer {
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
 
-  public iaHistorial:any[]=[]
+  public iaHistorial: Map<string, { msgs: any[]; timestamp: number, finished: boolean }> = new Map();
+  
+  private cleanupInterval: NodeJS.Timeout | null = null;
   
   constructor(provider: string) {
     this.ASSISTANT_ID = process.env.ASSISTANT_ID ?? ''
@@ -294,6 +299,33 @@ export class BotServer {
     return mensaje
   }
 
+  private cleanupIaHistorial() {
+    const now = Date.now();
+    for (const [chatId, data] of this.iaHistorial.entries()) {
+      if (now - data.timestamp > IA_HISTORIAL_TIMEOUT_MS && !data.finished) {
+        console.log(`Limpiando historial de chatId ${chatId} por inactividad.`);
+        data.msgs.push({ role: "assistant", content: "Sesion cerrada por inactividad. Por favor, inicie nuevamente la conversación." });
+        data.finished = true;
+      }
+    }
+  }
+
+  private startCleanupInterval() {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupIaHistorial();
+    }, IA_HISTORIAL_CLEANUP_INTERVAL_MS);
+  }
+
+  private stopCleanupInterval() {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+  }
+
   public async init() {
 
     Utils.removeBotFileSessions()
@@ -350,6 +382,7 @@ export class BotServer {
     if (!parameters?.Prompt?.trim() || !parameters?.IaTools?.trim())
       throw new Error('Faltan el prompt o las herramientas de BMA')
 
+    this.startCleanupInterval();
 
     if (this.adapterProvider)
       this.botHandle.httpServer(this.botPort)

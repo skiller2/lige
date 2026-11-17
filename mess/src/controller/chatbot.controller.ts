@@ -251,7 +251,7 @@ export class ChatBotController extends BaseController {
 
   async reinicia(req: Request, res: Response, next: NextFunction) {
     const chatId = req.body.chatId
-    botServer.iaHistorial[chatId] = { msgs: [], tools: [], prompt: '', agent: '' }
+    botServer.iaHistorial[chatId] = { msgs: [], tools: [], prompt: '', agent: '', timestamp: 0, debug: true }
     const ret = {}
     return this.jsonRes(ret, res, 'Chat reiniciado correctamente');
   }
@@ -415,6 +415,22 @@ export class ChatBotController extends BaseController {
     return { ChatBotPromptCodigo: rows[0].ChatBotPromptCodigo, Prompt: rows[0].Prompt, IaTools: rows[0].IaTools }
   }
 
+  async getChatAgent(req: any, res: any, next: any) {
+    const chatId = String(req.params?.chatId ?? '').trim();
+    const usuario = BaseController.getUser(res)
+
+    const historial = botServer.iaHistorial[chatId];
+
+    const nuevos = historial?.msgs.filter(m => m?.sendIt !== true) ?? [];
+
+    historial?.msgs.forEach(m => { m.sendIt = true; });
+
+    if (historial?.finished) botServer.iaHistorial.delete(chatId)
+
+    return this.jsonRes({ 'response': nuevos }, res, 'ok');
+  }
+
+
   async chatAgent(req: Request, res: Response, next: NextFunction) {
     let recall = false
     let vuelta = 0
@@ -439,9 +455,9 @@ export class ChatBotController extends BaseController {
         botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug: true });
       }
       botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: false })
+      botServer.iaHistorial[chatId].timestamp = Date.now()
 
       const now = new Date()
-
 
       do {
         recall = false
@@ -458,6 +474,7 @@ export class ChatBotController extends BaseController {
         });
 
         botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, ...responseIA.message, agent: botServer.iaHistorial[chatId].agent, debug: !!responseIA.message.tool_calls?.length });
+        botServer.iaHistorial[chatId].timestamp = Date.now()
 
         if (responseIA.message.tool_calls && responseIA.message.tool_calls.length > 0) {
 
@@ -652,16 +669,17 @@ export class ChatBotController extends BaseController {
               botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: botServer.iaHistorial[chatId].prompt, agent: botServer.iaHistorial[chatId].agent, debug: true });
               botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, debug: true, agent: botServer.iaHistorial[chatId].agent })
             }
+            botServer.iaHistorial[chatId].timestamp = Date.now()
+
           }
           recall = true
         }
       } while (recall);
       const nuevos = botServer.iaHistorial[chatId].msgs.filter(m => m?.sendIt != true)
       botServer.iaHistorial[chatId].msgs.forEach(m => m.sendIt = true)
-
       return this.jsonRes({ 'response': nuevos }, res, 'ok');
     } catch (err) {
-        const mensaje = err instanceof Error ? err.message: String(err)
+      const mensaje = err instanceof Error ? err.message : String(err)
       return next(new ClientException(mensaje));
     } finally {
       await queryRunner.release()
