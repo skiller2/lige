@@ -7,6 +7,8 @@ const EN_DESARROLLO = { Error: 'FUNCION_EN_DESARROLLO', mensaje: 'Esta función 
 
 // Pasa a ParametroGeneral cuando se cree el parámetro
 const HORAS_INGRESO_ABIERTO = 12
+// Origen de los registros hechos desde el chatbot (tabla RegistroAsistenciaOrigen)
+const ORIGEN_REGISTRO = 'BW'
 // Se usa solo si falta distanciaMaximaMetros en el parámetro general UBICA
 const DISTANCIA_MAXIMA_METROS = 500
 
@@ -225,7 +227,103 @@ export class AsistenciaController extends BaseController {
 
   // Graba un INGRESO o EGRESO en RegistroAsistencia; valida que no queden dos ingresos abiertos
   async registrarAsistencia(personalId: number, chatId: string, args: any) {
-    return EN_DESARROLLO
+    const Tipo = String(args?.Tipo ?? '').trim().toUpperCase()
+    if (Tipo !== 'ING' && Tipo !== 'EGR')
+      return { Error: 'TIPO_INVALIDO', mensaje: 'La operación debe ser ING (ingreso) o EGR (egreso).' }
+
+    const Observaciones = String(args?.Observaciones ?? '').trim() || null
+    const ahora = new Date()
+
+    // Hora informada por el asociado (ingreso o egreso olvidado): no puede ser futura y requiere observación
+    let FechaHora = ahora
+    const horaInformada = !!String(args?.FechaHora ?? '').trim()
+    if (horaInformada) {
+      FechaHora = new Date(String(args.FechaHora).trim().replace(' ', 'T'))
+      if (isNaN(FechaHora.getTime()))
+        return { Error: 'FECHA_INVALIDA', mensaje: 'La fecha y hora debe tener el formato YYYY-MM-DD HH:mm.' }
+      if (FechaHora > ahora)
+        return { Error: 'FECHA_FUTURA', mensaje: 'La fecha y hora informada no puede ser posterior a la actual.' }
+      if (!Observaciones)
+        return { Error: 'FALTA_OBSERVACION', mensaje: 'Cuando la hora la informa el asociado hay que completar Observaciones.' }
+    }
+
+    // El objetivo tiene que existir y estar vigente
+    const objetivo: any = await this.getObjetivoPorCodigo(chatId, `${args?.ClienteId}/${args?.ClienteElementoDependienteId}`)
+    if (objetivo.Error) return objetivo
+
+    const ubicacion = botServer.iaHistorial[chatId]?.ubicacion ?? null
+    const usuario = BaseController.getUser(null)
+    const ip = '::1'
+    const queryRunner = await dbServer.connection()
+    try {
+      await queryRunner.startTransaction()
+
+      // Último movimiento con bloqueo: evita dos ingresos abiertos por mensajes simultáneos
+      const ultimos = await queryRunner.query(`
+        SELECT TOP 1 ra.RegistroAsistenciaCodigo, ra.Tipo, ra.FechaHora, ra.ClienteId, ra.ClienteElementoDependienteId
+        FROM RegistroAsistencia ra WITH (UPDLOCK, HOLDLOCK)
+        WHERE ra.PersonalId = @0 AND ra.FechaAnulado IS NULL AND ra.Tipo IN ('ING', 'EGR')
+        ORDER BY ra.FechaHora DESC, ra.RegistroAsistenciaCodigo DESC
+      `, [personalId])
+      const ultimo = ultimos[0]
+
+      if (Tipo === 'ING' && ultimo?.Tipo === 'ING') {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'INGRESO_ABIERTO', mensaje: 'Tiene un ingreso abierto. Primero hay que registrar su egreso.', ingresoAbierto: ultimo }
+      }
+      if (Tipo === 'EGR' && ultimo?.Tipo !== 'ING') {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'SIN_INGRESO_ABIERTO', mensaje: 'No tiene un ingreso abierto para registrar el egreso.' }
+      }
+      if (Tipo === 'EGR' && (ultimo.ClienteId != objetivo.ClienteId || ultimo.ClienteElementoDependienteId != objetivo.ClienteElementoDependienteId)) {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'EGRESO_OTRO_OBJETIVO', mensaje: `El ingreso abierto es en el objetivo ${ultimo.ClienteId}/${ultimo.ClienteElementoDependienteId}. El egreso tiene que ser de ese objetivo.` }
+      }
+      if (ultimo && FechaHora <= new Date(ultimo.FechaHora)) {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'FECHA_ANTERIOR_AL_ULTIMO', mensaje: 'La fecha y hora tiene que ser posterior al último registro de asistencia.', ultimoRegistro: ultimo }
+      }
+
+      const GeoReferenciacion = ubicacion ? `${ubicacion.latitud},${ubicacion.longitud}` : ''
+      // Todo lo recibido y lo resuelto, para auditoría
+      const ObjetoCompleto = JSON.stringify({
+        PersonalId: personalId, chatId, Tipo, FechaHora, horaInformada,
+        ClienteId: objetivo.ClienteId, ClienteElementoDependienteId: objetivo.ClienteElementoDependienteId,
+        Objetivo: objetivo.Objetivo, ubicacion, distanciaMetros: objetivo.distanciaMetros,
+        distanciaMaximaMetros: objetivo.distanciaMaximaMetros, Observaciones, usuario, fechaRegistro: ahora
+      })
+
+      const RegistroAsistenciaCodigo = await BaseController.getProxNumero(queryRunner, 'RegistroAsistencia', usuario, ip)
+      await queryRunner.query(`
+        INSERT INTO RegistroAsistencia (
+          RegistroAsistenciaCodigo, FechaHora, PersonalId, ClienteId, ClienteElementoDependienteId,
+          CustodiaCodigo, Tipo, RegistroAsistenciaOrigenCodigo, GeoReferenciacion, ObjetoCompleto, Observaciones,
+          AudFechaIng, AudFechaMod, AudIpIng, AudIpMod, AudUsuarioIng, AudUsuarioMod
+        ) VALUES (@0, @1, @2, @3, @4, NULL, @5, @6, @7, @8, @9, @10, @10, @11, @11, @12, @12)
+      `, [
+        RegistroAsistenciaCodigo, FechaHora, personalId, objetivo.ClienteId, objetivo.ClienteElementoDependienteId,
+        Tipo, ORIGEN_REGISTRO, GeoReferenciacion, ObjetoCompleto, Observaciones,
+        ahora, ip, usuario
+      ])
+
+      await queryRunner.commitTransaction()
+
+      return {
+        registrado: true,
+        RegistroAsistenciaCodigo,
+        Tipo,
+        FechaHora,
+        Objetivo: objetivo.Objetivo,
+        CodObjetivo: objetivo.CodObjetivo,
+        distanciaMetros: objetivo.distanciaMetros,
+        Observaciones
+      }
+    } catch (err) {
+      await this.rollbackTransaction(queryRunner)
+      throw err
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   // Cambia solo el objetivo del último registro de la persona
