@@ -279,8 +279,6 @@ export class MessComponent {
       const deletedCodes = this.deletedAgentCodes().filter(code => !currentCodes.has(code))
       const data = await firstValueFrom(this.apiService.setChatBotAgents(agents, deletedCodes, this.iaPromptHash(), this.iaToolsHash()))
       this.setAgentsForm(data)
-      if (data.bmaChanged)
-        this.msgs.set([])
       return undefined
     })
   }

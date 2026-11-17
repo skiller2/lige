@@ -224,18 +224,8 @@ export class ChatBotController extends BaseController {
 
       const data = await this.getAgentsData(queryRunner)
       await queryRunner.commitTransaction()
-      let bmaChanged = false
-      if (mainAgent) {
-        const promptHash = CryptoJS.SHA256(mainAgent.Prompt).toString(CryptoJS.enc.Hex)
-        const toolsHash = CryptoJS.SHA256(mainAgent.IaTools).toString(CryptoJS.enc.Hex)
-        bmaChanged = promptHash !== botServer.iaPromptHash || toolsHash !== botServer.iaToolsHash
-        botServer.iaPrompt = mainAgent.Prompt
-        botServer.iaPromptHash = promptHash
-        botServer.iaTools = mainTools
-        botServer.iaToolsHash = toolsHash
-      }
 
-      return this.jsonRes({ ...data, bmaChanged }, res, 'Agentes guardados')
+      return this.jsonRes({ ...data }, res, 'Agentes guardados')
     } catch (err) {
       await this.rollbackTransaction(queryRunner)
       return next(err)
