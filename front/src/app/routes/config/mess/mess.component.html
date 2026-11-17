@@ -99,6 +99,12 @@
             </nz-form-control>
 
             <nz-form-control [nzXs]="24" [nzSm]="12" [nzMd]="3">
+              <button nzBlock nzType="default" nz-button type="button" [nzLoading]="enviandoUbicacion()"
+                nz-tooltip nzTooltipTitle="Simula compartir la ubicación desde WhatsApp"
+                (click)="enviaUbicacion()"><span nz-icon nzType="environment" nzTheme="outline"></span>Ubicación</button>
+            </nz-form-control>
+
+            <nz-form-control [nzXs]="24" [nzSm]="12" [nzMd]="3">
               <button nzBlock nzType="primary" class="btn-add" nz-button type="button"
                 (click)="reiniciaChat()">Reiniciar</button>
             </nz-form-control>

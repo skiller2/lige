@@ -3,7 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 import { existsSync, readFileSync } from "node:fs";
 import CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
-import { documentosController, personalController, novedadController, objetivoController } from "./controller.module.ts";
+import { documentosController, personalController, novedadController, objetivoController, asistenciaController } from "./controller.module.ts";
 import { PersonalController } from "./personal.controller.ts";
 import { DocumentosController } from "./documentos.controller.ts";
 import type { QueryRunner } from "typeorm";
@@ -457,6 +457,12 @@ export class ChatBotController extends BaseController {
       botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: false })
       botServer.iaHistorial[chatId].timestamp = Date.now()
 
+      // Ubicación compartida (WhatsApp o simulada desde el chat): la usan las funciones de asistencia
+      const latitud = Number(req.body.ubicacion?.latitud)
+      const longitud = Number(req.body.ubicacion?.longitud)
+      if (req.body.ubicacion && Number.isFinite(latitud) && Number.isFinite(longitud))
+        botServer.iaHistorial[chatId].ubicacion = { latitud, longitud, fecha: new Date() }
+
       const now = new Date()
 
       do {
@@ -623,6 +629,30 @@ export class ChatBotController extends BaseController {
               case 'setNovedadVisualizacion':
                 //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
                 output = {}
+                break;
+              case 'getEstadoAsistencia':
+                output = await asistenciaController.getEstadoAsistencia(personalId)
+                break;
+              case 'getObjetivosSugeridos':
+                output = await asistenciaController.getObjetivosSugeridos(personalId, chatId)
+                break;
+              case 'getObjetivoPorCodigo':
+                output = await asistenciaController.getObjetivoPorCodigo(chatId, args.CodObjetivo)
+                break;
+              case 'registrarAsistencia':
+                output = await asistenciaController.registrarAsistencia(personalId, chatId, args)
+                break;
+              case 'modificarObjetivoUltimoRegistro':
+                output = await asistenciaController.modificarObjetivoUltimoRegistro(personalId, chatId, args)
+                break;
+              case 'anularRegistroAsistencia':
+                output = await asistenciaController.anularRegistroAsistencia(personalId, chatId, args)
+                break;
+              case 'getLinkVerificacionFacial':
+                output = await asistenciaController.getLinkVerificacionFacial(personalId, chatId)
+                break;
+              case 'getResultadoVerificacion':
+                output = await asistenciaController.getResultadoVerificacion(personalId, chatId)
                 break;
               case 'getAgentes':
                 output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt where BasePrompt = 0 AND Activo=1`)

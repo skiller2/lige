@@ -58,6 +58,7 @@ export class MessComponent implements OnInit, OnDestroy {
   iaToolsHash = signal('')
   showTools = signal<boolean>(false);
   chatId = signal('');
+  enviandoUbicacion = signal(false)
   personalId = signal<number | null>(null)
   msgs = signal<any[]>([])
   agentsLoading = signal(false)
@@ -162,6 +163,33 @@ export class MessComponent implements OnInit, OnDestroy {
 
   }
 
+
+  // Simula el mensaje de ubicación de WhatsApp con la posición del navegador
+  async enviaUbicacion() {
+    if (!navigator.geolocation) return
+    this.enviandoUbicacion.set(true)
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000 }))
+      const ubicacion = { latitud: pos.coords.latitude, longitud: pos.coords.longitude }
+      localStorage.setItem('chatId', this.chatId())
+      const resp: any = await firstValueFrom(this.apiService.sendChatMessageAgent(
+        `Ubicación compartida: ${ubicacion.latitud}, ${ubicacion.longitud}`,
+        this.chatId(),
+        ubicacion
+      ))
+      this.msgs.update(list => [...list, ...resp.response])
+      this.scrollChatToBottom()
+    } catch (e: any) {
+      const logs = e?.error?.data?.logs
+      if (Array.isArray(logs)) {
+        this.msgs.update(list => [...list, ...logs])
+        this.scrollChatToBottom()
+      }
+    } finally {
+      this.enviandoUbicacion.set(false)
+    }
+  }
 
   private scrollChatToBottom() {
     requestAnimationFrame(() => {
