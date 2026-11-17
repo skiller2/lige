@@ -558,7 +558,7 @@ José Manuel Cuenca – Síndico
 
     response.push(`Su coordinador de zona es: ${coordinador}`)
 
-    if (coordinadorgeneralrec[0].PersonalId) {
+    if (coordinadorgeneralrec[0]?.PersonalId) {
       const telrec = await PersonalController.getTelefono(coordinadorgeneralrec[0].PersonalId)
       if (telrec[0])
         response.push(`Contacto del coordinador 📞 ${telrec[0].Telefono}`)
