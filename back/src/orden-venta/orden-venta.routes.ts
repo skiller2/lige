@@ -36,11 +36,11 @@ ordenVentaRouter.get("/precio/:ClienteId/:ClienteElementoDependienteId/:anio/:me
   ordenVentaController.getPrecioProducto(req, res, next);
 });
 
-ordenVentaRouter.post("/masiva", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
+ordenVentaRouter.post("/masiva", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'mOrdenVenta'])], (req, res, next) => {
   ordenVentaController.setOrdenVentaMasiva(req, res, next);
 });
 
-ordenVentaRouter.post("/masiva-list", [authMiddleware.verifyToken, authMiddleware.verifyGrupoActividad, authMiddleware.hasGroup(['Liquidaciones', 'Liquidaciones Consultas', 'mOrdenVenta', 'mOrdenVentaCon'])], (req, res, next) => {
+ordenVentaRouter.post("/masiva-list", [authMiddleware.verifyToken, authMiddleware.hasGroup(['Liquidaciones', 'mOrdenVenta'])], (req, res, next) => {
   ordenVentaController.getOrdenVentaMasiva(req, res, next);
 });
 

@@ -1121,8 +1121,7 @@ export class OrdenVentaController extends BaseController {
         }
       }
 
-      // Comprobantes editados: se actualizan todas las filas con el tipo y número originales,
-      // que son las de las órdenes seleccionadas
+      // Comprobantes editados: se actualizan en todas las órdenes que lo tengan, no solo en las seleccionadas
       let comprobantes = 0;
 
       for (const comprobante of comprobantesEditados) {
