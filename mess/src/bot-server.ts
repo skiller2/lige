@@ -32,7 +32,7 @@ import { chatBotController } from "./controller/controller.module.ts";
 import { ModelArtsClient } from "./modelarts-client.ts";
 
 const IA_HISTORIAL_TIMEOUT_MS = (Number(process.env.IA_HISTORIAL_TIMEOUT_SECS) || 30 * 60) * 1000;
-const IA_HISTORIAL_CLEANUP_INTERVAL_MS = (Number(process.env.IA_HISTORIAL_CLEANUP_INTERVAL_SECS) || 5) * 1000;
+const IA_HISTORIAL_CLEANUP_INTERVAL_MS = (Number(process.env.IA_HISTORIAL_CLEANUP_INTERVAL_SECS) || 1 * 60) * 1000;
 
 
 dotenv.config()
