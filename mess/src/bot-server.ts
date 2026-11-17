@@ -32,7 +32,7 @@ import { chatBotController } from "./controller/controller.module.ts";
 import { ModelArtsClient } from "./modelarts-client.ts";
 
 const IA_HISTORIAL_TIMEOUT_MS = (Number(process.env.IA_HISTORIAL_TIMEOUT_SECS) || 30 * 60) * 1000;
-const IA_HISTORIAL_CLEANUP_INTERVAL_MS = (Number(process.env.IA_HISTORIAL_CLEANUP_INTERVAL_SECS) || 1 * 60) * 1000;
+const IA_HISTORIAL_CLEANUP_INTERVAL_MS = (Number(process.env.IA_HISTORIAL_CLEANUP_INTERVAL_SECS) || 5) * 1000;
 
 
 dotenv.config()
@@ -72,7 +72,7 @@ export class BotServer {
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
 
-  public iaHistorial: Map<string, { msgs: any[]; timestamp: number, finished: boolean }> = new Map();
+  public iaHistorial: any = [];
   
   private cleanupInterval: NodeJS.Timeout | null = null;
   
@@ -301,11 +301,11 @@ export class BotServer {
 
   private cleanupIaHistorial() {
     const now = Date.now();
-    for (const [chatId, data] of this.iaHistorial.entries()) {
-      if (now - data.timestamp > IA_HISTORIAL_TIMEOUT_MS && !data.finished) {
-        console.log(`Limpiando historial de chatId ${chatId} por inactividad.`);
-        data.msgs.push({ role: "assistant", content: "Sesion cerrada por inactividad. Por favor, inicie nuevamente la conversación." });
-        data.finished = true;
+
+    for (const [chatId, data] of Object.entries(this.iaHistorial)) {
+      if (now - (data as any).timestamp > IA_HISTORIAL_TIMEOUT_MS && !(data as any).finished) {
+        this.iaHistorial[chatId].msgs.push({ role: "assistant", content: "Sesion cerrada por inactividad. Por favor, inicie nuevamente la conversación." });
+        this.iaHistorial[chatId].finished = true;
       }
     }
   }

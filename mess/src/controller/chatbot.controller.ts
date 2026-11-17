@@ -425,7 +425,10 @@ export class ChatBotController extends BaseController {
 
     historial?.msgs.forEach(m => { m.sendIt = true; });
 
-    if (historial?.finished) botServer.iaHistorial.delete(chatId)
+    if (historial?.finished) {
+      console.log(`El historial de chatId ${chatId} está marcado como finalizado. Eliminando del historial.`);
+      delete botServer.iaHistorial[chatId];
+    }
 
     return this.jsonRes({ 'response': nuevos }, res, 'ok');
   }
