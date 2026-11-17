@@ -28,7 +28,6 @@ import { flowNovedad, flowNovedadCodObjetivo, flowNovedadTipo, flowNovedadDescri
 import { toAsk, httpInject } from "@builderbot-plugins/openai-assistants/dist/index.cjs"
 import { Ollama } from "ollama";
 import { ClientException } from "./controller/base.controller.ts";
-import { chatBotController } from "./controller/controller.module.ts";
 import { ModelArtsClient } from "./modelarts-client.ts";
 
 const IA_HISTORIAL_TIMEOUT_MS = (Number(process.env.IA_HISTORIAL_TIMEOUT_SECS) || 30 * 60) * 1000;
@@ -72,7 +71,7 @@ export class BotServer {
   public userQueues = new Map();
   public userLocks = new Map(); // New lock mechanism
 
-  public iaHistorial: any = [];
+  public iaHistorial: Record<string, any> = {};
   
   private cleanupInterval: NodeJS.Timeout | null = null;
   
@@ -303,7 +302,12 @@ export class BotServer {
     const now = Date.now();
 
     for (const [chatId, data] of Object.entries(this.iaHistorial)) {
-      if (now - (data as any).timestamp > IA_HISTORIAL_TIMEOUT_MS && !(data as any).finished) {
+      // Finalizada y sin leer durante otro TIMEOUT: se libera la memoria
+      if (data.finished && now - data.timestamp > 2 * IA_HISTORIAL_TIMEOUT_MS) {
+        delete this.iaHistorial[chatId];
+        continue;
+      }
+      if (now - data.timestamp > IA_HISTORIAL_TIMEOUT_MS && !data.finished) {
         this.iaHistorial[chatId].msgs.push({ role: "assistant", content: "Sesion cerrada por inactividad. Por favor, inicie nuevamente la conversación." });
         this.iaHistorial[chatId].finished = true;
       }
@@ -377,10 +381,6 @@ export class BotServer {
 
       });
     }
-
-    const parameters = await chatBotController.getChatbotParameters()
-    if (!parameters?.Prompt?.trim() || !parameters?.IaTools?.trim())
-      throw new Error('Faltan el prompt o las herramientas de BMA')
 
     this.startCleanupInterval();
 

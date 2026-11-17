@@ -103,7 +103,6 @@ export class ChatBotController extends BaseController {
     //   return next(new ClientException('No se puede eliminar el Lige Prompt BP'))
     const mainAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'BMA')
     const ligeAgent = normalizedAgents.find((agent: any) => agent.ChatBotPromptCodigo === 'LP')
-    let mainTools: any[] | null = null
     // Valida que IaTools de cada agente sea un arreglo JSON
     for (const agent of normalizedAgents) {
       let tools: any
@@ -114,8 +113,6 @@ export class ChatBotController extends BaseController {
       }
       if (!Array.isArray(tools))
         return next(new ClientException(`IA Tools de ${agent.ChatBotPromptCodigo} debe ser un arreglo JSON`))
-      if (agent.ChatBotPromptCodigo === 'BMA')
-        mainTools = tools
     }
 
     const usuario = BaseController.getUser(res)
@@ -234,24 +231,10 @@ export class ChatBotController extends BaseController {
     }
   }
 
-  async getChatbotParameters(queryRunner?: any, promptCodigo = 'BMA') {
-    const releaseQueryRunner = !queryRunner
-    if (!queryRunner) {
-      const usuario = BaseController.getUser(null)
-      queryRunner = await dbServer.connection(usuario)
-    }
-    try {
-      const rows = await queryRunner.query(`SELECT Prompt, IaTools, Tipo, Descripcion FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0`, [promptCodigo])
-      return rows[0] ?? null
-    } finally {
-      if (releaseQueryRunner)
-        await queryRunner.release()
-    }
-  }
-
   async reinicia(req: Request, res: Response, next: NextFunction) {
-    const chatId = req.body.chatId
-    botServer.iaHistorial[chatId] = { msgs: [], tools: [], prompt: '', agent: '', timestamp: 0, debug: true }
+    const chatId = String(req.body.chatId ?? '').trim()
+    // Se borra la sesión: el próximo mensaje arranca de cero en AUTH
+    delete botServer.iaHistorial[chatId]
     const ret = {}
     return this.jsonRes(ret, res, 'Chat reiniciado correctamente');
   }
@@ -392,8 +375,9 @@ export class ChatBotController extends BaseController {
       `SELECT ChatBotPromptCodigo, Prompt, Tipo, IaTools, BasePrompt FROM ChatBotPrompt WHERE ChatBotPromptCodigo = @0 and Activo=1`,
       [ChatBotPromptCodigo]
     )
+    // Se devuelve como resultado para que la IA lo reciba en transferirAgente
     if (rows.length === 0)
-      throw new ClientException(`No se encontró el agente con código ${ChatBotPromptCodigo}`)
+      return { Error: 'AGENTE_INEXISTENTE', mensaje: `No existe un agente activo con código ${ChatBotPromptCodigo}.` }
 
     if (rows[0].BasePrompt == 0) {
       // prompt base + agent
@@ -452,7 +436,8 @@ export class ChatBotController extends BaseController {
         return next(new ClientException('El ID de chat es obligatorio (telefono o identificador de sesión)'))
 
 
-      if (!botServer.iaHistorial[chatId]?.msgs?.length) {
+      // Sesión nueva o vencida por inactividad: arranca de cero en AUTH
+      if (!botServer.iaHistorial[chatId]?.msgs?.length || botServer.iaHistorial[chatId]?.finished) {
         const agent = await this.getChatBotAgent(queryRunner, 'AUTH')
         botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '', debug: true }
         botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug: true });
