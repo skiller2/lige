@@ -2074,17 +2074,23 @@ export class ApiService {
   }
 
   setOrdenVenta(ordenVenta: any) {
-    return this.http.post<ResponseJSON<any>>('/api/orden-venta/save', ordenVenta);
+    return this.http.post<ResponseJSON<any>>('/api/orden-venta/save', ordenVenta).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
   }
 
   setOrdenVentaMasiva(ordenVentaMasiva: any) {
-    return this.http.post<ResponseJSON<any>>('/api/orden-venta/masiva', ordenVentaMasiva);
+    return this.http.post<ResponseJSON<any>>('/api/orden-venta/masiva', ordenVentaMasiva).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
   }
 
   // Las órdenes seleccionadas pasan a estado cancelado
   anularOrdenesVenta(NroOrdenVentas: number[]) {
 
-    return this.http.post<ResponseJSON<any>>('/api/orden-venta/anular', { NroOrdenVentas });
+    return this.http.post<ResponseJSON<any>>('/api/orden-venta/anular', { NroOrdenVentas }).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res)),
+    );
   }
 
   // Registro Asistencia funciona sin login: sus llamadas van con ALLOW_ANONYMOUS, como las de init/ident
