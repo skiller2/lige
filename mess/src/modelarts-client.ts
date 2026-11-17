@@ -3,6 +3,8 @@ import { Ollama } from "ollama";
 export interface ChatMessage {
   role: "system" | "user" | "assistant" | "tool";
   content: string;
+  reasoning_content?: string;
+  thinking?: string;
   tool_calls?: any[];
   tool_call_id?: string;
 }
@@ -90,9 +92,12 @@ export class ModelArtsClient {
     }
 
     const data = await response.json() as ChatCompletionResponse;
+    console.log("ModelArts chat response:", data);
+    console.log("ModelArts chat messages:", data.choices[0]?.message);
     return {
       message: {
         role: "assistant",
+        thinking: data.choices[0]?.message?.reasoning_content || "",
         content: data.choices[0]?.message?.content || "",
         tool_calls: data.choices[0]?.message?.tool_calls,
       },
@@ -160,6 +165,7 @@ export class ModelArtsClient {
                   message: {
                     role: "assistant",
                     content,
+                    thinking: parsed.choices[0]?.message?.reasoning_content || "",
                     tool_calls: toolCalls,
                   },
                   done: false,
@@ -180,7 +186,7 @@ export class ModelArtsClient {
   async generate(options: { model: string; prompt: string; stream?: boolean }): Promise<{ response: string }> {
     const result = await this.chat({
       model: options.model,
-      messages: [{ role: "user", content: options.prompt }],
+      messages: [{ role: "user", content: options.prompt, reasoning_content: "" }],
       stream: options.stream || false,
     });
     return { response: result.message.content };

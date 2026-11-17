@@ -516,6 +516,13 @@ export class ApiService {
   }
 
 
+  getChatBotMsgs(chatId: string): Observable<any> {
+    return this.http.get<ResponseJSON<any>>('mess/api/chatbot/chatagent/' + chatId).pipe(
+      map(res => res.data)
+    )
+  }
+
+
   getChatBotAgents(): Observable<any> {
     return this.http.get<ResponseJSON<any>>('mess/api/chatbot/agents').pipe(
       map(res => res.data)
@@ -2743,6 +2750,12 @@ export class ApiService {
 
   deleteCP(CategoriaPersonalId: any, TipoAsociadoId:any) {
     return this.http.delete<ResponseJSON<any>>(`/api/categoria-personal/delete/${TipoAsociadoId}/${CategoriaPersonalId}`).pipe(
+      tap((res: ResponseJSON<any>) => this.response(res))
+    )
+  }
+
+  getDescripcionAccionNormalizada(params: any) {
+    return this.http.post<ResponseJSON<any>>('/api/novedades/prompt/desc-acci', params).pipe(
       tap((res: ResponseJSON<any>) => this.response(res))
     )
   }

@@ -561,26 +561,39 @@ export class NovedadesController extends BaseController {
 
     async FormValidations(Obj: any) {
 
-
+        const fieldErrors: any[] = [];
         if (!Obj.ObjetivoId) {
-            throw new ClientException(`Debe completar el campo Objetivo.`)
+            fieldErrors.push({ fieldTree: `ObjetivoId`, kind: 'server', message: 'El objetivo es obligatorio' })
+            // throw new ClientException(`Debe completar el campo Objetivo.`)
         }
 
         if (!Obj.Fecha) {
-            throw new ClientException(`Debe completar el campo fecha.`)
+            fieldErrors.push({ fieldTree: `Fecha`, kind: 'server', message: 'La fecha y hora es obligatoria' })
+            // throw new ClientException(`Debe completar el campo fecha.`)
         }
 
         if (!Obj.TipoNovedadId) {
-            throw new ClientException(`Debe completar el campo Tipo de novedad.`)
+            fieldErrors.push({ fieldTree: `TipoNovedadId`, kind: 'server', message: 'El tipo de novedad es obligatorio' })
+            // throw new ClientException(`Debe completar el campo Tipo de novedad.`)
         }
 
         if (!Obj.Descripcion) {
-            throw new ClientException(`Debe completar el campo Descripcion.`)
+            fieldErrors.push({ fieldTree: `Descripcion`, kind: 'server', message: 'La descripción es obligatoria' })
+            // throw new ClientException(`Debe completar el campo Descripcion.`)
         }
 
         if (!Obj.Accion) {
-            throw new ClientException(`Debe completar el campo Accion.`)
+            fieldErrors.push({ fieldTree: `Accion`, kind: 'server', message: 'La acción es obligatoria' })
+            // throw new ClientException(`Debe completar el campo Accion.`)
         }
+
+        if(!Obj.PersonalId){
+            fieldErrors.push({ fieldTree: `PersonalId`, kind: 'server', message: 'El personal es obligatorio' })
+        }
+
+        if (fieldErrors.length > 0)
+            throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
+
     }
 
     async updateNovedadTable(queryRunner: QueryRunner, Fecha: Date, NovedadTipoCod: string, Descripcion: string, Accion: string, DescripcionNormalizada: string, AccionNormalizada: string, NovedadCodigo: number, AudFechaMod: Date, AudUsuarioMod: string, AudIpMod: string, ClienteId: number, ClienteElementoDependienteId: number) {
@@ -1473,6 +1486,29 @@ export class NovedadesController extends BaseController {
             return next(error)
         } finally {
             await queryRunner.release();
+        }
+    }
+
+    async promptNormalize(req: any, res: Response, next: NextFunction) {
+
+        const queryRunner = await getConnection(res.locals.userName);
+        const { Descripcion, Accion } = req.body
+        try {
+            await queryRunner.startTransaction();
+            await this.initIA()
+            const prompt = await this.getIAPrompt(queryRunner)
+            const respuestaIA = await this.normalizarNovedad(prompt, Descripcion, Accion)
+            const DescripcionNormalizada = respuestaIA?.DescripcionNormalizada
+            const AccionNormalizada = respuestaIA?.AccionNormalizada
+
+            await queryRunner.commitTransaction()
+
+            return this.jsonRes({DescripcionNormalizada, AccionNormalizada}, res);
+        } catch (error) {
+            await this.rollbackTransaction(queryRunner)
+        return next(error)
+        } finally {
+            await queryRunner.release()
         }
     }
 }

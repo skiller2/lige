@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, ElementRef, inject, model, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, inject, model, signal, viewChild, OnDestroy, OnInit } from '@angular/core';
 import { applyEach, disabled, form, FormField, minLength, required, submit, validate } from '@angular/forms/signals';
 
 import { SHARED_IMPORTS } from '@shared';
@@ -7,7 +7,7 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzModalModule } from 'ng-zorro-antd/modal';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzCodeEditorModule } from 'ng-zorro-antd/code-editor';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, interval, Subscription } from 'rxjs';
 import { ApiService } from '../../../../app/services/api.service';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 
@@ -45,7 +45,7 @@ interface AgentsFormModel {
   templateUrl: './mess.component.html',
   styleUrl: './mess.component.scss'
 })
-export class MessComponent {
+export class MessComponent implements OnInit, OnDestroy {
   private apiService = inject(ApiService)
 
   messInfo = signal({ 'msg': 'descansando' })
@@ -64,6 +64,8 @@ export class MessComponent {
   panelAbierto = signal<number | null>(null)
   deletedAgentCodes = signal<string[]>([])
   readonly chatMessages = viewChild<ElementRef<HTMLDivElement>>('chatMessages')
+  
+  private pollingSubscription: Subscription | null = null;
 
   readonly agentsModel = signal<AgentsFormModel>({ agents: [] })
 
@@ -189,7 +191,39 @@ export class MessComponent {
     } catch (error) {}
 
     await this.loadAgents()
+    this.startPolling()
+  }
 
+  ngOnDestroy() {
+    this.stopPolling()
+  }
+
+  private startPolling() {
+    if (this.pollingSubscription) {
+      this.stopPolling()
+    }
+    this.pollingSubscription = interval(3000).subscribe(() => {
+      const currentChatId = this.chatId()
+      if (currentChatId) {
+        this.apiService.getChatBotMsgs(currentChatId).subscribe({
+          next: (msgs: any) => {
+
+            if (Array.isArray(msgs.response) && msgs.response.length > 0) {
+              this.msgs.update(list => [...list, ...msgs.response]);
+              this.scrollChatToBottom()
+            }
+          },
+          error: (err) => console.error('Error polling chat messages:', err)
+        })
+      }
+    })
+  }
+
+  private stopPolling() {
+    if (this.pollingSubscription) {
+      this.pollingSubscription.unsubscribe()
+      this.pollingSubscription = null
+    }
   }
 
   private setAgentsForm(data: any) {
@@ -279,8 +313,6 @@ export class MessComponent {
       const deletedCodes = this.deletedAgentCodes().filter(code => !currentCodes.has(code))
       const data = await firstValueFrom(this.apiService.setChatBotAgents(agents, deletedCodes, this.iaPromptHash(), this.iaToolsHash()))
       this.setAgentsForm(data)
-      if (data.bmaChanged)
-        this.msgs.set([])
       return undefined
     })
   }
