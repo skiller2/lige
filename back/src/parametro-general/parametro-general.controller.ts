@@ -28,6 +28,16 @@ const columnasGrillaParametrosGenerales: any[] = [
     maxWidth: 110
   },
   {
+    id: "Descripcion",
+    name: "Descripción",
+    field: "Descripcion",
+    fieldName: "par.Descripcion",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false
+  },
+  {
     id: "Parametros",
     name: "Parámetros",
     field: "Parametros",
@@ -56,6 +66,7 @@ export class ParametroGeneralController extends BaseController {
         SELECT
           par.ParametroGeneralCodigo AS id,
           par.ParametroGeneralCodigo,
+          par.Descripcion,
           par.Parametros
         FROM ParametroGeneral par
         WHERE (1=1)
@@ -77,7 +88,7 @@ export class ParametroGeneralController extends BaseController {
 
     try {
       const parametroDs = await queryRunner.query(`
-        SELECT par.ParametroGeneralCodigo, par.Parametros
+        SELECT par.ParametroGeneralCodigo, par.Descripcion, par.Parametros
         FROM ParametroGeneral par
         WHERE par.ParametroGeneralCodigo = @0
       `, [ParametroGeneralCodigo]);
@@ -98,6 +109,7 @@ export class ParametroGeneralController extends BaseController {
   async setParametroGeneral(req: Request, res: Response, next: NextFunction) {
     const Alta = req.body.Alta === true;
     const ParametroGeneralCodigo = String(req.body.ParametroGeneralCodigo ?? '').trim().toUpperCase();
+    const Descripcion = String(req.body.Descripcion ?? '').trim();
     let Parametros = String(req.body.Parametros ?? '');
     const queryRunner = await getConnection(res.locals.userName);
 
@@ -111,6 +123,11 @@ export class ParametroGeneralController extends BaseController {
         fieldErrors.push({ fieldTree: `ParametroGeneralCodigo`, kind: 'server', message: 'El código es obligatorio' })
       else if (ParametroGeneralCodigo.length > 5)
         fieldErrors.push({ fieldTree: `ParametroGeneralCodigo`, kind: 'server', message: 'El código no puede tener más de 5 caracteres' })
+
+      if (!Descripcion)
+        fieldErrors.push({ fieldTree: `Descripcion`, kind: 'server', message: 'La descripción es obligatoria' })
+      else if (Descripcion.length > 255)
+        fieldErrors.push({ fieldTree: `Descripcion`, kind: 'server', message: 'La descripción no puede tener más de 255 caracteres' })
 
       if (!Parametros.trim())
         fieldErrors.push({ fieldTree: `Parametros`, kind: 'server', message: 'Los parámetros no pueden estar vacíos' })
@@ -142,18 +159,18 @@ export class ParametroGeneralController extends BaseController {
         await queryRunner.query(`
           INSERT INTO ParametroGeneral (
             ParametroGeneralCodigo, Parametros,
-            AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod
-          ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4)
-        `, [ParametroGeneralCodigo, Parametros, ahora, usuario, ip]);
+            AudFechaIng, AudFechaMod, AudUsuarioIng, AudUsuarioMod, AudIpIng, AudIpMod, Descripcion
+          ) VALUES (@0, @1, @2, @2, @3, @3, @4, @4, @5)
+        `, [ParametroGeneralCodigo, Parametros, ahora, usuario, ip, Descripcion]);
       } else {
         if (existe.length == 0)
           throw new ClientException(`Parámetro general ${ParametroGeneralCodigo} no encontrado`)
 
         await queryRunner.query(`
-          UPDATE ParametroGeneral SET Parametros = @1,
+          UPDATE ParametroGeneral SET Parametros = @1, Descripcion = @5,
           AudFechaMod = @2, AudUsuarioMod = @3, AudIpMod = @4
           WHERE ParametroGeneralCodigo = @0
-        `, [ParametroGeneralCodigo, Parametros, ahora, usuario, ip]);
+        `, [ParametroGeneralCodigo, Parametros, ahora, usuario, ip, Descripcion]);
       }
 
       await queryRunner.commitTransaction();
