@@ -413,8 +413,8 @@ export class NovedadesController extends BaseController {
 
         const queryRunner = await getConnection(res.locals.userName);
         try {
-            const provincias = await queryRunner.query(`SELECT NovedadTipoCod value, Descripcion label FROM NovedadTipo`)
-            return this.jsonRes(provincias, res);
+            const tipoNovedad = await queryRunner.query(`SELECT NovedadTipoCod value, Descripcion label FROM NovedadTipo`)
+            return this.jsonRes(tipoNovedad, res);
         } catch (error) {
             return next(error)
         } finally {
@@ -529,14 +529,8 @@ export class NovedadesController extends BaseController {
             Obj.ClienteId = objetivo[0].ClienteId
             Obj.ClienteElementoDependienteId = objetivo[0].ClienteElementoDependienteId
 
-            await this.initIA()
-            const prompt = await this.getIAPrompt(queryRunner)
-            const respuestaIA = await this.normalizarNovedad(prompt,Obj.Descripcion, Obj.Accion)
-            const DescripcionNormalizada=respuestaIA?.DescripcionNormalizada
-            const AccionNormalizada=respuestaIA?.AccionNormalizada
-
             
-            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, DescripcionNormalizada, AccionNormalizada, NovedadId, AudFechaMod, usuarioName, ip, Obj.ClienteId, Obj.ClienteElementoDependienteId)
+            await this.updateNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.DescripcionNormalizada, Obj.AccionNormalizada, NovedadId, AudFechaMod, usuarioName, ip, Obj.ClienteId, Obj.ClienteElementoDependienteId)
 
             let array_id = []
             let doc_id = 0
@@ -629,13 +623,7 @@ export class NovedadesController extends BaseController {
             if (!Obj.PersonalId)
                 Obj.PersonalId = PersonalId
 
-            await this.initIA()
-            const prompt = await this.getIAPrompt(queryRunner)
-            const respuestaIA = await this.normalizarNovedad(prompt,Obj.Descripcion, Obj.Accion)
-            const DescripcionNormalizada=respuestaIA?.DescripcionNormalizada
-            const AccionNormalizada=respuestaIA?.AccionNormalizada
-
-            await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, DescripcionNormalizada, AccionNormalizada, Obj.ClienteId, Obj.ClienteElementoDependienteId,
+            await this.addNovedadTable(queryRunner, Obj.Fecha, Obj.TipoNovedadId, Obj.Descripcion, Obj.Accion, Obj.DescripcionNormalizada, Obj.AccionNormalizada, Obj.ClienteId, Obj.ClienteElementoDependienteId,
                 Obj.Telefono, ip, Obj.PersonalId, novedadId, usuarioName)
 
 
@@ -1393,8 +1381,8 @@ export class NovedadesController extends BaseController {
         this.servicioIA = new ModelArtsClient()
     }
 
-    private async normalizarNovedad(prompt: string, Descripcion: string, Accion: string) {
-        const IAmessages: ChatMessage[] = [{ role: "system", content: prompt }, { role: "user", content: `{Descripcion:${Descripcion},Accion:${Accion}` }]
+    private async normalizarNovedad(prompt: string, Descripcion: string, Accion: string, TiposNovedad: any[]) {
+        const IAmessages: ChatMessage[] = [{ role: "system", content: prompt }, { role: "user", content: `{Descripcion:${Descripcion},Accion:${Accion},Tipos de Novedad:${TiposNovedad}` }]
         const response = await this.servicioIA.chat({ model: process.env.MODEL, messages: IAmessages, stream: false });
         return JSON.parse(response.message.content)
     }
@@ -1445,8 +1433,8 @@ export class NovedadesController extends BaseController {
                 const NovedadCodigo = novedad.NovedadCodigo
                 const Descripcion = novedad.Descripcion
                 const Accion = novedad.Accion
-
-                const respuestaIA = await this.normalizarNovedad(prompt, Descripcion, Accion)
+                const arrayTipoNovedad = await queryRunner.query(`SELECT NovedadTipoCod value, Descripcion label FROM NovedadTipo`)
+                const respuestaIA = await this.normalizarNovedad(prompt, Descripcion, Accion, arrayTipoNovedad)
 
                 const DescripcionNormalizada = respuestaIA?.DescripcionNormalizada
                 const AccionNormalizada = respuestaIA?.AccionNormalizada
@@ -1497,13 +1485,15 @@ export class NovedadesController extends BaseController {
             await queryRunner.startTransaction();
             await this.initIA()
             const prompt = await this.getIAPrompt(queryRunner)
-            const respuestaIA = await this.normalizarNovedad(prompt, Descripcion, Accion)
+            const arrayTipoNovedad = await queryRunner.query(`SELECT NovedadTipoCod value, Descripcion label FROM NovedadTipo`)
+            const respuestaIA = await this.normalizarNovedad(prompt, Descripcion, Accion, arrayTipoNovedad)
             const DescripcionNormalizada = respuestaIA?.DescripcionNormalizada
             const AccionNormalizada = respuestaIA?.AccionNormalizada
+            const TipoNovedad = respuestaIA?.TipoNovedad
 
             await queryRunner.commitTransaction()
 
-            return this.jsonRes({DescripcionNormalizada, AccionNormalizada}, res);
+            return this.jsonRes({DescripcionNormalizada, AccionNormalizada, TipoNovedad}, res);
         } catch (error) {
             await this.rollbackTransaction(queryRunner)
         return next(error)

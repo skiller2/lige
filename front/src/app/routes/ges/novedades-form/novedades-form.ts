@@ -21,7 +21,7 @@ export interface Novedad {
   ObjetivoId: number;
   DocumentoId: number;
   Fecha: Date | null;
-  TipoNovedadId: number;
+  TipoNovedadId: string;
   Descripcion: string;
   Accion: string;
   DescripcionNormalizada: string;
@@ -66,7 +66,7 @@ export class NovedadesFormComponent {
     id: 0,
     ObjetivoId: 0,
     Fecha: null as Date | null,
-    TipoNovedadId: 0,
+    TipoNovedadId: '',
     Descripcion: '',
     Accion: '',
     files: [],
@@ -208,7 +208,7 @@ export class NovedadesFormComponent {
     const inputAccion = this.formNovedad.Accion()
     const Accion = inputAccion.value().trim();
 
-    if (!Descripcion || !Accion || !inputDescripcion.dirty() || !inputAccion.dirty()) {
+    if (!Descripcion || !Accion || !inputDescripcion.dirty() || !inputAccion.dirty() || this.loading()) {
       return
     }
 
@@ -218,8 +218,9 @@ export class NovedadesFormComponent {
       
       this.parametroNovedad.update(m => ({
         ...m,
-        DescripcionNormalizada: '',
-        AccionNormalizada: '',
+        DescripcionNormalizada: res.data.DescripcionNormalizada || '',
+        AccionNormalizada: res.data.AccionNormalizada || '',
+        TipoNovedadId: res.data.TipoNovedad ? res.data.TipoNovedad.value : m.TipoNovedadId,
       }))
       
     } catch (error) {
