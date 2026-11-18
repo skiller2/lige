@@ -486,15 +486,40 @@ export class ChatBotController extends BaseController {
                 const ret = await personalController.genTelCode(chatId)
                 output = { url: `https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, encTelNro: ret.encTelNro, linkVigenciaHs }
                 break;
-              case 'getPersonaState':
-                output = await personalController.getPersonaState(chatId)
+              case 'getPersonaState': {
+                // El modelo no ve el código esperado, solo si hay uno pendiente
+                const { codigo, ...estado } = await personalController.getPersonaState(chatId)
+                output = { ...estado, codigoPendiente: !!codigo }
                 break;
+              }
               case 'delTelefonoPersona':
                 output = await personalController.delTelefonoPersona(chatId)
                 break;
               case 'removeCode':
                 output = await personalController.removeCode(chatId)
                 break;
+              case 'validarCodigo': {
+                // Compara en el backend, igual que flowLogin; 3 intentos fallidos desvinculan el teléfono
+                if (!stateRes.codigo) {
+                  output = { resultado: 'SIN_CODIGO_PENDIENTE' }
+                  break;
+                }
+                if (String(args.codigo ?? '').trim() === String(stateRes.codigo).trim()) {
+                  await personalController.removeCode(chatId)
+                  botServer.iaHistorial[chatId].intentosCodigo = 0
+                  output = { resultado: 'VALIDO' }
+                  break;
+                }
+                const intentos = (botServer.iaHistorial[chatId].intentosCodigo ?? 0) + 1
+                botServer.iaHistorial[chatId].intentosCodigo = intentos
+                if (intentos >= 3) {
+                  await personalController.delTelefonoPersona(chatId)
+                  output = { resultado: 'BLOQUEADO', mensaje: 'Se superaron los 3 intentos. El teléfono fue desvinculado.' }
+                } else {
+                  output = { resultado: 'INVALIDO', intentosRestantes: 3 - intentos }
+                }
+                break;
+              }
               case 'getInfoPersonal':
                 output = await personalController.getInfoPersonal(personalId, chatId)
                 break;
