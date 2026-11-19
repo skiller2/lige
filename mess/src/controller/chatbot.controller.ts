@@ -429,11 +429,10 @@ export class ChatBotController extends BaseController {
     try {
 
       if (!message)
-        return next(new ClientException('El mensaje es obligatorio'))
-
+        throw new Error('El mensaje es obligatorio')
 
       if (!chatId)
-        return next(new ClientException('El ID de chat es obligatorio (telefono o identificador de sesión)'))
+        throw new Error('El ID de chat es obligatorio (telefono o identificador de sesión)')
 
 
       // Sesión nueva o vencida por inactividad: arranca de cero en AUTH
