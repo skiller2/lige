@@ -5,10 +5,11 @@ import { firstValueFrom } from 'rxjs';
 import { NzCodeEditorModule } from 'ng-zorro-antd/code-editor';
 import { LoadingService } from '@delon/abc/loading';
 import { ApiService } from '../../../services/api.service';
-import { disabled, form, FormField, required, submit, validate } from '@angular/forms/signals';
+import { disabled, form, FormField, maxLength, required, submit, validate } from '@angular/forms/signals';
 
 export interface ParametroGeneralForm {
   ParametroGeneralCodigo: string;
+  Descripcion: string;
   Parametros: string;
 }
 
@@ -37,6 +38,7 @@ export class ParametroGeneralFormComponent {
 
   private readonly defaultParametroGeneral: ParametroGeneralForm = {
     ParametroGeneralCodigo: '',
+    Descripcion: '',
     Parametros: '',
   }
 
@@ -47,6 +49,8 @@ export class ParametroGeneralFormComponent {
     // La clave no se modifica una vez grabada
     disabled(p.ParametroGeneralCodigo, () => this.codigoCargado() != '')
     required(p.ParametroGeneralCodigo, { message: 'Código es requerido' });
+    required(p.Descripcion, { message: 'Descripción es requerida' });
+    maxLength(p.Descripcion, 255, { message: 'Descripción no puede tener más de 255 caracteres' });
     required(p.Parametros, { message: 'Parámetros es requerido' });
     // Si tiene forma de JSON tiene que ser un JSON válido, igual que valida el back
     validate(p.Parametros, (ctx) => {
@@ -78,6 +82,8 @@ export class ParametroGeneralFormComponent {
     this.loadingSrv.open({ type: 'spin', text: '' })
     const parametroGeneral = await firstValueFrom(this.apiService.getParametroGeneral(ParametroGeneralCodigo))
     this.parametroGeneral.update(m => ({ ...m, ...parametroGeneral }))
+    // Los registros viejos tienen Descripcion en NULL
+    this.parametroGeneral.update(m => ({ ...m, Descripcion: m.Descripcion ?? '' }))
     // El JSON se guarda compacto: para editarlo se muestra con sangría. Si no es un JSON válido
     // queda tal cual, para no perder lo que haya grabado.
     const parametros = this.parametroGeneral().Parametros ?? ''
