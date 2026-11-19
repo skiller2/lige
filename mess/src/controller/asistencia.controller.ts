@@ -44,10 +44,11 @@ export class AsistenciaController extends BaseController {
       const horasDesdeIngreso = ingresoAbierto ? Math.round(ultimo.MinutosTranscurridos / 6) / 10 : null
 
       // SIN_REGISTROS: mostrar las 3 opciones. EGR: ingreso abierto dentro del rango.
-      // PREGUNTAR: ingreso abierto fuera del rango. ING: el último movimiento fue un egreso.
+      // EGR_PENDIENTE: ingreso abierto fuera del rango, hay que registrar el egreso antes de otro ingreso.
+      // ING: el último movimiento fue un egreso.
       let operacionSugerida = 'SIN_REGISTROS'
       if (ingresoAbierto)
-        operacionSugerida = horasDesdeIngreso <= HORAS_INGRESO_ABIERTO ? 'EGR' : 'PREGUNTAR'
+        operacionSugerida = horasDesdeIngreso <= HORAS_INGRESO_ABIERTO ? 'EGR' : 'EGR_PENDIENTE'
       else if (ultimo)
         operacionSugerida = 'ING'
 
@@ -332,8 +333,68 @@ export class AsistenciaController extends BaseController {
   }
 
   // Anula (FechaAnulado) un registro de la persona, sin borrarlo
+  // Solo el último registro: así nunca queda un egreso sin su ingreso
   async anularRegistroAsistencia(personalId: number, chatId: string, args: any) {
-    return EN_DESARROLLO
+    const RegistroAsistenciaCodigo = Number(args?.RegistroAsistenciaCodigo)
+    if (!Number.isInteger(RegistroAsistenciaCodigo) || RegistroAsistenciaCodigo <= 0)
+      return { Error: 'CODIGO_INVALIDO', mensaje: 'Falta el código del registro a anular.' }
+
+    const Motivo = String(args?.Observaciones ?? '').trim() || null
+    const ahora = new Date()
+    const usuario = BaseController.getUser(null)
+    const ip = '::1'
+    let ultimo: any
+    const queryRunner = await dbServer.connection()
+    try {
+      await queryRunner.startTransaction()
+
+      const ultimos = await queryRunner.query(`
+        SELECT TOP 1 ra.RegistroAsistenciaCodigo, ra.Tipo, ra.FechaHora, ra.ClienteId, ra.ClienteElementoDependienteId,
+          CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(ele.ClienteElementoDependienteDescripcion)) Objetivo
+        FROM RegistroAsistencia ra WITH (UPDLOCK, HOLDLOCK)
+        LEFT JOIN Cliente cli ON cli.ClienteId = ra.ClienteId
+        LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId = ra.ClienteId AND ele.ClienteElementoDependienteId = ra.ClienteElementoDependienteId
+        WHERE ra.PersonalId = @0 AND ra.FechaAnulado IS NULL AND ra.Tipo IN ('ING', 'EGR')
+        ORDER BY ra.FechaHora DESC, ra.RegistroAsistenciaCodigo DESC
+      `, [personalId])
+      ultimo = ultimos[0]
+
+      if (!ultimo) {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'SIN_REGISTROS', mensaje: 'No tiene registros de asistencia para anular.' }
+      }
+      if (ultimo.RegistroAsistenciaCodigo != RegistroAsistenciaCodigo) {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'NO_ES_ULTIMO_REGISTRO', mensaje: 'Solo se puede anular el último registro de asistencia.', ultimoRegistro: ultimo }
+      }
+
+      await queryRunner.query(`
+        UPDATE RegistroAsistencia SET
+          FechaAnulado = @2,
+          Observaciones = CASE WHEN @3 IS NULL THEN Observaciones ELSE CONCAT(ISNULL(Observaciones + ' | ', ''), @3) END,
+          AudFechaMod = @2, AudUsuarioMod = @4, AudIpMod = @5
+        WHERE RegistroAsistenciaCodigo = @0 AND PersonalId = @1 AND FechaAnulado IS NULL
+      `, [RegistroAsistenciaCodigo, personalId, ahora, Motivo, usuario, ip])
+
+      await queryRunner.commitTransaction()
+    } catch (err) {
+      await this.rollbackTransaction(queryRunner)
+      throw err
+    } finally {
+      await queryRunner.release()
+    }
+
+    // Estado después de anular: si quedó un ingreso abierto o no
+    const estadoActual = await this.getEstadoAsistencia(personalId)
+    return {
+      anulado: true,
+      RegistroAsistenciaCodigo,
+      Tipo: ultimo.Tipo,
+      FechaHora: ultimo.FechaHora,
+      Objetivo: String(ultimo.Objetivo ?? '').trim(),
+      Motivo,
+      estadoActual
+    }
   }
 
   // Genera el enlace externo que toma la foto y la ubicación
