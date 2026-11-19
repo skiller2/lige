@@ -1469,19 +1469,19 @@ LEFT JOIN(
     if (!LugarFisicoLegajoId) return
 
     if (!infoPersonal.LugarFisicoLegajoDesde) {
-      throw new ClientException('Debe completar Fecha desde para la Ubicacion legajo.')
+      throw new ClientException('Legajo Físico.', { fieldErrors: [{ fieldTree: `LugarFisicoLegajoDesde`, kind: 'server', message: 'La Fecha desde es obligatorio.' }] })
     }
 
     const nuevaDesde = new Date(infoPersonal.LugarFisicoLegajoDesde)
     if (Number.isNaN(nuevaDesde.getTime())) {
-      throw new ClientException('La Fecha desde de la Ubicacion legajo no es valida.')
+      throw new ClientException('Legajo Físico.', { fieldErrors: [{ fieldTree: `LugarFisicoLegajoDesde`, kind: 'server', message: 'La Fecha desde no es valida.' }] })
     }
     nuevaDesde.setHours(0, 0, 0, 0)
 
     const hoy = new Date()
     hoy.setHours(0, 0, 0, 0)
     if (nuevaDesde.getTime() > hoy.getTime()) {
-      throw new ClientException('La Fecha desde de la Ubicacion legajo no puede ser mayor al dia de hoy.')
+      throw new ClientException('Legajo Físico.', { fieldErrors: [{ fieldTree: `LugarFisicoLegajoDesde`, kind: 'server', message: 'La Fecha desde no puede ser mayor al dia de hoy.' }] })
     }
 
     const registrosExistentes = await queryRunner.query(`
@@ -1610,18 +1610,18 @@ LEFT JOIN(
 
     const Horas = Number(valorHoras)
     if (Number.isNaN(Horas) || Horas <= 0) {
-      throw new ClientException('Las Horas Pactadas deben ser un número mayor a 0.')
+      throw new ClientException('Otros.', { fieldErrors: [{ fieldTree: `HorasPactadas`, kind: 'server', message: 'Las Horas Pactadas deben ser un número mayor a 0.' }] })
     }
     if (!Number.isInteger(Horas * 2)) {
-      throw new ClientException('Las Horas Pactadas solo admiten valores enteros o con decimal .5')
+      throw new ClientException('Otros.', { fieldErrors: [{ fieldTree: `HorasPactadas`, kind: 'server', message: 'Las Horas Pactadas solo admiten valores enteros o con decimal .5' }] })
     }
 
     if (!infoPersonal.HorasPactadasDesde) {
-      throw new ClientException('Debe completar Fecha desde para las Horas Pactadas.')
+      throw new ClientException('Otros.', { fieldErrors: [{ fieldTree: `HorasPactadasDesde`, kind: 'server', message: 'La Fecha desde es obligatoria.' }] })
     }
     const nuevaDesde = new Date(infoPersonal.HorasPactadasDesde)
     if (Number.isNaN(nuevaDesde.getTime())) {
-      throw new ClientException('La Fecha desde de las Horas Pactadas no es valida.')
+      throw new ClientException('Otros.', { fieldErrors: [{ fieldTree: `HorasPactadasDesde`, kind: 'server', message: 'La Fecha desde no es valida.' }] })
     }
     nuevaDesde.setHours(0, 0, 0, 0)
 
@@ -1725,7 +1725,7 @@ LEFT JOIN(
     const familiares = req.body.familiares
     const habilitacion: number[] = (req.body.habilitacion) ? req.body.habilitacion : []
     const beneficiarios = req.body.beneficiarios
-    let errors: string[] = []
+    const fieldErrors: any[] = [];
     let now = new Date()
     now.setHours(0, 0, 0, 0)
 
@@ -1765,11 +1765,11 @@ LEFT JOIN(
       await this.setPersonalHorasPactadas(queryRunner, PersonalId, req.body, usuario, ip)
 
       //Telefonos
-      for (const telefono of telefonos) {
+      for (const [index, telefono] of telefonos.entries()) {
         if (telefono.TelefonoNro) {
           if (!telefono.TipoTelefonoId) {
-            errors.push(`El campo Tipo de la seccion Telefono No pueden estar vacios.`)
-            break
+            fieldErrors.push({ fieldTree: `telefonos[${index}].TipoTelefonoId`, kind: 'server', message: 'El Tipo es obligatorio' })
+            continue
           }
 
           await this.addPersonalTelefono(queryRunner, telefono, PersonalId)
@@ -1777,27 +1777,39 @@ LEFT JOIN(
       }
 
       //Estudios
-      for (const estudio of estudios) {
-        if (estudio.TipoEstudioId == 8) throw new ClientException(`El tipo de estudio "Curso" debe ser registrado en modulo "Estudios".`)
-
+      for (const [index, estudio] of estudios.entries()) {
+        if (estudio.TipoEstudioId == 8) {
+          fieldErrors.push({ fieldTree: `estudios[${index}].TipoEstudioId`, kind: 'server', message: 'El Tipo de estudio "Curso" debe ser registrado en modulo "Estudios".' })
+          continue
+        }
 
 
         if (estudio.EstudioTitulo || estudio.TipoEstudioId || estudio.PersonalEstudioOtorgado || estudio.PersonalEstudioVencimiento || (estudio.DocTitulo && estudio.DocTitulo.length)) {
-          const camposVacios: string[] = []
+          let camposVacios: boolean = false
 
-          if (!estudio.EstudioTitulo) camposVacios.push('- Título Estudio')
-          if (!estudio.TipoEstudioId) camposVacios.push('- Tipo Estudio')
-          if (!estudio.PersonalEstudioOtorgado) camposVacios.push('- Fecha Estudio otorgado')
+          if (!estudio.EstudioTitulo){
+            fieldErrors.push({ fieldTree: `estudios[${index}].EstudioTitulo`, kind: 'server', message: 'El Título Estudio es obligatorio.' })
+            camposVacios =true
+          }
+          if (!estudio.TipoEstudioId){
+            fieldErrors.push({ fieldTree: `estudios[${index}].TipoEstudioId`, kind: 'server', message: 'El Tipo Estudio es obligatorio.' })
+            camposVacios =true
+          }
+          if (!estudio.PersonalEstudioOtorgado){
+            fieldErrors.push({ fieldTree: `estudios[${index}].PersonalEstudioOtorgado`, kind: 'server', message: 'La Fecha de Otorgamiento es obligatorio.' })
+            camposVacios =true
+          }
 
-          if (camposVacios.length) {
-            errors.push(`En la sección Estudios faltan: ${camposVacios.join(', ')}.`)
-            break
+          if (camposVacios) {
+            continue
           }
 
           await this.addPersonalEstudio(queryRunner, estudio, PersonalId)
         }
       }
-      if (errors.length) throw new ClientException(errors)
+
+      if (fieldErrors.length > 0)
+        throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
 
       //Familiares
       const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
@@ -2458,14 +2470,35 @@ LEFT JOIN(
 
   async updatePersonalFamilia(queryRunner: any, PersonalId: any, familia: any[]) {
     await queryRunner.query(`DELETE FROM PersonalFamilia WHERE PersonalId IN (@0)`, [PersonalId])
-    for (const familiar of familia) {
+    const fieldErrors: any[] = [];
+    for (const [index, familiar] of familia.entries()) {
       if (!familiar.Nombre && !familiar.Apellido && !familiar.TipoParentescoId)
         continue
 
-      if (!familiar.Nombre || !familiar.Apellido || !familiar.TipoParentescoId)
-        return new ClientException(`Los campos Nombre, Apellido y Parentesco de la seccion Familiar No pueden estar vacios.`)
+      let camposVacios: boolean = false
+      if (!familiar.Nombre){
+        fieldErrors.push({ fieldTree: `familiares[${index}].Nombre`, kind: 'server', message: 'El Nombre es obligatorio.' })
+        camposVacios = true
+      }
+      if(!familiar.Apellido){
+        fieldErrors.push({ fieldTree: `familiares[${index}].Apellido`, kind: 'server', message: 'El Apellido es obligatorio.' })
+        camposVacios = true
+      }
+      if(!familiar.TipoParentescoId){
+        fieldErrors.push({ fieldTree: `familiares[${index}].TipoParentescoId`, kind: 'server', message: 'El Parentesco es obligatorio.' })
+        camposVacios = true
+      }
+
+      if (camposVacios) {
+        continue
+      }
+        
 
       await this.addPersonalFamilia(queryRunner, PersonalId, familiar)
+    }
+
+    if (fieldErrors.length) {
+      return new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
     }
   }
 
@@ -2584,7 +2617,7 @@ LEFT JOIN(
           [CUIT, PersonalId]
         )
         if (validacionCUIT.length) {
-          throw new ClientException('El CUIT ingresado ya existe.')
+          throw new ClientException('CUIT.', { fieldErrors: [{ fieldTree: `CUIT`, kind: 'server', message: 'El CUIT ingresado ya existe.' }] })
         }
 
         await this.updatePersonalCUITQuery(queryRunner, PersonalId, CUIT, now)
@@ -2892,10 +2925,10 @@ LEFT JOIN(
     desde.setHours(0, 0, 0, 0)
     let yesterday: Date = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() - 1)
     yesterday.setHours(0, 0, 0, 0)
-
+    const fieldErrors: any[] = [];
 
     if (this.listSitRev.split(',').find((sit: any) => SituacionRevistaId == sit))
-      throw new ClientException(`La situación de revista seleccionada no se puede cargar desde esta pantalla.`)
+      throw new ClientException(`Situación de Revista.`, { fieldErrors:[{ fieldTree: `SituacionId`, kind: 'server', message: 'La Situación de Revista seleccionada no se puede cargar desde esta pantalla.' }] })
 
     //Obtengo la última situación de revista
     let sitRevista = await queryRunner.query(`
@@ -2907,13 +2940,17 @@ LEFT JOIN(
     )
 
     if (sitRevista.length == 1 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() > desde.getTime())
-      throw new ClientException(`La fecha desde de situación de revista no puede ser menor al ${sitRevista[0].PersonalSituacionRevistaDesde.getDate()}/${sitRevista[0].PersonalSituacionRevistaDesde.getMonth() + 1}/${sitRevista[0].PersonalSituacionRevistaDesde.getFullYear()}`)
+      fieldErrors.push({ fieldTree: `SituacionId`, kind: 'server', message: `La fecha desde de situación de revista no puede ser menor al ${sitRevista[0].PersonalSituacionRevistaDesde.getDate()}/${sitRevista[0].PersonalSituacionRevistaDesde.getMonth() + 1}/${sitRevista[0].PersonalSituacionRevistaDesde.getFullYear()}` })
 
     if (sitRevista[0]?.PersonalSituacionRevistaSituacionId == SituacionRevistaId)
-      throw new ClientException(`La situación de revista es igual a la existente`)
+      fieldErrors.push({ fieldTree: `SituacionId`, kind: 'server', message: `La situación de revista es igual a la existente` })
 
     if (sitRevista.length > 0 && this.listSitRev.split(',').find((sit: any) => sitRevista[0]?.PersonalSituacionRevistaSituacionId == sit))
-      throw new ClientException(`No se puede modificar la situación de revista desde esta pantalla`)
+      fieldErrors.push({ fieldTree: `SituacionId`, kind: 'server', message: `No se puede modificar la situación de revista desde esta pantalla` })
+
+    if (fieldErrors.length) {
+      throw new ClientException(`Situación de Revista.`, { fieldErrors})
+    }
 
     if (sitRevista.length > 0 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() == desde.getTime()) {
       await queryRunner.query(`UPDATE PersonalSituacionRevista SET PersonalSituacionRevistaDesde = @2, PersonalSituacionRevistaMotivo = @3, PersonalSituacionRevistaSituacionId = @4,
@@ -3019,41 +3056,45 @@ LEFT JOIN(
   }
 
   valPersonalForm(personalForm: any, action: string) {
-    let campos_vacios: any[] = []
+    const fieldErrors: any[] = [];
 
     if (!personalForm.Nombre) {
-      campos_vacios.push(`- Nombre`)
+      fieldErrors.push({ fieldTree: `Nombre`, kind: 'server', message: 'El Nombre es obligatorio' })
     }
     if (!personalForm.Apellido) {
-      campos_vacios.push(`- Apellido`)
+      fieldErrors.push({ fieldTree: `Apellido`, kind: 'server', message: 'El Apellido es obligatorio' })
     }
     if (!personalForm.CUIT) {
-      campos_vacios.push(`- CUIT`)
+      fieldErrors.push({ fieldTree: `CUIT`, kind: 'server', message: 'El CUIT es obligatorio' })
+    } else {
+      try {
+        this.validarCUIT(personalForm.CUIT)
+      } catch (error:any) {
+        fieldErrors.push({ fieldTree: `CUIT`, kind: 'server', message: error.messageArr })
+      }
     }
     if (!personalForm.SucursalId) {
-      campos_vacios.push(`- Sucursal`)
+      fieldErrors.push({ fieldTree: `SucursalId`, kind: 'server', message: 'La Sucursal es obligatorio' })
     }
     if (!personalForm.NacionalidadId) {
-      campos_vacios.push(`- Nacionalidad`)
+      fieldErrors.push({ fieldTree: `NacionalidadId`, kind: 'server', message: 'La Nacionalidad es obligatorio' })
     }
     if (!personalForm.Email) {
-      campos_vacios.push(`- Email`)
+      fieldErrors.push({ fieldTree: `Email`, kind: 'server', message: 'El Email es obligatorio' })
     }
     if (action == 'I' && !personalForm.SituacionId) {
-      campos_vacios.push(`- Situacion de Revista`)
+      fieldErrors.push({ fieldTree: `SituacionId`, kind: 'server', message: 'La Situacion de Revista es obligatorio' })
     }
 
     //Validaciones de Lugar de nacimiento
     if (!personalForm.LugarNacimiento) {
-      campos_vacios.push(`- Lugar de nacimiento`)
+      fieldErrors.push({ fieldTree: `LugarNacimiento`, kind: 'server', message: 'El Lugar de nacimiento es obligatorio' })
     }
 
-    if (campos_vacios.length) {
-      campos_vacios.unshift('Debe completar los siguientes campos: ')
-      return new ClientException(campos_vacios)
-    }
+    if (fieldErrors.length > 0)
+      throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
 
-    this.validarCUIT(personalForm.CUIT)
+    
 
     // Direcciones
     if (!personalForm.domicilio?.Domicilio && personalForm.domicilio?.DomicilioCompleto) {
@@ -3662,17 +3703,40 @@ UNION ALL
   async setPersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiarios: any[], usuario: string, ip: string) {
 
     await queryRunner.query(`UPDATE PersonalBeneficiario SET PersonalBeneficiarioInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
-    for (const beneficiario of beneficiarios) {
+    const fieldErrors: any[] = [];
+    for (const [index, beneficiario] of beneficiarios.entries()) {
       if (!beneficiario.Nombre && !beneficiario.Apellido && !beneficiario.TipoDocumentoId && !beneficiario.DocumentoNro)
         continue
 
-      if (!beneficiario.Nombre || !beneficiario.Apellido || !beneficiario.TipoDocumentoId || !beneficiario.DocumentoNro)
-        return new ClientException(`Los campos Nombre, Apellido, Tipo Documento y Documento Nro de la seccion Beneficiario No pueden estar vacios.`)
-
+      let camposVacios: boolean = false
+      if (!beneficiario.Nombre){
+        fieldErrors.push({ fieldTree: `beneficiarios[${index}].Nombre`, kind: 'server', message: 'El Nombre es obligatorio.' })
+        camposVacios = true
+      }
+      if(!beneficiario.Apellido){
+        fieldErrors.push({ fieldTree: `beneficiarios[${index}].Apellido`, kind: 'server', message: 'El Apellido es obligatorio.' })
+        camposVacios = true
+      }
+      if(!beneficiario.TipoDocumentoId){
+        fieldErrors.push({ fieldTree: `beneficiarios[${index}].TipoDocumentoId`, kind: 'server', message: 'El Tipo Documento es obligatorio.' })
+        camposVacios = true
+      }
+      if(!beneficiario.DocumentoNro){
+        fieldErrors.push({ fieldTree: `beneficiarios[${index}].DocumentoNro`, kind: 'server', message: 'El Documento Nro es obligatorio.' })
+        camposVacios = true
+      }
+      if (camposVacios) {
+        continue
+      }
+      
       if (beneficiario.Desde) {
         await this.updatePersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario, usuario, ip)
       } else
         await this.addPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario, usuario, ip)
+    }
+
+    if (fieldErrors.length) {
+      return new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
     }
   }
 

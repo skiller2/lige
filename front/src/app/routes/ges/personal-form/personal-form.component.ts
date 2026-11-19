@@ -115,15 +115,15 @@ export class PersonalFormComponent {
   optionsTipoDocumento = signal<any[]>([])
 
   //fb = inject(FormBuilder)
-  private readonly objTelefono: Telefono = { PersonalTelefonoId: 0, TipoTelefonoId: 0, TelefonoNro: '' }
-  private readonly objEstudio: Estudio = { PersonalEstudioId: 0, TipoEstudioId: 0, EstadoEstudioId: 0, EstudioTitulo: '', PersonalEstudioOtorgado: '', PersonalEstudioVencimiento: '', DocTitulo: [], docId: 0 }
-  private readonly objFamiliar: Familiar = { PersonalFamiliaId: 0, Apellido: '', Nombre: '', TipoParentescoId: 0 }
-  private readonly objBeneficiario: Beneficiario = { Apellido: '', Nombre: '', TipoDocumentoId: 0, DocumentoNro: NaN, TipoParentescoId: 0, Observacion: '', Desde: '' }
+  private readonly objTelefono: Telefono = { PersonalTelefonoId: 0, TipoTelefonoId: NaN, TelefonoNro: '' }
+  private readonly objEstudio: Estudio = { PersonalEstudioId: 0, TipoEstudioId: NaN, EstadoEstudioId: 0, EstudioTitulo: '', PersonalEstudioOtorgado: '', PersonalEstudioVencimiento: '', DocTitulo: [], docId: 0 }
+  private readonly objFamiliar: Familiar = { PersonalFamiliaId: 0, Apellido: '', Nombre: '', TipoParentescoId: NaN }
+  private readonly objBeneficiario: Beneficiario = { Apellido: '', Nombre: '', TipoDocumentoId: NaN, DocumentoNro: NaN, TipoParentescoId: 0, Observacion: '', Desde: '' }
   private readonly objDomicilio: Domicilio = { DomicilioId: 0, Domicilio: null, Piso: '', Dpto: '', DomicilioDomLugar: '' }
 
   private readonly defaultPersonalForm: ParametroPersonalForm = {
-    Nombre: '', Apellido: '', CUIT: NaN, NroLegajo: NaN, SucursalId: 0,
-    FechaNacimiento: '', NacionalidadId: 0, Sexo: '', EstadoCivilId: 0,
+    Nombre: '', Apellido: '', CUIT: NaN, NroLegajo: NaN, SucursalId: NaN,
+    FechaNacimiento: '', NacionalidadId: NaN, Sexo: '', EstadoCivilId: 0,
     FotoId: 0, Foto: [], docDorsoId: 0, docDorso: [], docFrenteId: 0, docFrente: [],
     domicilio: { ...this.objDomicilio },
     LugarNacimiento: '', //Lugar de nacimiento
@@ -132,7 +132,7 @@ export class PersonalFormComponent {
     estudios: [structuredClone(this.objEstudio)],
     familiares: [structuredClone(this.objFamiliar)],
     beneficiarios: [structuredClone(this.objBeneficiario)],
-    PersonalSituacionRevistaId: 0, SituacionId: 0, Motivo: '', //Situacion de Revista
+    PersonalSituacionRevistaId: 0, SituacionId: NaN, Motivo: '', //Situacion de Revista
     LeyNro: NaN,
     habilitacion: [],
     TipoVehiculoId: 3, VehiculoMarcaId: 0, VehiculoMarcaModeloId: 0,
@@ -147,6 +147,45 @@ export class PersonalFormComponent {
 
   readonly formParametroPersonal = form(this.parametroPersonal, (p) => {
     disabled(p, () => this.readonly())
+    required(p.Nombre, { message: 'Nombre es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.Apellido, { message: 'Apellido es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.CUIT, { message: 'CUIT es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.SucursalId, { message: 'Sucursal es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.NacionalidadId, { message: 'Nacionalidad es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.Email, { message: 'Email es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.SituacionId, { message: 'Situacion de Revista es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.LugarNacimiento, { message: 'Lugar de Nacimiento es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    // Telefonos
+    applyEach(p.telefonos, (telefonoPath) => {
+      required(telefonoPath.TipoTelefonoId, { message: 'Tipo es requerido', when: (ctx) => !!(ctx.valueOf(telefonoPath.TelefonoNro)), });
+      required(telefonoPath.TelefonoNro, { message: 'Numero Telefono es requerido', when: (ctx) => !!(ctx.valueOf(telefonoPath.TipoTelefonoId)), });
+    });
+    // Estudios
+    applyEach(p.estudios, (estudioPath) => {
+      required(estudioPath.EstudioTitulo, { message: 'Titulo es requerido', when: (ctx) => !!(ctx.valueOf(estudioPath.TipoEstudioId) || ctx.valueOf(estudioPath.PersonalEstudioOtorgado)), });
+      required(estudioPath.TipoEstudioId, { message: 'Tipo es requerido', when: (ctx) => !!(ctx.valueOf(estudioPath.EstudioTitulo) || ctx.valueOf(estudioPath.PersonalEstudioOtorgado)), });
+      required(estudioPath.PersonalEstudioOtorgado, { message: 'Fecha de Otorgamiento es requerido', when: (ctx) => !!(ctx.valueOf(estudioPath.EstudioTitulo) || ctx.valueOf(estudioPath.TipoEstudioId)), });
+    });
+    // Familiares
+    applyEach(p.familiares, (familiarPath) => {
+      required(familiarPath.Nombre, { message: 'Nombre es requerido', when: (ctx) => !!(ctx.valueOf(familiarPath.Apellido) || ctx.valueOf(familiarPath.TipoParentescoId)), });
+      required(familiarPath.Apellido, { message: 'Apellido es requerido', when: (ctx) => !!(ctx.valueOf(familiarPath.Nombre) || ctx.valueOf(familiarPath.TipoParentescoId)), });
+      required(familiarPath.TipoParentescoId, { message: 'Parentesco es requerido', when: (ctx) => !!(ctx.valueOf(familiarPath.Nombre) || ctx.valueOf(familiarPath.Apellido)), });
+    });
+    // Beneficiario
+    applyEach(p.beneficiarios, (beneficiarioPath) => {
+      required(beneficiarioPath.Nombre, { message: 'Nombre es requerido', when: (ctx) => !!(ctx.valueOf(beneficiarioPath.Apellido) || ctx.valueOf(beneficiarioPath.TipoDocumentoId) || ctx.valueOf(beneficiarioPath.DocumentoNro)), });
+      required(beneficiarioPath.Apellido, { message: 'Apellido es requerido', when: (ctx) => !!(ctx.valueOf(beneficiarioPath.Nombre) || ctx.valueOf(beneficiarioPath.TipoDocumentoId) || ctx.valueOf(beneficiarioPath.DocumentoNro)), });
+      required(beneficiarioPath.TipoDocumentoId, { message: 'Tipo Documento es requerido', when: (ctx) => !!(ctx.valueOf(beneficiarioPath.Nombre) || ctx.valueOf(beneficiarioPath.Apellido) || ctx.valueOf(beneficiarioPath.DocumentoNro)), });
+      required(beneficiarioPath.DocumentoNro, { message: 'Documento Nro es requerido', when: (ctx) => !!(ctx.valueOf(beneficiarioPath.Nombre) || ctx.valueOf(beneficiarioPath.Apellido) || ctx.valueOf(beneficiarioPath.TipoDocumentoId)), });
+    });
+    // Legajo Físico
+    required(p.LugarFisicoLegajoId, { message: 'Ubicación es requerido', when: (ctx) => !!(ctx.valueOf(p.LugarFisicoLegajoDesde)), });
+    required(p.LugarFisicoLegajoDesde, { message: 'Fecha desde es requerido', when: (ctx) => !!(ctx.valueOf(p.LugarFisicoLegajoId)), });
+    // Horas Pactadas
+    required(p.HorasPactadas, { message: 'Horas Pactadas es requerido', when: (ctx) => !!(ctx.valueOf(p.HorasPactadasDesde)), });
+    required(p.HorasPactadasDesde, { message: 'Fecha desde es requerido', when: (ctx) => !!(ctx.valueOf(p.HorasPactadas)), });
+    
     // Largo maximo de la columna (CHAR(5)); validate y no maxLength para mostrar el error en vez de cortar el texto
     validate(p.domicilio.Piso, ({ value }) => (value()?.length ?? 0) > 5 ? { kind: 'maxLength', message: 'Piso: máximo 5 caracteres' } : undefined)
     validate(p.domicilio.Dpto, ({ value }) => (value()?.length ?? 0) > 5 ? { kind: 'maxLength', message: 'Departamento: máximo 5 caracteres' } : undefined)
@@ -279,7 +318,7 @@ export class PersonalFormComponent {
   async save() {
     await submit(this.formParametroPersonal, async (form) => {
       this.isLoading.set(true)
-      const values: any = form().value()
+      const values: any = {...form().value()}
       try {
         //Filtra los array de los objeto no usados
         values.telefonos = values.telefonos.filter((t: Telefono) => { return !this.isEqualObject(t, this.objTelefono) })
@@ -302,10 +341,12 @@ export class PersonalFormComponent {
 
         this.load()
         // this.formParametroPersonal().reset()
-      } catch (e) {
-
+      } catch (e:any) {
+        return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
+      } finally {
+        this.isLoading.set(false)
       }
-      this.isLoading.set(false)
+      return undefined
     })
   }
 
