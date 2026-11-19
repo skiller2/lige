@@ -639,10 +639,17 @@ export class ChatBotController extends BaseController {
               case 'getNovedadesPendientesByResponsable':
                 output = await novedadController.getNovedadesPendientesByResponsable(personalId)
                 break;
-              case 'setNovedadVisualizacion':
-                //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
-                output = {}
+              case 'setNovedadVisualizacion': {
+                // Solo se marcan novedades pendientes de los objetivos de la persona
+                const pendientes = await novedadController.getNovedadesPendientesByResponsable(personalId)
+                if (!pendientes.some((nov: any) => nov.NovedadCodigo == args.NovedadCodigo)) {
+                  output = { Error: 'NOVEDAD_NO_PENDIENTE', mensaje: 'La novedad no está entre las pendientes de la persona.' }
+                  break;
+                }
+                await novedadController.setNovedadVisualizacion(args.NovedadCodigo, chatId, personalId)
+                output = { response: 'OK' }
                 break;
+              }
               case 'getEstadoAsistencia':
                 output = await asistenciaController.getEstadoAsistencia(personalId)
                 break;

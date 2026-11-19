@@ -133,7 +133,7 @@ export class NovedadController extends BaseController {
     const usuario = BaseController.getUser(null)
     const queryRunner = await dbServer.connection(usuario);
     const result = await queryRunner.query(`
-      SELECT NovedadTipoCod, Descripcion
+      SELECT NovedadTipoCod, Descripcion, DescripcionAmpliada
       FROM NovedadTipo
     `)
     return result
@@ -154,6 +154,7 @@ export class NovedadController extends BaseController {
     const month = date.getMonth() + 1
     const usuario = BaseController.getUser(null)
     const queryRunner = await dbServer.connection(usuario);
+    try {
     const res = await queryRunner.query(`
         SELECT obj.ClienteElementoDependienteId, obj.ClienteId, 'Responsable' tipo,
           per.PersonalId, CONCAT(TRIM(per.PersonalApellido),', ',TRIM(per.PersonalNombre)) AS ApellidoNombre, gaj.GrupoActividadJerarquicoDesde AS desde , gaj.GrupoActividadJerarquicoHasta hasta
@@ -176,7 +177,7 @@ export class NovedadController extends BaseController {
       const novedades = await queryRunner.query(`
           SELECT 
             ROW_NUMBER() OVER (ORDER BY nov.NovedadCodigo) id
-            , nov.NovedadCodigo, nov.PersonalId, nov.Telefono, nov.Fecha, nov.Descripcion, nov.NovedadTipoCod, nov.Accion
+            , nov.NovedadCodigo, nov.PersonalId, nov.Telefono, nov.Fecha, FORMAT(nov.Fecha, 'dd/MM/yyyy HH:mm') AS FechaHora, nov.Descripcion, nov.NovedadTipoCod, nov.Accion
             , tipo.Descripcion TipoDescripcion
             , CONCAT(TRIM(per.PersonalApellido) , ', ', TRIM(per.PersonalNombre), ' CUIT:' , cuit.PersonalCUITCUILCUIT) PersonalFullName
             , obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId
@@ -205,32 +206,42 @@ export class NovedadController extends BaseController {
     }
 
     return novPendientes
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   async getDocumentosByNovedadCodigo(NovedadCodigo: number) {
     const usuario = BaseController.getUser(null)
     const queryRunner = await dbServer.connection(usuario);
-    const result = await queryRunner.query(`
-      SELECT 
-        doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle
-        , tip.DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, doc.DocumentoNombreArchivo
-      FROM Documento doc
-      JOIN DocumentoTipo tip ON tip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
-      LEFT JOIN DocumentoDescargaLog dl ON dl.DocumentoId = doc.DocumentoId
-      JOIN DocumentoRelaciones dr ON dr.DocumentoId = doc.DocumentoId AND dr.NovedadCodigo IN (@0)
-      `, [NovedadCodigo])
-    return result
+    try {
+      return await queryRunner.query(`
+        SELECT
+          doc.DocumentoId, doc.Documentofecha, doc.DocumentoTipoCodigo, tip.DocumentoTipoDetalle
+          , tip.DocumentoTipoDescripcionDenominadorDocumento, doc.DocumentoDenominadorDocumento, doc.DocumentoNombreArchivo
+        FROM Documento doc
+        JOIN DocumentoTipo tip ON tip.DocumentoTipoCodigo = doc.DocumentoTipoCodigo
+        LEFT JOIN DocumentoDescargaLog dl ON dl.DocumentoId = doc.DocumentoId
+        JOIN DocumentoRelaciones dr ON dr.DocumentoId = doc.DocumentoId AND dr.NovedadCodigo IN (@0)
+        `, [NovedadCodigo])
+    } finally {
+      await queryRunner.release()
+    }
   }
 
   async setNovedadVisualizacion(NovedadCodigo: number, telefono: string, personalId: any) {
     const usuario = BaseController.getUser(null)
     const queryRunner = await dbServer.connection(usuario);
     const now = new Date()
-    await queryRunner.query(`
-      UPDATE Novedad
-      SET VisualizacionFecha = @1, VisualizacionTelefono = @2, VisualizacionPersonaId = @3
-      WHERE NovedadCodigo = @0 AND VisualizacionFecha IS NULL
-      `, [NovedadCodigo, now, telefono, personalId])
+    try {
+      await queryRunner.query(`
+        UPDATE Novedad
+        SET VisualizacionFecha = @1, VisualizacionTelefono = @2, VisualizacionPersonaId = @3
+        WHERE NovedadCodigo = @0 AND VisualizacionFecha IS NULL
+        `, [NovedadCodigo, now, telefono, personalId])
+    } finally {
+      await queryRunner.release()
+    }
     return {}
   }
 
