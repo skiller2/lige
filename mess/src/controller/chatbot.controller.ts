@@ -429,11 +429,10 @@ export class ChatBotController extends BaseController {
     try {
 
       if (!message)
-        return next(new ClientException('El mensaje es obligatorio'))
-
+        throw new Error('El mensaje es obligatorio')
 
       if (!chatId)
-        return next(new ClientException('El ID de chat es obligatorio (telefono o identificador de sesión)'))
+        throw new Error('El ID de chat es obligatorio (telefono o identificador de sesión)')
 
 
       // Sesión nueva o vencida por inactividad: arranca de cero en AUTH
@@ -639,10 +638,17 @@ export class ChatBotController extends BaseController {
               case 'getNovedadesPendientesByResponsable':
                 output = await novedadController.getNovedadesPendientesByResponsable(personalId)
                 break;
-              case 'setNovedadVisualizacion':
-                //output = await novedadController.setNovedadVisualizacion(tool.function.arguments.NovedadCodigo,chatId,tool.function.arguments.personalId)
-                output = {}
+              case 'setNovedadVisualizacion': {
+                // Solo se marcan novedades pendientes de los objetivos de la persona
+                const pendientes = await novedadController.getNovedadesPendientesByResponsable(personalId)
+                if (!pendientes.some((nov: any) => nov.NovedadCodigo == args.NovedadCodigo)) {
+                  output = { Error: 'NOVEDAD_NO_PENDIENTE', mensaje: 'La novedad no está entre las pendientes de la persona.' }
+                  break;
+                }
+                await novedadController.setNovedadVisualizacion(args.NovedadCodigo, chatId, personalId)
+                output = { response: 'OK' }
                 break;
+              }
               case 'getEstadoAsistencia':
                 output = await asistenciaController.getEstadoAsistencia(personalId)
                 break;

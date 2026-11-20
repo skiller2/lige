@@ -493,7 +493,7 @@ LEFT JOIN banco banc
     const orderBy = orderToSQL(sort)
     const stmactual = new Date()
     return queryRunner.query(
-      `SELECT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId ) as id,per.PersonalId, pre.PersonalPrestamoId as clave_id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
+      `SELECT CONCAT(per.PersonalId,'-',pre.PersonalPrestamoId ) as id,per.PersonalId, per.PersonalNroLegajo, pre.PersonalPrestamoId as clave_id, CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) as PersonalApellidoNombre, cuit.PersonalCUITCUILCUIT,perban.PersonalBancoCBU, banc.BancoDescripcion ,
       pre.PersonalPrestamoMonto AS importe, pre.PersonalPrestamoAplicaEl,
       tipo.tipo_movimiento_id, tipo.des_movimiento,
       pre.PersonalPrestamoLiquidoFinanzas,
@@ -1231,6 +1231,8 @@ LEFT JOIN banco banc
             throw new ClientException('Sin cuit para el personal ' + PersonalApellidoNombre)
           if (!row.PersonalBancoCBU)
             throw new ClientException('Sin CBU para el personal ' + PersonalApellidoNombre)
+          if (!row.PersonalNroLegajo)
+            throw new ClientException('Sin legajo para el personal ' + PersonalApellidoNombre)
 
           file.write(format("%s%s%s%s%s%s%s%s%s\r\n",
             row.PersonalNroLegajo.toString().padStart(18, '0'),

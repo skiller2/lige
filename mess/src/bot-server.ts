@@ -106,7 +106,7 @@ export class BotServer {
           jwtToken: process.env.META_JWTOKEN,  // Token de acceso brindado por Meta (es permanente o se actualiza?)
           numberId: process.env.META_NUMBER_ID,  // ID de número brindado por Meta
           verifyToken: process.env.META_VERIFY_TOKEN,  // Token de verificación creado para webhook
-          version: 'v22.0' // Version de la API Graph de Meta
+          version: 'v25.0' // Version de la API Graph de Meta
         })
         break
       case 'DUMMY':
