@@ -14,11 +14,11 @@ import { FormsModule } from '@angular/forms';
 import { LoadingService } from '@delon/abc/loading';
 import { PersonalSearchComponent } from '../../../shared/personal-search/personal-search.component';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormField, disabled, form, submit, readonly, hidden } from '@angular/forms/signals';
+import { FormField, disabled, form, submit, readonly, hidden, required } from '@angular/forms/signals';
 
 export interface Novedad {
   id: number;
-  ObjetivoId: number;
+  ObjetivoId: number|null;
   DocumentoId: number;
   Fecha: Date | null;
   TipoNovedadId: string;
@@ -64,7 +64,7 @@ export class NovedadesFormComponent {
 
   private readonly defaultNovedad:Novedad = {
     id: 0,
-    ObjetivoId: 0,
+    ObjetivoId: null,
     Fecha: null as Date | null,
     TipoNovedadId: '',
     Descripcion: '',
@@ -80,19 +80,26 @@ export class NovedadesFormComponent {
     AccionNormalizada: '',
   }
   
-  readonly parametroNovedad = signal<Novedad>(this.defaultNovedad);
+  readonly parametroNovedad = signal<Novedad>({...this.defaultNovedad});
 
   readonly formNovedad = form(this.parametroNovedad, (p) => {
     disabled(p, () => this.crudAccion() === 'R')
+    disabled(p.TipoNovedadId, () => true)
+    disabled(p.PersonalId, () => !!this.NovedadCodigo())
     readonly(p.id, () => true)
     readonly(p.DescripcionNormalizada, () => true)
     readonly(p.AccionNormalizada, () => true)
+    readonly(p.Telefono, () => true)
     readonly(p.VisualizacionPersonaNombre, () => true)
     readonly(p.VisualizacionTelefono, () => true)
     hidden(p.Telefono, ({ value }) => !value()?.trim());
     hidden(p.VisualizacionFecha, ({ value }) => !value());
     hidden(p.VisualizacionPersonaNombre, ({ value }) => !value()?.trim());
     hidden(p.VisualizacionTelefono, ({ value }) => !value()?.trim());
+    required(p.ObjetivoId, { message: 'Objetivo es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.Fecha, { message: 'Fecha y Hora es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.Descripcion, { message: 'Descripción es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.Accion, { message: 'Acción es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
   })
 
   async viewRecord() {
@@ -157,9 +164,10 @@ export class NovedadesFormComponent {
 
 
   async newRecord() {
-    this.parametroNovedad.set(this.defaultNovedad)
     this.NovedadCodigo.set(0)
     this.auditHistory.set([])
+    this.parametroNovedad.set({...this.defaultNovedad})
+    setTimeout(() => { this.formNovedad().reset() }, 200);
   }
 
 
@@ -208,7 +216,7 @@ export class NovedadesFormComponent {
     const inputAccion = this.formNovedad.Accion()
     const Accion = inputAccion.value().trim();
 
-    if (!Descripcion || !Accion || !inputDescripcion.dirty() || !inputAccion.dirty() || this.loading()) {
+    if (this.loading() || (!Descripcion && !Accion)) {
       return
     }
 
@@ -218,9 +226,9 @@ export class NovedadesFormComponent {
       
       this.parametroNovedad.update(m => ({
         ...m,
-        DescripcionNormalizada: res.data.DescripcionNormalizada || '',
-        AccionNormalizada: res.data.AccionNormalizada || '',
-        TipoNovedadId: res.data.TipoNovedad ? res.data.TipoNovedad.value : m.TipoNovedadId,
+        DescripcionNormalizada: res.data.DescripcionNormalizada || m.DescripcionNormalizada,
+        AccionNormalizada: res.data.AccionNormalizada || m.AccionNormalizada,
+        TipoNovedadId: res.data.TipoNovedad?.value,
       }))
       
     } catch (error) {

@@ -522,7 +522,7 @@ export class NovedadesController extends BaseController {
 
             await queryRunner.startTransaction()
 
-            await this.FormValidations(Obj)
+            await this.FormValidations(Obj, 'U')
 
 
             const objetivo = await queryRunner.query(`SELECT ClienteId, ClienteElementoDependienteId FROM Objetivo WHERE Objetivoid = @0`, [Obj.ObjetivoId])
@@ -553,7 +553,7 @@ export class NovedadesController extends BaseController {
         }
     }
 
-    async FormValidations(Obj: any) {
+    async FormValidations(Obj: any, action: string) {
 
         const fieldErrors: any[] = [];
         if (!Obj.ObjetivoId) {
@@ -562,7 +562,7 @@ export class NovedadesController extends BaseController {
         }
 
         if (!Obj.Fecha) {
-            fieldErrors.push({ fieldTree: `Fecha`, kind: 'server', message: 'La fecha y hora es obligatoria' })
+            fieldErrors.push({ fieldTree: `Fecha`, kind: 'server', message: 'La Fecha y Hora es obligatoria' })
             // throw new ClientException(`Debe completar el campo fecha.`)
         }
 
@@ -581,8 +581,16 @@ export class NovedadesController extends BaseController {
             // throw new ClientException(`Debe completar el campo Accion.`)
         }
 
-        if(!Obj.PersonalId){
+        if(!Obj.PersonalId && action == 'I'){
             fieldErrors.push({ fieldTree: `PersonalId`, kind: 'server', message: 'El personal es obligatorio' })
+        }
+
+        if (!Obj.DescripcionNormalizada) {
+            fieldErrors.push({ fieldTree: `DescripcionNormalizada`, kind: 'server', message: 'La Descripción Normalizada es obligatorio' })
+        }
+
+        if (!Obj.AccionNormalizada) {
+            fieldErrors.push({ fieldTree: `AccionNormalizada `, kind: 'server', message: 'La Acción Normalizada es obligatoria' })
         }
 
         if (fieldErrors.length > 0)
@@ -611,7 +619,7 @@ export class NovedadesController extends BaseController {
             // const usuarioIdquery = await queryRunner.query(`SELECT UsuarioPersonalId FROM usuario WHERE UsuarioNombre = @0`, [res.locals.userName])
             const PersonalId = res.locals.PersonalId ? res.locals.PersonalId : null
             await queryRunner.startTransaction()
-            await this.FormValidations(Obj)
+            await this.FormValidations(Obj, 'I')
 
 
             const novedadId = await BaseController.getProxNumero(queryRunner, `Novedad`, res.locals.PersonalId, ip)
@@ -1382,7 +1390,10 @@ export class NovedadesController extends BaseController {
     }
 
     private async normalizarNovedad(prompt: string, Descripcion: string, Accion: string, TiposNovedad: any[]) {
-        const IAmessages: ChatMessage[] = [{ role: "system", content: prompt }, { role: "user", content: `{Descripcion:${Descripcion},Accion:${Accion},Tipos de Novedad:${TiposNovedad}` }]
+        const IAmessages: ChatMessage[] = [
+            { role: "system", content: prompt }, 
+            { role: "user", content: `{ Descripcion:${Descripcion}, Accion:${Accion}, Tipos de Novedad:${JSON.stringify(TiposNovedad)}}` }
+        ]
         const response = await this.servicioIA.chat({ model: process.env.MODEL, messages: IAmessages, stream: false });
         return JSON.parse(response.message.content)
     }
@@ -1424,6 +1435,7 @@ export class NovedadesController extends BaseController {
             ));
 
             const novedades = await queryRunner.query(`SELECT nov.* FROM Novedad nov WHERE nov.DescripcionNormalizada IS NULL OR AccionNormalizada IS NULL`)
+            const arrayTipoNovedad = await queryRunner.query(`SELECT NovedadTipoCod value, Descripcion label, DescripcionAmpliada FROM NovedadTipo`)
 
             const prompt = await this.getIAPrompt(queryRunner)
 
@@ -1433,7 +1445,7 @@ export class NovedadesController extends BaseController {
                 const NovedadCodigo = novedad.NovedadCodigo
                 const Descripcion = novedad.Descripcion
                 const Accion = novedad.Accion
-                const arrayTipoNovedad = await queryRunner.query(`SELECT NovedadTipoCod value, Descripcion label FROM NovedadTipo`)
+                
                 const respuestaIA = await this.normalizarNovedad(prompt, Descripcion, Accion, arrayTipoNovedad)
 
                 const DescripcionNormalizada = respuestaIA?.DescripcionNormalizada
@@ -1485,7 +1497,7 @@ export class NovedadesController extends BaseController {
             await queryRunner.startTransaction();
             await this.initIA()
             const prompt = await this.getIAPrompt(queryRunner)
-            const arrayTipoNovedad = await queryRunner.query(`SELECT NovedadTipoCod value, Descripcion label FROM NovedadTipo`)
+            const arrayTipoNovedad = await queryRunner.query(`SELECT NovedadTipoCod value, Descripcion label, DescripcionAmpliada FROM NovedadTipo`)
             const respuestaIA = await this.normalizarNovedad(prompt, Descripcion, Accion, arrayTipoNovedad)
             const DescripcionNormalizada = respuestaIA?.DescripcionNormalizada
             const AccionNormalizada = respuestaIA?.AccionNormalizada
