@@ -5,8 +5,15 @@ import { botServer, dbServer } from "../index.ts";
 // Mientras una función no esté implementada devuelve un Error para que la IA no informe una operación inexistente.
 const EN_DESARROLLO = { Error: 'FUNCION_EN_DESARROLLO', mensaje: 'Esta función todavía no está disponible.' }
 
-// Pasa a ParametroGeneral cuando se cree el parámetro
-const HORAS_INGRESO_ABIERTO = 12
+// Parámetro general con las variables del agente de asistencia
+const PARAMETRO_ASISTENCIA = 'ASBOT'
+// Se usan solo si falta el parámetro ASBOT o alguno de sus valores
+const PARAMETROS_POR_DEFECTO = {
+  horasIngresoAbierto: 12,
+  horasLimiteCorreccion: 2,
+  diasVerificacionFacial: 4,
+  intentosVerificacionFacial: 3
+}
 // Origen de los registros hechos desde el chatbot (tabla RegistroAsistenciaOrigen)
 const ORIGEN_REGISTRO = 'BW'
 // Se usa solo si falta distanciaMaximaMetros en el parámetro general UBICA
@@ -31,7 +38,8 @@ export class AsistenciaController extends BaseController {
       const rows = await queryRunner.query(`
         SELECT TOP 1 ra.RegistroAsistenciaCodigo, ra.Tipo, ra.FechaHora, ra.ClienteId, ra.ClienteElementoDependienteId,
           CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(ele.ClienteElementoDependienteDescripcion)) Objetivo,
-          DATEDIFF(MINUTE, ra.FechaHora, GETDATE()) MinutosTranscurridos
+          DATEDIFF(MINUTE, ra.FechaHora, GETDATE()) MinutosTranscurridos,
+          DATEDIFF(MINUTE, ra.AudFechaIng, GETDATE()) MinutosDesdeCarga
         FROM RegistroAsistencia ra
         LEFT JOIN Cliente cli ON cli.ClienteId = ra.ClienteId
         LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId = ra.ClienteId AND ele.ClienteElementoDependienteId = ra.ClienteElementoDependienteId
@@ -40,15 +48,18 @@ export class AsistenciaController extends BaseController {
       `, [personalId])
 
       const ultimo = rows[0]
+      const parametros = await this.getParametrosAsistencia(queryRunner)
       const ingresoAbierto = ultimo?.Tipo === 'ING'
       const horasDesdeIngreso = ingresoAbierto ? Math.round(ultimo.MinutosTranscurridos / 6) / 10 : null
+      // Se cuenta desde que se cargó el registro, no desde la hora informada
+      const puedeCorregir = !!ultimo && ultimo.MinutosDesdeCarga <= parametros.horasLimiteCorreccion * 60
 
       // SIN_REGISTROS: mostrar las 3 opciones. EGR: ingreso abierto dentro del rango.
       // EGR_PENDIENTE: ingreso abierto fuera del rango, hay que registrar el egreso antes de otro ingreso.
       // ING: el último movimiento fue un egreso.
       let operacionSugerida = 'SIN_REGISTROS'
       if (ingresoAbierto)
-        operacionSugerida = horasDesdeIngreso <= HORAS_INGRESO_ABIERTO ? 'EGR' : 'EGR_PENDIENTE'
+        operacionSugerida = horasDesdeIngreso <= parametros.horasIngresoAbierto ? 'EGR' : 'EGR_PENDIENTE'
       else if (ultimo)
         operacionSugerida = 'ING'
 
@@ -64,7 +75,10 @@ export class AsistenciaController extends BaseController {
         } : null,
         ingresoAbierto,
         horasDesdeIngreso,
-        horasLimiteIngresoAbierto: HORAS_INGRESO_ABIERTO,
+        horasLimiteIngresoAbierto: parametros.horasIngresoAbierto,
+        // Si el último registro todavía se puede anular o modificar
+        puedeCorregir,
+        horasLimiteCorreccion: parametros.horasLimiteCorreccion,
         operacionSugerida,
         // Provisorio: UBICACION hasta que esté el enlace de verificación facial
         verificacionRequerida: 'UBICACION'
@@ -216,6 +230,21 @@ export class AsistenciaController extends BaseController {
     })
   }
 
+  // Variables del agente (parámetro general ASBOT); cada valor faltante o inválido toma su valor por defecto
+  private async getParametrosAsistencia(queryRunner: any) {
+    const rows = await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, [PARAMETRO_ASISTENCIA])
+    let valores: any = {}
+    try {
+      valores = JSON.parse(rows[0]?.Parametros ?? '{}') ?? {}
+    } catch (_e) { }
+    const parametros = { ...PARAMETROS_POR_DEFECTO }
+    for (const clave of Object.keys(parametros) as (keyof typeof PARAMETROS_POR_DEFECTO)[]) {
+      const valor = Number(valores[clave])
+      if (Number.isFinite(valor) && valor >= 0) parametros[clave] = valor
+    }
+    return parametros
+  }
+
   // Radio para considerar cercano un objetivo: parámetro general UBICA, el mismo del registro de asistencia de back
   private async getDistanciaMaximaMetros(queryRunner: any) {
     const rows = await queryRunner.query(`SELECT Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo = @0`, ['UBICA'])
@@ -327,9 +356,84 @@ export class AsistenciaController extends BaseController {
     }
   }
 
-  // Cambia solo el objetivo del último registro de la persona
+  // Cambia solo el objetivo del último registro de la persona, dentro del plazo de corrección.
+  // Un egreso no se modifica porque tiene que ser del mismo objetivo que su ingreso.
   async modificarObjetivoUltimoRegistro(personalId: number, chatId: string, args: any) {
-    return EN_DESARROLLO
+    // El objetivo nuevo tiene que existir y estar vigente
+    const objetivo: any = await this.getObjetivoPorCodigo(chatId, `${args?.ClienteId}/${args?.ClienteElementoDependienteId}`)
+    if (objetivo.Error) return objetivo
+
+    const Motivo = String(args?.Observaciones ?? '').trim() || null
+    const ahora = new Date()
+    const usuario = BaseController.getUser(null)
+    const ip = '::1'
+    let ultimo: any
+    let Observacion = ''
+    const queryRunner = await dbServer.connection()
+    try {
+      await queryRunner.startTransaction()
+
+      const ultimos = await queryRunner.query(`
+        SELECT TOP 1 ra.RegistroAsistenciaCodigo, ra.Tipo, ra.FechaHora, ra.ClienteId, ra.ClienteElementoDependienteId,
+          CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(ele.ClienteElementoDependienteDescripcion)) Objetivo,
+          DATEDIFF(MINUTE, ra.AudFechaIng, GETDATE()) MinutosDesdeCarga
+        FROM RegistroAsistencia ra WITH (UPDLOCK, HOLDLOCK)
+        LEFT JOIN Cliente cli ON cli.ClienteId = ra.ClienteId
+        LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId = ra.ClienteId AND ele.ClienteElementoDependienteId = ra.ClienteElementoDependienteId
+        WHERE ra.PersonalId = @0 AND ra.FechaAnulado IS NULL AND ra.Tipo IN ('ING', 'EGR')
+        ORDER BY ra.FechaHora DESC, ra.RegistroAsistenciaCodigo DESC
+      `, [personalId])
+      ultimo = ultimos[0]
+
+      if (!ultimo) {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'SIN_REGISTROS', mensaje: 'No tiene registros de asistencia para modificar.' }
+      }
+      if (ultimo.Tipo === 'EGR') {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'EGRESO_NO_MODIFICABLE', mensaje: 'El objetivo de un egreso no se modifica porque tiene que ser el mismo del ingreso. Si el egreso fue un error, se puede anular.' }
+      }
+      const { horasLimiteCorreccion } = await this.getParametrosAsistencia(queryRunner)
+      if (ultimo.MinutosDesdeCarga > horasLimiteCorreccion * 60) {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'FUERA_DE_PLAZO', mensaje: `Solo se puede modificar un registro dentro de las ${horasLimiteCorreccion} horas de cargado. Tiene que pedirlo a su responsable.` }
+      }
+      if (ultimo.ClienteId == objetivo.ClienteId && ultimo.ClienteElementoDependienteId == objetivo.ClienteElementoDependienteId) {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'MISMO_OBJETIVO', mensaje: 'El registro ya está en ese objetivo.' }
+      }
+
+      // Queda constancia del objetivo anterior; el motivo de la IA se agrega a continuación
+      Observacion = `Objetivo modificado de ${ultimo.ClienteId}/${ultimo.ClienteElementoDependienteId} a ${objetivo.CodObjetivo}.`
+      if (Motivo) Observacion += ` ${Motivo}`
+
+      await queryRunner.query(`
+        UPDATE RegistroAsistencia SET
+          ClienteId = @2, ClienteElementoDependienteId = @3,
+          Observaciones = CONCAT(ISNULL(Observaciones + ' | ', ''), @4),
+          AudFechaMod = @5, AudUsuarioMod = @6, AudIpMod = @7
+        WHERE RegistroAsistenciaCodigo = @0 AND PersonalId = @1 AND FechaAnulado IS NULL
+      `, [ultimo.RegistroAsistenciaCodigo, personalId, objetivo.ClienteId, objetivo.ClienteElementoDependienteId, Observacion, ahora, usuario, ip])
+
+      await queryRunner.commitTransaction()
+    } catch (err) {
+      await this.rollbackTransaction(queryRunner)
+      throw err
+    } finally {
+      await queryRunner.release()
+    }
+
+    return {
+      modificado: true,
+      RegistroAsistenciaCodigo: ultimo.RegistroAsistenciaCodigo,
+      Tipo: ultimo.Tipo,
+      FechaHora: ultimo.FechaHora,
+      ObjetivoAnterior: String(ultimo.Objetivo ?? '').trim(),
+      ObjetivoNuevo: objetivo.Objetivo,
+      CodObjetivoNuevo: objetivo.CodObjetivo,
+      distanciaMetros: objetivo.distanciaMetros,
+      Observaciones: Observacion
+    }
   }
 
   // Anula (FechaAnulado) un registro de la persona, sin borrarlo
@@ -350,7 +454,8 @@ export class AsistenciaController extends BaseController {
 
       const ultimos = await queryRunner.query(`
         SELECT TOP 1 ra.RegistroAsistenciaCodigo, ra.Tipo, ra.FechaHora, ra.ClienteId, ra.ClienteElementoDependienteId,
-          CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(ele.ClienteElementoDependienteDescripcion)) Objetivo
+          CONCAT(TRIM(cli.ClienteDenominacion), ' - ', TRIM(ele.ClienteElementoDependienteDescripcion)) Objetivo,
+          DATEDIFF(MINUTE, ra.AudFechaIng, GETDATE()) MinutosDesdeCarga
         FROM RegistroAsistencia ra WITH (UPDLOCK, HOLDLOCK)
         LEFT JOIN Cliente cli ON cli.ClienteId = ra.ClienteId
         LEFT JOIN ClienteElementoDependiente ele ON ele.ClienteId = ra.ClienteId AND ele.ClienteElementoDependienteId = ra.ClienteElementoDependienteId
@@ -366,6 +471,11 @@ export class AsistenciaController extends BaseController {
       if (ultimo.RegistroAsistenciaCodigo != RegistroAsistenciaCodigo) {
         await queryRunner.rollbackTransaction()
         return { Error: 'NO_ES_ULTIMO_REGISTRO', mensaje: 'Solo se puede anular el último registro de asistencia.', ultimoRegistro: ultimo }
+      }
+      const { horasLimiteCorreccion } = await this.getParametrosAsistencia(queryRunner)
+      if (ultimo.MinutosDesdeCarga > horasLimiteCorreccion * 60) {
+        await queryRunner.rollbackTransaction()
+        return { Error: 'FUERA_DE_PLAZO', mensaje: `Solo se puede anular un registro dentro de las ${horasLimiteCorreccion} horas de cargado. Tiene que pedirlo a su responsable.` }
       }
 
       await queryRunner.query(`
