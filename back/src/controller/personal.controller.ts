@@ -2434,9 +2434,10 @@ LEFT JOIN(
 
         }
 
-      } else {
+      } else if (infoEstudio.EstudioTitulo || infoEstudio.TipoEstudioId || infoEstudio.PersonalEstudioOtorgado || infoEstudio.PersonalEstudioVencimiento || infoEstudio.DocTitulo?.length) {
+        // Sin return: el loop sigue con los estudios restantes; las filas vacias se saltean
         if (infoEstudio.TipoEstudioId == 8) throw new ClientException('El tipo de estudio "Curso" debe ser registrado en modulo "Estudios".')
-        return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
+        await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
       }
 
     }
@@ -3096,15 +3097,16 @@ LEFT JOIN(
 
     
 
-    // Direcciones
+    // Direcciones: el detalle va debajo del buscador de direccion
+    let msgDomicilio = ''
     if (!personalForm.domicilio?.Domicilio && personalForm.domicilio?.DomicilioCompleto) {
-      return new ClientException(`No se pudo identificar la ubicación geográfica del domicilio registrado. Busque nuevamente la dirección y seleccione una de las opciones.`)
+      msgDomicilio = 'No se pudo identificar la ubicación geográfica del domicilio registrado. Busque nuevamente la dirección y seleccione una de las opciones.'
+    } else {
+      const res = domicilioController.valObjDomicilio(personalForm.domicilio?.Domicilio)
+      if (res instanceof ClientException) msgDomicilio = res.messageArr.join(' ')
     }
-
-    // if (personalForm.domicilio.Domicilio) {
-      const res = domicilioController.valObjDomicilio(personalForm.domicilio.Domicilio)
-      if (res instanceof ClientException) return res
-    // }
+    if (msgDomicilio)
+      return new ClientException('Debe solucionar los errores indicados en el formulario', { fieldErrors: [{ fieldTree: 'domicilio.Domicilio', kind: 'server', message: msgDomicilio }] })
   }
 
   async getDocumentosByPersonalId(req: any, res: Response, next: NextFunction) {

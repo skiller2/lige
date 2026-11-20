@@ -153,7 +153,8 @@ export class PersonalFormComponent {
     required(p.SucursalId, { message: 'Sucursal es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
     required(p.NacionalidadId, { message: 'Nacionalidad es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
     required(p.Email, { message: 'Email es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
-    required(p.SituacionId, { message: 'Situacion de Revista es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    // Solo en el alta: al editar, el back no la exige
+    required(p.SituacionId, { message: 'Situacion de Revista es requerido', when: (ctx) => !this.personalId() && (ctx.state.dirty() || ctx.state.touched()), })
     required(p.LugarNacimiento, { message: 'Lugar de Nacimiento es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
     // Telefonos
     applyEach(p.telefonos, (telefonoPath) => {
