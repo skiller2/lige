@@ -163,9 +163,10 @@ export class PersonalFormComponent {
     });
     // Estudios
     applyEach(p.estudios, (estudioPath) => {
-      required(estudioPath.EstudioTitulo, { message: 'Titulo es requerido', when: (ctx) => !!(ctx.valueOf(estudioPath.TipoEstudioId) || ctx.valueOf(estudioPath.PersonalEstudioOtorgado)), });
-      required(estudioPath.TipoEstudioId, { message: 'Tipo es requerido', when: (ctx) => !!(ctx.valueOf(estudioPath.EstudioTitulo) || ctx.valueOf(estudioPath.PersonalEstudioOtorgado)), });
-      required(estudioPath.PersonalEstudioOtorgado, { message: 'Fecha de Otorgamiento es requerido', when: (ctx) => !!(ctx.valueOf(estudioPath.EstudioTitulo) || ctx.valueOf(estudioPath.TipoEstudioId)), });
+      // Mismo criterio que el back: Vencimiento o documento tambien cuentan como fila con datos
+      required(estudioPath.EstudioTitulo, { message: 'Titulo es requerido', when: (ctx) => !!(ctx.valueOf(estudioPath.TipoEstudioId) || ctx.valueOf(estudioPath.PersonalEstudioOtorgado) || ctx.valueOf(estudioPath.PersonalEstudioVencimiento) || ctx.valueOf(estudioPath.DocTitulo)?.length), });
+      required(estudioPath.TipoEstudioId, { message: 'Tipo es requerido', when: (ctx) => !!(ctx.valueOf(estudioPath.EstudioTitulo) || ctx.valueOf(estudioPath.PersonalEstudioOtorgado) || ctx.valueOf(estudioPath.PersonalEstudioVencimiento) || ctx.valueOf(estudioPath.DocTitulo)?.length), });
+      required(estudioPath.PersonalEstudioOtorgado, { message: 'Fecha de Otorgamiento es requerido', when: (ctx) => !!(ctx.valueOf(estudioPath.EstudioTitulo) || ctx.valueOf(estudioPath.TipoEstudioId) || ctx.valueOf(estudioPath.PersonalEstudioVencimiento) || ctx.valueOf(estudioPath.DocTitulo)?.length), });
     });
     // Familiares
     applyEach(p.familiares, (familiarPath) => {

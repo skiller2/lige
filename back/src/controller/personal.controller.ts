@@ -2924,11 +2924,13 @@ LEFT JOIN(
     if (!personalForm.Apellido) {
       fieldErrors.push({ fieldTree: `Apellido`, kind: 'server', message: 'El Apellido es obligatorio' })
     }
+    let cuitValido = false
     if (!personalForm.CUIT) {
       fieldErrors.push({ fieldTree: `CUIT`, kind: 'server', message: 'El CUIT es obligatorio' })
     } else {
       try {
         this.validarCUIT(personalForm.CUIT)
+        cuitValido = true
       } catch (error:any) {
         fieldErrors.push({ fieldTree: `CUIT`, kind: 'server', message: error.message })
       }
@@ -2944,6 +2946,9 @@ LEFT JOIN(
     }
     if (action == 'I' && !personalForm.SituacionId) {
       fieldErrors.push({ fieldTree: `SituacionId`, kind: 'server', message: 'La Situacion de Revista es obligatorio' })
+    } else if (action == 'I' && this.listSitRev.split(',').find((sit: any) => personalForm.SituacionId == sit)) {
+      // Tambien se controla en setSituacionRevistaQuerys, que usa el drawer
+      fieldErrors.push({ fieldTree: `SituacionId`, kind: 'server', message: 'La Situación de Revista seleccionada no se puede cargar desde esta pantalla.' })
     }
 
     // NroLegajo y CUIT en uso por otra persona; solo si cambiaron (en el alta PersonalId es 0)
@@ -2958,7 +2963,8 @@ LEFT JOIN(
       if (enUso.length)
         fieldErrors.push({ fieldTree: `NroLegajo`, kind: 'server', message: 'El NroLegajo esta en uso.' })
     }
-    if (personalForm.CUIT && actual[0]?.CUIT != personalForm.CUIT) {
+    // Duplicado solo con formato valido, para no mostrar dos errores en el campo
+    if (cuitValido && actual[0]?.CUIT != personalForm.CUIT) {
       const enUso = await queryRunner.query(`
         SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT IN (@0) AND PersonalId != @1`, [personalForm.CUIT, PersonalId])
       if (enUso.length)
