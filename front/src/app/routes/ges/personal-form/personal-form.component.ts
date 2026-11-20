@@ -137,7 +137,7 @@ export class PersonalFormComponent {
     habilitacion: [],
     TipoVehiculoId: 3, VehiculoMarcaId: 0, VehiculoMarcaModeloId: 0,
     PersonalVehiculoPatente: '', Cilindrada: '',
-    LugarFisicoLegajoId: 0,
+    LugarFisicoLegajoId: NaN,
     LugarFisicoLegajoDesde: '',
     HorasPactadas: NaN,
     HorasPactadasDesde: '',
@@ -186,7 +186,7 @@ export class PersonalFormComponent {
     // Horas Pactadas
     required(p.HorasPactadas, { message: 'Horas Pactadas es requerido', when: (ctx) => !!(ctx.valueOf(p.HorasPactadasDesde)), });
     required(p.HorasPactadasDesde, { message: 'Fecha desde es requerido', when: (ctx) => !!(ctx.valueOf(p.HorasPactadas)), });
-    
+
     // Largo maximo de la columna (CHAR(5)); validate y no maxLength para mostrar el error en vez de cortar el texto
     validate(p.domicilio.Piso, ({ value }) => (value()?.length ?? 0) > 5 ? { kind: 'maxLength', message: 'Piso: máximo 5 caracteres' } : undefined)
     validate(p.domicilio.Dpto, ({ value }) => (value()?.length ?? 0) > 5 ? { kind: 'maxLength', message: 'Departamento: máximo 5 caracteres' } : undefined)
@@ -288,7 +288,6 @@ export class PersonalFormComponent {
     if (this.personalId()) {
       let infoPersonal = await firstValueFrom(this.searchService.getPersonalInfoById(this.personalId()))
       // console.log('infoPersonal: ', infoPersonal);
-      
       if (!infoPersonal.telefonos.length) infoPersonal.telefonos = [structuredClone(this.objTelefono)]
       if (!infoPersonal.estudios.length) infoPersonal.estudios = [structuredClone(this.objEstudio)]
       if (!infoPersonal.familiares.length) infoPersonal.familiares = [structuredClone(this.objFamiliar)]
@@ -319,14 +318,8 @@ export class PersonalFormComponent {
   async save() {
     await submit(this.formParametroPersonal, async (form) => {
       this.isLoading.set(true)
-      const values: any = {...form().value()}
+      const values: any = { ...form().value() }
       try {
-        //Filtra los array de los objeto no usados
-        values.telefonos = values.telefonos.filter((t: Telefono) => { return !this.isEqualObject(t, this.objTelefono) })
-        values.estudios = values.estudios.filter((e: Estudio) => { return !this.isEqualObject(e, this.objEstudio) })
-        values.familiares = values.familiares.filter((f: Familiar) => { return !this.isEqualObject(f, this.objFamiliar) })
-        values.beneficiarios = values.beneficiarios.filter((b: Beneficiario) => { return !this.isEqualObject(b, this.objBeneficiario) })
-
         // Asegurar que LugarFisicoLegajoId sea un valor simple o null
         if (Array.isArray(values.LugarFisicoLegajoId)) {
           values.LugarFisicoLegajoId = values.LugarFisicoLegajoId[0] || null;
@@ -342,7 +335,7 @@ export class PersonalFormComponent {
 
         this.load()
         // this.formParametroPersonal().reset()
-      } catch (e:any) {
+      } catch (e: any) {
         return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
       } finally {
         this.isLoading.set(false)
@@ -424,6 +417,8 @@ export class PersonalFormComponent {
     if (this.parametroPersonal().telefonos.length == 0) {
       this.addTelefono(undefined)
     }
+    // Cambio por codigo: sin esto no se habilita Guardar
+    this.formParametroPersonal().markAsDirty()
   }
 
   removeEstudio(index: number, e: MouseEvent): void {
@@ -436,6 +431,8 @@ export class PersonalFormComponent {
     if (this.parametroPersonal().estudios.length == 0) {
       this.addEstudio(undefined)
     }
+    // Cambio por codigo: sin esto no se habilita Guardar
+    this.formParametroPersonal().markAsDirty()
   }
 
   removeFamiliar(index: number, e: MouseEvent): void {
@@ -448,6 +445,8 @@ export class PersonalFormComponent {
     if (this.parametroPersonal().familiares.length == 0) {
       this.addFamiliar(undefined)
     }
+    // Cambio por codigo: sin esto no se habilita Guardar
+    this.formParametroPersonal().markAsDirty()
   }
 
   removeBeneficiario(index: number, e: MouseEvent): void {
@@ -460,29 +459,14 @@ export class PersonalFormComponent {
     if (this.parametroPersonal().beneficiarios.length == 0) {
       this.addBeneficiario(undefined)
     }
+    // Cambio por codigo: sin esto no se habilita Guardar
+    this.formParametroPersonal().markAsDirty()
   }
 
   async newRecord() {
     if (!this.formParametroPersonal().dirty()) {
       this.personalId.set(0)
     }
-  }
-
-  isEqualObject(a: any, b: any): boolean {
-    return Object.keys(b).every(key => {
-      const valA = a[key];
-      const valB = b[key];
-
-      if (Array.isArray(valB)) {
-        return Array.isArray(valA) && valA.length === valB.length;
-      }
-
-      if (Number.isNaN(valB)) {
-        return Number.isNaN(valA);
-      }
-
-      return valA === valB;
-    });
   }
 
 }

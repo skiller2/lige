@@ -13,7 +13,7 @@ export class ClientException extends Error {
       if (message instanceof Array)
       message=[...message,...tmp]
     else 
-      message=[message,tmp]
+      message=[message, ...tmp]
     }
     
     if (message instanceof Array) {
