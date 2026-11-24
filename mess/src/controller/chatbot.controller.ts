@@ -417,13 +417,10 @@ export class ChatBotController extends BaseController {
     return this.jsonRes({ 'response': nuevos }, res, 'ok');
   }
 
-
-  async chatAgent(req: Request, res: Response, next: NextFunction) {
+  async chatAgentProcess(chatId,message:string,latitud:number,longitud:number){
     let recall = false
     let vuelta = 0
-    const message = String(req.body.message ?? '').trim()
-    const chatId = String(req.body.chatId ?? '').trim()
-    const usuario = BaseController.getUser(res)
+    const usuario = ""
     const queryRunner = await dbServer.connection(usuario)
 
     try {
@@ -442,13 +439,11 @@ export class ChatBotController extends BaseController {
         botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug: true });
       }
       // Un mensaje interno del sistema (ej. aviso de verificación facial) no se muestra como escrito por el usuario
-      botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: req.body.interno === true })
+      botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug:  true })
       botServer.iaHistorial[chatId].timestamp = Date.now()
 
       // Ubicación compartida (WhatsApp o simulada desde el chat): la usan las funciones de asistencia
-      const latitud = Number(req.body.ubicacion?.latitud)
-      const longitud = Number(req.body.ubicacion?.longitud)
-      if (req.body.ubicacion && Number.isFinite(latitud) && Number.isFinite(longitud))
+      if (Number.isFinite(latitud) && Number.isFinite(longitud))
         botServer.iaHistorial[chatId].ubicacion = { latitud, longitud, fecha: new Date() }
 
       const now = new Date()
@@ -484,7 +479,7 @@ export class ChatBotController extends BaseController {
               case 'genTelCode':
                 const linkVigenciaHs: number = (process.env.LINK_VIGENCIA) ? Number(process.env.LINK_VIGENCIA) : 3
                 const ret = await personalController.genTelCode(chatId)
-                output = { url: `https://gestion.linceseguridad.com.ar/ext/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, encTelNro: ret.encTelNro, linkVigenciaHs }
+                output = { url: `${process.env.URL_LINK}/#/init/ident;encTelNro=${encodeURIComponent(ret.encTelNro)}`, encTelNro: ret.encTelNro, linkVigenciaHs }
                 break;
               case 'getPersonaState': {
                 // El modelo no ve el código esperado, solo si hay uno pendiente
@@ -727,13 +722,32 @@ export class ChatBotController extends BaseController {
       } while (recall);
       const nuevos = botServer.iaHistorial[chatId].msgs.filter(m => m?.sendIt != true)
       botServer.iaHistorial[chatId].msgs.forEach(m => m.sendIt = true)
-      return this.jsonRes({ 'response': nuevos }, res, 'ok');
+      return {nuevos}
     } catch (err) {
+
       const mensaje = err instanceof Error ? err.message : String(err)
-      return next(new ClientException(mensaje));
+      //const mensaje = 'Ups, hubo un error procesando.  Reintente en unos minutos'
+      botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: mensaje, agent: botServer.iaHistorial[chatId].agent, debug: true });
+      const nuevos = botServer.iaHistorial[chatId].msgs.filter(m => m?.sendIt != true)
+      throw new ClientException(mensaje,nuevos)
+
     } finally {
       await queryRunner.release()
     }
+  }
+
+  async chatAgent(req: Request, res: Response, next: NextFunction) {
+    const message = String(req.body.message ?? '').trim()
+    const chatId = String(req.body.chatId ?? '').trim()
+    const latitud = Number(req.body.ubicacion?.latitud)
+    const longitud = Number(req.body.ubicacion?.longitud)
+    let resultado = null
+    try {
+      resultado =await this.chatAgentProcess(chatId,message,latitud,longitud)
+    } catch(e) {
+      return next(e)
+    }
+    return this.jsonRes({ 'response': resultado.nuevos }, res, 'ok');
   }
 
 }
