@@ -724,10 +724,12 @@ export class ChatBotController extends BaseController {
       botServer.iaHistorial[chatId].msgs.forEach(m => m.sendIt = true)
       return {nuevos}
     } catch (err) {
+
       const mensaje = err instanceof Error ? err.message : String(err)
       botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: mensaje, agent: botServer.iaHistorial[chatId].agent, debug: true });
       const nuevos = botServer.iaHistorial[chatId].msgs.filter(m => m?.sendIt != true)
-      return {nuevos}
+      throw new ClientException(mensaje,nuevos)
+
     } finally {
       await queryRunner.release()
     }
@@ -738,7 +740,12 @@ export class ChatBotController extends BaseController {
     const chatId = String(req.body.chatId ?? '').trim()
     const latitud = Number(req.body.ubicacion?.latitud)
     const longitud = Number(req.body.ubicacion?.longitud)
-    const resultado=await this.chatAgentProcess(chatId,message,latitud,longitud)
+    let resultado = null
+    try {
+      resultado =await this.chatAgentProcess(chatId,message,latitud,longitud)
+    } catch(e) {
+      return next(e)
+    }
     return this.jsonRes({ 'response': resultado.nuevos }, res, 'ok');
   }
 
