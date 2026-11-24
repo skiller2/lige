@@ -17,8 +17,6 @@ const PARAMETROS_POR_DEFECTO = {
   diasVerificacionFacial: 7,
   intentosVerificacionFacial: 3
 }
-// Enlace de verificación facial: la pantalla de registro de asistencia, misma base que el enlace de AUTH
-const URL_VERIFICACION_FACIAL = process.env.URL_VERIFICACION_FACIAL || 'https://gestion.linceseguridad.com.ar/ext/#/asis/registro-asistencia'
 // Modelo de los vectores faciales: tiene que ser igual a VERSION_VECTOR_FACIAL de back (reconocimiento-facial.ts)
 const VERSION_VECTOR_FACIAL = 'sface_2021dec'
 // Mensaje interno con el que se dispara el agente cuando termina la verificación facial
@@ -586,8 +584,8 @@ export class AsistenciaController extends BaseController {
     }
   }
 
-  // Genera el enlace externo que toma la foto y la ubicación. El token es el mismo cifrado del enlace
-  // de AUTH (genTelCode con el chatId); el PersonalId no viaja en la URL.
+  // Genera el enlace externo que toma la foto y la ubicación. El encTelNro es el mismo cifrado del
+  // enlace de AUTH (genTelCode con el chatId); el PersonalId no viaja en la URL.
   async getLinkVerificacionFacial(personalId: number, chatId: string) {
     const estado = await this.getEstadoAsistencia(personalId, chatId)
     if (estado.verificacionFacialLista)
@@ -599,10 +597,11 @@ export class AsistenciaController extends BaseController {
     const anterior = botServer.iaHistorial[chatId].verificacionFacial
     // Un enlace nuevo reemplaza al anterior pero conserva los intentos ya usados
     botServer.iaHistorial[chatId].verificacionFacial = {
-      token: ret.encTelNro, generado: new Date(), intentos: anterior?.intentos ?? 0, resultado: null, similitud: null, ubicacion: null
+      encTelNro: ret.encTelNro, generado: new Date(), intentos: anterior?.intentos ?? 0, resultado: null, similitud: null, ubicacion: null
     }
     return {
-      url: `${URL_VERIFICACION_FACIAL};token=${encodeURIComponent(ret.encTelNro)}`,
+      // Mismo formato que el enlace de AUTH (chatbot.controller, init/ident): la pantalla de registro de asistencia
+      url: `${process.env.URL_LINK}/#/asis/registro-asistencia;encTelNro=${encodeURIComponent(ret.encTelNro)}`,
       // El enlace dura lo mismo que la conversación (timeout de inactividad de la sesión)
       linkVigenciaMinutos: Math.round(IA_HISTORIAL_TIMEOUT_MS / 1000 / 60)
     }
@@ -631,10 +630,10 @@ export class AsistenciaController extends BaseController {
 
   // Pantalla de registro de asistencia en modo verificación: valida el enlace y devuelve la persona
   async getVerificacion(req: any, res: Response, next: NextFunction) {
-    const token = String(req.params.token ?? '')
+    const encTelNro = String(req.params.encTelNro ?? '')
     const queryRunner = await dbServer.connection()
     try {
-      const { chatId, verificacion } = this.getVerificacionPorToken(token)
+      const { chatId, verificacion } = this.getVerificacionPorEncTelNro(encTelNro)
       const { intentosVerificacionFacial } = await this.getParametrosAsistencia(queryRunner)
       const estadoPersona = await personalController.getPersonaState(chatId)
       if (!estadoPersona.stateData?.personalId)
@@ -655,12 +654,12 @@ export class AsistenciaController extends BaseController {
   // Resultado de un intento de verificación facial (lo manda back). Con OK, o FALLO al agotar los
   // intentos, el resultado y la ubicación del enlace quedan en la sesión y se avisa al chat.
   async setResultadoVerificacion(req: any, res: Response, next: NextFunction) {
-    const token = String(req.body?.token ?? '')
+    const encTelNro = String(req.body?.encTelNro ?? '')
     const encontrado = req.body?.encontrado === true
     const similitud = req.body?.similitud ?? null
     const queryRunner = await dbServer.connection()
     try {
-      const { chatId, verificacion } = this.getVerificacionPorToken(token)
+      const { chatId, verificacion } = this.getVerificacionPorEncTelNro(encTelNro)
       const { intentosVerificacionFacial } = await this.getParametrosAsistencia(queryRunner)
 
       verificacion.intentos++
@@ -693,15 +692,15 @@ export class AsistenciaController extends BaseController {
     }
   }
 
-  // Descifra el token (mismo cifrado que getIdentDecode) y exige que sea el último enlace generado
-  // para ese chat: no sirve un enlace de AUTH ni uno viejo
-  private getVerificacionPorToken(token: string) {
+  // Descifra el encTelNro (mismo cifrado que getIdentDecode, el de init/ident) y exige que sea el
+  // último enlace generado para ese chat: no sirve un enlace de AUTH ni uno viejo
+  private getVerificacionPorEncTelNro(encTelNro: string) {
     let dataObj: any
     try {
       const _key = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const _iv = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
       const decrypted = CryptoJS.default.AES.decrypt(
-        token, _key, {
+        encTelNro, _key, {
         keySize: 16,
         iv: _iv,
         mode: CryptoJS.default.mode.ECB,
@@ -717,7 +716,7 @@ export class AsistenciaController extends BaseController {
 
     const chatId = String(dataObj?.data)
     const verificacion = botServer.iaHistorial[chatId]?.verificacionFacial
-    if (!verificacion || verificacion.token !== token)
+    if (!verificacion || verificacion.encTelNro !== encTelNro)
       throw new ClientException('El enlace proporcionado no es válido, solicite uno nuevo en el chat')
     if (verificacion.resultado)
       throw new ClientException('La verificación facial ya terminó, vuelva al chat')

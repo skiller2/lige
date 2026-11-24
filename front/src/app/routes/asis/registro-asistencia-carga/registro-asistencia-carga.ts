@@ -82,9 +82,9 @@ export class RegistroAsistenciaCargaComponent {
   private readonly video = viewChild.required<ElementRef<HTMLVideoElement>>('video')
   private stream: MediaStream | null = null
 
-  // Modo verificación: con el token del enlace del agente de asistencia (mess) solo se verifica el
+  // Modo verificación: con el encTelNro del enlace del agente de asistencia (mess) solo se verifica el
   // rostro contra la persona del enlace; no se elige objetivo ni se confirma
-  readonly token = input('')
+  readonly encTelNro = input('')
   private verificacionValidada = false
   readonly intentosRestantes = signal<number | null>(null)
 
@@ -150,7 +150,7 @@ export class RegistroAsistenciaCargaComponent {
       case 'listo': return this.guia()
       case 'marcando': return 'Registrando asistencia...'
       case 'marcado': return `Rostro encontrado: ${this.personaEncontrada()} (${this.horaMarcada()?.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) ?? ''})`
-      case 'noEncontrado': return this.token() && this.intentosRestantes() !== null
+      case 'noEncontrado': return this.encTelNro() &&this.intentosRestantes() !== null
         ? `Rostro no encontrado. Intentos restantes: ${this.intentosRestantes()}`
         : 'Rostro no encontrado'
       case 'confirmado': return `Asistencia confirmada: ${this.personaEncontrada()}`
@@ -208,9 +208,9 @@ export class RegistroAsistenciaCargaComponent {
     }
     // Modo verificación: el enlace tiene que ser válido y estar vigente; si no, se muestra el error
     // que devuelve el back, como init/ident
-    if (this.token() && !this.verificacionValidada) {
+    if (this.encTelNro() && !this.verificacionValidada) {
       try {
-        const verificacion = await firstValueFrom(this.apiService.getVerificacionAsistencia(this.token()))
+        const verificacion = await firstValueFrom(this.apiService.getVerificacionAsistencia(this.encTelNro()))
         this.intentosRestantes.set(verificacion?.intentosRestantes ?? null)
         this.verificacionValidada = true
       } catch (e: any) {
@@ -331,8 +331,8 @@ export class RegistroAsistenciaCargaComponent {
     try {
       // Modo verificación: el back compara solo con la persona del enlace y le pasa el resultado a
       // mess, que graba el registro y avisa en el chat
-      if (this.token()) {
-        const respuesta = await firstValueFrom(this.apiService.verificarRegistroAsistencia({ token: this.token(), foto, ubicacion }))
+      if (this.encTelNro()) {
+        const respuesta = await firstValueFrom(this.apiService.verificarRegistroAsistencia({ encTelNro: this.encTelNro(), foto, ubicacion }))
         this.intentosRestantes.set(respuesta?.intentosRestantes ?? null)
         this.estado.set(respuesta?.resultado === 'OK' ? 'verificado' : respuesta?.resultado === 'FALLO' ? 'fallido' : 'noEncontrado')
         return
@@ -358,7 +358,7 @@ export class RegistroAsistenciaCargaComponent {
         this.confirmacion.set({ TipoLugar: 'OBJ', ObjetivoId: respuesta.ObjetivoIdSugerido, CustodiaCodigo: null })
       this.estado.set(respuesta?.encontrado ? 'marcado' : 'noEncontrado')
     } catch (e: any) {
-      this.mostrarError('No pudimos verificar su rostro.', this.token() ? 'Error en la verificación facial (/verificar)' : 'Error al reconocer el rostro (/marcar)', e)
+      this.mostrarError('No pudimos verificar su rostro.', this.encTelNro() ? 'Error en la verificación facial (/verificar)' : 'Error al reconocer el rostro (/marcar)', e)
     }
   }
 

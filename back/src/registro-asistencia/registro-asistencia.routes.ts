@@ -28,8 +28,8 @@ registroAsistenciaRouter.post("/marcar", /* [authMiddleware.verifyToken, authMid
   registroAsistenciaController.marcar(req, res, next);
 });
 
-// Verificación facial con el enlace del agente de asistencia (mess): el token lo valida mess
-registroAsistenciaRouter.get("/verificacion/:token", /* [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], */ (req, res, next) => {
+// Verificación facial con el enlace del agente de asistencia (mess): el encTelNro lo valida mess
+registroAsistenciaRouter.get("/verificacion/:encTelNro", /* [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], */ (req, res, next) => {
   registroAsistenciaController.getVerificacion(req, res, next);
 });
 

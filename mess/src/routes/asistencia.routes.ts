@@ -5,7 +5,7 @@ export const asistenciaRouter = Router();
 const base = "";
 
 // Verificación facial del agente de asistencia: las llama back (registro-asistencia), sin login
-asistenciaRouter.get(`${base}/verificacion/:token`, [], (req, res, next) => {
+asistenciaRouter.get(`${base}/verificacion/:encTelNro`, [], (req, res, next) => {
   asistenciaController.getVerificacion(req, res, next);
 });
 

@@ -10,7 +10,7 @@ import { RegistroAsistenciaCargaComponent } from '../registro-asistencia-carga/r
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegistroAsistenciaComponent {
-  // Enlace de verificación facial del agente de asistencia (matrix param ;token=...). El input binding
-  // del router solo llega a este componente: se le pasa a la carga.
-  token = input('')
+  // Enlace de verificación facial del agente de asistencia (matrix param ;encTelNro=..., como
+  // init/ident). El input binding del router solo llega a este componente: se le pasa a la carga.
+  encTelNro = input('')
 }

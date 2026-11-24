@@ -620,10 +620,10 @@ export class RegistroAsistenciaController extends BaseController {
   }
 
   // Persona e intentos restantes del enlace de verificación facial del agente de asistencia: lo
-  // valida mess (el token es suyo), como validateEncoded de acceso-bot
-  private async consultarVerificacionMess(token: string) {
-    const base_url = process.env.URL_MESS_API 
-    const url = `${base_url}/api/asistencia/verificacion/${encodeURIComponent(token)}`
+  // valida mess (el encTelNro es suyo), como validateEncoded de acceso-bot
+  private async consultarVerificacionMess(encTelNro: string) {
+    const base_url = process.env.URL_MESS_API
+    const url = `${base_url}/api/asistencia/verificacion/${encodeURIComponent(encTelNro)}`
     const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -638,13 +638,13 @@ export class RegistroAsistenciaController extends BaseController {
 
   // Valida el enlace de verificación facial al abrir la pantalla
   async getVerificacion(req: Request, res: Response, next: NextFunction) {
-    const token = String(req.params.token ?? '')
+    const encTelNro = String(req.params.encTelNro ?? '')
 
     try {
-      if (!token)
+      if (!encTelNro)
         throw new ClientException('Falta el enlace de verificación')
 
-      const verificacion = await this.consultarVerificacionMess(token)
+      const verificacion = await this.consultarVerificacionMess(encTelNro)
       this.jsonRes({
         ApellidoNombre: verificacion?.ApellidoNombre ?? '',
         intentosRestantes: verificacion?.intentosRestantes ?? null,
@@ -658,7 +658,7 @@ export class RegistroAsistenciaController extends BaseController {
   // enlace (la resuelve mess, no se confía en el front) y le manda el resultado a mess, que es quien
   // graba el registro. No llama a /confirmar.
   async verificar(req: Request, res: Response, next: NextFunction) {
-    const token = String(req.body?.token ?? '')
+    const encTelNro = String(req.body?.encTelNro ?? '')
     const foto = String(req.body?.foto ?? '').replace(/^data:image\/\w+;base64,/, '')
     const ubicacion = req.body?.ubicacion ?? null
     // La conexión se abre dentro del try: si falla, el error va a next() y no queda sin atender
@@ -666,12 +666,12 @@ export class RegistroAsistenciaController extends BaseController {
 
     try {
       queryRunner = await getConnection(this.getUsuario(res));
-      if (!token)
+      if (!encTelNro)
         throw new ClientException('Falta el enlace de verificación')
       if (!foto)
         throw new ClientException('Falta la foto de la verificación')
 
-      const verificacion = await this.consultarVerificacionMess(token)
+      const verificacion = await this.consultarVerificacionMess(encTelNro)
       const PersonalId = Number(verificacion?.PersonalId) || 0
       if (!PersonalId)
         throw new ClientException('No se pudo identificar a la persona del enlace')
@@ -692,7 +692,7 @@ export class RegistroAsistenciaController extends BaseController {
       };
       const response = await fetch(`${base_url}/api/asistencia/verificacion`, {
         method: 'POST', headers: headers,
-        body: JSON.stringify({ token, encontrado: resultado.encontrado, similitud, ubicacion })
+        body: JSON.stringify({ encTelNro, encontrado: resultado.encontrado, similitud, ubicacion })
       })
       const responsejson: any = await response.json()
       if (response.status != 200)

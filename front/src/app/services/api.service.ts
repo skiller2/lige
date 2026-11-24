@@ -2131,15 +2131,15 @@ export class ApiService {
     );
   }
 
-  // Verificación facial del agente de asistencia (mess): valida el enlace (token) al abrir la pantalla
-  getVerificacionAsistencia(token: string) {
-    return this.http.get<ResponseJSON<any>>(`/api/registro-asistencia/verificacion/${encodeURIComponent(token)}`, {}, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
+  // Verificación facial del agente de asistencia (mess): valida el enlace (encTelNro) al abrir la pantalla
+  getVerificacionAsistencia(encTelNro: string) {
+    return this.http.get<ResponseJSON<any>>(`/api/registro-asistencia/verificacion/${encodeURIComponent(encTelNro)}`, {}, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
       map((res: { data: any; }) => res.data)
     );
   }
 
   // Verificación facial del agente de asistencia: foto (data URL JPEG) y ubicación del dispositivo
-  verificarRegistroAsistencia(verificacion: { token: string, foto: string, ubicacion: any }) {
+  verificarRegistroAsistencia(verificacion: { encTelNro: string, foto: string, ubicacion: any }) {
     return this.http.post<ResponseJSON<any>>('/api/registro-asistencia/verificar', verificacion, {}, { observe: 'body', context: new HttpContext().set(ALLOW_ANONYMOUS, true) }).pipe(
       map((res: { data: any; }) => res.data)
     );
