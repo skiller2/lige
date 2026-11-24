@@ -591,6 +591,9 @@ export class CargaLicenciaController extends BaseController {
       if (req.body.PersonalLicenciaDesde == null || req.body.PersonalLicenciaDesde == "")
         throw new ClientException(`Debe seleccionar la fecha desde`)
 
+      if (req.body.DescontarA === 'C' && !DescontarAPersonalId)
+        throw new ClientException(`Debe seleccionar la persona a la que se descuenta la licencia`)
+
       let PersonalLicenciaHasta
 
       if (req.body.PersonalLicenciaHasta != null && req.body.PersonalLicenciaHasta != "") {
