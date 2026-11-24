@@ -454,7 +454,8 @@ export class RegistroAsistenciaController extends BaseController {
   // en el resto del sistema), calculados con el modelo actual (VectorFacialVersion). Los graba
   // iniciarCalculoVectoresFaciales: si la foto más reciente todavía no tiene vector, la persona no
   // participa. La situación de revista va en EXISTS para no repetir filas (y no usar DISTINCT sobre el VARBINARY).
-  private async getVectoresPersonalActivo(queryRunner: QueryRunner, fecha: Date): Promise<VectorPersonal[]> {
+  // Con PersonalId solo trae el vector de esa persona (verificación facial del agente de asistencia).
+  private async getVectoresPersonalActivo(queryRunner: QueryRunner, fecha: Date, PersonalId?: number): Promise<VectorPersonal[]> {
     const filas = await queryRunner.query(`
       SELECT per.PersonalId,
         CONCAT(TRIM(per.PersonalApellido), ', ', TRIM(per.PersonalNombre)) AS ApellidoNombre,
@@ -474,7 +475,8 @@ export class RegistroAsistenciaController extends BaseController {
             AND sitrev.PersonalSituacionRevistaSituacionId IN (2, 10, 12)
             AND sitrev.PersonalSituacionRevistaDesde <= @0
             AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') >= @0)
-    `, [fecha, VERSION_VECTOR_FACIAL])
+        ${PersonalId ? 'AND per.PersonalId = @2' : ''}
+    `, [fecha, VERSION_VECTOR_FACIAL, PersonalId ?? null])
 
     // Un vector con otro largo (columna truncada, dato corrupto) no se compara
     return filas
@@ -608,6 +610,110 @@ export class RegistroAsistenciaController extends BaseController {
         similitud: resultado.mejor?.similitud ?? null,
         ObjetivoIdSugerido,
         tiempos,
+      }, res)
+
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner?.release()
+    }
+  }
+
+  // Persona e intentos restantes del enlace de verificación facial del agente de asistencia: lo
+  // valida mess (el token es suyo), como validateEncoded de acceso-bot
+  private async consultarVerificacionMess(token: string) {
+    const base_url = process.env.URL_MESS_API 
+    const url = `${base_url}/api/asistencia/verificacion/${encodeURIComponent(token)}`
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    const response = await fetch(url, { method: 'GET', headers: headers })
+    const responsejson: any = await response.json()
+    if (response.status != 200)
+      throw new ClientException(responsejson?.msg)
+    return responsejson?.data
+  }
+
+  // Valida el enlace de verificación facial al abrir la pantalla
+  async getVerificacion(req: Request, res: Response, next: NextFunction) {
+    const token = String(req.params.token ?? '')
+
+    try {
+      if (!token)
+        throw new ClientException('Falta el enlace de verificación')
+
+      const verificacion = await this.consultarVerificacionMess(token)
+      this.jsonRes({
+        ApellidoNombre: verificacion?.ApellidoNombre ?? '',
+        intentosRestantes: verificacion?.intentosRestantes ?? null,
+      }, res)
+    } catch (error) {
+      return next(error)
+    }
+  }
+
+  // Verificación facial del agente de asistencia: compara la foto solo con el vector de la persona del
+  // enlace (la resuelve mess, no se confía en el front) y le manda el resultado a mess, que es quien
+  // graba el registro. No llama a /confirmar.
+  async verificar(req: Request, res: Response, next: NextFunction) {
+    const token = String(req.body?.token ?? '')
+    const foto = String(req.body?.foto ?? '').replace(/^data:image\/\w+;base64,/, '')
+    const ubicacion = req.body?.ubicacion ?? null
+    // La conexión se abre dentro del try: si falla, el error va a next() y no queda sin atender
+    let queryRunner: QueryRunner | null = null
+
+    try {
+      queryRunner = await getConnection(this.getUsuario(res));
+      if (!token)
+        throw new ClientException('Falta el enlace de verificación')
+      if (!foto)
+        throw new ClientException('Falta la foto de la verificación')
+
+      const verificacion = await this.consultarVerificacionMess(token)
+      const PersonalId = Number(verificacion?.PersonalId) || 0
+      if (!PersonalId)
+        throw new ClientException('No se pudo identificar a la persona del enlace')
+
+      const parametros = await queryRunner.query(
+        `SELECT ParametroGeneralCodigo, Parametros FROM ParametroGeneral WHERE ParametroGeneralCodigo IN (@0)`,
+        [PARAMETRO_ROSTRO])
+      const { umbralSimilitud } = this.leerParametro(parametros, PARAMETRO_ROSTRO, CAMPOS_ROSTRO)
+
+      const vectoresPersonal = await this.getVectoresPersonalActivo(queryRunner, new Date(), PersonalId)
+      const resultado = await reconocerRostro(Buffer.from(foto, 'base64'), vectoresPersonal, umbralSimilitud)
+      const similitud = resultado.mejor?.similitud ?? null
+
+      const base_url = process.env.URL_MESS_API || "http://localhost:3010"
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      const response = await fetch(`${base_url}/api/asistencia/verificacion`, {
+        method: 'POST', headers: headers,
+        body: JSON.stringify({ token, encontrado: resultado.encontrado, similitud, ubicacion })
+      })
+      const responsejson: any = await response.json()
+      if (response.status != 200)
+        throw new ClientException(responsejson?.msg)
+
+      console.log('[registro-asistencia] Verificación facial', {
+        PersonalId,
+        ubicacion,
+        rostrosDetectados: resultado.rostrosDetectados,
+        umbral: umbralSimilitud,
+        similitud,
+        encontrado: resultado.encontrado,
+        resultado: responsejson?.data?.resultado,
+        intentosRestantes: responsejson?.data?.intentosRestantes,
+      })
+
+      this.jsonRes({
+        encontrado: resultado.encontrado,
+        ApellidoNombre: verificacion?.ApellidoNombre ?? '',
+        intentosRestantes: responsejson?.data?.intentosRestantes ?? null,
+        resultado: responsejson?.data?.resultado ?? null,
       }, res)
 
     } catch (error) {

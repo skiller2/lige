@@ -28,6 +28,15 @@ registroAsistenciaRouter.post("/marcar", /* [authMiddleware.verifyToken, authMid
   registroAsistenciaController.marcar(req, res, next);
 });
 
+// Verificación facial con el enlace del agente de asistencia (mess): el token lo valida mess
+registroAsistenciaRouter.get("/verificacion/:token", /* [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], */ (req, res, next) => {
+  registroAsistenciaController.getVerificacion(req, res, next);
+});
+
+registroAsistenciaRouter.post("/verificar", /* [authMiddleware.verifyToken, authMiddleware.hasGroup(['gSistemas'])], */ (req, res, next) => {
+  registroAsistenciaController.verificar(req, res, next);
+});
+
 // ------------------------------------------------------------------------
 // Consulta de registros de asistencia: a diferencia del marcado, con login
 // ------------------------------------------------------------------------

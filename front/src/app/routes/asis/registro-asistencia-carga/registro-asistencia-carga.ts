@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import type { Detection, FaceDetector } from '@mediapipe/tasks-vision';
 import { firstValueFrom } from 'rxjs';
@@ -14,8 +14,9 @@ import { provideNzIconsPatch } from 'ng-zorro-antd/icon';
 import { CheckCircleOutline, CloseCircleOutline } from '@ant-design/icons-angular/icons';
 
 // Estados de la pantalla de marcado: definen el mensaje y qué botón se muestra (el marcado lo
-// dispara la detección de rostro, no un botón)
-type EstadoMarcado = 'iniciando' | 'sinPermiso' | 'error' | 'listo' | 'marcando' | 'marcado' | 'noEncontrado' | 'confirmado'
+// dispara la detección de rostro, no un botón). verificado y fallido son del modo verificación
+// (enlace del agente de asistencia)
+type EstadoMarcado = 'iniciando' | 'sinPermiso' | 'error' | 'listo' | 'marcando' | 'marcado' | 'noEncontrado' | 'confirmado' | 'verificado' | 'fallido'
 
 // Dónde registra la asistencia la persona reconocida
 export interface ConfirmacionForm {
@@ -81,6 +82,12 @@ export class RegistroAsistenciaCargaComponent {
   private readonly video = viewChild.required<ElementRef<HTMLVideoElement>>('video')
   private stream: MediaStream | null = null
 
+  // Modo verificación: con el token del enlace del agente de asistencia (mess) solo se verifica el
+  // rostro contra la persona del enlace; no se elige objetivo ni se confirma
+  readonly token = input('')
+  private verificacionValidada = false
+  readonly intentosRestantes = signal<number | null>(null)
+
   readonly estado = signal<EstadoMarcado>('iniciando')
   readonly detalleError = signal('')
   readonly horaMarcada = signal<Date | null>(null)
@@ -143,8 +150,12 @@ export class RegistroAsistenciaCargaComponent {
       case 'listo': return this.guia()
       case 'marcando': return 'Registrando asistencia...'
       case 'marcado': return `Rostro encontrado: ${this.personaEncontrada()} (${this.horaMarcada()?.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' }) ?? ''})`
-      case 'noEncontrado': return 'Rostro no encontrado'
+      case 'noEncontrado': return this.token() && this.intentosRestantes() !== null
+        ? `Rostro no encontrado. Intentos restantes: ${this.intentosRestantes()}`
+        : 'Rostro no encontrado'
       case 'confirmado': return `Asistencia confirmada: ${this.personaEncontrada()}`
+      case 'verificado': return 'Verificación correcta. Vuelva al chat'
+      case 'fallido': return 'No se pudo verificar. Vuelva al chat'
     }
   })
 
@@ -159,9 +170,11 @@ export class RegistroAsistenciaCargaComponent {
       // Se resuelven reintentando: advertencia (naranja), no error
       case 'sinPermiso':
       case 'error': return 'warning'
-      case 'noEncontrado': return 'error'
+      case 'noEncontrado':
+      case 'fallido': return 'error'
       case 'marcado':
-      case 'confirmado': return 'success'
+      case 'confirmado':
+      case 'verificado': return 'success'
       default: return 'info'
     }
   })
@@ -190,6 +203,20 @@ export class RegistroAsistenciaCargaComponent {
         this.config = await firstValueFrom(this.apiService.getConfiguracionRegistroAsistencia())
       } catch (e: any) {
         this.mostrarError('No pudimos preparar el registro de asistencia.', 'Error al leer la configuración (ParametroGeneral ROSTR/UBICA)', e)
+        return
+      }
+    }
+    // Modo verificación: el enlace tiene que ser válido y estar vigente; si no, se muestra el error
+    // que devuelve el back, como init/ident
+    if (this.token() && !this.verificacionValidada) {
+      try {
+        const verificacion = await firstValueFrom(this.apiService.getVerificacionAsistencia(this.token()))
+        this.intentosRestantes.set(verificacion?.intentosRestantes ?? null)
+        this.verificacionValidada = true
+      } catch (e: any) {
+        console.error('[registro-asistencia] Error al validar el enlace de verificación', e)
+        this.detalleError.set(e?.error?.msg || 'No pudimos validar el enlace de verificación.')
+        this.estado.set('error')
         return
       }
     }
@@ -302,6 +329,15 @@ export class RegistroAsistenciaCargaComponent {
 
     // El back compara el rostro con las fotos del personal. Por ahora solo informa: no graba nada.
     try {
+      // Modo verificación: el back compara solo con la persona del enlace y le pasa el resultado a
+      // mess, que graba el registro y avisa en el chat
+      if (this.token()) {
+        const respuesta = await firstValueFrom(this.apiService.verificarRegistroAsistencia({ token: this.token(), foto, ubicacion }))
+        this.intentosRestantes.set(respuesta?.intentosRestantes ?? null)
+        this.estado.set(respuesta?.resultado === 'OK' ? 'verificado' : respuesta?.resultado === 'FALLO' ? 'fallido' : 'noEncontrado')
+        return
+      }
+
       const inicioAnalisis = performance.now()
       const respuesta = await firstValueFrom(this.apiService.marcarRegistroAsistencia({ foto, ubicacion }))
 
@@ -322,7 +358,7 @@ export class RegistroAsistenciaCargaComponent {
         this.confirmacion.set({ TipoLugar: 'OBJ', ObjetivoId: respuesta.ObjetivoIdSugerido, CustodiaCodigo: null })
       this.estado.set(respuesta?.encontrado ? 'marcado' : 'noEncontrado')
     } catch (e: any) {
-      this.mostrarError('No pudimos verificar su rostro.', 'Error al reconocer el rostro (/marcar)', e)
+      this.mostrarError('No pudimos verificar su rostro.', this.token() ? 'Error en la verificación facial (/verificar)' : 'Error al reconocer el rostro (/marcar)', e)
     }
   }
 

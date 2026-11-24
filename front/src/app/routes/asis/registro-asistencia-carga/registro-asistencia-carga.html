@@ -22,13 +22,13 @@
       </div>
       }
 
-      @if (estado() === 'marcado' || estado() === 'confirmado') {
+      @if (estado() === 'marcado' || estado() === 'confirmado' || estado() === 'verificado') {
       <div class="velo velo-ok">
         <span nz-icon nzType="check-circle" nzTheme="outline"></span>
       </div>
       }
 
-      @if (estado() === 'noEncontrado') {
+      @if (estado() === 'noEncontrado' || estado() === 'fallido') {
       <div class="velo velo-error">
         <span nz-icon nzType="close-circle" nzTheme="outline"></span>
       </div>

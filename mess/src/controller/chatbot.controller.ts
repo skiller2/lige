@@ -441,7 +441,8 @@ export class ChatBotController extends BaseController {
         botServer.iaHistorial[chatId] = { msgs: [], tools: agent?.IaTools ? JSON.parse(agent.IaTools) : [], prompt: agent?.Prompt ?? '', agent: agent?.ChatBotPromptCodigo ?? '', debug: true }
         botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug: true });
       }
-      botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: false })
+      // Un mensaje interno del sistema (ej. aviso de verificación facial) no se muestra como escrito por el usuario
+      botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug: req.body.interno === true })
       botServer.iaHistorial[chatId].timestamp = Date.now()
 
       // Ubicación compartida (WhatsApp o simulada desde el chat): la usan las funciones de asistencia
@@ -650,7 +651,7 @@ export class ChatBotController extends BaseController {
                 break;
               }
               case 'getEstadoAsistencia':
-                output = await asistenciaController.getEstadoAsistencia(personalId)
+                output = await asistenciaController.getEstadoAsistencia(personalId, chatId)
                 break;
               case 'getObjetivosSugeridos':
                 output = await asistenciaController.getObjetivosSugeridos(personalId, chatId)

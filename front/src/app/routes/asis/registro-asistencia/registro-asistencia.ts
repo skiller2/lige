@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { SHARED_IMPORTS } from '@shared';
 import { RegistroAsistenciaCargaComponent } from '../registro-asistencia-carga/registro-asistencia-carga';
 
@@ -10,5 +10,7 @@ import { RegistroAsistenciaCargaComponent } from '../registro-asistencia-carga/r
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegistroAsistenciaComponent {
-
+  // Enlace de verificación facial del agente de asistencia (matrix param ;token=...). El input binding
+  // del router solo llega a este componente: se le pasa a la carga.
+  token = input('')
 }

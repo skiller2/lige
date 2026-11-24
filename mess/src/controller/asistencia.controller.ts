@@ -1,19 +1,28 @@
-import { BaseController } from "./base.controller.ts";
+import { BaseController, ClientException } from "./base.controller.ts";
+import type { NextFunction, Response } from "express";
+import * as CryptoJS from 'crypto-js';
 import { botServer, dbServer } from "../index.ts";
+import { IA_HISTORIAL_TIMEOUT_MS } from "../bot-server.ts";
+import { chatBotController, personalController } from "./controller.module.ts";
 
 // Funciones del agente de asistencia (ASIS). PersonalId y chatId los pone siempre el servidor, nunca el modelo.
-// Mientras una función no esté implementada devuelve un Error para que la IA no informe una operación inexistente.
-const EN_DESARROLLO = { Error: 'FUNCION_EN_DESARROLLO', mensaje: 'Esta función todavía no está disponible.' }
 
 // Parámetro general con las variables del agente de asistencia
 const PARAMETRO_ASISTENCIA = 'ASBOT'
-// Se usan solo si falta el parámetro ASBOT o alguno de sus valores
+// Se usan solo si falta el parámetro ASBOT o alguno de sus valores (solo numéricos;
+// verificacionFacialSiempre es booleano y se lee aparte, con false por defecto)
 const PARAMETROS_POR_DEFECTO = {
   horasIngresoAbierto: 12,
   horasLimiteCorreccion: 2,
-  diasVerificacionFacial: 4,
+  diasVerificacionFacial: 7,
   intentosVerificacionFacial: 3
 }
+// Enlace de verificación facial: la pantalla de registro de asistencia, misma base que el enlace de AUTH
+const URL_VERIFICACION_FACIAL = process.env.URL_VERIFICACION_FACIAL || 'https://gestion.linceseguridad.com.ar/ext/#/asis/registro-asistencia'
+// Modelo de los vectores faciales: tiene que ser igual a VERSION_VECTOR_FACIAL de back (reconocimiento-facial.ts)
+const VERSION_VECTOR_FACIAL = 'sface_2021dec'
+// Mensaje interno con el que se dispara el agente cuando termina la verificación facial
+const MENSAJE_VERIFICACION_TERMINADA = 'Verificación facial terminada. Consultá getResultadoVerificacion y seguí con el registro.'
 // Origen de los registros hechos desde el chatbot (tabla RegistroAsistenciaOrigen)
 const ORIGEN_REGISTRO = 'BW'
 // Se usa solo si falta distanciaMaximaMetros en el parámetro general UBICA
@@ -32,7 +41,7 @@ function distanciaEnMetros(lat1: number, lon1: number, lat2: number, lon2: numbe
 export class AsistenciaController extends BaseController {
 
   // Último movimiento, ingreso abierto (objetivo y horas), operación sugerida y verificación requerida
-  async getEstadoAsistencia(personalId: number) {
+  async getEstadoAsistencia(personalId: number, chatId: string) {
     const queryRunner = await dbServer.connection()
     try {
       const rows = await queryRunner.query(`
@@ -63,6 +72,24 @@ export class AsistenciaController extends BaseController {
       else if (ultimo)
         operacionSugerida = 'ING'
 
+      // Última verificación facial correcta, de un registro sin anular. El resultado se guarda en el
+      // JSON de ObjetoCompleto (no hay columna propia); el CASE evita leer un ObjetoCompleto que no sea JSON
+      const verificaciones = await queryRunner.query(`
+        SELECT MAX(ra.FechaHora) UltimaVerificacionFacial, DATEDIFF(DAY, MAX(ra.FechaHora), GETDATE()) DiasDesdeVerificacionFacial
+        FROM RegistroAsistencia ra
+        WHERE ra.PersonalId = @0 AND ra.FechaAnulado IS NULL
+          AND CASE WHEN ISJSON(ra.ObjetoCompleto) = 1 THEN JSON_VALUE(ra.ObjetoCompleto, '$.VerificacionFacial') END = 'OK'
+      `, [personalId])
+      const ultimaVerificacionFacial = verificaciones[0]?.UltimaVerificacionFacial ?? null
+
+      // Se pide la cara si está configurado siempre, si nunca verificó o si pasaron los días del parámetro
+      const requiereFacial = parametros.verificacionFacialSiempre || !ultimaVerificacionFacial
+        || verificaciones[0].DiasDesdeVerificacionFacial >= parametros.diasVerificacionFacial
+      // Sin foto vigente con vector facial no se manda el enlace: se pide la ubicación y se registra como FALLO
+      const sinFotoVerificacionFacial = requiereFacial && !(await this.tieneVectorFacial(queryRunner, personalId))
+
+      const resultadoSesion = botServer.iaHistorial[chatId]?.verificacionFacial?.resultado
+
       return {
         tieneRegistrosPrevios: !!ultimo,
         ultimoRegistro: ultimo ? {
@@ -80,8 +107,11 @@ export class AsistenciaController extends BaseController {
         puedeCorregir,
         horasLimiteCorreccion: parametros.horasLimiteCorreccion,
         operacionSugerida,
-        // Provisorio: UBICACION hasta que esté el enlace de verificación facial
-        verificacionRequerida: 'UBICACION'
+        verificacionRequerida: requiereFacial && !sinFotoVerificacionFacial ? 'FACIAL' : 'UBICACION',
+        ultimaVerificacionFacial,
+        sinFotoVerificacionFacial,
+        // Hay un resultado de verificación facial (OK o FALLO) todavía sin usar en un registro
+        verificacionFacialLista: resultadoSesion === 'OK' || resultadoSesion === 'FALLO'
       }
     } finally {
       await queryRunner.release()
@@ -242,7 +272,32 @@ export class AsistenciaController extends BaseController {
       const valor = Number(valores[clave])
       if (Number.isFinite(valor) && valor >= 0) parametros[clave] = valor
     }
-    return parametros
+    const verificacionFacialSiempre = valores.verificacionFacialSiempre === true || valores.verificacionFacialSiempre === 1
+    return { ...parametros, verificacionFacialSiempre }
+  }
+
+  // Si la persona tiene foto vigente con vector facial: misma condición que getVectoresPersonalActivo de back
+  // (foto más reciente con documento, vector del modelo actual y situación de revista 2, 10 o 12)
+  private async tieneVectorFacial(queryRunner: any, personalId: number) {
+    const fotos = await queryRunner.query(`
+      SELECT TOP 1 foto.DocumentoImagenFotoId
+      FROM DocumentoImagenFoto foto
+      WHERE foto.PersonalId = @0
+        AND foto.DocumentoImagenFotoId = (
+          SELECT MAX(f.DocumentoImagenFotoId)
+          FROM DocumentoImagenFoto f
+          JOIN Documento doc ON doc.DocumentoId = f.DocumentoId
+          WHERE f.PersonalId = @0)
+        AND foto.VectorFacial IS NOT NULL
+        AND foto.VectorFacialVersion = @1
+        AND EXISTS (
+          SELECT 1 FROM PersonalSituacionRevista sitrev
+          WHERE sitrev.PersonalId = foto.PersonalId
+            AND sitrev.PersonalSituacionRevistaSituacionId IN (2, 10, 12)
+            AND sitrev.PersonalSituacionRevistaDesde <= @2
+            AND ISNULL(sitrev.PersonalSituacionRevistaHasta, '9999-12-31') >= @2)
+    `, [personalId, VERSION_VECTOR_FACIAL, new Date()])
+    return fotos.length > 0
   }
 
   // Radio para considerar cercano un objetivo: parámetro general UBICA, el mismo del registro de asistencia de back
@@ -276,6 +331,24 @@ export class AsistenciaController extends BaseController {
       if (!Observaciones)
         return { Error: 'FALTA_OBSERVACION', mensaje: 'Cuando la hora la informa el asociado hay que completar Observaciones.' }
     }
+
+    // Verificación facial: se controla en el servidor, sin depender del modelo
+    const verificacion = botServer.iaHistorial[chatId]?.verificacionFacial ?? null
+    const resultadoFacial = verificacion?.resultado === 'OK' || verificacion?.resultado === 'FALLO' ? verificacion.resultado : null
+    const estado = await this.getEstadoAsistencia(personalId, chatId)
+    if (estado.verificacionRequerida === 'FACIAL' && !resultadoFacial)
+      return { Error: 'FALTA_VERIFICACION_FACIAL', mensaje: 'Antes de registrar hay que completar la verificación facial con el enlace de getLinkVerificacionFacial.' }
+
+    // OK, FALLO o NULL si no se pidió; la nota queda en Observaciones
+    let VerificacionFacial: string | null = resultadoFacial
+    let notaVerificacion = ''
+    if (resultadoFacial === 'FALLO') {
+      notaVerificacion = 'Falló la verificación facial.'
+    } else if (!resultadoFacial && estado.sinFotoVerificacionFacial) {
+      VerificacionFacial = 'FALLO'
+      notaVerificacion = 'Sin foto para verificación facial.'
+    }
+    const ObservacionesRegistro = [Observaciones, notaVerificacion].filter(Boolean).join(' | ') || null
 
     // El objetivo tiene que existir y estar vigente
     const objetivo: any = await this.getObjetivoPorCodigo(chatId, `${args?.ClienteId}/${args?.ClienteElementoDependienteId}`)
@@ -320,7 +393,8 @@ export class AsistenciaController extends BaseController {
         PersonalId: personalId, chatId, Tipo, FechaHora, horaInformada,
         ClienteId: objetivo.ClienteId, ClienteElementoDependienteId: objetivo.ClienteElementoDependienteId,
         Objetivo: objetivo.Objetivo, ubicacion, distanciaMetros: objetivo.distanciaMetros,
-        distanciaMaximaMetros: objetivo.distanciaMaximaMetros, Observaciones, usuario, fechaRegistro: ahora
+        distanciaMaximaMetros: objetivo.distanciaMaximaMetros, Observaciones: ObservacionesRegistro,
+        VerificacionFacial, similitud: verificacion?.similitud ?? null, usuario, fechaRegistro: ahora
       })
 
       const RegistroAsistenciaCodigo = await BaseController.getProxNumero(queryRunner, 'RegistroAsistencia', usuario, ip)
@@ -332,11 +406,15 @@ export class AsistenciaController extends BaseController {
         ) VALUES (@0, @1, @2, @3, @4, NULL, @5, @6, @7, @8, @9, @10, @10, @11, @11, @12, @12)
       `, [
         RegistroAsistenciaCodigo, FechaHora, personalId, objetivo.ClienteId, objetivo.ClienteElementoDependienteId,
-        Tipo, ORIGEN_REGISTRO, GeoReferenciacion, ObjetoCompleto, Observaciones,
+        Tipo, ORIGEN_REGISTRO, GeoReferenciacion, ObjetoCompleto, ObservacionesRegistro,
         ahora, ip, usuario
       ])
 
       await queryRunner.commitTransaction()
+
+      // El resultado de la verificación facial ya se usó
+      if (botServer.iaHistorial[chatId])
+        delete botServer.iaHistorial[chatId].verificacionFacial
 
       return {
         registrado: true,
@@ -346,7 +424,8 @@ export class AsistenciaController extends BaseController {
         Objetivo: objetivo.Objetivo,
         CodObjetivo: objetivo.CodObjetivo,
         distanciaMetros: objetivo.distanciaMetros,
-        Observaciones
+        Observaciones: ObservacionesRegistro,
+        VerificacionFacial
       }
     } catch (err) {
       await this.rollbackTransaction(queryRunner)
@@ -495,7 +574,7 @@ export class AsistenciaController extends BaseController {
     }
 
     // Estado después de anular: si quedó un ingreso abierto o no
-    const estadoActual = await this.getEstadoAsistencia(personalId)
+    const estadoActual = await this.getEstadoAsistencia(personalId, chatId)
     return {
       anulado: true,
       RegistroAsistenciaCodigo,
@@ -507,14 +586,157 @@ export class AsistenciaController extends BaseController {
     }
   }
 
-  // Genera el enlace externo que toma la foto y la ubicación
+  // Genera el enlace externo que toma la foto y la ubicación. El token es el mismo cifrado del enlace
+  // de AUTH (genTelCode con el chatId); el PersonalId no viaja en la URL.
   async getLinkVerificacionFacial(personalId: number, chatId: string) {
-    return EN_DESARROLLO
+    const estado = await this.getEstadoAsistencia(personalId, chatId)
+    if (estado.verificacionFacialLista)
+      return { Error: 'VERIFICACION_YA_REALIZADA', mensaje: 'La verificación facial ya terminó. Consultá getResultadoVerificacion y seguí con el registro.' }
+    if (estado.verificacionRequerida !== 'FACIAL')
+      return { Error: 'VERIFICACION_FACIAL_NO_REQUERIDA', mensaje: 'No hace falta verificación facial: pedile que comparta su ubicación actual.' }
+
+    const ret = await personalController.genTelCode(chatId)
+    const anterior = botServer.iaHistorial[chatId].verificacionFacial
+    // Un enlace nuevo reemplaza al anterior pero conserva los intentos ya usados
+    botServer.iaHistorial[chatId].verificacionFacial = {
+      token: ret.encTelNro, generado: new Date(), intentos: anterior?.intentos ?? 0, resultado: null, similitud: null, ubicacion: null
+    }
+    return {
+      url: `${URL_VERIFICACION_FACIAL};token=${encodeURIComponent(ret.encTelNro)}`,
+      // El enlace dura lo mismo que la conversación (timeout de inactividad de la sesión)
+      linkVigenciaMinutos: Math.round(IA_HISTORIAL_TIMEOUT_MS / 1000 / 60)
+    }
   }
 
   // Resultado de la verificación facial e intentos restantes
   async getResultadoVerificacion(personalId: number, chatId: string) {
-    return EN_DESARROLLO
+    const sesion = botServer.iaHistorial[chatId]
+    const verificacion = sesion?.verificacionFacial
+    const ubicacionRecibida = !!sesion?.ubicacion
+    if (!verificacion)
+      return { estado: 'SIN_LINK', intentosRestantes: null, ubicacionRecibida }
+
+    const queryRunner = await dbServer.connection()
+    try {
+      const { intentosVerificacionFacial } = await this.getParametrosAsistencia(queryRunner)
+      const intentosRestantes = Math.max(intentosVerificacionFacial - verificacion.intentos, 0)
+      let estado = verificacion.resultado
+      if (!estado)
+        estado = Date.now() - new Date(verificacion.generado).getTime() > IA_HISTORIAL_TIMEOUT_MS ? 'VENCIDO' : 'PENDIENTE'
+      return { estado, intentosRestantes, ubicacionRecibida }
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  // Pantalla de registro de asistencia en modo verificación: valida el enlace y devuelve la persona
+  async getVerificacion(req: any, res: Response, next: NextFunction) {
+    const token = String(req.params.token ?? '')
+    const queryRunner = await dbServer.connection()
+    try {
+      const { chatId, verificacion } = this.getVerificacionPorToken(token)
+      const { intentosVerificacionFacial } = await this.getParametrosAsistencia(queryRunner)
+      const estadoPersona = await personalController.getPersonaState(chatId)
+      if (!estadoPersona.stateData?.personalId)
+        throw new ClientException('No se pudo identificar a la persona del enlace')
+
+      this.jsonRes({
+        PersonalId: estadoPersona.stateData.personalId,
+        ApellidoNombre: estadoPersona.fullName,
+        intentosRestantes: Math.max(intentosVerificacionFacial - verificacion.intentos, 0)
+      }, res)
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  // Resultado de un intento de verificación facial (lo manda back). Con OK, o FALLO al agotar los
+  // intentos, el resultado y la ubicación del enlace quedan en la sesión y se avisa al chat.
+  async setResultadoVerificacion(req: any, res: Response, next: NextFunction) {
+    const token = String(req.body?.token ?? '')
+    const encontrado = req.body?.encontrado === true
+    const similitud = req.body?.similitud ?? null
+    const queryRunner = await dbServer.connection()
+    try {
+      const { chatId, verificacion } = this.getVerificacionPorToken(token)
+      const { intentosVerificacionFacial } = await this.getParametrosAsistencia(queryRunner)
+
+      verificacion.intentos++
+      verificacion.similitud = similitud
+      const latitud = Number(req.body?.ubicacion?.latitud)
+      const longitud = Number(req.body?.ubicacion?.longitud)
+      if (req.body?.ubicacion && Number.isFinite(latitud) && Number.isFinite(longitud))
+        verificacion.ubicacion = { latitud, longitud, fecha: new Date() }
+
+      const intentosRestantes = Math.max(intentosVerificacionFacial - verificacion.intentos, 0)
+      let resultado = 'PENDIENTE'
+      if (encontrado)
+        resultado = 'OK'
+      else if (intentosRestantes === 0)
+        resultado = 'FALLO'
+
+      if (resultado !== 'PENDIENTE') {
+        verificacion.resultado = resultado
+        // La ubicación del enlace reemplaza a la de WhatsApp: no se vuelve a pedir
+        if (verificacion.ubicacion)
+          botServer.iaHistorial[chatId].ubicacion = verificacion.ubicacion
+        this.avisarVerificacionTerminada(chatId)
+      }
+
+      this.jsonRes({ resultado, intentosRestantes }, res)
+    } catch (error) {
+      return next(error)
+    } finally {
+      await queryRunner.release()
+    }
+  }
+
+  // Descifra el token (mismo cifrado que getIdentDecode) y exige que sea el último enlace generado
+  // para ese chat: no sirve un enlace de AUTH ni uno viejo
+  private getVerificacionPorToken(token: string) {
+    let dataObj: any
+    try {
+      const _key = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
+      const _iv = CryptoJS.default.enc.Utf8.parse(process.env.KEY_IDENT_TEL);
+      const decrypted = CryptoJS.default.AES.decrypt(
+        token, _key, {
+        keySize: 16,
+        iv: _iv,
+        mode: CryptoJS.default.mode.ECB,
+        padding: CryptoJS.default.pad.Pkcs7,
+        format: CryptoJS.default.format.Hex
+      });
+      dataObj = JSON.parse(decrypted.toString(CryptoJS.default.enc.Utf8))
+    } catch (_e) {
+      throw new ClientException('El enlace proporcionado no es válido, solicite uno nuevo en el chat')
+    }
+    if (!dataObj?.stmgen || new Date().getTime() - Date.parse(dataObj?.stmgen) > IA_HISTORIAL_TIMEOUT_MS)
+      throw new ClientException('El enlace proporcionado expiró, solicite uno nuevo en el chat')
+
+    const chatId = String(dataObj?.data)
+    const verificacion = botServer.iaHistorial[chatId]?.verificacionFacial
+    if (!verificacion || verificacion.token !== token)
+      throw new ClientException('El enlace proporcionado no es válido, solicite uno nuevo en el chat')
+    if (verificacion.resultado)
+      throw new ClientException('La verificación facial ya terminó, vuelva al chat')
+    return { chatId, verificacion }
+  }
+
+  // Dispara el agente para el chat con un mensaje interno, sin esperar a que escriba el vigilador.
+  // Las respuestas quedan sin enviar para que las levante la consulta de mensajes del chat (GET chatagent).
+  private avisarVerificacionTerminada(chatId: string) {
+    const res: any = {
+      locals: {},
+      status: () => ({
+        json: (body: any) => body?.data?.response?.forEach((m: any) => { m.sendIt = false })
+      })
+    }
+    // interno: chatAgent agrega el mensaje ya con debug, para que no se vea como escrito por el vigilador
+    const req: any = { body: { message: MENSAJE_VERIFICACION_TERMINADA, chatId, interno: true } }
+    chatBotController.chatAgent(req, res, (error: any) => console.error(`[IA][${chatId}] Aviso de verificación facial falló: ${error?.message}`))
+      .catch((error: any) => console.error(`[IA][${chatId}] Aviso de verificación facial falló: ${error?.message}`))
   }
 
 }

@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { Route, RouterModule, Routes, UrlSegment } from '@angular/router';
 import { startPageGuard } from '@core';
 import { PreloadOptionalModules } from '@delon/theme';
 import { environment } from '@env/environment';
@@ -9,6 +9,13 @@ import { LayoutBasicComponent } from '../layout/basic/basic.component';
 import { LayoutBlankComponent } from '../layout/blank/blank.component';
 
 export const routes: Routes = [
+  // Registro de asistencia con el enlace del agente de asistencia (mess): con token se muestra sin el
+  // layout. Sin token no coincide y sigue a la ruta de asis dentro del layout.
+  {
+    path: 'asis/registro-asistencia',
+    canMatch: [(route: Route, segments: UrlSegment[]) => !!segments[segments.length - 1]?.parameters['token']],
+    loadComponent: () => import('./asis/registro-asistencia/registro-asistencia').then(c => c.RegistroAsistenciaComponent),
+  },
   {
     path: '',
     component: LayoutBasicComponent,
