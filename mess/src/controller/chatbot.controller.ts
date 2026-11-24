@@ -726,6 +726,7 @@ export class ChatBotController extends BaseController {
     } catch (err) {
 
       const mensaje = err instanceof Error ? err.message : String(err)
+      //const mensaje = 'Ups, hubo un error procesando.  Reintente en unos minutos'
       botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "system", content: mensaje, agent: botServer.iaHistorial[chatId].agent, debug: true });
       const nuevos = botServer.iaHistorial[chatId].msgs.filter(m => m?.sendIt != true)
       throw new ClientException(mensaje,nuevos)
