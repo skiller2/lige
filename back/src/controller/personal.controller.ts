@@ -1305,31 +1305,7 @@ LEFT JOIN(
     const ApellidoNombreDNILegajo = `${Apellido}, ${Nombre} (CUIT ${CUIT} - Leg.:${NroLegajo})`
     let now = new Date()
     now.setHours(0, 0, 0, 0)
-    let errors: string[] = []
-
-    //Validaciones
-    if (NroLegajo) {
-      let validacionNroLegajo = await queryRunner.query(`
-        SELECT per.PersonalId
-        FROM Personal per
-        WHERE per.PersonalNroLegajo IN (@0)
-      `, [NroLegajo])
-      if (validacionNroLegajo.length) {
-        errors.push(`El NroLegajo esta en uso.`);
-      }
-    }
-
-    let validacionCUIT = await queryRunner.query(`
-      SELECT cuit.PersonalId
-      FROM PersonalCUITCUIL cuit 
-      WHERE cuit.PersonalCUITCUILCUIT IN (@0)
-    `, [CUIT])
-    if (validacionCUIT.length) {
-      errors.push(`El CUIT ya fue registrado.`);
-    }
-
-    if (errors.length)
-      throw new ClientException(errors)
+    // NroLegajo y CUIT en uso ya se validaron en valPersonalForm
 
     let newId = await queryRunner.query(`
       INSERT INTO Personal (
@@ -1468,21 +1444,9 @@ LEFT JOIN(
 
     if (!LugarFisicoLegajoId) return
 
-    if (!infoPersonal.LugarFisicoLegajoDesde) {
-      throw new ClientException('Legajo Físico.', { fieldErrors: [{ fieldTree: `LugarFisicoLegajoDesde`, kind: 'server', message: 'La Fecha desde es obligatorio.' }] })
-    }
-
+      // La fecha ya viene validada por valPersonalForm
     const nuevaDesde = new Date(infoPersonal.LugarFisicoLegajoDesde)
-    if (Number.isNaN(nuevaDesde.getTime())) {
-      throw new ClientException('Legajo Físico.', { fieldErrors: [{ fieldTree: `LugarFisicoLegajoDesde`, kind: 'server', message: 'La Fecha desde no es valida.' }] })
-    }
     nuevaDesde.setHours(0, 0, 0, 0)
-
-    const hoy = new Date()
-    hoy.setHours(0, 0, 0, 0)
-    if (nuevaDesde.getTime() > hoy.getTime()) {
-      throw new ClientException('Legajo Físico.', { fieldErrors: [{ fieldTree: `LugarFisicoLegajoDesde`, kind: 'server', message: 'La Fecha desde no puede ser mayor al dia de hoy.' }] })
-    }
 
     const registrosExistentes = await queryRunner.query(`
       SELECT pul.PersonalUbicacionLegajoId,
@@ -1608,21 +1572,9 @@ LEFT JOIN(
     // Campo vacío: no se modifica lo registrado
     if (valorHoras === null || valorHoras === undefined || valorHoras === '') return
 
+    // Horas y fecha ya vienen validadas por valPersonalForm
     const Horas = Number(valorHoras)
-    if (Number.isNaN(Horas) || Horas <= 0) {
-      throw new ClientException('Otros.', { fieldErrors: [{ fieldTree: `HorasPactadas`, kind: 'server', message: 'Las Horas Pactadas deben ser un número mayor a 0.' }] })
-    }
-    if (!Number.isInteger(Horas * 2)) {
-      throw new ClientException('Otros.', { fieldErrors: [{ fieldTree: `HorasPactadas`, kind: 'server', message: 'Las Horas Pactadas solo admiten valores enteros o con decimal .5' }] })
-    }
-
-    if (!infoPersonal.HorasPactadasDesde) {
-      throw new ClientException('Otros.', { fieldErrors: [{ fieldTree: `HorasPactadasDesde`, kind: 'server', message: 'La Fecha desde es obligatoria.' }] })
-    }
     const nuevaDesde = new Date(infoPersonal.HorasPactadasDesde)
-    if (Number.isNaN(nuevaDesde.getTime())) {
-      throw new ClientException('Otros.', { fieldErrors: [{ fieldTree: `HorasPactadasDesde`, kind: 'server', message: 'La Fecha desde no es valida.' }] })
-    }
     nuevaDesde.setHours(0, 0, 0, 0)
 
     const AudNow = new Date()
@@ -1725,7 +1677,6 @@ LEFT JOIN(
     const familiares = req.body.familiares
     const habilitacion: number[] = (req.body.habilitacion) ? req.body.habilitacion : []
     const beneficiarios = req.body.beneficiarios
-    const fieldErrors: any[] = [];
     let now = new Date()
     now.setHours(0, 0, 0, 0)
 
@@ -1735,9 +1686,7 @@ LEFT JOIN(
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
 
-      const valForm = this.valPersonalForm(req.body, 'I')
-      if (valForm instanceof ClientException)
-        throw valForm
+      await this.valPersonalForm(queryRunner, req.body, 'I')
 
       const PersonalId = await this.addPersonalQuery(queryRunner, req.body, usuario, ip)
 
@@ -1765,61 +1714,21 @@ LEFT JOIN(
       await this.setPersonalHorasPactadas(queryRunner, PersonalId, req.body, usuario, ip)
 
       //Telefonos
-      for (const [index, telefono] of telefonos.entries()) {
-        if (telefono.TelefonoNro) {
-          if (!telefono.TipoTelefonoId) {
-            fieldErrors.push({ fieldTree: `telefonos[${index}].TipoTelefonoId`, kind: 'server', message: 'El Tipo es obligatorio' })
-            continue
-          }
-
-          await this.addPersonalTelefono(queryRunner, telefono, PersonalId)
-        }
+      for (const telefono of telefonos) {
+        if (telefono.TelefonoNro) await this.addPersonalTelefono(queryRunner, telefono, PersonalId)
       }
 
       //Estudios
-      for (const [index, estudio] of estudios.entries()) {
-        if (estudio.TipoEstudioId == 8) {
-          fieldErrors.push({ fieldTree: `estudios[${index}].TipoEstudioId`, kind: 'server', message: 'El Tipo de estudio "Curso" debe ser registrado en modulo "Estudios".' })
-          continue
-        }
-
-
-        if (estudio.EstudioTitulo || estudio.TipoEstudioId || estudio.PersonalEstudioOtorgado || estudio.PersonalEstudioVencimiento || (estudio.DocTitulo && estudio.DocTitulo.length)) {
-          let camposVacios: boolean = false
-
-          if (!estudio.EstudioTitulo){
-            fieldErrors.push({ fieldTree: `estudios[${index}].EstudioTitulo`, kind: 'server', message: 'El Título Estudio es obligatorio.' })
-            camposVacios =true
-          }
-          if (!estudio.TipoEstudioId){
-            fieldErrors.push({ fieldTree: `estudios[${index}].TipoEstudioId`, kind: 'server', message: 'El Tipo Estudio es obligatorio.' })
-            camposVacios =true
-          }
-          if (!estudio.PersonalEstudioOtorgado){
-            fieldErrors.push({ fieldTree: `estudios[${index}].PersonalEstudioOtorgado`, kind: 'server', message: 'La Fecha de Otorgamiento es obligatorio.' })
-            camposVacios =true
-          }
-
-          if (camposVacios) {
-            continue
-          }
-
+      for (const estudio of estudios) {
+        if (estudio.EstudioTitulo || estudio.TipoEstudioId || estudio.PersonalEstudioOtorgado || estudio.PersonalEstudioVencimiento || (estudio.DocTitulo && estudio.DocTitulo.length))
           await this.addPersonalEstudio(queryRunner, estudio, PersonalId)
-        }
       }
 
-      if (fieldErrors.length > 0)
-        throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
-
       //Familiares
-      const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
-      if (updatePersonalFamilia instanceof ClientException)
-        throw updatePersonalFamilia
+      await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
 
       //Beneficiario
-      const setPersonalSeguroBeneficiario = await this.setPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiarios, usuario, ip)
-      if (setPersonalSeguroBeneficiario instanceof ClientException)
-        throw setPersonalSeguroBeneficiario
+      await this.setPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiarios, usuario, ip)
 
       //Situacion de Revista
       await this.setSituacionRevistaQuerys(queryRunner, PersonalId, req.body.SituacionId, now, req.body.Motivo)
@@ -2353,7 +2262,7 @@ LEFT JOIN(
 
   private async updatePersonalEstudio(queryRunner: any, PersonalId: number, estudios: any[]) {
     let oldStudies = await queryRunner.query(`
-      SELECT PersonalEstudioId, PersonalEstudioPagina1Id
+      SELECT PersonalEstudioId, PersonalEstudioPagina1Id, TipoEstudioId
       FROM PersonalEstudio
       WHERE PersonalId IN (@0)
       `, [PersonalId])
@@ -2370,25 +2279,11 @@ LEFT JOIN(
     for (const infoEstudio of estudios) {
       maxId++
 
-      if (infoEstudio.TipoEstudioId == 8) throw new ClientException(`El tipo de estudio "Curso" debe ser registrado en modulo "Estudios".`)
-
-      if (infoEstudio.EstudioTitulo || infoEstudio.TipoEstudioId || infoEstudio.PersonalEstudioOtorgado || infoEstudio.PersonalEstudioVencimiento || (infoEstudio.DocTitulo && infoEstudio.DocTitulo.length)) {
-        let campos_vacios = []
-
-        if (!infoEstudio.EstudioTitulo) campos_vacios.push('- Título Estudio')
-        if (!infoEstudio.TipoEstudioId) campos_vacios.push('- Tipo Estudio')
-        if (!infoEstudio.PersonalEstudioOtorgado) campos_vacios.push('- Fecha Estudio otorgado')
-
-        if (campos_vacios.length) {
-          campos_vacios.unshift('Debe completar los siguientes campos de la sección estudios:')
-          throw new ClientException(campos_vacios)
-        }
-
-      }
-
+      // Curso y campos obligatorios ya validados en valPersonalForm
       if (infoEstudio.PersonalEstudioId) {
         let find = oldStudies.find((study: any) => { return (study.PersonalEstudioId == infoEstudio.PersonalEstudioId && study.TipoEstudioId != 8) })
-        let Pagina1Id = find.PersonalEstudioPagina1Id
+        // Si otro usuario lo borro, se guarda igual con los datos del form
+        let Pagina1Id = find?.PersonalEstudioPagina1Id ?? null
 
         if (!Pagina1Id && infoEstudio.DocTitulo && infoEstudio.DocTitulo.length) {
           const DocumentoImagenEstudio = await queryRunner.query(`
@@ -2434,9 +2329,9 @@ LEFT JOIN(
 
         }
 
-      } else {
-        if (infoEstudio.TipoEstudioId == 8) throw new ClientException('El tipo de estudio "Curso" debe ser registrado en modulo "Estudios".')
-        return await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
+      } else if (infoEstudio.EstudioTitulo || infoEstudio.TipoEstudioId || infoEstudio.PersonalEstudioOtorgado || infoEstudio.PersonalEstudioVencimiento || infoEstudio.DocTitulo?.length) {
+        // Sin return: el loop sigue con los estudios restantes; las filas vacias se saltean
+        await this.addPersonalEstudio(queryRunner, infoEstudio, PersonalId)
       }
 
     }
@@ -2470,35 +2365,12 @@ LEFT JOIN(
 
   async updatePersonalFamilia(queryRunner: any, PersonalId: any, familia: any[]) {
     await queryRunner.query(`DELETE FROM PersonalFamilia WHERE PersonalId IN (@0)`, [PersonalId])
-    const fieldErrors: any[] = [];
-    for (const [index, familiar] of familia.entries()) {
+    // Los obligatorios ya se validaron en valPersonalForm
+    for (const familiar of familia) {
       if (!familiar.Nombre && !familiar.Apellido && !familiar.TipoParentescoId)
         continue
 
-      let camposVacios: boolean = false
-      if (!familiar.Nombre){
-        fieldErrors.push({ fieldTree: `familiares[${index}].Nombre`, kind: 'server', message: 'El Nombre es obligatorio.' })
-        camposVacios = true
-      }
-      if(!familiar.Apellido){
-        fieldErrors.push({ fieldTree: `familiares[${index}].Apellido`, kind: 'server', message: 'El Apellido es obligatorio.' })
-        camposVacios = true
-      }
-      if(!familiar.TipoParentescoId){
-        fieldErrors.push({ fieldTree: `familiares[${index}].TipoParentescoId`, kind: 'server', message: 'El Parentesco es obligatorio.' })
-        camposVacios = true
-      }
-
-      if (camposVacios) {
-        continue
-      }
-        
-
       await this.addPersonalFamilia(queryRunner, PersonalId, familiar)
-    }
-
-    if (fieldErrors.length) {
-      return new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
     }
   }
 
@@ -2594,9 +2466,7 @@ LEFT JOIN(
       const usuarioId = await this.getUsuarioId(res, queryRunner)
       const ip = this.getRemoteAddress(req)
 
-      const valForm = this.valPersonalForm(req.body, 'U')
-      if (valForm instanceof ClientException)
-        throw valForm
+      await this.valPersonalForm(queryRunner, req.body, 'U', PersonalId)
 
       await this.addPersonalCambios(queryRunner, PersonalId, req.body, usuario, ip)
 
@@ -2611,15 +2481,8 @@ LEFT JOIN(
       const PersonalCUITCUIL = await queryRunner.query(`
         SELECT PersonalCUITCUILCUIT cuit FROM PersonalCUITCUIL WHERE PersonalId = @0 ORDER BY PersonalCUITCUILId DESC`, [PersonalId]
       )
+      // El CUIT duplicado ya se valido en valPersonalForm
       if (PersonalCUITCUIL[0]?.cuit != CUIT) {
-        const validacionCUIT = await queryRunner.query(`
-          SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT = @0 AND PersonalId != @1`,
-          [CUIT, PersonalId]
-        )
-        if (validacionCUIT.length) {
-          throw new ClientException('CUIT.', { fieldErrors: [{ fieldTree: `CUIT`, kind: 'server', message: 'El CUIT ingresado ya existe.' }] })
-        }
-
         await this.updatePersonalCUITQuery(queryRunner, PersonalId, CUIT, now)
         const DNI = parseInt(CUIT.toString().slice(2, -1))
         await this.updatePersonalDocumentoQuery(queryRunner, PersonalId, DNI)
@@ -2638,14 +2501,10 @@ LEFT JOIN(
       await this.updatePersonalEstudio(queryRunner, PersonalId, estudios)
 
       //Familiares
-      const updatePersonalFamilia = await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
-      if (updatePersonalFamilia instanceof ClientException)
-        throw updatePersonalFamilia
+      await this.updatePersonalFamilia(queryRunner, PersonalId, familiares)
 
       //Beneficiario
-      const setPersonalSeguroBeneficiario = await this.setPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiarios, usuario, ip)
-      if (setPersonalSeguroBeneficiario instanceof ClientException)
-        throw setPersonalSeguroBeneficiario
+      await this.setPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiarios, usuario, ip)
 
       //Habilitacion Necesaria
       await habilitacionesController.setPersonalHabilitacionNecesaria(queryRunner, PersonalId, habilitacion, usuario, ip)
@@ -2660,7 +2519,7 @@ LEFT JOIN(
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -2928,7 +2787,7 @@ LEFT JOIN(
     const fieldErrors: any[] = [];
 
     if (this.listSitRev.split(',').find((sit: any) => SituacionRevistaId == sit))
-      throw new ClientException(`Situación de Revista.`, { fieldErrors:[{ fieldTree: `SituacionId`, kind: 'server', message: 'La Situación de Revista seleccionada no se puede cargar desde esta pantalla.' }] })
+      throw new ClientException('La Situación de Revista seleccionada no se puede cargar desde esta pantalla.', { fieldErrors:[{ fieldTree: `SituacionId`, kind: 'server', message: 'La Situación de Revista seleccionada no se puede cargar desde esta pantalla.' }] })
 
     //Obtengo la última situación de revista
     let sitRevista = await queryRunner.query(`
@@ -2948,8 +2807,9 @@ LEFT JOIN(
     if (sitRevista.length > 0 && this.listSitRev.split(',').find((sit: any) => sitRevista[0]?.PersonalSituacionRevistaSituacionId == sit))
       fieldErrors.push({ fieldTree: `SituacionId`, kind: 'server', message: `No se puede modificar la situación de revista desde esta pantalla` })
 
+    // El msg lleva los motivos para el drawer de situacion de revista, que no lee fieldErrors
     if (fieldErrors.length) {
-      throw new ClientException(`Situación de Revista.`, { fieldErrors})
+      throw new ClientException(fieldErrors.map(f => f.message), { fieldErrors})
     }
 
     if (sitRevista.length > 0 && sitRevista[0].PersonalSituacionRevistaDesde.getTime() == desde.getTime()) {
@@ -3004,7 +2864,7 @@ LEFT JOIN(
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -3055,7 +2915,7 @@ LEFT JOIN(
     }
   }
 
-  valPersonalForm(personalForm: any, action: string) {
+  async valPersonalForm(queryRunner: any, personalForm: any, action: string, PersonalId: number = 0) {
     const fieldErrors: any[] = [];
 
     if (!personalForm.Nombre) {
@@ -3064,13 +2924,15 @@ LEFT JOIN(
     if (!personalForm.Apellido) {
       fieldErrors.push({ fieldTree: `Apellido`, kind: 'server', message: 'El Apellido es obligatorio' })
     }
+    let cuitValido = false
     if (!personalForm.CUIT) {
       fieldErrors.push({ fieldTree: `CUIT`, kind: 'server', message: 'El CUIT es obligatorio' })
     } else {
       try {
         this.validarCUIT(personalForm.CUIT)
+        cuitValido = true
       } catch (error:any) {
-        fieldErrors.push({ fieldTree: `CUIT`, kind: 'server', message: error.messageArr })
+        fieldErrors.push({ fieldTree: `CUIT`, kind: 'server', message: error.message })
       }
     }
     if (!personalForm.SucursalId) {
@@ -3084,6 +2946,29 @@ LEFT JOIN(
     }
     if (action == 'I' && !personalForm.SituacionId) {
       fieldErrors.push({ fieldTree: `SituacionId`, kind: 'server', message: 'La Situacion de Revista es obligatorio' })
+    } else if (action == 'I' && this.listSitRev.split(',').find((sit: any) => personalForm.SituacionId == sit)) {
+      // Tambien se controla en setSituacionRevistaQuerys, que usa el drawer
+      fieldErrors.push({ fieldTree: `SituacionId`, kind: 'server', message: 'La Situación de Revista seleccionada no se puede cargar desde esta pantalla.' })
+    }
+
+    // NroLegajo y CUIT en uso por otra persona; solo si cambiaron (en el alta PersonalId es 0)
+    const actual = await queryRunner.query(`
+      SELECT per.PersonalNroLegajo NroLegajo,
+        (SELECT TOP 1 cuit.PersonalCUITCUILCUIT FROM PersonalCUITCUIL cuit WHERE cuit.PersonalId = per.PersonalId ORDER BY cuit.PersonalCUITCUILId DESC) CUIT
+      FROM Personal per WHERE per.PersonalId = @0`, [PersonalId])
+
+    if (personalForm.NroLegajo && actual[0]?.NroLegajo != personalForm.NroLegajo) {
+      const enUso = await queryRunner.query(`
+        SELECT PersonalId FROM Personal WHERE PersonalNroLegajo IN (@0) AND PersonalId != @1`, [personalForm.NroLegajo, PersonalId])
+      if (enUso.length)
+        fieldErrors.push({ fieldTree: `NroLegajo`, kind: 'server', message: 'El NroLegajo esta en uso.' })
+    }
+    // Duplicado solo con formato valido, para no mostrar dos errores en el campo
+    if (cuitValido && actual[0]?.CUIT != personalForm.CUIT) {
+      const enUso = await queryRunner.query(`
+        SELECT PersonalId FROM PersonalCUITCUIL WHERE PersonalCUITCUILCUIT IN (@0) AND PersonalId != @1`, [personalForm.CUIT, PersonalId])
+      if (enUso.length)
+        fieldErrors.push({ fieldTree: `CUIT`, kind: 'server', message: 'El CUIT ya fue registrado.' })
     }
 
     //Validaciones de Lugar de nacimiento
@@ -3091,20 +2976,100 @@ LEFT JOIN(
       fieldErrors.push({ fieldTree: `LugarNacimiento`, kind: 'server', message: 'El Lugar de nacimiento es obligatorio' })
     }
 
-    if (fieldErrors.length > 0)
-      throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
-
     
 
-    // Direcciones
+    // Direcciones: el detalle va debajo del buscador de direccion
     if (!personalForm.domicilio?.Domicilio && personalForm.domicilio?.DomicilioCompleto) {
-      return new ClientException(`No se pudo identificar la ubicación geográfica del domicilio registrado. Busque nuevamente la dirección y seleccione una de las opciones.`)
+      fieldErrors.push({ fieldTree: `domicilio.Domicilio`, kind: 'server', message: 'No se pudo identificar la ubicación geográfica del domicilio registrado. Busque nuevamente la dirección y seleccione una de las opciones.' })
+    } else {
+      const res = domicilioController.valObjDomicilio(personalForm.domicilio?.Domicilio)
+      if (res instanceof ClientException)
+        fieldErrors.push({ fieldTree: `domicilio.Domicilio`, kind: 'server', message: res.messageArr.join(' ') })
     }
 
-    // if (personalForm.domicilio.Domicilio) {
-      const res = domicilioController.valObjDomicilio(personalForm.domicilio.Domicilio)
-      if (res instanceof ClientException) return res
-    // }
+    // Legajo fisico: solo si se eligio una ubicacion
+    if (Number(personalForm.LugarFisicoLegajoId)) {
+      const desde = new Date(personalForm.LugarFisicoLegajoDesde)
+      const hoy = new Date()
+      hoy.setHours(0, 0, 0, 0)
+      if (!personalForm.LugarFisicoLegajoDesde) {
+        fieldErrors.push({ fieldTree: `LugarFisicoLegajoDesde`, kind: 'server', message: 'La Fecha desde es obligatorio.' })
+      } else if (Number.isNaN(desde.getTime())) {
+        fieldErrors.push({ fieldTree: `LugarFisicoLegajoDesde`, kind: 'server', message: 'La Fecha desde no es valida.' })
+      } else {
+        desde.setHours(0, 0, 0, 0)
+        if (desde.getTime() > hoy.getTime())
+          fieldErrors.push({ fieldTree: `LugarFisicoLegajoDesde`, kind: 'server', message: 'La Fecha desde no puede ser mayor al dia de hoy.' })
+      }
+    }
+
+    // Horas pactadas: vacio no modifica lo registrado
+    const valorHoras = personalForm.HorasPactadas
+    if (valorHoras !== null && valorHoras !== undefined && valorHoras !== '') {
+      const Horas = Number(valorHoras)
+      if (Number.isNaN(Horas) || Horas <= 0) {
+        fieldErrors.push({ fieldTree: `HorasPactadas`, kind: 'server', message: 'Las Horas Pactadas deben ser un número mayor a 0.' })
+      } else if (!Number.isInteger(Horas * 2)) {
+        fieldErrors.push({ fieldTree: `HorasPactadas`, kind: 'server', message: 'Las Horas Pactadas solo admiten valores enteros o con decimal .5' })
+      }
+      if (!personalForm.HorasPactadasDesde) {
+        fieldErrors.push({ fieldTree: `HorasPactadasDesde`, kind: 'server', message: 'La Fecha desde es obligatoria.' })
+      } else if (Number.isNaN(new Date(personalForm.HorasPactadasDesde).getTime())) {
+        fieldErrors.push({ fieldTree: `HorasPactadasDesde`, kind: 'server', message: 'La Fecha desde no es valida.' })
+      }
+    }
+
+    // Telefonos
+    for (const [index, telefono] of (personalForm.telefonos ?? []).entries()) {
+      if (telefono.TelefonoNro && !telefono.TipoTelefonoId)
+        fieldErrors.push({ fieldTree: `telefonos[${index}].TipoTelefonoId`, kind: 'server', message: 'El Tipo es obligatorio' })
+    }
+
+    // Estudios
+    for (const [index, estudio] of (personalForm.estudios ?? []).entries()) {
+      if (estudio.TipoEstudioId == 8) {
+        fieldErrors.push({ fieldTree: `estudios[${index}].TipoEstudioId`, kind: 'server', message: 'El Tipo de estudio "Curso" debe ser registrado en modulo "Estudios".' })
+        continue
+      }
+      if (!(estudio.EstudioTitulo || estudio.TipoEstudioId || estudio.PersonalEstudioOtorgado || estudio.PersonalEstudioVencimiento || estudio.DocTitulo?.length))
+        continue
+      if (!estudio.EstudioTitulo)
+        fieldErrors.push({ fieldTree: `estudios[${index}].EstudioTitulo`, kind: 'server', message: 'El Título Estudio es obligatorio.' })
+      if (!estudio.TipoEstudioId)
+        fieldErrors.push({ fieldTree: `estudios[${index}].TipoEstudioId`, kind: 'server', message: 'El Tipo Estudio es obligatorio.' })
+      if (!estudio.PersonalEstudioOtorgado)
+        fieldErrors.push({ fieldTree: `estudios[${index}].PersonalEstudioOtorgado`, kind: 'server', message: 'La Fecha de Otorgamiento es obligatorio.' })
+    }
+
+    // Familiares
+    for (const [index, familiar] of (personalForm.familiares ?? []).entries()) {
+      if (!familiar.Nombre && !familiar.Apellido && !familiar.TipoParentescoId)
+        continue
+      if (!familiar.Nombre)
+        fieldErrors.push({ fieldTree: `familiares[${index}].Nombre`, kind: 'server', message: 'El Nombre es obligatorio.' })
+      if (!familiar.Apellido)
+        fieldErrors.push({ fieldTree: `familiares[${index}].Apellido`, kind: 'server', message: 'El Apellido es obligatorio.' })
+      if (!familiar.TipoParentescoId)
+        fieldErrors.push({ fieldTree: `familiares[${index}].TipoParentescoId`, kind: 'server', message: 'El Parentesco es obligatorio.' })
+    }
+
+    // Beneficiarios
+    for (const [index, beneficiario] of (personalForm.beneficiarios ?? []).entries()) {
+      if (!beneficiario.Nombre && !beneficiario.Apellido && !beneficiario.TipoDocumentoId && !beneficiario.DocumentoNro)
+        continue
+      if (!beneficiario.Nombre)
+        fieldErrors.push({ fieldTree: `beneficiarios[${index}].Nombre`, kind: 'server', message: 'El Nombre es obligatorio.' })
+      if (!beneficiario.Apellido)
+        fieldErrors.push({ fieldTree: `beneficiarios[${index}].Apellido`, kind: 'server', message: 'El Apellido es obligatorio.' })
+      if (!beneficiario.TipoDocumentoId)
+        fieldErrors.push({ fieldTree: `beneficiarios[${index}].TipoDocumentoId`, kind: 'server', message: 'El Tipo Documento es obligatorio.' })
+      if (!beneficiario.DocumentoNro)
+        fieldErrors.push({ fieldTree: `beneficiarios[${index}].DocumentoNro`, kind: 'server', message: 'El Documento Nro es obligatorio.' })
+    }
+
+    // Un solo throw con todos los errores juntos
+    if (fieldErrors.length > 0)
+      throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
   }
 
   async getDocumentosByPersonalId(req: any, res: Response, next: NextFunction) {
@@ -3461,7 +3426,7 @@ UNION ALL
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -3565,7 +3530,7 @@ UNION ALL
       await queryRunner.commitTransaction()
       this.jsonRes({}, res, 'Carga Exitosa');
     } catch (error) {
-      this.rollbackTransaction(queryRunner)
+      await this.rollbackTransaction(queryRunner)
       return next(error)
     } finally {
       await queryRunner.release()
@@ -3703,40 +3668,15 @@ UNION ALL
   async setPersonalSeguroBeneficiario(queryRunner: any, PersonalId: any, beneficiarios: any[], usuario: string, ip: string) {
 
     await queryRunner.query(`UPDATE PersonalBeneficiario SET PersonalBeneficiarioInactivo = 1 WHERE PersonalId IN (@0)`, [PersonalId])
-    const fieldErrors: any[] = [];
-    for (const [index, beneficiario] of beneficiarios.entries()) {
+    // Los obligatorios ya se validaron en valPersonalForm
+    for (const beneficiario of beneficiarios) {
       if (!beneficiario.Nombre && !beneficiario.Apellido && !beneficiario.TipoDocumentoId && !beneficiario.DocumentoNro)
         continue
 
-      let camposVacios: boolean = false
-      if (!beneficiario.Nombre){
-        fieldErrors.push({ fieldTree: `beneficiarios[${index}].Nombre`, kind: 'server', message: 'El Nombre es obligatorio.' })
-        camposVacios = true
-      }
-      if(!beneficiario.Apellido){
-        fieldErrors.push({ fieldTree: `beneficiarios[${index}].Apellido`, kind: 'server', message: 'El Apellido es obligatorio.' })
-        camposVacios = true
-      }
-      if(!beneficiario.TipoDocumentoId){
-        fieldErrors.push({ fieldTree: `beneficiarios[${index}].TipoDocumentoId`, kind: 'server', message: 'El Tipo Documento es obligatorio.' })
-        camposVacios = true
-      }
-      if(!beneficiario.DocumentoNro){
-        fieldErrors.push({ fieldTree: `beneficiarios[${index}].DocumentoNro`, kind: 'server', message: 'El Documento Nro es obligatorio.' })
-        camposVacios = true
-      }
-      if (camposVacios) {
-        continue
-      }
-      
       if (beneficiario.Desde) {
         await this.updatePersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario, usuario, ip)
       } else
         await this.addPersonalSeguroBeneficiario(queryRunner, PersonalId, beneficiario, usuario, ip)
-    }
-
-    if (fieldErrors.length) {
-      return new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
     }
   }
 
@@ -4325,7 +4265,7 @@ UNION ALL
     //   return new ClientException(campos_vacios)
     // }
     if (fieldErrors.length) {
-      return new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
+      return new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
     }
 
     // Validar que las fechas no esten en un periodo ya creado

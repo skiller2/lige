@@ -657,16 +657,16 @@ export class DomicilioController extends BaseController {
 
     if (domicilio.source === 'manual') {
       let campos_vacios: any[] = []
-      if (!domicilio.street) campos_vacios.push(`- Calle`)
-      if (!domicilio.housenumber) campos_vacios.push(`- Numero`)
-      if (!domicilio.postcode) campos_vacios.push(`- Código Postal`)
-      if (!domicilio.iso3166_2 && !domicilio.state) campos_vacios.push(`- Provincia`)
-      if (!domicilio.county) campos_vacios.push(`- Localidad`)
-      // if (!domicilio.suburb) campos_vacios.push(`- Barrio`)
+      if (!domicilio.street) campos_vacios.push(`Calle`)
+      if (!domicilio.housenumber) campos_vacios.push(`Número`)
+      if (!domicilio.postcode) campos_vacios.push(`Código Postal`)
+      if (!domicilio.iso3166_2 && !domicilio.state) campos_vacios.push(`Provincia`)
+      if (!domicilio.county) campos_vacios.push(`Localidad`)
+      // if (!domicilio.suburb) campos_vacios.push(`Barrio`)
 
+      // Una sola linea: se muestra en la notificacion y debajo del campo Direccion
       if (campos_vacios.length) {
-        campos_vacios.unshift('Debe completar los siguientes campos: ')
-        return new ClientException(campos_vacios)
+        return new ClientException(`Complete en la carga manual de la dirección: ${campos_vacios.join(', ')}`)
       }
       return null
     }

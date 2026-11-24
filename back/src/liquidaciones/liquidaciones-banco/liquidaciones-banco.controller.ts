@@ -1221,12 +1221,13 @@ LEFT JOIN banco banc
           flags: 'a'
         })
 
-        fileName = `${periodo.year}-${formattedMonth}-banco-${(new Date()).toISOString()}${fileTest}.txt`
+        // Banco exige nombre de max 12 caracteres alfanumericos: AAMMNNNN.prn
+        fileName = `${String(periodo.year).slice(-2)}${formattedMonth}${nro_envio.toString().padStart(4, '0').slice(-4)}${fileTest}.prn`
 
         let total = 0
         for (const row of banco) {
           //const PersonalApellido = row.PersonalApellidoNombre.split(",")[0].split(" ")[0].replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "")
-          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64).trim();
+          const PersonalApellidoNombre = row.PersonalApellidoNombre.replaceAll(',', '').replaceAll('\'', ' ').toUpperCase().normalize("NFD").replace(/\p{Diacritic}/gu, "").slice(0, 64).trim();
           if (!row.PersonalCUITCUILCUIT)
             throw new ClientException('Sin cuit para el personal ' + PersonalApellidoNombre)
           if (!row.PersonalBancoCBU)
