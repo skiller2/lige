@@ -268,7 +268,7 @@ export class RegistroAsistenciaController extends BaseController {
         fieldErrors.push({ fieldTree: 'CustodiaCodigo', kind: 'server', message: 'El código de custodia tiene que ser numérico' })
 
       if (fieldErrors.length)
-        throw new ClientException('Debe completar los campos requeridos.', { fieldErrors })
+        throw new ClientException('Debe solucionar los errores indicados en el formulario', { fieldErrors })
 
       // Descripción del objetivo o la custodia, para mostrarla al confirmar (mismo formato que
       // la consulta de liquidaciones)

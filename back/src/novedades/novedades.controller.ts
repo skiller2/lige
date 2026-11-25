@@ -594,7 +594,7 @@ export class NovedadesController extends BaseController {
         }
 
         if (fieldErrors.length > 0)
-            throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
+            throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
 
     }
 
