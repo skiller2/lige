@@ -651,10 +651,12 @@ LEFT JOIN (
 
         -- Comprobantes de las órdenes de venta facturadas del mismo objetivo y período
         OUTER APPLY (
-          SELECT STRING_AGG(CONCAT(TRIM(com.ComprobanteTipoCodigo),' ',TRIM(com.ComprobanteNro),' $',FORMAT(com.ImporteTotal,'N2','es-AR')), '; ') AS ComprobantesOV,
-            SUM(com.ImporteTotal) AS ImporteComprobantesOV
+          SELECT STRING_AGG(CONCAT(TRIM(com.ComprobanteTipoCodigo),' Nro:',TRIM(com.ComprobanteNro),' ($',FORMAT(com.ImporteTotal,'N2','es-AR'),')'), '; ') AS ComprobantesOV,
+            -- Las notas de crédito tienen Signo -1 y restan
+            SUM(com.ImporteTotal * tip.Signo)) AS ImporteComprobantesOV
           FROM OrdenVenta ord
           JOIN Comprobante com ON com.NroOrdenVenta = ord.NroOrdenVenta
+          LEFT JOIN ComprobanteTipo tip ON tip.ComprobanteTipoCodigo = com.ComprobanteTipoCodigo
           WHERE ord.ClienteId = obj.ClienteId AND ord.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
             AND ord.PeriodoAnio = @1 AND ord.PeriodoMes = @2 AND ord.EstadoOrdenVentaCodigo = 'FAC'
         ) comov
