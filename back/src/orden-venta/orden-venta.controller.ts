@@ -201,6 +201,32 @@ const columnasGrillaOrdenes: any[] = [
     searchHidden: false,
     maxWidth: 160
   },
+  // Comprobantes de la orden; el total resta las notas de crédito por Signo
+  {
+    id: "Comprobantes",
+    name: "Comprobantes",
+    field: "Comprobantes",
+    fieldName: "comov.Comprobantes",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    editable: false
+  },
+  {
+    id: "TotalFacturado",
+    name: "Total Facturado",
+    field: "TotalFacturado",
+    fieldName: "comov.TotalFacturado",
+    type: "currency",
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    editable: false,
+    maxWidth: 160
+  },
   {
     name: "Asistencia",
     type: "string",
@@ -268,6 +294,7 @@ export class OrdenVentaController extends BaseController {
           ord.EstadoOrdenVentaCodigo,
           ${sqlEstadoOrden} AS Estado,
           ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar,
+          comov.Comprobantes, comov.TotalFacturado,
           IIF((objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
           ga.GrupoActividadNumero, gaobj.GrupoActividadId,
           TRIM(ga.GrupoActividadDetalle) AS GrupoActividadDetalle,
@@ -291,11 +318,19 @@ export class OrdenVentaController extends BaseController {
         LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gaobj.GrupoActividadId
         LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = ord.PeriodoAnio
         LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = ord.PeriodoMes
-      
+        -- Comprobantes de la orden, solo si está facturada; las notas de crédito tienen Signo -1 y restan
+        OUTER APPLY (
+          SELECT STRING_AGG(CONCAT(TRIM(com.ComprobanteTipoCodigo),' Nro:',TRIM(com.ComprobanteNro),' ($',FORMAT(com.ImporteTotal,'N2','es-AR'),')'), '; ') AS Comprobantes,
+            SUM(com.ImporteTotal * tip.Signo) AS TotalFacturado
+          FROM Comprobante com
+          LEFT JOIN ComprobanteTipo tip ON tip.ComprobanteTipoCodigo = com.ComprobanteTipoCodigo
+          WHERE com.NroOrdenVenta = ord.NroOrdenVenta AND ord.EstadoOrdenVentaCodigo = @0
+        ) comov
+
         WHERE (1=1)
         AND (${filterSql})
         ${orderBy ? orderBy : 'ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC'}
-      `);
+      `, [ESTADO_ORDEN_VENTA_FACTURADA]);
 
       this.jsonRes({ total: lista.length, list: lista }, res);
     } catch (error) {

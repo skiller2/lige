@@ -345,7 +345,7 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Importe Comprobantes OV",
+    name: "Total Facturado en OV",
     type: "currency",
     id: "ImporteComprobantesOV",
     field: "ImporteComprobantesOV",
@@ -653,7 +653,7 @@ LEFT JOIN (
         OUTER APPLY (
           SELECT STRING_AGG(CONCAT(TRIM(com.ComprobanteTipoCodigo),' Nro:',TRIM(com.ComprobanteNro),' ($',FORMAT(com.ImporteTotal,'N2','es-AR'),')'), '; ') AS ComprobantesOV,
             -- Las notas de crédito tienen Signo -1 y restan
-            SUM(com.ImporteTotal * tip.Signo)) AS ImporteComprobantesOV
+            SUM(com.ImporteTotal * tip.Signo) AS ImporteComprobantesOV
           FROM OrdenVenta ord
           JOIN Comprobante com ON com.NroOrdenVenta = ord.NroOrdenVenta
           LEFT JOIN ComprobanteTipo tip ON tip.ComprobanteTipoCodigo = com.ComprobanteTipoCodigo
