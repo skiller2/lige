@@ -330,7 +330,7 @@ const columnasGrilla: any[] = [
     searchType: "string",
     sortable: true,
     hidden: false,
-    editable: true
+    editable: false
   },
   // Comprobantes de las órdenes de venta facturadas del período
   {

@@ -61,9 +61,6 @@ export class TableImporteVentaVigilanciaComponent {
       if (col.id === 'ImporteHoraB' || col.id === 'ImporteHoraA')
         col.editor = { model: CustomFloatEditor, decimal: 2, params: {}, alwaysSaveOnEnterKey: true }
 
-      if (col.id === 'ComprobanteNumero')
-        col.editor = { model: Editors['text'], alwaysSaveOnEnterKey: true }
-
       return col
     });
 
@@ -97,7 +94,7 @@ export class TableImporteVentaVigilanciaComponent {
     this.gridOptions.editCommandHandler = async (row: any, column: any, editCommand: EditCommand) => {
 
       // Horas a facturar y observaciones se editan solo desde carga de asistencia y orden de venta
-      if (column.id !== 'ImporteHoraB' && column.id !== 'ImporteHoraA' && column.id !== 'ComprobanteNumero') return
+      if (column.id !== 'ImporteHoraB' && column.id !== 'ImporteHoraA') return
 
       //this.angularGridEdit.dataView.getItemMetadata = this.updateItemMetadata(this.angularGridEdit.dataView.getItemMetadata)
       this.angularGridEdit.slickGrid.invalidate();
