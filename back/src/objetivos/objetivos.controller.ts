@@ -998,10 +998,8 @@ outer APPLY (SELECT
         ContratoFechaHastaOLD = ContratoFechaHastaOLD ? new Date(ContratoFechaHastaOLD) : null
         ContratoFechaHasta = ContratoFechaHasta ? new Date(ContratoFechaHasta) : null
         const now = new Date()
-
-        if (!ContratoFechaDesde) {
-            throw new ClientException(`Debe completar el campo 'Contrato Desde'.`)
-        }
+        const fieldErrors: any[] = [];
+        
         if (ContratoFechaDesde)
             ContratoFechaDesde.setHours(0, 0, 0, 0)
 
@@ -1015,18 +1013,11 @@ outer APPLY (SELECT
         if (ContratoFechaHastaOLD)
             ContratoFechaHastaOLD.setHours(0, 0, 0, 0)
 
-        // Nuevo registro sin fecha provista
-        if (!FechaModificada && !ContratoFechaDesdeOLD && !ContratoFechaHastaOLD && !ContratoFechaDesde)
-            throw new ClientException(`Debe completar el campo Contrato Desde.`)
-
         // Registro existente sin modificacion de fechas → no tocar nada
         if (!FechaModificada && (ContratoFechaDesdeOLD || ContratoFechaHastaOLD)) {
             return true
         }
 
-        if (ContratoFechaHasta && ContratoFechaDesde > ContratoFechaHasta) {
-            throw new ClientException(`La fecha Desde del contrato no puede ser mayor a la fecha hasta`)
-        }
         const ValidatePeriodoAndDay = await queryRunner.query(`SELECT TOP 1 *, EOMONTH(DATEFROMPARTS(anio, mes, 1)) AS FechaCierre FROM lige.dbo.liqmaperiodo WHERE ind_recibos_generados = 1 ORDER BY anio DESC, mes DESC `)
         const FechaCierre = new Date(ValidatePeriodoAndDay[0].FechaCierre);
 
@@ -1034,13 +1025,10 @@ outer APPLY (SELECT
         if (ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre && ContratoFechaHastaOLD && ContratoFechaHastaOLD < FechaCierre) {
 
             if (ContratoFechaDesde < FechaCierre) {
-                throw new ClientException(`La fecha desde del contrato debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
-            }
-            if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha desde del contrato no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                fieldErrors.push({ fieldTree: `ContratoFechaDesde`, kind: 'server', message: `El Contrato Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}.` })
             }
             if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
-                throw new ClientException(`La fecha hasta del contrato debe ser mayor a la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                fieldErrors.push({ fieldTree: `ContratoFechaHasta`, kind: 'server', message: `El Contrato Hasta debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}.` })
             }
             createNewContrato = true
         }
@@ -1048,22 +1036,24 @@ outer APPLY (SELECT
         // validacion para cuando es un nuevo registro
         if (!ContratoFechaDesdeOLD && !ContratoFechaHastaOLD) {
 
+
             if (ContratoFechaDesde.getTime() <= FechaCierre.getTime()) {
-                throw new ClientException(`La fecha Desde del contrato debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
-            }
-            if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha Desde del contrato no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                fieldErrors.push({ fieldTree: `ContratoFechaDesde`, kind: 'server', message: `El Contrato Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}.` })
             }
             if (ContratoFechaHasta && ContratoFechaHasta < FechaCierre) {
-                throw new ClientException(`La fecha Hasta del contrato debe ser igual o mayor a la fecha límite. ${this.dateOutputFormat(FechaCierre)}`)
+                fieldErrors.push({ fieldTree: `ContratoFechaHasta`, kind: 'server', message: `El Contrato Hasta debe ser igual o mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}.` })
             }
             createNewContrato = true
+        }
+
+        if (fieldErrors.length) {
+            throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
         }
 
         // validacion para no ingresar fecha desde en un periodo ya cerrado
         if (!createNewContrato && ContratoFechaDesdeOLD && ContratoFechaDesdeOLD < FechaCierre) {
             if (ContratoFechaDesdeOLD.getTime() !== ContratoFechaDesde.getTime()) {
-                throw new ClientException(`No se puede modificar la fecha Desde del contrato ya que pertenece a un periodo ya cerrado`);
+                fieldErrors.push({ fieldTree: `ContratoFechaDesde`, kind: 'server', message: `No se puede modificar el Contrato Desde que pertenece a un periodo ya cerrado.` })
             }
         }
 
@@ -1072,7 +1062,7 @@ outer APPLY (SELECT
         if (ContratoFechaDesdeOLD < FechaCierre && (!ContratoFechaHastaOLD || ContratoFechaHastaOLD > FechaCierre)) {
 
             if (ContratoFechaHasta && ContratoFechaHasta.getTime() < FechaCierre.getTime()) {
-                throw new ClientException(`La fecha Hasta del contrato debe ser igual o mayor a la fecha límite. ${this.dateOutputFormat(FechaCierre)}`)
+                fieldErrors.push({ fieldTree: `ContratoFechaHasta`, kind: 'server', message: `El Contrato Hasta debe ser igual o mayor a la fecha límite. ${this.dateOutputFormat(FechaCierre)}.` })
             }
 
         }
@@ -1080,11 +1070,15 @@ outer APPLY (SELECT
         // Desde > FecUltPer, se puede modificar si el nuevo Desde > FecUltPer y no puede quedar vacío
         if (ContratoFechaDesdeOLD > FechaCierre) {
             if (ContratoFechaDesde < FechaCierre) {
-                throw new ClientException(`La fecha Desde del contrato debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+                fieldErrors.push({ fieldTree: `ContratoFechaDesde`, kind: 'server', message: `El Contrato Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}.` })
             }
-            if (!ContratoFechaDesde) {
-                throw new ClientException(`La fecha Desde del contrato no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
-            }
+            // if (!ContratoFechaDesde) {
+            //     throw new ClientException(`La fecha Desde del contrato no puede estar vacía, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+            // }
+        }
+
+        if (fieldErrors.length) {
+            throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
         }
 
 
@@ -1175,11 +1169,16 @@ outer APPLY (SELECT
             [infoActividad[0].GrupoActividadObjetivoObjetivoId, now]
         )
 
+        const fieldErrors: any[] = [];
+
         if (gao.length && infoActividad[0].GrupoActividadId != infoActividad[0].GrupoActividadOriginal && gao[0].GrupoActividadObjetivoDesde > GrupoActividadObjetivoDesde) {
-            throw new ClientException(`La fecha Desde del Grupo Actividad no puede ser menor a ${this.dateOutputFormat(gao[0].GrupoActividadObjetivoDesde)}`)
+            fieldErrors.push({ fieldTree: `infoActividad[0].GrupoActividadObjetivoDesde`, kind: 'server', message: `La Fecha Desde no puede ser menor a ${this.dateOutputFormat(gao[0].GrupoActividadObjetivoDesde)}` })
+        } else if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal && GrupoActividadObjetivoDesde <= FechaCierre) {
+            fieldErrors.push({ fieldTree: `infoActividad[0].GrupoActividadObjetivoDesde`, kind: 'server', message: `La Fecha Desde debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}` })
         }
-        if (GrupoActividadObjetivoDesde != infoActividad[0].GrupoActividadObjetivoDesdeOriginal && GrupoActividadObjetivoDesde <= FechaCierre) {
-            throw new ClientException(`La fecha Desde del Grupo Actividad debe ser mayor que la fecha del último periodo cerrado, fecha limite ${this.dateOutputFormat(FechaCierre)}`)
+
+        if (fieldErrors.length) {
+            throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
         }
         // Restar un día a la fecha
 
@@ -1508,10 +1507,6 @@ outer APPLY (SELECT
             });
         if (!cambios) return
 
-        // Validar duplicados
-        const duplicados = docsRequeridos.filter((codigo, index) => docsRequeridos.indexOf(codigo) !== index);
-        if (duplicados.length > 0) throw new ClientException('No se pueden tener documentos requeridos duplicados')
-
         await queryRunner.query(`DELETE FROM ClienteElementoDependienteDocRequerido WHERE ClienteId = @0 AND ClienteElementoDependienteId = @1`, [ClienteId, ClienteElementoDependienteId])
 
         const now: Date = new Date()
@@ -1584,57 +1579,59 @@ outer APPLY (SELECT
     }
 
     async FormValidations(form: any) {
-        let msgError: string[] = []
+        const fieldErrors: any[] = [];
 
         //Validaciones de campos incompletos
         if (!form.ClienteId) {
-            msgError.push('- Cliente.')
+            fieldErrors.push({ fieldTree: `ClienteId`, kind: 'server', message: 'El Cliente es obligatorio.' })
         }
 
         if (!form.Descripcion) {
-            msgError.push('-  Descripcion.')
+            fieldErrors.push({ fieldTree: `Descripcion`, kind: 'server', message: 'La Descripcion es obligatorio.' })
         }
 
         if (!form.SucursalId) {
-            msgError.push('- Sucursal.')
+            fieldErrors.push({ fieldTree: `SucursalId`, kind: 'server', message: 'La Sucursal es obligatorio.' })
         }
 
         // if(!form.ContratoFechaHasta) {
         //     throw new ClientException(`El campo Contrato Hasta NO pueden estar vacio.`)
         //  }
 
-        if (msgError.length) {
-            msgError.unshift('Debe completar los siguientes campos: ')
-            throw new ClientException(msgError)
+        //Domicilio
+        // Direcciones: el detalle va debajo del buscador de direccion
+        if (!form.Domicilio && form.DomicilioCompleto) {
+            fieldErrors.push({ fieldTree: `Domicilio`, kind: 'server', message: 'No se pudo identificar la ubicación geográfica del domicilio registrado. Busque nuevamente la dirección y seleccione una de las opciones.' })
+        } else {
+        const res = domicilioController.valObjDomicilio(form.Domicilio)
+        if (res instanceof ClientException)
+            fieldErrors.push({ fieldTree: `Domicilio`, kind: 'server', message: res.messageArr.join(' ') })
         }
 
-        //Domicilio
-        const res = await domicilioController.valObjDomicilio(form.Domicilio)
-        if (res instanceof ClientException) throw res
-
         // Coordinador de cuenta
-
-        const coordinadores = form.infoCoordinadorCuenta || []
         let cantCoordinadores = 0
         let cantAplicaDescuento = 0
         let cantDescuentoTelefonia = 0
         let cantDescuentoRetiros = 0
 
-        for (const obj of coordinadores) {
+        for (const [index, obj] of (form.infoCoordinadorCuenta ?? []).entries()) {
             const tienePersona = !!obj.PersonalId
             const comision = Number(obj.ObjetivoPersonalJerarquicoComision)
             const tieneCheckDescuento = obj.ObjetivoPersonalJerarquicoDescuentos || obj.ObjetivoPersonalJerarquicoSeDescuentaTelefono || obj.DescuentoRetiros
 
             if (!tienePersona && (obj.ObjetivoPersonalJerarquicoComision || obj.ObjetivoPersonalJerarquicoDescuentos || obj.ObjetivoPersonalJerarquicoSeDescuentaTelefono || obj.DescuentoRetiros)) {
-                throw new ClientException(`Debe seleccionar una Persona en Coordinador de cuenta.`)
+                fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[${index}].PersonalId`, kind: 'server', message: 'Debe seleccionar una Persona.' })
+                continue
             }
 
             if (tienePersona && (!Number.isFinite(comision) || comision < 0)) {
-                throw new ClientException(`La Comisión del Coordinador de cuenta debe ser mayor o igual a 0.`)
+                fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[${index}].ObjetivoPersonalJerarquicoComision`, kind: 'server', message: 'La Comisión del Coordinador de cuenta debe ser mayor o igual a 0.' })
+                continue
             }
 
             if (tienePersona && tieneCheckDescuento && comision <= 0) {
-                throw new ClientException(`Debe ingresar una Comisión mayor a 0 para el Coordinador de cuenta que tenga "Consumos del objetivo" marcados.`)
+                fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[${index}].ObjetivoPersonalJerarquicoComision`, kind: 'server', message: 'Debe ingresar una Comisión mayor a 0 para el Coordinador de cuenta que tenga "Consumos del objetivo" marcados.' })
+                continue
             }
 
             if (!tienePersona) continue
@@ -1646,19 +1643,13 @@ outer APPLY (SELECT
         }
 
         if (cantCoordinadores === 0) {
-            throw new ClientException(`Debe agregar al menos un Coordinador de cuenta.`)
-        }
-
-        if (cantAplicaDescuento > 1) {
-            throw new ClientException(`Solo puede haber un Coordinador de cuenta con "Se aplica descuento".`)
-        }
-
-        if (cantDescuentoTelefonia > 1) {
-            throw new ClientException(`Solo puede haber un Coordinador de cuenta con "Descuento Telefonia".`)
-        }
-
-        if (cantDescuentoRetiros > 1) {
-            throw new ClientException(`Solo puede haber un Coordinador de cuenta con "Descuento Retiros".`)
+            fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[0].PersonalId`, kind: 'server', message: 'Debe agregar al menos un Coordinador de cuenta.' })
+        }else if (cantAplicaDescuento > 1) {
+            fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[0].PersonalId`, kind: 'server', message: `Solo puede haber un Coordinador de cuenta con "Se aplica descuento".` })
+        }else if (cantDescuentoTelefonia > 1) {
+            fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[0].PersonalId`, kind: 'server', message: `Solo puede haber un Coordinador de cuenta con "Descuento Telefonia".` })
+        }else if (cantDescuentoRetiros > 1) {
+            fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[0].PersonalId`, kind: 'server', message: `Solo puede haber un Coordinador de cuenta con "Descuento Retiros".` })
         }
 
         //Grupo Actividad
@@ -1671,20 +1662,34 @@ outer APPLY (SELECT
         //     }
         // }
 
-        //Validaciones de datos minimos
+        // Contrato
+        if (!form.ContratoFechaDesde) {
+            fieldErrors.push({ fieldTree: `ContratoFechaDesde`, kind: 'server', message: `El Contrato Desde es obligatorio.` })
+        }
+        if (!form.FechaModificada && !form.ContratoFechaDesdeOLD && !form.ContratoFechaHastaOLD && !form.ContratoFechaDesde){ // Nuevo registro sin fecha provista
+            fieldErrors.push({ fieldTree: `ContratoFechaDesde`, kind: 'server', message: `Debe completar el campo Contrato Desde.` })
+        }
+        if (form.ContratoFechaHasta && form.ContratoFechaDesde && new Date(form.ContratoFechaDesde).getTime() > new Date(form.ContratoFechaHasta).getTime()) {
+            fieldErrors.push({ fieldTree: `ContratoFechaDesde`, kind: 'server', message: `El Contrato Desde no puede ser mayor a al Contrato Hasta`})
+        }
+
         // Rubro
         if (!form.rubrosCliente || !form.rubrosCliente.length) {
-            throw new ClientException(`Debe selecionar al menos un Rubro.`)
+            fieldErrors.push({ fieldTree: `rubrosCliente`, kind: 'server', message: 'Debe selecionar al menos un Rubro.' })
         }
 
         // Documentos requeridos a presentar
         if (!form.docsRequerido || !form.docsRequerido.length) {
-            throw new ClientException('Debe de tener al menos un Documento requerido a presentar')
+            fieldErrors.push({ fieldTree: `docsRequerido`, kind: 'server', message: 'Debe de tener al menos un Documento requerido a presentar.' })
+        }else{
+            // Validar duplicados
+            const duplicados = form.docsRequerido.filter((codigo, index) => form.docsRequerido.indexOf(codigo) !== index);
+            if (duplicados.length > 0)
+                fieldErrors.push({ fieldTree: `docsRequerido`, kind: 'server', message: 'No se pueden haber duplicados.' })
         }
-
         //Habilitacion nesesaria
         if (!form.habilitacion || !form.habilitacion.length) {
-            throw new ClientException(`Debe selecionar al menos un lugar de habilitación.`)
+            fieldErrors.push({ fieldTree: `habilitacion`, kind: 'server', message: 'Debe selecionar al menos un lugar de habilitación.' })
         }
 
         //Descuentos
@@ -1697,12 +1702,17 @@ outer APPLY (SELECT
         const intersectLCli = descL.some((v: any) => descCli.includes(v));
 
         if (descC.length > 0 && cantAplicaDescuento === 0) {
-            throw new ClientException(`Debe agregar al menos un Coordinador de cuenta con indicador "Se aplica descuento" para aplicar un descuento 'A Coordinador'.`);
+            fieldErrors.push({ fieldTree: `descuentoCoordinador`, kind: 'server', message: `Debe agregar al menos un Coordinador de cuenta con indicador "Se aplica descuento" para aplicar un descuento 'A Coordinador'.` })
         }
         if (intersectCL || intersectCCli || intersectLCli) {
-            throw new ClientException(`No se puede asignar un mismo descuento 'a aplicar' a más de uno a la vez (Coordinador, Lince o Cliente).`);
+            fieldErrors.push({ fieldTree: `descuentoCoordinador`, kind: 'server', message: `No se puede asignar un mismo descuento 'a aplicar' a más de uno a la vez (Coordinador, Lince o Cliente).` })
+            fieldErrors.push({ fieldTree: `descuentoLince`, kind: 'server', message: `No se puede asignar un mismo descuento 'a aplicar' a más de uno a la vez (Coordinador, Lince o Cliente).` })
+            fieldErrors.push({ fieldTree: `descuentoCliente`, kind: 'server', message: `No se puede asignar un mismo descuento 'a aplicar' a más de uno a la vez (Coordinador, Lince o Cliente).` })
         }
 
+        if (fieldErrors.length) {
+            throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
+        }
 
     }
 
@@ -2225,9 +2235,9 @@ outer APPLY (SELECT
     private async setObjetivoHabilitacionNecesaria(queryRunner: any, ObjetivoId: number, habilitaciones: any[], usuario: string, ip: string) {
         //Compruebo si hubo cambios
         let cambios: boolean = false
-        if (!habilitaciones || !habilitaciones.length) {
-            throw new ClientException('Al menos debe seleccionar un lugar de habilitación para el objetivo')
-        }
+        // if (!habilitaciones || !habilitaciones.length) {
+        //     throw new ClientException('Al menos debe seleccionar un lugar de habilitación para el objetivo')
+        // }
 
         const habilitacionesOld = await this.getFormHabilitacionByObjetivoIdQuery(queryRunner, ObjetivoId)
 
