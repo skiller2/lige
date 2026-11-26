@@ -1610,46 +1610,50 @@ outer APPLY (SELECT
 
         // Coordinador de cuenta
         let cantCoordinadores = 0
-        let cantAplicaDescuento = 0
-        let cantDescuentoTelefonia = 0
-        let cantDescuentoRetiros = 0
+        const filasAplicaDescuento: number[] = []
+        const filasDescuentoTelefonia: number[] = []
+        const filasDescuentoRetiros: number[] = []
 
         for (const [index, obj] of (form.infoCoordinadorCuenta ?? []).entries()) {
             const tienePersona = !!obj.PersonalId
             const comision = Number(obj.ObjetivoPersonalJerarquicoComision)
             const tieneCheckDescuento = obj.ObjetivoPersonalJerarquicoDescuentos || obj.ObjetivoPersonalJerarquicoSeDescuentaTelefono || obj.DescuentoRetiros
 
-            if (!tienePersona && (obj.ObjetivoPersonalJerarquicoComision || obj.ObjetivoPersonalJerarquicoDescuentos || obj.ObjetivoPersonalJerarquicoSeDescuentaTelefono || obj.DescuentoRetiros)) {
-                fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[${index}].PersonalId`, kind: 'server', message: 'Debe seleccionar una Persona.' })
+            if (!tienePersona) {
+                if (obj.ObjetivoPersonalJerarquicoComision || tieneCheckDescuento)
+                    fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[${index}].PersonalId`, kind: 'server', message: 'Debe seleccionar una Persona.' })
                 continue
             }
 
-            if (tienePersona && (!Number.isFinite(comision) || comision < 0)) {
-                fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[${index}].ObjetivoPersonalJerarquicoComision`, kind: 'server', message: 'La Comisión del Coordinador de cuenta debe ser mayor o igual a 0.' })
-                continue
-            }
-
-            if (tienePersona && tieneCheckDescuento && comision <= 0) {
-                fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[${index}].ObjetivoPersonalJerarquicoComision`, kind: 'server', message: 'Debe ingresar una Comisión mayor a 0 para el Coordinador de cuenta que tenga "Consumos del objetivo" marcados.' })
-                continue
-            }
-
-            if (!tienePersona) continue
-
+            // La fila cuenta como coordinador aunque tenga error en la comision
             cantCoordinadores++
-            cantAplicaDescuento += obj.ObjetivoPersonalJerarquicoDescuentos ? 1 : 0
-            cantDescuentoTelefonia += obj.ObjetivoPersonalJerarquicoSeDescuentaTelefono ? 1 : 0
-            cantDescuentoRetiros += obj.DescuentoRetiros ? 1 : 0
+            if (obj.ObjetivoPersonalJerarquicoDescuentos) filasAplicaDescuento.push(index)
+            if (obj.ObjetivoPersonalJerarquicoSeDescuentaTelefono) filasDescuentoTelefonia.push(index)
+            if (obj.DescuentoRetiros) filasDescuentoRetiros.push(index)
+
+            if (!Number.isFinite(comision) || comision < 0) {
+                fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[${index}].ObjetivoPersonalJerarquicoComision`, kind: 'server', message: 'La Comisión del Coordinador de cuenta debe ser mayor o igual a 0.' })
+            } else if (tieneCheckDescuento && comision <= 0) {
+                fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[${index}].ObjetivoPersonalJerarquicoComision`, kind: 'server', message: 'Debe ingresar una Comisión mayor a 0 para el Coordinador de cuenta que tenga "Consumos del objetivo" marcados.' })
+            }
         }
 
         if (cantCoordinadores === 0) {
             fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[0].PersonalId`, kind: 'server', message: 'Debe agregar al menos un Coordinador de cuenta.' })
-        }else if (cantAplicaDescuento > 1) {
-            fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[0].PersonalId`, kind: 'server', message: `Solo puede haber un Coordinador de cuenta con "Se aplica descuento".` })
-        }else if (cantDescuentoTelefonia > 1) {
-            fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[0].PersonalId`, kind: 'server', message: `Solo puede haber un Coordinador de cuenta con "Descuento Telefonia".` })
-        }else if (cantDescuentoRetiros > 1) {
-            fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[0].PersonalId`, kind: 'server', message: `Solo puede haber un Coordinador de cuenta con "Descuento Retiros".` })
+        }
+
+        // Cada indicador de consumo puede estar marcado en un solo coordinador
+        const indicadoresUnicos = [
+            { indicador: 'Se aplica descuento', filas: filasAplicaDescuento },
+            { indicador: 'Descuento Telefonia', filas: filasDescuentoTelefonia },
+            { indicador: 'Descuento Retiros', filas: filasDescuentoRetiros },
+        ]
+        for (const { indicador, filas } of indicadoresUnicos) {
+            if (filas.length <= 1) continue
+            // El error se marca en todas las filas que repiten el indicador
+            for (const fila of filas) {
+                fieldErrors.push({ fieldTree: `infoCoordinadorCuenta[${fila}].PersonalId`, kind: 'server', message: `Solo puede haber un Coordinador de cuenta con "${indicador}".` })
+            }
         }
 
         //Grupo Actividad
@@ -1666,10 +1670,8 @@ outer APPLY (SELECT
         if (!form.ContratoFechaDesde) {
             fieldErrors.push({ fieldTree: `ContratoFechaDesde`, kind: 'server', message: `El Contrato Desde es obligatorio.` })
         }
-        if (!form.FechaModificada && !form.ContratoFechaDesdeOLD && !form.ContratoFechaHastaOLD && !form.ContratoFechaDesde){ // Nuevo registro sin fecha provista
-            fieldErrors.push({ fieldTree: `ContratoFechaDesde`, kind: 'server', message: `Debe completar el campo Contrato Desde.` })
-        }
-        if (form.ContratoFechaHasta && form.ContratoFechaDesde && new Date(form.ContratoFechaDesde).getTime() > new Date(form.ContratoFechaHasta).getTime()) {
+        // Se compara solo el dia, sin la hora que deja el date-picker
+        if (form.ContratoFechaHasta && form.ContratoFechaDesde && new Date(form.ContratoFechaDesde).setHours(0, 0, 0, 0) > new Date(form.ContratoFechaHasta).setHours(0, 0, 0, 0)) {
             fieldErrors.push({ fieldTree: `ContratoFechaDesde`, kind: 'server', message: `El Contrato Desde no puede ser mayor a al Contrato Hasta`})
         }
 
@@ -1701,7 +1703,7 @@ outer APPLY (SELECT
         const intersectCCli = descC.some((v: any) => descCli.includes(v));
         const intersectLCli = descL.some((v: any) => descCli.includes(v));
 
-        if (descC.length > 0 && cantAplicaDescuento === 0) {
+        if (descC.length > 0 && filasAplicaDescuento.length === 0) {
             fieldErrors.push({ fieldTree: `descuentoCoordinador`, kind: 'server', message: `Debe agregar al menos un Coordinador de cuenta con indicador "Se aplica descuento" para aplicar un descuento 'A Coordinador'.` })
         }
         if (intersectCL || intersectCCli || intersectLCli) {

@@ -3,12 +3,12 @@
   <fieldset [disabled]=this.formParametroPersonal().disabled()>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Apellido</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Apellido</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="7" nzHasFeedback sfErrorTip >
         <input nz-input placeholder="" [formField]="formParametroPersonal.Apellido" type="text" />
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Nombre</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Nombre</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="7" nzHasFeedback sfErrorTip >
         <input nz-input placeholder="" [formField]="formParametroPersonal.Nombre" type="text" />
       </nz-form-control>
@@ -16,12 +16,12 @@
 
     <nz-form-item class="marginElement">
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Email</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Email</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5" nzHasFeedback sfErrorTip >
         <input nz-input placeholder="" [formField]="formParametroPersonal.Email" type="text" />
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">CUIT</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2" nzRequired>CUIT</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5" nzHasFeedback sfErrorTip >
         <input nz-input placeholder="" [formField]="formParametroPersonal.CUIT" type="number" />
       </nz-form-control>
@@ -40,7 +40,7 @@
         <input nz-input placeholder="" [formField]="formParametroPersonal.NroLegajo" type="number" />
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2">Sucursal</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2" nzRequired>Sucursal</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="5" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formParametroPersonal.SucursalId" nzPlaceHolder="" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%">
@@ -53,7 +53,7 @@
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Nacionalidad</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Nacionalidad</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="8" [nzLg]="4" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formParametroPersonal.NacionalidadId" nzPlaceHolder="" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%" nzShowSearch>
@@ -85,7 +85,7 @@
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Lugar de Nacimiento</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Lugar de Nacimiento</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="10" nzHasFeedback sfErrorTip >
         <input nz-input placeholder="" [formField]="formParametroPersonal.LugarNacimiento" type="text" />
       </nz-form-control>

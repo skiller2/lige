@@ -205,8 +205,7 @@ export class ObjetivosFormComponent {
           ctx.valueOf(coordinadorCuentaPath.DescuentoRetiros)), });
       required(coordinadorCuentaPath.ObjetivoPersonalJerarquicoComision, 
         { message: 'Comision es requerido', when: (ctx) => !!(
-          ctx.valueOf(coordinadorCuentaPath.PersonalId) || 
-          ctx.valueOf(coordinadorCuentaPath.ObjetivoPersonalJerarquicoDescuentos) || 
+          ctx.valueOf(coordinadorCuentaPath.ObjetivoPersonalJerarquicoDescuentos) ||
           ctx.valueOf(coordinadorCuentaPath.ObjetivoPersonalJerarquicoSeDescuentaTelefono) || 
           ctx.valueOf(coordinadorCuentaPath.DescuentoRetiros)), });
     });

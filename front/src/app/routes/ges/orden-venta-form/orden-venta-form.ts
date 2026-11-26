@@ -6,7 +6,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { firstValueFrom, map } from 'rxjs';
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
-import { applyEach, disabled, form, FormField, required, submit } from '@angular/forms/signals';
+import { applyEach, disabled, form, FormField, required, submit, validate } from '@angular/forms/signals';
 import { FormsModule } from '@angular/forms';
 import { NzCollapsePanelComponent } from 'ng-zorro-antd/collapse';
 import { ObjetivoSearchComponent } from '../../../shared/objetivo-search/objetivo-search.component';
@@ -157,6 +157,15 @@ export class OrdenVentaFormComponent {
       // Fuera de la pantalla de órdenes de venta los datos de factura son solo lectura
       disabled(productoPath.CantidadEnFactura, () => !this.origenCrud())
       disabled(productoPath.Bonificacion, () => !this.origenCrud())
+      // Vacía o entre 0 y 100, igual que valida el back
+      validate(productoPath.Bonificacion, (ctx) => {
+        const valor = String(ctx.value() ?? '').trim()
+        if (!valor) return undefined
+        const bonificacion = Number(valor)
+        return Number.isFinite(bonificacion) && bonificacion >= 0 && bonificacion <= 100
+          ? undefined
+          : { kind: 'rango', message: 'La bonificación debe estar entre 0 y 100' }
+      });
     });
     // Con "Facturado" los tres datos del comprobante son obligatorios; si no, van los tres juntos
     // o ninguno
