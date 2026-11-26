@@ -14,19 +14,19 @@
       </nz-form-control>
     </nz-form-item>
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cliente</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Cliente</nz-form-label>
       <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17" nzHasFeedback sfErrorTip >
         <app-cliente-search [formField]="formObjetivo.ClienteId" />
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Descripción</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Descripción</nz-form-label>
       <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="8" nzHasFeedback sfErrorTip >
         <input nz-input placeholder="" [formField]="formObjetivo.Descripcion" type="string" />
       </nz-form-control>
 
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Sucursal</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Sucursal</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formObjetivo.SucursalId" nzPlaceHolder="Sucursal" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%">
@@ -49,7 +49,7 @@
     </div>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Contrato Desde</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3" nzRequired>Contrato Desde</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip >
         <nz-date-picker nzFormat="dd/MM/yyyy" [formField]="formObjetivo.ContratoFechaDesde"></nz-date-picker>
       </nz-form-control>
@@ -67,7 +67,7 @@
     </div>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Dirección</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3" nzRequired>Dirección</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" nzHasFeedback sfErrorTip>
         <app-addr-search [formField]="formObjetivo.Domicilio"></app-addr-search>
       </nz-form-control>
@@ -174,7 +174,7 @@
     </div>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Habilitaciones</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Habilitaciones</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formObjetivo.habilitacion" nzMode="multiple" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
@@ -190,7 +190,7 @@
     </div>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Rubro</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Rubro</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formObjetivo.rubrosCliente" nzMode="multiple" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
@@ -206,7 +206,7 @@
     </div>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" >Tipo</nz-form-label>
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" nzRequired>Tipo</nz-form-label>
       <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" nzHasFeedback sfErrorTip>
         <nz-select [formField]="formObjetivo.docsRequerido" nzMode="multiple" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
