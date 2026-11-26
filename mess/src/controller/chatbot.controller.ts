@@ -417,7 +417,7 @@ export class ChatBotController extends BaseController {
     return this.jsonRes({ 'response': nuevos }, res, 'ok');
   }
 
-  async chatAgentProcess(chatId,message:string,latitud:number,longitud:number){
+  async chatAgentProcess(chatId,message:string,data:any){
     let recall = false
     let vuelta = 0
     const usuario = ""
@@ -439,12 +439,12 @@ export class ChatBotController extends BaseController {
         botServer.iaHistorial[chatId].msgs.push({ id: 0, role: "system", content: botServer.iaHistorial[chatId].prompt, sendIt: false, agent: agent?.ChatBotPromptCodigo ?? '', debug: true });
       }
       // Un mensaje interno del sistema (ej. aviso de verificación facial) no se muestra como escrito por el usuario
-      botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, debug:  true })
+      botServer.iaHistorial[chatId].msgs.push({ id: botServer.iaHistorial[chatId].msgs.length, role: "user", content: message, agent: botServer.iaHistorial[chatId].agent, data,debug:  false })
       botServer.iaHistorial[chatId].timestamp = Date.now()
 
       // Ubicación compartida (WhatsApp o simulada desde el chat): la usan las funciones de asistencia
-      if (Number.isFinite(latitud) && Number.isFinite(longitud))
-        botServer.iaHistorial[chatId].ubicacion = { latitud, longitud, fecha: new Date() }
+//      if (Number.isFinite(latitud) && Number.isFinite(longitud))
+//        botServer.iaHistorial[chatId].ubicacion = { latitud, longitud, fecha: new Date() }
 
       const now = new Date()
 
@@ -739,11 +739,10 @@ export class ChatBotController extends BaseController {
   async chatAgent(req: Request, res: Response, next: NextFunction) {
     const message = String(req.body.message ?? '').trim()
     const chatId = String(req.body.chatId ?? '').trim()
-    const latitud = Number(req.body.ubicacion?.latitud)
-    const longitud = Number(req.body.ubicacion?.longitud)
+    const data = Object(req.body.ubicacion)
     let resultado = null
     try {
-      resultado =await this.chatAgentProcess(chatId,message,latitud,longitud)
+      resultado =await this.chatAgentProcess(chatId,message,data)
     } catch(e) {
       return next(e)
     }
