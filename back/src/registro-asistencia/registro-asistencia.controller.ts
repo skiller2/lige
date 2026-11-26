@@ -3,9 +3,11 @@ import { getConnection } from "../data-source.ts";
 import type { NextFunction, Request, Response } from "express";
 import type { QueryRunner } from "typeorm";
 import { join } from "node:path";
+import { unlink } from "node:fs/promises";
 import { bufferAVector, calcularVectorFacial, columnasVectorFacial, reconocerRostro, VERSION_VECTOR_FACIAL, type VectorPersonal } from "./reconocimiento-facial.ts";
 import { filtrosToSql, isOptions, orderToSQL } from "../impuestos-afip/filtros-utils/filtros.ts";
 import { FileUploadController } from "../controller/file-upload.controller.ts";
+import { fileUploadController } from "../controller/controller.module.ts";
 import type { Options } from "../schemas/filtro.ts";
 
 // Configuración de la pantalla de marcado, en ParametroGeneral (JSON). Se editan desde
@@ -781,7 +783,7 @@ export class RegistroAsistenciaController extends BaseController {
   // Busca las fotos pendientes (todas las fotos del personal activo, no solo la principal,
   // con VectorFacial en NULL), calcula el vector de cada una y lo graba. Cada foto se graba sola (sin transacción): si
   // el proceso se corta, lo grabado queda. Una foto que falla no corta el resto: se cuenta y los
-  // errores se devuelven agrupados por causa, con algunas rutas de ejemplo.
+  // errores se devuelven agrupados por causa, con algunas rutas de ejemplo. Los PDF se convierten a PNG con pdf2img.
   private async calcularVectoresFacialesPendientes(queryRunner: QueryRunner) {
     const fotos = await queryRunner.query(`
       SELECT DISTINCT foto.DocumentoImagenFotoId, foto.PersonalId, doc.DocumentoPath
@@ -800,8 +802,11 @@ export class RegistroAsistenciaController extends BaseController {
 
     for (const foto of fotos) {
       const ruta = join(FileUploadController.pathDocuments, foto.DocumentoPath)
+      let rutaPng = ''
       try {
-        const vector = await calcularVectorFacial(ruta)
+        if (ruta.toLowerCase().endsWith('.pdf'))
+          rutaPng = await fileUploadController.pdf2img(ruta)
+        const vector = await calcularVectorFacial(rutaPng || ruta)
         if (!vector) {
           sinRostro++
           continue
@@ -815,10 +820,15 @@ export class RegistroAsistenciaController extends BaseController {
       } catch (error) {
         conError++
         // La causa sin la ruta (el mensaje de Jimp/fs la incluye), para poder agrupar
-        const causa = (error instanceof Error ? error.message : String(error)).split(ruta).join('<ruta>')
+        let causa = (error instanceof Error ? error.message : String(error)).split(ruta).join('<ruta>')
+        if (rutaPng) causa = causa.split(rutaPng).join('<ruta>')
         errores[causa] ??= { cantidad: 0, ejemplos: [] }
         errores[causa].cantidad++
         if (errores[causa].ejemplos.length < 3) errores[causa].ejemplos.push(`${ruta} (PersonalId ${foto.PersonalId})`)
+      } finally {
+        if (rutaPng) {
+          try { await unlink(rutaPng) } catch (error) { }
+        }
       }
     }
 
