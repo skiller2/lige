@@ -193,7 +193,10 @@ INNER JOIN (
     WHERE PeriodoDesdeAplica <= DATEFROMPARTS(@0, @1, 1)
     GROUP BY ProductoCodigo, ClienteId
 ) ult ON pp.ProductoCodigo = ult.ProductoCodigo 
-      AND pp.ClienteId = ult.ClienteId 
+       AND (
+        pp.ClienteId = ult.ClienteId
+        OR (pp.ClienteId IS NULL AND ult.ClienteId IS NULL)
+    )
       AND pp.PeriodoDesdeAplica = ult.UltimaFecha
 LEFT JOIN Cliente c ON pp.ClienteId = c.ClienteId
 LEFT JOIN Producto p ON p.ProductoCodigo = pp.ProductoCodigo
