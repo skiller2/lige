@@ -306,15 +306,7 @@ export class PreciosProductosComponent {
       (pro: any) => { return pro.idTable ? true : false }
     ).map((pro: any) => {
       return {
-        id: pro.id,
-        idTable: pro.idTable,
-        ProductoCodigo: pro.ProductoCodigo,
-        ClienteId: pro.ClienteId,
-        ClienteDenominacion: pro.ClienteDenominacion,
-        PeriodoDesdeAplica: pro.PeriodoDesdeAplica,
-        Importe: pro.Importe,
-        Cliente: pro.Cliente,
-        ClienteFacturacionCUIT: pro.Cliente.ClienteFacturacionCUIT,
+        ProductoPrecioId: pro.ProductoPrecioId,
       }
     })
     try {
