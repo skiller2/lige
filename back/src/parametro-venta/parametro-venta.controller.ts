@@ -1080,10 +1080,11 @@ export class ParametrosVentaController extends BaseController {
 
     static async getPrecioListaPreciosQuery(ClienteId:number, anio:number, mes:number, ProductoCodigo:string, queryRunner:QueryRunner){
             const result = await queryRunner.query(
-                `SELECT TOP 1 pr.ClienteId, pr.ProductoCodigo, pr.Importe, pr.PeriodoDesdeAplica 
+                // Precio del cliente; si no tiene, el precio general del producto (ClienteId NULL)
+                `SELECT TOP 1 pr.ClienteId, pr.ProductoCodigo, pr.Importe, pr.PeriodoDesdeAplica
                  FROM ProductoPrecio pr
-                 WHERE pr.ClienteId = @0 AND pr.PeriodoDesdeAplica <= DATEFROMPARTS(@1,@2,1) AND pr.ProductoCodigo = @3
-                 ORDER BY pr.PeriodoDesdeAplica DESC`,
+                 WHERE (pr.ClienteId = @0 OR pr.ClienteId IS NULL) AND pr.PeriodoDesdeAplica <= DATEFROMPARTS(@1,@2,1) AND pr.ProductoCodigo = @3
+                 ORDER BY IIF(pr.ClienteId IS NULL, 1, 0), pr.PeriodoDesdeAplica DESC`,
                 [ClienteId, anio, mes, ProductoCodigo]
             );
 

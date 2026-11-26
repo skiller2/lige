@@ -59,7 +59,6 @@ export class PreciosProductosComponent {
 
   complexityLevelList = [true, false];
   angularGridEdit!: AngularGridInstance;
-  // gridObjEdit!: SlickGrid;
   gridOptionsEdit!: GridOption;
 
   tipoProducto = []
@@ -230,7 +229,7 @@ export class PreciosProductosComponent {
           emptyRows.slice(0, -1).forEach((item: any) => this.angularGridEdit.gridService.deleteItemById(item.id))
         }
 
-        const rowComplete = !!row?.Cliente?.id && !!row?.ProductoCodigo?.length && !!row?.PeriodoDesdeAplica && row?.Importe != null
+        const rowComplete = !!row?.ProductoCodigo?.length && !!row?.PeriodoDesdeAplica && row?.Importe != null
 
         if (!rowComplete)
           return
@@ -306,15 +305,7 @@ export class PreciosProductosComponent {
       (pro: any) => { return pro.idTable ? true : false }
     ).map((pro: any) => {
       return {
-        id: pro.id,
-        idTable: pro.idTable,
-        ProductoCodigo: pro.ProductoCodigo,
-        ClienteId: pro.ClienteId,
-        ClienteDenominacion: pro.ClienteDenominacion,
-        PeriodoDesdeAplica: pro.PeriodoDesdeAplica,
-        Importe: pro.Importe,
-        Cliente: pro.Cliente,
-        ClienteFacturacionCUIT: pro.Cliente.ClienteFacturacionCUIT,
+        ProductoPrecioId: pro.ProductoPrecioId,
       }
     })
     try {
@@ -379,12 +370,11 @@ export class PreciosProductosComponent {
         meta = previousItemMetadata(rowNumber);
       }
 
-      const rowComplete = !!item?.Cliente?.id
-        && !!item?.ProductoCodigo?.length
+      const rowComplete = !!item?.ProductoCodigo?.length
         && !!item?.PeriodoDesdeAplica
         && item?.Importe != null
 
-        const hasInput = !!item?.Cliente?.id || !!item?.ProductoCodigo?.length || item?.Importe != null
+        const hasInput =  !!item?.ProductoCodigo?.length || item?.Importe != null
 
       if (!rowComplete && hasInput) {
         meta.cssClasses = 'element-add-no-complete'

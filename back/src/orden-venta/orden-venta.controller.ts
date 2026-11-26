@@ -438,13 +438,14 @@ export class OrdenVentaController extends BaseController {
           IIF(item.ProductoCodigo IN (@1, @2), hs.ImporteHora, pre.Importe) AS ImporteVigente
           FROM ItemOrdenVenta item
           JOIN OrdenVenta ord ON ord.NroOrdenVenta = item.NroOrdenVenta
+          -- Precio del cliente; si no tiene, el precio general del producto (ClienteId NULL)
           OUTER APPLY (
             SELECT TOP 1 pp.Importe
             FROM ProductoPrecio pp
             WHERE pp.ProductoCodigo = item.ProductoCodigo
-              AND pp.ClienteId = ord.ClienteId
+              AND (pp.ClienteId = ord.ClienteId OR pp.ClienteId IS NULL)
               AND pp.PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(ord.PeriodoAnio, ord.PeriodoMes, 1))
-            ORDER BY pp.PeriodoDesdeAplica DESC
+            ORDER BY IIF(pp.ClienteId IS NULL, 1, 0), pp.PeriodoDesdeAplica DESC
           ) pre
           OUTER APPLY (
             SELECT TOP 1 IIF(item.ProductoCodigo = @1, oiv.ImporteHoraA, oiv.ImporteHoraB) AS ImporteHora
@@ -597,13 +598,14 @@ export class OrdenVentaController extends BaseController {
               * (1 - ISNULL(item.Bonificacion,0) / 100.0) AS ImporteTotal
           FROM ItemOrdenVenta item
           LEFT JOIN Producto prod ON prod.ProductoCodigo = item.ProductoCodigo
+          -- Precio del cliente; si no tiene, el precio general del producto (ClienteId NULL)
           OUTER APPLY (
             SELECT TOP 1 pp.Importe
             FROM ProductoPrecio pp
             WHERE pp.ProductoCodigo = item.ProductoCodigo
-              AND pp.ClienteId = @2
+              AND (pp.ClienteId = @2 OR pp.ClienteId IS NULL)
               AND pp.PeriodoDesdeAplica <= EOMONTH(DATEFROMPARTS(@3,@4,1))
-            ORDER BY pp.PeriodoDesdeAplica DESC
+            ORDER BY IIF(pp.ClienteId IS NULL, 1, 0), pp.PeriodoDesdeAplica DESC
           ) pre
           OUTER APPLY (
             SELECT TOP 1
