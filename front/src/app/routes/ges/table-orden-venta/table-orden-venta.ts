@@ -8,8 +8,36 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { columnTotal, totalRecords } from '../../../shared/custom-search/custom-search';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { Selections } from '../../../shared/schemas/filtro';
+
+// Ítems de la orden que el backend arma con FOR JSON (Producto, Cantidad, Total)
+const parseDetalle = (value: any): any[] => {
+  if (!value) return [];
+  try {
+    const items = JSON.parse(value);
+    return Array.isArray(items) ? items : [];
+  } catch {
+    return [];
+  }
+};
+
+const escapeHtml = (texto: any): string => String(texto ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const formatCantidadTexto = (cantidad: any): string =>
+  cantidad !== null && cantidad !== '' && Number.isFinite(Number(cantidad))
+    ? Number(cantidad).toLocaleString('es-AR', { maximumFractionDigits: 2 })
+    : String(cantidad ?? '');
+
+const formatCantidad = (cantidad: any): string => escapeHtml(formatCantidadTexto(cantidad));
+
+const formatTotal = (total: any): string =>
+  Number(total ?? 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 @Component({
   selector: 'app-table-orden-venta',
@@ -53,7 +81,29 @@ export class TableOrdenVentaComponent implements OnInit {
   public angularUtilService = inject(AngularUtilService)
 
   // Columnas configuradas desde el backend (controlador de orden de venta, el mismo de carga asistencia)
-  columns = toSignal(this.apiService.getCols('/api/orden-venta/cols-ordenes'), { initialValue: [] as Column[] })
+  columns = toSignal(
+    this.apiService.getCols('/api/orden-venta/cols-ordenes').pipe(
+      map((cols) => {
+        // Detalle de ítems: un renglón por ítem (cantidad x producto = total); en Excel, el mismo texto con un ítem por línea
+        const detalleCol = cols.find((col: Column) => col.id === 'Detalle');
+        if (detalleCol) {
+          detalleCol.formatter = (_row: number, _cell: number, value: any) => {
+            const items = parseDetalle(value);
+            if (!items.length) return '';
+            return items.map(item =>
+              `<div class="det-ov-item">${formatCantidad(item.Cantidad)} x ${escapeHtml(item.Producto)} = ${formatTotal(item.Total)}</div>`
+            ).join('');
+          };
+          detalleCol.exportWithFormatter = true;
+          detalleCol.exportCustomFormatter = (_row: number, _cell: number, value: any) =>
+            parseDetalle(value)
+              .map(item => `${formatCantidadTexto(item.Cantidad)} x ${item.Producto ?? ''} = ${formatTotal(item.Total)}`)
+              .join('\n');
+        }
+
+        return cols;
+      }))
+    , { initialValue: [] as Column[] })
 
   gridData = resource({
     params: () => this.filtersReady()

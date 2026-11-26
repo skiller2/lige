@@ -142,6 +142,18 @@ const columnasGrillaOrdenes: any[] = [
     searchHidden: false
   },
   {
+    id: "Detalle",
+    name: "Detalle",
+    field: "Detalle",
+    fieldName: "det.Detalle",
+    type: "string",
+    sortable: false,
+    hidden: false,
+    searchHidden: true,
+    editable: false,
+    minWidth: 320
+  },
+  {
     id: "SucursalId",
     name: "Sucursal",
     field: "SucursalDescripcion",
@@ -295,6 +307,7 @@ export class OrdenVentaController extends BaseController {
           ${sqlEstadoOrden} AS Estado,
           ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar,
           comov.Comprobantes, comov.TotalFacturado,
+          det.Detalle,
           IIF((objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
           ga.GrupoActividadNumero, gaobj.GrupoActividadId,
           TRIM(ga.GrupoActividadDetalle) AS GrupoActividadDetalle,
@@ -326,6 +339,18 @@ export class OrdenVentaController extends BaseController {
           LEFT JOIN ComprobanteTipo tip ON tip.ComprobanteTipoCodigo = com.ComprobanteTipoCodigo
           WHERE com.NroOrdenVenta = ord.NroOrdenVenta AND ord.EstadoOrdenVentaCodigo = @0
         ) comov
+        OUTER APPLY (
+          SELECT (
+            SELECT TRIM(ISNULL(prod.Nombre, item.ProductoCodigo)) AS Producto,
+              item.Cantidad,
+              ISNULL(item.Cantidad,0) * ISNULL(item.ImporteUnitario,0) * (1 - ISNULL(item.Bonificacion,0) / 100.0) AS Total
+            FROM ItemOrdenVenta item
+            LEFT JOIN Producto prod ON prod.ProductoCodigo = item.ProductoCodigo
+            WHERE item.NroOrdenVenta = ord.NroOrdenVenta
+            ORDER BY item.ItemOrdenVentaCodigo
+            FOR JSON PATH
+          ) AS Detalle
+        ) det
 
         WHERE (1=1)
         AND (${filterSql})

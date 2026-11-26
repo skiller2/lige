@@ -40,6 +40,11 @@ export class AutoRowHeightDirective implements AfterViewInit {
       this.recalculateHeights(grid);
     });
 
+    // Recarga de datos: las filas pueden tener el mismo id con contenido nuevo
+    this.slickgrid.dataView.onSetItemsCalled.subscribe(() => {
+      this.recalculateHeights(grid);
+    });
+
     this.resizeObserver = new ResizeObserver(() => {
       this.recalculateHeights(grid);
     });
@@ -92,7 +97,7 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
     grid.setOptions({
       enableVariableRowHeight: true, rowHeightProvider:
-        (grid, _row, item) => this.getHeight(grid, item)
+        (grid, row, item) => this.getHeight(grid, item, row)
     })
   }
 
@@ -101,7 +106,7 @@ export class AutoRowHeightDirective implements AfterViewInit {
     this.resizeObserver?.disconnect();
   }
 
-  private getHeight(grid: SlickGrid, item: any): number {
+  private getHeight(grid: SlickGrid, item: any, row: number): number {
     const key = item.id ?? JSON.stringify(item);
     const cached = this.cache.get(key);
 
@@ -128,9 +133,14 @@ export class AutoRowHeightDirective implements AfterViewInit {
       */
 
 
-      const text = String(item[column.id] ?? '');
+      // Si la columna tiene formatter que devuelve HTML, se mide ese HTML
+      const html = typeof column.formatter === 'function'
+        ? column.formatter(row, grid.getColumnIndex(column.id), item[column.field ?? column.id], column, item, grid)
+        : null;
 
-      const heightTmp = this.measureLines(text, width, grid);
+      const heightTmp = typeof html === 'string'
+        ? this.measureHtml(html, width, grid)
+        : this.measureLines(String(item[column.field ?? column.id] ?? ''), width, grid);
 
       height = Math.max(height, heightTmp);
     }
@@ -147,6 +157,16 @@ export class AutoRowHeightDirective implements AfterViewInit {
 
     this.measure.style.width = `${width}px`;
     this.measure.textContent = text;
+
+    const height = this.measure.offsetHeight;
+
+    return Math.ceil(height);
+  }
+
+  private measureHtml(html: string, width: number, grid: SlickGrid): number {
+
+    this.measure.style.width = `${width}px`;
+    this.measure.innerHTML = html;
 
     const height = this.measure.offsetHeight;
 

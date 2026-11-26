@@ -132,7 +132,8 @@
   overflow-wrap: anywhere;
   word-break: break-word;
 }
-// .slick-row {
+
+.det-ov-item + .det-ov-item { margin-top: 2px; }// .slick-row {
 //   .detail-view-toggle {
 //     &.expand, &.collapse {
 //       width: var(--slick-icon-width,$slick-icon-width);
