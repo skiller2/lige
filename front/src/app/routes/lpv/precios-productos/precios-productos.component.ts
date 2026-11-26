@@ -370,8 +370,7 @@ export class PreciosProductosComponent {
         meta = previousItemMetadata(rowNumber);
       }
 
-      const rowComplete = !!item?.Cliente?.id
-        && !!item?.ProductoCodigo?.length
+      const rowComplete = !!item?.ProductoCodigo?.length
         && !!item?.PeriodoDesdeAplica
         && item?.Importe != null
 

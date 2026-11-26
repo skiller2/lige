@@ -28,7 +28,7 @@ export class PreciosProductosController extends BaseController {
             fieldName: "ProductoPrecioId",
             type: "number",
             sortable: false,
-            hidden: false,
+            hidden: true,
             searchHidden: false,
             width: 20
         },
