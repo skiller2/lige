@@ -1427,26 +1427,8 @@ export class FileUploadController extends BaseController {
     const operatorList = await pdfPage.getOperatorList();
 
 
-    const imgIndexArr = operatorList.fnArray.reduce((acc: number[], curr: any, index: number) => {
-      if (curr === OPS.paintImageXObject) {
-        acc.push(index);
-      }
-      return acc;
-    }, [])
-
-    //const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject);
-
-    let maxresol = 0
-    let imgArgsFoto = []
-    for (const imgIndex of imgIndexArr) {
-      const imgArgs = operatorList.argsArray[imgIndex];
-
-      const resol = Number(imgArgs[1]) * Number(imgArgs[2])
-      if (resol > maxresol) {
-        maxresol = resol
-        imgArgsFoto = imgArgs
-      }
-    }
+    const imgIndex = operatorList.fnArray.indexOf(OPS.paintImageXObject);
+    const imgArgsFoto = imgIndex >= 0 ? operatorList.argsArray[imgIndex] : []
 
     if (!imgArgsFoto[0])
       throw new ClientException('La primera página del PDF no contiene una imagen que se pueda extraer.')
