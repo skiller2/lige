@@ -22,6 +22,17 @@ export class PreciosProductosController extends BaseController {
             searchHidden: true
         },
         {
+            id: "ProductoPrecioId",
+            name: "Identificador",
+            field: "ProductoPrecioId",
+            fieldName: "ProductoPrecioId",
+            type: "number",
+            sortable: false,
+            hidden: false,
+            searchHidden: false,
+            width: 20
+        },
+        {
             name: "CUIT",
             type: "string",
             id: "ClienteFacturacionCUIT",
@@ -111,8 +122,8 @@ export class PreciosProductosController extends BaseController {
         try {
 
             const precios = await queryRunner.query(
-                `SELECT 
-                    ROW_NUMBER() OVER (ORDER BY prod.cod_producto) AS id,
+                `SELECT1 
+                    prod. AS id,
                     prod.cod_producto AS codigo, 
                     prod.des_producto AS descripcion,
                     prod.nom_producto AS nombre,
@@ -162,7 +173,8 @@ export class PreciosProductosController extends BaseController {
 
             const precios = await queryRunner.query(`
                  SELECT 
-    ROW_NUMBER() OVER (ORDER BY pp.PeriodoDesdeAplica, pp.ProductoCodigo, pp.ClienteId) AS id,
+    pp.ProductoPrecioId AS id,
+    pp.ProductoPrecioId,
     CONCAT(pp.ProductoCodigo, '-', pp.ClienteId) AS idTable,
     pp.ProductoCodigo,
     pp.ClienteId,
@@ -230,8 +242,10 @@ LEFT JOIN ClienteFacturacion fac
         ip: string,
         docId?: number
     ) {
+        const ProductoPrecioId = await BaseController.getProxNumero(queryRunner,'ProductoPrecio',usuario,ip)
         await queryRunner.query(`
         INSERT INTO ProductoPrecio (
+            ProductoPrecioId,
             ProductoCodigo, 
             ClienteId,
             PeriodoDesdeAplica,
@@ -240,15 +254,13 @@ LEFT JOIN ClienteFacturacion fac
             AudUsuarioIng, AudUsuarioMod,
             AudIpIng, AudIpMod,
             ImportDocumentoId
-        ) VALUES ( @0, @1, @2, @3, @4, @4, @5, @5, @6, @6, @7)
-        `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fecha, usuario, ip, docId ? docId : null])
+        ) VALUES (@0, @1, @2, @3, @4, @5, @5, @6, @6, @7, @7, @8)
+        `, [ProductoPrecioId, ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fecha, usuario, ip, docId ? docId : null])
     }
 
     async updateProductoPrecioQuery(
         queryRunner: any,
-        ProductoCodigo: string,
-        ClienteId: number,
-        PeriodoDesdeAplicaActual: Date,
+        ProductoPrecioId: string,
         PeriodoDesdeAplicaNueva: Date,
         Importe: number,
         fecha: Date,
@@ -262,8 +274,8 @@ LEFT JOIN ClienteFacturacion fac
             AudFechaMod = @5,
             AudUsuarioMod = @6,
             AudIpMod = @7
-        WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2
-        `, [ProductoCodigo, ClienteId, PeriodoDesdeAplicaActual, PeriodoDesdeAplicaNueva, Importe, fecha, usuario, ip])
+        WHERE ProductoPrecioId=@0
+        `, [ProductoPrecioId, null,null, PeriodoDesdeAplicaNueva, Importe, fecha, usuario, ip])
     }
 
     async changecell(req: any, res: Response, next: NextFunction) {
@@ -275,13 +287,13 @@ LEFT JOIN ClienteFacturacion fac
         let message = ""
 
         const idTable = req.body.idTable
+        const ProductoPrecioId = req.body.ProductoPrecioId
         const ClienteId = req.body.Cliente?.id
         const ProductoCodigo = req.body.ProductoCodigo
         const Importe = Number(req.body.Importe)
         const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica)
 
         // Validaciones previas
-        if (!ClienteId) throw new ClientException('Cliente es requerido')
         if (!ProductoCodigo) throw new ClientException('Producto es requerido')
         if (Importe <= 0) throw new ClientException('El importe debe ser mayor a 0')
 
@@ -324,7 +336,7 @@ LEFT JOIN ClienteFacturacion fac
 
 
                 // Actualizar registro anterior
-                await this.updateProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoAnterior, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
+                await this.updateProductoPrecioQuery(queryRunner, ProductoPrecioId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
 
                 // Generar idTable consistente con frontend
                 const idTableResponse = `${ProductoCodigo}-${ClienteId}`
@@ -434,13 +446,11 @@ LEFT JOIN ClienteFacturacion fac
 
     async deleteProductoPrecioQuery(
         queryRunner: any,
-        ProductoCodigo: string,
-        ClienteId: number,
-        PeriodoDesdeAplica: Date,
+        ProductoPrecioId:number,
     ) {
         await queryRunner.query(`
-        DELETE FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2
-        `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
+        DELETE FROM ProductoPrecio WHERE ProductoPrecioId=@0
+        `, [ProductoPrecioId])
     }
 
     async deleteProductos(req: any, res: Response, next: NextFunction) {
@@ -453,14 +463,8 @@ LEFT JOIN ClienteFacturacion fac
             await queryRunner.startTransaction()
 
             for (const producto of list) {
-
-                // const CUIT = producto.ClienteFacturacionCUIT
-                const ClienteId = producto.Cliente?.id
-                const ProductoCodigo = producto.ProductoCodigo
-                const PeriodoDesdeAplica = new Date(producto.PeriodoDesdeAplica)
-
-                await this.deleteProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica)
-
+                const ProductoPrecioId  = producto.ProductoPrecioId 
+                await this.deleteProductoPrecioQuery(queryRunner, ProductoPrecioId )
             }
             // throw new ClientException(`DEBUG`)
             await queryRunner.commitTransaction()
@@ -670,12 +674,13 @@ LEFT JOIN ClienteFacturacion fac
 
                 //Verifico si ya existe el registro
                 const checkNewCodigo = await queryRunner.query(`
-                    SELECT PeriodoDesdeAplica, Importe FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
+                    SELECT ProductoPrecioId, PeriodoDesdeAplica, Importe FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
                 `, [productoCodigoRequest, ClienteId, PeriodoDesdeAplica])
 
                 //Si ya existe lo reemplazo
                 if (checkNewCodigo.length) {
-                    await this.deleteProductoPrecioQuery(queryRunner, productoCodigoRequest, ClienteId, PeriodoDesdeAplica)
+                    const ProductoPrecioId = checkNewCodigo[0].ProductoPrecioId
+                    await this.deleteProductoPrecioQuery(queryRunner, ProductoPrecioId)
                 }
                 CUITs.push(CUIT)
 
