@@ -107,6 +107,7 @@ export class TableOrdenVentaComponent implements OnInit {
     this.angularGrid.dataView.onRowsChanged.subscribe(() => {
       totalRecords(this.angularGrid);
       columnTotal('ImporteTotalAFacturar', this.angularGrid);
+      columnTotal('TotalFacturado', this.angularGrid);
     });
   }
 

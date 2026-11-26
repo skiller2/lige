@@ -142,7 +142,7 @@ export class ParametroGeneralController extends BaseController {
       }
 
       if (fieldErrors.length > 0)
-        throw new ClientException(`Debe corregir los campos indicados.`, { fieldErrors })
+        throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
 
       await queryRunner.startTransaction();
 

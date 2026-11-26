@@ -8,7 +8,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { Router } from '@angular/router';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, required, submit, type ValidationError } from '@angular/forms/signals';
+import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, required, submit, validate, type ValidationError } from '@angular/forms/signals';
 
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
@@ -22,7 +22,7 @@ import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
 
 export interface CoordinadorCuenta {
   ObjetivoId: number,
-  PersonalId: number,
+  PersonalId: number|null,
   ObjetivoPersonalJerarquicoId: number,
   ObjetivoPersonalJerarquicoComision: string,
   ObjetivoPersonalJerarquicoDescuentos: boolean,
@@ -40,7 +40,7 @@ export interface Actividad {
 
 export interface Objetivo {
   id: number,
-  ClienteId: number,
+  ClienteId: number|null,
   clienteOld: number,
   ClienteElementoDependienteId: number,
   ObjetivoId: number,
@@ -121,7 +121,7 @@ export class ObjetivosFormComponent {
   private router = inject(Router);
   private readonly coordinadorCuentaDefault: CoordinadorCuenta = {
     ObjetivoId: 0,
-    PersonalId: 0,
+    PersonalId: null,
     ObjetivoPersonalJerarquicoId: 0,
     ObjetivoPersonalJerarquicoComision: '',
     ObjetivoPersonalJerarquicoDescuentos: false,
@@ -137,12 +137,12 @@ export class ObjetivosFormComponent {
   }
   private readonly objetivoDefault: Objetivo = {
     id: 0,
-    ClienteId: 0,
+    ClienteId: null,
     clienteOld: 0,
     ClienteElementoDependienteId: 0,
     ObjetivoId: 0,
     Descripcion: "",
-    SucursalId: 0,
+    SucursalId: NaN,
     CoberturaServicio: "",
     ContratoFechaDesde: "",
     ContratoFechaHasta: "",
@@ -177,6 +177,38 @@ export class ObjetivosFormComponent {
     disabled(p.codigo, () => true),
     applyEach(p.infoActividad, (infoActividad) => {
       disabled(infoActividad.GrupoActividadId, () => (this.ObjetivoId() ? true : false))
+    });
+    required(p.ClienteId, { message: 'Cliente es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.Descripcion, { message: 'Descripcion es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.SucursalId, { message: 'Sucursal es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.ContratoFechaDesde, { message: 'Contrato Desde es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.Domicilio, { message: 'Dirección es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    validate(p.rubrosCliente, (ctx) =>
+      (ctx.state.dirty() || ctx.state.touched()) && !ctx.value()?.length
+        ? { kind: 'required', message: 'Rubro es requerido' }
+        : undefined)
+    validate(p.docsRequerido, (ctx) =>
+      (ctx.state.dirty() || ctx.state.touched()) && !ctx.value()?.length
+        ? { kind: 'required', message: 'Tipo es requerido' }
+        : undefined)
+    validate(p.habilitacion, (ctx) =>
+      (ctx.state.dirty() || ctx.state.touched()) && !ctx.value()?.length
+        ? { kind: 'required', message: 'Habilitaciones es requerido' }
+        : undefined)
+    // required(p.habilitacion, { message: 'Habilitaciones es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    applyEach(p.infoCoordinadorCuenta, (coordinadorCuentaPath) => {
+      required(coordinadorCuentaPath.PersonalId, 
+        { message: 'Persona es requerido', when: (ctx) => !!(
+          ctx.valueOf(coordinadorCuentaPath.ObjetivoPersonalJerarquicoComision) || 
+          ctx.valueOf(coordinadorCuentaPath.ObjetivoPersonalJerarquicoDescuentos) || 
+          ctx.valueOf(coordinadorCuentaPath.ObjetivoPersonalJerarquicoSeDescuentaTelefono) || 
+          ctx.valueOf(coordinadorCuentaPath.DescuentoRetiros)), });
+      required(coordinadorCuentaPath.ObjetivoPersonalJerarquicoComision, 
+        { message: 'Comision es requerido', when: (ctx) => !!(
+          ctx.valueOf(coordinadorCuentaPath.PersonalId) || 
+          ctx.valueOf(coordinadorCuentaPath.ObjetivoPersonalJerarquicoDescuentos) || 
+          ctx.valueOf(coordinadorCuentaPath.ObjetivoPersonalJerarquicoSeDescuentaTelefono) || 
+          ctx.valueOf(coordinadorCuentaPath.DescuentoRetiros)), });
     });
   })
 
@@ -328,10 +360,12 @@ export class ObjetivosFormComponent {
         }
 
         this.onAddorUpdate.emit()
-      } catch (e) {
-
+      } catch (e:any) {
+        return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
+      } finally {
+        this.isLoading.set(false)
       }
-      this.isLoading.set(false)
+      return undefined
     })
   }
 

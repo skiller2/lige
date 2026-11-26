@@ -201,6 +201,32 @@ const columnasGrillaOrdenes: any[] = [
     searchHidden: false,
     maxWidth: 160
   },
+  // Comprobantes de la orden; el total resta las notas de crédito por Signo
+  {
+    id: "Comprobantes",
+    name: "Comprobantes",
+    field: "Comprobantes",
+    fieldName: "comov.Comprobantes",
+    type: "string",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    editable: false
+  },
+  {
+    id: "TotalFacturado",
+    name: "Total Facturado",
+    field: "TotalFacturado",
+    fieldName: "comov.TotalFacturado",
+    type: "currency",
+    searchType: "numberAdvanced",
+    searchComponent: "inputForNumberAdvancedSearch",
+    sortable: true,
+    hidden: false,
+    searchHidden: false,
+    editable: false,
+    maxWidth: 160
+  },
   {
     name: "Asistencia",
     type: "string",
@@ -268,6 +294,7 @@ export class OrdenVentaController extends BaseController {
           ord.EstadoOrdenVentaCodigo,
           ${sqlEstadoOrden} AS Estado,
           ISNULL(ord.ImporteTotalAFacturar,0) AS ImporteTotalAFacturar,
+          comov.Comprobantes, comov.TotalFacturado,
           IIF((objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
           ga.GrupoActividadNumero, gaobj.GrupoActividadId,
           TRIM(ga.GrupoActividadDetalle) AS GrupoActividadDetalle,
@@ -291,11 +318,19 @@ export class OrdenVentaController extends BaseController {
         LEFT JOIN GrupoActividad ga ON ga.GrupoActividadId = gaobj.GrupoActividadId
         LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = ord.PeriodoAnio
         LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = ord.PeriodoMes
-      
+        -- Comprobantes de la orden, solo si está facturada; las notas de crédito tienen Signo -1 y restan
+        OUTER APPLY (
+          SELECT STRING_AGG(CONCAT(TRIM(com.ComprobanteTipoCodigo),' Nro:',TRIM(com.ComprobanteNro),' ($',FORMAT(com.ImporteTotal,'N2','es-AR'),')'), '; ') AS Comprobantes,
+            SUM(com.ImporteTotal * tip.Signo) AS TotalFacturado
+          FROM Comprobante com
+          LEFT JOIN ComprobanteTipo tip ON tip.ComprobanteTipoCodigo = com.ComprobanteTipoCodigo
+          WHERE com.NroOrdenVenta = ord.NroOrdenVenta AND ord.EstadoOrdenVentaCodigo = @0
+        ) comov
+
         WHERE (1=1)
         AND (${filterSql})
         ${orderBy ? orderBy : 'ORDER BY ord.PeriodoAnio DESC, ord.PeriodoMes DESC, ord.NroOrdenVenta DESC'}
-      `);
+      `, [ESTADO_ORDEN_VENTA_FACTURADA]);
 
       this.jsonRes({ total: lista.length, list: lista }, res);
     } catch (error) {
@@ -828,17 +863,54 @@ export class OrdenVentaController extends BaseController {
 
       // Por ítem, con el índice de la pantalla para marcar el campo
       for (const [indice, item] of itemsTmp.entries()) {
-        if (String(item?.ProductoCodigo ?? '').trim() && !Number(item?.Cantidad))
-          fieldErrors.push({ fieldTree: `items[${indice}].Cantidad`, kind: 'server', message: 'Debe completar el campo Cantidad' })
+        if (String(item?.ProductoCodigo ?? '').trim() && !(Number(item?.Cantidad) > 0))
+          fieldErrors.push({ fieldTree: `items[${indice}].Cantidad`, kind: 'server', message: 'La cantidad debe ser mayor a 0' })
       }
 
       const items = itemsTmp.filter(item => String(item?.ProductoCodigo ?? '').trim());
-      const comprobantes = comprobantesTmp.filter(com => String(com.ComprobanteNro ?? '').trim());
+      // Con tipo, número o importe el comprobante cuenta como cargado
+      const comprobantes = comprobantesTmp.filter(com => String(com?.ComprobanteTipoCodigo ?? '').trim() || String(com?.ComprobanteNro ?? '').trim() || cargado(com?.ImporteTotal));
       if (!items.length)
         fieldErrors.push({ fieldTree: ``, kind: 'server', message: 'La orden de venta debe tener al menos un producto' })
 
+      // Por comprobante, igual que la edición masiva: los tres datos y sin repetir
+      const clavesCargadas: string[] = []
+      for (const [indice, comprobante] of comprobantesTmp.entries()) {
+        const tipo = String(comprobante?.ComprobanteTipoCodigo ?? '').trim()
+        const numero = String(comprobante?.ComprobanteNro ?? '').trim()
+        if (!tipo && !numero && !cargado(comprobante?.ImporteTotal)) continue
+        const campo = `comprobantes[${indice}]`
+
+        if (!tipo)
+          fieldErrors.push({ fieldTree: `${campo}.ComprobanteTipoCodigo`, kind: 'server', message: 'El tipo de comprobante es obligatorio' })
+        if (!numero)
+          fieldErrors.push({ fieldTree: `${campo}.ComprobanteNro`, kind: 'server', message: 'El número de comprobante es obligatorio' })
+
+        if (!cargado(comprobante?.ImporteTotal))
+          fieldErrors.push({ fieldTree: `${campo}.ImporteTotal`, kind: 'server', message: 'El importe total es obligatorio' })
+        else if (!Number.isFinite(Number(comprobante.ImporteTotal)))
+          fieldErrors.push({ fieldTree: `${campo}.ImporteTotal`, kind: 'server', message: `El importe total '${comprobante.ImporteTotal}' no es un número válido` })
+
+        if (tipo && numero) {
+          const clave = `${tipo.toUpperCase()}|${numero.toUpperCase()}`
+          if (clavesCargadas.includes(clave))
+            fieldErrors.push({ fieldTree: `${campo}.ComprobanteNro`, kind: 'server', message: `El comprobante ${tipo} ${numero} está repetido` })
+          clavesCargadas.push(clave)
+        }
+      }
+
       if (fieldErrors.length > 0)
-        throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
+        throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
+
+      // Sin Liquidaciones cada comprobante guardado tiene que volver igual: se pueden agregar, no modificar ni quitar
+      if (NroOrdenVenta && !await this.hasGroup(req, 'Liquidaciones')) {
+        const comprobantesGuardados = await queryRunner.query(
+          `SELECT ComprobanteTipoCodigo, ComprobanteNro, ImporteTotal FROM Comprobante WHERE NroOrdenVenta = @0`, [NroOrdenVenta])
+        const clave = (c: any) => `${String(c.ComprobanteTipoCodigo ?? '').trim().toUpperCase()}|${String(c.ComprobanteNro ?? '').trim().toUpperCase()}|${Math.round(Number(c.ImporteTotal) * 100)}`
+        const enviados = comprobantes.map(clave)
+        if (comprobantesGuardados.some((c: any) => !enviados.includes(clave(c))))
+          throw new ClientException('Los comprobantes cargados solo los puede modificar o quitar el grupo "Liquidaciones"')
+      }
 
       await queryRunner.startTransaction();
 
@@ -976,11 +1048,15 @@ export class OrdenVentaController extends BaseController {
         if (String(grupo?.EstadoOrdenVentaCodigo ?? '').trim() === ESTADO_ORDEN_VENTA_FACTURADA && !conComprobante)
           errorCampo(`${campo}.EstadoOrdenVentaCodigo`, 'Para pasar a Facturado debe cargar el comprobante (tipo, número e importe total)');
       }
-
       // Los tres campos del comprobante editado son NOT NULL: van completos o no se manda
       for (const [indice, comprobante] of todosLosComprobantes.entries()) {
         if (!comprobantesEditados.includes(comprobante)) continue;
         const campo = `comprobantes[${indice}]`;
+
+        if (!this.hasGroup(req, 'Liquidaciones')) {
+          errorCampo(`${campo}.ComprobanteNro`, 'Los comprobantes cargados solo los puede modificar o quitar el grupo "Liquidaciones"');
+          continue;
+        }
         const tipoOriginal = String(comprobante?.ComprobanteTipoCodigoOriginal ?? '').trim();
         const numeroOriginal = String(comprobante?.ComprobanteNroOriginal ?? '').trim();
 
@@ -1002,37 +1078,7 @@ export class OrdenVentaController extends BaseController {
       }
 
       if (fieldErrors.length)
-        throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors });
-
-      // Los tipos de comprobante y los estados elegidos tienen que existir
-      const tipos = [...new Set([
-        ...grupos.map(grupo => String(grupo?.ComprobanteTipoCodigo ?? '').trim()),
-        ...comprobantesEditados.map(comprobante => String(comprobante?.ComprobanteTipoCodigo ?? '').trim())
-      ].filter(Boolean))];
-
-      if (tipos.length) {
-        const tiposValidos = await queryRunner.query(
-          `SELECT ComprobanteTipoCodigo FROM ComprobanteTipo WHERE ComprobanteTipoCodigo IN (${tipos.map((_, indice) => `@${indice}`).join(',')})`,
-          tipos);
-
-        const existentes = new Set(tiposValidos.map(
-          (tipo: any) => String(tipo.ComprobanteTipoCodigo).trim().toUpperCase()));
-        const inexistentes = tipos.filter(tipo => !existentes.has(tipo.toUpperCase()));
-
-        if (inexistentes.length)
-          throw new ClientException(inexistentes.map(tipo => `El tipo de comprobante ${tipo} no existe`));
-      }
-
-      const estadosElegidos = [...new Set(grupos
-        .map(grupo => String(grupo?.EstadoOrdenVentaCodigo ?? '').trim()).filter(Boolean))];
-
-      const estados = await queryRunner.query(`SELECT EstadoOrdenVentaCod FROM EstadoOrdenVenta`);
-      const codigosEstado = estados.map((estado: any) => String(estado.EstadoOrdenVentaCod).trim());
-
-      const estadosInexistentes = estadosElegidos.filter(estado => !codigosEstado.includes(estado));
-      if (estadosInexistentes.length)
-        throw new ClientException(
-          estadosInexistentes.map(estado => `El estado '${estado}' no existe en EstadoOrdenVenta`));
+        throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors });
 
       await queryRunner.startTransaction();
 

@@ -693,8 +693,7 @@ export class AsistenciaController extends BaseController {
       `, [ObjetivoId, anio, mes])
 
       if (!ordenesVenta[0]?.NroOrdenVenta && !ordenesVenta[0]?.ObjetivoHabilitacionNecesariaId) {
-        // TODO: DESCOMENTAR CUANDO SE HABILITE EN PRODUCCION EL USO DE ORDEN DE VENTA
-        // throw new ClientException(`No se puede finalizar la carga. El objetivo debe tener al menos una órden de venta cargada para el período ${anio}/${mes}`)
+        throw new ClientException(`No se puede finalizar la planilla. El objetivo debe tener al menos una órden de venta cargada para el período ${anio}/${mes}`)
       }
 
       // Las órdenes de venta del objetivo en el período que siguen pendientes pasan a finalizadas

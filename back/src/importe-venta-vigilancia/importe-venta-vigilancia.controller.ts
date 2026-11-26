@@ -39,10 +39,10 @@ const columnasGrilla: any[] = [
     type: "string",
     id: "ClienteFacturacionCUIT",
     field: "ClienteFacturacionCUIT",
-    fieldName: "cli.ClienteFacturacionCUIT",
+    fieldName: "fac.ClienteFacturacionCUIT",
     sortable: true,
     searchHidden: true,
-    hidden: false,
+    hidden: true,
     editable: false
   },
   {
@@ -80,37 +80,16 @@ const columnasGrilla: any[] = [
     editable: false
   },
   {
-    name: "Cod Obj",
-    type: "string",
-    id: "codObjetivo",
-    field: "codObjetivo",
-    fieldName: "codObjetivo",
-    sortable: true,
-    searchHidden: true,
-    hidden: false,
-    editable: false
-  },
-  {
     name: "Objetivo",
-    type: "number",
+    type: "string",
     id: "ObjetivoId",
-    field: "ObjetivoId",
+    field: "Objetivo",
     fieldName: "obj.ObjetivoId",
     searchComponent: "inputForObjetivoSearch",
     searchType: "number",
-    hidden: true,
-    searchHidden: false,
-    editable: false
-  },
-  {
-    name: "Nombre Obj",
-    type: "string",
-    id: "ClienteElementoDependienteDescripcion",
-    field: "ClienteElementoDependienteDescripcion",
-    fieldName: "eledep.ClienteElementoDependienteDescripcion",
     sortable: true,
-    searchHidden: true,
     hidden: false,
+    searchHidden: false,
     editable: false
   },
   {
@@ -168,7 +147,7 @@ const columnasGrilla: any[] = [
     type: "string",
     id: "RubroClienteDescripcion",
     field: "RubroClienteDescripcion",
-    fieldName: "rub.RubroClienteDescripcion",
+    fieldName: "rubros.RubroClienteDescripciones",
     sortable: true,
     searchHidden: true,
     editable: false,
@@ -193,7 +172,7 @@ const columnasGrilla: any[] = [
     field: "mes",
     fieldName: "mes",
     sortable: true,
-    hidden: false,
+    hidden: true,
     searchHidden: true,
     editable: false
   },
@@ -204,7 +183,7 @@ const columnasGrilla: any[] = [
     field: "anio",
     fieldName: "anio",
     sortable: true,
-    hidden: false,
+    hidden: true,
     searchHidden: true,
     editable: false
   },
@@ -258,7 +237,7 @@ const columnasGrilla: any[] = [
     type: "float",
     id: "DiferenciaHoras",
     field: "DiferenciaHoras",
-    fieldName: "DiferenciaHoras",
+    fieldName: "(ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0)-ISNULL(objasissub.sumtotalhorascalcN,0))",
     searchType: "float",
     sortable: true,
     hidden: false,
@@ -269,7 +248,7 @@ const columnasGrilla: any[] = [
     type: "float",
     id: "DiferenciaHorasTotNorm",
     field: "DiferenciaHorasTotNorm",
-    fieldName: "DiferenciaHorasTotNorm",
+    fieldName: "(objasissubT.sumtotalhorascalcT-ISNULL(objasissub.sumtotalhorascalcN,0))",
     searchType: "float",
     searchHidden: true,
     sortable: true,
@@ -281,7 +260,7 @@ const columnasGrilla: any[] = [
     type: "float",
     id: "DiferenciaHorasTotalVenta",
     field: "DiferenciaHorasTotalVenta",
-    fieldName: "DiferenciaHorasTotalVenta",
+    fieldName: "(objasissubT.sumtotalhorascalcT-(ISNULL(ven.TotalHoraA,0)+ISNULL(ven.TotalHoraB,0)))",
     searchType: "float",
     searchHidden: true,
     sortable: true,
@@ -313,7 +292,7 @@ const columnasGrilla: any[] = [
     type: "currency",
     id: "TotalAFacturar",
     field: "TotalAFacturar",
-    fieldName: "TotalAFacturar",
+    fieldName: "(ISNULL(ven.TotalHoraA,0)*ISNULL(ven.ImporteHoraA,0)+ISNULL(ven.TotalHoraB,0)*ISNULL(ven.ImporteHoraB,0))",
     searchType: "float",
     sortable: true,
     hidden: false,
@@ -336,7 +315,7 @@ const columnasGrilla: any[] = [
     type: "string",
     id: "EstadoAsistencia",
     field: "EstadoAsistencia",
-    fieldName: "EstadoAsistencia",
+    fieldName: "IIF((obj.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado')",
     searchType: "string",
     sortable: true,
     hidden: false,
@@ -351,7 +330,30 @@ const columnasGrilla: any[] = [
     searchType: "string",
     sortable: true,
     hidden: false,
-    editable: true
+    editable: false
+  },
+  // Comprobantes de las órdenes de venta facturadas del período
+  {
+    name: "Comprobantes OV",
+    type: "string",
+    id: "ComprobantesOV",
+    field: "ComprobantesOV",
+    fieldName: "comov.ComprobantesOV",
+    searchType: "string",
+    sortable: true,
+    hidden: false,
+    editable: false
+  },
+  {
+    name: "Total Facturado en OV",
+    type: "currency",
+    id: "ImporteComprobantesOV",
+    field: "ImporteComprobantesOV",
+    fieldName: "comov.ImporteComprobantesOV",
+    searchType: "float",
+    sortable: true,
+    hidden: false,
+    editable: false
   }
 
 ];
@@ -456,7 +458,9 @@ export class ImporteVentaVigilanciaController extends BaseController {
           CONCAT(obj.ClienteId,'-' ,ISNULL(obj.ClienteElementoDependienteId,0),'-',@1,'-',@2) as id, 
           suc.SucursalId, suc.SucursalDescripcion, obj.ObjetivoId, obj.ClienteId, obj.ClienteElementoDependienteId,fac.ClienteFacturacionCUIT,
           cli.ClienteDenominacion, eledep.ClienteElementoDependienteDescripcion,
-          CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo, IIF((obj.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
+          CONCAT(obj.ClienteId,'/' ,ISNULL(obj.ClienteElementoDependienteId,0)) as codObjetivo,
+          CONCAT(obj.ClienteId,'/',ISNULL(obj.ClienteElementoDependienteId,0),' ',TRIM(eledep.ClienteElementoDependienteDescripcion)) AS Objetivo,
+          IIF((obj.ObjetivoId IS NULL OR objm.ObjetivoAsistenciaAnoMesHasta IS NULL),'Pendiente','Cerrado') AS EstadoAsistencia,
           obja.ObjetivoAsistenciaAnoAno, objm.ObjetivoAsistenciaAnoMesMes,
           ga.GrupoActividadId, ga.GrupoActividadNumero, ga.GrupoActividadDetalle,
           gap.GrupoActividadObjetivoDesde, gap.GrupoActividadObjetivoHasta,
@@ -473,8 +477,9 @@ export class ImporteVentaVigilanciaController extends BaseController {
           objdom.DomicilioProvinciaId, objdom.ProvinciaDescripcion,
           rubros.RubroClienteDescripciones AS RubroClienteDescripcion, rubros.RubroClienteIds AS RubroClienteId,
           cc.CoordinadorCuenta,cc.CoordinadorCuentaIds,
+          comov.ComprobantesOV, comov.ImporteComprobantesOV,
           1
-        FROM Objetivo obj 
+        FROM Objetivo obj
         LEFT JOIN ObjetivoImporteVenta ven ON ven.ClienteId =  obj.ClienteId AND ven.ClienteElementoDependienteId = obj.ClienteElementoDependienteId AND  ven.Anio = @1 AND ven.Mes = @2
         LEFT JOIN ObjetivoAsistenciaAno obja ON obja.ObjetivoId = obj.ObjetivoId AND obja.ObjetivoAsistenciaAnoAno = @1
         LEFT JOIN ObjetivoAsistenciaAnoMes objm ON objm.ObjetivoAsistenciaAnoId  = obja.ObjetivoAsistenciaAnoId AND  objm.ObjetivoId = obja.ObjetivoId AND objm.ObjetivoAsistenciaAnoMesMes = @2
@@ -643,7 +648,19 @@ LEFT JOIN (
     Left join Personal poj on poj.PersonalId=oj.ObjetivoPersonalJerarquicoPersonalId
 
     WHERE obj.ObjetivoId=oj.ObjetivoId  and ObjetivoPersonalJerarquicoDesde <= EOMONTH(datefromparts(@1,@2,1)) AND ISNULL(ObjetivoPersonalJerarquicoHasta,'9999-12-31') >= EOMONTH(datefromparts(@1,@2,1))) cc
-                
+
+        -- Comprobantes de las órdenes de venta facturadas del mismo objetivo y período
+        OUTER APPLY (
+          SELECT STRING_AGG(CONCAT(TRIM(com.ComprobanteTipoCodigo),' Nro:',TRIM(com.ComprobanteNro),' ($',FORMAT(com.ImporteTotal,'N2','es-AR'),')'), '; ') AS ComprobantesOV,
+            -- Las notas de crédito tienen Signo -1 y restan
+            SUM(com.ImporteTotal * tip.Signo) AS ImporteComprobantesOV
+          FROM OrdenVenta ord
+          JOIN Comprobante com ON com.NroOrdenVenta = ord.NroOrdenVenta
+          LEFT JOIN ComprobanteTipo tip ON tip.ComprobanteTipoCodigo = com.ComprobanteTipoCodigo
+          WHERE ord.ClienteId = obj.ClienteId AND ord.ClienteElementoDependienteId = obj.ClienteElementoDependienteId
+            AND ord.PeriodoAnio = @1 AND ord.PeriodoMes = @2 AND ord.EstadoOrdenVentaCodigo = 'FAC'
+        ) comov
+
         WHERE eledepcon.ClienteElementoDependienteContratoFechaDesde IS NOT NULL
         AND (${filterSql})
         ${orderBy}

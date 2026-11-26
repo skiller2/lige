@@ -586,15 +586,15 @@ export class NovedadesController extends BaseController {
         }
 
         if (!Obj.DescripcionNormalizada) {
-            fieldErrors.push({ fieldTree: `DescripcionNormalizada`, kind: 'server', message: 'La Descripción Normalizada es obligatorio' })
+            fieldErrors.push({ fieldTree: `DescripcionNormalizada`, kind: 'server', message: 'La Descripción Normalizada es obligatoria' })
         }
 
         if (!Obj.AccionNormalizada) {
-            fieldErrors.push({ fieldTree: `AccionNormalizada `, kind: 'server', message: 'La Acción Normalizada es obligatoria' })
+            fieldErrors.push({ fieldTree: `AccionNormalizada`, kind: 'server', message: 'La Acción Normalizada es obligatoria' })
         }
 
         if (fieldErrors.length > 0)
-            throw new ClientException(`Debe completar los campos requeridos.`, { fieldErrors })
+            throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
 
     }
 
@@ -1391,8 +1391,9 @@ export class NovedadesController extends BaseController {
 
     private async normalizarNovedad(prompt: string, Descripcion: string, Accion: string, TiposNovedad: any[]) {
         const IAmessages: ChatMessage[] = [
-            { role: "system", content: prompt }, 
-            { role: "user", content: `{ Descripcion:${Descripcion}, Accion:${Accion}, Tipos de Novedad:${JSON.stringify(TiposNovedad)}}` }
+            // La lista de tipos va en el prompt de sistema
+            { role: "system", content: `${prompt}\nTipos de Novedad: ${JSON.stringify(TiposNovedad)}` },
+            { role: "user", content: JSON.stringify({ Descripcion, Accion }) }
         ]
         const response = await this.servicioIA.chat({ model: process.env.MODEL, messages: IAmessages, stream: false });
         return JSON.parse(response.message.content)

@@ -15,19 +15,19 @@
     </nz-form-item>
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Cliente</nz-form-label>
-      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17">
+      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="17" nzHasFeedback sfErrorTip >
         <app-cliente-search [formField]="formObjetivo.ClienteId" />
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Descripción</nz-form-label>
-      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="8">
+      <nz-form-control [nzSm]="24" [nzMd]="20" [nzLg]="8" nzHasFeedback sfErrorTip >
         <input nz-input placeholder="" [formField]="formObjetivo.Descripcion" type="string" />
       </nz-form-control>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Sucursal</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formObjetivo.SucursalId" nzPlaceHolder="Sucursal" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" style="width: 100%">
           @for (option of sucursales(); track option.SucursalId) {
@@ -50,14 +50,14 @@
 
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Contrato Desde</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip >
         <nz-date-picker nzFormat="dd/MM/yyyy" [formField]="formObjetivo.ContratoFechaDesde"></nz-date-picker>
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Contrato Hasta</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip>
         <nz-date-picker nzFormat="dd/MM/yyyy" [formField]="formObjetivo.ContratoFechaHasta"></nz-date-picker>
       </nz-form-control>
     </nz-form-item>
@@ -68,7 +68,7 @@
 
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="3">Dirección</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" nzHasFeedback sfErrorTip>
         <app-addr-search [formField]="formObjetivo.Domicilio"></app-addr-search>
       </nz-form-control>
     </nz-form-item>
@@ -149,7 +149,7 @@
     <nz-form-item class="marginElement">
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Actividad</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" nzHasFeedback sfErrorTip>
         <div style="display: flex; align-items: center;">
           <app-grupo-actividad-search [formField]="ip.GrupoActividadId" style="flex: 1 1 auto;" />
           <nz-input-group [nzAddOnAfter]="suffixReloadTpl" style="flex: 0 0 auto;">
@@ -162,7 +162,7 @@
         (onClose)="closeDrawer()"></app-detalle-persona>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Fecha Desde</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="6" nzHasFeedback sfErrorTip>
         <nz-date-picker nzFormat="dd/MM/yyyy" [formField]="ip.GrupoActividadObjetivoDesde"></nz-date-picker>
       </nz-form-control>
 
@@ -175,7 +175,7 @@
 
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Habilitaciones</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formObjetivo.habilitacion" nzMode="multiple" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           @for (option of optionsLugarHabilitacion(); track option.value) {
@@ -191,7 +191,7 @@
 
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Rubro</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formObjetivo.rubrosCliente" nzMode="multiple" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           @for (option of optionsRubroCliente(); track option.value) {
@@ -206,8 +206,8 @@
     </div>
 
     <nz-form-item class="marginElement">
-      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3">Tipo</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12">
+      <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" >Tipo</nz-form-label>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" nzHasFeedback sfErrorTip>
         <nz-select [formField]="formObjetivo.docsRequerido" nzMode="multiple" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           @for (option of optionsDocumentoTipo(); track option.value) {
@@ -225,22 +225,22 @@
     <nz-form-item class="marginElement" [ngClass]="{'even-background': i % 2 === 0}">
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="3" [nzLg]="2"> Persona </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="7">
-        <nz-input-group style="width: 100%" nzSearch>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="12" [nzLg]="7" nzHasFeedback sfErrorTip >
+        <!-- <nz-input-group style="width: 100%" nzSearch> -->
           <app-personal-search [formField]="ip.PersonalId" [anio]="periodo().year" [mes]="periodo().month" />
-        </nz-input-group>
+        <!-- </nz-input-group> -->
       </nz-form-control>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="4" [nzLg]="2"> Comision </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="2">
-        <nz-input-group style="width: 100%" nzSearch>
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="2" nzHasFeedback sfErrorTip >
+        <!-- <nz-input-group style="width: 100%" nzSearch> -->
           <input nz-input placeholder="" [formField]="ip.ObjetivoPersonalJerarquicoComision" type="text" nzInputNumber
             appDotToComma mask="separator.1" />
-        </nz-input-group>
+        <!-- </nz-input-group> -->
       </nz-form-control>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="24" [nzLg]="4">Consumos del Objetivo</nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="23" [nzLg]="6">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="23" [nzLg]="6" nzHasFeedback sfErrorTip >
         <div nz-row>
           <div nz-col [nzSpan]="8">
             <label nz-checkbox [formField]="ip.ObjetivoPersonalJerarquicoDescuentos">
@@ -284,7 +284,7 @@
     <nz-form-item class="marginElement">
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="4"> A Coordinador </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="6">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="6" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formObjetivo.descuentoCoordinador" nzMode="multiple" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           @for (option of optionsDecuentosTipo(); track option.value) {
@@ -294,7 +294,7 @@
       </nz-form-control>
 
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="4"> A Lince </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="6">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="6" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formObjetivo.descuentoLince" nzMode="multiple" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           @for (option of optionsDecuentosTipo(); track option.value) {
@@ -307,7 +307,7 @@
 
     <nz-form-item class="marginElement">
       <nz-form-label [nzXs]="24" [nzSm]="24" [nzMd]="6" [nzLg]="4"> A Cliente </nz-form-label>
-      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="6">
+      <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="5" [nzLg]="6" nzHasFeedback sfErrorTip >
         <nz-select [formField]="formObjetivo.descuentoCliente" nzMode="multiple" nzAllowClear
           [nzDropdownMatchSelectWidth]="false" nzShowSearch>
           @for (option of optionsDecuentosTipo(); track option.value) {
@@ -336,10 +336,10 @@
   <nz-form-item>
     <nz-form-control [nzXs]="24" [nzSm]="24" [nzMd]="24">
 
-      @if ( objetivo().id && mostrarDocs() ) {
+      @if ( objetivo().id && objetivo().ClienteId && mostrarDocs() ) {
       <div class="container-fluid">
         <app-table-objetivo-documentos #docsGrid [ObjetivoId]="objetivo().id"
-          [ClienteId]="objetivo().ClienteId"></app-table-objetivo-documentos>
+          [ClienteId]="objetivo().ClienteId ?? 0"></app-table-objetivo-documentos>
       </div>
       }
 

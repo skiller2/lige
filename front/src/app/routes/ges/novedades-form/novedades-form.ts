@@ -216,7 +216,9 @@ export class NovedadesFormComponent {
     const inputAccion = this.formNovedad.Accion()
     const Accion = inputAccion.value().trim();
 
-    if (this.loading() || (!Descripcion && !Accion)) {
+    // Solo llama a la IA si se modificó Descripción o Acción, o si falta algún normalizado
+    const sinNormalizar = !this.formNovedad.DescripcionNormalizada().value() || !this.formNovedad.AccionNormalizada().value()
+    if (this.loading() || (!Descripcion && !Accion) || !(inputDescripcion.dirty() || inputAccion.dirty() || sinNormalizar)) {
       return
     }
 
