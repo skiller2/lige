@@ -59,7 +59,6 @@ export class PreciosProductosComponent {
 
   complexityLevelList = [true, false];
   angularGridEdit!: AngularGridInstance;
-  // gridObjEdit!: SlickGrid;
   gridOptionsEdit!: GridOption;
 
   tipoProducto = []
@@ -230,7 +229,7 @@ export class PreciosProductosComponent {
           emptyRows.slice(0, -1).forEach((item: any) => this.angularGridEdit.gridService.deleteItemById(item.id))
         }
 
-        const rowComplete = !!row?.Cliente?.id && !!row?.ProductoCodigo?.length && !!row?.PeriodoDesdeAplica && row?.Importe != null
+        const rowComplete = !!row?.ProductoCodigo?.length && !!row?.PeriodoDesdeAplica && row?.Importe != null
 
         if (!rowComplete)
           return
@@ -376,7 +375,7 @@ export class PreciosProductosComponent {
         && !!item?.PeriodoDesdeAplica
         && item?.Importe != null
 
-        const hasInput = !!item?.Cliente?.id || !!item?.ProductoCodigo?.length || item?.Importe != null
+        const hasInput =  !!item?.ProductoCodigo?.length || item?.Importe != null
 
       if (!rowComplete && hasInput) {
         meta.cssClasses = 'element-add-no-complete'
