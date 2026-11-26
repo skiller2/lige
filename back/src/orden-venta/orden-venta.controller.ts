@@ -647,6 +647,8 @@ export class OrdenVentaController extends BaseController {
 
     const fieldErrors: { fieldTree: string, kind: string, message: string }[] = [];
     for (const item of items) {
+      // Con bonificación 100 el importe no incide en el total
+      if (Number(item.Bonificacion) === 100) continue;
       const fieldTree = `items[${Number(item.ItemOrdenVentaCodigo) - 1}].ImporteUnitario`;
       const producto = String(item.ProductoCodigo ?? '').trim();
       // 0 cuenta como sin valor
@@ -865,6 +867,10 @@ export class OrdenVentaController extends BaseController {
       for (const [indice, item] of itemsTmp.entries()) {
         if (String(item?.ProductoCodigo ?? '').trim() && !(Number(item?.Cantidad) > 0))
           fieldErrors.push({ fieldTree: `items[${indice}].Cantidad`, kind: 'server', message: 'La cantidad debe ser mayor a 0' })
+        // Vacía o entre 0 y 100
+        const bonificacion = Number(item?.Bonificacion)
+        if (cargado(item?.Bonificacion) && !(Number.isFinite(bonificacion) && bonificacion >= 0 && bonificacion <= 100))
+          fieldErrors.push({ fieldTree: `items[${indice}].Bonificacion`, kind: 'server', message: 'La bonificación debe estar entre 0 y 100' })
       }
 
       const items = itemsTmp.filter(item => String(item?.ProductoCodigo ?? '').trim());
@@ -1146,7 +1152,7 @@ export class OrdenVentaController extends BaseController {
           if (estadoOrden === ESTADO_ORDEN_VENTA_FACTURADA || estadoOrden === ESTADO_ORDEN_VENTA_A_FACTURAR) {
             const [detalle] = await queryRunner.query(`
               SELECT COUNT(*) AS Incompletos FROM ItemOrdenVenta
-              WHERE NroOrdenVenta = @0 AND (Cantidad IS NULL OR ImporteUnitario IS NULL)
+              WHERE NroOrdenVenta = @0 AND (Cantidad IS NULL OR (ImporteUnitario IS NULL AND ISNULL(Bonificacion,0) <> 100))
             `, [NroOrdenVenta]);
 
             if (detalle.Incompletos)
