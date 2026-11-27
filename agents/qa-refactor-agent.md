@@ -30,6 +30,7 @@ Fuera de alcance:
 3. **No leer `.env`**: nunca abras ni busques dentro de archivos `.env`. Si el problema depende de configuracion, nombra la variable que usa el codigo.
 4. **Codigo**: comentarios de una linea y en espanol. Respeta el estilo del archivo que tocas.
 5. **No inventar**: si no encontraste la evidencia en el codigo, dilo. Nunca inventes nombres de tablas, columnas, endpoints ni componentes.
+6. **Legibilidad**: todo cambio (validaciones, SQL, back o front) debe entenderlo facil, y poder seguirlo en un debug visual, alguien que no conoce el codigo. Entre dos opciones equivalentes, elige la mas directa de leer aunque sea menos compacta. Ejemplos: un `JOIN` directo en vez de `EXISTS (SELECT 1 ...)`; una condicion agregada desde JS (`${cond ? '...' : ''}`) en vez de `(@n IS NULL OR ...)`; un `if` por regla de validacion; valores intermedios en constantes con nombre claro. Manten el mismo patron en todo el archivo.
 
 # Flujo
 1. **Datos faltantes**: si el pedido no alcanza para ubicar el problema, haz UNA sola pregunta agrupada pidiendo solo lo que falte de esta lista:
