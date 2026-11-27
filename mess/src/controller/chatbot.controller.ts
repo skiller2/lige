@@ -739,7 +739,7 @@ export class ChatBotController extends BaseController {
   async chatAgent(req: Request, res: Response, next: NextFunction) {
     const message = String(req.body.message ?? '').trim()
     const chatId = String(req.body.chatId ?? '').trim()
-    const data = Object(req.body.ubicacion)
+    const data = Object(req.body.data)
     let resultado = null
     try {
       resultado =await this.chatAgentProcess(chatId,message,data)

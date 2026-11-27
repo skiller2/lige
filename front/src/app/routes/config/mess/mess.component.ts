@@ -169,13 +169,13 @@ export class MessComponent implements OnInit, OnDestroy {
     if (!navigator.geolocation) return
     this.enviandoUbicacion.set(true)
     try {
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+      const location = await new Promise<GeolocationPosition>((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000 }))
       localStorage.setItem('chatId', this.chatId())
       const resp: any = await firstValueFrom(this.apiService.sendChatMessageAgent(
-        `Ubicación compartida: ${pos.coords.latitude}, ${pos.coords.longitude}`,
+        `Ubicación compartida: ${location.coords.latitude}, ${location.coords.longitude}`,
         this.chatId(),
-        pos
+        {location}
       ))
       this.msgs.update(list => [...list, ...resp.response])
       this.scrollChatToBottom()
