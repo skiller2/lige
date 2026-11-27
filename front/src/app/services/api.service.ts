@@ -517,8 +517,12 @@ export class ApiService {
 
 
   getChatBotMsgs(chatId: string): Observable<any> {
-    return this.http.get<ResponseJSON<any>>('mess/api/chatbot/chatagent/' + chatId).pipe(
-      map(res => res.data)
+
+    return this.http.get('mess/api/chatbot/chatagent/' + chatId,
+      {},{ context: new HttpContext().set(SILENT_NOTIFICATION_ERROR, true) }).pipe(
+      map((res: ResponseJSON<any>) => res.data),
+      catchError(() => of([]))
+
     )
   }
 
