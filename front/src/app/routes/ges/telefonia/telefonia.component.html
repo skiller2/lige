@@ -102,7 +102,7 @@
     <nz-tab>
       <a nz-tab-link routerLink="/ges/telefonia/carga">Carga</a>
       <ng-template nz-tab>
-        <form>
+        <form nz-form>
           <nz-spin [nzSpinning]="(uploading$ |async)!.loading">
 
             <!--<nz-form-item>
@@ -124,42 +124,57 @@
             </nz-form-control>
             </nz-form-item>-->
 
+            <div nz-row>
+              <div nz-col [nzXs]="24" [nzLg]="4">
+                <nz-form-item>
+                  <nz-form-label [nzXs]="24" [nzSm]="9" [nzLg]="18">Simular</nz-form-label>
+                  <nz-form-control [nzXs]="24" [nzSm]="15" [nzLg]="6">
+                    <label nz-checkbox [formField]="formImportacionTelefono.simulacion"></label>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+
+              <div nz-col [nzXs]="24" [nzLg]="8">
+                <nz-form-item>
+                  <nz-form-label [nzXs]="24" [nzSm]="9">Prestadora</nz-form-label>
+                  <nz-form-control [nzXs]="24" [nzSm]="15">
+                    <nz-select nzShowSearch [formField]="formImportacionTelefono.PrestadoraValorId" nzPlaceHolder="Prestadora"
+                      [nzDropdownMatchSelectWidth]="false" style="width: 100%">
+                      @for (prestadora of prestadoras(); track prestadora.ValorId) {
+                      <nz-option [nzValue]="prestadora.ValorId" [nzLabel]="prestadora.ValorDescripcion"></nz-option>
+                      }
+                    </nz-select>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+
+              <div nz-col [nzXs]="24" [nzLg]="8">
+                <nz-form-item>
+                  <nz-form-label [nzXs]="24" [nzSm]="9">Importe total</nz-form-label>
+                  <nz-form-control [nzXs]="24" [nzSm]="15">
+                    <input nz-input [formField]="formImportacionTelefono.totaldeclarado" type="text" placeholder="Importe total" appDotToComma
+                      mask="separator.2" />
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+
+            <div nz-row>
+              <div nz-col [nzXs]="24" [nzLg]="8">
+                <nz-form-item>
+                  <nz-form-label [nzXs]="24" [nzSm]="11">Archivo Telefonía</nz-form-label>
+                  <nz-form-control [nzXs]="24" [nzSm]="13">
+                    <app-file-upload [formField]="formImportacionTelefono.files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
+                      [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'"
+                      [showTipoDocs]="false"></app-file-upload>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+            </div>
+
             <nz-form-item>
-              <nz-form-control [nzXs]="1" [nzSm]="1" [nzMd]="1" [nzLg]="1" >
-
-              </nz-form-control>
-              <nz-form-control [nzLg]="3">
-                <label nz-checkbox [formField]="formImportacionTelefono.simulacion" >Simular</label>
-              </nz-form-control>
-              <nz-form-label [nzXs]="24" [nzSm]="5" [nzMd]="4" [nzLg]="2">Prestadora</nz-form-label>
-              <nz-form-control [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="4">
-                <nz-select nzShowSearch [formField]="formImportacionTelefono.PrestadoraValorId" nzPlaceHolder="Prestadora"
-                  [nzDropdownMatchSelectWidth]="false" style="width: 100%">
-                  @for (prestadora of prestadoras(); track prestadora.ValorId) {
-                  <nz-option [nzValue]="prestadora.ValorId" [nzLabel]="prestadora.ValorDescripcion"></nz-option>
-                  }
-                </nz-select>
-              </nz-form-control>
-            </nz-form-item>
-
-            <nz-form-item class="nfi-margin-bottom" style="margin-top: 12px;">
-              <nz-form-label [nzXs]="24" [nzSm]="5" [nzMd]="4" [nzLg]="3">Archivo Telefonía</nz-form-label>
-              <nz-form-control [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="4">
-                <app-file-upload [formField]="formImportacionTelefono.files" [idForSearh]="0" [cantMaxFiles]="1" [textForSearch]="'TEL'"
-                  [columnForSearch]="'DocumentoId'" [tableForSearch]="'documento'"
-                  [showTipoDocs]="false"></app-file-upload>
-              </nz-form-control>
-
-              <nz-form-label [nzXs]="24" [nzSm]="6" [nzMd]="6" [nzLg]="3">Importe total</nz-form-label>
-              <nz-form-control [nzXs]="24" [nzSm]="7" [nzMd]="5" [nzLg]="4">
-                <input nz-input [formField]="formImportacionTelefono.totaldeclarado" type="text" placeholder="Importe total" appDotToComma
-                  mask="separator.2" />
-              </nz-form-control>
-            </nz-form-item>
-            
-            <nz-form-item>
-              <nz-form-label [nzXs]="24" [nzSm]="6" [nzMd]="5" [nzLg]="4">Importaciones anteriores</nz-form-label>
-              <nz-form-control>
+              <nz-form-label [nzXs]="24" [nzSm]="9" [nzLg]="3">Importaciones anteriores</nz-form-label>
+              <nz-form-control [nzXs]="24" [nzSm]="15" [nzLg]="21">
 
                 @for (movimiento of importacionesAnteriores.value(); track movimiento.DocumentoId) {
                 <!-- <ng-container > -->
