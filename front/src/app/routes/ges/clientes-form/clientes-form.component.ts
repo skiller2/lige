@@ -1,9 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewEncapsulation, inject, viewChild, ChangeDetectionStrategy, signal, model, input, output, Signal, } from '@angular/core';
+import { Component, ViewEncapsulation, inject, viewChild, ChangeDetectionStrategy, signal, model, input, output, Signal, effect } from '@angular/core';
 import { AngularUtilService } from 'angular-slickgrid';
-import { SHARED_IMPORTS, listOptionsT } from '@shared';
+import { SHARED_IMPORTS } from '@shared';
 import { ApiService } from '../../../services/api.service';
-import { FormArray, FormBuilder } from '@angular/forms';
 import { AdministradorSearchComponent } from '../../../shared/administrador-search/administrador-search.component';
 import { firstValueFrom } from 'rxjs';
 import { SearchService } from '../../../services/search.service';
@@ -13,24 +12,50 @@ import { FileUploadComponent } from "../../../shared/file-upload/file-upload.com
 import { Router } from '@angular/router';
 import { TableClienteDocumentoComponent } from '../../../routes/ges/table-cliente-documentos/table-cliente-documentos';
 import { AddrSearchComponent } from "../../../shared/addr-search/addr-search";
+import { toSignal } from '@angular/core/rxjs-interop';
+import { applyEach, disabled, form, FormField, readonly, required, submit } from '@angular/forms/signals';
 
-interface Provincia {
-  ProvinciaId: number;
-  ProvinciaDescripcion: string;
+interface Domicilio {
+  DomicilioId: number;
+  Domicilio: any;
+  DomicilioDomLugar: string;
 }
-
-interface Localidad {
-  LocalidadId: number;
-  localidadDescripcion: string;
-  ProvinciaId: number;
+interface Contacto {
+  ContactoId: number;
+  nombre: string;
+  ContactoApellido: string;
+  area: string;
+  TipoTelefonoId: number|null;
+  telefono: string;
+  correo: string;
+  ContactoEmailId: number;
+  ContactoTelefonoId: number;
+  ContactoTipoCod: string;
+  ContactoJurImpositiva: string;
 }
-
-interface Barrio {
-  BarrioId: number;
-  BarrioDescripcion: string;
-  LocalidadId: number;
+interface Cliente {
+  id: number;
+  ClienteFacturacionCUIT: number;
+  ClienteFacturacionId: number;
+  CondicionAnteIVAId: number;
+  CondicionAnteIVADescripcion: string;
+  ClienteDenominacion: string;
+  ClienteNombreFantasia: string;
+  ClienteFechaAlta: string;
+  ClienteTerminoPago: number;
+  ContactoTelefonoUltNro: number;
+  ContactoEmailUltNro: number;
+  MaxContactoId: number;
+  AdministradorId: number;
+  ClienteAdministradorUltNro: number;
+  infoClienteContacto: Contacto[];
+  infoClienteContactoOriginal: Contacto[];
+  infoDomicilio: Domicilio[];
+  estado: number;
+  files: any[];
+  PermiteDescargaRecibos: boolean;
+  codigo: string;
 }
-
 
 @Component({
     selector: 'app-clientes-form',
@@ -47,6 +72,7 @@ interface Barrio {
         FileUploadComponent,
         TableClienteDocumentoComponent,
         AddrSearchComponent,
+        FormField,
     ],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -59,7 +85,7 @@ export class ClientesFormComponent {
   ClienteId = input(0)
   isLoading = signal(false)
   onAddorUpdate = output<number | null>()
-  pristineChange = output<boolean>()
+  crudAccion = input<string>('');
   mostrarDocs = model<boolean>(false)
 
   //files = []
@@ -68,7 +94,7 @@ export class ClientesFormComponent {
   private apiService = inject(ApiService)
   private searchService = inject(SearchService)
   
-  objClienteContacto = {
+  private readonly clienteContactoDefault:Contacto = {
     ContactoId: 0,
     nombre: "",
     ContactoApellido: "",
@@ -82,244 +108,256 @@ export class ClientesFormComponent {
     ContactoJurImpositiva:""
   }
 
-  objDomiclio = {
+  private readonly domiclioDefault: Domicilio = {
     DomicilioId: 0,
     Domicilio: null,
-    DomicilioDomLugar: null,
+    DomicilioDomLugar: '',
   }
 
-  fb = inject(FormBuilder)
-  formCli = this.fb.group({
+  private readonly clienteDefault: Cliente ={
     id: 0,
-    ClienteFacturacionCUIT: 0,
+    ClienteFacturacionCUIT: NaN,
     ClienteFacturacionId: 0,
     CondicionAnteIVAId: 0,
     CondicionAnteIVADescripcion: "",
     ClienteDenominacion: "",
     ClienteNombreFantasia: "",
     ClienteFechaAlta: "",
-    ClienteTerminoPago: 0,
+    ClienteTerminoPago: NaN,
     ContactoTelefonoUltNro: 0,
     ContactoEmailUltNro: 0,
     MaxContactoId: 0,
     AdministradorId: 0, ClienteAdministradorUltNro: 0, 
-    infoClienteContacto: this.fb.array([this.fb.group({ ...this.objClienteContacto })]),
-    infoClienteContactoOriginal: this.fb.array([this.fb.group({ ...this.objClienteContacto })]),
-    infoDomicilio: this.fb.array([this.fb.group({ ...this.objDomiclio })]),
-    //infoDomicilioOriginal :  this.fb.array([this.fb.group({ ...this.objDomiclio })]),
+    infoClienteContacto: [structuredClone(this.clienteContactoDefault )],
+    infoClienteContactoOriginal: [structuredClone(this.clienteContactoDefault )],
+    infoDomicilio: [structuredClone(this.domiclioDefault)],
     estado: 0,
     files: [],
     PermiteDescargaRecibos: false,
     codigo: ""
-  })
-
-  idForm():number {
-    const value = this.formCli.get("id")?.value
-    if (value) {
-      return value
-    }
-    return 0
   }
 
-  tipoTelefono: any;
-  optionsProvincia: any;
-  optionsLocalidad: any;
-  optionsBarrio: any;
-  optionsCondicionAnteIva: any;
-  $optionTipoContacto = this.searchService.getTipoContacto();
-  $optionJurImpositiva = this.searchService.getJurImpositiva();
+  readonly cliente = signal<Cliente>({...this.clienteDefault});
+  readonly formCliente = form(this.cliente, (p) => {
+    disabled(p, () => this.crudAccion() === 'R');
+    readonly(p.codigo, () => true);
+    required(p.ClienteFacturacionCUIT, { message: 'CUIT es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.ClienteFechaAlta, { message: 'Fecha Inicial es requerida', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.ClienteNombreFantasia, { message: 'Nombre Fantasia es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.ClienteTerminoPago, { message: 'Termino Pago es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.CondicionAnteIVAId, { message: 'Condición ante IVA es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    required(p.ClienteDenominacion, { message: 'Razón Social es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), })
+    applyEach(p.infoDomicilio, (domicilioPath) => {
+      required(domicilioPath.Domicilio, 
+        { message: 'Dirección es requerido', when: (ctx) => ctx.state.dirty() || ctx.state.touched(), });
+    });
+    applyEach(p.infoClienteContacto, (contactoPath) => {
+      required(contactoPath.ContactoTipoCod, 
+        { message: 'Tipo de contacto es requerido', when: (ctx) => !!(
+          ctx.valueOf(contactoPath.ContactoJurImpositiva) || 
+          ctx.valueOf(contactoPath.nombre) || 
+          ctx.valueOf(contactoPath.ContactoApellido)), });
+      required(contactoPath.ContactoJurImpositiva, 
+        { message: 'Comision es requerido', when: (ctx) => !!(
+          ctx.valueOf(contactoPath.ContactoTipoCod) ||
+          ctx.valueOf(contactoPath.nombre) || 
+          ctx.valueOf(contactoPath.ContactoApellido)), });
+      required(contactoPath.nombre, 
+        { message: 'Nombre es requerido', when: (ctx) => !!(
+          ctx.valueOf(contactoPath.ContactoTipoCod) ||
+          ctx.valueOf(contactoPath.ContactoJurImpositiva) || 
+          ctx.valueOf(contactoPath.ContactoApellido)), });
+      required(contactoPath.ContactoApellido, 
+        { message: 'Apellido es requerido', when: (ctx) => !!(
+          ctx.valueOf(contactoPath.ContactoTipoCod) ||
+          ctx.valueOf(contactoPath.ContactoJurImpositiva) || 
+          ctx.valueOf(contactoPath.nombre)), });
+      required(contactoPath.TipoTelefonoId, 
+        { message: 'Tipo Telefono es requerido', when: (ctx) => !!(
+          ctx.valueOf(contactoPath.telefono)
+        ), });
+    });
+  })
+
+  optionsTipoTelefono = toSignal(this.searchService.getTipoTelefono(), { initialValue: [] });
+  optionsCondicionAnteIva = toSignal(this.searchService.getOptionsCondicionAnteIva(), { initialValue: [] });
+  optionTipoContacto = toSignal(this.searchService.getTipoContacto(), { initialValue: [] });
+  optionJurImpositiva = toSignal(this.searchService.getJurImpositiva(), { initialValue: [] });
 
   childDocsGrid = viewChild.required<TableClienteDocumentoComponent>('docsGrid')
 
-  onChangePeriodo(result: Date): void {
-    if (result) {
-      const date = new Date(result)
-      const year = date.getFullYear()
-      const month = date.getMonth() + 1
-      this.periodo.set({ year, month })
+  onChangePeriodo = effect(() => {
+    const ClienteFechaAlta = this.cliente().ClienteFechaAlta
+    if (ClienteFechaAlta) {
+      const date = new Date(ClienteFechaAlta)
+      this.periodo.set({ year: date.getFullYear(), month: date.getMonth() + 1 })
+    } else {
+      this.periodo.set({ year: 0, month: 0 })
     }
-  }
+  })
 
-  async ngOnInit() {
-    this.tipoTelefono = await firstValueFrom(this.searchService.getTipoTelefono())
-    this.optionsProvincia = await firstValueFrom(this.searchService.getProvincia())
-    this.optionsLocalidad = await firstValueFrom(this.searchService.getLocalidad())
-    this.optionsBarrio = await firstValueFrom(this.searchService.getBarrio())
-    this.optionsCondicionAnteIva = await firstValueFrom(this.searchService.getOptionsCondicionAnteIva())
-
-    this.formCli.statusChanges.subscribe(() => {
-      this.checkPristine();
-    });
-  }
-
-  checkPristine() {
-    this.pristineChange.emit(this.formCli.pristine);
-  }
+  async ngOnInit() {}
 
   resetForm() {
-    this.formCli.reset()
-    this.infoClienteContacto().clear()
-    this.infoDomicilio().clear()
-    this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
-    this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
+    this.cliente.update(m => ({
+      ...this.clienteDefault
+    }))
+    setTimeout(() => { this.formCliente().reset() }, 400);
   }
 
   async newRecord() {
-    if (this.formCli.pristine) {
-      this.formCli.enable()
-      this.formCli.get('codigo')?.disable()
-      this.formCli.reset()
-      this.infoClienteContacto().clear()
-      this.infoDomicilio().clear()
-      this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
-      this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
-      this.formCli.markAsPristine()
+    if (!this.formCliente().dirty()) {
+
+      setTimeout(() => { this.formCliente().reset() }, 400);
     }
   }
 
-  async viewRecord(readonly: boolean) {
-    if (this.ClienteId()){
+  async viewRecord() {
+    if (this.ClienteId())
       await this.load()
-    }
-    if (readonly)
-      this.formCli.disable()
-    else
-      this.formCli.enable()
-    this.formCli.get('codigo')?.disable()
-    this.formCli.markAsPristine()
   }
 
   async load() {
     // this.files = []
 
     let infoCliente = await firstValueFrom(this.searchService.getInfoObjCliente(this.ClienteId()))
-    console.log('infoCliente: ', infoCliente);
-    
-    this.infoClienteContacto().clear()
-    this.infoDomicilio().clear()
+    // console.log('infoCliente: ', infoCliente);
 
-    infoCliente.infoClienteContacto.forEach((obj: any) => {
-      this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
-    });
-
-    infoCliente.infoDomicilio.forEach((obj: any) => {
-      this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
-    });
-
-    if (this.ClienteId()) {
-      this.infoClienteContacto().enable()
-      this.infoDomicilio().enable()
-      if (infoCliente.infoClienteContacto.length == 0)
-        this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
-
-      if (infoCliente.infoDomicilio.length == 0)
-        this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
-
-    } else {
-      this.infoDomicilio().disable()
-      this.infoClienteContacto().disable()
+    if (!infoCliente.infoClienteContacto.length) {
+      infoCliente.infoCoordinadorCuenta = [{ ...this.clienteContactoDefault }]
+    }
+    if (!infoCliente.infoDomicilio.length) {
+      infoCliente.infoActividad = [{ ...this.domiclioDefault }]
     }
 
-    this.formCli.reset(infoCliente)
-    this.formCli.patchValue({
+    // if (this.ClienteId()) {
+    //   this.infoClienteContacto().enable()
+    //   this.infoDomicilio().enable()
+    //   if (infoCliente.infoClienteContacto.length == 0)
+    //     this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
+
+    //   if (infoCliente.infoDomicilio.length == 0)
+    //     this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
+
+    // } else {
+    //   this.infoDomicilio().disable()
+    //   this.infoClienteContacto().disable()
+    // }
+    
+    this.cliente.update(m => ({
+      ...m,
+      ...infoCliente,
       codigo: infoCliente.id,
-    });
-    this.formCli.get('codigo')?.disable()
-    //this.cdr.detectChanges(); // Asegúrate de que la vista se actualice.
-    { }
+    }));
+    setTimeout(() => { this.formCliente().reset() }, 400);
+  
   }
 
   async save() {
-    this.isLoading.set(true)
-    const isNewCliente = !this.idForm()
-    let values = this.formCli.value
-    
-    
-    try {
-      values.infoDomicilio = values.infoDomicilio?.filter((domicilio:any) => { return !this.isEqualObject(domicilio, this.objDomiclio) })
-      // console.log('values: ', values);
-      if (this.idForm()) {
-        let result = await firstValueFrom(this.apiService.updateCliente(values, this.idForm()))
-        this.formCli.patchValue({
-          infoClienteContacto: result.data.infoClienteContacto,
-          infoDomicilio: result.data.infoDomicilio,
-        });
+    await submit(this.formCliente, async (form) => {
+      this.isLoading.set(true)
+      let value = {...form().value()};
+      const isNewCliente = !value.id
+      try {
+        value.infoClienteContacto = value.infoClienteContacto.filter((contacto:any)=>{
+          return (contacto.ContactoTipoCod || contacto.ContactoJurImpositiva || contacto.nombre || contacto.ContactoApellido || contacto.telefono || contacto.TipoTelefonoId)   
+        })
+        if (value.id) { //UPDATE
+          let result = await firstValueFrom(this.apiService.updateCliente(value, this.cliente().id))
+          
+          this.cliente.update(m => ({
+            ...m,
+            ...result
+          }));
 
-      } else {
-        //este es para cuando es un nuevo registro
-        let result = await firstValueFrom(this.apiService.addCliente(values))
-        this.formCli.patchValue(result.data);
+        } else { //INSERT (nuevo registro)
 
-        this.mostrarDocs.set(true)
+          let result = await firstValueFrom(this.apiService.addCliente(value))
+          const infoCliente = result.data
+          if (!infoCliente.infoDomicilio.length) {
+            infoCliente.infoDomicilio = [{ ...this.domiclioDefault }]
+          }
+          if (!infoCliente.infoClienteContacto.length) {
+            infoCliente.infoClienteContacto = [{ ...this.clienteContactoDefault }]
+          }
+
+          this.cliente.update(m => ({
+            ...m,
+            ...infoCliente,
+          }));
+
+          this.mostrarDocs.set(true)
+        }
+
+        if (this.mostrarDocs()) {
+          this.childDocsGrid().refreshGrid()
+        }
+
+        this.onAddorUpdate.emit(this.cliente().id)
+
+        if (isNewCliente && this.cliente().id) {
+          await this.router.navigate(['/ges/clientes/editar'])
+        }
+      } catch (e:any) {
+        console.log('fieldErrors: ', e.error?.data?.fieldErrors);
+        
+        return this.apiService.formBackendErrors(form, e.error?.data?.fieldErrors);
+      } finally {
+        this.isLoading.set(false)
       }
-
-      if (this.mostrarDocs()) {
-        this.childDocsGrid().refreshGrid()
-      }
-
-      this.formCli.markAsUntouched()
-      this.formCli.markAsPristine()
-      this.onAddorUpdate.emit(this.idForm())
-
-      if (isNewCliente && this.idForm()) {
-        await this.router.navigate(['/ges/clientes/editar'])
-      }
-    } catch (e) {
-
-    }
-    this.isLoading.set(false)
-
-  }
-
-  infoDomicilio(): FormArray {
-    return this.formCli.get("infoDomicilio") as FormArray
+      return undefined
+    })
   }
 
   addDomicilio(e?: MouseEvent): void {
     e?.preventDefault();
-    this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
 
+    const newDomicilio = structuredClone(this.domiclioDefault)
+
+    this.cliente.update(m => ({
+      ...m,
+      infoDomicilio: [...m.infoDomicilio, newDomicilio],
+    }));
   }
 
   removeDomicilio(index: number, e: MouseEvent): void {
-
     e.preventDefault();
-    if (this.infoDomicilio().length > 1) {
-      this.infoDomicilio().removeAt(index)
-    } else {
-      this.infoDomicilio().clear()
-      this.infoDomicilio().push(this.fb.group({ ...this.objDomiclio }))
+    this.cliente.update(m => ({
+      ...m,
+      infoDomicilio: m.infoDomicilio.filter((_, i) => i !== index),
+    }));
+
+    if (this.cliente().infoDomicilio.length == 0) {
+      this.addDomicilio(undefined)
     }
-    this.formCli.markAsDirty();
-  }
-
-
-  ////////
-  infoClienteContacto(): FormArray {
-    return this.formCli.get("infoClienteContacto") as FormArray
   }
 
   addClienteContacto(e?: MouseEvent): void {
-
     e?.preventDefault();
-    this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
+
+    const newClienteContacto = structuredClone(this.clienteContactoDefault)
+
+    this.cliente.update(m => ({
+      ...m,
+      infoClienteContacto: [...m.infoClienteContacto, newClienteContacto],
+    }));
 
   }
 
   removeClienteContacto(index: number, e: MouseEvent): void {
-
     e.preventDefault();
-    if (this.infoClienteContacto().length > 1) {
-      this.infoClienteContacto().removeAt(index)
-    } else {
-      this.infoClienteContacto().clear()
-      this.infoClienteContacto().push(this.fb.group({ ...this.objClienteContacto }))
+    this.cliente.update(m => ({
+      ...m,
+      infoClienteContacto: m.infoClienteContacto.filter((_, i) => i !== index),
+    }));
+
+    if (this.cliente().infoClienteContacto.length == 0) {
+      this.addClienteContacto(undefined)
     }
-    this.formCli.markAsDirty();
   }
 
   async deleteCliente() {
-    const ClienteId = this.idForm()
+    const ClienteId = this.cliente().id
     if (!ClienteId) return
 
     this.isLoading.set(true)

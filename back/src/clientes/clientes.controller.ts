@@ -1006,15 +1006,15 @@ ${orderBy}`, [fechaActual])
 
 
             //validacion de barrio
-            if (ObjCliente.DomicilioProvinciaId && ObjCliente.DomicilioLocalidadId && !ObjCliente.DomicilioBarrioId) {
+            // if (ObjCliente.DomicilioProvinciaId && ObjCliente.DomicilioLocalidadId && !ObjCliente.DomicilioBarrioId) {
 
-                let queryBarrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
-                    [ObjCliente.DomicilioProvinciaId, ObjCliente.DomicilioLocalidadId])
+            //     let queryBarrio = await queryRunner.query(`SELECT BarrioId,ProvinciaId,LocalidadId,BarrioDescripcion FROM Barrio WHERE PaisId = 1 AND ProvinciaId = @0 AND LocalidadId = @1`,
+            //         [ObjCliente.DomicilioProvinciaId, ObjCliente.DomicilioLocalidadId])
 
-                if (queryBarrio && queryBarrio.length > 0)
-                    throw new ClientException(`Debe completar el campo barrio.`)
+            //     if (queryBarrio && queryBarrio.length > 0)
+            //         throw new ClientException(`Debe completar el campo barrio.`)
 
-            }
+            // }
 
             let ClienteFacturacionId = 1
 
@@ -1158,112 +1158,90 @@ ${orderBy}`, [fechaActual])
     async FormValidations(form: any, queryRunner: any) {
         const CUIT: string = form.ClienteFacturacionCUIT;
         const idCliente: number = form.id;
+        const fieldErrors:any[] = []
 
         if (!CUIT) {
-            throw new ClientException(`Debe completar el campo CUIT.`);
+            fieldErrors.push({ fieldTree: `ClienteFacturacionCUIT`, kind: 'server', message: 'El CUIT es obligatorio.' })
+        } else {
+            try {
+                this.validarCUIT(CUIT)
+            } catch (error:any) {
+                fieldErrors.push({ fieldTree: `ClienteFacturacionCUIT`, kind: 'server', message: error.message })
+            }
         }
-
-        this.validarCUIT(CUIT);
 
         const valCuit = await queryRunner.query(
             `SELECT ClienteId FROM ClienteFacturacion WHERE ClienteFacturacionCUIT = @0`, [CUIT]
         );
 
         if (valCuit.length > 0 && idCliente !== valCuit[0].ClienteId) {
-            throw new ClientException(`El CUIT ingresado ya existe.`);
+            fieldErrors.push({ fieldTree: `ClienteFacturacionCUIT`, kind: 'server', message: `El CUIT ingresado ya existe.` })
         }
 
 
         if (!form.ClienteFechaAlta) {
-            throw new ClientException(`Debe completar el campo Fecha Inicial.`);
+            fieldErrors.push({ fieldTree: `ClienteFechaAlta`, kind: 'server', message: `Fecha Inicial es obligatorio.` })
         }
 
         if (!form.ClienteNombreFantasia) {
-            throw new ClientException(`Debe completar el campo Nombre Fantasia.`);
+            fieldErrors.push({ fieldTree: `ClienteNombreFantasia`, kind: 'server', message: `Nombre Fantasia es obligatorio.` })
         }
 
         if (!form.ClienteTerminoPago) {
-            throw new ClientException(`Debe completar el campo Termino Pago.`);
+            fieldErrors.push({ fieldTree: `ClienteTerminoPago`, kind: 'server', message: `Termino Pago es obligatorio.` })
         }
 
         if (!form.CondicionAnteIVAId) {
-            throw new ClientException(`Debe completar el campo Condición ante IVA.`);
+            fieldErrors.push({ fieldTree: `CondicionAnteIVAId`, kind: 'server', message: `Condición ante IVA es obligatorio.` })
         }
 
         if (!form.ClienteDenominacion) {
-            throw new ClientException(`Debe completar el campo Razón Social.`);
+            fieldErrors.push({ fieldTree: `ClienteDenominacion`, kind: 'server', message: `Razón Social es obligatorio.` })
         }
 
-
-
-        // for (const obj of form.infoDomicilio) {
-
-        //     //Domicilio
-
-        //     if (!obj.DomicilioDomCalle) {
-        //         throw new ClientException(`Debe completar el campo Dirección Calle.`)
-        //     }
-
-        //     if (!obj.DomicilioDomNro) {
-        //         throw new ClientException(`Debe completar el campo Domicilio Nro.`)
-        //     }
-
-        //     if (obj.DomicilioDomNro.length > 5) {
-        //         throw new ClientException(`Debe completar el campo Domicilio Nro.`)
-        //     }
-
-        //     if (!obj.DomicilioCodigoPostal) {
-        //         throw new ClientException(`Debe completar el campo Cod Postal.`)
-        //     }
-
-        //     if (obj.DomicilioCodigoPostal.length > 8) {
-        //         throw new ClientException(`El campo Cod Postal NO puede ser mayor a 8 digitos.`)
-        //     }
-
-        //     if (!obj.DomicilioProvinciaId) {
-        //         throw new ClientException(`Debe completar el campo Provincia.`)
-        //     }
-
-        //     if (!obj.DomicilioLocalidadId) {
-        //         throw new ClientException(`Debe completar el campo Localidad.`)
-        //     }
-
-
-        // }
         // DOMICILIO
         for (const [idx, obj] of form.infoDomicilio.entries()) {
-            const res = await domicilioController.valObjDomicilio(obj.Domicilio)
-            if (res instanceof ClientException) {
-                throw new ClientException(`Dirección ${idx+1}: ${res.messageArr}`)
+            // Direcciones: el detalle va debajo del buscador de direccion
+            if (!obj.Domicilio && obj.DomicilioCompleto) {
+                fieldErrors.push({ fieldTree: `infoDomicilio[${idx}].Domicilio`, kind: 'server', message: 'No se pudo identificar la ubicación geográfica del domicilio registrado. Busque nuevamente la dirección y seleccione una de las opciones.' })
+            } else {
+                const res = domicilioController.valObjDomicilio(obj.Domicilio)
+                if (res instanceof ClientException)
+                fieldErrors.push({ fieldTree: `infoDomicilio[${idx}].Domicilio`, kind: 'server', message: res.messageArr.join(' ') })
             }
         }
 
         // CLIENTE CONTACTO
 
-        for (const obj of form.infoClienteContacto) {
+        for (const [idx, obj] of form.infoClienteContacto.entries()) {
+            // if (!obj.ContactoTipoCod && !obj.ContactoJurImpositiva && !obj.nombre && !obj.ContactoApellido && !obj.telefono && !obj.TipoTelefonoId) {
+            //     continue
+            // }
 
             if (!obj.ContactoTipoCod) {
-                throw new ClientException(`Debe completar el campo Tipo de contacto en cliente contacto`)
+                fieldErrors.push({ fieldTree: `infoClienteContacto[${idx}].ContactoTipoCod`, kind: 'server', message: 'Tipo de contacto es obligatorio.' })
             }
 
             if (!obj.ContactoJurImpositiva) {
-                throw new ClientException(`Debe completar el campo Jurisdicción impositiva en cliente contacto`)
+                fieldErrors.push({ fieldTree: `infoClienteContacto[${idx}].ContactoJurImpositiva`, kind: 'server', message: 'Jurisdicción impositiva es obligatorio.' })
             }
 
             if (!obj.nombre) {
-                throw new ClientException(`Debe completar el campo Nombre en cliente contacto`)
+                fieldErrors.push({ fieldTree: `infoClienteContacto[${idx}].nombre`, kind: 'server', message: 'Nombre es obligatorio.' })
             }
 
             if (!obj.ContactoApellido) {
-                throw new ClientException(`Debe completar el campo Apellido en cliente contacto`)
+                fieldErrors.push({ fieldTree: `infoClienteContacto[${idx}].ContactoApellido`, kind: 'server', message: 'Apellido es obligatorio.' })
             }
 
             if (obj.telefono && !obj.TipoTelefonoId) {
-                throw new ClientException(`Debe completar el campo Tipo Telefono`)
+                fieldErrors.push({ fieldTree: `infoClienteContacto[${idx}].TipoTelefonoId`, kind: 'server', message: 'Tipo Telefono es obligatorio.' })
             }
 
         }
 
+        if (fieldErrors.length > 0)
+            throw new ClientException(`Debe solucionar los errores indicados en el formulario`, { fieldErrors })
 
     }
 

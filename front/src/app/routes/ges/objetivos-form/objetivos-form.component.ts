@@ -8,7 +8,7 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { Router } from '@angular/router';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, required, submit, validate, type ValidationError } from '@angular/forms/signals';
+import { applyEach, disabled, form, FormField, readonly, required, submit, validate } from '@angular/forms/signals';
 
 import { ApiService } from '../../../services/api.service';
 import { SearchService } from '../../../services/search.service';
@@ -174,7 +174,7 @@ export class ObjetivosFormComponent {
   readonly objetivo = signal<Objetivo>(this.objetivoDefault);
   readonly formObjetivo = form(this.objetivo, (p) => {
     disabled(p, () => this.readonly()),
-    disabled(p.codigo, () => true),
+    readonly(p.codigo, () => true),
     applyEach(p.infoActividad, (infoActividad) => {
       disabled(infoActividad.GrupoActividadId, () => (this.ObjetivoId() ? true : false))
     });

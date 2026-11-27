@@ -129,11 +129,6 @@ export class ClientesComponent {
     }, 1000)
   }
 
-
-  onPristineChange(isPristine: boolean) {
-    this.childIsPristine.set(isPristine)
-  }
-
   async angularGridReady(angularGrid: any) {
     this.angularGrid = angularGrid.detail
     this.angularGrid.dataView.onRowsChanged.subscribe((e, arg) => {
@@ -180,11 +175,11 @@ export class ClientesComponent {
         this.childAlta().mostrarDocs.set(false)
         break
       case 3: //DETAIL
-        this.childDeta().viewRecord(true)
+        this.childDeta().viewRecord()
         this.childDeta().mostrarDocs.set(true)
         break;
       case 2: //EDIT
-        this.childEdit().viewRecord(false)
+        this.childEdit().viewRecord()
         this.childEdit().mostrarDocs.set(true)
         break;
       case 1:
