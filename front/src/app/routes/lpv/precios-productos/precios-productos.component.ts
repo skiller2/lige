@@ -12,8 +12,7 @@ import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-bu
 import { columnTotal, totalRecords } from "../../../shared/custom-search/custom-search"
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { SelectSearchComponent } from "../../../shared/select-search/select-search.component"
-import { ProductoHistorialDrawerComponent } from '../../ges/producto-historial-drawer/producto-historial-drawer.component'
-import { Component, model, signal, inject, computed, resource } from '@angular/core';
+import { Component, signal, inject, computed, resource } from '@angular/core';
 import { EditorClienteComponent } from '../../../shared/editor-cliente/editor-cliente';
 import { ProductosImportacionMasivaComponent } from '../productos-importacion-masiva/productos-importacion-masiva';
 import { Selections } from '../../../shared/schemas/filtro';
@@ -28,7 +27,6 @@ import { CustomFloatEditor } from '../../../shared/custom-float-grid-editor/cust
     ...SHARED_IMPORTS,
     CommonModule,
     FiltroBuilderComponent,
-    ProductoHistorialDrawerComponent,
     ProductosImportacionMasivaComponent
   ],
   templateUrl: './precios-productos.component.html',
@@ -43,8 +41,6 @@ export class PreciosProductosComponent {
   private readonly messageSrv = inject(NzMessageService);
   columnDefinitions: Column[] = []
   itemAddActive = false
-  visibleHistorial = model<boolean>(false)
-  editProducto = signal<{ codigo: string }[]>([])
   precioVentaId = signal<{ codigo: string }[]>([])
   periodo = signal(new Date())
   anio = computed(() => this.periodo() ? this.periodo().getFullYear() : 0)
@@ -101,8 +97,7 @@ export class PreciosProductosComponent {
                 params: {
                   component: EditorClienteComponent,
                 },
-                alwaysSaveOnEnterKey: true,
-                required: true
+                alwaysSaveOnEnterKey: true
               }
               col.params = {
                 complexFieldLabel: 'Cliente.fullName',
@@ -215,8 +210,7 @@ export class PreciosProductosComponent {
         row = this.angularGridEdit.dataView.getItemById(row.id)
 
         const emptyRows = this.angularGridEdit.dataView.getItems().filter(item => {
-          const rowComplete = !!item?.Cliente?.id
-            && !!item?.ProductoCodigo?.length
+          const rowComplete = !!item?.ProductoCodigo?.length
             && !!item?.PeriodoDesdeAplica
           // && item?.Importe != null
 
@@ -348,10 +342,6 @@ export class PreciosProductosComponent {
     if (this.apiService.isMobile())
       this.angularGridEdit.gridService.hideColumnByIds([])
 
-  }
-
-  openDrawerforConsultHistory(): void {
-    this.visibleHistorial.set(true)
   }
 
   handleSelectedRowsChanged(e: any): void {

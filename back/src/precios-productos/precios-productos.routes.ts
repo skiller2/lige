@@ -8,16 +8,8 @@ preciosProductosRouter.get("/cols-precios", [authMiddleware.verifyToken,authMidd
     preciosProductosController.getGridCols(req, res);
 });
 
-preciosProductosRouter.get("/colsHistory", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gComercial', 'gComercialCon'])], (req, res) => {
-  preciosProductosController.colsHistory(req, res);
-});
-
 preciosProductosRouter.get("/options", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gComercial', 'gComercialCon'])], (req, res, next) => {
   preciosProductosController.getProductos(req, res, next);;
-});
-
-preciosProductosRouter.get("/:codigoHistory", [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gComercial', 'gComercialCon'])], (req, res, next) => {
-  preciosProductosController.listCodigoHistory(req.params.codigoHistory, res, next);;
 });
 
 preciosProductosRouter.post('/list-precios', [authMiddleware.verifyToken,authMiddleware.hasGroup(['Liquidaciones','Liquidaciones Consultas', 'gComercial', 'gComercialCon'])], (req, res, next) => {

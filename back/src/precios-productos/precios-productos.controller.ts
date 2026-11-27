@@ -33,6 +33,19 @@ export class PreciosProductosController extends BaseController {
             width: 20
         },
         {
+            id: "ProductoCodigo",
+            name: "Producto",
+            field: "ProductoCodigo",
+            fieldName: "pp.ProductoCodigo",
+            type: "string",
+            searchComponent: "inputForProductoCodigoSearch",
+            formatter: 'collectionFormatter',
+            sortable: true,
+            searchHidden: false,
+            hidden: false,
+            editable: true
+        },
+        {
             name: "CUIT",
             type: "string",
             id: "ClienteFacturacionCUIT",
@@ -54,19 +67,6 @@ export class PreciosProductosController extends BaseController {
             sortable: true,
             hidden: false,
             searchHidden: false,
-            editable: true
-        },
-        {
-            id: "ProductoCodigo",
-            name: "Producto",
-            field: "ProductoCodigo",
-            fieldName: "pp.ProductoCodigo",
-            type: "string",
-            searchComponent: "inputForProductoCodigoSearch",
-            formatter: 'collectionFormatter',
-            sortable: true,
-            searchHidden: false,
-            hidden: false,
             editable: true
         },
         {
@@ -108,53 +108,6 @@ export class PreciosProductosController extends BaseController {
 
     async getGridCols(req, res) {
         this.jsonRes(this.listaColumnas, res);
-    }
-
-    async colsHistory(req, res) {
-        this.jsonRes(this.listaColumnas, res);
-    }
-
-    async listCodigoHistory(codigoId: any, res: Response, next: NextFunction) {
-
-
-        const queryRunner = await getConnection(res.locals.userName)
-
-        try {
-
-            const precios = await queryRunner.query(
-                `SELECT1 
-                    prod. AS id,
-                    prod.cod_producto AS codigo, 
-                    prod.des_producto AS descripcion,
-                    prod.nom_producto AS nombre,
-                    tip.cod_tipo_producto AS TipoProductoId,
-                    tip.des_tipo_producto AS TipoProductoDescripcion,
-                    vent.importe AS importe,
-                    vent.precio_venta_id as  precioVentaId,
-                    vent.importe_desde AS desde,
-                    vent.importe_hasta AS hasta,
-                    suc.SucursalId, 
-                    suc.SucursalDescripcion
-                FROM ProductoPrecio pp
-                LEFT JOIN Producto p ON prod.cod_producto = vent.cod_producto
-                LEFT JOIN ProductoTipo pt ON prod.cod_tipo_producto = tip.cod_tipo_producto
-                LEFT JOIN Cliente c on pp.ClienteId = c.ClienteId
-                LEFT JOIN Sucursal suc ON vent.SucursalId = suc.SucursalId  WHERE  prod.cod_producto=@0`, [codigoId])
-
-            this.jsonRes(
-                {
-                    total: precios.length,
-                    list: precios,
-                },
-                res
-            );
-
-        } catch (error) {
-            return next(error)
-        } finally {
-            await queryRunner.release()
-        }
-
     }
 
     async listPrecios(req: any, res: Response, next: NextFunction) {
@@ -291,7 +244,9 @@ LEFT JOIN ClienteFacturacion fac
 
         const idTable = req.body.idTable
         const ProductoPrecioId = req.body.ProductoPrecioId
-        const ClienteId = req.body.Cliente?.id
+        const ClienteId = req.body.Cliente?.id ?? null
+        // ClienteId = NULL nunca matchea en SQL, por eso sin cliente se usa IS NULL
+        const filtroCliente = ClienteId ? 'ClienteId = @1' : 'ClienteId IS NULL'
         const ProductoCodigo = req.body.ProductoCodigo
         const Importe = Number(req.body.Importe)
         const PeriodoDesdeAplica = new Date(req.body.PeriodoDesdeAplica)
@@ -317,24 +272,21 @@ LEFT JOIN ClienteFacturacion fac
             if (idTable != null && idTable.length > 0) {
                 // UPDATE: existe registro anterior
 
-                // Obtener el período anterior del registro
+                // Verificar que exista el registro que se está editando
                 const registroAnterior = await queryRunner.query(`
-                    SELECT PeriodoDesdeAplica, Importe FROM ProductoPrecio 
-                    WHERE ProductoCodigo = @0 AND ClienteId = @1
-                    ORDER BY PeriodoDesdeAplica DESC
-                `, [ProductoCodigo, ClienteId])
+                    SELECT PeriodoDesdeAplica, Importe FROM ProductoPrecio
+                    WHERE ProductoPrecioId = @0
+                `, [ProductoPrecioId])
 
                 if (!registroAnterior.length) {
                     throw new ClientException('El registro a actualizar no existe')
                 }
 
-                const PeriodoAnterior = new Date(registroAnterior[0].PeriodoDesdeAplica)
-                PeriodoAnterior.setHours(0, 0, 0, 0)
-
-                //   validar que el registro nuevo , en dicho periodo no exista ya un precio para ese producto y cliente
+                // Validar que no exista otro precio para el mismo producto, cliente y período
                 const checkExistente = await queryRunner.query(`
-                    SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 AND NOT (PeriodoDesdeAplica = @3)
-                `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica, PeriodoAnterior])
+                    SELECT PeriodoDesdeAplica FROM ProductoPrecio
+                    WHERE ProductoCodigo = @0 AND ${filtroCliente} AND PeriodoDesdeAplica = @2 AND ProductoPrecioId <> @3
+                `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica, ProductoPrecioId])
                 if (checkExistente.length) throw new ClientException('Ya existe un registro con los mismos datos')
 
 
@@ -342,7 +294,7 @@ LEFT JOIN ClienteFacturacion fac
                 await this.updateProductoPrecioQuery(queryRunner, ProductoPrecioId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
 
                 // Generar idTable consistente con frontend
-                const idTableResponse = `${ProductoCodigo}-${ClienteId}`
+                const idTableResponse = `${ProductoCodigo}-${ClienteId ?? ''}`
                 dataResultado = { action: 'U', idTable: idTableResponse }
                 message = "Actualización exitosa"
 
@@ -351,7 +303,8 @@ LEFT JOIN ClienteFacturacion fac
 
                 // Validar que no exista duplicado
                 const checkExistente = await queryRunner.query(`
-                    SELECT PeriodoDesdeAplica FROM ProductoPrecio WHERE ProductoCodigo = @0 AND ClienteId = @1 AND PeriodoDesdeAplica = @2 
+                    SELECT PeriodoDesdeAplica FROM ProductoPrecio
+                    WHERE ProductoCodigo = @0 AND ${filtroCliente} AND PeriodoDesdeAplica = @2
                 `, [ProductoCodigo, ClienteId, PeriodoDesdeAplica])
 
                 if (checkExistente.length) throw new ClientException('Ya existe un registro con los mismos datos')
@@ -360,7 +313,7 @@ LEFT JOIN ClienteFacturacion fac
                 await this.addProductoPrecioQuery(queryRunner, ProductoCodigo, ClienteId, PeriodoDesdeAplica, Importe, fechaActual, usuario, ip)
 
                 // Generar idTable consistente con frontend
-                const idTableResponse = `${ProductoCodigo}-${ClienteId}`
+                const idTableResponse = `${ProductoCodigo}-${ClienteId ?? ''}`
                 dataResultado = { action: 'I', idTable: idTableResponse }
                 message = "Carga de nuevo Registro exitoso"
             }
