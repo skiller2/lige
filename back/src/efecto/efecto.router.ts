@@ -66,7 +66,7 @@ efectoRouter.get("/atributos", [authMiddleware.verifyToken, authMiddleware.hasGr
   efectoController.getAtributos(req, res, next);
 });
 
-efectoRouter.get("/valores", [authMiddleware.verifyToken, authMiddleware.hasGroup(['gLogistica', 'gLogisticaCon'])], (req, res, next) => {
+efectoRouter.get("/valores", [authMiddleware.verifyToken], (req, res, next) => {
   efectoController.getValores(req, res, next);
 });
 

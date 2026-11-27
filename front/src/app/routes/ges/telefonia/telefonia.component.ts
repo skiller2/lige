@@ -8,6 +8,8 @@ import { NzAffixModule } from 'ng-zorro-antd/affix';
 import { NzUploadFile, NzUploadModule } from 'ng-zorro-antd/upload';
 import { BehaviorSubject, firstValueFrom, map, max } from 'rxjs';
 import { ApiService, doOnSubscribe } from '../../../services/api.service';
+import { SearchService } from '../../../services/search.service';
+import { Valor } from '../../../shared/schemas/efecto.schemas';
 import { FiltroBuilderComponent } from '../../../shared/filtro-builder/filtro-builder.component';
 import { RowDetailViewComponent } from '../../../shared/row-detail-view/row-detail-view.component';
 import { SHARED_IMPORTS, listOptionsT } from '@shared';
@@ -24,7 +26,8 @@ import { applyEach, disabled, FieldTree, form, FormField, hidden, readonly, requ
 export interface ImportacionTelefono {
   files:any[],
   totaldeclarado:string,
-  simulacion: boolean
+  simulacion: boolean,
+  PrestadoraValorId: number | null
 }
 
 @Component({
@@ -84,6 +87,7 @@ export class TelefoniaComponent {
 
   private readonly loadingSrv = inject(LoadingService);
   private readonly apiService = inject(ApiService);
+  private readonly searchService = inject(SearchService);
   private readonly router = inject(Router);
   private readonly angularUtilService = inject(AngularUtilService);
 
@@ -144,8 +148,12 @@ export class TelefoniaComponent {
   private importacionTelefonoDefault: ImportacionTelefono = {
     files: [],
     totaldeclarado: '',
-    simulacion: false
+    simulacion: false,
+    PrestadoraValorId: null
   }
+
+  // AtributoId 9 = Prestadora de servicio
+  readonly prestadoras = toSignal(this.searchService.getValores(9), { initialValue: [] as Valor[] })
 
   readonly importacionTelefono = signal<ImportacionTelefono>(this.importacionTelefonoDefault);
   readonly formImportacionTelefono = form(this.importacionTelefono)
@@ -173,9 +181,10 @@ export class TelefoniaComponent {
         this.gridDataImport.set([])
         const simulacion:boolean = Boolean(untracked(() => this.importacionTelefono().simulacion))
         const totaldeclarado:number = Number(untracked(() => this.importacionTelefono().totaldeclarado)) || 0
+        const PrestadoraValorId = untracked(() => this.importacionTelefono().PrestadoraValorId)
 
         try {
-          await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio(), this.mes(), this.fecha(), totaldeclarado, simulacion))
+          await firstValueFrom(this.apiService.importXLSImporteVentaTelefonia(filesValue, this.anio(), this.mes(), this.fecha(), totaldeclarado, simulacion, PrestadoraValorId))
           this.gridData.reload()
           this.fileUploadComponent().DeleteFileByExporterror(filesValue)
         } catch (e: any) {

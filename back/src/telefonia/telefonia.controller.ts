@@ -243,9 +243,13 @@ export class TelefoniaController extends BaseController {
   }
 
 
-  async getTelefonos(fecha: Date, anio: number, mes: number, options: any,queryRunner: QueryRunner) {
+  async getTelefonos(fecha: Date, anio: number, mes: number, options: any,queryRunner: QueryRunner, prestadoraValorId: number | null = null) {
     const filterSql = filtrosToSql(options.filtros, this.listaColumnas);
     const orderBy = orderToSQL(options.sort)
+    // Solo el importador filtra por prestadora; la grilla trae todas las líneas
+    const joinPrestadora = prestadoraValorId
+      ? 'JOIN EfectoAtributo ea ON ea.EfectoId = efeind.EfectoId AND ea.EfectoAtributoAtributoId = 9 AND ea.EfectoAtributoValorId = @3'
+      : ''
 
     fecha.setHours(0, 0, 0, 0)
 
@@ -292,7 +296,8 @@ SELECT CONCAT(mov.MovimientoStockCodigo,'-',efeind.EfectoId, '-', efeind.EfectoE
 		 stk.StockStock,
  1
 FROM EfectoEfectoIndividual efeind
-JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = efeind.EfectoEfectoIndividualId AND efeatr.EfectoId =efeind.EfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7 
+JOIN EfectoEfectoIndividualAtributoIngreso efeatr ON efeatr.EfectoEfectoIndividualId = efeind.EfectoEfectoIndividualId AND efeatr.EfectoId =efeind.EfectoId AND efeatr.EfectoAtributoAtributoIngresoId = 7
+${joinPrestadora}
 
 
 CROSS APPLY
@@ -385,7 +390,7 @@ LEFT JOIN Sucursal suco ON suco.SucursalId = ISNULL(eledep.ClienteElementoDepend
  WHERE 1=1 and (mov.DepositoIdDestino is null or mov.DepositoIdDestino !=5) -- filtro el deposito de baja
 
            AND (${filterSql}) ${orderBy}`,
-      [fecha, anio, mes])
+      [fecha, anio, mes, prestadoraValorId])
 
   }
 
@@ -456,6 +461,7 @@ LEFT JOIN Sucursal suco ON suco.SucursalId = ISNULL(eledep.ClienteElementoDepend
     const file = req.body?.files?.[0] ?? req.body?.files;
     const fechaRequest: Date = new Date(req.body.fecha);
     const simulacion: boolean = Boolean(req.body.simulacion);
+    const prestadoraValorId = Number(req.body.PrestadoraValorId)
     const queryRunner = await getConnection(res.locals.userName);
 
 
@@ -481,6 +487,9 @@ LEFT JOIN Sucursal suco ON suco.SucursalId = ISNULL(eledep.ClienteElementoDepend
       if (!mesRequest) throw new ClientException("Faltó indicar el mes");
       if (!fechaRequest) throw new ClientException("Faltó indicar fecha de aplicación");
       if (!totaldeclarado) throw new ClientException("Faltó indicar el total declarado");
+      if (!prestadoraValorId) throw new ClientException("Faltó indicar la prestadora");
+      // Solo existe importador para Movistar (ValorId 1)
+      if (prestadoraValorId != 1) throw new ClientException("No existe importador");
 
 
       const periodo_id = await Utils.getPeriodoId(queryRunner, fechaActual, anioRequest, mesRequest, usuario, ip)
@@ -496,7 +505,7 @@ LEFT JOIN Sucursal suco ON suco.SucursalId = ISNULL(eledep.ClienteElementoDepend
 
       const now = fechaRequest
 
-      let telefonos = await this.getTelefonos(fechaRequest, anioRequest, mesRequest, { filtros: [], sort: [] }, queryRunner)
+      let telefonos = await this.getTelefonos(fechaRequest, anioRequest, mesRequest, { filtros: [], sort: [] }, queryRunner, prestadoraValorId)
 
 
       telefonos = telefonos.map(tel => ({ ...tel, ...{ fimpplanvoz: 0, fserviciosvoz: 0, fpacksms: 0, fpackdatos: 0, fgarantia: 0, fotros: 0, vvoz: 0, vldnldi: 0, vmensajes: 0, vdatos: 0, vroaming: 0, votros: 0, unicavez: 0, total: 0 } }));
@@ -713,10 +722,21 @@ LEFT JOIN Sucursal suco ON suco.SucursalId = ISNULL(eledep.ClienteElementoDepend
             }
       */
 
+      // Borra solo el consumo del mes de la prestadora importada
       await queryRunner.query(
-        'DELETE FROM ConsumoTelefoniaAnoMesTelefonoConsumo WHERE ConsumoTelefoniaAnoId = @0 AND ConsumoTelefoniaAnoMesId=@1', [ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesId])
+        `DELETE con FROM ConsumoTelefoniaAnoMesTelefonoConsumo con
+         JOIN ConsumoTelefoniaAnoMesTelefonoAsignado asi ON asi.ConsumoTelefoniaAnoId = con.ConsumoTelefoniaAnoId AND asi.ConsumoTelefoniaAnoMesId = con.ConsumoTelefoniaAnoMesId AND asi.ConsumoTelefoniaAnoMesTelefonoAsignadoId = con.ConsumoTelefoniaAnoMesTelefonoAsignadoId
+         JOIN EfectoAtributo ea ON ea.EfectoId = asi.EfectoId AND ea.EfectoAtributoAtributoId = 9 AND ea.EfectoAtributoValorId = @2
+         WHERE con.ConsumoTelefoniaAnoId = @0 AND con.ConsumoTelefoniaAnoMesId = @1`, [ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesId, prestadoraValorId])
       await queryRunner.query(
-        'DELETE FROM ConsumoTelefoniaAnoMesTelefonoAsignado WHERE ConsumoTelefoniaAnoId = @0 AND ConsumoTelefoniaAnoMesId=@1', [ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesId])
+        `DELETE asi FROM ConsumoTelefoniaAnoMesTelefonoAsignado asi
+         JOIN EfectoAtributo ea ON ea.EfectoId = asi.EfectoId AND ea.EfectoAtributoAtributoId = 9 AND ea.EfectoAtributoValorId = @2
+         WHERE asi.ConsumoTelefoniaAnoId = @0 AND asi.ConsumoTelefoniaAnoMesId = @1`, [ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesId, prestadoraValorId])
+
+      // Continúa la numeración después de las asignaciones de otras prestadoras
+      const ultAsignado = await queryRunner.query(
+        'SELECT ISNULL(MAX(ConsumoTelefoniaAnoMesTelefonoAsignadoId), 0) UltNro FROM ConsumoTelefoniaAnoMesTelefonoAsignado WHERE ConsumoTelefoniaAnoId = @0 AND ConsumoTelefoniaAnoMesId = @1', [ConsumoTelefoniaAnoId, ConsumoTelefoniaAnoMesId])
+      ConsumoTelefoniaAnoMesTelefonoUltNro = Number(ultAsignado[0].UltNro)
 
       for (const telrow of telefonos) {
         ConsumoTelefoniaAnoMesTelefonoUltNro++
