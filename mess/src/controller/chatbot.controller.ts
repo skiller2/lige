@@ -646,34 +646,59 @@ export class ChatBotController extends BaseController {
                 break;
               }
               case 'getEstadoAsistencia':
-                output = await asistenciaController.getEstadoAsistencia(personalId, chatId)
+                output = await asistenciaController.getEstadoAsistencia(personalId)
                 break;
               case 'getObjetivosSugeridos':
-                const ubicacion = botServer.iaHistorial[chatId].msgs.find(m=>m.data?.location)
-
-                if (!ubicacion.coords.latitude)
-                  output= { ubicacionRecibida: false, accion: 'Pedile que comparta su ubicación actual.' }
+                output = await asistenciaController.getObjetivosSugeridos(personalId, args?.Latitud, args?.Longitud)
+                break;
+              case 'getUbicacion': {
+                const ubicacionMsg = [...botServer.iaHistorial[chatId].msgs].reverse().find(m=>m.data?.location?.coords)?.data.location
+                const ubicacionLink = botServer.iaHistorial[chatId].ubicacion
+                // Se usa la más reciente entre la compartida por WhatsApp y la del enlace de verificación facial
+                if (ubicacionLink && (!ubicacionMsg || new Date(ubicacionLink.fecha).getTime() > Number(ubicacionMsg.timestamp ?? 0)))
+                  output = { latitud: ubicacionLink.latitud, longitud: ubicacionLink.longitud }
                 else
-                  output = await asistenciaController.getObjetivosSugeridos(personalId, ubicacion.coords.latitude, ubicacion.coords.longitude)
+                  output = { latitud: ubicacionMsg?.coords?.latitude ?? null, longitud: ubicacionMsg?.coords?.longitude ?? null }
                 break;
-              case 'getObjetivoPorCodigo':
-                const ubicacionObj = botServer.iaHistorial[chatId].msgs.find(m=>m.data?.location)
-                output = await asistenciaController.getObjetivoPorCodigo(ubicacionObj?.coords?.latitude,ubicacionObj?.coords?.longitude, args.CodObjetivo)
+              }
+              case 'getVerificacionFacial': {
+                const verificacionFacial2 = botServer.iaHistorial[chatId]?.verificacionFacial ?? null
+                output = { resultado: verificacionFacial2?.resultado === 'OK' || verificacionFacial2?.resultado === 'FALLO' ? verificacionFacial2.resultado : null, similitud: verificacionFacial2?.similitud ?? null }
                 break;
+              }
+              case 'getObjetivoPorCodigo': {
+                output = await asistenciaController.getObjetivoPorCodigo(args?.Latitud, args?.Longitud, Number(args.ClienteId), Number(args.ClienteElementoDependienteId))
+                break;
+              }
               case 'registrarAsistencia':
-                const ubicacionAsi = botServer.iaHistorial[chatId].msgs.find(m=>m.data?.location)
-                output = await asistenciaController.registrarAsistencia(personalId, chatId, ubicacionAsi.coords.latitude, ubicacionAsi.coords.longitude, args)
+                const TipoAsi = String(args?.Tipo ?? '').trim().toUpperCase()
+                const ObservacionesAsi = String(args?.Observaciones ?? '').trim() || null
+                const horaInformada = String(args?.FechaHora ?? '').trim() || null
+                output = await asistenciaController.registrarAsistencia(personalId, args?.VerificacionFacial, args?.Similitud, args?.Latitud, args?.Longitud,
+                  TipoAsi, ObservacionesAsi, horaInformada, args.ClienteId, args.ClienteElementoDependienteId)
+
                 break;
               case 'modificarObjetivoUltimoRegistro':
-                output = await asistenciaController.modificarObjetivoUltimoRegistro(personalId, chatId, args)
+                const Motivo1 = String(args?.Observaciones ?? '').trim() || null
+                output = await asistenciaController.modificarObjetivoUltimoRegistro(personalId, args.ClienteId, args.ClienteElementoDependienteId, Motivo1)
                 break;
               case 'anularRegistroAsistencia':
-                output = await asistenciaController.anularRegistroAsistencia(personalId, chatId, args)
+                 const Motivo = String(args?.Observaciones ?? '').trim() || null
+                 const RegistroAsistenciaCodigo = Number(args?.RegistroAsistenciaCodigo)
+                output = await asistenciaController.anularRegistroAsistencia(personalId, RegistroAsistenciaCodigo, Motivo)
                 break;
-              case 'getLinkVerificacionFacial':
-                output = await asistenciaController.getLinkVerificacionFacial(personalId, chatId)
+              case 'getLinkVerificacionFacial': {
+                const verificacionAnterior = botServer.iaHistorial[chatId]?.verificacionFacial
+                const { encTelNro } = await personalController.genTelCode(chatId)
+                output = await asistenciaController.getLinkVerificacionFacial(personalId, verificacionAnterior, encTelNro)
+                // Un enlace nuevo reemplaza al anterior pero conserva los intentos ya usados
+                if (!(output as any)?.Error)
+                  botServer.iaHistorial[chatId].verificacionFacial = {
+                    encTelNro, generado: new Date(), intentos: verificacionAnterior?.intentos ?? 0, resultado: null, similitud: null, ubicacion: null
+                  }
                 break;
-              case 'getResultadoVerificacion':                
+              }
+              case 'getResultadoVerificacion':
                 output = await asistenciaController.getResultadoVerificacion(personalId, botServer.iaHistorial[chatId]?.verificacionFacial)
                 break;
               case 'getAgentes':

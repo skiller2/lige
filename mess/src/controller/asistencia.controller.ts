@@ -39,7 +39,7 @@ function distanciaEnMetros(lat1: number, lon1: number, lat2: number, lon2: numbe
 export class AsistenciaController extends BaseController {
 
   // Último movimiento, ingreso abierto (objetivo y horas), operación sugerida y verificación requerida
-  async getEstadoAsistencia(personalId: number, chatId: string) {
+  async getEstadoAsistencia(personalId: number) {
     const queryRunner = await dbServer.connection()
     try {
       const rows = await queryRunner.query(`
@@ -86,8 +86,6 @@ export class AsistenciaController extends BaseController {
       // Sin foto vigente con vector facial no se manda el enlace: se pide la ubicación y se registra como FALLO
       const sinFotoVerificacionFacial = requiereFacial && !(await this.tieneVectorFacial(queryRunner, personalId))
 
-      const resultadoSesion = botServer.iaHistorial[chatId]?.verificacionFacial?.resultado
-
       return {
         tieneRegistrosPrevios: !!ultimo,
         ultimoRegistro: ultimo ? {
@@ -108,8 +106,7 @@ export class AsistenciaController extends BaseController {
         verificacionRequerida: requiereFacial && !sinFotoVerificacionFacial ? 'FACIAL' : 'UBICACION',
         ultimaVerificacionFacial,
         sinFotoVerificacionFacial,
-        // Hay un resultado de verificación facial (OK o FALLO) todavía sin usar en un registro
-        verificacionFacialLista: resultadoSesion === 'OK' || resultadoSesion === 'FALLO'
+
       }
     } finally {
       await queryRunner.release()
@@ -117,12 +114,9 @@ export class AsistenciaController extends BaseController {
   }
 
   // Objetivo ingresado a mano por código ClienteId/ClienteElementoDependienteId (ej. 134/2)
-  async getObjetivoPorCodigo(latitud:number, longitud:number, CodObjetivo: string | undefined) {
-    const partes = String(CodObjetivo ?? '').replace(/\s/g, '').match(/^(\d+)\/(\d+)$/)
-    if (!partes)
-      return { Error: 'CODIGO_INVALIDO', mensaje: 'El código de objetivo debe tener el formato número/número, por ejemplo 134/2.' }
-    const ClienteId = Number(partes[1])
-    const ClienteElementoDependienteId = Number(partes[2])
+  async getObjetivoPorCodigo(latitud:number, longitud:number, ClienteId: number, ClienteElementoDependienteId: number) {
+    if (!Number.isInteger(ClienteId) || ClienteId <= 0 || !Number.isInteger(ClienteElementoDependienteId) || ClienteElementoDependienteId <= 0)
+      return { Error: 'CODIGO_INVALIDO', mensaje: 'No se encontró un objetivo con ese código. El código son dos números, por ejemplo 134/2.' }
 
     const queryRunner = await dbServer.connection()
     try {
@@ -175,6 +169,9 @@ export class AsistenciaController extends BaseController {
 
   // Objetivos vigentes: cercanos a la ubicación recibida y de asistencias anteriores
   async getObjetivosSugeridos(personalId: number, latitud:number, longitud:number) {
+    if (!Number.isFinite(Number(latitud)) || !Number.isFinite(Number(longitud)) || latitud == null || longitud == null)
+      return { Error: 'SIN_UBICACION', mensaje: 'No se recibió la ubicación. Pedile que comparta su ubicación actual.' }
+
     const queryRunner = await dbServer.connection()
     try {
       const vigentes = await this.getObjetivosVigentes(queryRunner)
@@ -305,19 +302,18 @@ export class AsistenciaController extends BaseController {
   }
 
   // Graba un INGRESO o EGRESO en RegistroAsistencia; valida que no queden dos ingresos abiertos
-  async registrarAsistencia(personalId: number, chatId: string, latitude:number, longitude:number, args: any) {
-    const Tipo = String(args?.Tipo ?? '').trim().toUpperCase()
+  async registrarAsistencia(personalId: number, VerificacionFacialResultado: any, similitud: any, latitude:number, longitude:number, Tipo: any, Observaciones?: any, horaInformada?: any,
+    ClienteId?: any, ClienteElementoDependienteId?: any) {
+
     if (Tipo !== 'ING' && Tipo !== 'EGR')
       return { Error: 'TIPO_INVALIDO', mensaje: 'La operación debe ser ING (ingreso) o EGR (egreso).' }
 
-    const Observaciones = String(args?.Observaciones ?? '').trim() || null
     const ahora = new Date()
 
     // Hora informada por el asociado (ingreso o egreso olvidado): no puede ser futura y requiere observación
     let FechaHora = ahora
-    const horaInformada = !!String(args?.FechaHora ?? '').trim()
     if (horaInformada) {
-      FechaHora = new Date(String(args.FechaHora).trim().replace(' ', 'T'))
+      FechaHora = new Date(String(horaInformada).trim().replace(' ', 'T'))
       if (isNaN(FechaHora.getTime()))
         return { Error: 'FECHA_INVALIDA', mensaje: 'La fecha y hora debe tener el formato YYYY-MM-DD HH:mm.' }
       if (FechaHora > ahora)
@@ -326,10 +322,9 @@ export class AsistenciaController extends BaseController {
         return { Error: 'FALTA_OBSERVACION', mensaje: 'Cuando la hora la informa el asociado hay que completar Observaciones.' }
     }
 
-    // Verificación facial: se controla en el servidor, sin depender del modelo
-    const verificacion = botServer.iaHistorial[chatId]?.verificacionFacial ?? null
-    const resultadoFacial = verificacion?.resultado === 'OK' || verificacion?.resultado === 'FALLO' ? verificacion.resultado : null
-    const estado = await this.getEstadoAsistencia(personalId, chatId)
+    // Verificación facial: OK, FALLO o null si no se hizo
+    const resultadoFacial = VerificacionFacialResultado === 'OK' || VerificacionFacialResultado === 'FALLO' ? VerificacionFacialResultado : null
+    const estado = await this.getEstadoAsistencia(personalId)
     if (estado.verificacionRequerida === 'FACIAL' && !resultadoFacial)
       return { Error: 'FALTA_VERIFICACION_FACIAL', mensaje: 'Antes de registrar hay que completar la verificación facial con el enlace de getLinkVerificacionFacial.' }
 
@@ -345,7 +340,7 @@ export class AsistenciaController extends BaseController {
     const ObservacionesRegistro = [Observaciones, notaVerificacion].filter(Boolean).join(' | ') || null
 
     // El objetivo tiene que existir y estar vigente
-    const objetivo: any = await this.getObjetivoPorCodigo(latitude, longitude, `${args?.ClienteId}/${args?.ClienteElementoDependienteId}`)
+    const objetivo: any = await this.getObjetivoPorCodigo(latitude, longitude, Number(ClienteId), Number(ClienteElementoDependienteId))
     if (objetivo.Error) return objetivo
 
     const usuario = BaseController.getUser(null)
@@ -383,11 +378,11 @@ export class AsistenciaController extends BaseController {
       const GeoReferenciacion = latitude?`${latitude},${longitude}` : ''
       // Todo lo recibido y lo resuelto, para auditoría
       const ObjetoCompleto = JSON.stringify({
-        PersonalId: personalId, chatId, Tipo, FechaHora, horaInformada,
+        PersonalId: personalId, Tipo, FechaHora, horaInformada,
         ClienteId: objetivo.ClienteId, ClienteElementoDependienteId: objetivo.ClienteElementoDependienteId,
         Objetivo: objetivo.Objetivo, latitude,longitude, distanciaMetros: objetivo.distanciaMetros,
         distanciaMaximaMetros: objetivo.distanciaMaximaMetros, Observaciones: ObservacionesRegistro,
-        VerificacionFacial, similitud: verificacion?.similitud ?? null, usuario, fechaRegistro: ahora
+        VerificacionFacial, similitud: similitud ?? null, usuario, fechaRegistro: ahora
       })
 
       const RegistroAsistenciaCodigo = await BaseController.getProxNumero(queryRunner, 'RegistroAsistencia', usuario, ip)
@@ -404,10 +399,6 @@ export class AsistenciaController extends BaseController {
       ])
 
       await queryRunner.commitTransaction()
-
-      // El resultado de la verificación facial ya se usó
-      if (botServer.iaHistorial[chatId])
-        delete botServer.iaHistorial[chatId].verificacionFacial
 
       return {
         registrado: true,
@@ -430,12 +421,11 @@ export class AsistenciaController extends BaseController {
 
   // Cambia solo el objetivo del último registro de la persona, dentro del plazo de corrección.
   // Un egreso no se modifica porque tiene que ser del mismo objetivo que su ingreso.
-  async modificarObjetivoUltimoRegistro(personalId: number, chatId: string, args: any) {
+  async modificarObjetivoUltimoRegistro(personalId: number, clienteId: number, clienteElementoDependienteId: number , Motivo?: any) {
     // El objetivo nuevo tiene que existir y estar vigente
-    const objetivo: any = await this.getObjetivoPorCodigo(null,null, `${args?.ClienteId}/${args?.ClienteElementoDependienteId}`)
+    const objetivo: any = await this.getObjetivoPorCodigo(null, null, Number(clienteId), Number(clienteElementoDependienteId))
     if (objetivo.Error) return objetivo
 
-    const Motivo = String(args?.Observaciones ?? '').trim() || null
     const ahora = new Date()
     const usuario = BaseController.getUser(null)
     const ip = '::1'
@@ -510,12 +500,12 @@ export class AsistenciaController extends BaseController {
 
   // Anula (FechaAnulado) un registro de la persona, sin borrarlo
   // Solo el último registro: así nunca queda un egreso sin su ingreso
-  async anularRegistroAsistencia(personalId: number, chatId: string, args: any) {
-    const RegistroAsistenciaCodigo = Number(args?.RegistroAsistenciaCodigo)
+  async anularRegistroAsistencia(personalId: number , RegistroAsistenciaCodigo: number, Motivo?: string) {
+
     if (!Number.isInteger(RegistroAsistenciaCodigo) || RegistroAsistenciaCodigo <= 0)
       return { Error: 'CODIGO_INVALIDO', mensaje: 'Falta el código del registro a anular.' }
 
-    const Motivo = String(args?.Observaciones ?? '').trim() || null
+   
     const ahora = new Date()
     const usuario = BaseController.getUser(null)
     const ip = '::1'
@@ -567,7 +557,7 @@ export class AsistenciaController extends BaseController {
     }
 
     // Estado después de anular: si quedó un ingreso abierto o no
-    const estadoActual = await this.getEstadoAsistencia(personalId, chatId)
+    const estadoActual = await this.getEstadoAsistencia(personalId)
     return {
       anulado: true,
       RegistroAsistenciaCodigo,
@@ -581,22 +571,16 @@ export class AsistenciaController extends BaseController {
 
   // Genera el enlace externo que toma la foto y la ubicación. El encTelNro es el mismo cifrado del
   // enlace de AUTH (genTelCode con el chatId); el PersonalId no viaja en la URL.
-  async getLinkVerificacionFacial(personalId: number, chatId: string) {
-    const estado = await this.getEstadoAsistencia(personalId, chatId)
-    if (estado.verificacionFacialLista)
+  async getLinkVerificacionFacial(personalId: number, verificacionAnterior: any, encTelNro: string) {
+    if (verificacionAnterior?.resultado === 'OK' || verificacionAnterior?.resultado === 'FALLO')
       return { Error: 'VERIFICACION_YA_REALIZADA', mensaje: 'La verificación facial ya terminó. Consultá getResultadoVerificacion y seguí con el registro.' }
+    const estado = await this.getEstadoAsistencia(personalId)
     if (estado.verificacionRequerida !== 'FACIAL')
       return { Error: 'VERIFICACION_FACIAL_NO_REQUERIDA', mensaje: 'No hace falta verificación facial: pedile que comparta su ubicación actual.' }
 
-    const ret = await personalController.genTelCode(chatId)
-    const anterior = botServer.iaHistorial[chatId].verificacionFacial
-    // Un enlace nuevo reemplaza al anterior pero conserva los intentos ya usados
-    botServer.iaHistorial[chatId].verificacionFacial = {
-      encTelNro: ret.encTelNro, generado: new Date(), intentos: anterior?.intentos ?? 0, resultado: null, similitud: null, ubicacion: null
-    }
     return {
       // Mismo formato que el enlace de AUTH (chatbot.controller, init/ident): la pantalla de registro de asistencia
-      url: `${process.env.URL_LINK}/#/asis/registro-asistencia;encTelNro=${encodeURIComponent(ret.encTelNro)}`,
+      url: `${process.env.URL_LINK}/#/asis/registro-asistencia;encTelNro=${encodeURIComponent(encTelNro)}`,
       // El enlace dura lo mismo que la conversación (timeout de inactividad de la sesión)
       linkVigenciaMinutos: Math.round(IA_HISTORIAL_TIMEOUT_MS / 1000 / 60)
     }
@@ -719,15 +703,8 @@ export class AsistenciaController extends BaseController {
   // Dispara el agente para el chat con un mensaje interno, sin esperar a que escriba el vigilador.
   // Las respuestas quedan sin enviar para que las levante la consulta de mensajes del chat (GET chatagent).
   private avisarVerificacionTerminada(chatId: string) {
-    const res: any = {
-      locals: {},
-      status: () => ({
-        json: (body: any) => body?.data?.response?.forEach((m: any) => { m.sendIt = false })
-      })
-    }
-    // interno: chatAgent agrega el mensaje ya con debug, para que no se vea como escrito por el vigilador
-    const req: any = { body: { message: MENSAJE_VERIFICACION_TERMINADA, chatId, interno: true } }
-    chatBotController.chatAgent(req, res, (error: any) => console.error(`[IA][${chatId}] Aviso de verificación facial falló: ${error?.message}`))
+    chatBotController.chatAgentProcess(chatId, MENSAJE_VERIFICACION_TERMINADA, {})
+      .then(({ nuevos }) => nuevos.forEach((m: any) => { m.sendIt = false }))
       .catch((error: any) => console.error(`[IA][${chatId}] Aviso de verificación facial falló: ${error?.message}`))
   }
 
