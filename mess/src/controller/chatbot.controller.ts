@@ -649,13 +649,20 @@ export class ChatBotController extends BaseController {
                 output = await asistenciaController.getEstadoAsistencia(personalId, chatId)
                 break;
               case 'getObjetivosSugeridos':
-                output = await asistenciaController.getObjetivosSugeridos(personalId, chatId)
+                const ubicacion = botServer.iaHistorial[chatId].msgs.find(m=>m.data?.location)
+
+                if (!ubicacion.coords.latitude)
+                  output= { ubicacionRecibida: false, accion: 'Pedile que comparta su ubicación actual.' }
+                else
+                  output = await asistenciaController.getObjetivosSugeridos(personalId, ubicacion.coords.latitude, ubicacion.coords.longitude)
                 break;
               case 'getObjetivoPorCodigo':
-                output = await asistenciaController.getObjetivoPorCodigo(chatId, args.CodObjetivo)
+                const ubicacionObj = botServer.iaHistorial[chatId].msgs.find(m=>m.data?.location)
+                output = await asistenciaController.getObjetivoPorCodigo(ubicacionObj?.coords?.latitude,ubicacionObj?.coords?.longitude, args.CodObjetivo)
                 break;
               case 'registrarAsistencia':
-                output = await asistenciaController.registrarAsistencia(personalId, chatId, args)
+                const ubicacionAsi = botServer.iaHistorial[chatId].msgs.find(m=>m.data?.location)
+                output = await asistenciaController.registrarAsistencia(personalId, chatId, ubicacionAsi.coords.latitude, ubicacionAsi.coords.longitude, args)
                 break;
               case 'modificarObjetivoUltimoRegistro':
                 output = await asistenciaController.modificarObjetivoUltimoRegistro(personalId, chatId, args)
@@ -666,8 +673,8 @@ export class ChatBotController extends BaseController {
               case 'getLinkVerificacionFacial':
                 output = await asistenciaController.getLinkVerificacionFacial(personalId, chatId)
                 break;
-              case 'getResultadoVerificacion':
-                output = await asistenciaController.getResultadoVerificacion(personalId, chatId)
+              case 'getResultadoVerificacion':                
+                output = await asistenciaController.getResultadoVerificacion(personalId, botServer.iaHistorial[chatId]?.verificacionFacial)
                 break;
               case 'getAgentes':
                 output = await queryRunner.query(`Select ChatBotPromptCodigo,Descripcion from ChatBotPrompt where BasePrompt = 0 AND Activo=1`)

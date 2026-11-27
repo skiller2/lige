@@ -117,7 +117,7 @@ export class AsistenciaController extends BaseController {
   }
 
   // Objetivo ingresado a mano por código ClienteId/ClienteElementoDependienteId (ej. 134/2)
-  async getObjetivoPorCodigo(chatId: string, CodObjetivo: string | undefined) {
+  async getObjetivoPorCodigo(latitud:number, longitud:number, CodObjetivo: string | undefined) {
     const partes = String(CodObjetivo ?? '').replace(/\s/g, '').match(/^(\d+)\/(\d+)$/)
     if (!partes)
       return { Error: 'CODIGO_INVALIDO', mensaje: 'El código de objetivo debe tener el formato número/número, por ejemplo 134/2.' }
@@ -153,12 +153,11 @@ export class AsistenciaController extends BaseController {
       if (!obj.Vigente)
         return { Error: 'OBJETIVO_NO_VIGENTE', mensaje: `El objetivo ${obj.CodObjetivo} no está vigente.` }
 
-      const ubicacion = botServer.iaHistorial[chatId]?.ubicacion ?? null
       const lat = Number(obj.Latitud)
       const lon = Number(obj.Longitud)
       const conCoordenadas = obj.Latitud != null && obj.Longitud != null && Number.isFinite(lat) && Number.isFinite(lon) && !(lat === 0 && lon === 0)
-      const distanciaMetros = ubicacion && conCoordenadas
-        ? Math.round(distanciaEnMetros(ubicacion.latitud, ubicacion.longitud, lat, lon))
+      const distanciaMetros = latitud && conCoordenadas
+        ? Math.round(distanciaEnMetros(latitud, longitud, lat, lon))
         : null
 
       return {
@@ -175,15 +174,14 @@ export class AsistenciaController extends BaseController {
   }
 
   // Objetivos vigentes: cercanos a la ubicación recibida y de asistencias anteriores
-  async getObjetivosSugeridos(personalId: number, chatId: string) {
+  async getObjetivosSugeridos(personalId: number, latitud:number, longitud:number) {
     const queryRunner = await dbServer.connection()
     try {
-      const ubicacion = botServer.iaHistorial[chatId]?.ubicacion ?? null
       const vigentes = await this.getObjetivosVigentes(queryRunner)
       const conDistancia = vigentes.map((obj: any) => ({
         ...obj,
-        distanciaMetros: ubicacion && obj.Latitud != null
-          ? Math.round(distanciaEnMetros(ubicacion.latitud, ubicacion.longitud, obj.Latitud, obj.Longitud))
+        distanciaMetros:  obj.Latitud != null
+          ? Math.round(distanciaEnMetros(latitud, longitud, obj.Latitud, obj.Longitud))
           : null
       }))
       const salida = (obj: any) => ({
@@ -208,8 +206,6 @@ export class AsistenciaController extends BaseController {
         .filter((obj: any) => !!obj)
         .map(salida)
 
-      if (!ubicacion)
-        return { ubicacionRecibida: false, accion: 'Pedile que comparta su ubicación actual.', deAsistenciasAnteriores }
 
       const ordenados = conDistancia
         .filter((obj: any) => obj.distanciaMetros != null)
@@ -309,7 +305,7 @@ export class AsistenciaController extends BaseController {
   }
 
   // Graba un INGRESO o EGRESO en RegistroAsistencia; valida que no queden dos ingresos abiertos
-  async registrarAsistencia(personalId: number, chatId: string, args: any) {
+  async registrarAsistencia(personalId: number, chatId: string, latitude:number, longitude:number, args: any) {
     const Tipo = String(args?.Tipo ?? '').trim().toUpperCase()
     if (Tipo !== 'ING' && Tipo !== 'EGR')
       return { Error: 'TIPO_INVALIDO', mensaje: 'La operación debe ser ING (ingreso) o EGR (egreso).' }
@@ -349,10 +345,9 @@ export class AsistenciaController extends BaseController {
     const ObservacionesRegistro = [Observaciones, notaVerificacion].filter(Boolean).join(' | ') || null
 
     // El objetivo tiene que existir y estar vigente
-    const objetivo: any = await this.getObjetivoPorCodigo(chatId, `${args?.ClienteId}/${args?.ClienteElementoDependienteId}`)
+    const objetivo: any = await this.getObjetivoPorCodigo(latitude, longitude, `${args?.ClienteId}/${args?.ClienteElementoDependienteId}`)
     if (objetivo.Error) return objetivo
 
-    const ubicacion = botServer.iaHistorial[chatId]?.ubicacion ?? null
     const usuario = BaseController.getUser(null)
     const ip = '::1'
     const queryRunner = await dbServer.connection()
@@ -385,12 +380,12 @@ export class AsistenciaController extends BaseController {
         return { Error: 'FECHA_ANTERIOR_AL_ULTIMO', mensaje: 'La fecha y hora tiene que ser posterior al último registro de asistencia.', ultimoRegistro: ultimo }
       }
 
-      const GeoReferenciacion = ubicacion ? `${ubicacion.latitud},${ubicacion.longitud}` : ''
+      const GeoReferenciacion = latitude?`${latitude},${longitude}` : ''
       // Todo lo recibido y lo resuelto, para auditoría
       const ObjetoCompleto = JSON.stringify({
         PersonalId: personalId, chatId, Tipo, FechaHora, horaInformada,
         ClienteId: objetivo.ClienteId, ClienteElementoDependienteId: objetivo.ClienteElementoDependienteId,
-        Objetivo: objetivo.Objetivo, ubicacion, distanciaMetros: objetivo.distanciaMetros,
+        Objetivo: objetivo.Objetivo, latitude,longitude, distanciaMetros: objetivo.distanciaMetros,
         distanciaMaximaMetros: objetivo.distanciaMaximaMetros, Observaciones: ObservacionesRegistro,
         VerificacionFacial, similitud: verificacion?.similitud ?? null, usuario, fechaRegistro: ahora
       })
@@ -437,7 +432,7 @@ export class AsistenciaController extends BaseController {
   // Un egreso no se modifica porque tiene que ser del mismo objetivo que su ingreso.
   async modificarObjetivoUltimoRegistro(personalId: number, chatId: string, args: any) {
     // El objetivo nuevo tiene que existir y estar vigente
-    const objetivo: any = await this.getObjetivoPorCodigo(chatId, `${args?.ClienteId}/${args?.ClienteElementoDependienteId}`)
+    const objetivo: any = await this.getObjetivoPorCodigo(null,null, `${args?.ClienteId}/${args?.ClienteElementoDependienteId}`)
     if (objetivo.Error) return objetivo
 
     const Motivo = String(args?.Observaciones ?? '').trim() || null
@@ -608,24 +603,22 @@ export class AsistenciaController extends BaseController {
   }
 
   // Resultado de la verificación facial e intentos restantes
-  async getResultadoVerificacion(personalId: number, chatId: string) {
-    const sesion = botServer.iaHistorial[chatId]
-    const verificacion = sesion?.verificacionFacial
-    const ubicacionRecibida = !!sesion?.ubicacion
+  async getResultadoVerificacion(personalId: number, verificacion:any) {
     if (!verificacion)
-      return { estado: 'SIN_LINK', intentosRestantes: null, ubicacionRecibida }
-
+      return { estado: 'SIN_LINK', intentosRestantes: null }
     const queryRunner = await dbServer.connection()
+    let estado = verificacion.resultado
+    let intentosRestantes=0
     try {
       const { intentosVerificacionFacial } = await this.getParametrosAsistencia(queryRunner)
-      const intentosRestantes = Math.max(intentosVerificacionFacial - verificacion.intentos, 0)
-      let estado = verificacion.resultado
+      intentosRestantes = Math.max(intentosVerificacionFacial - verificacion.intentos, 0)
       if (!estado)
         estado = Date.now() - new Date(verificacion.generado).getTime() > IA_HISTORIAL_TIMEOUT_MS ? 'VENCIDO' : 'PENDIENTE'
-      return { estado, intentosRestantes, ubicacionRecibida }
     } finally {
       await queryRunner.release()
     }
+    return { estado, intentosRestantes }
+
   }
 
   // Pantalla de registro de asistencia en modo verificación: valida el enlace y devuelve la persona
